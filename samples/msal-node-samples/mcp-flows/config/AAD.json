@@ -6,16 +6,16 @@
     },
     "request": {
         "authCodeUrlParameters": {
-            "scopes": ["user.read"],
+            "scopes": ["User.read"],
             "redirectUri": "http://localhost:3000/redirect"
         },
         "tokenRequest": {
             "redirectUri": "http://localhost:3000/redirect",
-            "scopes": ["user.read"],
+            "scopes": ["User.read"],
             "resource": "https://example.microsoft.com"
         },
         "silentRequest": {
-            "scopes": ["user.read"],
+            "scopes": ["User.read"],
             "resource": "https://example.microsoft.com"
         }
     }

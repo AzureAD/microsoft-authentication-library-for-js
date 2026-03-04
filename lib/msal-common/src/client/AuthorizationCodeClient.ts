@@ -339,6 +339,11 @@ export class AuthorizationCodeClient {
             this.oidcDefaultScopes
         );
 
+        RequestParameterBuilder.addResource(
+            parameters,
+            request.resource
+        )
+
         // add code: user set, not validated
         RequestParameterBuilder.addAuthorizationCode(parameters, request.code);
 

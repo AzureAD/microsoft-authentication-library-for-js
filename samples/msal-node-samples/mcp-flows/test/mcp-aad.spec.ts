@@ -29,7 +29,12 @@ const getTokenMcp = require("../index");
 
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
-const config = require("../config/AAD.json");
+const sampleConfig = require("../config/AAD.json");
+
+const TEST_RESOURCE = "https://graph.microsoft.com";
+const config = JSON.parse(JSON.stringify(sampleConfig));
+config.request.tokenRequest.resource = TEST_RESOURCE;
+config.request.silentRequest.resource = TEST_RESOURCE;
 
 const DIFFERENT_RESOURCE = "https://differentresource.microsoft.com";
 
