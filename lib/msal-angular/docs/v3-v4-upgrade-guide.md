@@ -33,4 +33,4 @@ The following developer samples are now available:
 
 The samples demonstrates basic configuration and usage, and may be improved and added to incrementally.
 
-See [here](hhttps://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-angular-samples) for a list of the current MSAL Angular samples and the features demonstrated.
+See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-angular-samples) for a list of the current MSAL Angular samples and the features demonstrated.

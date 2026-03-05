@@ -8,7 +8,7 @@ MSAL Node supports server based authentication for public/confidential apps. Thi
 
 ### What is the status of ADAL Node? Is a migration guide available?
 
-ADAL Node is currently in maintanence and we advise all users to move to MSAL Node as possible. MSAL Node is designed to completely replace ADAL node. For those looking to migrate from ADAL to MSAL we have provided a [Migration Document](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-node/docs/migration.md) to help in the migration. Please note that all apps may not have a smooth migration as this is complete overhaul of the old functionality.
+ADAL Node is currently in maintenance and we advise all users to move to MSAL Node as possible. MSAL Node is designed to completely replace ADAL node. For those looking to migrate from ADAL to MSAL we have provided a [Migration Document](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-node/docs/migration.md) to help in the migration. Please note that all apps may not have a smooth migration as this is complete overhaul of the old functionality.
 
 ### What are the services supported?
 
