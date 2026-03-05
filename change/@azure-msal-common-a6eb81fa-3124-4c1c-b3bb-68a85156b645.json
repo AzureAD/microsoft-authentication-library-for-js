@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Update links for docs for v4",
+  "comment": "Update links for docs for v4 [#8364](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8364)",
   "packageName": "@azure/msal-common",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "none"
