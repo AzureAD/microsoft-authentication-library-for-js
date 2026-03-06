@@ -999,7 +999,7 @@ export function buildAccountToCache(cacheStorage: CacheManager, authority: Autho
 // Warning: (ae-missing-release-tag) "buildClientConfiguration" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export function buildClientConfiguration({ authOptions: userAuthOptions, systemOptions: userSystemOptions, loggerOptions: userLoggerOption, storageInterface: storageImplementation, networkInterface: networkImplementation, cryptoInterface: cryptoImplementation, clientCredentials: clientCredentials, libraryInfo: libraryInfo, telemetry: telemetry, serverTelemetryManager: serverTelemetryManager, persistencePlugin: persistencePlugin, serializableCache: serializableCache, }: ClientConfiguration): CommonClientConfiguration;
+export function buildClientConfiguration(input: ClientConfiguration): CommonClientConfiguration;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -2227,7 +2227,7 @@ function generateAccountId(accountEntity: AccountEntity): string;
 // Warning: (ae-missing-release-tag) "generateAppMetadataKey" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-function generateAppMetadataKey({ environment, clientId, }: AppMetadataEntity): string;
+function generateAppMetadataKey(input: AppMetadataEntity): string;
 
 // Warning: (ae-missing-release-tag) "generateAuthorityMetadataExpiresAt" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
