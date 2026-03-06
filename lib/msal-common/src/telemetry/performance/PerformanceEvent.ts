@@ -192,9 +192,24 @@ export type PerformanceEvent = {
     incompleteSubsCount?: number;
 
     /**
+     * Network connection info from the Network Information API (Chromium only).
+     * Read from: https://developer.mozilla.org/docs/Web/API/NetworkInformation
+     */
+    networkEffectiveType?: string;
+    networkRtt?: number;
+
+    /**
      * CorrelationId of the in progress iframe request that was awaited
      */
     awaitIframeCorrelationId?: string;
+    /**
+     * Monitor_window_timeout debugging telemetry
+     */
+    iframePollIntervalMs?: number;
+    iframeTimeoutMs?: number;
+    iframeTickCount?: number;
+    crossOriginTickCount?: number;
+    isRedirectUriCrossOrigin?: boolean;
 
     /**
      * Size of the id token
@@ -499,4 +514,9 @@ export const IntFields: ReadonlySet<string> = new Set([
     "currRefreshCount",
     "expiredCacheRemovedCount",
     "upgradedCacheCount",
+    "networkRtt",
+    "iframePollIntervalMs",
+    "iframeTimeoutMs",
+    "iframeTickCount",
+    "crossOriginTickCount",
 ]);

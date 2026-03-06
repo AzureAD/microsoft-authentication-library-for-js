@@ -3421,7 +3421,14 @@ export type PerformanceEvent = {
     incompleteSubMeasurements?: Map<string, SubMeasurement>;
     visibilityChangeCount?: number;
     incompleteSubsCount?: number;
+    networkEffectiveType?: string;
+    networkRtt?: number;
     awaitIframeCorrelationId?: string;
+    iframePollIntervalMs?: number;
+    iframeTimeoutMs?: number;
+    iframeTickCount?: number;
+    crossOriginTickCount?: number;
+    isRedirectUriCrossOrigin?: boolean;
     idTokenSize?: number;
     accessTokenSize?: number;
     refreshTokenSize?: number | undefined;
