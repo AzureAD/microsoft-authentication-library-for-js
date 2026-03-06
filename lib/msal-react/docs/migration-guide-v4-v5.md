@@ -13,7 +13,7 @@ Please see the [MSAL Browser v4-v5 migration guide](https://github.com/AzureAD/m
 
 MSAL Browser v5 requires a dedicated redirect page/bridge for authentication flows.
 
-Please see the [COOP section in the MSAL Browser v4-v5 migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v4-migration.md#cross-origin-opener-policy-coop-support)
+Please see the [COOP section in the MSAL Browser v4-v5 migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v4-migration.md#cross-origin-opener-policy-coop-support).
 
 ## Dropped support for old React versions
 MSAL React v5 supports React 19.2.1 or greater. It no longer supports React 16, 17, or 18.

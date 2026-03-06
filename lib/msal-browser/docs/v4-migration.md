@@ -432,7 +432,7 @@ import {
 pca.addEventCallback((event) => {
     if (event.eventType === EventType.LOGIN_SUCCESS) {
         const result = event.payload as AuthenticationResult;
-        setAccount(result.account); // Can silently fail if payload is AccountInfo
+        setAccount(result.account); // Will silently fail in v5 where payload is AccountInfo, not AuthenticationResult
     }
 });
 ```
