@@ -43,6 +43,15 @@ export class MsalInterceptor implements HttpInterceptor {
     @Inject(DOCUMENT) document?: any
   ) {
     this._document = document as Document;
+
+    if (this.msalInterceptorConfig.strictMatching === undefined) {
+      this.authService
+        .getLogger()
+        .warning(
+          `[MSAL] strictMatching is enabled by default. See: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/msal-interceptor.md`,
+          ""
+        );
+    }
   }
 
   intercept(
