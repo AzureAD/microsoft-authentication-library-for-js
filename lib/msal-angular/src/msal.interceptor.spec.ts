@@ -1213,10 +1213,7 @@ describe("MsalInterceptor - strict matching warning", () => {
       teardown: { destroyAfterEach: false },
     });
 
-    const spy = spyOn(
-      TestBed.inject(MsalService).getLogger(),
-      "warning"
-    );
+    const spy = spyOn(TestBed.inject(MsalService).getLogger(), "warning");
     interceptor = TestBed.inject(MsalInterceptor);
     return spy;
   }
