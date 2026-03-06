@@ -18,9 +18,9 @@ $ cd microsoft-authentication-library-for-js
 $ git remote add upstream git@github.com:AzureAD/microsoft-authentication-library-for-js.git
 ```
 
-Now decide if you want your feature or bug fix to go into the dev branch or the master branch. **All bug fixes and new features should go into the dev branch.**
+Now decide if you want your feature or bug fix to go into the `dev` branch or the `v4-lts` branch. **All new features and bug fixes for the current major version should go into the dev branch. Bug fixes for v4 should go into the v4-lts branch.**
 
-The master branch is effectively frozen; patches that change the SDKs protocols or API surface area or affect the run-time behavior of the SDK will be rejected.
+The `v4-lts` branch is effectively frozen for new features; patches that change the SDKs protocols or API surface area or affect the run-time behavior of the SDK will be rejected.
 
 Some of our SDKs have bundled dependencies that are not part of the project proper. Any changes to files in those directories or its subdirectories should be sent to their respective projects. Do not send your patch to us, we cannot accept it.
 
@@ -202,7 +202,7 @@ You will need to add the changefiles to your branch before it can be merged. The
 
 -   `npm run beachball:change`
 
-Generates a changefile based on the `master` branch. This should be run on your PR before merging to `dev`, **AFTER** you have created your PR. When this command is run, the type of change needs to be selected:
+Generates a changefile based on the `dev` branch. This should be run on your PR before merging to `dev`, **AFTER** you have created your PR. When this command is run, the type of change needs to be selected:
 
 ![Select Change Type](./docs/images/beachball-changetype.png)
 
@@ -223,7 +223,7 @@ Checks that changefiles have been generated for relevant changed packages. Used 
 
 -   `npm run beachball:bump`
 
-Bumps versions for packages with relevant changefiles. Run on `master` branch to check which packages are slated for release.
+Bumps versions for packages with relevant changefiles. Run on `dev` branch to check which packages are slated for release.
 
 **IMPORTANT NOTE**: This should **NOT** be done when merging a PR. You should ONLY do this on your local branch to ensure there are no unexpected changes.
 
