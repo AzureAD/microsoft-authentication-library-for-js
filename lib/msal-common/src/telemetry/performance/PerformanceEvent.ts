@@ -782,9 +782,22 @@ export type PerformanceEvent = {
     incompleteSubsCount?: number;
 
     /**
+     * Network connection info from the Network Information API (Chromium only).
+     * Read from: https://developer.mozilla.org/docs/Web/API/NetworkInformation
+     */
+    networkEffectiveType?: string;
+    networkRtt?: number;
+
+    /**
      * CorrelationId of the in progress iframe request that was awaited
      */
     awaitIframeCorrelationId?: string;
+    /**
+     * Monitor_window_timeout debugging telemetry 
+     */
+    iframeTickCnt?: number;
+    crossOriginTickCnt?: number;
+    isRedirectUriCrossOrigin?: boolean;
     /**
      * Amount of times queued in the JS event queue.
      *

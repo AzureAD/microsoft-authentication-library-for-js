@@ -128,6 +128,9 @@ export async function monitorIframeForHash(
         correlationId
     );
 
+    let totalTickCnt = 0;
+    let crossOriginTickCnt = 0;
+
     return new Promise<string>((resolve, reject) => {
         if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
             logger.warning(
@@ -149,6 +152,7 @@ export async function monitorIframeForHash(
         }, timeout);
 
         const intervalId = window.setInterval(() => {
+            totalTickCnt++;
             let href: string = "";
             const contentWindow = iframe.contentWindow;
             try {
@@ -158,7 +162,9 @@ export async function monitorIframeForHash(
                  * since we need the interval to keep running while on STS UI.
                  */
                 href = contentWindow ? contentWindow.location.href : "";
-            } catch (e) {}
+            } catch (e) {
+                crossOriginTickCnt++;
+            }
 
             if (!href || href === "about:blank") {
                 return;
@@ -177,6 +183,10 @@ export async function monitorIframeForHash(
             resolve(responseString);
         }, pollIntervalMilliseconds);
     }).finally(() => {
+        performanceClient.addFields({
+            iframeTickCnt: totalTickCnt,
+            crossOriginTickCnt: crossOriginTickCnt,
+        }, correlationId);
         invoke(
             removeHiddenIframe,
             PerformanceEvents.RemoveHiddenIframe,

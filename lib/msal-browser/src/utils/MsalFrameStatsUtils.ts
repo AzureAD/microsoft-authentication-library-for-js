@@ -5,6 +5,29 @@
 
 import { InProgressPerformanceEvent, Logger } from "@azure/msal-common/browser";
 
+interface NetworkConnection {
+    effectiveType?: string;
+    rtt?: number;
+}
+
+/**
+ * Get network information for telemetry purposes. This is only supported in Chromium-based browsers.
+ * @returns 
+ */
+export function getNetworkInfo(): NetworkConnection{
+    if (typeof window === "undefined" || !window.navigator) {
+        return {};
+    }
+    const connection: NetworkConnection | undefined =
+        "connection" in window.navigator
+            ? (window.navigator as Navigator & { connection: NetworkConnection }).connection
+            : undefined;
+    return {
+        effectiveType: connection?.effectiveType,
+        rtt: connection?.rtt,
+    };
+}
+
 export function collectInstanceStats(
     currentClientId: string,
     performanceEvent: InProgressPerformanceEvent,
