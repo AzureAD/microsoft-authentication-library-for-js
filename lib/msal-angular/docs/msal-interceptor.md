@@ -151,6 +151,8 @@ Other things to note regarding the `protectedResourceMap`:
 
 In msal-angular v5, URL component pattern matching for `protectedResourceMap` entries uses strict matching semantics by default. The `strictMatching` field on `MsalInterceptorConfiguration` controls this behaviour.
 
+> **⚠️ Important:** If your application sets `protectedResourceMap` keys dynamically (e.g. from environment files, `APP_INITIALIZER`, or JSON configuration) and those keys are base URLs without sub-paths or wildcards, strict matching can silently prevent the `Authorization` header from being attached, resulting in **401 errors with no build-time or runtime warning**. See [Troubleshooting strict matching](#troubleshooting-strict-matching) below.
+
 #### What strict matching changes
 
 | Behaviour | Legacy (`strictMatching: false`) | Strict (default in v5) |
@@ -165,6 +167,16 @@ With strict matching (the v5 default):
 - A pattern like `*.contoso.com` matches `app.contoso.com` but **not** `a.b.contoso.com` (wildcard cannot span dot separators).
 - A pattern like `https://graph.microsoft.com/v1.0/me` matches only that exact URL.
 
+#### Common failure patterns
+
+The following `protectedResourceMap` key patterns work under legacy matching but silently fail with strict matching:
+
+| Key pattern | Outgoing request URL | Result under strict matching | Fix |
+|---|---|---|---|
+| `https://api.example.com` | `https://api.example.com/v1/users` | ❌ No match — key resolves to path `/`, request has path `/v1/users` | `https://api.example.com/*` |
+| `https://api.example.com/` | `https://api.example.com/v1/users` | ❌ No match — trailing slash anchors the pattern to exactly `/` | `https://api.example.com/*` |
+| `environment.apiConfig.uri` (e.g. `https://api.example.com`) | `https://api.example.com/v1/users` | ❌ No match — same as above | `` `${environment.apiConfig.uri}/*` `` |
+
 #### Default behaviour in v5 (no configuration needed)
 
 Strict matching is enabled by default. No additional configuration is required:
@@ -173,7 +185,8 @@ Strict matching is enabled by default. No additional configuration is required:
 {
     interactionType: InteractionType.Redirect,
     protectedResourceMap: new Map([
-        ["https://*.contoso.com/api", ["contoso.scope"]],
+        // Use wildcards or exact paths so strict matching works correctly
+        ["https://*.contoso.com/api/*", ["contoso.scope"]],
         ["https://graph.microsoft.com/v1.0/me", ["user.read"]]
     ])
     // strictMatching defaults to true in v5
@@ -196,6 +209,84 @@ If your patterns rely on the looser matching from v4, you can set `strictMatchin
     strictMatching: false  // Use legacy matching for backwards compatibility
 }
 ```
+
+#### Guidance for environment-driven configurations
+
+If your `protectedResourceMap` keys reference Angular `environment` values (e.g. `environment.apiConfig.uri`), check whether those values are **exact paths** (e.g. `https://graph.microsoft.com/v1.0/me`) or **bare base URLs** (e.g. `https://api.example.com`). Exact paths work correctly with strict matching and need no special handling:
+
+```javascript
+export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
+  const protectedResourceMap = new Map<string, Array<string>>();
+  // environment.apiConfig.uri is an exact path (e.g. "https://graph.microsoft.com/v1.0/me")
+  // — strict matching works correctly
+  protectedResourceMap.set(environment.apiConfig.uri, environment.apiConfig.scopes);
+
+  return {
+    interactionType: InteractionType.Redirect,
+    protectedResourceMap,
+  };
+}
+```
+
+If the environment value is a bare base URL and you need to match sub-paths, append a `/*` wildcard:
+
+```javascript
+  // environment.apiConfig.uri is a base URL (e.g. "https://api.example.com")
+  // Append /* to match all sub-paths
+  protectedResourceMap.set(`${environment.apiConfig.uri}/*`, environment.apiConfig.scopes);
+```
+
+For truly **dynamic** configurations where the key shape is unknown at build time (e.g. `APP_INITIALIZER`, JSON loaded via `fetch`, or `platformBrowserDynamic`), set `strictMatching: false` as a temporary safe default. See [Fix options → Option B](#fix-options) below for a code example.
+
+#### Troubleshooting strict matching
+
+##### Symptoms
+
+- API requests return **401 Unauthorized** after upgrading to `@azure/msal-angular` v5 (or between v5 minor versions such as 5.0.x → 5.1.x).
+- The `Authorization: Bearer <token>` header is **missing** from outgoing HTTP requests.
+- No build-time or runtime errors are reported — the failure is **silent**.
+- The issue may only appear in certain environments (e.g. staging/production) where the API base URL differs from development.
+
+##### Fix options
+
+**Option A: Update keys to work with strict matching (recommended)**
+
+Update your `protectedResourceMap` keys to use exact paths or wildcards that match under strict matching rules. This is the preferred approach because strict matching is safer and more predictable:
+
+```javascript
+{
+    interactionType: InteractionType.Redirect,
+    protectedResourceMap: new Map([
+        // Exact path — matches only this URL
+        ["https://graph.microsoft.com/v1.0/me", ["user.read"]],
+        // Wildcard — matches all sub-paths of the API
+        ["https://api.example.com/v1/*", ["api.scope"]]
+    ])
+    // strictMatching defaults to true — no need to set it
+}
+```
+
+**Option B: Set `strictMatching: false` (fallback for dynamic configurations)**
+
+If your `protectedResourceMap` keys are loaded dynamically at runtime (e.g. from `APP_INITIALIZER`, JSON config, or `platformBrowserDynamic`) and you cannot guarantee they contain exact paths or wildcards, set `strictMatching: false` as a temporary safe default:
+
+```javascript
+{
+    interactionType: InteractionType.Redirect,
+    protectedResourceMap: new Map([
+        [config.apiUri, config.apiScopes]
+    ]),
+    // Dynamic keys may be base URLs without wildcards.
+    // Remove once keys are migrated to exact paths or wildcard patterns.
+    strictMatching: false
+}
+```
+
+> **Note:** Legacy matching (`strictMatching: false`) is provided for backwards compatibility and may be removed in a future major version.
+
+##### Runtime warning
+
+`MsalInterceptor` emits a **one-time runtime warning** via the MSAL logger during initialization when `strictMatching` is not explicitly configured. If you see this warning, follow the fix options above.
 
 ### Optional authRequest
 
