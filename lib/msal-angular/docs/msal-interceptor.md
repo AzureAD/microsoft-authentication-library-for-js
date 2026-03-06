@@ -151,7 +151,7 @@ Other things to note regarding the `protectedResourceMap`:
 
 In msal-angular v5, URL component pattern matching for `protectedResourceMap` entries uses strict matching semantics by default. The `strictMatching` field on `MsalInterceptorConfiguration` controls this behaviour.
 
-> **⚠️ Important:** If your application sets `protectedResourceMap` keys dynamically (e.g. from environment files, `APP_INITIALIZER`, or JSON configuration) and those keys are base URLs without sub-paths or wildcards, strict matching can silently prevent the `Authorization` header from being attached, resulting in **401 errors with no build-time or runtime warning**. See [Troubleshooting strict matching](#troubleshooting-strict-matching) below.
+> **⚠️ Important:** If your application sets `protectedResourceMap` keys dynamically (e.g. from environment files, `APP_INITIALIZER`, or JSON configuration) and those keys are base URLs without sub-paths or wildcards, strict matching can silently prevent the `Authorization` header from being attached, resulting in **401 errors with no build-time error and no per-request warning — only a one-time initialization warning if `strictMatching` is left unconfigured**. See [Troubleshooting strict matching](#troubleshooting-strict-matching) below.
 
 #### What strict matching changes
 
