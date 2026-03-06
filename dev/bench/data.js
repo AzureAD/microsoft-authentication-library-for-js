@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1772738728758,
+  "lastUpdate": 1772759889091,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19743,6 +19743,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.80%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bd0b1e1857fd83db122c55dac990aa55f087b86c",
+          "message": "Fix JSON object conversion in PlatformDOMRequest v5 (#8348)\n\nUpdate the getDOMExtraParams method to stringify JS object properly and\nignore empty, null and undefined values from the extraParameters.\n\n---------\n\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2026-03-05T17:11:59-08:00",
+          "tree_id": "e92d378b3ce66e91b6860a647f639d83bd32d70a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/bd0b1e1857fd83db122c55dac990aa55f087b86c"
+        },
+        "date": 1772759885405,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 250646,
+            "range": "±0.91%",
+            "unit": "ops/sec",
+            "extra": "210 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 242265,
+            "range": "±0.73%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
