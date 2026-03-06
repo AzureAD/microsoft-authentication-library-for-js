@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update migration guide to specify minimum React version 19.2.1 [#8386](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8386)",
+  "packageName": "@azure/msal-react",
+  "email": "copilot@github.com",
+  "dependentChangeType": "none"
+}
