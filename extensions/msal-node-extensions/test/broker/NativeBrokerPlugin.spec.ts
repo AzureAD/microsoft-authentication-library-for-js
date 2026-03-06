@@ -761,8 +761,8 @@ if (process.platform === "win32") {
                 const authParamsInstance = (
                     msalNodeRuntime.AuthParameters as jest.Mock
                 ).mock.results[
-                    (msalNodeRuntime.AuthParameters as jest.Mock).mock
-                        .results.length - 1
+                    (msalNodeRuntime.AuthParameters as jest.Mock).mock.results
+                        .length - 1
                 ].value;
                 expect(
                     authParamsInstance.SetAdditionalParameter
@@ -802,11 +802,10 @@ if (process.platform === "win32") {
                     redirectUri: TEST_REDIRECTURI,
                     resource: "https://graph.microsoft.com",
                 };
-                const response =
-                    await nativeBrokerPlugin.acquireTokenSilent(request);
-                expect(response.resource).toBe(
-                    "https://graph.microsoft.com"
+                const response = await nativeBrokerPlugin.acquireTokenSilent(
+                    request
                 );
+                expect(response.resource).toBe("https://graph.microsoft.com");
             });
 
             it("Does not include resource in AuthenticationResult when not provided", async () => {
@@ -836,8 +835,9 @@ if (process.platform === "win32") {
                     authority: testAuthenticationResult.authority,
                     redirectUri: TEST_REDIRECTURI,
                 };
-                const response =
-                    await nativeBrokerPlugin.acquireTokenSilent(request);
+                const response = await nativeBrokerPlugin.acquireTokenSilent(
+                    request
+                );
                 expect(response).toStrictEqual<AuthenticationResult>(
                     testAuthenticationResult
                 );

@@ -1307,14 +1307,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
-            const response =
-                await platformAuthInteractionClient.acquireToken({
-                    scopes: ["User.Read"],
-                    resource: "https://graph.microsoft.com",
-                });
-            expect(response.resource).toEqual(
-                "https://graph.microsoft.com"
-            );
+            const response = await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                resource: "https://graph.microsoft.com",
+            });
+            expect(response.resource).toEqual("https://graph.microsoft.com");
         });
     });
 

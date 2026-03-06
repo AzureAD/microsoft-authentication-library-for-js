@@ -634,7 +634,10 @@ export function addEARParameters(
     parameters.set(AADServerParamKeys.EAR_JWE_CRYPTO, jweCryptoB64Encoded);
 }
 
-export function addResource(parameters: Map<string, string>, resource?: string): void {
+export function addResource(
+    parameters: Map<string, string>,
+    resource?: string
+): void {
     if (resource) {
         parameters.set(AADServerParamKeys.RESOURCE, resource);
     }

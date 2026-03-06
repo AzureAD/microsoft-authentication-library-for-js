@@ -88,7 +88,8 @@ declare namespace AADServerParamKeys {
         BROKER_REDIRECT_URI,
         INSTANCE_AWARE,
         EAR_JWK,
-        EAR_JWE_CRYPTO
+        EAR_JWE_CRYPTO,
+        RESOURCE
     }
 }
 export { AADServerParamKeys }
@@ -414,6 +415,11 @@ function addRefreshToken(parameters: Map<string, string>, refreshToken: string):
 //
 // @public
 function addRequestTokenUse(parameters: Map<string, string>, tokenUse: string): void;
+
+// Warning: (ae-missing-release-tag) "addResource" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+function addResource(parameters: Map<string, string>, resource?: string): void;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-forgotten-export) The symbol "Constants_2" needs to be exported by the entry point index.d.ts
@@ -3097,6 +3103,7 @@ export type NativeRequest = {
     shrNonce?: string;
     accountId?: string;
     forceRefresh?: boolean;
+    resource?: string;
     extraParameters?: StringDict;
     extraScopesToConsent?: Array<string>;
     loginHint?: string;
@@ -3904,7 +3911,8 @@ declare namespace RequestParameterBuilder {
         addThrottling,
         addLogoutHint,
         addBrokerParameters,
-        addEARParameters
+        addEARParameters,
+        addResource
     }
 }
 
@@ -3933,6 +3941,11 @@ export type RequestThumbprint = {
     shrOptions?: ShrOptions;
     embeddedClientId?: string;
 };
+
+// Warning: (ae-missing-release-tag) "RESOURCE" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const RESOURCE = "resource";
 
 // Warning: (ae-missing-release-tag) "RESOURCE_DELIM" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -4828,7 +4841,7 @@ const X_MS_LIB_CAPABILITY_VALUE: string;
 // src/client/AuthorizationCodeClient.ts:223:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:224:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:301:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:535:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:540:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:244:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:329:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:330:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

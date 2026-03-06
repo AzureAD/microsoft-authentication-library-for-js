@@ -10,27 +10,22 @@ import {
     CacheHelpers,
     CacheManager,
     ICrypto,
-    LogLevel,
     Logger,
     createClientAuthError,
     Constants,
 } from "@azure/msal-common/browser";
 import {
     AuthError,
-    BrowserAuthErrorCodes,
-    BrowserCacheLocation,
     CacheLookupPolicy,
     ClientAuthError,
     ClientAuthErrorCodes,
     Configuration,
     IPublicClientApplication,
-    SilentRequest,
 } from "../../src/index.js";
 import { buildConfiguration } from "../../src/config/Configuration.js";
 import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
-    TEST_DATA_CLIENT_INFO,
     TEST_TOKENS,
 } from "../utils/StringConstants.js";
 import { IBridgeProxy } from "../../src/naa/IBridgeProxy.js";
@@ -44,14 +39,11 @@ import {
     NAA_CLIENT_ID,
     NAA_CORRELATION_ID,
     NAA_SCOPE,
-    SILENT_TOKEN_REQUEST,
     SILENT_TOKEN_RESPONSE,
 } from "../naa/BridgeProxyConstants.js";
 import BridgeProxy from "../../src/naa/BridgeProxy.js";
 import { NestedAppAuthAdapter } from "../../src/naa/mapping/NestedAppAuthAdapter.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
-import { getAccount } from "../../src/cache/AccountManager.js";
-import exp from "constants";
 import { TestTimeUtils } from "msal-test-utils";
 
 function stubProvider(config: Configuration) {
