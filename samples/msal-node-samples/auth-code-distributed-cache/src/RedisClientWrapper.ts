@@ -16,7 +16,7 @@ const EMPTY_STRING = "";
  * Simple persistence client helper, using Redis (node-redis). You must have redis installed
  * on your machine and have redis server listening. Note that this is only for illustration,
  * and you'll need to consider cache eviction policies and handle cache server connection
- * issues. For more information, visit: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/caching.md
+ * issues. For more information, visit: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-node/docs/caching.md
  */
 class RedisClientWrapper implements ICacheClient {
     cacheClient: RedisClientType;

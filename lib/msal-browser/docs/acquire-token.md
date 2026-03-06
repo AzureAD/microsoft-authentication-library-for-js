@@ -101,7 +101,7 @@ When requesting tokens, always use `acquireTokenSilent` first, falling back to i
 
 Concurrent silent requests are permitted. If two or more silent requests are made concurrently, only one would go to the network (if needed), but all would receive the response, as long as those requests are for the same request parameters (e.g. scopes).
 
-Concurrent interactive requests are **not** permitted. If two or more interactive requests are made concurrently, only the first one will start an interaction, while the rest will fail with [interaction_in_progress](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md#interaction_in_progress) error. We recommend getting familiar with this error and possible remedies to avoid running into it in your applications.
+Concurrent interactive requests are **not** permitted. If two or more interactive requests are made concurrently, only the first one will start an interaction, while the rest will fail with [interaction_in_progress](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/errors.md#interaction_in_progress) error. We recommend getting familiar with this error and possible remedies to avoid running into it in your applications.
 
 ### Make one token request per resource
 

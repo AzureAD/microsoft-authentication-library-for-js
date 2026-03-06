@@ -69,7 +69,7 @@
 
 **Common Issues**
 
-1. [Why is MSAL throwing an error?](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs/errors.md)
+1. [Why is MSAL throwing an error?](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-browser/docs/errors.md)
 
 ---
 
@@ -89,7 +89,7 @@ MSAL.js also supports the following environments:
 
 -   WebViews
 -   Office Add-ins (see the [sample](https://github.com/OfficeDev/PnP-OfficeAddins/tree/main/Samples/auth/Office-Add-in-Microsoft-Graph-React))
--   Chromium Extensions (see the [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/ChromiumExtensionSample))
+-   Chromium Extensions (see the [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-browser-samples/ChromiumExtensionSample))
 -   Teams Applications (see the [sample](https://github.com/pnp/teams-dev-samples/tree/main/samples/tab-sso/src/nodejs))
 
 ### Known Issues with Certain Browsers
@@ -108,7 +108,7 @@ For problems specific to mobile browsers not listed here, please open an issue w
 
 ## I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?
 
-Please refer to our migration guide [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v1-migration.md).
+Please refer to our migration guide [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/v1-migration.md).
 
 ## Does this library work for iframed applications?
 
@@ -177,7 +177,7 @@ As this function returns a promise you can call `.then` and `.catch`, similar to
 
 Please ensure `handleRedirectPromise` has resolved before invoking any other MSAL method. If your app was not loaded as a result of a redirect operation `handleRedirectPromise` will immediately return `null`.
 
-Please review one of our samples ([for instance](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/default)) to see the redirect flow in action.
+Please review one of our samples ([for instance](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-browser-samples/VanillaJSTestApp2.0/app/default)) to see the redirect flow in action.
 
 ## How can I support authentication with personal Microsoft accounts only?
 
@@ -249,8 +249,8 @@ No, the account APIs reflect local account state only. If you need to ensure the
 
 Deciding which account to use to acquire tokens is app dependent, however, `@azure/msal-browser` provides 2 convenient APIs to help you keep track of which account is currently "active" and should be used for token requests. Once you've determined which account you wish to use you can call the `setActiveAccount()` API to make sure MSAL uses this account for all subsequent requests. If you would like to switch to a different account, simply call `setActiveAccount()` again and pass it the new account you would like to use. If you need to know which account is currently "active" you can use the `getActiveAccount()` API.
 
-You can read more about the account APIs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/accounts.md).
-You can also find an example implementation of an account switcher using the `@azure/msal-react` wrapper in our [react-router-sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample).
+You can read more about the account APIs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/accounts.md).
+You can also find an example implementation of an account switcher using the `@azure/msal-react` wrapper in our [react-router-sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-react-samples/react-router-sample).
 
 # How can I avoid prompting users if SSO for one or more accounts is available?
 
@@ -266,7 +266,7 @@ We offer two methods of storage for Msal, `localStorage` and `sessionStorage`. O
 
 ## What are the possible configuration options?
 
-For MSAL.js 2.x, please review [this document](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md).
+For MSAL.js 2.x, please review [this document](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/configuration.md).
 
 ## Where is the `authority` domain string on Azure AD Portal?
 
@@ -329,7 +329,7 @@ try {
 
 ## How do I acquire an access token? How do I use it?
 
-Please refer to token guide [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md).
+Please refer to token guide [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/acquire-token.md).
 
 ## How do I acquire a refresh token?
 
@@ -345,7 +345,7 @@ The tokens returned by Azure AD have a default lifetime of 1 hour. However, as l
 
 ## How can I acquire tokens faster?
 
-Please refer to our performance guide [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/performance.md)
+Please refer to our performance guide [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/performance.md)
 
 ## I'm seeing scopes `openid`, `profile`, `email`, `offline_access` and `User.Read` in my tokens, even though I haven't requested them. What are they?
 
@@ -365,7 +365,7 @@ Please see the documentation on [Tenancy in Azure Active Directory](https://docs
 
 ## My application has multiple resources it needs to access to. How should I handle scopes for access tokens?
 
-Please see the doc about resources and scopes [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md)
+Please see the doc about resources and scopes [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/resources-and-scopes.md)
 
 ## Register custom scopes for a web API
 
@@ -442,7 +442,7 @@ You can read more about this behavior [here](https://docs.microsoft.com/azure/ac
 
 ## Why am I not signed in when returning from an invite link?
 
-MSAL.js will only process tokens which it originally requested. If your flow requires that you send a user a link they can use to sign up, you will need to ensure that the link points to your app, not the B2C service directly. An example flow can be seen in the [working with B2C](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/working-with-b2c.md) doc.
+MSAL.js will only process tokens which it originally requested. If your flow requires that you send a user a link they can use to sign up, you will need to ensure that the link points to your app, not the B2C service directly. An example flow can be seen in the [working with B2C](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/working-with-b2c.md) doc.
 
 ## What should I do if I believe my issue is with the B2C service itself rather than with the library
 

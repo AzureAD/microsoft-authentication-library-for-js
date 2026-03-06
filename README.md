@@ -6,7 +6,7 @@ The Microsoft Authentication Library for JavaScript enables both client-side and
 
 ### Core, wrapper and extensions libraries
 
-The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib) folder contains the source code for our libraries in active development. You will also find all the details about **installing the libraries** in their respective README.md.
+The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib) folder contains the source code for our libraries in active development. You will also find all the details about **installing the libraries** in their respective README.md.
 
 -   [Microsoft Authentication Library for Node.js](lib/msal-node/): A [Node.js](https://nodejs.org/en/) library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the following OAuth 2.0 protocols and is [OpenID-compliant](https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc):
 
@@ -44,7 +44,7 @@ We ship a number of different packages which are meant for different platforms. 
 
 ### Samples
 
-The [`samples`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) folder contains sample applications for our libraries. A complete list of samples can be found in the respective package folders or [on our wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
+The [`samples`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples) folder contains sample applications for our libraries. A complete list of samples can be found in the respective package folders or [on our wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
 
 ## Package versioning
 
@@ -52,7 +52,7 @@ All of our libraries follow [semantic versioning](https://semver.org). We recomm
 
 ## Roadmap
 
-Please check the [roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md) to see what we are working on and what we have planned for future releases.
+Please check the [roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/roadmap.md) to see what we are working on and what we have planned for future releases.
 
 ## Community Help and Support
 

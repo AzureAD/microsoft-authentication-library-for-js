@@ -15,8 +15,8 @@ This guide will detail how to leverage each method for your application.
 `@azure/msal-angular` accepts three configuration objects:
 
 1. [Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#configuration): This is the same configuration object that is used for the core `@azure/msal-browser` library. All configuration options can be found [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_browser.Configuration.html).
-2. [`MsalGuardConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.guard.config.ts): A set of options specifically for the Angular guard.
-3. [`MsalInterceptorConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.interceptor.config.ts): A set of options specifically for the Angular interceptor.
+2. [`MsalGuardConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-angular/src/msal.guard.config.ts): A set of options specifically for the Angular guard.
+3. [`MsalInterceptorConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-angular/src/msal.interceptor.config.ts): A set of options specifically for the Angular interceptor.
 
 ### Angular-specific configurations
 
@@ -25,13 +25,13 @@ This guide will detail how to leverage each method for your application.
 - An optional `authRequest` object can be specified on `MsalGuardConfiguration` and `MsalInterceptorConfiguration` to set additional options.
 - An optional `loginFailedRoute` string can be set on `MsalGuardConfiguration`. Msal Guard will redirect to this route if login is required and fails.
 
-Please see our [MsalInterceptor](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/msal-interceptor.md) and [MsalGuard](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/msal-guard.md) docs for more details on configurations, usage, and differences to MSAL Angular v1.
+Please see our [MsalInterceptor](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-angular/docs/msal-interceptor.md) and [MsalGuard](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-angular/docs/msal-guard.md) docs for more details on configurations, usage, and differences to MSAL Angular v1.
 
 ### Configuration for redirects
 
-We recommend importing `MsalRedirectComponent` and bootstrapping with the `AppComponent` if you intend to use redirects. Please see the [redirect documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/redirects.md) for more details.
+We recommend importing `MsalRedirectComponent` and bootstrapping with the `AppComponent` if you intend to use redirects. Please see the [redirect documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-angular/docs/redirects.md) for more details.
 
-**Note:** As of MSAL v3.x, initialization of the application object is now required. See the [v2-v3 upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-v3-upgrade-guide.md) for more details.
+**Note:** As of MSAL v3.x, initialization of the application object is now required. See the [v2-v3 upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-angular/docs/v2-v3-upgrade-guide.md) for more details.
 
 ## MsalModule.forRoot
 
@@ -510,7 +510,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
 
 Angular applications using standalone components can be used with [factory providers](#factory-providers) as above in the `app.config.ts` file, which is then imported into `main.ts` for bootstrapping.
 
-Please see our [Angular Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular-standalone-sample) for usage.
+Please see our [Angular Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-angular-samples/angular-standalone-sample) for usage.
 
 ```ts
 // app.config.ts

@@ -10,7 +10,7 @@
 
 1. [interaction_in_progress](#interaction_in_progress)
 
-**[Additional Errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md)**
+**[Additional Errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/errors.md)**
 
 ***
 
@@ -74,7 +74,7 @@ This error is thrown when an interactive API (`loginPopup`, `loginRedirect`, `ac
 
 In `@azure/msal-react` there are 2 scenarios when this can happen:
 
-1. Your application is calling one of the above APIs outside of the context where you do not have access to the `inProgress` state. For more about context see the [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md#what-can-i-do-outside-of-msal-react-context)
+1. Your application is calling one of the above APIs outside of the context where you do not have access to the `inProgress` state. For more about context see the [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/FAQ.md#what-can-i-do-outside-of-msal-react-context)
 1. Your application is calling one of the above APIs without first checking if interaction is already in progress elsewhere.
 
 ❌ The following example will throw this error when another component has already invoked an interactive API that is in progress:
@@ -117,7 +117,7 @@ export function exampleComponent() {
 
 #### Troubleshooting Steps
 
-- [Enable verbose logging](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#using-the-config-object) and trace the order of events. Verify that an interactive API is not invoked before another has resolved. If using the redirect flow make sure `handleRedirectPromise` has resolved (done in the `MsalProvider`).
+- [Enable verbose logging](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/configuration.md#using-the-config-object) and trace the order of events. Verify that an interactive API is not invoked before another has resolved. If using the redirect flow make sure `handleRedirectPromise` has resolved (done in the `MsalProvider`).
 
 If you are unable to figure out why this error is being thrown please [open an issue](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/new/choose) and be prepared to share the following information:
 

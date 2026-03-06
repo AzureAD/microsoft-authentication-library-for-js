@@ -91,7 +91,7 @@ export class InteractionRequiredAuthError extends AuthError {
     traceId: string;
 
     /**
-     * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/claims-challenge.md
+     * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-common/docs/claims-challenge.md
      *
      * A string with extra claims needed for the token request to succeed
      * web site: redirect the user to the authorization page and set the extra claims

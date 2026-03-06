@@ -174,12 +174,12 @@ Now when a user logouts out of another application, your application's front-cha
 
 The following samples demonstrate how to implement front-channel logout using MSAL.js:
 
-- MSAL Angular v2: [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app)
-- MSAL React: [React Router sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample)
+- MSAL Angular v2: [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-angular-v2-samples/angular11-sample-app)
+- MSAL React: [React Router sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-react-samples/react-router-sample)
 
 ## Events
 
-If different parts of your app need to react to logout status without direct access to the promise returned by `logoutRedirect` or `logoutPopup` you can use the [event API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md).
+If different parts of your app need to react to logout status without direct access to the promise returned by `logoutRedirect` or `logoutPopup` you can use the [event API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/events.md).
 
 Events will be emitted when logout succeeds or fails and when the popup is opened when using `logoutPopup`.
 
