@@ -1299,6 +1299,23 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 expect(internalTokenKeys.refreshToken).toHaveLength(0); // RT will never be returned by WAM
             });
         });
+
+        it("includes resource in AuthenticationResult when provided in request", async () => {
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
+                return Promise.resolve(MOCK_WAM_RESPONSE);
+            });
+            const response =
+                await platformAuthInteractionClient.acquireToken({
+                    scopes: ["User.Read"],
+                    resource: "https://graph.microsoft.com",
+                });
+            expect(response.resource).toEqual(
+                "https://graph.microsoft.com"
+            );
+        });
     });
 
     describe("acquireTokenRedirect tests", () => {
@@ -1711,6 +1728,19 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "customUserParam2"
             );
             expect(nativeRequest.redirectUri).toEqual("localhost");
+        });
+
+        it("includes resource in native request when provided", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializeNativeRequest({
+                    scopes: ["User.Read"],
+                    resource: "https://graph.microsoft.com",
+                });
+
+            expect(nativeRequest.resource).toEqual(
+                "https://graph.microsoft.com"
+            );
         });
     });
 });
