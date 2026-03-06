@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add strictMatching warning",
+  "comment": "Add strictMatching runtime warning when strictMatching is not explicitly configured [#8388](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8388)",
   "packageName": "@azure/msal-angular",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch"
