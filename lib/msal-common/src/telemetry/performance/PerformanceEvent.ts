@@ -793,12 +793,12 @@ export type PerformanceEvent = {
      */
     awaitIframeCorrelationId?: string;
     /**
-     * Monitor_window_timeout debugging telemetry 
+     * Monitor_window_timeout debugging telemetry
      */
     iframePollIntervalMs?: number;
     iframeTimeoutMs?: number;
-    iframeTickCnt?: number;
-    crossOriginTickCnt?: number;
+    iframeTickCount?: number;
+    crossOriginTickCount?: number;
     isRedirectUriCrossOrigin?: boolean;
     /**
      * Amount of times queued in the JS event queue.
@@ -996,4 +996,9 @@ export const IntFields: ReadonlySet<string> = new Set([
     "currRefreshCount",
     "expiredCacheRemovedCount",
     "upgradedCacheCount",
+    "networkRtt",
+    "iframePollIntervalMs",
+    "iframeTimeoutMs",
+    "iframeTickCount",
+    "crossOriginTickCount",
 ]);

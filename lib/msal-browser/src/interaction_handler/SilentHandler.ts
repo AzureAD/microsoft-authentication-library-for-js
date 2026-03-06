@@ -127,13 +127,16 @@ export async function monitorIframeForHash(
         PerformanceEvents.SilentHandlerMonitorIframeForHash,
         correlationId
     );
-    performanceClient.addFields({
-        iframePollIntervalMs: pollIntervalMilliseconds,
-        iframeTimeoutMs: timeout,
-    }, correlationId);
+    performanceClient.addFields(
+        {
+            iframePollIntervalMs: pollIntervalMilliseconds,
+            iframeTimeoutMs: timeout,
+        },
+        correlationId
+    );
 
-    let totalTickCnt = 0;
-    let crossOriginTickCnt = 0;
+    let totalTickCount = 0;
+    let crossOriginTickCount = 0;
 
     return new Promise<string>((resolve, reject) => {
         if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
@@ -156,7 +159,7 @@ export async function monitorIframeForHash(
         }, timeout);
 
         const intervalId = window.setInterval(() => {
-            totalTickCnt++;
+            totalTickCount++;
             let href: string = "";
             const contentWindow = iframe.contentWindow;
             try {
@@ -167,7 +170,7 @@ export async function monitorIframeForHash(
                  */
                 href = contentWindow ? contentWindow.location.href : "";
             } catch (e) {
-                crossOriginTickCnt++;
+                crossOriginTickCount++;
             }
 
             if (!href || href === "about:blank") {
@@ -187,10 +190,13 @@ export async function monitorIframeForHash(
             resolve(responseString);
         }, pollIntervalMilliseconds);
     }).finally(() => {
-        performanceClient.addFields({
-            iframeTickCnt: totalTickCnt,
-            crossOriginTickCnt: crossOriginTickCnt,
-        }, correlationId);
+        performanceClient.addFields(
+            {
+                iframeTickCount: totalTickCount,
+                crossOriginTickCount: crossOriginTickCount,
+            },
+            correlationId
+        );
         invoke(
             removeHiddenIframe,
             PerformanceEvents.RemoveHiddenIframe,

@@ -12,15 +12,19 @@ interface NetworkConnection {
 
 /**
  * Get network information for telemetry purposes. This is only supported in Chromium-based browsers.
- * @returns 
+ * @returns Network connection information, or an empty object if not available.
  */
-export function getNetworkInfo(): NetworkConnection{
+export function getNetworkInfo(): NetworkConnection {
     if (typeof window === "undefined" || !window.navigator) {
         return {};
     }
     const connection: NetworkConnection | undefined =
         "connection" in window.navigator
-            ? (window.navigator as Navigator & { connection: NetworkConnection }).connection
+            ? (
+                  window.navigator as Navigator & {
+                      connection: NetworkConnection;
+                  }
+              ).connection
             : undefined;
     return {
         effectiveType: connection?.effectiveType,

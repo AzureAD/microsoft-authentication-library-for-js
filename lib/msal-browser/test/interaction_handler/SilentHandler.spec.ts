@@ -228,5 +228,94 @@ describe("SilentHandler.ts Unit Tests", () => {
                 };
             }, 500);
         });
+
+        it("resolves successfully and verifies iframeTickCnt is incremented", (done) => {
+            const iframe = {
+                contentWindow: {
+                    location: {
+                        href: "about:blank",
+                        hash: "",
+                    },
+                },
+            };
+
+            SilentHandler.monitorIframeForHash(
+                // @ts-ignore
+                iframe,
+                2000,
+                DEFAULT_POLL_INTERVAL_MS,
+                performanceClient,
+                browserRequestLogger,
+                RANDOM_TEST_GUID,
+                ServerResponseType.FRAGMENT
+            ).then((hash: string) => {
+                expect(hash).toEqual("#code=response");
+                expect(performanceClient.addFields).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        iframeTickCount: expect.any(Number),
+                        crossOriginTickCount: expect.any(Number),
+                    }),
+                    RANDOM_TEST_GUID
+                );
+                const callArgs = (
+                    performanceClient.addFields as jest.Mock
+                ).mock.calls.find(
+                    (call) => call[0].iframeTickCount !== undefined
+                );
+                expect(callArgs[0].iframeTickCount).toBeGreaterThan(0);
+                done();
+            });
+
+            setTimeout(() => {
+                iframe.contentWindow.location = {
+                    href: "http://localhost/#code=response",
+                    hash: "#code=response",
+                };
+            }, 300);
+        });
+
+        it("increments crossOriginTickCnt on cross-origin access and reports on timeout", (done) => {
+            jest.setTimeout(3000);
+
+            const iframe = {
+                contentWindow: {
+                    get location() {
+                        throw new Error("Cross-origin access denied");
+                    },
+                },
+            };
+
+            SilentHandler.monitorIframeForHash(
+                // @ts-ignore
+                iframe,
+                500,
+                DEFAULT_POLL_INTERVAL_MS,
+                performanceClient,
+                browserRequestLogger,
+                RANDOM_TEST_GUID,
+                ServerResponseType.FRAGMENT
+            ).catch((e) => {
+                expect(e).toBeInstanceOf(BrowserAuthError);
+                expect(e).toMatchObject(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.monitorWindowTimeout
+                    )
+                );
+                expect(performanceClient.addFields).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        iframeTickCount: expect.any(Number),
+                        crossOriginTickCount: expect.any(Number),
+                    }),
+                    RANDOM_TEST_GUID
+                );
+                const callArgs = (
+                    performanceClient.addFields as jest.Mock
+                ).mock.calls.find(
+                    (call) => call[0].crossOriginTickCount !== undefined
+                );
+                expect(callArgs[0].crossOriginTickCount).toBeGreaterThan(0);
+                done();
+            });
+        });
     });
 });
