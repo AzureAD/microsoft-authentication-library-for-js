@@ -148,8 +148,10 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             ...remainingProperties
         } = request;
 
-        const validExtraParameters: DOMExtraParameters =
-            this.getDOMExtraParams(remainingProperties);
+        const validExtraParameters: DOMExtraParameters = this.getDOMExtraParams(
+            remainingProperties,
+            correlationId
+        );
 
         const platformDOMRequest: PlatformDOMTokenRequest = {
             accountId: accountId,
@@ -157,7 +159,10 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             authority: authority,
             clientId: clientId,
             correlationId: correlationId || this.correlationId,
-            extraParameters: { ...extraParameters, ...validExtraParameters },
+            extraParameters: {
+                ...extraParameters,
+                ...validExtraParameters,
+            },
             isSecurityTokenService: false,
             redirectUri: redirectUri,
             scope: scope,
@@ -245,20 +250,32 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     }
 
     private getDOMExtraParams(
-        extraParameters: Record<string, unknown>
+        extraParameters: Record<string, unknown>,
+        correlationId: string
     ): DOMExtraParameters {
-        const stringifiedParams = Object.entries(extraParameters).reduce(
-            (record, [key, value]) => {
-                record[key] = String(value);
-                return record;
-            },
-            {} as StringDict
-        );
-
-        const validExtraParams: DOMExtraParameters = {
-            ...stringifiedParams,
-        };
-
-        return validExtraParams;
+        try {
+            const stringifiedProperties: StringDict = {};
+            for (const [key, value] of Object.entries(extraParameters)) {
+                if (!value) {
+                    continue;
+                }
+                if (typeof value === "object") {
+                    stringifiedProperties[key] = JSON.stringify(value);
+                } else {
+                    stringifiedProperties[key] = String(value);
+                }
+            }
+            return stringifiedProperties;
+        } catch (e) {
+            this.logger.error(
+                `'${this.platformAuthType}' - Error stringifying extra parameters`,
+                correlationId
+            );
+            this.logger.errorPii(
+                `'${this.platformAuthType}' - Error stringifying extra parameters: '${e}'`,
+                correlationId
+            );
+            return {};
+        }
     }
 }

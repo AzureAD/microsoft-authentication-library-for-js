@@ -6,7 +6,6 @@ on:
     pull_request:
         branches:
             - dev
-            - msal-v5
 
 concurrency:
     group: beachball-${{github.ref}}
