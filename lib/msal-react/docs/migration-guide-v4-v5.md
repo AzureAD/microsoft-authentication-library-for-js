@@ -16,7 +16,7 @@ MSAL Browser v5 requires a dedicated redirect page/bridge for authentication flo
 Please see the [COOP section in the MSAL Browser v4-v5 migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v4-migration.md#cross-origin-opener-policy-coop-support)
 
 ## Dropped support for old React versions
-MSAL React v5 supports React 19 or greater. It no longer supports React 16, 17, or 18.
+MSAL React v5 supports React 19.2.1 or greater. It no longer supports React 16, 17, or 18.
 
 ## React 18 compatibility note
 
@@ -26,7 +26,7 @@ If your app is still on React 18, installing `@azure/msal-react@^5` may fail due
 - This may allow installation and basic flows may continue to work in some apps, but React 18 is not supported or validated for v5
 - You may see untested behavior around rendering/lifecycle timing, StrictMode interactions, or future patch updates
 
-For production workloads, upgrade React to 19+ before moving to `@azure/msal-react@^5`.
+For production workloads, upgrade React to 19.2.1 or greater before moving to `@azure/msal-react@^5`.
 
 ## Correct logout bug
 MSAL React v5 has fixed a bug affecting the `useMsalAuthentication` hook and `MsalAuthenticationTemplate`. Logging out now clears all state associated with the user.
