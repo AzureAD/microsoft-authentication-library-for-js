@@ -795,6 +795,8 @@ export type PerformanceEvent = {
     /**
      * Monitor_window_timeout debugging telemetry 
      */
+    iframePollIntervalMs?: number;
+    iframeTimeoutMs?: number;
     iframeTickCnt?: number;
     crossOriginTickCnt?: number;
     isRedirectUriCrossOrigin?: boolean;

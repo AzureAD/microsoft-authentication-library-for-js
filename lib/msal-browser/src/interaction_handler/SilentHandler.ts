@@ -127,6 +127,10 @@ export async function monitorIframeForHash(
         PerformanceEvents.SilentHandlerMonitorIframeForHash,
         correlationId
     );
+    performanceClient.addFields({
+        iframePollIntervalMs: pollIntervalMilliseconds,
+        iframeTimeoutMs: timeout,
+    }, correlationId);
 
     let totalTickCnt = 0;
     let crossOriginTickCnt = 0;
