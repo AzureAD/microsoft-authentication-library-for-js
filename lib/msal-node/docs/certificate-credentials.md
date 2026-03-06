@@ -9,7 +9,7 @@ You can build confidential client applications with MSAL Node (web apps, daemon 
 -   `clientCertificate`: a certificate set during the app registration. The certificate needs to have the private key, because it will be used for signing [an assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials) that MSAL generates. The `thumbprintSha256` is a _X.509 SHA-256_ thumbprint of the certificate, and the `privateKey` is the PEM encoded private key.
 -   `clientAssertion`: instead of letting MSAL create an [assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials), the app developer takes control. Useful for adding extra claims to the assertion or for using KeyVault for signing, instead of a local certificate. The certificate used to sign the assertion still needs to be set during app registration.
 
-Note: 1p apps may be required to also send `x5c`. This is the _X.509_ certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
+Note: 1p apps may be required to also send `x5c`. This is the _X.509_ certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-node/docs/sni.md).
 
 ## Using secrets and certificates securely
 

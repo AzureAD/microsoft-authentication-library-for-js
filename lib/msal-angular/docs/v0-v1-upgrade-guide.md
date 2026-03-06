@@ -4,7 +4,7 @@ MSAL Angular v1 brings our Angular wrapper up-to-date with the latest version of
 
 This guide will demonstrate changes needed to migrate an existing application from `@azure/msal-angular@0.x` to `@azure/msal-angular@1.0.0`.
 
-A detailed list of changes can be found in the [CHANGELOG](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/CHANGELOG.md).
+A detailed list of changes can be found in the [CHANGELOG](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-angular/CHANGELOG.md).
 
 Documentation for MSAL Angular v1 can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/lib/msal-angular/docs/v1-docs/).
 

@@ -8,7 +8,7 @@ Once MSAL Node is installed, and you have the right files, come here to learn ab
 
 The Auth Code flow is most commonly used for a web app that signs in users. General information about this scenario is available [here](https://docs.microsoft.com/azure/active-directory/develop/scenario-web-app-sign-user-overview?tabs=aspnetcore).
 
-> **Note: Although this sample application has a web server component that allows the user to input their credentials in the browser, it is important to remember that MSAL Node does not support browser-based Single Page Applications. If you are looking to use the authorization code grant to acquire tokens in a Single-Page Application, please use [MSAL Browser](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser).**
+> **Note: Although this sample application has a web server component that allows the user to input their credentials in the browser, it is important to remember that MSAL Node does not support browser-based Single Page Applications. If you are looking to use the authorization code grant to acquire tokens in a Single-Page Application, please use [MSAL Browser](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-browser).**
 
 ## Test the Sample
 

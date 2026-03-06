@@ -29,7 +29,7 @@
 
 **Error Message**: Stub instance of Public Client Application was called. If using msal-react, please ensure context is not used without a provider.
 
-See [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md)
+See [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-react/docs/errors.md)
 
 ## BrowserAuthErrors
 
@@ -115,8 +115,8 @@ msalInstance
 
 If you are using one of our wrapper libraries (React or Angular), please see the error docs in those specific libraries for additional reasons you may be receiving this error:
 
--   [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md#interaction_in_progress)
--   [msal-angular errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md#interaction_in_progress)
+-   [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-react/docs/errors.md#interaction_in_progress)
+-   [msal-angular errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-angular/docs/v2-docs/errors.md#interaction_in_progress)
 
 If you are not using any of the wrapper libraries but concerned that your application might trigger concurrent interactive requests, you should check if any other interaction is in progress prior to invoking an interaction in your token acquisition method. You can achieve this by implementing a global application state or a broadcast service etc. that emits the current MSAL interaction status via [MSAL Events API](./events.md).
 
@@ -225,7 +225,7 @@ myAcquireToken(request).catch((e) => myInteractionInProgressHandler());
 
 #### Troubleshooting Steps
 
--   [Enable verbose logging](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#using-the-config-object) and trace the order of events. Verify that `handleRedirectPromise` is called and returns before any `login` or `acquireToken` API is called.
+-   [Enable verbose logging](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/configuration.md#using-the-config-object) and trace the order of events. Verify that `handleRedirectPromise` is called and returns before any `login` or `acquireToken` API is called.
 
 If you are unable to figure out why this error is being thrown please [open an issue](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/new/choose) and be prepared to share the following information:
 
@@ -335,7 +335,7 @@ const msalConfig = {
 ```
 
 > [!IMPORTANT]
-> Please consult the [Troubleshooting Single-Sign On](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md#troubleshooting-single-sign-on) section of the MSAL Browser FAQ if you are having trouble with the `ssoSilent` API.
+> Please consult the [Troubleshooting Single-Sign On](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/FAQ.md#troubleshooting-single-sign-on) section of the MSAL Browser FAQ if you are having trouble with the `ssoSilent` API.
 
 ### hash_empty_error
 
@@ -361,7 +361,7 @@ Please see explanation for [hash_empty_error](#hash_empty_error) above. The root
 
 -   Unable to acquire token from native platform.
 
-This error is thrown when calling the `acquireTokenByCode` API with the `nativeAccountId` instead of `code` and the app is running in an environment which does not acquire tokens from the native broker. For a list of pre-requisites please review the doc on [device bound tokens](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/device-bound-tokens.md).
+This error is thrown when calling the `acquireTokenByCode` API with the `nativeAccountId` instead of `code` and the app is running in an environment which does not acquire tokens from the native broker. For a list of pre-requisites please review the doc on [device bound tokens](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/device-bound-tokens.md).
 
 ### native_connection_not_established
 

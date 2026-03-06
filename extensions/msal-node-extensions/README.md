@@ -3,14 +3,14 @@
 ![npm (scoped)](https://img.shields.io/npm/v/@azure/msal-node-extensions)
 ![npm](https://img.shields.io/npm/dw/@azure/msal-node-extensions)
 
-| <a href="https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-react" target="blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html" target="_blank">Library Reference</a> | <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples" target="blank">Samples</a>
+| <a href="https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-react" target="blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html" target="_blank">Library Reference</a> | <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples" target="blank">Samples</a>
 |--- | --- | --- | --- |
 
 1. [About](#about)
     - [Cache Persistence](#cache-persistence)
     - [Brokering](#brokering)
-1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/extensions/docs/faq.md)
-1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/extensions/msal-node-extensions/CHANGELOG.md)
+1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/extensions/docs/faq.md)
+1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/extensions/msal-node-extensions/CHANGELOG.md)
 1. [Prerequisites](#prerequisites)
 1. [Installation](#installation)
 1. [Usage - Cache Persistence](#usage---cache-persistence)
@@ -32,7 +32,7 @@ The `msal-node-extensions` library offers optional features to enhance the capab
 
 ### Cache Persistence
 
-[MSAL Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) supports an in-memory cache by default and provides the ICachePlugin interface to perform cache serialization, but does not provide a default way of storing the token cache to disk. Microsoft authentication extensions for node is default implementation for persisting cache to disk across different platforms.
+[MSAL Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-node) supports an in-memory cache by default and provides the ICachePlugin interface to perform cache serialization, but does not provide a default way of storing the token cache to disk. Microsoft authentication extensions for node is default implementation for persisting cache to disk across different platforms.
 
 Supported platforms are Windows, Mac and Linux:
 
@@ -44,7 +44,7 @@ Supported platforms are Windows, Mac and Linux:
 
 ### Brokering
 
-When using the native broker, refresh tokens are bound to the device on which they are acquired on and are not accessible by `msal-node` or the application. This provides a higher level of security that cannot be achieved by `msal-node` alone. More information about token brokering can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node/docs/brokering.md)
+When using the native broker, refresh tokens are bound to the device on which they are acquired on and are not accessible by `msal-node` or the application. This provides a higher level of security that cannot be achieved by `msal-node` alone. More information about token brokering can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-node/docs/brokering.md)
 
 ## Prerequisites 
 
@@ -147,7 +147,7 @@ const msalConfig: Configuration = {
 const pca = new PublicClientApplication(msalConfig);
 ```
 
-More detailed information can be found in the [brokering documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node/docs/brokering.md)
+More detailed information can be found in the [brokering documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-node/docs/brokering.md)
 
 ## Build and Test
 
@@ -177,9 +177,9 @@ npm test
 
 ## Samples
 
-- [Auth Code CLI sample with Cache Persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/msal-node-extensions). This can be run on Windows, Mac and Linux.
-- [Electron sample with Cache Persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/electron-webpack)
-- [Brokering sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-cli-brokered-app)
+- [Auth Code CLI sample with Cache Persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/extensions/samples/msal-node-extensions). This can be run on Windows, Mac and Linux.
+- [Electron sample with Cache Persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/extensions/samples/electron-webpack)
+- [Brokering sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/auth-code-cli-brokered-app)
 
 ## Security Reporting
 

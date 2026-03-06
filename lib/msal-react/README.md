@@ -4,18 +4,18 @@
 [![npm version](https://img.shields.io/npm/dm/@azure/msal-react.svg)](https://nodei.co/npm/@azure/msal-react/)
 [![codecov](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js/branch/dev/graph/badge.svg?flag=msal-react)](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js)
 
-| <a href="https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-react" target="blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html" target="_blank">Library Reference</a> | <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples" target="blank">Samples</a> |
+| <a href="https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-react" target="blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html" target="_blank">Library Reference</a> | <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples" target="blank">Samples</a> |
 | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 
 1. [About](#about)
-1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md)
-1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/CHANGELOG.md)
+1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/FAQ.md)
+1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/CHANGELOG.md)
 1. [Prerequisites](#prerequisites)
 1. [Version Support](#version-support)
 1. [Installation](#installation)
 1. [Build and Test](#build-and-test)
 1. [Usage](#usage)
-    - [Getting Started](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md)
+    - [Getting Started](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/docs/getting-started.md)
     - [Msal Basics](#msal-basics)
     - [Advanced Topics](#advanced-topics)
     - [MSAL React Specific Concepts](#msal-react-specific-concepts)
@@ -28,7 +28,7 @@
 
 The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Azure AD](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
-The `@azure/msal-react` package described by the code in this folder uses the [`@azure/msal-browser` package](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser) as a peer dependency to enable authentication in Javascript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section in the [@azure/msal-browser readme](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/README.md#implicit-flow-vs-authorization-code-flow-with-pkce).
+The `@azure/msal-react` package described by the code in this folder uses the [`@azure/msal-browser` package](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-browser) as a peer dependency to enable authentication in Javascript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section in the [@azure/msal-browser readme](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/README.md#implicit-flow-vs-authorization-code-flow-with-pkce).
 
 ## Prerequisites
 
@@ -56,7 +56,7 @@ npm install @azure/msal-react @azure/msal-browser
 
 ## Build and Test
 
-See the [`contributing.md`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md) file for more information.
+See the [`contributing.md`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/contributing.md) file for more information.
 
 ### Building the package locally
 
@@ -95,44 +95,44 @@ npm run test:coverage
 
 ## Usage
 
-For help getting started with `@azure/msal-react` please see our [getting started](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md) doc.
+For help getting started with `@azure/msal-react` please see our [getting started](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/docs/getting-started.md) doc.
 
-Migrating from [react-aad-msal](https://www.npmjs.com/package/react-aad-msal)? Check out our [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/migration-guide.md).
+Migrating from [react-aad-msal](https://www.npmjs.com/package/react-aad-msal)? Check out our [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/docs/migration-guide.md).
 
 ### MSAL Basics
 
 Since `@azure/msal-react` is a wrapper around `@azure/msal-browser` many docs from the `msal-browser` repo are relevant here as well. For concepts specific to `@azure/msal-react` please see [below](#msal-react-specific-concepts)
 
-1. [Initialization](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md)
-1. [Acquiring and using an access token](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md)
-1. [Managing token lifetimes](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/token-lifetimes.md)
-1. [Managing Accounts](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md)
-1. [Logging out](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logout.md)
+1. [Initialization](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/initialization.md)
+1. [Acquiring and using an access token](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/acquire-token.md)
+1. [Managing token lifetimes](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/token-lifetimes.md)
+1. [Managing Accounts](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-common/docs/Accounts.md)
+1. [Logging out](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/logout.md)
 
 ### Advanced Topics
 
--   [Configuration Options](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md)
--   [Request and Response Details](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md)
--   [Events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md)
--   [Cache Storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md)
--   [Performance Enhancements](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/performance.md)
+-   [Configuration Options](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/configuration.md)
+-   [Request and Response Details](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/request-response-object.md)
+-   [Events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/events.md)
+-   [Cache Storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/caching.md)
+-   [Performance Enhancements](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/performance.md)
 
 ### MSAL React Specific Concepts
 
-1. [Hooks](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md)
-1. [Events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/events.md)
-1. [Class Components](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/class-components.md)
-1. [Performance](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/performance.md)
+1. [Hooks](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/docs/hooks.md)
+1. [Events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/docs/events.md)
+1. [Class Components](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/docs/class-components.md)
+1. [Performance](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/docs/performance.md)
 
 ## Samples
 
-Our [samples directory](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples) contains several example apps you can spin up to see how this library can be used in different contexts.
+Our [samples directory](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-react-samples) contains several example apps you can spin up to see how this library can be used in different contexts.
 
--   [Create React App (JS) Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample)
--   [Create React App (TS) Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/typescript-sample)
--   [Next.js Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/nextjs-sample)
--   [Gatsby Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/gatsby-sample)
--   [B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/b2c-sample)
+-   [Create React App (JS) Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-react-samples/react-router-sample)
+-   [Create React App (TS) Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-react-samples/typescript-sample)
+-   [Next.js Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-react-samples/nextjs-sample)
+-   [Gatsby Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-react-samples/gatsby-sample)
+-   [B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-react-samples/b2c-sample)
 
 More advanced samples backed with a tutorial can be found in the [Azure Samples](https://github.com/Azure-Samples) space on GitHub:
 

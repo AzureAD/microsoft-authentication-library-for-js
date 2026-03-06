@@ -10,7 +10,7 @@ Please see instructions from the [Angular docs](https://angular.io/guide/univers
 
 To use `@azure/msal-angular` with Angular Universal, make the following adjustments:
 
-1. Remove references to browser-only objects. Our [Angular Modules Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular-modules-sample) has comments next to relevant lines that should be removed to render server-side. Removing these lines will not affect the sample app if using Angular Universal.
+1. Remove references to browser-only objects. Our [Angular Modules Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-angular-samples/angular-modules-sample) has comments next to relevant lines that should be removed to render server-side. Removing these lines will not affect the sample app if using Angular Universal.
 
     ```ts 
     this.isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal

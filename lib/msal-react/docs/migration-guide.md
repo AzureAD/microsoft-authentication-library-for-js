@@ -123,7 +123,7 @@ function App() {
 }
 ```
 
-Additionally, if you prefer to take a hooks based approach `@azure/msal-react` provides several hooks you can use to achieve similar results. These are just some basic examples, you can read more about the MSAL React hooks [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md)
+Additionally, if you prefer to take a hooks based approach `@azure/msal-react` provides several hooks you can use to achieve similar results. These are just some basic examples, you can read more about the MSAL React hooks [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/docs/hooks.md)
 
 ```javascript
 import { PublicClientApplication, InteractionType } from "@azure/msal-browser";
@@ -315,7 +315,7 @@ async function getIdToken() {
 ### Updating redux store integration / reacting to events
 
 `react-aad-msal` provided out of the box integration with a redux store by dispatching actions when events such as login or logout occurred.
-`@azure/msal-react` does not provide this feature, however, similar functionality can be achieved using the [event api](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md) exposed by `@azure/msal-browser`.
+`@azure/msal-react` does not provide this feature, however, similar functionality can be achieved using the [event api](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/events.md) exposed by `@azure/msal-browser`.
 
 You can register an event callback that will be called each time an event is broadcast (e.g. `LOGIN_SUCCESS`). Your callback function can inspect the event and do something with the payload. If you would like to continue using your existing redux store you can register an event callback that dispatches actions to your store.
 
@@ -332,10 +332,10 @@ const callbackId = msalInstance.addEventCallback((message: EventMessage) => {
 });
 ```
 
-The payloads may differ between `msal` v1 and `@azure/msal-browser` so you may need to make some adjustments if your application relies on specific fields or the object shape. Our typedocs contain the most up to date list of [event types](https://azuread.github.io/microsoft-authentication-library-for-js/ref/enums/_azure_msal_browser.eventtype.html) and [payload types](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#eventpayload) and you can find the mapping between the two in the [event doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md).
+The payloads may differ between `msal` v1 and `@azure/msal-browser` so you may need to make some adjustments if your application relies on specific fields or the object shape. Our typedocs contain the most up to date list of [event types](https://azuread.github.io/microsoft-authentication-library-for-js/ref/enums/_azure_msal_browser.eventtype.html) and [payload types](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#eventpayload) and you can find the mapping between the two in the [event doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/events.md).
 
 ### Additional Resources
 
-1. [Msal-React Docs](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs)
-1. [Msal-Browser Docs](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs)
+1. [Msal-React Docs](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-react/docs)
+1. [Msal-Browser Docs](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-browser/docs)
 1. [Typedocs](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html)

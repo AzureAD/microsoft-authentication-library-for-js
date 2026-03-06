@@ -16,7 +16,7 @@ Supported platforms are Windows, Mac and Linux:
 
 API for creating the persistence layer will differ based on what platform you are targeting.
 
-Alternatively, you can use the `createPersistence` API from [PersistenceCreator](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/extensions/msal-node-extensions/src/persistence/PersistenceCreator.ts) as it's a generic wrapper and selects the appropriate persistence method based on the platform/OS. 
+Alternatively, you can use the `createPersistence` API from [PersistenceCreator](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/extensions/msal-node-extensions/src/persistence/PersistenceCreator.ts) as it's a generic wrapper and selects the appropriate persistence method based on the platform/OS. 
 
 ```js
 const { PublicClientApplication } = require("@azure/msal-node");
@@ -251,7 +251,7 @@ module.exports = {
 
 ### Note for Electron Developers:
 Electron sample :
-This [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/electron-webpack) depicts how to integrate the msal-node-extensions library to your electron application that has been bundled by webpack.
+This [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/extensions/samples/electron-webpack) depicts how to integrate the msal-node-extensions library to your electron application that has been bundled by webpack.
 
 If you are using this extension for Electron, you might face an error similar to this:
 ```
@@ -266,5 +266,5 @@ This error is probably due to Node.js version differences between the Electron p
 
 
 ### Samples
-1) [Electron-webpack sample for persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/electron-webpack)
-2) [Msal-node extensions sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/msal-node-extensions)
+1) [Electron-webpack sample for persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/extensions/samples/electron-webpack)
+2) [Msal-node extensions sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/extensions/samples/msal-node-extensions)

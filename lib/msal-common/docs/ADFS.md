@@ -4,7 +4,7 @@ MSAL supports connecting to Azure AD, which signs in managed-users (users manage
 
 MSAL also supports directly connecting to ADFS 2019, which is Open ID Connect compliant and has support scopes and PKCE. This support requires that a service pack [KB 4490481](https://support.microsoft.com/en-us/help/4490481/windows-10-update-kb4490481) is applied to Windows Server. When connecting directly to AD FS, the authority you'll want to use to build your application will be of form `https://mysite.contoso.com/adfs/`
 
-Because ADFS varies from Azure AD, protocolMode property must be set to "OIDC" in order to support ADFS.  See [configuration documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md).
+Because ADFS varies from Azure AD, protocolMode property must be set to "OIDC" in order to support ADFS.  See [configuration documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/configuration.md).
 
 Use of ADFS with MSAL.js requires that Cross Origin Resource Sharing (CORS) headers be configured on the ADFS server.  See [explanation](https://learn.microsoft.com/en-us/windows-server/identity/ad-fs/operations/customize-http-security-headers-ad-fs#cross-origin-resource-sharing-cors-headers) and [instructions](https://learn.microsoft.com/en-us/windows-server/identity/ad-fs/operations/customize-http-security-headers-ad-fs#cors-customization) in Windows Server documentation.
 

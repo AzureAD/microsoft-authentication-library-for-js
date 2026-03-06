@@ -25,7 +25,7 @@ const cca = new msal.ConfidentialClientApplication({
 /**
  * acquireToken* APIs return an account object containing the "homeAccountId"
  * you should keep a record of this in your app and use it later on when calling acquireTokenSilent
- * For more, see: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/accounts.md
+ * For more, see: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-node/docs/accounts.md
  */
 const someUserHomeAccountId = "Enter_User_Home_Account_Id";
 
@@ -113,7 +113,7 @@ class MyCachePlugin implements ICachePlugin {
 
 On public client apps, [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) ensures performance and security for you.
 
-On confidential client apps that handle users (web apps that sign in users and call web APIs, and web APIs calling downstream web APIs), there can be many users active concurrently for a given application. Our recommendation is to serialize one cache blob (see [CacheRecord](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/src/cache/entities/CacheRecord.ts)) per user. This would help with scaling the cache across a distributed system. Use a key for partitioning the cache (_i.e._ **partition key**), such as:
+On confidential client apps that handle users (web apps that sign in users and call web APIs, and web APIs calling downstream web APIs), there can be many users active concurrently for a given application. Our recommendation is to serialize one cache blob (see [CacheRecord](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-common/src/cache/entities/CacheRecord.ts)) per user. This would help with scaling the cache across a distributed system. Use a key for partitioning the cache (_i.e._ **partition key**), such as:
 
 -   For web apps: `<userObjectId>.<tenantId>` (i.e. `homeAccountId`)
 -   For multi-tenant daemon apps using client credentials grant: `<clientId>.<tenantId>`
