@@ -53,7 +53,6 @@ import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import { getAccount } from "../../src/cache/AccountManager.js";
 import exp from "constants";
 import { TestTimeUtils } from "msal-test-utils";
-import { createBrowserAuthError } from "../../src/error/BrowserAuthError.js";
 
 function stubProvider(config: Configuration) {
     const browserEnvironment = typeof window !== "undefined";
