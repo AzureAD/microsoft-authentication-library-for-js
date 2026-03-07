@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-angular
 
-<!-- This log was last generated on Mon, 23 Feb 2026 16:28:24 GMT and should not be manually modified. -->
+<!-- This log was last generated on Sat, 07 Mar 2026 03:30:43 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.1.0
+
+Sat, 07 Mar 2026 03:30:43 GMT
+
+### Minor changes
+
+- Add strict matching to interceptor [#8351](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8351) (joarroyo@microsoft.com)
+- Bump @azure/msal-browser to v4.29.1
+- Bump eslint-config-msal to v0.0.0
 
 ## 4.0.27
 
