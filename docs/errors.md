@@ -870,7 +870,7 @@ Your `redirectUri` page must include the redirect bridge script to enable commun
 <body>
     <script type="module">
         import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
-        broadcastResponseToMainFrame();
+        broadcastResponseToMainFrame().catch(console.error);
     </script>
 </body>
 </html>
