@@ -235,10 +235,13 @@ The recommended approach for CRA is to use a **dedicated static HTML file** plac
 </head>
 <body>
     <p>Processing authentication...</p>
-    <script type="module">
-        import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
-
-        broadcastResponseToMainFrame().catch((error) => {
+    <!--
+        Ensure that msal-redirect-bridge.min.js (the UMD bundle) is hosted at this path,
+        for example by copying it from the @azure/msal-browser package into your public/ folder.
+    -->
+    <script src="/msal-redirect-bridge.min.js"></script>
+    <script>
+        msalRedirectBridge.broadcastResponseToMainFrame().catch(function (error) {
             console.error("Error broadcasting response:", error);
         });
     </script>
