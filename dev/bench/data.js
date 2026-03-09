@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773076298159,
+  "lastUpdate": 1773081350578,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19855,6 +19855,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 241728,
             "range": "±0.72%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b3d488884304e98898e69cb203f7ee4aa5ea7656",
+          "message": "Additional msal-react v5 migration details (#8386)\n\nThis pull request updates the migration documentation for both MSAL\nBrowser and MSAL React to clarify the required steps for upgrading to\nv5, including payload type changes, migration paths, and compatibility\nnotes. The changes provide explicit migration examples and highlight new\nrequirements and breaking changes.\n\n**MSAL React v5 Migration Guidance and Compatibility:**\n\n- Added clear migration paths for upgrading from v1/v2/v3 to v5, with\nemphasis on following the MSAL Browser v4-v5 migration guide and setting\nup the required COOP redirect bridge.\n- Documented React version support: MSAL React v5 now requires React\n19+, with notes and workarounds for temporary use on React 18, though it\nis not supported.\n\n**MSAL Browser v5 Event Handling Changes:**\n\n- Provided explicit guidance on handling the new `LOGIN_SUCCESS` payload\ntype, including before/after TypeScript code samples to illustrate the\nmigration from casting to `AuthenticationResult` to using `AccountInfo`.\n\n**InteractionStatus and Event Consolidation:**\n\n- Clarified the consolidation of `InteractionStatus` values and provided\na migration example for simplifying in-progress status checks in React\napps.\n\nThese updates ensure developers have clear, actionable steps for\nmigrating to the latest major versions and handling breaking changes in\nevent payloads and interaction status.\n\n---------\n\nCo-authored-by: Copilot <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: tnorling <5307810+tnorling@users.noreply.github.com>\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-03-09T11:29:09-07:00",
+          "tree_id": "5b3383e1dd5e304595dba3712fcb25a94aed8a2d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b3d488884304e98898e69cb203f7ee4aa5ea7656"
+        },
+        "date": 1773081346472,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 250281,
+            "range": "±0.83%",
+            "unit": "ops/sec",
+            "extra": "227 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 244387,
+            "range": "±0.74%",
             "unit": "ops/sec",
             "extra": "234 samples"
           }
