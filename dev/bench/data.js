@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1772834185606,
+  "lastUpdate": 1773076298159,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19819,6 +19819,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.95%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1d8e35fbe8d6364937e38d1054ba9526d7526860",
+          "message": "Update docs and add warning for strictMatching (#8388)\n\nThis PR adds `strictMatching` runtime warning and documentation for\n`@azure/msal-angular`. When `strictMatching` is not explicitly\nconfigured on `MsalInterceptorConfiguration`, `MsalInterceptor` now\nemits a one-time warning via the MSAL logger. This helps developers\ndiscover silent 401 failures caused by misconfigured\n`protectedResourceMap` keys under the v5 default strict matching\nbehaviour.\n\n#### Code Changes\n- **`msal.interceptor.ts`** — Inline check in the constructor emits a\nlogger warning when `strictMatching === undefined`, linking to the\nstrict matching docs.\n- **`msal.interceptor.spec.ts`** — 3 new warning tests (`undefined` →\nwarns, `true`/`false` → no warn). Existing tests updated to pass\n`strictMatching: true` to suppress the warning.\n\n#### Documentation Changes\n- **`msal-interceptor.md`** — Common failure patterns table,\nenvironment-driven configuration guidance, troubleshooting section with\nfix options, and runtime warning explanation.\n- **`v4-v5-upgrade-guide.md`** — Quick checklist, v5 minor upgrade\ncallout, and environment-driven `protectedResourceMap` code sample with\n`// TODO` migration comment.\n- **`known-issues.md`** — Concise entry linking to strict matching docs.\n- **`configuration.md`** — `strictMatching: false` with comments in\ndynamic config samples; guidance comments in static config samples.\n\n---------\n\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-03-09T10:05:14-07:00",
+          "tree_id": "1e2357196c4ea11e7790a9864430288871549c37",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1d8e35fbe8d6364937e38d1054ba9526d7526860"
+        },
+        "date": 1773076294728,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 242015,
+            "range": "±0.93%",
+            "unit": "ops/sec",
+            "extra": "212 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 241728,
+            "range": "±0.72%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
