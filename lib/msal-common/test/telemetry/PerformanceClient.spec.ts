@@ -1578,6 +1578,72 @@ describe("PerformanceClient.spec.ts", () => {
             topLevelEvent.end({ success: true }, undefined, unknownAccount);
         });
 
+        it("endMeasurement overwrites accountType previously set via addFields when account is provided", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            // AAD account (tid is NOT the MSA tenant)
+            const aadAccount = {
+                homeAccountId: "test-home-account-id",
+                environment: "login.microsoftonline.com",
+                tenantId: "test-tenant-id",
+                username: "test@example.com",
+                localAccountId: "test-local-account-id",
+                idTokenClaims: {
+                    tid: "test-tenant-id",
+                },
+            };
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                // The account-derived type ("AAD") must overwrite the
+                // addFields value ("MSA") — account info is authoritative.
+                expect(event.accountType).toBe("AAD");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+
+            // Simulate instrumentClientData setting accountType via addFields
+            mockPerfClient.addFields(
+                { accountType: "MSA" },
+                correlationId
+            );
+
+            // End with an AAD account — endMeasurement should overwrite accountType
+            topLevelEvent.end({ success: true }, undefined, aadAccount);
+        });
+
+        it("addFields accountType is preserved when endMeasurement is called without account", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                // No account passed to end(), so the addFields value should remain
+                expect(event.accountType).toBe("MSA");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+
+            // Simulate instrumentClientData setting accountType via addFields
+            mockPerfClient.addFields(
+                { accountType: "MSA" },
+                correlationId
+            );
+
+            // End without account — addFields value should be preserved
+            topLevelEvent.end({ success: true });
+        });
+
         it("handles account with empty dataBoundary properly", (done) => {
             const mockPerfClient = new MockPerformanceClient();
             const correlationId = "test-correlation-id";

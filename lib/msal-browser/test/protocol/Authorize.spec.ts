@@ -662,45 +662,6 @@ describe("Authorize Protocol Tests", () => {
             addFieldsSpy.mockRestore();
         });
 
-        it("endMeasurement overwrites accountType set by clientdata instrumentation", async () => {
-            /**
-             * instrumentClientData sets accountType via addFields (e.g. "MSA" from clientdata).
-             * PerformanceClient.endMeasurement later sets finalEvent.accountType = getAccountType(account),
-             * which overwrites the addFields value. This is by design: the token-response-derived
-             * account type is authoritative and should take precedence over the clientdata hint.
-             */
-            const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
-            // clientdata: m|error|suberror|cloud|boundary → accountType set to "MSA"
-            const clientdata = "m%7Cerror%7Csuberror%7Ccloud%7Cboundary";
-            const response = {
-                ear_jwe: validEarJWE,
-                state: validRequest.state,
-                clientdata,
-            };
-
-            await Authorize.handleResponseEAR(
-                validRequest,
-                response,
-                ApiId.acquireTokenPopup,
-                config,
-                authority,
-                cacheManager,
-                cacheManager,
-                eventHandler,
-                logger,
-                performanceClient
-            );
-
-            // Verify instrumentClientData sets accountType (not a separate field name)
-            expect(addFieldsSpy).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    accountType: "MSA",
-                }),
-                validRequest.correlationId
-            );
-            addFieldsSpy.mockRestore();
-        });
-
         it("handleResponseCode instruments clientdata telemetry before processing response", async () => {
             const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
             // clientdata: e|AADSTS65001|consent_required|login.microsoftonline.com|none
