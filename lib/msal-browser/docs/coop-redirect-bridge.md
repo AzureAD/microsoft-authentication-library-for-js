@@ -171,12 +171,13 @@ module.exports = {
 
 ## Next.js
 
-Next.js pages automatically become routes, so the redirect bridge is a page component.
+Next.js pages automatically become routes, so the redirect bridge is a page component. The setup differs between the **Pages Router** and the **App Router**.
 
-1. **Create `pages/redirect.js`** (Pages Router) or `app/redirect/page.js` (App Router):
+### Pages Router (`pages/`)
+
+1. **Create `pages/redirect.js`**:
 
 ```jsx
-// pages/redirect.js (Pages Router)
 import { useEffect } from "react";
 import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
 
@@ -214,9 +215,43 @@ function MyApp({ Component, pageProps }) {
 }
 ```
 
-No `next.config.js` changes are needed — Next.js serves pages automatically.
+### App Router (`app/`)
 
-> **Sample:** See the [nextjs-sample](../../../samples/msal-react-samples/nextjs-sample).
+1. **Create `app/redirect/page.js`** — this must be a Client Component (`"use client"`):
+
+```jsx
+"use client";
+
+import { useEffect } from "react";
+import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
+
+export default function Redirect() {
+    useEffect(() => {
+        broadcastResponseToMainFrame().catch((error) => {
+            console.error("Error broadcasting response to main frame:", error);
+        });
+    }, []);
+
+    return <p>Processing authentication...</p>;
+}
+```
+
+1. **Exclude the redirect route from `MsalProvider`** in your root layout. If your `app/layout.js` wraps children in `MsalProvider`, create a separate layout for the redirect route that skips it:
+
+```jsx
+// app/redirect/layout.js — no MsalProvider wrapper
+export default function RedirectLayout({ children }) {
+    return <>{children}</>;
+}
+```
+
+This prevents MSAL from processing the auth response hash before `broadcastResponseToMainFrame()` runs.
+
+---
+
+No `next.config.js` changes are needed for either router — Next.js serves pages automatically.
+
+> **Sample:** See the [nextjs-sample](../../../samples/msal-react-samples/nextjs-sample) for a Pages Router example.
 
 ## Create React App (CRA)
 

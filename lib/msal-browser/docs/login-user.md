@@ -196,9 +196,7 @@ Your `redirectUri` must point to a dedicated page that loads the redirect bridge
     <script type="module">
         import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
 
-        broadcastResponseToMainFrame().catch((error) => {
-            console.error("Error broadcasting response:", error);
-        });
+        broadcastResponseToMainFrame();
     </script>
 </body>
 </html>
