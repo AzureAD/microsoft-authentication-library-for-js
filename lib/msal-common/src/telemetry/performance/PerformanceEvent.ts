@@ -205,11 +205,9 @@ export type PerformanceEvent = {
     /**
      * Monitor_window_timeout debugging telemetry
      */
-    iframePollIntervalMs?: number;
-    iframeTimeoutMs?: number;
-    iframeTickCount?: number;
-    crossOriginTickCount?: number;
+    redirectBridgeTimeoutMs?: number;
     isRedirectUriCrossOrigin?: boolean;
+    redirectBridgeMessageVersion?: number;
 
     /**
      * Size of the id token
@@ -515,8 +513,6 @@ export const IntFields: ReadonlySet<string> = new Set([
     "expiredCacheRemovedCount",
     "upgradedCacheCount",
     "networkRtt",
-    "iframePollIntervalMs",
-    "iframeTimeoutMs",
-    "iframeTickCount",
-    "crossOriginTickCount",
+    "redirectBridgeTimeoutMs",
+    "redirectBridgeMessageVersion",
 ]);

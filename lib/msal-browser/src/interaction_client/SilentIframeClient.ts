@@ -301,7 +301,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.config.system.iframeBridgeTimeout,
             this.logger,
             this.browserCrypto,
-            request
+            request,
+            this.performanceClient
         );
 
         const serverParams = invoke(
@@ -466,7 +467,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.config.system.iframeBridgeTimeout,
             this.logger,
             this.browserCrypto,
-            request
+            request,
+            this.performanceClient
         );
 
         const serverParams = invoke(
