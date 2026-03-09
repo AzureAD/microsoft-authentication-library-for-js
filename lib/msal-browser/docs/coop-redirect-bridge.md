@@ -66,7 +66,7 @@ const routes: Routes = [
 }
 ```
 
-> **Sample:** See [angular-standalone-sample](../../../samples/msal-angular-samples/angular-standalone-sample) and [angular-modules-sample](../../../samples/msal-angular-samples/angular-modules-sample) for examples.
+> **Sample:** See [angular-standalone-sample](../../../samples/msal-angular-samples/angular-standalone-sample) and [angular-modules-sample](../../../samples/msal-angular-samples/angular-modules-sample).
 
 ## Vite
 
@@ -222,7 +222,7 @@ function MyApp({ Component, pageProps }) {
 
 No `next.config.js` changes are needed — Next.js serves pages automatically.
 
-> **Sample:** See the [nextjs-sample](../../../samples/msal-react-samples/nextjs-sample) for example.
+> **Sample:** See the [nextjs-sample](../../../samples/msal-react-samples/nextjs-sample).
 
 ## Create React App (CRA)
 
@@ -268,7 +268,7 @@ function App({ msalInstance }) {
 }
 ```
 
-> **Sample:** See the [react-router-sample](../../../samples/msal-react-samples/react-router-sample) and [typescript-sample](../../../samples/msal-react-samples/typescript-sample) for examples.
+> **Sample:** See the [react-router-sample](../../../samples/msal-react-samples/react-router-sample) and [typescript-sample](../../../samples/msal-react-samples/typescript-sample).
 
 ## Express.js / Node.js Backend
 
@@ -293,7 +293,7 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, "public")));
 ```
 
-> **Sample:** See the [HybridSample](../../../samples/msal-browser-samples/HybridSample) for an Express + Handlebars example.
+> **Sample:** See the [HybridSample](../../../samples/msal-browser-samples/HybridSample).
 
 ## Additional Resources
 
