@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Mon, 23 Feb 2026 16:28:24 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 09 Mar 2026 16:17:56 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.29.1
+
+Mon, 09 Mar 2026 16:17:56 GMT
+
+### Patches
+
+- Fix JSON object conversion in PlatformDOMRequest v4 [#8350](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8350) (lalimasharda@microsoft.com)
+- Bump @azure/msal-common to v15.16.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.29.0
 

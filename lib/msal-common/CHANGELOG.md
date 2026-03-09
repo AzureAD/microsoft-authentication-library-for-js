@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Mon, 23 Feb 2026 16:28:24 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 09 Mar 2026 16:17:56 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.16.0
+
+Mon, 09 Mar 2026 16:17:56 GMT
+
+### Minor changes
+
+- Add strict matching to StringUtils [#8351](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8351) (joarroyo@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 15.15.0
 
