@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773081350578,
+  "lastUpdate": 1773095292704,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19895,6 +19895,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.74%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "33b96474f2cb437bf62cea3e53c22e848fee5629",
+          "message": "Add COOP redirect bridge setup documentation for various frameworks (#8398)\n\n- Add error message format change impact on error handling\n- Add COOP redirect bridge setup documentation for various frameworks",
+          "timestamp": "2026-03-09T15:21:28-07:00",
+          "tree_id": "c4064f3b56649251fc2d64bade15908c3ec1a63c",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/33b96474f2cb437bf62cea3e53c22e848fee5629"
+        },
+        "date": 1773095289483,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 240798,
+            "range": "±0.97%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 240889,
+            "range": "±0.76%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
