@@ -183,7 +183,7 @@ Your `redirectUri` must point to a dedicated page that loads the redirect bridge
 3. **Not include routing logic** - Avoid router libraries that might interfere with hash handling
 4. **Be registered in your App Registration** - The URI must match exactly what's registered in Azure portal
 
-**Example redirect page:**
+**Example redirect page (when using a bundler such as Vite or Webpack):**
 
 ```html
 <!DOCTYPE html>
@@ -193,13 +193,19 @@ Your `redirectUri` must point to a dedicated page that loads the redirect bridge
 </head>
 <body>
     <p>Processing authentication...</p>
-    <script src="@azure/msal-browser/redirect-bridge"></script>
-    <script>
-        msalRedirectBridge.broadcastResponseToMainFrame();
+    <script type="module">
+        import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
+
+        broadcastResponseToMainFrame().catch((error) => {
+            console.error("Error broadcasting response:", error);
+        });
     </script>
 </body>
 </html>
 ```
+
+> [!NOTE]
+> The `@azure/msal-browser/redirect-bridge` specifier must be resolved by a bundler (Vite, Webpack, etc.) — it is not a URL that browsers can fetch directly. For framework-specific instructions, see the [COOP Redirect Bridge setup guide](./coop-redirect-bridge.md).
 
 ### Configuration
 
