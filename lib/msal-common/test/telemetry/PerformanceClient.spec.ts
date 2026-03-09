@@ -1608,10 +1608,7 @@ describe("PerformanceClient.spec.ts", () => {
             );
 
             // Simulate instrumentClientData setting accountType via addFields
-            mockPerfClient.addFields(
-                { accountType: "MSA" },
-                correlationId
-            );
+            mockPerfClient.addFields({ accountType: "MSA" }, correlationId);
 
             // End with an AAD account — endMeasurement should overwrite accountType
             topLevelEvent.end({ success: true }, undefined, aadAccount);
@@ -1635,10 +1632,7 @@ describe("PerformanceClient.spec.ts", () => {
             );
 
             // Simulate instrumentClientData setting accountType via addFields
-            mockPerfClient.addFields(
-                { accountType: "MSA" },
-                correlationId
-            );
+            mockPerfClient.addFields({ accountType: "MSA" }, correlationId);
 
             // End without account — addFields value should be preserved
             topLevelEvent.end({ success: true });
