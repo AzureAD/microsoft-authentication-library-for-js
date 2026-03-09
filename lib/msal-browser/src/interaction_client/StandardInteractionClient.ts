@@ -305,6 +305,18 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         );
 
         const redirectUri = this.getRedirectUri(request.redirectUri);
+        if (
+            new URL(redirectUri).origin !== new URL(window.location.href).origin
+        ) {
+            this.logger.warning(
+                "The origin of the redirect URI does not match the origin of the current page. This is likely to cause issues with authentication.",
+                this.correlationId
+            );
+            this.performanceClient.addFields(
+                { isRedirectUriCrossOrigin: true },
+                this.correlationId
+            );
+        }
         const browserState: BrowserStateObject = {
             interactionType: interactionType,
         };
