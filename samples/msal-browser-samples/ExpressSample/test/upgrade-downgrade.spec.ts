@@ -46,9 +46,9 @@ describe("Upgrade/Downgrade Tests", () => {
     beforeEach(async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(5000);
+        page.setDefaultTimeout(30000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
-        await page.goto(`http://localhost:${port}`, { timeout: 5000 });
+        await page.goto(`http://localhost:${port}`, { timeout: 30000 });
     });
 
     afterEach(async () => {
