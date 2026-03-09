@@ -203,7 +203,7 @@ Your `redirectUri` must point to a dedicated page that loads the redirect bridge
 ```
 
 > [!NOTE]
-> The `@azure/msal-browser/redirect-bridge` specifier must be resolved by a bundler (Vite, Webpack, etc.) — it is not a URL that browsers can fetch directly. For framework-specific instructions, see the [COOP Redirect Bridge setup guide](./coop-redirect-bridge.md).
+> The `@azure/msal-browser/redirect-bridge` specifier must be resolved by a bundler (Vite, Webpack, etc.) — it is not a URL that browsers can fetch directly. For framework-specific instructions, see the [Redirect Bridge setup guide](./redirect-bridge.md).
 
 ### Configuration
 

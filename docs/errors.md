@@ -895,7 +895,7 @@ Copy `msal-redirect-bridge.min.js` from `node_modules/@azure/msal-browser/lib/re
 </html>
 ```
 
-For framework-specific setup instructions (Angular, React, Next.js, Vite, Webpack), see the [redirect bridge guide](../lib/msal-browser/docs/coop-redirect-bridge.md).
+For framework-specific setup instructions (Angular, React, Next.js, Vite, Webpack), see the [redirect bridge guide](../lib/msal-browser/docs/redirect-bridge.md).
 
 **Important**: If your application uses a router library (e.g. React Router, Angular Router), please make sure it does not strip the hash or auto-redirect while MSAL token acquisition is in progress. If possible, it is best if your `redirectUri` page does not invoke the router at all.
 

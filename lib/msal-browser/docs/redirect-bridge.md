@@ -1,6 +1,6 @@
-# COOP Redirect Bridge — Framework-Specific Setup
+# Redirect Bridge — Framework-Specific Setup
 
-This guide provides framework-specific instructions for setting up the COOP redirect bridge page introduced in MSAL Browser v5. For background on what COOP is and why the redirect bridge is needed, see the [v4 to v5 migration guide](./v4-migration.md#cross-origin-opener-policy-coop-support).
+This guide provides framework-specific instructions for setting up the redirect bridge page introduced in MSAL Browser v5. For background on why the redirect bridge is needed, see the [v4 to v5 migration guide](./v4-migration.md#cross-origin-opener-policy-coop-support).
 
 > **Important:** The redirect bridge page must **NOT** be served with `Cross-Origin-Opener-Policy` headers. The bridge page is an intermediary that receives the authentication response after the IdP completes the OAuth flow. If COOP headers are set on the bridge page, the browser performs a browsing context group swap that severs the communication channel back to the main application — reintroducing the exact problem the bridge is designed to solve.
 
@@ -322,26 +322,41 @@ export function Redirect() {
 }
 ```
 
-2. **Add the route outside of `MsalProvider`** in your `App.js`:
+2. **Create a layout component** that wraps child routes in `MsalProvider` (`src/components/MsalProviderLayout.jsx`):
+
+```jsx
+import { Outlet } from "react-router-dom";
+import { MsalProvider } from "@azure/msal-react";
+
+export function MsalProviderLayout({ instance }) {
+    return (
+        <MsalProvider instance={instance}>
+            <Outlet />
+        </MsalProvider>
+    );
+}
+```
+
+3. **Add the redirect route outside the layout** in your `App.js`:
 
 ```jsx
 import { Routes, Route } from "react-router-dom";
-import { MsalProvider } from "@azure/msal-react";
+import { MsalProviderLayout } from "./components/MsalProviderLayout";
 import { Redirect } from "./pages/Redirect";
+import { Home } from "./pages/Home";
+import { Profile } from "./pages/Profile";
 
 function App({ msalInstance }) {
     return (
         <Routes>
-            {/* Redirect route must be OUTSIDE MsalProvider */}
+            {/* Redirect route is NOT wrapped in MsalProvider */}
             <Route path="/redirect" element={<Redirect />} />
-            <Route
-                path="/*"
-                element={
-                    <MsalProvider instance={msalInstance}>
-                        {/* Your app routes */}
-                    </MsalProvider>
-                }
-            />
+
+            {/* All other routes share MsalProvider via the layout */}
+            <Route element={<MsalProviderLayout instance={msalInstance} />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/profile" element={<Profile />} />
+            </Route>
         </Routes>
     );
 }

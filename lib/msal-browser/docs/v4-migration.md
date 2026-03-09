@@ -346,16 +346,16 @@ When COOP headers are present on the authentication service response (e.g., `Cro
 
 Create a page that calls `broadcastResponseToMainFrame()` from `@azure/msal-browser/redirect-bridge`. This page must **NOT** be served with COOP headers.
 
-The setup varies by build system — see the **[COOP Redirect Bridge — Framework-Specific Setup](./coop-redirect-bridge.md)** guide:
+The setup varies by build system — see the **[Redirect Bridge — Framework-Specific Setup](./redirect-bridge.md)** guide:
 
 | Framework                                                                | Approach |
 |--------------------------------------------------------------------------|---|
-| [Angular](./coop-redirect-bridge.md#angular)                             | Route component + optional `angular.json` assets |
-| [Vite](./coop-redirect-bridge.md#vite)                                   | Multi-page `rollupOptions.input` |
-| [Webpack](./coop-redirect-bridge.md#webpack)                             | Separate entry + `HtmlWebpackPlugin` |
-| [Next.js](./coop-redirect-bridge.md#nextjs)                              | Page component excluded from `MsalProvider` |
-| [CRA (Create React App)](./coop-redirect-bridge.md#create-react-app-cra) | Static `public/redirect.html` page |
-| [Express.js](./coop-redirect-bridge.md#expressjs--nodejs-backend)        | Server-side COOP header exclusion |
+| [Angular](./redirect-bridge.md#angular)                             | Route component + optional `angular.json` assets |
+| [Vite](./redirect-bridge.md#vite)                                   | Multi-page `rollupOptions.input` |
+| [Webpack](./redirect-bridge.md#webpack)                             | Separate entry + `HtmlWebpackPlugin` |
+| [Next.js](./redirect-bridge.md#nextjs)                              | Page component excluded from `MsalProvider` |
+| [CRA (Create React App)](./redirect-bridge.md#create-react-app-cra) | Static `public/redirect.html` page |
+| [Express.js](./redirect-bridge.md#expressjs--nodejs-backend)        | Server-side COOP header exclusion |
 
 **See also:** [Redirect URI considerations](./login-user.md#redirecturi-considerations) | [Popup interaction_in_progress errors](./login-user.md#handling-popup-interaction_in_progress-errors) | [MDN: COOP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy)
 
