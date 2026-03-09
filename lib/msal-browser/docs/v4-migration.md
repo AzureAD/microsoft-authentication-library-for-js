@@ -359,7 +359,7 @@ The setup varies by build system — see the **[COOP Redirect Bridge — Framewo
 
 **See also:** [Redirect URI considerations](./login-user.md#redirecturi-considerations) | [Popup interaction_in_progress errors](./login-user.md#handling-popup-interaction_in_progress-errors) | [MDN: COOP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy)
 
-##### 1. Update your MSAL configuration
+##### 2. Update your MSAL configuration
 
 Point `redirectUri` to a new redirect bridge page:
 
