@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.5.30",
+  "version": "1.5.31",
   "repository": {
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
@@ -66,7 +66,7 @@
     ]
   },
   "dependencies": {
-    "@azure/msal-common": "15.15.0",
+    "@azure/msal-common": "15.16.0",
     "@azure/msal-node-runtime": "^0.20.0",
     "keytar": "^7.8.0"
   },

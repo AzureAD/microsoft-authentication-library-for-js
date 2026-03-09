@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add strict matching to interceptor [#8351](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8351)",
-  "packageName": "@azure/msal-angular",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}
