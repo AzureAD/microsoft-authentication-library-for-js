@@ -51,7 +51,7 @@ import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandle
  * Format: urlencoded(account_type|error|sub_error|cloud_instance|caller_data_boundary)
  */
 type ClientData = {
-    /** Account type: "m" for MSA, "e" for Entra */
+    /** Account type: MSA, AAD */
     accountType: string;
     /** Error code string (e.g. "0x8004345C" for MSA) */
     error: string;
@@ -91,7 +91,8 @@ export function parseClientData(clientdata?: string): ClientData | null {
         }
 
         return {
-            accountType: clientDataAccountTypeMapping.get(parts[0] || "") || "",
+            accountType:
+                clientDataAccountTypeMapping.get(parts[0]?.trim() || "") || "",
             error: parts[1]?.trim() || "",
             subError: parts[2]?.trim() || "",
             cloudInstance: parts[3]?.trim() || "",
@@ -111,16 +112,21 @@ function instrumentClientData(
     performanceClient: IPerformanceClient
 ): void {
     const parsed = parseClientData(response.clientdata);
-    if (parsed) {
+    parsed?.accountType &&
         performanceClient.addFields(
-            {
-                accountType: parsed.accountType,
-                serverErrorNo: parsed.error,
-                serverSubErrorNo: parsed.subError,
-            },
+            { accountType: parsed.accountType },
             correlationId
         );
-    }
+    parsed?.error &&
+        performanceClient.addFields(
+            { serverErrorNo: parsed.error },
+            correlationId
+        );
+    parsed?.subError &&
+        performanceClient.addFields(
+            { serverSubErrorNo: parsed.subError },
+            correlationId
+        );
 }
 
 /**

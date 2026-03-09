@@ -565,7 +565,17 @@ describe("Authorize Protocol Tests", () => {
             expect(addFieldsSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     accountType: "MSA",
+                }),
+                validRequest.correlationId
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
                     serverErrorNo: "0x8004345C",
+                }),
+                validRequest.correlationId
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
                     serverSubErrorNo: "0x80047857",
                 }),
                 validRequest.correlationId
@@ -634,7 +644,17 @@ describe("Authorize Protocol Tests", () => {
             expect(addFieldsSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     accountType: "AAD",
+                }),
+                validRequest.correlationId
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
                     serverErrorNo: "AADSTS50076",
+                }),
+                validRequest.correlationId
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
                     serverSubErrorNo: "basic_action",
                 }),
                 validRequest.correlationId
@@ -716,7 +736,17 @@ describe("Authorize Protocol Tests", () => {
             expect(addFieldsSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     accountType: "AAD",
+                }),
+                validRequest.correlationId
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
                     serverErrorNo: "AADSTS65001",
+                }),
+                validRequest.correlationId
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
                     serverSubErrorNo: "consent_required",
                 }),
                 validRequest.correlationId
