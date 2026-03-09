@@ -2,6 +2,47 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 09 Mar 2026 23:17:53 GMT",
+      "version": "5.5.0",
+      "tag": "@azure/msal-browser_v5.5.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "msaljsbuilds@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9ea3c77846d7a7b64ce32fed6b92f74c82418230",
+            "comment": "Bump @azure/msal-browser to match @azure/msal-browser-1p"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "33b96474f2cb437bf62cea3e53c22e848fee5629",
+            "comment": "Fix JSON object conversion in PlatformDOMRequest [#8348](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8348)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 02 Mar 2026 19:25:47 GMT",
       "version": "5.4.0",
       "tag": "@azure/msal-browser_v5.4.0",
