@@ -847,7 +847,7 @@ The redirect bridge is a mechanism that enables authentication flows in COOP (Cr
 
 This timeout typically occurs for the following reasons:
 
-1. The page you use as your `redirectUri` is not loading the `msal-redirect-bridge.js` script
+1. The page you use as your `redirectUri` is not loading the redirect bridge script (either via the ESM import from `@azure/msal-browser/redirect-bridge` or the UMD bundle `msal-redirect-bridge(.min).js`)
 1. The redirect page is removing or manipulating the URL hash before the bridge script can process it
 1. The redirect page is automatically navigating to a different page before the bridge can communicate the response
 1. Your identity provider is being slow to redirect back to your `redirectUri` (network latency)
