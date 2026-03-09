@@ -297,7 +297,7 @@ const msalConfig = {
 
 This page is served as plain HTML — it does **not** load your React application bundle, React Router, or `MsalProvider`. No changes to `App.js` or routing are required.
 
-> **Important:** `public/redirect.html` uses an ES module `import`. If you need to support older browsers that do not support ES modules, replace the `<script type="module">` block with a small CommonJS-compatible bundle, or use the SPA route approach described below.
+> **Important:** The `public/redirect.html` example above uses the UMD bundle (`msal-redirect-bridge.min.js`) and the global `msalRedirectBridge` object. This makes the page usable in a wide range of browsers, including those that do not support native ES modules. If you prefer to use an ES module instead, you can replace the UMD `<script>` tag with a `<script type="module">` block that imports `broadcastResponseToMainFrame` from `@azure/msal-browser/redirect-bridge`, or you can use the SPA route approach described below.
 
 ### Alternative: SPA route (React Router)
 
