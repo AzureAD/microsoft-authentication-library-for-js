@@ -6,10 +6,10 @@ Please see the [MSAL Browser v4-v5 migration guide](https://github.com/AzureAD/m
 
 ## Migration paths
 
-- **v3 -> v5**: Follow this guide, then apply the [MSAL Browser v4-v5 migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v4-migration.md), especially the COOP redirect bridge setup.
-- **v1/v2 -> v5**: The v1 -> v2 and v2 -> v3 updates were peer dependency version updates only for most apps. Move to v3 first, then follow the v3 -> v5 guidance in this document plus COOP redirect bridge setup.
+- **v3 -> v5**: Follow this guide, then apply the [MSAL Browser v4-v5 migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v4-migration.md), especially the redirect bridge setup.
+- **v1/v2 -> v5**: The v1 -> v2 and v2 -> v3 updates were peer dependency version updates only for most apps. Move to v3 first, then follow the v3 -> v5 guidance in this document plus redirect bridge setup.
 
-## COOP redirect bridge setup (required)
+## Redirect bridge setup (required)
 
 MSAL Browser v5 requires a dedicated redirect page/bridge for authentication flows.
 
