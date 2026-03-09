@@ -354,7 +354,7 @@ The setup varies by build system — see the **[COOP Redirect Bridge — Framewo
 | [Vite](./coop-redirect-bridge.md#vite)                                   | Multi-page `rollupOptions.input` |
 | [Webpack](./coop-redirect-bridge.md#webpack)                             | Separate entry + `HtmlWebpackPlugin` |
 | [Next.js](./coop-redirect-bridge.md#nextjs)                              | Page component excluded from `MsalProvider` |
-| [CRA (Create React App)](./coop-redirect-bridge.md#create-react-app-cra) | Route component in `public/` |
+| [CRA (Create React App)](./coop-redirect-bridge.md#create-react-app-cra) | Static `public/redirect.html` page |
 | [Express.js](./coop-redirect-bridge.md#expressjs--nodejs-backend)        | Server-side COOP header exclusion |
 
 **See also:** [Redirect URI considerations](./login-user.md#redirecturi-considerations) | [Popup interaction_in_progress errors](./login-user.md#handling-popup-interaction_in_progress-errors) | [MDN: COOP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy)
