@@ -847,7 +847,7 @@ The redirect bridge is a mechanism that enables authentication flows in COOP (Cr
 
 This timeout typically occurs for the following reasons:
 
-1. The page you use as your `redirectUri` is not loading the `msal-redirect-bridge.js` script
+1. The page you use as your `redirectUri` is not loading the redirect bridge script (either via the ESM import from `@azure/msal-browser/redirect-bridge` or the UMD bundle `msal-redirect-bridge(.min).js`)
 1. The redirect page is removing or manipulating the URL hash before the bridge script can process it
 1. The redirect page is automatically navigating to a different page before the bridge can communicate the response
 1. Your identity provider is being slow to redirect back to your `redirectUri` (network latency)
@@ -857,7 +857,9 @@ This timeout typically occurs for the following reasons:
 
 ✔️ **Ensure the redirect bridge script is loaded:**
 
-Your `redirectUri` page must include the redirect bridge script to enable communication back to the main window:
+Your `redirectUri` page must include the redirect bridge script to enable communication back to the main window.
+
+**Option A — ESM (recommended for apps using a bundler such as Vite or Webpack):**
 
 ```html
 <!DOCTYPE html>
@@ -866,13 +868,34 @@ Your `redirectUri` page must include the redirect bridge script to enable commun
     <title>Redirect</title>
 </head>
 <body>
-    <script src="path/to/msal-redirect-bridge.js"></script>
-    <script>
-        msalRedirectBridge.sendRedirectPayloadToMainFrame();
+    <script type="module">
+        import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
+        broadcastResponseToMainFrame().catch(console.error);
     </script>
 </body>
 </html>
 ```
+
+**Option B — UMD (for static pages served without a bundler):**
+
+Copy `msal-redirect-bridge.min.js` from `node_modules/@azure/msal-browser/lib/redirect-bridge/` to your public directory, then reference it directly:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirect</title>
+</head>
+<body>
+    <script src="/msal-redirect-bridge.min.js"></script>
+    <script>
+        msalRedirectBridge.broadcastResponseToMainFrame().catch(console.error);
+    </script>
+</body>
+</html>
+```
+
+For framework-specific setup instructions (Angular, React, Next.js, Vite, Webpack), see the [redirect bridge guide](../lib/msal-browser/docs/redirect-bridge.md).
 
 **Important**: If your application uses a router library (e.g. React Router, Angular Router), please make sure it does not strip the hash or auto-redirect while MSAL token acquisition is in progress. If possible, it is best if your `redirectUri` page does not invoke the router at all.
 
@@ -882,7 +905,7 @@ When you make a silent call, in some cases, an iframe will be opened and will na
 
 ✔️ To solve this problem you should ensure that the page you use as your `redirectUri` is not doing any of these things.
 
-Remember that you will need to register `redirectUri` on your App Registration. We recommend using the HTML code shown above as the content for your registered redirect page.
+Remember that you will need to register `redirectUri` on your App Registration. We recommend using one of the HTML snippets above as the content for your registered redirect page.
 
 **Notes regarding Angular and React:**
 
