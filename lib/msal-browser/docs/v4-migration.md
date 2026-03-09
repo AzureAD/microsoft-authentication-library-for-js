@@ -391,6 +391,46 @@ We have consolidated event types and InteractionStatus to reflect what happened 
 1. The payload for `LOGIN_SUCCESS` is now an `AccountInfo` object.
 1. Any successful login now emits both a `LOGIN_SUCCESS` and `ACQUIRE_TOKEN_SUCCESS` event.
 
+#### `LOGIN_SUCCESS` payload type migration
+
+If your event callback currently casts `LOGIN_SUCCESS` payloads to `AuthenticationResult`, update it to use `AccountInfo` for `LOGIN_SUCCESS` and reserve `AuthenticationResult` for `ACQUIRE_TOKEN_SUCCESS`.
+
+```typescript
+// BEFORE (v4-style assumption)
+import {
+    EventType,
+    AuthenticationResult,
+} from "@azure/msal-browser";
+
+pca.addEventCallback((event) => {
+    if (event.eventType === EventType.LOGIN_SUCCESS) {
+        const result = event.payload as AuthenticationResult;
+        setAccount(result.account); // Will silently fail in v5 where payload is AccountInfo, not AuthenticationResult
+    }
+});
+```
+
+```typescript
+// AFTER (v5-safe handling)
+import {
+    EventType,
+    AuthenticationResult,
+    AccountInfo,
+} from "@azure/msal-browser";
+
+pca.addEventCallback((event) => {
+    if (event.eventType === EventType.LOGIN_SUCCESS) {
+        const account = event.payload as AccountInfo;
+        setAccount(account);
+    }
+
+    if (event.eventType === EventType.ACQUIRE_TOKEN_SUCCESS) {
+        const result = event.payload as AuthenticationResult;
+        setAccessToken(result.accessToken);
+    }
+});
+```
+
 ### Error message format changes
 
 To reduce bundle size, error messages have been moved out of the bundle. When an error is thrown, the `message` property now returns a generic link to the error documentation instead of a descriptive error message:
