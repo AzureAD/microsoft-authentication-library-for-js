@@ -129,13 +129,7 @@ Webpack requires a dedicated entry point and an `HtmlWebpackPlugin` instance for
 </head>
 <body>
     <p>Processing authentication...</p>
-    <script type="module">
-        import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
-
-        broadcastResponseToMainFrame().catch((error) => {
-            console.error("Error broadcasting response:", error);
-        });
-    </script>
+    <!-- The redirect script bundle will be injected by HtmlWebpackPlugin (see redirect.js entry). -->
 </body>
 </html>
 ```
