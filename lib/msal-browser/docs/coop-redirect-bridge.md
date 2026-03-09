@@ -33,7 +33,7 @@ export class RedirectComponent implements OnInit {
 }
 ```
 
-1. **Add the `/redirect` route** in your routing configuration. The redirect route must be **outside** the `MsalGuard` and should not be wrapped by any MSAL interceptor:
+1. **Add the `/redirect` route** in your routing configuration. The redirect route must be **outside** the `MsalGuard`, and the redirect page should not make API calls that would trigger `MsalInterceptor` (or otherwise invoke MSAL APIs):
 
 ```typescript
 import { RedirectComponent } from "./redirect/redirect.component";
