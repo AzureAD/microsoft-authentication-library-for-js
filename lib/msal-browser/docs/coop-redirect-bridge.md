@@ -226,6 +226,53 @@ No `next.config.js` changes are needed — Next.js serves pages automatically.
 
 ## Create React App (CRA)
 
+The recommended approach for CRA is to use a **dedicated static HTML file** placed in the `public/` folder. CRA copies everything in `public/` to the build output as-is, so `public/redirect.html` is served at `/redirect.html` with no React bundle attached — exactly what the redirect bridge requires.
+
+### Recommended: dedicated `public/redirect.html`
+
+1. **Create `public/redirect.html`**:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Redirect</title>
+</head>
+<body>
+    <p>Processing authentication...</p>
+    <script type="module">
+        import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
+
+        broadcastResponseToMainFrame().catch((error) => {
+            console.error("Error broadcasting response:", error);
+        });
+    </script>
+</body>
+</html>
+```
+
+2. **Set `redirectUri`** in your MSAL configuration to point to this file:
+
+```javascript
+const msalConfig = {
+    auth: {
+        clientId: "YOUR_CLIENT_ID",
+        redirectUri: window.location.origin + "/redirect.html",
+    },
+};
+```
+
+This page is served as plain HTML — it does **not** load your React application bundle, React Router, or `MsalProvider`. No changes to `App.js` or routing are required.
+
+> **Important:** `public/redirect.html` uses an ES module `import`. If you need to support older browsers that do not support ES modules, replace the `<script type="module">` block with a small CommonJS-compatible bundle, or use the SPA route approach described below.
+
+### Alternative: SPA route (React Router)
+
+> **Caveat:** This approach mounts the redirect URI inside the React Router SPA, so the **full application bundle** — including React, React Router, and all your app code — is downloaded and executed on the redirect page. For most apps the extra overhead is negligible, but it can slow down the authentication round-trip. If you use hash-based routing (`HashRouter`) you will also need to ensure the redirect URI hash is not consumed by the router before `broadcastResponseToMainFrame` runs.
+
+If you prefer to keep everything inside the SPA, follow these steps to create a dedicated route that runs the bridge script and place it **outside** `MsalProvider`:
+
 1. **Create `src/pages/Redirect.jsx`**:
 
 ```jsx
@@ -243,7 +290,7 @@ export function Redirect() {
 }
 ```
 
-1. **Add the route outside of `MsalProvider`** in your `App.js`:
+2. **Add the route outside of `MsalProvider`** in your `App.js`:
 
 ```jsx
 import { Routes, Route } from "react-router-dom";
