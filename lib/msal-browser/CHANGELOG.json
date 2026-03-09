@@ -2,6 +2,51 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 09 Mar 2026 19:28:11 GMT",
+      "version": "4.29.1",
+      "tag": "@azure/msal-browser_v4.29.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ee5e7abd5d9a6cfb6ada9b3ac36e15a81f7ba3a8",
+            "comment": "Additional telemetry for monitor_window_timeout errors [#8380](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8380)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4486b7e4bfedc414f7f5f1a7786be30484318206",
+            "comment": "Fix JSON object conversion in PlatformDOMRequest v4 [#8350](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8350)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v15.16.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 23 Feb 2026 16:28:24 GMT",
       "version": "4.29.0",
       "tag": "@azure/msal-browser_v4.29.0",
