@@ -866,9 +866,9 @@ Your `redirectUri` page must include the redirect bridge script to enable commun
     <title>Redirect</title>
 </head>
 <body>
-    <script src="path/to/msal-redirect-bridge.js"></script>
+    <script src="@azure/msal-browser/redirect-bridge"></script>
     <script>
-        msalRedirectBridge.sendRedirectPayloadToMainFrame();
+        msalRedirectBridge.broadcastResponseToMainFrame();
     </script>
 </body>
 </html>
