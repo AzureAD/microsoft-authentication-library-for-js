@@ -1,5 +1,11 @@
 # Known issues for MSAL Angular
 
+## 5.x
+
+### Strict matching may silently drop `Authorization` headers
+
+`protectedResourceMap` uses strict URL matching by default in v5, which can silently prevent the `Authorization` header from being attached (resulting in **401 Unauthorized** errors). See the [strict matching documentation](./msal-interceptor.md#strict-matching-strictmatching) for details, common failure patterns, and fix options.
+
 ## 2.0.0
 * MSAL Guard's `CanLoad` does not interactively prompt for login. This will be addressed in a future release.
 

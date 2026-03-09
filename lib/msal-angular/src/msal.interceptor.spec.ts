@@ -1177,6 +1177,65 @@ describe("MsalInterceptor", () => {
 });
 
 // ---------------------------------------------------------------------------
+// strictMatching warning tests
+// ---------------------------------------------------------------------------
+
+describe("MsalInterceptor - strict matching warning", () => {
+  const emptyMap = new Map<
+    string,
+    Array<string | ProtectedResourceScopes> | null
+  >();
+
+  function initializeAndSpyOnWarning(strict?: boolean): jasmine.Spy {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [
+        MsalModule.forRoot(
+          MSALInstanceFactory(),
+          null,
+          MSALStrictInterceptorFactory(emptyMap, strict)
+        ),
+      ],
+      providers: [
+        MsalInterceptor,
+        MsalService,
+        MsalBroadcastService,
+        {
+          provide: HTTP_INTERCEPTORS,
+          useClass: MsalInterceptor,
+          multi: true,
+        },
+        Location,
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+      teardown: { destroyAfterEach: false },
+    });
+
+    const spy = spyOn(TestBed.inject(MsalService).getLogger(), "warning");
+    interceptor = TestBed.inject(MsalInterceptor);
+    return spy;
+  }
+
+  it("warns when strictMatching is undefined", () => {
+    const spy = initializeAndSpyOnWarning(undefined);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy.calls.first().args[0]).toContain(
+      "[MSAL] strictMatching is enabled by default"
+    );
+  });
+
+  it("does not warn when strictMatching is true", () => {
+    expect(initializeAndSpyOnWarning(true)).not.toHaveBeenCalled();
+  });
+
+  it("does not warn when strictMatching is false", () => {
+    expect(initializeAndSpyOnWarning(false)).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // matchPatternStrict / matchPattern helper tests
 // ---------------------------------------------------------------------------
 // These tests exercise the local matching helpers defined in MsalInterceptor.
@@ -1245,7 +1304,7 @@ describe("matchPatternStrict unit tests", () => {
       string,
       Array<string | ProtectedResourceScopes> | null
     >();
-    initializeMsalStrict(emptyMap);
+    initializeMsalStrict(emptyMap, true);
     match = (interceptor as any).matchPatternStrict.bind(interceptor);
   });
 
@@ -1412,7 +1471,7 @@ describe("msal.interceptor matchPatternStrict", () => {
 
   describe("host wildcard matching", () => {
     beforeEach(() => {
-      initializeMsalStrict(hostwildcardMap);
+      initializeMsalStrict(hostwildcardMap, true);
     });
 
     it("msal.interceptor matchPatternStrict: host wildcard matches a single-label subdomain", (done) => {
@@ -1501,7 +1560,7 @@ describe("msal.interceptor matchPatternStrict", () => {
     >([["https://myapplication.com/user/*", ["customscope.read"]]]);
 
     beforeEach(() => {
-      initializeMsalStrict(pathMap);
+      initializeMsalStrict(pathMap, true);
     });
 
     it("msal.interceptor matchPatternStrict: pathname wildcard matches expected segments", (done) => {
@@ -1630,8 +1689,7 @@ describe("MsalInterceptor - strictMatching option", () => {
     ]);
 
     beforeEach(() => {
-      // No strictMatching field set — should default to strict (v5)
-      initializeMsalStrict(defaultStrictMap);
+      initializeMsalStrict(defaultStrictMap, true);
     });
 
     it("MsalInterceptor: attaches authorization header only when URL components match configured pattern", (done) => {
@@ -1719,7 +1777,7 @@ describe("MsalInterceptor - strictMatching option", () => {
     >([["https://*.microsoft.com", ["microsoft.scope"]]]);
 
     beforeEach(() => {
-      initializeMsalStrict(microsoftResourceMap);
+      initializeMsalStrict(microsoftResourceMap, true);
     });
 
     it("does not attach authorization header when the matched hostname appears only in the query string", (done) => {
