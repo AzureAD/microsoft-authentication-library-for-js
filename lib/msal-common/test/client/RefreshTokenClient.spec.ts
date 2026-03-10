@@ -1662,7 +1662,9 @@ describe("RefreshTokenClient unit tests", () => {
 
             // Verify embeddedClientId is used as client_id and brk_client_id (BROKER_CLIENT_ID) is present
             expect(queryString).toContain(`client_id=child_client_id_1`);
-            expect(queryString).toContain(`brk_client_id=`);
+            expect(queryString).toContain(
+                `brk_client_id=${config.authOptions.clientId}`
+            );
 
             // Verify claims are present but do NOT include access_token.xms_cc (clientCapabilities)
             const claimsMatch = queryString.match(/claims=([^&]+)/);
