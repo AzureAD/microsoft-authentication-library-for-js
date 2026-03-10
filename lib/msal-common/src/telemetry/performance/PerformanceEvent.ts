@@ -674,8 +674,6 @@ export type PerformanceEvent = {
     /**
      * Online status when the event started.
      * Read from: https://developer.mozilla.org/docs/Web/API/NavigatorOnLine/onLine
-     *
-     * @type {?(boolean | null)}
      */
     startOnlineStatus?: boolean | null;
 

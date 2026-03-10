@@ -94,9 +94,11 @@ describe("BrowserPerformanceClient.ts", () => {
         });
 
         it("captures online status at measurement start", () => {
-            jest.spyOn(Navigator.prototype, "onLine", "get").mockReturnValue(
-                true
-            );
+            jest.spyOn(
+                Object.getPrototypeOf(navigator),
+                "onLine",
+                "get"
+            ).mockReturnValue(true);
 
             const browserPerfClient = new BrowserPerformanceClient(
                 testAppConfig
