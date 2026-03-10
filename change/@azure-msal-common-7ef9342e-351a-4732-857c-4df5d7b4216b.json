@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Additional telemetry for monitor_window_timeout errors [#8380](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8380)",
+  "comment": "Additional telemetry for monitor_window_timeout errors [#8385](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8385)",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

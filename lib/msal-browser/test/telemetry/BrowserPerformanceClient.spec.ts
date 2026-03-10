@@ -32,6 +32,31 @@ describe("BrowserPerformanceClient.ts", () => {
     });
 
     describe("startMeasurement", () => {
+        let originalConnectionDescriptor: PropertyDescriptor | undefined;
+
+        beforeEach(() => {
+            originalConnectionDescriptor = Object.getOwnPropertyDescriptor(
+                navigator,
+                "connection"
+            );
+        });
+
+        afterEach(() => {
+            if (originalConnectionDescriptor !== undefined) {
+                Object.defineProperty(
+                    navigator,
+                    "connection",
+                    originalConnectionDescriptor
+                );
+            } else {
+                try {
+                    delete (navigator as any).connection;
+                } catch {
+                    // ignore if non-deletable
+                }
+            }
+        });
+
         it("calculate performance duration", () => {
             const browserPerfClient = new BrowserPerformanceClient(
                 testAppConfig
