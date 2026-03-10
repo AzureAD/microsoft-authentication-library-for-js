@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773095292704,
+  "lastUpdate": 1773159431919,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19933,6 +19933,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.76%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "543e435964623be67f2e674fbdd5e556bdca7817",
+          "message": "Add MCP support (#8363)\n\nThis PR adds support for MCP flows to msal-browser (PCA and NAA) and\nmsal-node (PCA) via a new isMcp configuration option. When isMcp: true,\nevery token request must include a resource parameter, and the resource\nvalue is stamped onto cached access tokens and checked on cache lookups.\n\n---------\n\nCo-authored-by: Sameera Gajjarapu <sameera.gajjarapu@microsoft.com>\nCo-authored-by: Copilot Autofix powered by AI <223894421+github-code-quality[bot]@users.noreply.github.com>",
+          "timestamp": "2026-03-10T09:09:47-07:00",
+          "tree_id": "0652d95b8cbbaa530452d8b0922b287feb93cb40",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/543e435964623be67f2e674fbdd5e556bdca7817"
+        },
+        "date": 1773159428278,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 250625,
+            "range": "±0.81%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 242114,
+            "range": "±1.03%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
