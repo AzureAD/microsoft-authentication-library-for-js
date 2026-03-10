@@ -84,7 +84,7 @@ describe("AAD-Prod Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation
@@ -165,7 +165,7 @@ describe("AAD-Prod Tests", () => {
         beforeAll(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation

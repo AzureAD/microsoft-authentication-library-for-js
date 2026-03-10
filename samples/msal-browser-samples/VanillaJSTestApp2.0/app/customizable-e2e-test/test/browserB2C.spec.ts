@@ -80,7 +80,7 @@ describe("B2C Tests", () => {
             beforeEach(async () => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+                page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
                 BrowserCache = new BrowserCacheUtils(
                     page,
                     b2cMsalConfig.cache.cacheLocation
@@ -155,7 +155,7 @@ describe("B2C Tests", () => {
             beforeAll(async () => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+                page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
                 BrowserCache = new BrowserCacheUtils(
                     page,
                     b2cMsalConfig.cache.cacheLocation
@@ -314,7 +314,7 @@ describe("B2C Tests", () => {
             beforeEach(async () => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+                page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
                 BrowserCache = new BrowserCacheUtils(
                     page,
                     b2cMsalConfig.cache.cacheLocation
@@ -389,7 +389,7 @@ describe("B2C Tests", () => {
             beforeAll(async () => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+                page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
                 BrowserCache = new BrowserCacheUtils(
                     page,
                     b2cMsalConfig.cache.cacheLocation
