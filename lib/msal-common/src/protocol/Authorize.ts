@@ -236,7 +236,7 @@ export function getStandardAuthorizeRequestParameters(
         (authOptions.clientCapabilities &&
             authOptions.clientCapabilities.length > 0)
     ) {
-        // ignore config capabilities if claims are explicitly passed in the request for brokered auth flows
+        // For brokered auth flows (identified by BROKER_CLIENT_ID), config clientCapabilities are not applied
         const configClaims = parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)
             ? undefined
             : authOptions.clientCapabilities;
