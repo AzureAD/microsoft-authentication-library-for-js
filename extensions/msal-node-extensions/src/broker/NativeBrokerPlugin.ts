@@ -502,6 +502,13 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 );
             }
 
+            if (request.resource) {
+                authParams.SetAdditionalParameter(
+                    AADServerParamKeys.RESOURCE,
+                    request.resource
+                );
+            }
+
             if (request.extraParameters) {
                 Object.entries(request.extraParameters).forEach(
                     ([key, value]) => {
@@ -614,6 +621,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             tokenType: tokenType,
             correlationId: request.correlationId,
             fromPlatformBroker: true,
+            ...(request.resource && { resource: request.resource }),
         };
         return result;
     }

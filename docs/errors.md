@@ -957,6 +957,14 @@ const msalConfig = {
 > [!IMPORTANT]
 > Please consult the [Troubleshooting Single-Sign On](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md#troubleshooting-single-sign-on) section of the MSAL Browser FAQ if you are having trouble with the `ssoSilent` API.
 
+### `resource_parameter_required`
+
+-   `isMcp` is set as `true` in the configuration, yet the request does not have a `resource` parameter. See the MCP documentation for [msal-browser](../lib/msal-browser/docs/mcp.md) or [msal-node](../lib/msal-node/docs/mcp.md).
+
+### `misplaced_resource_parameter`
+
+-   A resource was found both directly in the `resource` parameter and in `extraQueryParameters` or `extraParameters`. Please only include the resource in one location. See the MCP documentation for [msal-browser](../lib/msal-browser/docs/mcp.md) or [msal-node](../lib/msal-node/docs/mcp.md).
+
 ## Browser configuration errors
 
 ### `storage_not_supported`

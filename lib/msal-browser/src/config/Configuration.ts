@@ -86,6 +86,10 @@ export type BrowserAuthOptions = {
      * Flag of whether the STS will send back additional parameters to specify where the tokens should be retrieved from.
      */
     instanceAware?: boolean;
+    /**
+     * Flag on whether a resource parameter is required for token requests. Used for MCP flows.
+     */
+    isMcp?: boolean;
 };
 
 /** @internal */
@@ -246,6 +250,7 @@ export function buildConfiguration(
             tenant: "",
         },
         instanceAware: false,
+        isMcp: false,
     };
 
     // Default cache options for browser

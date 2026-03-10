@@ -84,6 +84,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `azureCloudOptions`          | A defined set of azure cloud options for developers to default to their specific cloud authorities, for specific clouds supported please refer to the [AzureCloudInstance](https://aka.ms/msaljs/azure_cloud_instance)                                                  | [AzureCloudOptions](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#azurecloudoptions) | [AzureCloudInstance.None](msaljs/azure_cloud_instance)                      |
 | `onRedirectNavigate`         | A callback that will be passed the url that MSAL will navigate to in redirect flows. Returning false in the callback will stop navigation.
 | `instanceAware`              | A flag of whether the STS will send back additional parameters to specify where the tokens should be retrieved from. | boolean | `false` |
+| `isMcp`                      | If true, a `resource` parameter is required on all token requests. Used for MCP flows. See [MCP documentation](mcp.md) for more details. | boolean | `false` |
 
 ### Cache Config Options
 

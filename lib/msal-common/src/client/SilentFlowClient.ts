@@ -152,6 +152,17 @@ export class SilentFlowClient {
             throw createClientAuthError(
                 ClientAuthErrorCodes.tokenRefreshRequired
             );
+        } else if (request.resource) {
+            // cached access token must have a resource that matches the request resource for MCP scenarios
+            if (cachedAccessToken.resource !== request.resource) {
+                this.setCacheOutcome(
+                    CacheOutcome.NO_CACHED_ACCESS_TOKEN,
+                    request.correlationId
+                );
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired
+                );
+            }
         } else if (
             cachedAccessToken.refreshOn &&
             TimeUtils.isTokenExpired(cachedAccessToken.refreshOn, 0)
