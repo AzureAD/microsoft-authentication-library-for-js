@@ -327,9 +327,7 @@ export async function initializeAuthorizationRequest(
         logger,
         correlationId
     );
-    if (
-        new URL(redirectUri).origin !== new URL(window.location.href).origin
-    ) {
+    if (new URL(redirectUri).origin !== new URL(window.location.href).origin) {
         logger.warning(
             "The origin of the redirect URI does not match the origin of the current page. This is likely to cause issues with authentication.",
             correlationId
