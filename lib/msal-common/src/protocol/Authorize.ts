@@ -231,16 +231,12 @@ export function getStandardAuthorizeRequestParameters(
         );
     }
 
-    const shouldAddConfigCapabilities =
-        !parameters.has(AADServerParamKeys.BROKER_CLIENT_ID) &&
-        authOptions.clientCapabilities &&
-        authOptions.clientCapabilities.length > 0;
+    const configClaims = parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)
+        ? undefined
+        : authOptions.clientCapabilities;
 
-    if (request.claims || shouldAddConfigCapabilities) {
+    if (request.claims || (configClaims && configClaims.length > 0)) {
         // ignore config capabilities if claims are explicitly passed in the request for brokered auth flows
-        const configClaims = shouldAddConfigCapabilities
-            ? authOptions.clientCapabilities
-            : undefined;
         RequestParameterBuilder.addClaims(
             parameters,
             request.claims,
