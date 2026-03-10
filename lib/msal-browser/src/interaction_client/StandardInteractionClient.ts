@@ -270,6 +270,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 authority: discoveredAuthority,
                 clientCapabilities: this.config.auth.clientCapabilities,
                 redirectUri: this.config.auth.redirectUri,
+                isMcp: this.config.auth.isMcp,
             },
             systemOptions: {
                 tokenRenewalOffsetSeconds:

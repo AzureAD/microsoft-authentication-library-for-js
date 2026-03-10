@@ -18,6 +18,7 @@ export type NativeRequest = {
     shrNonce?: string;
     accountId?: string;
     forceRefresh?: boolean;
+    resource?: string;
     extraParameters?: StringDict;
     extraScopesToConsent?: Array<string>;
     loginHint?: string;

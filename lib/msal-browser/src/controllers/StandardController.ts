@@ -28,6 +28,7 @@ import {
     AccountEntityUtils,
     Constants,
     AuthToken,
+    enforceResourceParameter,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -96,12 +97,14 @@ import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOp
 function preflightCheck(
     initialized: boolean,
     performanceEvent: InProgressPerformanceEvent,
-    account?: AccountInfo
+    config: BrowserConfiguration,
+    request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest
 ) {
     try {
         BrowserUtils.preflightCheck(initialized);
+        enforceResourceParameter(config.auth.isMcp, request);
     } catch (e) {
-        performanceEvent.end({ success: false }, e, account);
+        performanceEvent.end({ success: false }, e, request.account);
         throw e;
     }
 }
@@ -321,6 +324,7 @@ export class StandardController implements IController {
 
         // Broker applications are initialized twice, so we avoid double-counting it
         this.logMultipleInstances(initMeasurement, correlationId);
+        initMeasurement.add({ isMcp: this.config.auth.isMcp });
 
         await invokeAsync(
             this.browserStorage.initialize.bind(this.browserStorage),
@@ -644,6 +648,7 @@ export class StandardController implements IController {
 
         try {
             BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
+            enforceResourceParameter(this.config.auth.isMcp, request);
             this.browserStorage.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNIN
@@ -759,7 +764,8 @@ export class StandardController implements IController {
             preflightCheck(
                 this.initialized,
                 atPopupMeasurement,
-                request.account
+                this.config,
+                request
             );
             this.browserStorage.setInteractionInProgress(
                 true,
@@ -937,7 +943,8 @@ export class StandardController implements IController {
         preflightCheck(
             this.initialized,
             this.ssoSilentMeasurement,
-            request.account
+            this.config,
+            validRequest
         );
         this.ssoSilentMeasurement?.increment({
             visibilityChangeCount: 0,
@@ -1055,7 +1062,7 @@ export class StandardController implements IController {
             BrowserRootPerformanceEvents.AcquireTokenByCode,
             correlationId
         );
-        preflightCheck(this.initialized, atbcMeasurement);
+        preflightCheck(this.initialized, atbcMeasurement, this.config, request);
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
             correlationId,
@@ -1890,7 +1897,7 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
-        preflightCheck(this.initialized, atsMeasurement, request.account);
+        preflightCheck(this.initialized, atsMeasurement, this.config, request);
         this.logger.verbose("acquireTokenSilent called", correlationId);
 
         const account = request.account || this.getActiveAccount();

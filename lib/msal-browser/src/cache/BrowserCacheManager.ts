@@ -2325,6 +2325,10 @@ export class BrowserCacheManager extends CacheManager {
             request.sshKid
         );
 
+        if (request.resource) {
+            accessTokenEntity.resource = request.resource;
+        }
+
         const cacheRecord = {
             idToken: idTokenEntity,
             accessToken: accessTokenEntity,

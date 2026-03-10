@@ -359,6 +359,9 @@ export type PerformanceEvent = {
     // Hashed logs in the format [millis1,hash1;millis2,hash2;...]
     logs?: string;
 
+    // Whether the application is configured for MCP flows
+    isMcp?: boolean;
+
     /**
      * Source of cloud discovery metadata (config, cache, network, hardcoded_values)
      */
