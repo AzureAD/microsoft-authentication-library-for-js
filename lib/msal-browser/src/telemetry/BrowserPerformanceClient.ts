@@ -20,6 +20,7 @@ import { name, version } from "../packageMetadata.js";
 import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import { BROWSER_PERF_ENABLED_KEY } from "../cache/CacheKeys.js";
+import { getNetworkInfo } from "../utils/MsalFrameStatsUtils.js";
 
 /**
  * Returns browser performance measurement module if session flag is enabled. Returns undefined otherwise.
@@ -172,6 +173,7 @@ export class BrowserPerformanceClient
                 error?: unknown,
                 account?: AccountInfo
             ): PerformanceEvent | null => {
+                const networkInfo = getNetworkInfo();
                 const res = inProgressEvent.end(
                     {
                         ...event,
@@ -179,6 +181,8 @@ export class BrowserPerformanceClient
                         startOnlineStatus,
                         endPageVisibility: this.getPageVisibility(),
                         durationMs: getPerfDurationMs(startTime),
+                        networkEffectiveType: networkInfo.effectiveType,
+                        networkRtt: networkInfo.rtt,
                     },
                     error,
                     account

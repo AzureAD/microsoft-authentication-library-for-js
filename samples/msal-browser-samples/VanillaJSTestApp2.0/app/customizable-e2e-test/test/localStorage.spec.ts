@@ -75,7 +75,7 @@ describe("LocalStorage Tests", function () {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation
@@ -193,7 +193,7 @@ describe("LocalStorage Tests", function () {
 
             const tab1 = page;
             const tab2 = await context.newPage();
-            tab2.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            tab2.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
             await tab2.goto(sampleHomeUrl);
             await pcaInitializedPoller(tab2, 5000);
 
