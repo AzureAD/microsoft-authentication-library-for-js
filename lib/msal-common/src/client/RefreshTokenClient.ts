@@ -459,18 +459,6 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         if (
-            !StringUtils.isEmptyObj(request.claims) ||
-            (this.config.authOptions.clientCapabilities &&
-                this.config.authOptions.clientCapabilities.length > 0)
-        ) {
-            RequestParameterBuilder.addClaims(
-                parameters,
-                request.claims,
-                this.config.authOptions.clientCapabilities
-            );
-        }
-
-        if (
             this.config.systemOptions.preventCorsPreflight &&
             request.ccsCredential
         ) {
@@ -520,6 +508,24 @@ export class RefreshTokenClient extends BaseClient {
             request.correlationId,
             this.performanceClient
         );
+
+        if (
+            !StringUtils.isEmptyObj(request.claims) ||
+            (this.config.authOptions.clientCapabilities &&
+                this.config.authOptions.clientCapabilities.length > 0)
+        ) {
+            const configClaims = parameters.has(
+                AADServerParamKeys.BROKER_CLIENT_ID
+            )
+                ? undefined
+                : this.config.authOptions.clientCapabilities;
+            RequestParameterBuilder.addClaims(
+                parameters,
+                request.claims,
+                configClaims
+            );
+        }
+
         return UrlUtils.mapToQueryString(parameters);
     }
 }

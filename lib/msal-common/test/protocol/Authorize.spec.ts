@@ -1399,7 +1399,7 @@ describe("Authorize Protocol Tests", () => {
             );
         });
 
-        it("ignores clientCapabilities from config when embeddedClientId is provided", async () => {
+        it("ignores clientCapabilities from config when BROKER_CLIENT_ID is present", async () => {
             const authOptionsWithCapabilities: AuthOptions = {
                 ...authOptions,
                 clientCapabilities: ["CP1", "CP2"],
@@ -1425,8 +1425,9 @@ describe("Authorize Protocol Tests", () => {
                 );
             const queryString = UrlUtils.mapToQueryString(params);
 
-            // Verify embeddedClientId is used as client_id
+            // Verify embeddedClientId is used as client_id and brk_client_id is present
             expect(queryString).toContain(`client_id=child_client_id_1`);
+            expect(params.has(AADServerParamKeys.BROKER_CLIENT_ID)).toBe(true);
 
             // Verify claims are present but do NOT include access_token.xms_cc (clientCapabilities)
             const claimsParam = params.get(AADServerParamKeys.CLAIMS);
@@ -1436,7 +1437,7 @@ describe("Authorize Protocol Tests", () => {
             expect(parsedClaims.access_token?.xms_cc).toBeUndefined();
         });
 
-        it("includes clientCapabilities from config when embeddedClientId is NOT provided", async () => {
+        it("includes clientCapabilities from config when BROKER_CLIENT_ID is NOT present", async () => {
             const authOptionsWithCapabilities: AuthOptions = {
                 ...authOptions,
                 clientCapabilities: ["CP1", "CP2"],
