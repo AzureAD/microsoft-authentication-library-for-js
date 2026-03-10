@@ -228,10 +228,13 @@ export function getStandardAuthorizeRequestParameters(
         (authOptions.clientCapabilities &&
             authOptions.clientCapabilities.length > 0)
     ) {
+        // ignore config capabilities if claims are explicitly passed in the request for brokered auth flows
         RequestParameterBuilder.addClaims(
             parameters,
             request.claims,
-            authOptions.clientCapabilities
+            request.embeddedClientId
+                ? undefined
+                : authOptions.clientCapabilities
         );
     }
 

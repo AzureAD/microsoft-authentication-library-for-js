@@ -1398,6 +1398,78 @@ describe("Authorize Protocol Tests", () => {
                 `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
             );
         });
+
+        it("ignores clientCapabilities from config when embeddedClientId is provided", async () => {
+            const authOptionsWithCapabilities: AuthOptions = {
+                ...authOptions,
+                clientCapabilities: ["CP1", "CP2"],
+            };
+
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: ResponseMode.FRAGMENT,
+                redirectUri: "localhost",
+                embeddedClientId: "child_client_id_1",
+                claims: JSON.stringify({ userinfo: { given_name: null } }),
+            };
+
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptionsWithCapabilities,
+                    request,
+                    new Logger({})
+                );
+            const queryString = UrlUtils.mapToQueryString(params);
+
+            // Verify embeddedClientId is used as client_id
+            expect(queryString).toContain(`client_id=child_client_id_1`);
+
+            // Verify claims are present but do NOT include access_token.xms_cc (clientCapabilities)
+            const claimsParam = params.get(AADServerParamKeys.CLAIMS);
+            expect(claimsParam).toBeDefined();
+            const parsedClaims = JSON.parse(claimsParam!);
+            expect(parsedClaims.userinfo).toBeDefined();
+            expect(parsedClaims.access_token?.xms_cc).toBeUndefined();
+        });
+
+        it("includes clientCapabilities from config when embeddedClientId is NOT provided", async () => {
+            const authOptionsWithCapabilities: AuthOptions = {
+                ...authOptions,
+                clientCapabilities: ["CP1", "CP2"],
+            };
+
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: ResponseMode.FRAGMENT,
+                redirectUri: "localhost",
+                claims: JSON.stringify({ userinfo: { given_name: null } }),
+            };
+
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptionsWithCapabilities,
+                    request,
+                    new Logger({})
+                );
+
+            // Verify claims are present and DO include access_token.xms_cc (clientCapabilities)
+            const claimsParam = params.get(AADServerParamKeys.CLAIMS);
+            expect(claimsParam).toBeDefined();
+            const parsedClaims = JSON.parse(claimsParam!);
+            expect(parsedClaims.userinfo).toBeDefined();
+            expect(parsedClaims.access_token?.xms_cc?.values).toEqual([
+                "CP1",
+                "CP2",
+            ]);
+        });
     });
 
     describe("getAuthorizationCodePayload", () => {
