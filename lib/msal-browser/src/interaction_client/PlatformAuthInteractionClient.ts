@@ -1085,6 +1085,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             case Constants.PromptValue.NONE:
             case Constants.PromptValue.CONSENT:
             case Constants.PromptValue.LOGIN:
+            case Constants.PromptValue.SELECT_ACCOUNT:
                 this.logger.trace(
                     "initializeNativeRequest: prompt is compatible with native flow",
                     this.correlationId

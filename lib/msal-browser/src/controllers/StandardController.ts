@@ -1556,6 +1556,7 @@ export class StandardController implements IController {
                 case Constants.PromptValue.NONE:
                 case Constants.PromptValue.CONSENT:
                 case Constants.PromptValue.LOGIN:
+                case Constants.PromptValue.SELECT_ACCOUNT:
                     this.logger.trace(
                         "canUsePlatformBroker: prompt is compatible with platform broker flow",
                         correlationId
