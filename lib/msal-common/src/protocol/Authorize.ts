@@ -231,9 +231,11 @@ export function getStandardAuthorizeRequestParameters(
         );
     }
 
-    const configClaims = parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)
-        ? undefined
-        : authOptions.clientCapabilities;
+    const configClaims =
+        request.skipBrokerClaims ||
+        parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)
+            ? undefined
+            : authOptions.clientCapabilities;
 
     if (request.claims || (configClaims && configClaims.length > 0)) {
         // ignore config capabilities if claims are explicitly passed in the request for brokered auth flows

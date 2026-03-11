@@ -1471,6 +1471,39 @@ describe("Authorize Protocol Tests", () => {
                 "CP2",
             ]);
         });
+
+        it("ignores clientCapabilities from config when skipBrokerClaims is true on request", async () => {
+            const authOptionsWithCapabilities: AuthOptions = {
+                ...authOptions,
+                clientCapabilities: ["CP1", "CP2"],
+            };
+
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: ResponseMode.FRAGMENT,
+                redirectUri: "localhost",
+                claims: JSON.stringify({ userinfo: { given_name: null } }),
+                skipBrokerClaims: true,
+            };
+
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptionsWithCapabilities,
+                    request,
+                    new Logger({})
+                );
+
+            // Verify claims are present but do NOT include access_token.xms_cc (clientCapabilities)
+            const claimsParam = params.get(AADServerParamKeys.CLAIMS);
+            expect(claimsParam).toBeDefined();
+            const parsedClaims = JSON.parse(claimsParam!);
+            expect(parsedClaims.userinfo).toBeDefined();
+            expect(parsedClaims.access_token?.xms_cc).toBeUndefined();
+        });
     });
 
     describe("getAuthorizationCodePayload", () => {

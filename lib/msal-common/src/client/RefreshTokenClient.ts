@@ -509,9 +509,11 @@ export class RefreshTokenClient extends BaseClient {
             this.performanceClient
         );
 
-        const configClaims = parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)
-            ? undefined
-            : this.config.authOptions.clientCapabilities;
+        const configClaims =
+            request.skipBrokerClaims ||
+            parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)
+                ? undefined
+                : this.config.authOptions.clientCapabilities;
 
         if (
             !StringUtils.isEmptyObj(request.claims) ||

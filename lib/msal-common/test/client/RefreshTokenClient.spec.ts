@@ -1710,5 +1710,38 @@ describe("RefreshTokenClient unit tests", () => {
                 "CP2",
             ]);
         });
+
+        it("ignores clientCapabilities from config when skipBrokerClaims is true on request", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            // Add clientCapabilities to the config
+            config.authOptions.clientCapabilities = ["CP1", "CP2"];
+            const client = new RefreshTokenClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    claims: JSON.stringify({ userinfo: { given_name: null } }),
+                    skipBrokerClaims: true,
+                });
+
+            // Verify standard client_id is used (from config)
+            expect(queryString).toContain(
+                `client_id=${config.authOptions.clientId}`
+            );
+            // Verify brk_client_id is NOT present (not a brokered flow)
+            expect(queryString).not.toContain(`brk_client_id=`);
+
+            // Verify claims are present but do NOT include access_token.xms_cc (clientCapabilities)
+            const claimsMatch = queryString.match(/claims=([^&]+)/);
+            expect(claimsMatch).not.toBeNull();
+            const parsedClaims = JSON.parse(
+                decodeURIComponent(claimsMatch![1])
+            );
+            expect(parsedClaims.userinfo).toBeDefined();
+            expect(parsedClaims.access_token?.xms_cc).toBeUndefined();
+        });
     });
 });
