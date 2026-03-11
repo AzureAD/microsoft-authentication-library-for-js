@@ -1399,7 +1399,7 @@ describe("Authorize Protocol Tests", () => {
             );
         });
 
-        it("ignores clientCapabilities from config when BROKER_CLIENT_ID is present", async () => {
+        it("includes clientCapabilities from config when BROKER_CLIENT_ID is present but skipBrokerClaims is not set", async () => {
             const authOptionsWithCapabilities: AuthOptions = {
                 ...authOptions,
                 clientCapabilities: ["CP1", "CP2"],
@@ -1429,12 +1429,16 @@ describe("Authorize Protocol Tests", () => {
             expect(queryString).toContain(`client_id=child_client_id_1`);
             expect(params.has(AADServerParamKeys.BROKER_CLIENT_ID)).toBe(true);
 
-            // Verify claims are present but do NOT include access_token.xms_cc (clientCapabilities)
+            // Verify claims are present and DO include access_token.xms_cc (clientCapabilities)
+            // because skipBrokerClaims is not set, BROKER_CLIENT_ID alone does not skip capabilities
             const claimsParam = params.get(AADServerParamKeys.CLAIMS);
             expect(claimsParam).toBeDefined();
             const parsedClaims = JSON.parse(claimsParam!);
             expect(parsedClaims.userinfo).toBeDefined();
-            expect(parsedClaims.access_token?.xms_cc).toBeUndefined();
+            expect(parsedClaims.access_token?.xms_cc?.values).toEqual([
+                "CP1",
+                "CP2",
+            ]);
         });
 
         it("includes clientCapabilities from config when BROKER_CLIENT_ID is NOT present", async () => {
@@ -1472,7 +1476,7 @@ describe("Authorize Protocol Tests", () => {
             ]);
         });
 
-        it("ignores clientCapabilities from config when skipBrokerClaims is true on request", async () => {
+        it("includes clientCapabilities from config when skipBrokerClaims is true but BROKER_CLIENT_ID is NOT present", async () => {
             const authOptionsWithCapabilities: AuthOptions = {
                 ...authOptions,
                 clientCapabilities: ["CP1", "CP2"],
@@ -1497,7 +1501,51 @@ describe("Authorize Protocol Tests", () => {
                     new Logger({})
                 );
 
+            // Verify claims are present and DO include access_token.xms_cc (clientCapabilities)
+            // because BROKER_CLIENT_ID is not present, skipBrokerClaims alone does not skip capabilities
+            const claimsParam = params.get(AADServerParamKeys.CLAIMS);
+            expect(claimsParam).toBeDefined();
+            const parsedClaims = JSON.parse(claimsParam!);
+            expect(parsedClaims.userinfo).toBeDefined();
+            expect(parsedClaims.access_token?.xms_cc?.values).toEqual([
+                "CP1",
+                "CP2",
+            ]);
+        });
+
+        it("ignores clientCapabilities from config when both skipBrokerClaims is true and BROKER_CLIENT_ID is present", async () => {
+            const authOptionsWithCapabilities: AuthOptions = {
+                ...authOptions,
+                clientCapabilities: ["CP1", "CP2"],
+            };
+
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: ResponseMode.FRAGMENT,
+                redirectUri: "localhost",
+                embeddedClientId: "child_client_id_1",
+                claims: JSON.stringify({ userinfo: { given_name: null } }),
+                skipBrokerClaims: true,
+            };
+
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptionsWithCapabilities,
+                    request,
+                    new Logger({})
+                );
+            const queryString = UrlUtils.mapToQueryString(params);
+
+            // Verify embeddedClientId is used as client_id and brk_client_id is present
+            expect(queryString).toContain(`client_id=child_client_id_1`);
+            expect(params.has(AADServerParamKeys.BROKER_CLIENT_ID)).toBe(true);
+
             // Verify claims are present but do NOT include access_token.xms_cc (clientCapabilities)
+            // because both skipBrokerClaims is true AND BROKER_CLIENT_ID is present
             const claimsParam = params.get(AADServerParamKeys.CLAIMS);
             expect(claimsParam).toBeDefined();
             const parsedClaims = JSON.parse(claimsParam!);
