@@ -180,7 +180,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         try {
             // initialize native request
-            const nativeRequest = await this.initializeNativeRequest(request);
+            const nativeRequest = await this.initializePlatformRequest(request);
 
             // check if the tokens can be retrieved from internal cache
             try {
@@ -332,7 +332,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.correlationId
         );
 
-        const nativeRequest = await this.initializeNativeRequest(request);
+        const nativeRequest = await this.initializePlatformRequest(request);
         const navigateToLoginRequestUrl =
             options?.navigateToLoginRequestUrl ?? true;
 
@@ -933,11 +933,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * Translates developer provided request object into NativeRequest object
      * @param request
      */
-    protected async initializeNativeRequest(
+    protected async initializePlatformRequest(
         request: PopupRequest | SsoSilentRequest
     ): Promise<PlatformAuthRequest> {
         this.logger.trace(
-            "NativeInteractionClient - initializeNativeRequest called",
+            "NativeInteractionClient - initializePlatformRequest called",
             this.correlationId
         );
 
@@ -1063,7 +1063,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             case ApiId.ssoSilent:
             case ApiId.acquireTokenSilent_silentFlow:
                 this.logger.trace(
-                    "initializeNativeRequest: silent request sets prompt to none",
+                    "initializePlatformRequest: silent request sets prompt to none",
                     this.correlationId
                 );
                 return Constants.PromptValue.NONE;
@@ -1074,7 +1074,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // Prompt not provided, request may proceed and native broker decides if it needs to prompt
         if (!prompt) {
             this.logger.trace(
-                "initializeNativeRequest: prompt was not provided",
+                "initializePlatformRequest: prompt was not provided",
                 this.correlationId
             );
             return undefined;
@@ -1086,13 +1086,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             case Constants.PromptValue.CONSENT:
             case Constants.PromptValue.LOGIN:
                 this.logger.trace(
-                    "initializeNativeRequest: prompt is compatible with native flow",
+                    "initializePlatformRequest: prompt is compatible with native flow",
                     this.correlationId
                 );
                 return prompt;
             default:
                 this.logger.trace(
-                    `initializeNativeRequest: prompt = '${prompt}' is not compatible with native flow`,
+                    `initializePlatformRequest: prompt = '${prompt}' is not compatible with native flow`,
                     this.correlationId
                 );
                 throw createBrowserAuthError(

@@ -1545,7 +1545,7 @@ export class StandardController implements IController {
             )
         ) {
             this.logger.trace(
-                "canUsePlatformBroker: isBrokerAvailable returned false, returning false",
+                "canUsePlatformBroker: isPlatformAuthAllowed returned false, returning false",
                 correlationId
             );
             return false;
