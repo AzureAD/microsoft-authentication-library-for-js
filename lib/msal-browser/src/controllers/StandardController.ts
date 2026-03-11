@@ -276,7 +276,10 @@ export class StandardController implements IController {
         return controller;
     }
 
-    private trackStateChange(correlationId: string | undefined, event: Event): void {
+    private trackStateChange(
+        correlationId: string | undefined,
+        event: Event
+    ): void {
         if (!correlationId) {
             return;
         }
@@ -287,9 +290,18 @@ export class StandardController implements IController {
                 { visibilityChangeCount: 1 },
                 correlationId
             );
-        } else if (event.type === "online" || event.type === "offline") {
+        } else if (event.type === "online") {
             this.logger.info(
-                "Perf: Online/offline status change detected",
+                "Perf: Online status change detected",
+                correlationId
+            );
+            this.performanceClient.incrementFields(
+                { onlineStatusChangeCount: 1 },
+                correlationId
+            );
+        } else if (event.type === "offline") {
+            this.logger.info(
+                "Perf: Offline status change detected",
                 correlationId
             );
             this.performanceClient.incrementFields(
@@ -922,9 +934,17 @@ export class StandardController implements IController {
             measurement.increment({
                 visibilityChangeCount: 1,
             });
-        } else if (event.type === "online" || event.type === "offline") {
+        } else if (event.type === "online") {
             this.logger.info(
-                "Perf: Online/offline status change detected in ",
+                "Perf: Online status change detected in ",
+                measurement.event.name
+            );
+            measurement.increment({
+                onlineStatusChangeCount: 1,
+            });
+        } else if (event.type === "offline") {
+            this.logger.info(
+                "Perf: Offline status change detected in ",
                 measurement.event.name
             );
             measurement.increment({
