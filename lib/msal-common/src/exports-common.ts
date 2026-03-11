@@ -109,7 +109,10 @@ export {
 export * as AuthorizeProtocol from "./protocol/Authorize.js";
 export * as TokenProtocol from "./protocol/Token.js";
 
-export { BaseAuthRequest } from "./request/BaseAuthRequest.js";
+export {
+    BaseAuthRequest,
+    enforceResourceParameter,
+} from "./request/BaseAuthRequest.js";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest.js";
 export { CommonAuthorizationCodeRequest } from "./request/CommonAuthorizationCodeRequest.js";
 export { CommonRefreshTokenRequest } from "./request/CommonRefreshTokenRequest.js";

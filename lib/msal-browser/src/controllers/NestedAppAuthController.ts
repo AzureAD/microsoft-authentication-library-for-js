@@ -19,6 +19,7 @@ import {
     AuthError,
     AccountEntityUtils,
     AuthToken,
+    enforceResourceParameter,
 } from "@azure/msal-common/browser";
 import * as RootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -216,6 +217,7 @@ export class NestedAppAuthController implements IController {
         atPopupMeasurement.add({ nestedAppAuthRequest: true });
 
         try {
+            enforceResourceParameter(this.config.auth.isMcp, validRequest);
             const naaRequest =
                 this.nestedAppAuthAdapter.toNaaTokenRequest(validRequest);
             const reqTimestamp = TimeUtils.nowSeconds();
@@ -338,6 +340,7 @@ export class NestedAppAuthController implements IController {
         });
 
         try {
+            enforceResourceParameter(this.config.auth.isMcp, validRequest);
             const naaRequest =
                 this.nestedAppAuthAdapter.toNaaTokenRequest(validRequest);
             naaRequest.forceRefresh = validRequest.forceRefresh;
@@ -576,6 +579,17 @@ export class NestedAppAuthController implements IController {
                 correlationId
             );
             return Promise.resolve(null);
+        } else if (authRequest.resource) {
+            const requestedResource = authRequest.resource;
+            const cachedResource = cachedAccessToken.resource;
+
+            if (!cachedResource || cachedResource !== requestedResource) {
+                this.logger.verbose(
+                    "Cached access token resource does not match requested resource for MCP flow",
+                    correlationId
+                );
+                return Promise.resolve(null);
+            }
         }
 
         const cachedIdToken = this.browserStorage.getIdToken(

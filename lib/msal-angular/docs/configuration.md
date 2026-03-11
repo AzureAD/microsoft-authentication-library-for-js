@@ -115,6 +115,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
 
 export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   const protectedResourceMap = new Map<string, Array<string>>();
+  // Use exact paths or wildcards so strict matching (the v5 default) works correctly
   protectedResourceMap.set("https://graph.microsoft.com/v1.0/me", ["user.read"]);
 
   return {
@@ -238,6 +239,10 @@ fetch("/assets/configuration.json")
         useValue: {
           interactionType: json.interceptor.interactionType,
           protectedResourceMap: new Map(json.interceptor.protectedResourceMap),
+          // Dynamic JSON configurations may use base URLs without wildcards.
+          // Set strictMatching: false if keys are not guaranteed to be exact
+          // paths or wildcard patterns. Remove once keys are migrated.
+          strictMatching: false,
         } as MsalInterceptorConfiguration,
       },
     ])
@@ -373,6 +378,10 @@ export function MSALInterceptorConfigFactory(config: ConfigService): MsalInterce
   return {
     interactionType: config.getSettings("interceptor").interactionType,
     protectedResourceMap,
+    // Dynamic configurations may use base URLs without wildcards.
+    // Set strictMatching: false if keys are not guaranteed to be exact
+    // paths or wildcard patterns. Remove once keys are migrated.
+    strictMatching: false,
   };
 }
 
@@ -548,6 +557,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
 
 export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   const protectedResourceMap = new Map<string, Array<string>>();
+  // Use exact paths or wildcards so strict matching (the v5 default) works correctly
   protectedResourceMap.set("https://graph.microsoft.com/v1.0/me", ["user.read"]);
 
   return {

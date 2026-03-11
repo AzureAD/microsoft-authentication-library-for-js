@@ -342,69 +342,42 @@ When COOP headers are present on the authentication service response (e.g., `Cro
 
 #### Migration Steps
 
-##### 1. Set up your redirect URI page
+##### 1. Set up the redirect bridge page
 
-Create a separate HTML page (e.g., `redirect.html`) that will serve as your redirect bridge. **This page must NOT include COOP headers.**
+Create a page that calls `broadcastResponseToMainFrame()` from `@azure/msal-browser/redirect-bridge`. This page must **NOT** be served with COOP headers.
 
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Redirect</title>
-</head>
-<body>
-    <script type="module">
-        import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
+The setup varies by build system — see the **[Redirect Bridge — Framework-Specific Setup](./redirect-bridge.md)** guide:
 
-        // Broadcast the auth response to the main application window
-        broadcastResponseToMainFrame()
-            .catch((error) => {
-                console.error("Error broadcasting response:", error);
-            });
-    </script>
-</body>
-</html>
-```
+| Framework                                                                | Approach |
+|--------------------------------------------------------------------------|---|
+| [Angular](./redirect-bridge.md#angular)                             | Route component + optional `angular.json` assets |
+| [Vite](./redirect-bridge.md#vite)                                   | Multi-page `rollupOptions.input` |
+| [Webpack](./redirect-bridge.md#webpack)                             | Separate entry + `HtmlWebpackPlugin` |
+| [Next.js](./redirect-bridge.md#nextjs)                              | Page component excluded from `MsalProvider` |
+| [CRA (Create React App)](./redirect-bridge.md#create-react-app-cra) | Static `public/redirect.html` page |
+| [Express.js](./redirect-bridge.md#expressjs--nodejs-backend)        | Server-side COOP header exclusion |
 
-##### 2. Configure your web server
+**See also:** [Redirect URI considerations](./login-user.md#redirecturi-considerations) | [Popup interaction_in_progress errors](./login-user.md#handling-popup-interaction_in_progress-errors) | [MDN: COOP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy)
 
-Ensure your redirect URI page is served **without** COOP headers, while your main application pages have COOP enabled:
+##### 2. Update your MSAL configuration
 
-```javascript
-// Example using Express.js
-app.get("/redirect", (req, res) => {
-    // DO NOT set COOP headers for redirect page
-    res.sendFile(__dirname + "/redirect.html");
-});
-
-app.get("*", (req, res) => {
-    // Set COOP headers for all other pages
-    res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
-    res.sendFile(__dirname + "/index.html");
-});
-```
-
-##### 3. Update your MSAL configuration
-
-Set the `redirectUri` in your MSAL configuration to point to your redirect bridge page:
+Point `redirectUri` to a new redirect bridge page:
 
 ```javascript
 const msalConfig = {
     auth: {
         clientId: "{your-client-id}",
         authority: "https://login.microsoftonline.com/common",
-        redirectUri: "https://{your-app-home-page}/redirect", // Point to your redirect bridge page
+        redirectUri: "https://{your-app-home-page}/redirect",
     },
 };
-
-const pca = new PublicClientApplication(msalConfig);
 ```
 
-- For more details on redirect URI configuration, see [here](./login-user.md#redirecturi-considerations)
-- For more details on handling popup interaction_in_progress errors, see [here](./login-user.md#handling-popup-interaction_in_progress-errors)
-- For more details on COOP and security considerations, see the [Cross-Origin-Opener-Policy documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy).
-
+> [!IMPORTANT]
+> You **MUST** also update the redirect URI in your
+> [Entra ID app registration](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app#add-a-redirect-uri).
+> The URI must match **exactly** — including path, protocol, and port.
+> Failure to do so will result in `redirect_uri_mismatch` errors.
 
 ## Behavioral Breaking Changes
 
@@ -417,6 +390,46 @@ We have consolidated event types and InteractionStatus to reflect what happened 
 1. `LOGIN_START` and `LOGIN_FAILURE` have been replaced with `ACQUIRE_TOKEN_START` and `ACQUIRE_TOKEN_FAILURE`, respectively.
 1. The payload for `LOGIN_SUCCESS` is now an `AccountInfo` object.
 1. Any successful login now emits both a `LOGIN_SUCCESS` and `ACQUIRE_TOKEN_SUCCESS` event.
+
+#### `LOGIN_SUCCESS` payload type migration
+
+If your event callback currently casts `LOGIN_SUCCESS` payloads to `AuthenticationResult`, update it to use `AccountInfo` for `LOGIN_SUCCESS` and reserve `AuthenticationResult` for `ACQUIRE_TOKEN_SUCCESS`.
+
+```typescript
+// BEFORE (v4-style assumption)
+import {
+    EventType,
+    AuthenticationResult,
+} from "@azure/msal-browser";
+
+pca.addEventCallback((event) => {
+    if (event.eventType === EventType.LOGIN_SUCCESS) {
+        const result = event.payload as AuthenticationResult;
+        setAccount(result.account); // Will silently fail in v5 where payload is AccountInfo, not AuthenticationResult
+    }
+});
+```
+
+```typescript
+// AFTER (v5-safe handling)
+import {
+    EventType,
+    AuthenticationResult,
+    AccountInfo,
+} from "@azure/msal-browser";
+
+pca.addEventCallback((event) => {
+    if (event.eventType === EventType.LOGIN_SUCCESS) {
+        const account = event.payload as AccountInfo;
+        setAccount(account);
+    }
+
+    if (event.eventType === EventType.ACQUIRE_TOKEN_SUCCESS) {
+        const result = event.payload as AuthenticationResult;
+        setAccessToken(result.accessToken);
+    }
+});
+```
 
 ### Error message format changes
 
@@ -433,6 +446,49 @@ error.message = "See https://aka.ms/msal.js.errors#request_cannot_be_made for de
 The `errorCode` property remains unchanged and can still be used to identify the specific error. For detailed error descriptions, refer to the [errors documentation](https://aka.ms/msal.js.errors).
 
 **Impact**: If your application relies on parsing or displaying the `error.message` property, you may need to update your error handling code to use the `errorCode` instead or direct users to the documentation link.
+
+#### Updating Error Handling Code
+
+**If you display errors to users**, map `errorCode` to user-friendly messages instead of showing `error.message` directly:
+
+```javascript
+// BEFORE (v4)
+showError(error.message);
+
+// AFTER (v5) — use errorCode for user-facing messages
+const userMessages = {
+    request_cannot_be_made: "Please sign in again to continue.",
+    interaction_required: "Additional verification is needed.",
+    consent_required: "Administrator approval is required for this action.",
+    login_required: "Your session has expired. Please sign in again.",
+    // Add mappings for error codes your application encounters
+};
+showError(userMessages[error.errorCode] || "An authentication error occurred.");
+```
+
+**If you parse errors for conditional logic**, switch from string matching on `message` to comparing `errorCode` (this was already the recommended approach in v4):
+
+```javascript
+// BEFORE (v4) — fragile, relied on message text
+if (error.message.includes("interaction_required")) {
+    await msalInstance.acquireTokenPopup(request);
+}
+
+// AFTER (v5) — use errorCode (stable across versions)
+if (error.errorCode === "interaction_required") {
+    await msalInstance.acquireTokenPopup(request);
+}
+```
+
+**If you log errors for diagnostics**, include both `errorCode` and `message` (the message now contains a direct link to the relevant documentation):
+
+```javascript
+// AFTER (v5) — log errorCode for programmatic use, message for the docs link
+logger.error(`MSAL Error [${error.errorCode}]: ${error.message}`);
+// Output: MSAL Error [request_cannot_be_made]: See https://aka.ms/msal.js.errors#request_cannot_be_made for details
+```
+
+> **Tip:** The `errorCode` values are the same between v4 and v5 — only the `message` format has changed. If your existing code already branches on `errorCode`, no changes are needed.
 
 ### Console logging changes
 
