@@ -3429,6 +3429,7 @@ export type PerformanceEvent = {
     fromCache?: boolean | null;
     name: string;
     startPageVisibility?: string | null;
+    startOnlineStatus?: boolean | null;
     startTimeMs: number;
     success?: boolean | null;
     errorCode?: string;
@@ -3443,6 +3444,7 @@ export type PerformanceEvent = {
     cacheOutcome?: number;
     incompleteSubMeasurements?: Map<string, SubMeasurement>;
     visibilityChangeCount?: number;
+    onlineStatusChangeCount?: number;
     incompleteSubsCount?: number;
     awaitIframeCorrelationId?: string;
     idTokenSize?: number;
