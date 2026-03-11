@@ -1000,9 +1000,17 @@ export class StandardController implements IController {
             measurement.increment({
                 visibilityChangeCount: 1,
             });
-        } else if (event.type === "online" || event.type === "offline") {
+        } else if (event.type === "online") {
             this.logger.info(
-                "Perf: Online/offline status change detected in ",
+                "Perf: Online status change detected in ",
+                measurement.event.name
+            );
+            measurement.increment({
+                onlineStatusChangeCount: 1,
+            });
+        } else if (event.type === "offline") {
+            this.logger.info(
+                "Perf: Offline status change detected in ",
                 measurement.event.name
             );
             measurement.increment({
