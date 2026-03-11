@@ -158,8 +158,10 @@ export function addError(
         event.errorCode = error.errorCode;
         event.subErrorCode = error.subError;
         if (
-            error instanceof ServerError ||
-            error instanceof InteractionRequiredAuthError
+            !event.serverErrorNo &&
+            (error instanceof ServerError ||
+                error instanceof InteractionRequiredAuthError) &&
+            error.errorNo
         ) {
             event.serverErrorNo = error.errorNo;
         }

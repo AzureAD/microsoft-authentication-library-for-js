@@ -689,6 +689,86 @@ describe("PerformanceClient.spec.ts", () => {
                 error
             );
         });
+
+        it("does not set serverErrorNo from ServerError when serverErrorNo is already present", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const error = new ServerError(
+                "test-error-code",
+                undefined,
+                undefined,
+                "70011"
+            );
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                // serverSubErrorNo was already set via addFields (clientdata),
+                // so addError should NOT overwrite serverErrorNo
+                expect(event.serverErrorNo).toEqual("basic-server-error-code");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+
+            // Simulate instrumentClientData having set serverSubErrorNo via addFields
+            mockPerfClient.addFields(
+                { serverErrorNo: "basic-server-error-code" },
+                correlationId
+            );
+
+            topLevelEvent.end(
+                {
+                    success: false,
+                },
+                error
+            );
+        });
+
+        it("does not set serverErrorNo from InteractionRequiredAuthError when serverErrorNo is already present", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const error = new InteractionRequiredAuthError(
+                "test-error-code",
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                "70011"
+            );
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                // serverSubErrorNo was already set via addFields (clientdata),
+                // so addError should NOT overwrite serverErrorNo
+                expect(event.serverErrorNo).toEqual("basic-server-error-code");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+
+            // Simulate instrumentClientData having set serverSubErrorNo via addFields
+            mockPerfClient.addFields(
+                { serverErrorNo: "basic-server-error-code" },
+                correlationId
+            );
+
+            topLevelEvent.end(
+                {
+                    success: false,
+                },
+                error
+            );
+        });
     });
 
     describe("compactStackTrace", () => {
