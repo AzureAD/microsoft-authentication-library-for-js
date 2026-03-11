@@ -121,7 +121,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
                 browserCrypto,
-                request
+                request,
+                performanceClient
             );
 
             expect(response).toEqual("code=testCode&state=testState");
@@ -156,7 +157,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
                 browserCrypto,
-                request
+                request,
+                performanceClient
             );
 
             expect(response).toEqual("code=authCode&state=testState456");
@@ -195,7 +197,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                     100,
                     browserRequestLogger,
                     browserCrypto,
-                    request
+                    request,
+                    performanceClient
                 )
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.timedOut,
@@ -251,14 +254,16 @@ describe("SilentHandler.ts Unit Tests", () => {
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
                 browserCrypto,
-                request1
+                request1,
+                performanceClient
             );
 
             const promise2 = BrowserUtils.waitForBridgeResponse(
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
                 browserCrypto,
-                request2
+                request2,
+                performanceClient
             );
 
             const [response1, response2] = await Promise.all([
