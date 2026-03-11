@@ -1,7 +1,7 @@
 {
     "msalConfig": {
         "auth": {
-            "clientId": "b5c2e510-4a17-4feb-b219-e55aa5b74144",
+            "clientId": "0845a021-afdf-4126-abdd-099c5e6948e1",
             "authority": "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca",
             "redirectUri": "/redirect"
         },

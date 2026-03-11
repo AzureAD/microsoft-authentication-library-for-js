@@ -40,12 +40,11 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 Before running the sample, you will need to replace the values in retrieve-cert-from-key-vault code as well as create a .env file:
 
 ```typescript
-const keyVaultSecretClient = await getKeyVaultSecretClient(
-    "KEY_VAULT_URL" // optional, the "KEY_VAULT_URL" environment variable can be set instead
-);
+const credentials = new DefaultAzureCredential();
 [thumbprint, privateKey, x5c] = await getCertificateInfo(
-    keyVaultSecretClient,
-    "CERT_NAME" // optional, the "CERT_NAME" environment variable can be set instead
+    credentials,
+    "KEY_VAULT_URL", // e.g. "https://msidlabs.vault.azure.net"
+    "CERT_NAME" // e.g. "LabAuth"
 );
 ```
 

@@ -114,19 +114,19 @@ export async function retrieveAppConfiguration(
     }
 
     if (isConfidentialClient) {
-        if (!(labConfig.lab.labName && labConfig.app.appName)) {
-            throw Error("No Labname and/or Appname provided!");
+        // Use pre-populated client secret from Key Vault if available
+        if (labConfig.app.clientSecret) {
+            clientSecret = labConfig.app.clientSecret;
+        } else if (labConfig.lab.labName && labConfig.app.appName) {
+            let secretAppName = `${labConfig.lab.labName}-${labConfig.app.appName}`;
+
+            // Reformat the secret app name to kebab case from snake case
+            while (secretAppName.includes("_"))
+                secretAppName = secretAppName.replace("_", "-");
+
+            const appClientSecret = await labClient.getSecret(secretAppName);
+            clientSecret = appClientSecret.value;
         }
-
-        let secretAppName = `${labConfig.lab.labName}-${labConfig.app.appName}`;
-
-        // Reformat the secret app name to kebab case from snake case
-        while (secretAppName.includes("_"))
-            secretAppName = secretAppName.replace("_", "-");
-
-        const appClientSecret = await labClient.getSecret(secretAppName);
-
-        clientSecret = appClientSecret.value;
 
         if (!clientSecret) {
             throw Error("Unable to get the client secret");
