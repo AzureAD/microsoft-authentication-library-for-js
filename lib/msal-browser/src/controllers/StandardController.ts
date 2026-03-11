@@ -300,8 +300,14 @@ export class StandardController implements IController {
                 { visibilityChangeCount: 1 },
                 correlationId
             );
-        } else if (event.type === "online" || event.type === "offline") {
-            this.logger.info("Perf: Online/offline status change detected");
+        } else if (event.type === "online") {
+            this.logger.info("Perf: Online status change detected");
+            this.performanceClient.incrementFields(
+                { onlineStatusChangeCount: 1 },
+                correlationId
+            );
+        } else if (event.type === "offline") {
+            this.logger.info("Perf: Offline status change detected");
             this.performanceClient.incrementFields(
                 { onlineStatusChangeCount: 1 },
                 correlationId
