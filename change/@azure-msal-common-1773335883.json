@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add skipBrokerClaims parameter for brokered authentication flows (migrate [#8409](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8409) to dev)",
+  "comment": "Add skipBrokerClaims parameter for brokered authentication flows [#8419](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8419)",
   "packageName": "@azure/msal-common",
   "email": "AzureADGitHubBot@users.noreply.github.com",
   "dependentChangeType": "patch"
