@@ -14,3 +14,38 @@ The MSAL Browser library has a set of configuration options that can be used to 
 | `logoutRedirect` | [EndSessionRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionrequest) | `void` |
 | `logoutPopup` | [EndSessionPopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionpopuprequest) | `void` |
 | `ssoSilent` | [SsoSilentRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#ssosilentrequest) | [AuthenticationResult](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#authenticationresult) |
+
+## Request Parameters for Brokered Authentication
+
+### `skipBrokerClaims`
+
+When set to `true` on a request that also specifies an `embeddedClientId`, the `clientCapabilities` configured on the application (e.g. `["CP1", "CP2"]`) will be excluded from the `claims` parameter sent to the `/authorize` and `/token` endpoints. This is intended for brokered authentication flows where the embedded (child) application should not inherit the broker (parent) application's client capabilities.
+
+Both conditions must be met for capabilities to be excluded:
+
+- `skipBrokerClaims` is `true` on the request
+- `embeddedClientId` is set on the request (which results in the `brk_client_id` parameter being present)
+
+If only one condition is met, `clientCapabilities` are included as normal.
+
+#### Example
+
+```javascript
+const request = {
+    scopes: ["User.Read"],
+    embeddedClientId: "child-app-client-id",
+    skipBrokerClaims: true,
+};
+
+// clientCapabilities from config will NOT be sent in the claims parameter
+const response = await msalInstance.acquireTokenSilent(request);
+```
+
+#### Behavior Summary
+
+| `skipBrokerClaims` | `embeddedClientId` set | `clientCapabilities` included in claims |
+|--------------------|------------------------|-----------------------------------------|
+| `false` / not set  | Yes                    | Yes                                     |
+| `false` / not set  | No                     | Yes                                     |
+| `true`             | No                     | Yes                                     |
+| `true`             | Yes                    | **No**                                  |

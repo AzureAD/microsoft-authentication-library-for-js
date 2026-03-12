@@ -459,18 +459,6 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         if (
-            !StringUtils.isEmptyObj(request.claims) ||
-            (this.config.authOptions.clientCapabilities &&
-                this.config.authOptions.clientCapabilities.length > 0)
-        ) {
-            RequestParameterBuilder.addClaims(
-                parameters,
-                request.claims,
-                this.config.authOptions.clientCapabilities
-            );
-        }
-
-        if (
             this.config.systemOptions.preventCorsPreflight &&
             request.ccsCredential
         ) {
@@ -520,6 +508,25 @@ export class RefreshTokenClient extends BaseClient {
             request.correlationId,
             this.performanceClient
         );
+
+        // ignore config claims if skipBrokerClaims is set to true and this is a brokered authentication flow
+        const configClaims =
+            request.skipBrokerClaims &&
+            parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)
+                ? undefined
+                : this.config.authOptions.clientCapabilities;
+
+        if (
+            !StringUtils.isEmptyObj(request.claims) ||
+            (configClaims && configClaims.length > 0)
+        ) {
+            RequestParameterBuilder.addClaims(
+                parameters,
+                request.claims,
+                configClaims
+            );
+        }
+
         return UrlUtils.mapToQueryString(parameters);
     }
 }

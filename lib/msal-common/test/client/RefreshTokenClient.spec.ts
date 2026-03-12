@@ -1643,5 +1643,147 @@ describe("RefreshTokenClient unit tests", () => {
                 `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
             );
         });
+
+        it("includes clientCapabilities from config when BROKER_CLIENT_ID is present but skipBrokerClaims is not set", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            // Add clientCapabilities to the config
+            config.authOptions.clientCapabilities = ["CP1", "CP2"];
+            const client = new RefreshTokenClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    embeddedClientId: "child_client_id_1",
+                    claims: JSON.stringify({ userinfo: { given_name: null } }),
+                });
+
+            // Verify embeddedClientId is used as client_id and brk_client_id (BROKER_CLIENT_ID) is present
+            expect(queryString).toContain(`client_id=child_client_id_1`);
+            expect(queryString).toContain(
+                `brk_client_id=${config.authOptions.clientId}`
+            );
+
+            // Verify claims are present and DO include access_token.xms_cc (clientCapabilities)
+            // because skipBrokerClaims is not set, BROKER_CLIENT_ID alone does not skip capabilities
+            const claimsMatch = queryString.match(/claims=([^&]+)/);
+            expect(claimsMatch).not.toBeNull();
+            const parsedClaims = JSON.parse(
+                decodeURIComponent(claimsMatch![1])
+            );
+            expect(parsedClaims.userinfo).toBeDefined();
+            expect(parsedClaims.access_token?.xms_cc?.values).toEqual([
+                "CP1",
+                "CP2",
+            ]);
+        });
+
+        it("includes clientCapabilities from config when BROKER_CLIENT_ID is NOT present", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            // Add clientCapabilities to the config
+            config.authOptions.clientCapabilities = ["CP1", "CP2"];
+            const client = new RefreshTokenClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    claims: JSON.stringify({ userinfo: { given_name: null } }),
+                });
+
+            // Verify standard client_id is used (from config)
+            expect(queryString).toContain(
+                `client_id=${config.authOptions.clientId}`
+            );
+            // Verify brk_client_id (BROKER_CLIENT_ID) is NOT present
+            expect(queryString).not.toContain(`brk_client_id=`);
+
+            // Verify claims are present and DO include access_token.xms_cc (clientCapabilities)
+            const claimsMatch = queryString.match(/claims=([^&]+)/);
+            expect(claimsMatch).not.toBeNull();
+            const parsedClaims = JSON.parse(
+                decodeURIComponent(claimsMatch![1])
+            );
+            expect(parsedClaims.userinfo).toBeDefined();
+            expect(parsedClaims.access_token?.xms_cc?.values).toEqual([
+                "CP1",
+                "CP2",
+            ]);
+        });
+
+        it("includes clientCapabilities from config when skipBrokerClaims is true but BROKER_CLIENT_ID is NOT present", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            // Add clientCapabilities to the config
+            config.authOptions.clientCapabilities = ["CP1", "CP2"];
+            const client = new RefreshTokenClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    claims: JSON.stringify({ userinfo: { given_name: null } }),
+                    skipBrokerClaims: true,
+                });
+
+            // Verify standard client_id is used (from config)
+            expect(queryString).toContain(
+                `client_id=${config.authOptions.clientId}`
+            );
+            // Verify brk_client_id is NOT present (not a brokered flow)
+            expect(queryString).not.toContain(`brk_client_id=`);
+
+            // Verify claims are present and DO include access_token.xms_cc (clientCapabilities)
+            // because BROKER_CLIENT_ID is not present, skipBrokerClaims alone does not skip capabilities
+            const claimsMatch = queryString.match(/claims=([^&]+)/);
+            expect(claimsMatch).not.toBeNull();
+            const parsedClaims = JSON.parse(
+                decodeURIComponent(claimsMatch![1])
+            );
+            expect(parsedClaims.userinfo).toBeDefined();
+            expect(parsedClaims.access_token?.xms_cc?.values).toEqual([
+                "CP1",
+                "CP2",
+            ]);
+        });
+
+        it("ignores clientCapabilities from config when both skipBrokerClaims is true and BROKER_CLIENT_ID is present", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            // Add clientCapabilities to the config
+            config.authOptions.clientCapabilities = ["CP1", "CP2"];
+            const client = new RefreshTokenClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    embeddedClientId: "child_client_id_1",
+                    claims: JSON.stringify({ userinfo: { given_name: null } }),
+                    skipBrokerClaims: true,
+                });
+
+            // Verify embeddedClientId is used as client_id and brk_client_id (BROKER_CLIENT_ID) is present
+            expect(queryString).toContain(`client_id=child_client_id_1`);
+            expect(queryString).toContain(
+                `brk_client_id=${config.authOptions.clientId}`
+            );
+
+            // Verify claims are present but do NOT include access_token.xms_cc (clientCapabilities)
+            // because both skipBrokerClaims is true AND BROKER_CLIENT_ID is present
+            const claimsMatch = queryString.match(/claims=([^&]+)/);
+            expect(claimsMatch).not.toBeNull();
+            const parsedClaims = JSON.parse(
+                decodeURIComponent(claimsMatch![1])
+            );
+            expect(parsedClaims.userinfo).toBeDefined();
+            expect(parsedClaims.access_token?.xms_cc).toBeUndefined();
+        });
     });
 });

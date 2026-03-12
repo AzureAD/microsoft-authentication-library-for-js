@@ -33,6 +33,7 @@ import { ShrOptions } from "../crypto/SignedHttpRequest.js";
  * - embeddedClientId        - Embedded client id. When specified, broker client id (brk_client_id) and redirect uri (brk_redirect_uri) params are set with values from the config, overriding the corresponding extra parameters, if present.
  * - httpMethod              - HTTP method to use for the /authorize request. Defaults to GET, but can be set to POST if the request requires body parameters
  * - authorizePostBodyParameters - String to string map of custom parameters added to the body of the /authorize call when httpMethod is set to POST
+ * - skipBrokerClaims         - When true and a brokered flow is used (for example, when broker params or an embeddedClientId are present), clientCapabilities from configuration will be excluded from claims; ignored for non-brokered flows.
  */
 export type BaseAuthRequest = {
     authority: string;
@@ -58,4 +59,5 @@ export type BaseAuthRequest = {
     embeddedClientId?: string;
     httpMethod?: HttpMethod;
     authorizePostBodyParameters?: StringDict;
+    skipBrokerClaims?: boolean;
 };
