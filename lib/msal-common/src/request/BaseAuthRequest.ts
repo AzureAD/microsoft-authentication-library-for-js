@@ -96,6 +96,10 @@ export type BaseAuthRequest = {
      */
     resource?: string;
     /**
+     * When true and a brokered flow is used (for example, when broker params or an embeddedClientId are present), clientCapabilities from configuration will be excluded from claims; ignored for non-brokered flows.
+     */
+    skipBrokerClaims?: boolean;
+    /**
      * String to string map of custom query parameters added to outgoing token service requests. Unless the parameter is only supported on query strings use extraParameters instead
      */
     extraQueryParameters?: StringDict;

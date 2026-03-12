@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update claims for brokering cases (migrate PR #8409 to dev)",
+  "packageName": "@azure/msal-common",
+  "email": "AzureADGitHubBot@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}

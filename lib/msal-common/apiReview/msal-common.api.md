@@ -977,6 +977,7 @@ export type BaseAuthRequest = {
     embeddedClientId?: string;
     httpMethod?: HttpMethod;
     resource?: string;
+    skipBrokerClaims?: boolean;
     extraQueryParameters?: StringDict;
     extraParameters?: StringDict;
 };
