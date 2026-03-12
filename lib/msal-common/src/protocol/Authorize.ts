@@ -243,7 +243,7 @@ export function getStandardAuthorizeRequestParameters(
         );
     }
 
-    RequestParameterBuilder.addClaimsWithBrokerSupport(
+    RequestParameterBuilder.addClaims(
         parameters,
         request.claims,
         authOptions.clientCapabilities,

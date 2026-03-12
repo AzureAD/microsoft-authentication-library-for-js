@@ -401,20 +401,16 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
     });
 
-    it("throws error if claims is not stringified JSON object", () => {
-        const claims = "not-a-valid-JSON-object";
-        jest.spyOn(
-            RequestParameterBuilder,
-            "addClientCapabilitiesToClaims"
-        ).mockReturnValue(claims);
+    it("addClaims sets claims parameter with merged claims when valid claims and capabilities are provided", () => {
         const parameters = new Map<string, string>();
-        expect(() =>
-            RequestParameterBuilder.addClaims(parameters, claims, [])
-        ).toThrow(
-            new ClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaims
-            )
-        );
+        const claims = JSON.stringify({ userinfo: { given_name: null } });
+        RequestParameterBuilder.addClaims(parameters, claims, ["CP1"]);
+        
+        const claimsParam = parameters.get(AADServerParamKeys.CLAIMS);
+        expect(claimsParam).toBeDefined();
+        const parsed = JSON.parse(claimsParam!);
+        expect(parsed.userinfo.given_name).toBeNull();
+        expect(parsed.access_token?.xms_cc?.values).toEqual(["CP1"]);
     });
 
     it("adds clientAssertion (string) and assertionType if they are provided by the developer", async () => {
@@ -820,7 +816,7 @@ describe("RequestParameterBuilder unit tests", () => {
         });
     });
 
-    describe("addClaimsWithBrokerSupport tests", () => {
+    describe("addClaims with skipBrokerClaims tests", () => {
         it("includes clientCapabilities when BROKER_CLIENT_ID is present but skipBrokerClaims is not set", () => {
             const parameters = new Map<string, string>();
             // Add broker params first
@@ -830,7 +826,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 "broker-redirect-uri"
             );
 
-            RequestParameterBuilder.addClaimsWithBrokerSupport(
+            RequestParameterBuilder.addClaims(
                 parameters,
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
@@ -850,7 +846,7 @@ describe("RequestParameterBuilder unit tests", () => {
         it("includes clientCapabilities when BROKER_CLIENT_ID is NOT present", () => {
             const parameters = new Map<string, string>();
 
-            RequestParameterBuilder.addClaimsWithBrokerSupport(
+            RequestParameterBuilder.addClaims(
                 parameters,
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
@@ -870,7 +866,7 @@ describe("RequestParameterBuilder unit tests", () => {
         it("includes clientCapabilities when skipBrokerClaims is true but BROKER_CLIENT_ID is NOT present", () => {
             const parameters = new Map<string, string>();
 
-            RequestParameterBuilder.addClaimsWithBrokerSupport(
+            RequestParameterBuilder.addClaims(
                 parameters,
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
@@ -896,7 +892,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 "broker-redirect-uri"
             );
 
-            RequestParameterBuilder.addClaimsWithBrokerSupport(
+            RequestParameterBuilder.addClaims(
                 parameters,
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
@@ -913,7 +909,7 @@ describe("RequestParameterBuilder unit tests", () => {
         it("does not add claims parameter when claims and clientCapabilities are both empty", () => {
             const parameters = new Map<string, string>();
 
-            RequestParameterBuilder.addClaimsWithBrokerSupport(
+            RequestParameterBuilder.addClaims(
                 parameters,
                 undefined,
                 undefined,
@@ -926,7 +922,7 @@ describe("RequestParameterBuilder unit tests", () => {
         it("adds claims when only clientCapabilities are provided", () => {
             const parameters = new Map<string, string>();
 
-            RequestParameterBuilder.addClaimsWithBrokerSupport(
+            RequestParameterBuilder.addClaims(
                 parameters,
                 undefined,
                 ["CP1"],

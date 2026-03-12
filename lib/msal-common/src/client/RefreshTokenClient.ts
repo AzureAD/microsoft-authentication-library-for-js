@@ -552,7 +552,7 @@ export class RefreshTokenClient {
             this.performanceClient
         );
 
-        RequestParameterBuilder.addClaimsWithBrokerSupport(
+        RequestParameterBuilder.addClaims(
             parameters,
             request.claims,
             this.config.authOptions.clientCapabilities,

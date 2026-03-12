@@ -202,37 +202,14 @@ export function addSid(parameters: Map<string, string>, sid: string): void {
 }
 
 /**
- * add claims
- * @param claims
- */
-export function addClaims(
-    parameters: Map<string, string>,
-    claims?: string,
-    clientCapabilities?: Array<string>
-): void {
-    const mergedClaims = addClientCapabilitiesToClaims(
-        claims,
-        clientCapabilities
-    );
-    try {
-        JSON.parse(mergedClaims);
-    } catch (e) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidClaims
-        );
-    }
-    parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
-}
-
-/**
  * Adds claims to request parameters, conditionally excluding clientCapabilities
  * when skipBrokerClaims is true and a brokered flow is in effect.
  * @param parameters - The request parameters map
  * @param claims - The claims string from the request
  * @param clientCapabilities - The client capabilities from configuration
- * @param skipBrokerClaims - Whether to skip broker claims
+ * @param skipBrokerClaims - When true and BROKER_CLIENT_ID is present, excludes clientCapabilities from claims
  */
-export function addClaimsWithBrokerSupport(
+export function addClaims(
     parameters: Map<string, string>,
     claims?: string,
     clientCapabilities?: Array<string>,
@@ -248,7 +225,18 @@ export function addClaimsWithBrokerSupport(
         !StringUtils.isEmptyObj(claims) ||
         (configClaims && configClaims.length > 0)
     ) {
-        addClaims(parameters, claims, configClaims);
+        const mergedClaims = addClientCapabilitiesToClaims(
+            claims,
+            configClaims
+        );
+        try {
+            JSON.parse(mergedClaims);
+        } catch (e) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidClaims
+            );
+        }
+        parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
     }
 }
 

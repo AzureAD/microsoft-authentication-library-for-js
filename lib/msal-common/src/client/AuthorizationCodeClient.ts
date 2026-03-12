@@ -517,7 +517,7 @@ export class AuthorizationCodeClient {
             this.performanceClient
         );
 
-        RequestParameterBuilder.addClaimsWithBrokerSupport(
+        RequestParameterBuilder.addClaims(
             parameters,
             request.claims,
             this.config.authOptions.clientCapabilities,
