@@ -223,23 +223,26 @@ export function getStandardAuthorizeRequestParameters(
         RequestParameterBuilder.addState(parameters, request.state);
     }
 
-    if (
-        request.claims ||
-        (authOptions.clientCapabilities &&
-            authOptions.clientCapabilities.length > 0)
-    ) {
-        RequestParameterBuilder.addClaims(
-            parameters,
-            request.claims,
-            authOptions.clientCapabilities
-        );
-    }
-
     if (request.embeddedClientId) {
         RequestParameterBuilder.addBrokerParameters(
             parameters,
             authOptions.clientId,
             authOptions.redirectUri
+        );
+    }
+
+    // ignore config claims if skipBrokerClaims is set to true and this is a brokered authentication flow
+    const configClaims =
+        request.skipBrokerClaims &&
+        parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)
+            ? undefined
+            : authOptions.clientCapabilities;
+
+    if (request.claims || (configClaims && configClaims.length > 0)) {
+        RequestParameterBuilder.addClaims(
+            parameters,
+            request.claims,
+            configClaims
         );
     }
 
