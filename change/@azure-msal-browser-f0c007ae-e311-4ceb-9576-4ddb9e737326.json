@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "getNativeAccountId() bugfix for v5 #8105",
+  "comment": "getNativeAccountId() bugfix for v5 [#8105](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8105)",
   "packageName": "@azure/msal-browser",
   "email": "lalimasharda@microsoft.com",
   "dependentChangeType": "patch"
