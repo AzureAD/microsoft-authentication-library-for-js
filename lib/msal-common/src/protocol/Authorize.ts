@@ -64,6 +64,8 @@ export function getStandardAuthorizeRequestParameters(
         authOptions.authority.options.OIDCOptions?.defaultScopes
     );
 
+    RequestParameterBuilder.addResource(parameters, request.resource);
+
     RequestParameterBuilder.addRedirectUri(parameters, request.redirectUri);
 
     RequestParameterBuilder.addCorrelationId(parameters, correlationId);

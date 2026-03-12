@@ -74,19 +74,19 @@ When a login call has succeeded, you can use the `getAllAccounts()` function to 
 const myAccounts: AccountInfo[] = msalInstance.getAllAccounts();
 ```
 
-If you know the account information, you can also retrieve the account information by using the `getAccountByUsername()` or `getAccountByHomeId()` APIs:
+If you know the account information, you can also retrieve the account information by using the `getAccount()` API:
 
 ```javascript
 const username = "test@contoso.com";
-const myAccount: AccountInfo = msalInstance.getAccountByUsername(username);
+const myAccount: AccountInfo = msalInstance.getAccount({ username });
 
 const homeAccountId = "userid.hometenantid"; // Best to retrieve the homeAccountId from an account object previously obtained through msal
-const myAccount: AccountInfo = msalInstance.getAccountByHomeId(homeAccountId);
+const myAccount: AccountInfo = msalInstance.getAccount({ homeAccountId });
 ```
 
-**Note:** `getAccountByUsername()` is provided for convenience and should be considered less reliable than `getAccountByHomeId()`. When possible use `getAccountByHomeId()`.
+**Note:** Filtering by `username` is provided for convenience and should be considered less reliable than searching based on `homeAccountId`. When possible use `homeAccountId`.
 
-In B2C scenarios your B2C tenant will need to be configured to return the `emails` claim on `idTokens` in order to use the `getAccountByUsername()` API.
+In B2C scenarios your B2C tenant will need to be configured to return the `emails` claim on `idTokens` in order to use the `username` filter on the `getAccount()` API.
 
 These APIs will return an account object or an array of account objects with the following signature:
 
@@ -172,14 +172,196 @@ This indicates that the server could not determine which account to sign into, a
 
 ## RedirectUri Considerations
 
-When using popup and silent APIs we recommend setting the `redirectUri` to a blank page or a page that does not implement MSAL. This will help prevent potential issues as well as improve performance. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis. For more information, see the [React Router](../../../samples/msal-react-samples/react-router-sample) sample:
+**All authentication flows now require a dedicated redirect page** that implements the MSAL redirect bridge. This is necessary to support COOP (Cross-Origin-Opener-Policy) headers and enable secure communication between popup/iframe windows and the main application.
 
-Note: This does not apply for `loginRedirect` or `acquireTokenRedirect`. When using those APIs please see the directions on handling redirects [here](./initialization.md#redirect-apis)
+### Setting up the redirect page
+
+Your `redirectUri` must point to a dedicated page that loads the redirect bridge script. This page should:
+
+1. **Load the redirect bridge script** - This script handles communication with the main window
+2. **Not include any JavaScript except for bridge script** - The redirect page should only run the bridge script
+3. **Not include routing logic** - Avoid router libraries that might interfere with hash handling
+4. **Be registered in your App Registration** - The URI must match exactly what's registered in Azure portal
+
+**Example redirect page (when using a bundler such as Vite or Webpack):**
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirect</title>
+</head>
+<body>
+    <p>Processing authentication...</p>
+    <script type="module">
+        import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
+
+        broadcastResponseToMainFrame();
+    </script>
+</body>
+</html>
+```
+
+> [!NOTE]
+> The `@azure/msal-browser/redirect-bridge` specifier must be resolved by a bundler (Vite, Webpack, etc.) — it is not a URL that browsers can fetch directly. For framework-specific instructions, see the [Redirect Bridge setup guide](./redirect-bridge.md).
+
+### Configuration
+
+You can set the `redirectUri` globally in your MSAL configuration or on a per-request basis:
+
+**Global configuration:**
+
+```javascript
+const msalConfig = {
+    auth: {
+        clientId: "your-client-id",
+        authority: "https://login.microsoftonline.com/common",
+        redirectUri: "http://localhost:3000/redirect"
+    }
+};
+
+const msalInstance = new PublicClientApplication(msalConfig);
+```
+
+**Per-request configuration:**
 
 ```javascript
 msalInstance.loginPopup({
-    redirectUri: "http://localhost:3000/blank.html",
+    scopes: ["user.read"],
+    redirectUri: "http://localhost:3000/redirect"
 });
+```
+
+For more information and complete sample implementations, see:
+- [React Router Sample](../../../samples/msal-react-samples/react-router-sample)
+- [Express Sample](../../../samples/msal-browser-samples/ExpressSample)
+
+## Handling popup `interaction_in_progress` errors
+
+For popup flows, you can use the `overrideInteractionInProgress` flag to cancel a pending interaction and start a new one. This is useful for recovery scenarios where the user cancelled a popup or an interaction failed.
+
+> [!NOTE]
+> This feature is **only available for popup flows** and is **not supported for redirect flows**. With the COOP (Cross-Origin-Opener-Policy) header, the traditional `window.opener` connection is severed, allowing popup windows to communicate with the main frame only via BroadcastChannel.
+
+> [!CAUTION]
+> Setting this to `true` will forcefully cancel any pending popup authentication request but **will not** close any open popups.
+
+**When set to `true`:**
+- If another popup interaction is currently in progress, it will be forcefully cancelled but any open popups will not be closed
+- The pending interaction will reject with an `interaction_in_progress_cancelled` error
+- The new popup flow will proceed immediately
+
+**Valid use cases:**
+- Recovering from errors where the user cancelled a popup (popup was closed without completing auth)
+- Implementing custom error recovery flows
+- Providing a "retry" mechanism after a failed popup interaction
+
+**Default:** `false`
+
+### Important: Only Use on Button Click
+
+**Do NOT automatically retry** when catching an `interaction_in_progress` error. The override should **only** be triggered by an explicit user action (such as clicking a "Retry" button). Automatically overriding interactions can lead to:
+- Race conditions between multiple authentication flows
+- Unexpected cancellations of legitimate authentication attempts
+- Poor user experience with authentication flows starting and stopping unexpectedly
+- Many open popups that will not resolve to successful authentication responses
+
+### Example: Proper error handling with user-triggered retry
+
+For complete implementations with visual feedback, see:
+- [ExpressSample](../../../samples/msal-browser-samples/ExpressSample) - Demonstrates JavaScript implementation with custom CSS
+- [React Router Sample](../../../samples/msal-react-samples/react-router-sample) - Demonstrates React implementation with Material-UI components
+
+Both samples demonstrate:
+- Warning message displayed during popup authentication
+- Retry modal/dialog with clear explanation when `interaction_in_progress` error occurs
+- Proper state management for user-triggered retry
+- Production-ready UI components
+
+```typescript
+// State to track if user wants to retry
+let userWantsRetry = false;
+
+// Button click handler
+async function handleLoginClick() {
+    try {
+        const loginRequest = {
+            scopes: ["user.read"]
+        };
+
+        // If user explicitly clicked retry, override the existing interaction
+        if (userWantsRetry) {
+            loginRequest.overrideInteractionInProgress = true;
+            userWantsRetry = false; // Reset flag
+        }
+
+        const response = await msalInstance.loginPopup(loginRequest);
+        // Handle successful login
+    } catch (error) {
+        if (error.errorCode === 'interaction_in_progress') {
+            // Show retry button to user - DO NOT automatically retry
+            showRetryButton();
+        } else {
+            // Handle other errors
+            console.error(error);
+        }
+    }
+}
+
+// Retry button click handler
+function handleRetryClick() {
+    userWantsRetry = true; // Set flag for next login attempt
+    handleLoginClick(); // User explicitly requested retry
+}
+```
+
+### Example: React component with user-triggered retry
+
+
+```jsx
+function LoginButton() {
+    const { instance } = useMsal();
+    const [showRetry, setShowRetry] = useState(false);
+    const [retryRequested, setRetryRequested] = useState(false);
+
+    const handleLogin = async () => {
+        try {
+            const loginRequest = {
+                scopes: ["user.read"],
+                // Only override if user clicked the retry button
+                overrideInteractionInProgress: retryRequested
+            };
+
+            setRetryRequested(false); // Reset retry flag
+
+            const response = await instance.loginPopup(loginRequest);
+            setShowRetry(false);
+        } catch (error) {
+            if (error.errorCode === 'interaction_in_progress') {
+                // Show retry button - let user decide whether to retry
+                setShowRetry(true);
+            } else {
+                console.error(error);
+            }
+        }
+    };
+
+    const handleRetry = () => {
+        setRetryRequested(true); // User explicitly requested retry
+        handleLogin();
+    };
+
+    return (
+        <div>
+            <button onClick={handleLogin}>Login</button>
+            {showRetry && (
+                <button onClick={handleRetry}>
+                    Retry Login (Cancel Pending)
+                </button>
+            )}
+        </div>
+    );
+}
 ```
 
 # Next Steps

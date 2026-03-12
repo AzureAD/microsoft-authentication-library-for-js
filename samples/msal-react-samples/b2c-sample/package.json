@@ -3,14 +3,14 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-        "@azure/msal-browser": "^5.0.0-alpha.0",
-        "@azure/msal-react": "^5.0.0-alpha.0",
+        "@azure/msal-browser": "^5.0.0",
+        "@azure/msal-react": "^5.0.0",
         "@emotion/react": "^11.9.3",
         "@emotion/styled": "^11.9.3",
         "@mui/icons-material": "^5.8.4",
         "@mui/material": "^5.9.0",
-        "react": "^19.1.0",
-        "react-dom": "^19.1.0",
+        "react": "^19.2.1",
+        "react-dom": "^19.2.1",
         "react-router-dom": "^6.7.0"
     },
     "devDependencies": {

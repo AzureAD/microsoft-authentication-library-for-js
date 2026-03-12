@@ -7,11 +7,11 @@ import { useState, useEffect, useCallback } from "react";
 import {
     AccountInfo,
     IPublicClientApplication,
-    AccountEntityUtils,
     InteractionStatus,
     EventMessage,
     EventType,
     InteractionType,
+    IdTokenClaims,
 } from "@azure/msal-browser";
 import { useMsal } from "./useMsal.js";
 import { AccountIdentifiers } from "../types/AccountIdentifiers.js";
@@ -38,6 +38,38 @@ function getAccount(
 }
 
 /**
+ * Helper function to determine whether 2 accountInfo objects represent the same account
+ * @param accountA
+ * @param accountB
+ */
+export function accountInfoIsEqual(
+    accountA: AccountInfo | null,
+    accountB: AccountInfo | null
+): boolean {
+    if (!accountA || !accountB) {
+        return false;
+    }
+
+    const accountAClaims = (accountA.idTokenClaims || {}) as IdTokenClaims;
+    const accountBClaims = (accountB.idTokenClaims || {}) as IdTokenClaims;
+
+    // issued at timestamp and nonce are expected to change each time a new id token is acquired
+    const claimsMatch =
+        accountAClaims.iat === accountBClaims.iat &&
+        accountAClaims.nonce === accountBClaims.nonce;
+
+    return (
+        accountA.homeAccountId === accountB.homeAccountId &&
+        accountA.localAccountId === accountB.localAccountId &&
+        accountA.username === accountB.username &&
+        accountA.tenantId === accountB.tenantId &&
+        accountA.environment === accountB.environment &&
+        accountA.nativeAccountId === accountB.nativeAccountId &&
+        claimsMatch
+    );
+}
+
+/**
  * Given 1 or more accountIdentifiers, returns the Account object if the user is signed-in
  * @param accountIdentifiers
  */
@@ -57,13 +89,7 @@ export function useAccount(
     const updateAccount = useCallback(() => {
         const nextAccount = getAccount(instance, accountIdentifiers);
         setAccount((currentAccount: AccountInfo | null) => {
-            if (
-                !AccountEntityUtils.accountInfoIsEqual(
-                    currentAccount,
-                    nextAccount,
-                    true
-                )
-            ) {
+            if (!accountInfoIsEqual(currentAccount, nextAccount)) {
                 logger.info("useAccount - Updating account", "");
                 return nextAccount;
             }

@@ -27,12 +27,7 @@ export { ILoopbackClient } from "./network/ILoopbackClient.js";
 // Clients and Configuration
 export { PublicClientApplication } from "./client/PublicClientApplication.js";
 export { ConfidentialClientApplication } from "./client/ConfidentialClientApplication.js";
-export { ClientApplication } from "./client/ClientApplication.js";
-export { ClientCredentialClient } from "./client/ClientCredentialClient.js";
-export { DeviceCodeClient } from "./client/DeviceCodeClient.js";
-export { OnBehalfOfClient } from "./client/OnBehalfOfClient.js";
 export { ManagedIdentityApplication } from "./client/ManagedIdentityApplication.js";
-export { UsernamePasswordClient } from "./client/UsernamePasswordClient.js";
 
 export {
     Configuration,
@@ -63,9 +58,6 @@ export { DistributedCachePlugin } from "./cache/distributed/DistributedCachePlug
 // Constants
 export { ManagedIdentitySourceNames } from "./utils/Constants.js";
 
-// Crypto
-export { CryptoProvider } from "./crypto/CryptoProvider.js";
-
 // Request objects
 export type { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest.js";
 export type { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest.js";
@@ -82,6 +74,8 @@ export type { ManagedIdentityRequestParams } from "./request/ManagedIdentityRequ
 const PromptValue = CommonConstants.PromptValue;
 const ResponseMode = CommonConstants.ResponseMode;
 export { PromptValue, ResponseMode };
+
+export { CryptoProvider } from "./crypto/CryptoProvider.js";
 
 // Common Object Formats
 export {

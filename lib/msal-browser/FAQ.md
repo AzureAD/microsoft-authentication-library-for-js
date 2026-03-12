@@ -61,7 +61,7 @@
 
 1. [How do I specify which B2C policy/user flow I would like to use?](#how-do-i-specify-which-b2c-policyuser-flow-i-would-like-to-use)
 1. [How do I handle the password-reset user-flow?](#how-do-i-handle-the-password-reset-user-flow)
-1. [Why is getAccountByUsername returning null, even though I'm signed in?](#why-is-getaccountbyusername-returning-null-even-though-im-signed-in)
+1. [Why is getAccount returning null when filtering by username even though I'm signed in?](#why-is-getaccount-returning-null-when-filtering-by-username-even-though-im-signed-in)
 1. [I logged out of my application. Why am I not asked for credentials when I try to log back in?](#i-logged-out-of-my-application-why-am-i-not-asked-for-credentials-when-i-try-to-log-back-in)
 1. [Why am I not signed in when returning from an invite link?](#why-am-i-not-signed-in-when-returning-from-an-invite-link)
 1. [Why is there no access token returned from acquireTokenSilent?](#why-is-there-no-access-token-returned-from-acquiretokensilent)
@@ -177,7 +177,7 @@ As this function returns a promise you can call `.then` and `.catch`, similar to
 
 Please ensure `handleRedirectPromise` has resolved before invoking any other MSAL method. If your app was not loaded as a result of a redirect operation `handleRedirectPromise` will immediately return `null`.
 
-Please review one of our samples ([for instance](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/default)) to see the redirect flow in action.
+Please review one of [our samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) to see the redirect flow in action.
 
 ## How can I support authentication with personal Microsoft accounts only?
 
@@ -282,7 +282,9 @@ When you attempt to authenticate MSAL will navigate to your IDP's sign in page e
 
 ### RedirectUri for popup and silent flows
 
-When using popup and silent APIs we recommend setting the `redirectUri` to a blank page, a page that does not implement MSAL, or a page that does not itself require a user be authenticated. This will help prevent potential issues as well as improve performance. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis.
+When using popup and silent APIs, the `redirectUri` must point to a dedicated page that implements the MSAL redirect bridge. This page handles the authentication response and communicates it back to the main application using the BroadcastChannel API. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis.
+
+For detailed setup instructions, see [redirectUri considerations](./docs/login-user.md#redirecturi-considerations).
 
 ### RedirectUri for redirect flows
 
@@ -428,9 +430,9 @@ pca.loginPopup()
 
 For a full implementation, see the sample: [MSAL.js v2 B2C sample](https://github.com/Azure-Samples/ms-identity-javascript-tutorial/tree/main/1-Authentication/2-sign-in-b2c)
 
-## Why is `getAccountByUsername()` returning null, even though I'm signed in?
+## Why is getAccount returning null when filtering by username, even though I'm signed in?
 
-In order to use `getAccountByUsername()` in B2C scenarios you must enable your `idTokens` to return the `emails` claim in your B2C tenant. MSAL will fill the `username` field on the `AccountInfo` object with the first element of the array returned on the `emails` claim. In most cases this array will only have one element, however, if you notice that your idTokens are returning more than one email on this claim, ensure you are calling `getAccountByUsername` with the first email.
+In order to use `getAccount({ username })` in B2C scenarios you must enable your `idTokens` to return the `email` claim in your B2C tenant. MSAL will fill the `username` field on the `AccountInfo` object with the first element of the array returned on the `emails` claim. In most cases this array will only have one element, however, if you notice that your idTokens are returning more than one email on this claim, ensure you are calling `getAccount({ username })` with the first email.
 
 To enable this claim open up your User Flow configuration in the Azure Portal. Click the `User Attributes` tab and make sure `Email Address` is checked. Then click the `Application Claims` tab and make sure `Email Addresses` is checked. You can verify that the `emails` claim is now being returned by acquiring an `idToken` and inspecting its contents.
 

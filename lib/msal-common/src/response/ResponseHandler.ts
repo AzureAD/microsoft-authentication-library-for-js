@@ -24,7 +24,7 @@ import {
 } from "../error/InteractionRequiredAuthError.js";
 import { CacheRecord } from "../cache/entities/CacheRecord.js";
 import { CacheManager } from "../cache/CacheManager.js";
-import { ProtocolUtils, RequestStateObject } from "../utils/ProtocolUtils.js";
+import * as ProtocolUtils from "../utils/ProtocolUtils.js";
 import * as Constants from "../utils/Constants.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity.js";
@@ -33,7 +33,11 @@ import { TokenCacheContext } from "../cache/persistence/TokenCacheContext.js";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache.js";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
-import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
+import {
+    checkMaxAge,
+    extractTokenClaims,
+    isKmsi,
+} from "../account/AuthToken.js";
 import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,
@@ -47,6 +51,7 @@ import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import * as AccountEntityUtils from "../cache/utils/AccountEntityUtils.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { RequestStateObject } from "../utils/StateTypes.js";
 
 /**
  * Class that handles response parsing.
@@ -184,6 +189,7 @@ export class ResponseHandler {
         authority: Authority,
         reqTimestamp: number,
         request: BaseAuthRequest,
+        apiId: number,
         authCodePayload?: AuthorizationCodePayload,
         userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean,
@@ -234,7 +240,7 @@ export class ResponseHandler {
         let requestStateObj: RequestStateObject | undefined;
         if (!!authCodePayload && !!authCodePayload.state) {
             requestStateObj = ProtocolUtils.parseRequestState(
-                this.cryptoObj,
+                this.cryptoObj.base64Decode,
                 authCodePayload.state
             );
         }
@@ -276,16 +282,23 @@ export class ResponseHandler {
                 !forceCacheRefreshTokenResponse &&
                 cacheRecord.account
             ) {
-                const key = this.cacheStorage.generateAccountKey(
-                    AccountEntityUtils.getAccountInfo(cacheRecord.account)
-                );
-                const account = this.cacheStorage.getAccount(
-                    key,
+                const cachedAccounts = this.cacheStorage.getAllAccounts(
+                    {
+                        homeAccountId: cacheRecord.account.homeAccountId,
+                        environment: cacheRecord.account.environment,
+                    },
                     request.correlationId
                 );
-                if (!account) {
+
+                if (cachedAccounts.length < 1) {
                     this.logger.warning(
                         "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache",
+                        request.correlationId
+                    );
+                    this.performanceClient?.addFields(
+                        {
+                            acntLoggedOut: true,
+                        },
                         request.correlationId
                     );
                     return await ResponseHandler.generateAuthenticationResult(
@@ -305,6 +318,8 @@ export class ResponseHandler {
             await this.cacheStorage.saveCacheRecord(
                 cacheRecord,
                 request.correlationId,
+                isKmsi(idTokenClaims || {}),
+                apiId,
                 request.storeInCache
             );
         } finally {
@@ -435,6 +450,11 @@ export class ResponseHandler {
                 userAssertionHash,
                 serverTokenResponse.key_id
             );
+            // Set resource (to be used for MCP scenarios)
+            const resource = request.resource || null;
+            if (resource) {
+                cachedAccessToken.resource = resource;
+            }
         }
 
         // refreshToken
@@ -451,6 +471,11 @@ export class ResponseHandler {
                           )
                         : serverTokenResponse.refresh_token_expires_in;
                 rtExpiresOn = reqTimestamp + rtExpiresIn;
+
+                this.performanceClient?.addFields(
+                    { ntwkRtExpiresOnSeconds: rtExpiresOn },
+                    request.correlationId
+                );
             }
             cachedRefreshToken = CacheHelpers.createRefreshTokenEntity(
                 this.homeAccountIdentifier,

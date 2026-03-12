@@ -10,6 +10,10 @@ import {
     GetAccountCompletedState,
     GetAccountFailedState,
 } from "../state/GetAccountState.js";
+import {
+    GET_ACCOUNT_COMPLETED_STATE_TYPE,
+    GET_ACCOUNT_FAILED_STATE_TYPE,
+} from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Result of getting an account.
@@ -47,14 +51,14 @@ export class GetAccountResult extends AuthFlowResultBase<
     isCompleted(): this is GetAccountResult & {
         state: GetAccountCompletedState;
     } {
-        return this.state instanceof GetAccountCompletedState;
+        return this.state.stateType === GET_ACCOUNT_COMPLETED_STATE_TYPE;
     }
 
     /**
      * Checks if the result is in a failed state.
      */
     isFailed(): this is GetAccountResult & { state: GetAccountFailedState } {
-        return this.state instanceof GetAccountFailedState;
+        return this.state.stateType === GET_ACCOUNT_FAILED_STATE_TYPE;
     }
 }
 

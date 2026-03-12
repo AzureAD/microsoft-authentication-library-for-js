@@ -212,5 +212,27 @@ export {
 // Auth Method Registration Types
 export { AuthMethodDetails } from "./core/auth_flow/jit/AuthMethodDetails.js";
 
+// MFA State
+export { MfaAwaitingState } from "./core/auth_flow/mfa/state/MfaState.js";
+export { MfaVerificationRequiredState } from "./core/auth_flow/mfa/state/MfaState.js";
+export { MfaCompletedState } from "./core/auth_flow/mfa/state/MfaCompletedState.js";
+export { MfaFailedState } from "./core/auth_flow/mfa/state/MfaFailedState.js";
+
+// MFA Results
+export {
+    MfaRequestChallengeResult,
+    MfaRequestChallengeResultState,
+} from "./core/auth_flow/mfa/result/MfaRequestChallengeResult.js";
+export {
+    MfaSubmitChallengeResult,
+    MfaSubmitChallengeResultState,
+} from "./core/auth_flow/mfa/result/MfaSubmitChallengeResult.js";
+
+// MFA Errors
+export {
+    MfaRequestChallengeError,
+    MfaSubmitChallengeError,
+} from "./core/auth_flow/mfa/error_type/MfaError.js";
+
 // Components from msal_browser
 export { LogLevel } from "@azure/msal-common/browser";

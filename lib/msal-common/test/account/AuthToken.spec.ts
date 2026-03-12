@@ -130,4 +130,50 @@ describe("AuthToken.ts Class Unit Tests", () => {
             ).toEqual(ID_TOKEN_CLAIMS);
         });
     });
+
+    describe("isKmsi()", () => {
+        it("Returns false if claims don't contain signin_state", () => {
+            expect(AuthToken.isKmsi({})).toBe(false);
+        });
+
+        it("Returns false if signin_state claim does not contain kmsi", () => {
+            expect(
+                AuthToken.isKmsi({
+                    signin_state: ["not-kmsi", "other-value"],
+                })
+            ).toBe(false);
+        });
+
+        it("Returns true if signin_state claim contains kmsi", () => {
+            expect(
+                AuthToken.isKmsi({
+                    signin_state: ["kmsi", "other-value"],
+                })
+            ).toBe(true);
+        });
+
+        it("Returns true if signin_state contains kmsi in uppercase", () => {
+            expect(
+                AuthToken.isKmsi({
+                    signin_state: ["KMSI"],
+                })
+            ).toBe(true);
+        });
+
+        it("Returns true if signin_state contains kmsi with leading/trailing whitespace", () => {
+            expect(
+                AuthToken.isKmsi({
+                    signin_state: [" kmsi ", "other-value"],
+                })
+            ).toBe(true);
+        });
+
+        it("Returns true if signin_state claim contains dvc_dmjd", () => {
+            expect(
+                AuthToken.isKmsi({
+                    signin_state: ["dvc_dmjd", "other-value"],
+                })
+            ).toBe(true);
+        });
+    });
 });

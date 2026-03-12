@@ -85,8 +85,11 @@ function signOut(signOutType) {
     }
 }
 
-async function getTokenPopup() {
-    const request = requestConfig;
+async function getTokenPopup(method = "GET") {
+    const request = { ...requestConfig };
+    if (method === "POST") {
+        request.httpMethod = "POST";
+    }
     const currentAcc = myMSALObj.getActiveAccount();
     if (currentAcc) {
         request.account = currentAcc;
@@ -96,8 +99,11 @@ async function getTokenPopup() {
     }
 }
 
-async function getTokenRedirect() {
-    const request = requestConfig;
+async function getTokenRedirect(method = "GET") {
+    const request = { ...requestConfig };
+    if (method === "POST") {
+        request.httpMethod = "POST";
+    }
     const currentAcc = myMSALObj.getActiveAccount();
     if (currentAcc) {
         request.account = currentAcc;

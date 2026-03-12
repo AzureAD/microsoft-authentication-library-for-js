@@ -36,8 +36,8 @@ import {
 } from "../utils/BrowserConstants.js";
 import {
     initiateCodeRequest,
+    initiateCodeFlowWithPost,
     initiateEarRequest,
-    monitorIframeForHash,
 } from "../interaction_handler/SilentHandler.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
@@ -264,11 +264,19 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )();
+        const pkceCodes = await invokeAsync(
+            generatePkceCodes,
+            BrowserPerformanceEvents.GeneratePkceCodes,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(this.performanceClient, this.logger, correlationId);
         const silentRequest = {
             ...request,
             earJwk: earJwk,
+            codeChallenge: pkceCodes.challenge,
         };
-        const msalFrame = await invokeAsync(
+        await invokeAsync(
             initiateEarRequest,
             BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
             this.logger,
@@ -283,21 +291,18 @@ export class SilentIframeClient extends StandardInteractionClient {
         );
 
         const responseType = this.config.auth.OIDCOptions.responseMode;
-        // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
-            monitorIframeForHash,
+            BrowserUtils.waitForBridgeResponse,
             BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
         )(
-            msalFrame,
-            this.config.system.iframeHashTimeout,
-            this.config.system.pollIntervalMilliseconds,
-            this.performanceClient,
+            this.config.system.iframeBridgeTimeout,
             this.logger,
-            correlationId,
-            responseType
+            this.browserCrypto,
+            request,
+            this.performanceClient
         );
 
         const serverParams = invoke(
@@ -308,25 +313,70 @@ export class SilentIframeClient extends StandardInteractionClient {
             correlationId
         )(responseString, responseType, this.logger, this.correlationId);
 
-        return invokeAsync(
-            Authorize.handleResponseEAR,
-            BrowserPerformanceEvents.HandleResponseEar,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(
-            silentRequest,
-            serverParams,
-            this.apiId,
-            this.config,
-            discoveredAuthority,
-            this.browserStorage,
-            this.nativeStorage,
-            this.eventHandler,
-            this.logger,
-            this.performanceClient,
-            this.platformAuthProvider
-        );
+        if (!serverParams.ear_jwe && serverParams.code) {
+            // If server doesn't support EAR, they may fallback to auth code flow instead
+            const authClient = await invokeAsync(
+                this.createAuthCodeClient.bind(this),
+                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )({
+                serverTelemetryManager: initializeServerTelemetryManager(
+                    this.apiId,
+                    this.config.auth.clientId,
+                    correlationId,
+                    this.browserStorage,
+                    this.logger
+                ),
+                requestAuthority: request.authority,
+                requestAzureCloudOptions: request.azureCloudOptions,
+                requestExtraQueryParameters: request.extraQueryParameters,
+                account: request.account,
+                authority: discoveredAuthority,
+            });
+
+            return invokeAsync(
+                Authorize.handleResponseCode,
+                BrowserPerformanceEvents.HandleResponseCode,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                silentRequest,
+                serverParams,
+                pkceCodes.verifier,
+                this.apiId,
+                this.config,
+                authClient,
+                this.browserStorage,
+                this.nativeStorage,
+                this.eventHandler,
+                this.logger,
+                this.performanceClient,
+                this.platformAuthProvider
+            );
+        } else {
+            return invokeAsync(
+                Authorize.handleResponseEAR,
+                BrowserPerformanceEvents.HandleResponseEar,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                silentRequest,
+                serverParams,
+                this.apiId,
+                this.config,
+                discoveredAuthority,
+                this.browserStorage,
+                this.nativeStorage,
+                this.eventHandler,
+                this.logger,
+                this.performanceClient,
+                this.platformAuthProvider
+            );
+        }
     }
 
     /**
@@ -364,47 +414,63 @@ export class SilentIframeClient extends StandardInteractionClient {
             ...request,
             codeChallenge: pkceCodes.challenge,
         };
-        // Create authorize request url
-        const navigateUrl = await invokeAsync(
-            Authorize.getAuthCodeRequestUrl,
-            PerformanceEvents.GetAuthCodeUrl,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(
-            this.config,
-            authClient.authority,
-            silentRequest,
-            this.logger,
-            this.performanceClient
-        );
 
-        // Get the frame handle for the silent request
-        const msalFrame = await invokeAsync(
-            initiateCodeRequest,
-            BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(navigateUrl, this.performanceClient, this.logger, correlationId);
+        if (request.httpMethod === Constants.HttpMethod.POST) {
+            await invokeAsync(
+                initiateCodeFlowWithPost,
+                BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                this.config,
+                authClient.authority,
+                silentRequest,
+                this.logger,
+                this.performanceClient
+            );
+        } else {
+            // Create authorize request url
+            const navigateUrl = await invokeAsync(
+                Authorize.getAuthCodeRequestUrl,
+                PerformanceEvents.GetAuthCodeUrl,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                this.config,
+                authClient.authority,
+                silentRequest,
+                this.logger,
+                this.performanceClient
+            );
+
+            // Get the frame handle for the silent request
+            await invokeAsync(
+                initiateCodeRequest,
+                BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(navigateUrl, this.performanceClient, this.logger, correlationId);
+        }
 
         const responseType = this.config.auth.OIDCOptions.responseMode;
-        // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+        // Wait for response from the redirect bridge.
         const responseString = await invokeAsync(
-            monitorIframeForHash,
+            BrowserUtils.waitForBridgeResponse,
             BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
         )(
-            msalFrame,
-            this.config.system.iframeHashTimeout,
-            this.config.system.pollIntervalMilliseconds,
-            this.performanceClient,
+            this.config.system.iframeBridgeTimeout,
             this.logger,
-            correlationId,
-            responseType
+            this.browserCrypto,
+            request,
+            this.performanceClient
         );
+
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
             BrowserPerformanceEvents.DeserializeResponse,

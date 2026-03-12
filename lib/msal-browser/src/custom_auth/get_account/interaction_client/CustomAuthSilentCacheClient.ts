@@ -41,17 +41,19 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
     override async acquireToken(
         silentRequest: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
+        const correlationId = silentRequest.correlationId || this.correlationId;
         const telemetryManager = initializeServerTelemetryManager(
             PublicApiId.ACCOUNT_GET_ACCESS_TOKEN,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger,
             silentRequest.forceRefresh
         );
         const clientConfig = this.getCustomAuthClientConfiguration(
             telemetryManager,
-            this.customAuthAuthority
+            this.customAuthAuthority,
+            correlationId
         );
         const silentFlowClient = new SilentFlowClient(
             clientConfig,
@@ -61,7 +63,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
         try {
             this.logger.verbose(
                 "Starting silent flow to acquire token from cache",
-                this.correlationId
+                correlationId
             );
 
             const result = await silentFlowClient.acquireCachedToken(
@@ -70,7 +72,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
 
             this.logger.verbose(
                 "Silent flow to acquire token from cache is completed and token is found",
-                this.correlationId
+                correlationId
             );
 
             return result[0] as AuthenticationResult;
@@ -81,7 +83,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
             ) {
                 this.logger.verbose(
                     "Token refresh is required to acquire token silently",
-                    this.correlationId
+                    correlationId
                 );
 
                 const refreshTokenClient = new RefreshTokenClient(
@@ -91,17 +93,18 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
 
                 this.logger.verbose(
                     "Starting refresh flow to refresh token",
-                    this.correlationId
+                    correlationId
                 );
 
                 const refreshTokenResult =
                     await refreshTokenClient.acquireTokenByRefreshToken(
-                        silentRequest
+                        silentRequest,
+                        PublicApiId.ACCOUNT_GET_ACCESS_TOKEN
                     );
 
                 this.logger.verbose(
                     "Refresh flow to refresh token is completed",
-                    this.correlationId
+                    correlationId
                 );
 
                 return refreshTokenResult as AuthenticationResult;
@@ -184,7 +187,8 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
 
     private getCustomAuthClientConfiguration(
         serverTelemetryManager: ServerTelemetryManager,
-        customAuthAuthority: CustomAuthAuthority
+        customAuthAuthority: CustomAuthAuthority,
+        correlationId: string
     ): ClientConfiguration {
         const logger = this.config.system.loggerOptions;
 
@@ -204,7 +208,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
                 loggerCallback: logger.loggerCallback,
                 piiLoggingEnabled: logger.piiLoggingEnabled,
                 logLevel: logger.logLevel,
-                correlationId: this.correlationId,
+                correlationId: correlationId,
             },
             cryptoInterface: this.browserCrypto,
             networkInterface: this.networkClient,

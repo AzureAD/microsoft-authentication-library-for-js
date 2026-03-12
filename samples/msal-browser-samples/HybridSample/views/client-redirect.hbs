@@ -17,7 +17,8 @@
                 piiLoggingEnabled: false,
                 logLevel: msal.LogLevel.Verbose,
             },
-            allowPlatformBroker: true
+            allowPlatformBroker: false,
+            iframeBridgeTimeout: 10000
         }
     });
     
@@ -86,7 +87,8 @@
                         sid: loginHint ? undefined : sid, // If loginHint claim is provided, dont use sid
                         loginHint: loginHint || preferredUsername, // Prefer loginHint claim over email
                         tokenQueryParameters,
-                        scopes
+                        scopes,
+                        redirectUri: "https://localhost:3000/auth/redirect"
                     })
                         .then(result => {
                             console.timeEnd(timeLabel);
@@ -98,9 +100,10 @@
                             if (error instanceof msal.InteractionRequiredAuthError) {
                                 console.log('MSAL: ssoSilent failed, redirecting')
                                 // Use loginHint from server to ensure same user
-                                return msalInstance.loginRedirect({
+                                return msalInstance.loginPopup({
                                     loginHint,
-                                    scopes
+                                    scopes,
+                                    redirectUri: "https://localhost:3000/auth/redirect"
                                 })
                             }
                         });

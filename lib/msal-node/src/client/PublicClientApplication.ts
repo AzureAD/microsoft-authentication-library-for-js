@@ -20,6 +20,8 @@ import {
     AuthorizeResponse,
     AADServerParamKeys,
     ServerTelemetryManager,
+    AuthorizationCodePayload,
+    enforceResourceParameter,
 } from "@azure/msal-common/node";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
@@ -33,6 +35,7 @@ import { NodeAuthError, NodeAuthErrorMessage } from "../error/NodeAuthError.js";
 import { LoopbackClient } from "../network/LoopbackClient.js";
 import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
 import { SignOutRequest } from "../request/SignOutRequest.js";
+import { RefreshTokenRequest } from "../request/RefreshTokenRequest.js";
 import { ILoopbackClient } from "../network/ILoopbackClient.js";
 import { DeviceCodeClient } from "./DeviceCodeClient.js";
 import { version } from "../packageMetadata.js";
@@ -102,6 +105,7 @@ export class PublicClientApplication
             "acquireTokenByDeviceCode called",
             request.correlationId || ""
         );
+        enforceResourceParameter(this.config.auth.isMcp, request);
         const validRequest: CommonDeviceCodeRequest = Object.assign(
             request,
             await this.initializeBaseRequest(request)
@@ -147,6 +151,7 @@ export class PublicClientApplication
         const correlationId =
             request.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.trace("acquireTokenInteractive called", correlationId);
+        enforceResourceParameter(this.config.auth.isMcp, request);
         const {
             openBrowser,
             successTemplate,
@@ -161,12 +166,12 @@ export class PublicClientApplication
                 ...remainingProperties,
                 clientId: this.config.auth.clientId,
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
-                redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
+                redirectUri: request.redirectUri || "",
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
                 extraParameters: {
                     ...remainingProperties.extraQueryParameters,
-                    ...remainingProperties.tokenQueryParameters,
+                    ...remainingProperties.extraParameters,
                     [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
                 },
                 accountId: remainingProperties.account?.nativeAccountId,
@@ -175,6 +180,15 @@ export class PublicClientApplication
                 brokerRequest,
                 windowHandle
             );
+        }
+
+        if (request.redirectUri) {
+            // If it's not a broker fallback scenario, we throw an error
+            if (!this.config.broker.nativeBrokerPlugin) {
+                throw NodeAuthError.createRedirectUriNotSupportedError();
+            }
+            // If a redirect URI is provided for a broker flow but MSAL runtime startup failed, we fall back to the browser flow and will ignore the redirect URI provided for the broker flow
+            request.redirectUri = "";
         }
 
         const { verifier, challenge } =
@@ -251,17 +265,19 @@ export class PublicClientApplication
         const correlationId =
             request.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.trace("acquireTokenSilent called", correlationId);
+        enforceResourceParameter(this.config.auth.isMcp, request);
 
         if (this.nativeBrokerPlugin) {
             const brokerRequest: NativeRequest = {
                 ...request,
                 clientId: this.config.auth.clientId,
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
-                redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
+                redirectUri: request.redirectUri || "",
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
                 extraParameters: {
-                    ...request.tokenQueryParameters,
+                    ...request.extraQueryParameters,
+                    ...request.extraParameters,
                     [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
                 },
                 accountId: request.account.nativeAccountId,
@@ -270,7 +286,38 @@ export class PublicClientApplication
             return this.nativeBrokerPlugin.acquireTokenSilent(brokerRequest);
         }
 
+        if (request.redirectUri) {
+            // If it's not a broker fallback scenario, we throw an error
+            if (!this.config.broker.nativeBrokerPlugin) {
+                throw NodeAuthError.createRedirectUriNotSupportedError();
+            }
+            request.redirectUri = "";
+        }
+
         return super.acquireTokenSilent(request);
+    }
+
+    /**
+     * Acquires a token by exchanging the authorization code received from the first step of OAuth 2.0 Authorization Code Flow.
+     * In MCP mode, a resource parameter is required on the request.
+     */
+    async acquireTokenByCode(
+        request: AuthorizationCodeRequest,
+        authCodePayLoad?: AuthorizationCodePayload
+    ): Promise<AuthenticationResult> {
+        enforceResourceParameter(this.config.auth.isMcp, request);
+        return super.acquireTokenByCode(request, authCodePayLoad);
+    }
+
+    /**
+     * Acquires a token by exchanging the refresh token provided for a new set of tokens.
+     * In MCP mode, a resource parameter is required on the request.
+     */
+    async acquireTokenByRefreshToken(
+        request: RefreshTokenRequest
+    ): Promise<AuthenticationResult | null> {
+        enforceResourceParameter(this.config.auth.isMcp, request);
+        return super.acquireTokenByRefreshToken(request);
     }
 
     /**

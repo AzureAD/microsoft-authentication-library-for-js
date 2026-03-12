@@ -18,6 +18,7 @@ import {
     AuthorizeProtocol,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
+import { ApiId } from "../utils/BrowserConstants.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import {
@@ -56,7 +57,8 @@ export class InteractionHandler {
      */
     async handleCodeResponse(
         response: AuthorizeResponse,
-        request: CommonAuthorizationUrlRequest
+        request: CommonAuthorizationUrlRequest,
+        apiId: ApiId
     ): Promise<AuthenticationResult> {
         let authCodeResponse;
         try {
@@ -84,7 +86,7 @@ export class InteractionHandler {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(authCodeResponse, request);
+        )(authCodeResponse, request, apiId);
     }
 
     /**
@@ -97,6 +99,7 @@ export class InteractionHandler {
     async handleCodeResponseFromServer(
         authCodeResponse: AuthorizationCodePayload,
         request: CommonAuthorizationUrlRequest,
+        apiId: ApiId,
         validateNonce: boolean = true
     ): Promise<AuthenticationResult> {
         this.logger.trace(
@@ -106,17 +109,6 @@ export class InteractionHandler {
 
         // Assign code to request
         this.authCodeRequest.code = authCodeResponse.code;
-
-        // Check for new cloud instance
-        if (authCodeResponse.cloud_instance_host_name) {
-            await invokeAsync(
-                this.authModule.updateAuthority.bind(this.authModule),
-                BrowserPerformanceEvents.UpdateTokenEndpointAuthority,
-                this.logger,
-                this.performanceClient,
-                request.correlationId
-            )(authCodeResponse.cloud_instance_host_name, request.correlationId);
-        }
 
         // Nonce validation not needed when redirect not involved (e.g. hybrid spa, renewing token via rt)
         if (validateNonce) {
@@ -143,7 +135,11 @@ export class InteractionHandler {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(this.authCodeRequest, authCodeResponse)) as AuthenticationResult;
+        )(
+            this.authCodeRequest,
+            apiId,
+            authCodeResponse
+        )) as AuthenticationResult;
         return tokenResponse;
     }
 

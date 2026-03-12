@@ -113,6 +113,7 @@ export class Serializer {
                 key_id: atEntity.keyId,
                 token_type: atEntity.tokenType,
                 userAssertionHash: atEntity.userAssertionHash,
+                resource: atEntity.resource,
             };
         });
 

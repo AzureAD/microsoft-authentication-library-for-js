@@ -17,12 +17,6 @@ The [AccountFilter](https://azuread.github.io/microsoft-authentication-library-f
 
 > Note: `realm` is `tenantId` in the cache.
 
-The following `getAccountBy` APIs are marked for deprecation and will be removed in a future version of MSAL. Please migrate to `getAccount()`:
-
--   `getAccountByHomeId()`: receives a `homeAccountId` string and returns the matching account from the cache.
--   `getAccountByLocalId()`: receives a `localAccountId` string and returns the matching account from the cache.
--   `getAccountByUsername()`: receives a `username` string and returns the matching account from the cache.
-
 The following is a usage examples that covers these APIs:
 
 ```javascript
@@ -163,9 +157,7 @@ For NAA applications, we consider `setActiveAccount()` and `getActiveAccount()` 
 
 ## Notes
 
--   The current msal-browser default [sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0) has a working single account scenario.
--   If you have a multiple accounts scenario, please modify the [sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/default/auth.js) (in `handleResponse()`) to list all cached accounts and choose a specific account.
--   If an application wants to retrieve an account based on the `username`, it needs to save the `username` (from the response of a `login` API for a specific user) prior to using `getAccountByUsername()` API.
+-   If an application wants to retrieve an account based on the `username`, it needs to save the `username` (from the response of a `login` API for a specific user) prior to using  the `username` filter in the `getAccount()` API.
 -   `getAllAccounts()` will return multiple accounts if you have made several interactive token requests and the user has selected different accounts in two or more of those interactions. You may need to pass `prompt: "select_account"` or `prompt: "login"` to the interactive acquireToken or login API in order for AAD to display the account selection screen after the first interaction.
 -   The account APIs return local account state and do not necessarily reflect server state. They return accounts that have previously signed into this app using MSAL.js and the server session may or may not still be active.
 -   Two apps hosted on different domains do not share account state due to browser storage being segemented by domain.

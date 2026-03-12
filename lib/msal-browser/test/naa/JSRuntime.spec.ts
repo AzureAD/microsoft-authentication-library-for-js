@@ -8,7 +8,6 @@ import {
     INIT_CONTEXT_RESPONSE,
     SILENT_TOKEN_RESPONSE,
 } from "./BridgeProxyConstants.js";
-import { PublicClientNext } from "../../src/app/PublicClientNext.js";
 import { TEST_CONFIG, TEST_TOKENS } from "../utils/StringConstants.js";
 import { randomFillSync } from "crypto";
 import { TokenClaims } from "@azure/msal-common";

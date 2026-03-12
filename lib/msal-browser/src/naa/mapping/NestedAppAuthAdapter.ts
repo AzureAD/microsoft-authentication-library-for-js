@@ -27,6 +27,7 @@ import {
     AccessTokenEntity,
     TenantProfile,
     buildTenantProfile,
+    getTenantIdFromIdTokenClaims,
     TimeUtils,
     Constants,
 } from "@azure/msal-common/browser";
@@ -83,6 +84,7 @@ export class NestedAppAuthAdapter {
             platformBrokerId: request.account?.homeAccountId,
             clientId: this.clientId,
             authority: request.authority,
+            resource: request.resource,
             scope: scopes.join(" "),
             correlationId,
             claims: !StringUtils.isEmptyObj(claims) ? claims : undefined,
@@ -178,18 +180,41 @@ export class NestedAppAuthAdapter {
             effectiveIdTokenClaims?.sub ||
             "";
 
+        /*
+         * In B2C scenarios tid may not be present, use getTenantIdFromIdTokenClaims
+         * which handles tid, tfp (modern B2C), and acr (legacy B2C) claims
+         */
         const tenantId =
-            fromAccount.tenantId || effectiveIdTokenClaims?.tid || "";
+            fromAccount.tenantId ||
+            getTenantIdFromIdTokenClaims(effectiveIdTokenClaims) ||
+            "";
 
         const homeAccountId =
             fromAccount.homeAccountId || `${localAccountId}.${tenantId}`;
 
-        const username =
-            fromAccount.username ||
-            effectiveIdTokenClaims?.preferred_username ||
-            "";
+        // Validate environment - required field
+        const environment = fromAccount.environment;
+        if (!environment) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidCacheEnvironment
+            );
+        }
 
-        const name = fromAccount.name || effectiveIdTokenClaims?.name;
+        /*
+         * In B2C scenarios the emails claim is used instead of preferred_username and it is an array.
+         * In most cases it will contain a single email. This field should not be relied upon if a custom
+         * policy is configured to return more than 1 email.
+         */
+        const preferredUsername =
+            effectiveIdTokenClaims?.preferred_username ||
+            effectiveIdTokenClaims?.upn;
+
+        const email = effectiveIdTokenClaims?.emails?.[0] || null;
+
+        const username =
+            fromAccount.username || preferredUsername || email || "";
+
+        const name = fromAccount.name || effectiveIdTokenClaims?.name || "";
 
         const loginHint =
             fromAccount.loginHint || effectiveIdTokenClaims?.login_hint;
@@ -206,7 +231,7 @@ export class NestedAppAuthAdapter {
 
         const account: MsalAccountInfo = {
             homeAccountId,
-            environment: fromAccount.environment,
+            environment,
             tenantId,
             username,
             localAccountId,

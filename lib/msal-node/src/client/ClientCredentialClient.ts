@@ -7,7 +7,6 @@ import {
     AccessTokenEntity,
     AuthenticationResult,
     Authority,
-    BaseClient,
     CacheManager,
     ClientAuthErrorCodes,
     ClientConfiguration,
@@ -29,13 +28,14 @@ import {
     ClientAssertion,
     getClientAssertion,
     UrlUtils,
-    StubPerformanceClient,
 } from "@azure/msal-common/node";
+import { ApiId } from "../utils/Constants.js";
 import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
 } from "../config/Configuration.js";
 import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest.js";
+import { BaseClient } from "./BaseClient.js";
 
 /**
  * OAuth2.0 client credential grant
@@ -48,7 +48,7 @@ export class ClientCredentialClient extends BaseClient {
         configuration: ClientConfiguration,
         appTokenProvider?: IAppTokenProvider
     ) {
-        super(configuration, new StubPerformanceClient());
+        super(configuration);
         this.appTokenProvider = appTokenProvider;
     }
 
@@ -336,7 +336,8 @@ export class ClientCredentialClient extends BaseClient {
             serverTokenResponse,
             this.authority,
             reqTimestamp,
-            request
+            request,
+            ApiId.acquireTokenByClientCredential
         );
 
         return tokenResponse;

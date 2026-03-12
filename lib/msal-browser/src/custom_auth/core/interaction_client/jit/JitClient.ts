@@ -5,15 +5,12 @@
 
 import { CustomAuthInteractionClientBase } from "../CustomAuthInteractionClientBase.js";
 import {
-    JitGetAuthMethodsParams,
     JitChallengeAuthMethodParams,
     JitSubmitChallengeParams,
 } from "./parameter/JitParams.js";
 import {
-    JitGetAuthMethodsResult,
     JitVerificationRequiredResult,
     JitCompletedResult,
-    createJitGetAuthMethodsResult,
     createJitVerificationRequiredResult,
     createJitCompletedResult,
 } from "./result/JitActionResult.js";
@@ -24,7 +21,6 @@ import {
 } from "../../../CustomAuthConstants.js";
 import * as PublicApiId from "../../telemetry/PublicApiId.js";
 import {
-    RegisterIntrospectRequest,
     RegisterChallengeRequest,
     RegisterContinueRequest,
     SignInContinuationTokenRequest,
@@ -36,49 +32,6 @@ import { initializeServerTelemetryManager } from "../../../../interaction_client
  */
 export class JitClient extends CustomAuthInteractionClientBase {
     /**
-     * Gets available authentication methods for JIT registration.
-     * @param parameters The parameters for getting auth methods.
-     * @returns Promise that resolves to JitGetAuthMethodsResult.
-     */
-    async getAuthMethods(
-        parameters: JitGetAuthMethodsParams
-    ): Promise<JitGetAuthMethodsResult> {
-        const apiId = PublicApiId.JIT_GET_AUTH_METHODS;
-        const telemetryManager = initializeServerTelemetryManager(
-            apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
-        );
-
-        this.logger.verbose(
-            "Calling introspect endpoint for getting auth methods.",
-            parameters.correlationId
-        );
-
-        const request: RegisterIntrospectRequest = {
-            continuation_token: parameters.continuationToken,
-            correlationId: parameters.correlationId,
-            telemetryManager: telemetryManager,
-        };
-
-        const introspectResponse =
-            await this.customAuthApiClient.registerApi.introspect(request);
-
-        this.logger.verbose(
-            "Introspect endpoint called for getting auth methods.",
-            parameters.correlationId
-        );
-
-        return createJitGetAuthMethodsResult({
-            correlationId: introspectResponse.correlation_id,
-            continuationToken: introspectResponse.continuation_token,
-            authMethods: introspectResponse.methods,
-        });
-    }
-
-    /**
      * Challenges an authentication method for JIT registration.
      * @param parameters The parameters for challenging the auth method.
      * @returns Promise that resolves to either JitVerificationRequiredResult or JitCompletedResult.
@@ -86,18 +39,19 @@ export class JitClient extends CustomAuthInteractionClientBase {
     async challengeAuthMethod(
         parameters: JitChallengeAuthMethodParams
     ): Promise<JitVerificationRequiredResult | JitCompletedResult> {
+        const correlationId = parameters.correlationId || this.correlationId;
         const apiId = PublicApiId.JIT_CHALLENGE_AUTH_METHOD;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
 
         this.logger.verbose(
             "Calling challenge endpoint for getting auth method.",
-            parameters.correlationId
+            correlationId
         );
 
         const challengeReq: RegisterChallengeRequest = {
@@ -105,7 +59,7 @@ export class JitClient extends CustomAuthInteractionClientBase {
             challenge_type: parameters.authMethod.challenge_type,
             challenge_target: parameters.verificationContact,
             challenge_channel: parameters.authMethod.challenge_channel,
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
             telemetryManager: telemetryManager,
         };
 
@@ -114,7 +68,7 @@ export class JitClient extends CustomAuthInteractionClientBase {
 
         this.logger.verbose(
             "Challenge endpoint called for auth method registration.",
-            parameters.correlationId
+            challengeResponse.correlation_id || correlationId
         );
 
         /*
@@ -125,12 +79,13 @@ export class JitClient extends CustomAuthInteractionClientBase {
         if (challengeResponse.challenge_type === ChallengeType.PREVERIFIED) {
             this.logger.verbose(
                 "Fast-pass scenario detected - completing registration without additional verification.",
-                challengeResponse.correlation_id
+                challengeResponse.correlation_id || correlationId
             );
 
             // Use submitChallenge for fast-pass scenario with continuation_token grant type
             const fastPassParams: JitSubmitChallengeParams = {
-                correlationId: challengeResponse.correlation_id,
+                correlationId:
+                    challengeResponse.correlation_id || correlationId,
                 continuationToken: challengeResponse.continuation_token,
                 grantType: GrantType.CONTINUATION_TOKEN,
                 scopes: parameters.scopes,
@@ -144,7 +99,7 @@ export class JitClient extends CustomAuthInteractionClientBase {
 
         // Verification required
         return createJitVerificationRequiredResult({
-            correlationId: challengeResponse.correlation_id,
+            correlationId: challengeResponse.correlation_id || correlationId,
             continuationToken: challengeResponse.continuation_token,
             challengeChannel: challengeResponse.challenge_channel,
             challengeTargetLabel: challengeResponse.challenge_target,
@@ -161,18 +116,19 @@ export class JitClient extends CustomAuthInteractionClientBase {
     async submitChallenge(
         parameters: JitSubmitChallengeParams
     ): Promise<JitCompletedResult> {
+        const correlationId = parameters.correlationId || this.correlationId;
         const apiId = PublicApiId.JIT_SUBMIT_CHALLENGE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
 
         this.logger.verbose(
             "Calling continue endpoint for auth method challenge submission.",
-            parameters.correlationId
+            correlationId
         );
 
         // Submit challenge to complete registration
@@ -182,7 +138,7 @@ export class JitClient extends CustomAuthInteractionClientBase {
             ...(parameters.challenge && {
                 oob: parameters.challenge,
             }),
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
             telemetryManager: telemetryManager,
         };
 
@@ -199,7 +155,7 @@ export class JitClient extends CustomAuthInteractionClientBase {
         const tokenRequest: SignInContinuationTokenRequest = {
             continuation_token: continueResponse.continuation_token,
             scope: scopes.join(" "),
-            correlationId: continueResponse.correlation_id,
+            correlationId: continueResponse.correlation_id || correlationId,
             telemetryManager: telemetryManager,
             ...(parameters.claims && {
                 claims: parameters.claims,
@@ -214,11 +170,14 @@ export class JitClient extends CustomAuthInteractionClientBase {
         const authResult = await this.handleTokenResponse(
             tokenResponse,
             scopes,
-            continueResponse.correlation_id
+            tokenResponse.correlation_id ||
+                continueResponse.correlation_id ||
+                correlationId,
+            apiId
         );
 
         return createJitCompletedResult({
-            correlationId: continueResponse.correlation_id,
+            correlationId: continueResponse.correlation_id || correlationId,
             authenticationResult: authResult,
         });
     }

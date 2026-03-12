@@ -8,6 +8,7 @@ import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.j
 import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { AuthFlowActionRequiredStateParameters } from "../../../core/auth_flow/AuthFlowState.js";
 import { JitClient } from "../../../core/interaction_client/jit/JitClient.js";
+import { MfaClient } from "../../../core/interaction_client/mfa/MfaClient.js";
 
 export interface ResetPasswordStateParameters
     extends AuthFlowActionRequiredStateParameters {
@@ -16,6 +17,7 @@ export interface ResetPasswordStateParameters
     signInClient: SignInClient;
     cacheClient: CustomAuthSilentCacheClient;
     jitClient: JitClient;
+    mfaClient: MfaClient;
 }
 
 export type ResetPasswordPasswordRequiredStateParameters =

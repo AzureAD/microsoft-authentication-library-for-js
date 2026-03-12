@@ -8,6 +8,7 @@ import {
     METADATA_ALIASES,
     TEST_CONFIG,
 } from "../test_kit/StringConstants";
+import { EndpointMetadata } from "../../src/authority/AuthorityMetadata";
 
 function buildCanonicalAuthorityUrl(host: string, tenant: string): string {
     return `https://${host}/${tenant}/`;
@@ -70,6 +71,87 @@ describe("AuthorityMetadata.ts Unit Tests", () => {
                             )
                         ).toEqual(METADATA_ALIASES[cloudKey]);
                     });
+                });
+            });
+        });
+        describe("buildOpenIdConfig (indirect via EndpointMetadata)", () => {
+            const requiredKeys = [
+                "token_endpoint",
+                "jwks_uri",
+                "issuer",
+                "authorization_endpoint",
+                "end_session_endpoint",
+            ];
+
+            it("generates expected endpoints for each host", () => {
+                Object.entries(EndpointMetadata).forEach(
+                    ([host, cfg]: [string, any]) => {
+                        // All required keys exist
+                        requiredKeys.forEach((k) => {
+                            expect((cfg as any)[k]).toBeDefined();
+                        });
+
+                        // Shared patterns
+                        expect(cfg.token_endpoint).toBe(
+                            `https://${host}/{tenantid}/oauth2/v2.0/token`
+                        );
+                        expect(cfg.jwks_uri).toBe(
+                            `https://${host}/{tenantid}/discovery/v2.0/keys`
+                        );
+                        expect(cfg.authorization_endpoint).toBe(
+                            `https://${host}/{tenantid}/oauth2/v2.0/authorize`
+                        );
+                        expect(cfg.end_session_endpoint).toBe(
+                            `https://${host}/{tenantid}/oauth2/v2.0/logout`
+                        );
+
+                        // Issuer pattern (may differ for specific hosts)
+                        if (host === "login.chinacloudapi.cn") {
+                            expect(cfg.issuer).toBe(
+                                `https://login.partner.microsoftonline.cn/{tenantid}/v2.0`
+                            );
+                        } else {
+                            expect(cfg.issuer).toBe(
+                                `https://${host}/{tenantid}/v2.0`
+                            );
+                        }
+                    }
+                );
+            });
+
+            it("uses alternate issuer host only for login.chinacloudapi.cn", () => {
+                const chinaConfig = EndpointMetadata["login.chinacloudapi.cn"];
+                expect(chinaConfig).toBeDefined();
+                expect(chinaConfig.issuer).toBe(
+                    "https://login.partner.microsoftonline.cn/{tenantid}/v2.0"
+                );
+                // Ensure other props still use original host
+                expect(chinaConfig.token_endpoint).toContain(
+                    "login.chinacloudapi.cn"
+                );
+                expect(chinaConfig.authorization_endpoint).toContain(
+                    "login.chinacloudapi.cn"
+                );
+
+                Object.entries(EndpointMetadata).forEach(
+                    ([host, cfg]: [string, any]) => {
+                        if (host !== "login.chinacloudapi.cn") {
+                            expect(cfg.issuer).toBe(
+                                `https://${host}/{tenantid}/v2.0`
+                            );
+                            expect(
+                                cfg.issuer.includes(
+                                    "partner.microsoftonline.cn"
+                                )
+                            ).toBe(false);
+                        }
+                    }
+                );
+            });
+
+            it("all issuer values end with /{tenantid}/v2.0", () => {
+                Object.values(EndpointMetadata).forEach((cfg: any) => {
+                    expect(cfg.issuer.endsWith("/{tenantid}/v2.0")).toBe(true);
                 });
             });
         });

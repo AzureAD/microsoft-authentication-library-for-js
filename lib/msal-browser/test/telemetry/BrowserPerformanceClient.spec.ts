@@ -32,6 +32,31 @@ describe("BrowserPerformanceClient.ts", () => {
     });
 
     describe("startMeasurement", () => {
+        let originalConnectionDescriptor: PropertyDescriptor | undefined;
+
+        beforeEach(() => {
+            originalConnectionDescriptor = Object.getOwnPropertyDescriptor(
+                navigator,
+                "connection"
+            );
+        });
+
+        afterEach(() => {
+            if (originalConnectionDescriptor !== undefined) {
+                Object.defineProperty(
+                    navigator,
+                    "connection",
+                    originalConnectionDescriptor
+                );
+            } else {
+                try {
+                    delete (navigator as any).connection;
+                } catch {
+                    // ignore if non-deletable
+                }
+            }
+        });
+
         it("calculate performance duration", () => {
             const browserPerfClient = new BrowserPerformanceClient(
                 testAppConfig
@@ -73,6 +98,61 @@ describe("BrowserPerformanceClient.ts", () => {
 
             expect(result?.startPageVisibility).toBe("visible");
             expect(result?.endPageVisibility).toBe("visible");
+        });
+
+        it("includes network information in performance event result", () => {
+            const browserPerfClient = new BrowserPerformanceClient(
+                testAppConfig
+            );
+
+            const mockConnection = {
+                effectiveType: "4g",
+                rtt: 50,
+            };
+            Object.defineProperty(navigator, "connection", {
+                value: mockConnection,
+                configurable: true,
+            });
+
+            jest.spyOn(window.performance, "now")
+                .mockReturnValueOnce(perfTimeNow)
+                .mockReturnValue(perfTimeNow + 75);
+
+            const measurement = browserPerfClient.startMeasurement(
+                BrowserPerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+
+            const result = measurement.end();
+
+            expect(result?.networkEffectiveType).toBe("4g");
+            expect(result?.networkRtt).toBe(50);
+        });
+
+        it("handles missing navigator.connection without throwing", () => {
+            const browserPerfClient = new BrowserPerformanceClient(
+                testAppConfig
+            );
+
+            Object.defineProperty(navigator, "connection", {
+                value: undefined,
+                configurable: true,
+            });
+
+            jest.spyOn(window.performance, "now")
+                .mockReturnValueOnce(perfTimeNow)
+                .mockReturnValue(perfTimeNow + 100);
+
+            const measurement = browserPerfClient.startMeasurement(
+                BrowserPerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+
+            let result;
+            expect(() => {
+                result = measurement.end();
+            }).not.toThrow();
+            expect(result).not.toBeNull();
         });
     });
 });

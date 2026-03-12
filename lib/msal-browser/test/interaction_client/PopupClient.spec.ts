@@ -33,10 +33,10 @@ import {
     ClientConfigurationErrorCodes,
     CommonAuthorizationCodeRequest,
     AuthError,
-    ProtocolUtils,
     ProtocolMode,
     Constants,
-} from "@azure/msal-common";
+    ProtocolUtils,
+} from "@azure/msal-common/browser";
 import {
     TemporaryCacheKeys,
     ApiId,
@@ -47,7 +47,6 @@ import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest.js";
-import * as PopupUtils from "../../src/utils/PopupUtils.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
 import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
@@ -75,10 +74,21 @@ const testPopupWondowDefaults = {
     left: 270.5,
 };
 
+jest.mock("@azure/msal-common/browser", () => ({
+    ...jest.requireActual("@azure/msal-common/browser"),
+    ProtocolUtils: {
+        ...jest.requireActual("@azure/msal-common/browser").ProtocolUtils,
+        setRequestState: jest.fn(),
+    },
+}));
+
 describe("PopupClient", () => {
     let popupClient: PopupClient;
     let pca: PublicClientApplication;
     let browserCacheManager: BrowserCacheManager;
+    let mockSetRequestState: jest.MockedFunction<
+        typeof ProtocolUtils.setRequestState
+    >;
     beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
@@ -114,6 +124,12 @@ describe("PopupClient", () => {
             pca.nativeInternalStorage,
             TEST_CONFIG.CORRELATION_ID
         );
+
+        mockSetRequestState =
+            ProtocolUtils.setRequestState as jest.MockedFunction<
+                typeof ProtocolUtils.setRequestState
+            >;
+        mockSetRequestState.mockReturnValue(TEST_STATE_VALUES.TEST_STATE_POPUP);
     });
 
     afterEach(() => {
@@ -156,7 +172,7 @@ describe("PopupClient", () => {
                 authenticationScheme: Constants.AuthenticationScheme.SSH,
             };
 
-            expect(popupClient.acquireToken(request)).rejects.toThrow(
+            await expect(popupClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshJwk
                 )
@@ -177,7 +193,7 @@ describe("PopupClient", () => {
                 sshJwk: TEST_SSH_VALUES.SSH_JWK,
             };
 
-            expect(popupClient.acquireToken(request)).rejects.toThrow(
+            await expect(popupClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshKid
                 )
@@ -388,7 +404,7 @@ describe("PopupClient", () => {
                 expect(requestUrl).toEqual(testNavUrl);
                 return window;
             });
-            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
             );
             jest.spyOn(
@@ -514,7 +530,7 @@ describe("PopupClient", () => {
                 expect(requestUrl).toEqual(testNavUrl);
                 return window;
             });
-            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
             );
             jest.spyOn(
@@ -619,7 +635,7 @@ describe("PopupClient", () => {
                     expect(requestUrl).toEqual(testNavUrl);
                     return window;
                 });
-            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
             );
             jest.spyOn(
@@ -641,7 +657,9 @@ describe("PopupClient", () => {
         });
 
         it("throws hash_empty_error if popup returns to redirectUri without a hash", (done) => {
-            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue("");
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
+                ""
+            );
 
             popupClient
                 .acquireToken({
@@ -659,7 +677,7 @@ describe("PopupClient", () => {
         });
 
         it("throws hash_does_not_contain_known_properties error if popup returns to redirectUri with unrecognized params in the hash", (done) => {
-            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 "#fakeKey=fakeValue&anotherFakeKey=anotherFakeValue"
             );
 
@@ -678,17 +696,84 @@ describe("PopupClient", () => {
                 });
         });
 
+        it("uses POST code flow when httpMethod is set to POST", async () => {
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+            };
+            const testIdTokenClaims: TokenClaims = {
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                correlationId: RANDOM_TEST_GUID,
+                fromCache: false,
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+            );
+            jest.spyOn(
+                InteractionHandler.prototype,
+                "handleCodeResponse"
+            ).mockResolvedValue(testTokenResponse);
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            const postCodeFlowSpy = jest
+                .spyOn(PopupClient.prototype, "executeCodeFlowWithPost")
+                .mockResolvedValue(testTokenResponse);
+            const tokenResp = await popupClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                httpMethod: Constants.HttpMethod.POST,
+            });
+            expect(tokenResp).toEqual(testTokenResponse);
+            expect(postCodeFlowSpy).toHaveBeenCalled();
+        });
         describe("storeInCache tests", () => {
             beforeEach(() => {
-                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                    TEST_STATE_VALUES.TEST_STATE_POPUP
-                );
                 jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                     window
                 );
-                jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
-                );
+                jest.spyOn(
+                    BrowserUtils,
+                    "waitForBridgeResponse"
+                ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
                 jest.spyOn(
                     FetchClient.prototype,
                     "sendPostRequestAsync"
@@ -870,6 +955,36 @@ describe("PopupClient", () => {
                     state: TEST_STATE_VALUES.USER_STATE,
                     nonce: ID_TOKEN_CLAIMS.nonce,
                 };
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "openSizedPopup"
+                ).mockReturnValue(popupWindow);
+                const earFormSpy = jest
+                    .spyOn(HTMLFormElement.prototype, "submit")
+                    .mockImplementation(() => {
+                        // Suppress navigation
+                    });
+                jest.spyOn(
+                    BrowserUtils,
+                    "waitForBridgeResponse"
+                ).mockResolvedValue(
+                    `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
+                );
+
+                const result = await pca.acquireTokenPopup(validRequest);
+                expect(result).toEqual(getTestAuthenticationResult());
+                expect(earFormSpy).toHaveBeenCalled();
+            });
+
+            it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", async () => {
+                const validRequest: PopupRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    scopes: ["openid", "profile", "offline_access"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: window.location.href,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    nonce: ID_TOKEN_CLAIMS.nonce,
+                };
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
                     TEST_STATE_VALUES.TEST_STATE_POPUP
                 );
@@ -882,13 +997,40 @@ describe("PopupClient", () => {
                     .mockImplementation(() => {
                         // Suppress navigation
                     });
-                jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
-                    `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
+                jest.spyOn(
+                    BrowserUtils,
+                    "waitForBridgeResponse"
+                ).mockResolvedValue(
+                    `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
                 );
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "handleResponseCode"
+                ).mockResolvedValue(getTestAuthenticationResult());
 
                 const result = await pca.acquireTokenPopup(validRequest);
                 expect(result).toEqual(getTestAuthenticationResult());
                 expect(earFormSpy).toHaveBeenCalled();
+            });
+
+            it("throws error when ProtocolMode is set to EAR and httpMethod is set to GET", async () => {
+                const validRequest: PopupRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    scopes: ["openid", "profile", "offline_access"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: window.location.href,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    nonce: ID_TOKEN_CLAIMS.nonce,
+                    httpMethod: Constants.HttpMethod.GET,
+                };
+
+                await expect(
+                    pca.acquireTokenPopup(validRequest)
+                ).rejects.toThrow(
+                    createClientConfigurationError(
+                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+                    )
+                );
             });
         });
     });
@@ -1410,7 +1552,6 @@ describe("PopupClient", () => {
             jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                 popupWindow
             );
-            jest.spyOn(PopupUtils, "cleanPopup").mockImplementation();
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateInternal"
@@ -1437,7 +1578,6 @@ describe("PopupClient", () => {
             jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                 popupWindow
             );
-            jest.spyOn(PopupUtils, "cleanPopup").mockImplementation();
 
             popupClient.logout().then(() => {
                 done();
@@ -1490,11 +1630,6 @@ describe("PopupClient", () => {
             jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                 popupWindow
             );
-            jest.spyOn(PopupUtils, "cleanPopup").mockImplementation((popup) => {
-                window.sessionStorage.removeItem(
-                    `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`
-                );
-            });
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateInternal"
@@ -1742,277 +1877,191 @@ describe("PopupClient", () => {
         });
     });
 
-    describe("unloadWindow", () => {
-        it("closes window and removes temporary cache", (done) => {
-            // @ts-ignore
-            pca.browserStorage.setTemporaryCache(
-                TemporaryCacheKeys.INTERACTION_STATUS_KEY,
-                BrowserConstants.INTERACTION_IN_PROGRESS_VALUE,
-                true
-            );
-            const popupWindow: Window = {
-                ...window,
-                //@ts-ignore
-                location: {
-                    assign: () => {},
-                },
-                focus: () => {},
-                close: () => {
-                    // @ts-ignore
-                    expect(
-                        //@ts-ignore
-                        pca.browserStorage.getTemporaryCache(
-                            TemporaryCacheKeys.INTERACTION_STATUS_KEY
-                        )
-                    ).toBe(null);
-                    done();
-                },
-            };
-            const popupParams = {
-                popupName: "name",
-                popupWindowAttributes: {},
-                popup: popupWindow,
-                popupWindowParent: window,
-            };
-            popupClient.openPopup("http://localhost", popupParams);
-            popupClient.unloadWindow(new Event("test"));
-        });
-    });
-
-    describe("monitorPopupForHash", () => {
-        it("throws if popup is closed", (done) => {
-            const popup: Window = {
-                //@ts-ignore
-                location: {
-                    href: "about:blank",
-                    hash: "",
-                },
-                close: () => {},
-                closed: false,
-            };
+    describe("waitForBridgeResponse", () => {
+        it("resolves when BroadcastChannel receives hash response", async () => {
+            const testLibraryState = { id: "test-channel-id" };
             const clientImpl = popupClient as any;
-            PopupUtils.monitorPopupForHash(
-                popup,
-                window,
-                clientImpl.config.auth.OIDCOptions.responseMode,
-                clientImpl.config.system.pollIntervalMilliseconds,
-                clientImpl.logger,
-                clientImpl.unloadWindow,
-                TEST_CONFIG.CORRELATION_ID
-            ).catch((error) => {
-                expect(error.errorCode).toEqual("user_cancelled");
-                done();
-            });
-
-            setTimeout(() => {
-                //@ts-ignore
-                popup.closed = true;
-            }, 50);
-        });
-
-        it("resolves when popup is same origin and has a hash", (done) => {
-            const popup: Window = {
-                //@ts-ignore
-                location: {
-                    href: "about:blank",
-                    hash: "",
-                },
-                close: () => {},
-                closed: false,
-            };
-            const clientImpl = popupClient as any;
-            PopupUtils.monitorPopupForHash(
-                popup,
-                window,
-                clientImpl.config.auth.OIDCOptions.responseMode,
-                clientImpl.config.system.pollIntervalMilliseconds,
-                clientImpl.logger,
-                clientImpl.unloadWindow,
-                TEST_CONFIG.CORRELATION_ID
-            ).then((hash) => {
-                expect(hash).toEqual("code=testCode");
-                done();
-            });
-
-            setTimeout(() => {
-                popup.location.href = "http://localhost";
-                popup.location.hash = "code=testCode";
-            }, 50);
-        });
-
-        it("throws timeout if popup is same origin but no hash is present", async () => {
-            const popup = {
-                location: {
-                    href: "http://localhost",
-                    hash: "",
-                },
-                close: () => {},
-            };
-
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    windowHashTimeout: 10,
-                },
-            });
-
-            await pca.initialize();
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
-
-            //@ts-ignore
-            popupClient = new PopupClient(
-                //@ts-ignore
-                pca.config,
-                //@ts-ignore
-                pca.browserStorage,
-                //@ts-ignore
-                pca.browserCrypto,
-                //@ts-ignore
-                pca.logger,
-                //@ts-ignore
-                pca.eventHandler,
-                //@ts-ignore
-                pca.navigationClient,
-                //@ts-ignore
-                pca.performanceClient,
-                //@ts-ignore
-                pca.nativeInternalStorage,
-                TEST_CONFIG.CORRELATION_ID
-            );
-            const clientImpl = popupClient as any;
-            const result = await PopupUtils.monitorPopupForHash(
-                popup as Window,
-                window,
-                clientImpl.config.auth.OIDCOptions.responseMode,
-                clientImpl.config.system.pollIntervalMilliseconds,
-                clientImpl.logger,
-                clientImpl.unloadWindow,
-                TEST_CONFIG.CORRELATION_ID
-            ).catch((e) => {
-                expect(e.errorCode).toEqual(
-                    BrowserAuthErrorCodes.monitorPopupTimeout
-                );
-            });
-        });
-
-        it("returns hash", (done) => {
-            const popup = {
-                location: {
-                    href: "http://localhost/#/code=hello",
-                    hash: "#code=hello",
-                },
-                history: {
-                    replaceState: () => {
-                        return;
-                    },
-                },
-                close: () => {},
-            };
-
-            const clientImpl = popupClient as any;
-            PopupUtils.monitorPopupForHash(
-                popup as unknown as Window,
-                window,
-                clientImpl.config.auth.OIDCOptions.responseMode,
-                clientImpl.config.system.pollIntervalMilliseconds,
-                clientImpl.logger,
-                clientImpl.unloadWindow,
-                TEST_CONFIG.CORRELATION_ID
-            ).then((hash: string) => {
-                expect(hash).toEqual("#code=hello");
-                done();
-            });
-        });
-
-        it("returns server code response in query form when responseMode in OIDCOptions is query", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    OIDCOptions: { responseMode: "query" },
-                },
-                system: {
-                    protocolMode: ProtocolMode.OIDC,
-                },
-            });
-
-            await pca.initialize();
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
-            popupClient = new PopupClient(
-                //@ts-ignore
-                pca.config,
-                //@ts-ignore
-                pca.browserStorage,
-                //@ts-ignore
-                pca.browserCrypto,
-                //@ts-ignore
-                pca.logger,
-                //@ts-ignore
-                pca.eventHandler,
-                //@ts-ignore
-                pca.navigationClient,
-                //@ts-ignore
-                pca.performanceClient,
-                //@ts-ignore
-                pca.nativeInternalStorage,
-                TEST_CONFIG.CORRELATION_ID
+            const testState = ProtocolUtils.setRequestState(
+                clientImpl.browserCrypto,
+                "",
+                testLibraryState
             );
 
-            const popup = {
-                location: {
-                    href: TEST_URIS.TEST_QUERY_CODE_RESPONSE,
-                    search: "?code=authCode",
-                },
-                history: {
-                    replaceState: () => {
-                        return;
-                    },
-                },
-                close: () => {},
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["openid"],
+                state: testState,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                responseMode: "fragment",
+                codeChallenge: "challenge",
+                codeChallengeMethod: "S256",
+                nonce: "test-nonce",
             };
 
-            const clientImpl = popupClient as any;
-            const result = await PopupUtils.monitorPopupForHash(
-                popup as unknown as Window,
-                window,
-                clientImpl.config.auth.OIDCOptions.responseMode,
-                clientImpl.config.system.pollIntervalMilliseconds,
-                clientImpl.logger,
-                clientImpl.unloadWindow,
-                TEST_CONFIG.CORRELATION_ID
+            // Mock waitForBridgeResponse to simulate receiving a message
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
+                "code=testCode&state=testState"
             );
-            expect(result).toEqual("?code=authCode");
+
+            const response = await BrowserUtils.waitForBridgeResponse(
+                5000,
+                clientImpl.logger,
+                clientImpl.browserCrypto,
+                request,
+                clientImpl.performanceClient
+            );
+
+            expect(response).toEqual("code=testCode&state=testState");
         });
 
-        it("closed", (done) => {
-            const popup = {
-                location: {
-                    href: "http://localhost",
-                    hash: "",
-                },
-                close: () => {},
-                closed: true,
+        it("resolves when BroadcastChannel receives query response", async () => {
+            const testLibraryState = { id: "test-channel-query-id" };
+            const clientImpl = popupClient as any;
+            const testState = ProtocolUtils.setRequestState(
+                clientImpl.browserCrypto,
+                "",
+                testLibraryState
+            );
+
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["openid"],
+                state: testState,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                responseMode: "query",
+                codeChallenge: "challenge",
+                codeChallengeMethod: "S256",
+                nonce: "test-nonce",
             };
 
-            const clientImpl = popupClient as any;
-            PopupUtils.monitorPopupForHash(
-                popup as unknown as Window,
-                window,
-                clientImpl.config.auth.OIDCOptions.responseMode,
-                clientImpl.config.system.pollIntervalMilliseconds,
+            // Mock waitForBridgeResponse to simulate receiving a message
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
+                "code=authCode&state=testState456"
+            );
+
+            const response = await BrowserUtils.waitForBridgeResponse(
+                5000,
                 clientImpl.logger,
-                clientImpl.unloadWindow,
-                TEST_CONFIG.CORRELATION_ID
-            ).catch((error: AuthError) => {
-                expect(error.errorCode).toEqual("user_cancelled");
-                done();
+                clientImpl.browserCrypto,
+                request,
+                clientImpl.performanceClient
+            );
+
+            expect(response).toEqual("code=authCode&state=testState456");
+        });
+
+        it("throws timeout error if BroadcastChannel receives no response", async () => {
+            const testLibraryState = { id: "test-channel-timeout-id" };
+            const clientImpl = popupClient as any;
+            const testState = ProtocolUtils.setRequestState(
+                clientImpl.browserCrypto,
+                "",
+                testLibraryState
+            );
+
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["openid"],
+                state: testState,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                responseMode: "fragment",
+                codeChallenge: "challenge",
+                codeChallengeMethod: "S256",
+                nonce: "test-nonce",
+            };
+
+            // Mock waitForBridgeResponse to simulate a timeout error
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.timedOut,
+                    "redirect_bridge_timeout"
+                )
+            );
+
+            await expect(
+                BrowserUtils.waitForBridgeResponse(
+                    100,
+                    clientImpl.logger,
+                    clientImpl.browserCrypto,
+                    request,
+                    clientImpl.performanceClient
+                )
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.timedOut,
+                subError: "redirect_bridge_timeout",
             });
+        });
+
+        it("handles multiple concurrent BroadcastChannel responses correctly", async () => {
+            const testLibraryState1 = { id: "test-channel-concurrent-1" };
+            const testLibraryState2 = { id: "test-channel-concurrent-2" };
+            const clientImpl = popupClient as any;
+
+            const testState1 = ProtocolUtils.setRequestState(
+                clientImpl.browserCrypto,
+                "",
+                testLibraryState1
+            );
+            const testState2 = ProtocolUtils.setRequestState(
+                clientImpl.browserCrypto,
+                "",
+                testLibraryState2
+            );
+
+            const request1: CommonAuthorizationUrlRequest = {
+                scopes: ["openid"],
+                state: testState1,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                responseMode: "fragment",
+                codeChallenge: "challenge1",
+                codeChallengeMethod: "S256",
+                nonce: "test-nonce-1",
+            };
+
+            const request2: CommonAuthorizationUrlRequest = {
+                scopes: ["profile"],
+                state: testState2,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                responseMode: "fragment",
+                codeChallenge: "challenge2",
+                codeChallengeMethod: "S256",
+                nonce: "test-nonce-2",
+            };
+
+            // Mock waitForBridgeResponse to return different responses based on the request state
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse")
+                .mockResolvedValueOnce("code=code1&state=state1")
+                .mockResolvedValueOnce("code=code2&state=state2");
+
+            const promise1 = BrowserUtils.waitForBridgeResponse(
+                5000,
+                clientImpl.logger,
+                clientImpl.browserCrypto,
+                request1,
+                clientImpl.performanceClient
+            );
+
+            const promise2 = BrowserUtils.waitForBridgeResponse(
+                5000,
+                clientImpl.logger,
+                clientImpl.browserCrypto,
+                request2,
+                clientImpl.performanceClient
+            );
+
+            const [response1, response2] = await Promise.all([
+                promise1,
+                promise2,
+            ]);
+            expect(response1).toEqual("code=code1&state=state1");
+            expect(response2).toEqual("code=code2&state=state2");
         });
     });
 
@@ -2219,10 +2268,6 @@ describe("PopupClient", () => {
             expect(popupWindowParent.open).toHaveBeenCalledWith(
                 "http://localhost/#/code=hello",
                 "name",
-                expect.anything()
-            );
-            expect(popupWindowParent.addEventListener).toHaveBeenCalledWith(
-                "beforeunload",
                 expect.anything()
             );
         });

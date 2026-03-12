@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Minify logging strings with rollup plugin #8000",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

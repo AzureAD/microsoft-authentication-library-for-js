@@ -43,6 +43,23 @@ export default function MyApp({ Component, emotionCache = clientSideEmotionCache
   const navigationClient = new CustomNavigationClient(router);
   msalInstance.setNavigationClient(navigationClient);
 
+  const isRedirectPage = router.pathname === '/redirect';
+
+  if (isRedirectPage) {
+    return (
+      <CacheProvider value={emotionCache}>
+        <Head>
+          <title>MSAL-React Next.js Sample</title>
+          <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />
+        </Head>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Component {...pageProps} />
+        </ThemeProvider>
+      </CacheProvider>
+    );
+  }
+
   return (
     <CacheProvider value={emotionCache}>
       <Head>

@@ -4,10 +4,11 @@
  */
 
 import {
+    buildClientConfiguration,
     ClientConfiguration,
+    CommonClientConfiguration,
     isOidcProtocolMode,
 } from "../config/ClientConfiguration.js";
-import { BaseClient } from "./BaseClient.js";
 import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest.js";
 import { Authority } from "../authority/Authority.js";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
@@ -45,6 +46,17 @@ import { invoke, invokeAsync } from "../utils/FunctionWrappers.js";
 import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
 import { getRequestThumbprint } from "../network/RequestThumbprint.js";
+import {
+    createTokenQueryParameters,
+    createTokenRequestHeaders,
+    executePostToTokenEndpoint,
+} from "../protocol/Token.js";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
+import { INetworkModule } from "../network/INetworkModule.js";
+import { CacheManager } from "../cache/CacheManager.js";
+import { ICrypto } from "../crypto/ICrypto.js";
+import { Logger } from "../logger/Logger.js";
+import { version, name } from "../packageMetadata.js";
 
 const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
 
@@ -52,15 +64,62 @@ const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
  * OAuth2.0 refresh token client
  * @internal
  */
-export class RefreshTokenClient extends BaseClient {
+export class RefreshTokenClient {
+    // Logger object
+    public logger: Logger;
+
+    // Application config
+    protected config: CommonClientConfiguration;
+
+    // Crypto Interface
+    protected cryptoUtils: ICrypto;
+
+    // Storage Interface
+    protected cacheManager: CacheManager;
+
+    // Network Interface
+    protected networkClient: INetworkModule;
+
+    // Server Telemetry Manager
+    protected serverTelemetryManager: ServerTelemetryManager | null;
+
+    // Default authority object
+    public authority: Authority;
+
+    // Performance telemetry client
+    protected performanceClient: IPerformanceClient;
+
     constructor(
         configuration: ClientConfiguration,
         performanceClient: IPerformanceClient
     ) {
-        super(configuration, performanceClient);
+        // Set the configuration
+        this.config = buildClientConfiguration(configuration);
+
+        // Initialize the logger
+        this.logger = new Logger(this.config.loggerOptions, name, version);
+
+        // Initialize crypto
+        this.cryptoUtils = this.config.cryptoInterface;
+
+        // Initialize storage interface
+        this.cacheManager = this.config.storageInterface;
+
+        // Set the network interface
+        this.networkClient = this.config.networkInterface;
+
+        // Set TelemetryManager
+        this.serverTelemetryManager = this.config.serverTelemetryManager;
+
+        // set Authority
+        this.authority = this.config.authOptions.authority;
+
+        // set performance telemetry client
+        this.performanceClient = performanceClient;
     }
     public async acquireToken(
-        request: CommonRefreshTokenRequest
+        request: CommonRefreshTokenRequest,
+        apiId: number
     ): Promise<AuthenticationResult> {
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await invokeAsync(
@@ -99,6 +158,7 @@ export class RefreshTokenClient extends BaseClient {
             this.authority,
             reqTimestamp,
             request,
+            apiId,
             undefined,
             undefined,
             true,
@@ -112,7 +172,8 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     public async acquireTokenByRefreshToken(
-        request: CommonSilentFlowRequest
+        request: CommonSilentFlowRequest,
+        apiId: number
     ): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
@@ -142,7 +203,7 @@ export class RefreshTokenClient extends BaseClient {
                     this.logger,
                     this.performanceClient,
                     request.correlationId
-                )(request, true);
+                )(request, true, apiId);
             } catch (e) {
                 const noFamilyRTInCache =
                     e instanceof InteractionRequiredAuthError &&
@@ -161,7 +222,7 @@ export class RefreshTokenClient extends BaseClient {
                         this.logger,
                         this.performanceClient,
                         request.correlationId
-                    )(request, false);
+                    )(request, false, apiId);
                     // throw in all other cases
                 } else {
                     throw e;
@@ -175,7 +236,7 @@ export class RefreshTokenClient extends BaseClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(request, false);
+        )(request, false, apiId);
     }
 
     /**
@@ -184,7 +245,8 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async acquireTokenWithCachedRefreshToken(
         request: CommonSilentFlowRequest,
-        foci: boolean
+        foci: boolean,
+        apiId: number
     ) {
         // fetches family RT or application RT based on FOCI value
         const refreshToken = invoke(
@@ -201,21 +263,23 @@ export class RefreshTokenClient extends BaseClient {
             );
         }
 
-        if (
-            refreshToken.expiresOn &&
-            TimeUtils.isTokenExpired(
-                refreshToken.expiresOn,
+        if (refreshToken.expiresOn) {
+            const offset =
                 request.refreshTokenExpirationOffsetSeconds ||
-                    DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS
-            )
-        ) {
+                DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS;
             this.performanceClient?.addFields(
-                { rtExpiresOnMs: Number(refreshToken.expiresOn) },
+                {
+                    cacheRtExpiresOnSeconds: Number(refreshToken.expiresOn),
+                    rtOffsetSeconds: offset,
+                },
                 request.correlationId
             );
-            throw createInteractionRequiredAuthError(
-                InteractionRequiredAuthErrorCodes.refreshTokenExpired
-            );
+
+            if (TimeUtils.isTokenExpired(refreshToken.expiresOn, offset)) {
+                throw createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                );
+            }
         }
         // attach cached RT size to the current measurement
 
@@ -238,14 +302,9 @@ export class RefreshTokenClient extends BaseClient {
                 this.logger,
                 this.performanceClient,
                 request.correlationId
-            )(refreshTokenRequest);
+            )(refreshTokenRequest, apiId);
         } catch (e) {
             if (e instanceof InteractionRequiredAuthError) {
-                this.performanceClient?.addFields(
-                    { rtExpiresOnMs: Number(refreshToken.expiresOn) },
-                    request.correlationId
-                );
-
                 if (e.subError === InteractionRequiredAuthErrorCodes.badToken) {
                     // Remove bad refresh token from cache
                     this.logger.verbose(
@@ -274,7 +333,12 @@ export class RefreshTokenClient extends BaseClient {
         request: CommonRefreshTokenRequest,
         authority: Authority
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const queryParametersString = this.createTokenQueryParameters(request);
+        const queryParametersString = createTokenQueryParameters(
+            request,
+            this.config.authOptions.clientId,
+            this.config.authOptions.redirectUri,
+            this.performanceClient
+        );
         const endpoint = UrlString.appendQueryString(
             authority.tokenEndpoint,
             queryParametersString
@@ -287,7 +351,9 @@ export class RefreshTokenClient extends BaseClient {
             this.performanceClient,
             request.correlationId
         )(request);
-        const headers: Record<string, string> = this.createTokenRequestHeaders(
+        const headers: Record<string, string> = createTokenRequestHeaders(
+            this.logger,
+            this.config.systemOptions.preventCorsPreflight,
             request.ccsCredential
         );
 
@@ -297,12 +363,23 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         return invokeAsync(
-            this.executePostToTokenEndpoint.bind(this),
+            executePostToTokenEndpoint,
             PerformanceEvents.RefreshTokenClientExecutePostToTokenEndpoint,
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(endpoint, requestBody, headers, thumbprint, request.correlationId);
+        )(
+            endpoint,
+            requestBody,
+            headers,
+            thumbprint,
+            request.correlationId,
+            this.cacheManager,
+            this.networkClient,
+            this.logger,
+            this.performanceClient,
+            this.serverTelemetryManager
+        );
     }
 
     /**
@@ -317,7 +394,7 @@ export class RefreshTokenClient extends BaseClient {
         RequestParameterBuilder.addClientId(
             parameters,
             request.embeddedClientId ||
-                request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
+                request.extraParameters?.[AADServerParamKeys.CLIENT_ID] ||
                 this.config.authOptions.clientId
         );
 
@@ -476,11 +553,10 @@ export class RefreshTokenClient extends BaseClient {
             );
         }
 
-        if (request.tokenBodyParameters) {
-            RequestParameterBuilder.addExtraQueryParameters(
-                parameters,
-                request.tokenBodyParameters
-            );
+        if (request.extraParameters) {
+            RequestParameterBuilder.addExtraParameters(parameters, {
+                ...request.extraParameters,
+            });
         }
 
         RequestParameterBuilder.instrumentBrokerParams(

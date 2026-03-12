@@ -14,7 +14,15 @@ export class AuthMethodRegistrationChallengeMethodError extends AuthActionErrorB
      * @returns true if the input is incorrect, false otherwise.
      */
     isInvalidInput(): boolean {
-        return this.isInvalidAuthMethodRegistrationInputError();
+        return this.isInvalidInputError();
+    }
+
+    /**
+     * Checks if the error is due to the verification contact (e.g., phone number or email) being blocked. Consider using a different email/phone number or a different authentication method.
+     * @returns true if the error is due to the verification contact being blocked, false otherwise.
+     */
+    isVerificationContactBlocked(): boolean {
+        return this.isVerificationContactBlockedError();
     }
 }
 

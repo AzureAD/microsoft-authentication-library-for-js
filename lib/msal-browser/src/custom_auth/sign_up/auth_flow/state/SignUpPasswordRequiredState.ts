@@ -14,11 +14,17 @@ import { SignUpAttributesRequiredState } from "./SignUpAttributesRequiredState.j
 import { SignUpCompletedState } from "./SignUpCompletedState.js";
 import { SignUpState } from "./SignUpState.js";
 import { SignUpPasswordRequiredStateParameters } from "./SignUpStateParameters.js";
+import { SIGN_UP_PASSWORD_REQUIRED_STATE_TYPE } from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Sign-up password required state.
  */
 export class SignUpPasswordRequiredState extends SignUpState<SignUpPasswordRequiredStateParameters> {
+    /**
+     * The type of the state.
+     */
+    stateType = SIGN_UP_PASSWORD_REQUIRED_STATE_TYPE;
+
     /**
      * Submits a password for sign-up.
      * @param {string} password - The password to submit.
@@ -70,6 +76,7 @@ export class SignUpPasswordRequiredState extends SignUpState<SignUpPasswordRequi
                         signUpClient: this.stateParameters.signUpClient,
                         cacheClient: this.stateParameters.cacheClient,
                         jitClient: this.stateParameters.jitClient,
+                        mfaClient: this.stateParameters.mfaClient,
                         username: this.stateParameters.username,
                         requiredAttributes: result.requiredAttributes,
                     })
@@ -90,6 +97,7 @@ export class SignUpPasswordRequiredState extends SignUpState<SignUpPasswordRequi
                         signInClient: this.stateParameters.signInClient,
                         cacheClient: this.stateParameters.cacheClient,
                         jitClient: this.stateParameters.jitClient,
+                        mfaClient: this.stateParameters.mfaClient,
                         username: this.stateParameters.username,
                         signInScenario: SignInScenario.SignInAfterSignUp,
                     })

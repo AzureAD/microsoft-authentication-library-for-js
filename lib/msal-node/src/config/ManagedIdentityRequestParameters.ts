@@ -38,7 +38,7 @@ export class ManagedIdentityRequestParameters {
         const parameters = new Map<string, string>();
 
         if (this.queryParameters) {
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 parameters,
                 this.queryParameters
             );
@@ -56,7 +56,7 @@ export class ManagedIdentityRequestParameters {
         const parameters = new Map<string, string>();
 
         if (this.bodyParameters) {
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 parameters,
                 this.bodyParameters
             );

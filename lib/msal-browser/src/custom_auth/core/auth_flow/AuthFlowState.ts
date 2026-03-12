@@ -19,7 +19,12 @@ export interface AuthFlowActionRequiredStateParameters {
 /**
  * Base class for the state of an authentication flow.
  */
-export abstract class AuthFlowStateBase {}
+export abstract class AuthFlowStateBase {
+    /**
+     * The type of the state.
+     */
+    abstract stateType: string;
+}
 
 /**
  * Base class for the action requried state in an authentication flow.

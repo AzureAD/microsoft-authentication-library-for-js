@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "[Native Auth] Fix the correlation id issue #8078",
-  "packageName": "@azure/msal-browser",
-  "email": "shen.jian@live.com",
-  "dependentChangeType": "patch"
-}

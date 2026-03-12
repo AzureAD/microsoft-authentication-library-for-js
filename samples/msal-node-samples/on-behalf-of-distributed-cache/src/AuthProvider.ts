@@ -58,7 +58,6 @@ export class AuthProvider {
                     logLevel: LogLevel.Trace,
                     piiLoggingEnabled: false,
                 },
-                // proxyUrl: "http://localhost:8888" // uncomment to capture traffic with Fiddler
             },
         } as Configuration;
 

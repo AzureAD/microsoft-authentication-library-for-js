@@ -84,7 +84,3 @@ const { accessToken } = await myMSALObj.acquireTokenSilent(silentSshTokenRequest
         }
     });
 ```
-
-## Code samples
-
-* [JavaScript SPA acquiring SSH Certificates](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/ssh)

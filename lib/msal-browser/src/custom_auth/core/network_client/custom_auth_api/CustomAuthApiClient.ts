@@ -47,7 +47,8 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
         this.registerApi = new RegisterApiClient(
             customAuthApiBaseUrl,
             clientId,
-            httpClient
+            httpClient,
+            customAuthApiQueryParams
         );
     }
 }

@@ -13,6 +13,7 @@ body {
 }
 
 .container {
+    width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
@@ -844,3 +845,89 @@ main {
         margin-right: 0.75rem;
     }
 }
+
+/* Popup Warning Alert */
+.popup-warning {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050;
+    max-width: 400px;
+    background-color: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-left: 4px solid #17a2b8;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideIn 0.3s ease-out;
+}
+
+.popup-warning-content {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+}
+
+.popup-warning-icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+.popup-warning-text {
+    flex: 1;
+}
+
+.popup-warning-text strong {
+    display: block;
+    color: #0c5460;
+    margin-bottom: 0.25rem;
+    font-size: 1rem;
+}
+
+.popup-warning-text p {
+    color: #0c5460;
+    font-size: 0.875rem;
+    margin: 0;
+    line-height: 1.4;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Retry Modal Specific Styles */
+.retry-question {
+    margin-top: 1rem;
+    font-weight: 500;
+}
+
+.warning-box {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-left: 4px solid #ffc107;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+}
+
+.warning-box strong {
+    color: #856404;
+}
+
+/* Responsive adjustments for popup warning */
+@media (max-width: 768px) {
+    .popup-warning {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+}
+

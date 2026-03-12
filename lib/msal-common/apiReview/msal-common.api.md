@@ -88,7 +88,8 @@ declare namespace AADServerParamKeys {
         BROKER_REDIRECT_URI,
         INSTANCE_AWARE,
         EAR_JWK,
-        EAR_JWE_CRYPTO
+        EAR_JWE_CRYPTO,
+        RESOURCE
     }
 }
 export { AADServerParamKeys }
@@ -114,6 +115,7 @@ export type AccessTokenEntity = CredentialEntity & {
     extendedExpiresOn?: string;
     refreshOn?: string;
     tokenType?: AuthenticationScheme;
+    resource?: string;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "AccountCache" should be prefixed with an underscore because the declaration is marked as @internal
@@ -148,6 +150,7 @@ export type AccountEntity = {
     tenantProfiles?: Array<TenantProfile>;
     lastUpdatedAt: string;
     dataBoundary?: DataBoundary;
+    cachedByApiId?: number;
 };
 
 declare namespace AccountEntityUtils {
@@ -158,8 +161,7 @@ declare namespace AccountEntityUtils {
         createAccountEntity,
         createAccountEntityFromAccountInfo,
         generateHomeAccountId,
-        isAccountEntity,
-        accountInfoIsEqual
+        isAccountEntity
     }
 }
 export { AccountEntityUtils }
@@ -198,13 +200,6 @@ export type AccountInfo = {
     tenantProfiles?: Map<string, TenantProfile>;
     dataBoundary?: DataBoundary;
 };
-
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "accountInfoIsEqual" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function accountInfoIsEqual(accountA: AccountInfo | null, accountB: AccountInfo | null, compareClaims?: boolean): boolean;
 
 // Warning: (ae-missing-release-tag) "ActiveAccountFilters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -322,11 +317,10 @@ function addDomainHint(parameters: Map<string, string>, domainHint: string): voi
 // @public
 function addEARParameters(parameters: Map<string, string>, jwk: string): void;
 
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "addExtraQueryParameters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "addExtraParameters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-function addExtraQueryParameters(parameters: Map<string, string>, eQParams: StringDict): void;
+function addExtraParameters(parameters: Map<string, string>, extraParams: StringDict): void;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "addGrantType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -421,6 +415,11 @@ function addRefreshToken(parameters: Map<string, string>, refreshToken: string):
 //
 // @public
 function addRequestTokenUse(parameters: Map<string, string>, tokenUse: string): void;
+
+// Warning: (ae-missing-release-tag) "addResource" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+function addResource(parameters: Map<string, string>, resource?: string): void;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-forgotten-export) The symbol "Constants_2" needs to be exported by the entry point index.d.ts
@@ -573,6 +572,7 @@ export type AuthenticationResult = {
     msGraphHost?: string;
     code?: string;
     fromPlatformBroker?: boolean;
+    resource?: string;
 };
 
 // Warning: (ae-missing-release-tag) "AuthenticationScheme" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -596,6 +596,7 @@ export class AuthError extends Error {
     correlationId: string;
     errorCode: string;
     errorMessage: string;
+    platformBrokerError?: PlatformBrokerError;
     // (undocumented)
     setCorrelationId(correlationId: string): void;
     subError: string;
@@ -619,6 +620,7 @@ export type AuthOptions = {
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
     instanceAware?: boolean;
+    isMcp?: boolean;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "Authority" should be prefixed with an underscore because the declaration is marked as @internal
@@ -808,15 +810,31 @@ const AUTHORIZATION_PENDING = "authorization_pending";
 // Warning: (ae-internal-missing-underscore) The name "AuthorizationCodeClient" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
-export class AuthorizationCodeClient extends BaseClient {
+export class AuthorizationCodeClient {
     constructor(configuration: ClientConfiguration, performanceClient: IPerformanceClient);
     // Warning: (tsdoc-code-span-missing-delimiter) The code span is missing its closing backtick
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    acquireToken(request: CommonAuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult>;
+    acquireToken(request: CommonAuthorizationCodeRequest, apiId: number, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult>;
+    // (undocumented)
+    authority: Authority;
+    // (undocumented)
+    protected cacheManager: CacheManager;
+    // (undocumented)
+    protected config: CommonClientConfiguration;
+    // (undocumented)
+    protected cryptoUtils: ICrypto;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     getLogoutUri(logoutRequest: CommonEndSessionRequest): string;
     // (undocumented)
     protected includeRedirectUri: boolean;
+    // (undocumented)
+    logger: Logger;
+    // (undocumented)
+    protected networkClient: INetworkModule;
+    // (undocumented)
+    protected performanceClient: IPerformanceClient;
+    // (undocumented)
+    protected serverTelemetryManager: ServerTelemetryManager | null;
 }
 
 // Warning: (ae-missing-release-tag) "AuthorizationCodeClientExecutePostToTokenEndpoint" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -883,6 +901,7 @@ const authTimeNotFound = "auth_time_not_found";
 declare namespace AuthToken {
     export {
         extractTokenClaims,
+        isKmsi,
         getJWSPayload,
         checkMaxAge
     }
@@ -931,9 +950,7 @@ export type AzureRegionConfiguration = {
     environmentRegion: string | undefined;
 };
 
-// Warning: (ae-missing-release-tag) "badToken" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const badToken = "bad_token";
 
 // Warning: (ae-missing-release-tag) "BaseAuthRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -954,49 +971,15 @@ export type BaseAuthRequest = {
     sshKid?: string;
     azureCloudOptions?: AzureCloudOptions;
     maxAge?: number;
-    tokenBodyParameters?: StringDict;
-    tokenQueryParameters?: StringDict;
     storeInCache?: StoreInCache;
     scenarioId?: string;
     popKid?: string;
     embeddedClientId?: string;
+    httpMethod?: HttpMethod;
+    resource?: string;
+    extraQueryParameters?: StringDict;
+    extraParameters?: StringDict;
 };
-
-// Warning: (ae-internal-missing-underscore) The name "BaseClient" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export abstract class BaseClient {
-    protected constructor(configuration: ClientConfiguration, performanceClient: IPerformanceClient);
-    // (undocumented)
-    authority: Authority;
-    // (undocumented)
-    protected cacheManager: CacheManager;
-    // Warning: (ae-forgotten-export) The symbol "CommonClientConfiguration" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    protected config: CommonClientConfiguration;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    createTokenQueryParameters(request: BaseAuthRequest): string;
-    protected createTokenRequestHeaders(ccsCred?: CcsCredential): Record<string, string>;
-    // (undocumented)
-    protected cryptoUtils: ICrypto;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    protected executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>, thumbprint: RequestThumbprint, correlationId: string): Promise<NetworkResponse<ServerAuthorizationTokenResponse>>;
-    // (undocumented)
-    logger: Logger;
-    // (undocumented)
-    protected networkClient: INetworkModule;
-    // (undocumented)
-    protected performanceClient: IPerformanceClient;
-    sendPostRequest<T extends ServerAuthorizationTokenResponse>(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions, correlationId: string): Promise<NetworkResponse<T>>;
-    // (undocumented)
-    protected serverTelemetryManager: ServerTelemetryManager | null;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    updateAuthority(cloudInstanceHostname: string, correlationId: string): Promise<void>;
-}
 
 // Warning: (ae-missing-release-tag) "bindingKeyNotRemoved" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1020,6 +1003,13 @@ const BROKER_REDIRECT_URI = "brk_redirect_uri";
 //
 // @public (undocumented)
 export function buildAccountToCache(cacheStorage: CacheManager, authority: Authority, homeAccountId: string, base64Decode: (input: string) => string, correlationId: string, idTokenClaims?: TokenClaims, clientInfo?: string, environment?: string, claimsTenantId?: string | null, authCodePayload?: AuthorizationCodePayload, nativeAccountId?: string, logger?: Logger): AccountEntity;
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-incompatible-release-tags) The symbol "buildClientConfiguration" is marked as @public, but its signature references "ClientConfiguration" which is marked as @internal
+// Warning: (ae-missing-release-tag) "buildClientConfiguration" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function buildClientConfiguration(input: ClientConfiguration): CommonClientConfiguration;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1242,13 +1232,13 @@ export abstract class CacheManager implements ICacheManager {
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    saveCacheRecord(cacheRecord: CacheRecord, correlationId: string, storeInCache?: StoreInCache): Promise<void>;
+    saveCacheRecord(cacheRecord: CacheRecord, correlationId: string, kmsi: boolean, apiId: number, storeInCache?: StoreInCache): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    abstract setAccessTokenCredential(accessToken: AccessTokenEntity, correlationId: string): Promise<void>;
+    abstract setAccessTokenCredential(accessToken: AccessTokenEntity, correlationId: string, kmsi: boolean): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    abstract setAccount(account: AccountEntity, correlationId: string): Promise<void>;
+    abstract setAccount(account: AccountEntity, correlationId: string, kmsi: boolean, apiId: number): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     abstract setAppMetadata(appMetadata: AppMetadataEntity, correlationId: string): void;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1257,10 +1247,10 @@ export abstract class CacheManager implements ICacheManager {
     abstract setAuthorityMetadata(key: string, value: AuthorityMetadataEntity, correlationId: string): void;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    abstract setIdTokenCredential(idToken: IdTokenEntity, correlationId: string): Promise<void>;
+    abstract setIdTokenCredential(idToken: IdTokenEntity, correlationId: string, kmsi: boolean): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    abstract setRefreshTokenCredential(refreshToken: RefreshTokenEntity, correlationId: string): Promise<void>;
+    abstract setRefreshTokenCredential(refreshToken: RefreshTokenEntity, correlationId: string, kmsi: boolean): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1522,7 +1512,10 @@ declare namespace ClientAuthErrorCodes {
         noNetworkConnectivity,
         userCanceled,
         methodNotImplemented,
-        nestedAppAuthBridgeDisabled
+        nestedAppAuthBridgeDisabled,
+        platformBrokerError,
+        resourceParameterRequired,
+        misplacedResourceParam
     }
 }
 export { ClientAuthErrorCodes }
@@ -1574,7 +1567,8 @@ declare namespace ClientConfigurationErrorCodes {
         invalidAuthenticationHeader,
         cannotSetOIDCOptions,
         cannotAllowPlatformBroker,
-        authorityMismatch
+        authorityMismatch,
+        invalidRequestMethodForEAR
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1654,7 +1648,6 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     codeChallenge?: string;
     codeChallengeMethod?: string;
     domainHint?: string;
-    extraQueryParameters?: StringDict;
     extraScopesToConsent?: Array<string>;
     loginHint?: string;
     nonce: string;
@@ -1662,6 +1655,24 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     sid?: string;
     state: string;
     platformBroker?: boolean;
+};
+
+// Warning: (ae-missing-release-tag) "CommonClientConfiguration" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export type CommonClientConfiguration = {
+    authOptions: Required<AuthOptions>;
+    systemOptions: Required<SystemOptions>;
+    loggerOptions: Required<LoggerOptions>;
+    storageInterface: CacheManager;
+    networkInterface: INetworkModule;
+    cryptoInterface: Required<ICrypto>;
+    libraryInfo: LibraryInfo;
+    telemetry: Required<TelemetryOptions>;
+    serverTelemetryManager: ServerTelemetryManager | null;
+    clientCredentials: ClientCredentials;
+    persistencePlugin: ICachePlugin | null;
+    serializableCache: ISerializableTokenCache | null;
 };
 
 // Warning: (ae-missing-release-tag) "CommonEndSessionRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1697,9 +1708,7 @@ export type CommonSilentFlowRequest = BaseAuthRequest & {
     refreshTokenExpirationOffsetSeconds?: number;
 };
 
-// Warning: (ae-missing-release-tag) "consentRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const consentRequired = "consent_required";
 
 declare namespace Constants {
@@ -1753,6 +1762,7 @@ declare namespace Constants {
         HTTP_GATEWAY_TIMEOUT,
         HTTP_SERVER_ERROR_RANGE_END,
         HTTP_MULTI_SIDED_ERROR,
+        HttpMethod,
         OIDC_DEFAULT_SCOPES,
         OIDC_SCOPES,
         HeaderNames,
@@ -1912,6 +1922,17 @@ export function createNetworkError(error: AuthError, httpStatus?: number, respon
 //
 // @public
 function createRefreshTokenEntity(homeAccountId: string, environment: string, refreshToken: string, clientId: string, familyId?: string, userAssertionHash?: string, expiresOn?: number): RefreshTokenEntity;
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "createTokenQueryParameters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function createTokenQueryParameters(request: BaseAuthRequest, clientId: string, redirectUri: string, performanceClient: IPerformanceClient): string;
+
+// Warning: (ae-missing-release-tag) "createTokenRequestHeaders" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function createTokenRequestHeaders(logger: Logger, preventCorsPreflight: boolean, ccsCred?: CcsCredential): Record<string, string>;
 
 // Warning: (ae-missing-release-tag) "CredentialEntity" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2147,6 +2168,11 @@ const endpointResolutionError = "endpoints_resolution_error";
 // @public (undocumented)
 const endSessionEndpointNotSupported = "end_session_endpoint_not_supported";
 
+// Warning: (ae-missing-release-tag) "enforceResourceParameter" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function enforceResourceParameter(isMcp: boolean, request: Partial<BaseAuthRequest>): void;
+
 // Warning: (ae-missing-release-tag) "ERROR" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -2156,6 +2182,19 @@ const ERROR = "error";
 //
 // @public (undocumented)
 const ERROR_DESCRIPTION = "error_description";
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-incompatible-release-tags) The symbol "executePostToTokenEndpoint" is marked as @public, but its signature references "CacheManager" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "executePostToTokenEndpoint" is marked as @public, but its signature references "ServerTelemetryManager" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "executePostToTokenEndpoint" is marked as @public, but its signature references "CacheManager" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "executePostToTokenEndpoint" is marked as @public, but its signature references "ServerTelemetryManager" which is marked as @internal
+// Warning: (ae-missing-release-tag) "executePostToTokenEndpoint" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>, thumbprint: RequestThumbprint, correlationId: string, cacheManager: CacheManager, networkClient: INetworkModule, logger: Logger, performanceClient: IPerformanceClient, serverTelemetryManager: ServerTelemetryManager | null): Promise<NetworkResponse<ServerAuthorizationTokenResponse>>;
 
 // Warning: (ae-missing-release-tag) "EXPIRES_IN" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2205,7 +2244,7 @@ function generateAccountId(accountEntity: AccountEntity): string;
 // Warning: (ae-missing-release-tag) "generateAppMetadataKey" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-function generateAppMetadataKey({ environment, clientId, }: AppMetadataEntity): string;
+function generateAppMetadataKey(input: AppMetadataEntity): string;
 
 // Warning: (ae-missing-release-tag) "generateAuthorityMetadataExpiresAt" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2218,6 +2257,13 @@ function generateAuthorityMetadataExpiresAt(): number;
 //
 // @public
 function generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, correlationId: string, idTokenClaims?: TokenClaims): string;
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "generateLibraryState" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function generateLibraryState(cryptoObj: ICrypto, meta?: Record<string, string>): string;
 
 // Warning: (ae-incompatible-release-tags) The symbol "getAccountInfo" is marked as @public, but its signature references "AccountEntity" which is marked as @internal
 // Warning: (ae-incompatible-release-tags) The symbol "getAccountInfo" is marked as @public, but its signature references "AccountEntity" which is marked as @internal
@@ -2435,6 +2481,18 @@ const HTTP_TOO_MANY_REQUESTS: number;
 // @public (undocumented)
 const HTTP_UNAUTHORIZED: number;
 
+// Warning: (ae-missing-release-tag) "HttpMethod" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "HttpMethod" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const HttpMethod: {
+    readonly GET: "GET";
+    readonly POST: "POST";
+};
+
+// @public (undocumented)
+type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
+
 // Warning: (ae-missing-release-tag) "IAppTokenProvider" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -2560,10 +2618,7 @@ export interface INativeBrokerPlugin {
 export interface INetworkModule {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions, timeout?: number): Promise<NetworkResponse<T>>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>>;
 }
@@ -2593,9 +2648,7 @@ const INSTANCE_AWARE = "instance_aware";
 // @public (undocumented)
 function instrumentBrokerParams(parameters: Map<string, string>, correlationId?: string, performanceClient?: IPerformanceClient): void;
 
-// Warning: (ae-missing-release-tag) "interactionRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const interactionRequired = "interaction_required";
 
 // Warning: (ae-missing-release-tag) "InteractionRequiredAuthError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -2618,10 +2671,14 @@ declare namespace InteractionRequiredAuthErrorCodes {
         interactionRequired,
         consentRequired,
         loginRequired,
-        badToken
+        badToken,
+        interruptedUser
     }
 }
 export { InteractionRequiredAuthErrorCodes }
+
+// @public
+const interruptedUser = "interrupted_user";
 
 // Warning: (ae-missing-release-tag) "IntFields" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2672,6 +2729,11 @@ const invalidCloudDiscoveryMetadata = "invalid_cloud_discovery_metadata";
 //
 // @public (undocumented)
 const invalidCodeChallengeMethod = "invalid_code_challenge_method";
+
+// Warning: (ae-missing-release-tag) "invalidRequestMethodForEAR" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const invalidRequestMethodForEAR = "invalid_request_method_for_EAR";
 
 // Warning: (ae-missing-release-tag) "invalidState" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2797,6 +2859,12 @@ export interface ISerializableTokenCache {
 //
 // @public
 function isIdTokenEntity(entity: object): entity is IdTokenEntity;
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "isKmsi" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function isKmsi(idTokenClaims: TokenClaims): boolean;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "isRefreshTokenEntity" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -2937,9 +3005,7 @@ export type LoggerOptions = {
 // @public (undocumented)
 const LOGIN_HINT = "login_hint";
 
-// Warning: (ae-missing-release-tag) "loginRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const loginRequired = "login_required";
 
 // Warning: (ae-missing-release-tag) "LogLevel" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -2983,6 +3049,11 @@ const maxAgeTranspired = "max_age_transpired";
 // @public (undocumented)
 const methodNotImplemented = "method_not_implemented";
 
+// Warning: (ae-missing-release-tag) "misplacedResourceParam" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const misplacedResourceParam = "misplaced_resource_parameter";
+
 // Warning: (ae-missing-release-tag) "missingNonceAuthenticationHeader" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -3013,9 +3084,7 @@ const multipleMatchingTokens = "multiple_matching_tokens";
 // @public (undocumented)
 const NATIVE_BROKER = "nativebroker";
 
-// Warning: (ae-missing-release-tag) "nativeAccountUnavailable" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const nativeAccountUnavailable = "native_account_unavailable";
 
 // Warning: (ae-missing-release-tag) "NativeRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3034,6 +3103,7 @@ export type NativeRequest = {
     shrNonce?: string;
     accountId?: string;
     forceRefresh?: boolean;
+    resource?: string;
     extraParameters?: StringDict;
     extraScopesToConsent?: Array<string>;
     loginHint?: string;
@@ -3139,9 +3209,7 @@ const NOT_APPLICABLE = "N/A";
 // @public (undocumented)
 const NOT_AVAILABLE = "Not Available";
 
-// Warning: (ae-missing-release-tag) "noTokensFound" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const noTokensFound = "no_tokens_found";
 
 // Warning: (ae-missing-release-tag) "nowSeconds" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3214,6 +3282,13 @@ const OPENID_SCOPE = "openid";
 //
 // @public (undocumented)
 const openIdConfigError = "openid_config_error";
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "parseRequestState" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function parseRequestState(base64Decode: (input: string) => string, state: string): RequestStateObject;
 
 // Warning: (ae-missing-release-tag) "PasswordGrantConstants" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "PasswordGrantConstants" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3369,7 +3444,12 @@ export type PerformanceEvent = {
     incompleteSubMeasurements?: Map<string, SubMeasurement>;
     visibilityChangeCount?: number;
     incompleteSubsCount?: number;
+    networkEffectiveType?: string;
+    networkRtt?: number;
     awaitIframeCorrelationId?: string;
+    redirectBridgeTimeoutMs?: number;
+    isRedirectUriCrossOrigin?: boolean;
+    redirectBridgeMessageVersion?: number;
     idTokenSize?: number;
     accessTokenSize?: number;
     refreshTokenSize?: number | undefined;
@@ -3407,6 +3487,8 @@ export type PerformanceEvent = {
     context?: string;
     cacheLocation?: string;
     cacheRetentionDays?: number;
+    accountCachedBy?: string;
+    acntLoggedOut?: boolean;
     cacheRtCount?: number;
     cacheIdCount?: number;
     cacheAtCount?: number;
@@ -3416,7 +3498,11 @@ export type PerformanceEvent = {
     embeddedClientId?: string;
     embeddedRedirectUri?: string;
     isAsyncPopup?: boolean;
-    rtExpiresOnMs?: number;
+    cacheRtExpiresOnSeconds?: number;
+    ntwkRtExpiresOnSeconds?: number;
+    extRtExpiresOnSeconds?: number;
+    rtOffsetSeconds?: number;
+    sidFromClaim?: boolean;
     sidFromClaims?: boolean;
     sidFromRequest?: boolean;
     loginHintFromRequest?: boolean;
@@ -3430,6 +3516,42 @@ export type PerformanceEvent = {
     navigateCallbackResult?: boolean;
     dataBoundary?: DataBoundary;
     logs?: string;
+    isMcp?: boolean;
+    cloudDiscoverySource?: string;
+    authorityEndpointSource?: string;
+    accountsRemoved?: number;
+    accessTokensRemoved?: number;
+    removeTokenBindingKeyFailure?: number;
+    silentRefreshReason?: string;
+    deduped?: boolean;
+    kmsi?: boolean;
+    isBackground?: boolean;
+    preMigrateAcntCount?: number;
+    preMigrateATCount?: number;
+    preMigrateITCount?: number;
+    preMigrateRTCount?: number;
+    postMigrateAcntCount?: number;
+    postMigrateATCount?: number;
+    postMigrateITCount?: number;
+    postMigrateRTCount?: number;
+    oldAcntCount?: number;
+    oldATCount?: number;
+    oldITCount?: number;
+    oldRTCount?: number;
+    skipATMigrateCount?: number;
+    skipITMigrateCount?: number;
+    skipRTMigrateCount?: number;
+    migratedATCount?: number;
+    migratedITCount?: number;
+    migratedRTCount?: number;
+    expiredCacheRemovedCount?: number;
+    expiredAcntRemovedCount?: number;
+    invalidCacheCount?: number;
+    unencryptedCacheCount?: number;
+    encryptedCacheCount?: number;
+    encryptedCacheExpiredCount?: number;
+    encryptedCacheCorruptionCount?: number;
+    ext?: Record<string, string | number>;
 };
 
 declare namespace PerformanceEvents {
@@ -3446,6 +3568,7 @@ declare namespace PerformanceEvents {
         HandleCodeResponseFromServer,
         AuthClientExecuteTokenRequest,
         AuthClientCreateTokenRequestBody,
+        UpdateTokenEndpointAuthority,
         PopTokenGenerateCnf,
         HandleServerTokenResponse,
         AuthorityResolveEndpointsAsync,
@@ -3502,6 +3625,20 @@ export type PkceCodes = {
 //
 // @public (undocumented)
 const pkceParamsMissing = "pkce_params_missing";
+
+// Warning: (ae-missing-release-tag) "PlatformBrokerError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export class PlatformBrokerError extends AuthError {
+    constructor(errorStatus: string, errorContext: string, errorCode: number, errorTag: number);
+    statusCode: number;
+    tag: string;
+}
+
+// Warning: (ae-missing-release-tag) "platformBrokerError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const platformBrokerError = "platform_broker_error";
 
 // Warning: (ae-missing-release-tag) "PopTokenGenerateCnf" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -3574,19 +3711,12 @@ export const ProtocolMode: {
 // @public (undocumented)
 export type ProtocolMode = (typeof ProtocolMode)[keyof typeof ProtocolMode];
 
-// Warning: (ae-missing-release-tag) "ProtocolUtils" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-export class ProtocolUtils {
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    static generateLibraryState(cryptoObj: ICrypto, meta?: Record<string, string>): string;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    static parseRequestState(cryptoObj: ICrypto, state: string): RequestStateObject;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    static setRequestState(cryptoObj: ICrypto, userState?: string, meta?: Record<string, string>): string;
+declare namespace ProtocolUtils {
+    export {
+        setRequestState,
+        generateLibraryState,
+        parseRequestState
+    }
 }
 
 // Warning: (ae-missing-release-tag) "REDIRECT_URI" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3617,12 +3747,28 @@ export type RefreshTokenCache = Record<string, RefreshTokenEntity>;
 // Warning: (ae-internal-missing-underscore) The name "RefreshTokenClient" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
-export class RefreshTokenClient extends BaseClient {
+export class RefreshTokenClient {
     constructor(configuration: ClientConfiguration, performanceClient: IPerformanceClient);
     // (undocumented)
-    acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult>;
+    acquireToken(request: CommonRefreshTokenRequest, apiId: number): Promise<AuthenticationResult>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult>;
+    acquireTokenByRefreshToken(request: CommonSilentFlowRequest, apiId: number): Promise<AuthenticationResult>;
+    // (undocumented)
+    authority: Authority;
+    // (undocumented)
+    protected cacheManager: CacheManager;
+    // (undocumented)
+    protected config: CommonClientConfiguration;
+    // (undocumented)
+    protected cryptoUtils: ICrypto;
+    // (undocumented)
+    logger: Logger;
+    // (undocumented)
+    protected networkClient: INetworkModule;
+    // (undocumented)
+    protected performanceClient: IPerformanceClient;
+    // (undocumented)
+    protected serverTelemetryManager: ServerTelemetryManager | null;
 }
 
 // Warning: (ae-missing-release-tag) "RefreshTokenClientAcquireToken" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3657,9 +3803,7 @@ export type RefreshTokenEntity = CredentialEntity & {
     expiresOn?: string;
 };
 
-// Warning: (ae-missing-release-tag) "refreshTokenExpired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const refreshTokenExpired = "refresh_token_expired";
 
 // Warning: (ae-missing-release-tag) "REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3762,7 +3906,7 @@ declare namespace RequestParameterBuilder {
         addGrantType,
         addClientInfo,
         addInstanceAware,
-        addExtraQueryParameters,
+        addExtraParameters,
         addClientCapabilitiesToClaims,
         addUsername,
         addPassword,
@@ -3772,7 +3916,8 @@ declare namespace RequestParameterBuilder {
         addThrottling,
         addLogoutHint,
         addBrokerParameters,
-        addEARParameters
+        addEARParameters,
+        addResource
     }
 }
 
@@ -3802,10 +3947,20 @@ export type RequestThumbprint = {
     embeddedClientId?: string;
 };
 
+// Warning: (ae-missing-release-tag) "RESOURCE" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const RESOURCE = "resource";
+
 // Warning: (ae-missing-release-tag) "RESOURCE_DELIM" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
 const RESOURCE_DELIM = "|";
+
+// Warning: (ae-missing-release-tag) "resourceParameterRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const resourceParameterRequired = "resource_parameter_required";
 
 // Warning: (ae-missing-release-tag) "RESPONSE_MODE" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -3832,7 +3987,7 @@ export class ResponseHandler {
     static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, idTokenClaims?: TokenClaims, requestState?: RequestStateObject, serverTokenResponse?: ServerAuthorizationTokenResponse, requestId?: string): Promise<AuthenticationResult>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string): Promise<AuthenticationResult>;
+    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string): Promise<AuthenticationResult>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -3899,6 +4054,13 @@ export class ScopeSet {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     unionScopeSets(otherScopes: ScopeSet): Set<string>;
 }
+
+// Warning: (ae-incompatible-release-tags) The symbol "sendPostRequest" is marked as @public, but its signature references "CacheManager" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "sendPostRequest" is marked as @public, but its signature references "CacheManager" which is marked as @internal
+// Warning: (ae-missing-release-tag) "sendPostRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function sendPostRequest<T extends ServerAuthorizationTokenResponse>(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions, correlationId: string, cacheManager: CacheManager, networkClient: INetworkModule, logger: Logger, performanceClient: IPerformanceClient): Promise<NetworkResponse<T>>;
 
 // Warning: (ae-missing-release-tag) "SERVER_TELEM_CACHE_KEY" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -4057,6 +4219,14 @@ export type ServerTelemetryRequest = {
 // @public (undocumented)
 const SESSION_STATE = "session_state";
 
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "setRequestState" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function setRequestState(cryptoObj: ICrypto, userState?: string, meta?: Record<string, string>): string;
+
 // Warning: (ae-missing-release-tag) "SetUserData" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -4104,10 +4274,26 @@ export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequest
 // Warning: (ae-internal-missing-underscore) The name "SilentFlowClient" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export class SilentFlowClient extends BaseClient {
+export class SilentFlowClient {
     constructor(configuration: ClientConfiguration, performanceClient: IPerformanceClient);
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     acquireCachedToken(request: CommonSilentFlowRequest): Promise<[AuthenticationResult, CacheOutcome]>;
+    // (undocumented)
+    authority: Authority;
+    // (undocumented)
+    protected cacheManager: CacheManager;
+    // (undocumented)
+    protected config: CommonClientConfiguration;
+    // (undocumented)
+    protected cryptoUtils: ICrypto;
+    // (undocumented)
+    logger: Logger;
+    // (undocumented)
+    protected networkClient: INetworkModule;
+    // (undocumented)
+    protected performanceClient: IPerformanceClient;
+    // (undocumented)
+    protected serverTelemetryManager: ServerTelemetryManager | null;
 }
 
 // Warning: (ae-missing-release-tag) "SilentFlowClientGenerateResultFromCacheRecord" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -4170,9 +4356,6 @@ export class StringUtils {
     static isEmptyObj(strObj?: string): boolean;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static jsonParseHelper<T>(str: string): T | null;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    static matchPattern(pattern: string, input: string): boolean;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static queryStringToObject<T>(query: string): T;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -4346,6 +4529,7 @@ type TokenClaims = {
     upn?: string;
     preferred_username?: string;
     login_hint?: string;
+    signin_state?: Array<string>;
     emails?: string[];
     name?: string;
     nonce?: string;
@@ -4390,6 +4574,15 @@ export type TokenKeys = {
 //
 // @public (undocumented)
 const tokenParsingError = "token_parsing_error";
+
+declare namespace TokenProtocol {
+    export {
+        createTokenRequestHeaders,
+        createTokenQueryParameters,
+        executePostToTokenEndpoint,
+        sendPostRequest
+    }
+}
 
 // Warning: (ae-missing-release-tag) "tokenRefreshRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -4442,6 +4635,11 @@ function updateAuthorityEndpointMetadata(authorityMetadata: AuthorityMetadataEnt
 //
 // @public (undocumented)
 function updateCloudDiscoveryMetadata(authorityMetadata: AuthorityMetadataEntity, updatedValues: CloudDiscoveryMetadata, fromNetwork: boolean): void;
+
+// Warning: (ae-missing-release-tag) "UpdateTokenEndpointAuthority" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const UpdateTokenEndpointAuthority = "updateTokenEndpointAuthority";
 
 // Warning: (ae-missing-release-tag) "URL_FORM_CONTENT_TYPE" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -4500,9 +4698,7 @@ export { UrlUtils }
 // @public (undocumented)
 const userCanceled = "user_canceled";
 
-// Warning: (ae-missing-release-tag) "uxNotAllowed" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const uxNotAllowed = "ux_not_allowed";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -4525,7 +4721,7 @@ export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTok
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "16.0.0-alpha.0";
+export const version = "16.2.0";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -4608,68 +4804,71 @@ const X_MS_LIB_CAPABILITY_VALUE: string;
 // src/authority/Authority.ts:802:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/authority/Authority.ts:1000:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/authority/AuthorityOptions.ts:25:5 - (ae-forgotten-export) The symbol "CloudInstanceDiscoveryResponse" needs to be exported by the entry point index.d.ts
-// src/cache/CacheManager.ts:345:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:346:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:614:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1577:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1578:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1592:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1593:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1613:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1614:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1623:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1624:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1640:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1641:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1655:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1656:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1694:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1695:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1709:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1710:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1721:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1722:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1733:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1734:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1745:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1746:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1763:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1764:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1788:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1789:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1808:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1809:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1828:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1829:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1840:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1841:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:1849:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:341:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:342:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:620:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1584:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1585:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1599:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1600:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1620:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1621:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1630:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1631:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1647:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1648:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1662:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1663:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1701:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1702:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1716:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1717:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1728:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1729:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1740:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1741:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1752:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1753:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1770:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1771:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1795:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1796:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1815:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1816:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1835:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1836:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1847:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1848:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:1856:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/entities/AccountEntity.ts:49:5 - (ae-forgotten-export) The symbol "DataBoundary" needs to be exported by the entry point index.d.ts
 // src/cache/utils/CacheTypes.ts:93:53 - (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
 // src/cache/utils/CacheTypes.ts:93:43 - (tsdoc-malformed-html-name) Invalid HTML element: An HTML name must be an ASCII letter followed by zero or more letters, digits, or hyphens
-// src/client/AuthorizationCodeClient.ts:151:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:152:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:210:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:446:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/RefreshTokenClient.ts:183:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/RefreshTokenClient.ts:270:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/RefreshTokenClient.ts:271:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/RefreshTokenClient.ts:310:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/SilentFlowClient.ts:167:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:223:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:224:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:301:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:537:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/RefreshTokenClient.ts:244:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/RefreshTokenClient.ts:329:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/RefreshTokenClient.ts:330:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/RefreshTokenClient.ts:387:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/SilentFlowClient.ts:236:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/config/ClientConfiguration.ts:51:5 - (ae-forgotten-export) The symbol "ClientCredentials" needs to be exported by the entry point index.d.ts
 // src/config/ClientConfiguration.ts:53:5 - (ae-forgotten-export) The symbol "TelemetryOptions" needs to be exported by the entry point index.d.ts
+// src/config/ClientConfiguration.ts:60:5 - (ae-incompatible-release-tags) The symbol "authOptions" is marked as @public, but its signature references "AuthOptions" which is marked as @internal
+// src/config/ClientConfiguration.ts:63:5 - (ae-incompatible-release-tags) The symbol "storageInterface" is marked as @public, but its signature references "CacheManager" which is marked as @internal
+// src/config/ClientConfiguration.ts:68:5 - (ae-incompatible-release-tags) The symbol "serverTelemetryManager" is marked as @public, but its signature references "ServerTelemetryManager" which is marked as @internal
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
 // src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
 // src/request/AuthenticationHeaderParser.ts:74:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/response/ResponseHandler.ts:340:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/response/ResponseHandler.ts:341:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/response/ResponseHandler.ts:342:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/telemetry/performance/PerformanceClient.ts:714:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/telemetry/performance/PerformanceClient.ts:714:15 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-// src/telemetry/performance/PerformanceClient.ts:726:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/telemetry/performance/PerformanceClient.ts:726:27 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-// src/telemetry/performance/PerformanceClient.ts:727:24 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceClient.ts:727:17 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/response/ResponseHandler.ts:355:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/response/ResponseHandler.ts:356:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/response/ResponseHandler.ts:357:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/telemetry/performance/PerformanceClient.ts:723:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/telemetry/performance/PerformanceClient.ts:723:15 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+// src/telemetry/performance/PerformanceClient.ts:737:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/telemetry/performance/PerformanceClient.ts:737:27 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+// src/telemetry/performance/PerformanceClient.ts:738:24 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceClient.ts:738:17 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/telemetry/performance/PerformanceEvent.ts:37:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
 // src/telemetry/performance/PerformanceEvent.ts:37:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/telemetry/performance/PerformanceEvent.ts:37:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
@@ -4731,23 +4930,26 @@ const X_MS_LIB_CAPABILITY_VALUE: string;
 // src/telemetry/performance/PerformanceEvent.ts:182:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
 // src/telemetry/performance/PerformanceEvent.ts:182:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/telemetry/performance/PerformanceEvent.ts:182:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
-// src/telemetry/performance/PerformanceEvent.ts:202:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceEvent.ts:202:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/telemetry/performance/PerformanceEvent.ts:202:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
-// src/telemetry/performance/PerformanceEvent.ts:210:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceEvent.ts:210:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/telemetry/performance/PerformanceEvent.ts:210:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
-// src/telemetry/performance/PerformanceEvent.ts:219:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceEvent.ts:219:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/telemetry/performance/PerformanceEvent.ts:219:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
-// src/telemetry/performance/PerformanceEvent.ts:227:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceEvent.ts:227:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/telemetry/performance/PerformanceEvent.ts:227:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
-// src/telemetry/performance/PerformanceEvent.ts:234:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceEvent.ts:234:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/telemetry/performance/PerformanceEvent.ts:234:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
-// src/telemetry/performance/PerformanceEvent.ts:308:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceEvent.ts:308:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/telemetry/performance/PerformanceEvent.ts:308:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:215:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:215:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:215:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:223:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:223:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:223:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:232:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:232:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:232:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:240:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:240:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:240:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:247:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:247:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:247:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:323:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:323:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:323:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:394:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:394:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:394:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
 
 ```

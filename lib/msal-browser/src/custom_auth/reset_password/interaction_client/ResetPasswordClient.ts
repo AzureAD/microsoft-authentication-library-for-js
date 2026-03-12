@@ -44,12 +44,12 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
     async start(
         parameters: ResetPasswordStartParams
     ): Promise<ResetPasswordCodeRequiredResult> {
-        const correlationId = parameters.correlationId;
+        const correlationId = parameters.correlationId || this.correlationId;
         const apiId = PublicApiId.PASSWORD_RESET_START;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
@@ -77,7 +77,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const challengeRequest: ResetPasswordChallengeRequest = {
             continuation_token: startResponse.continuation_token ?? "",
             challenge_type: this.getChallengeTypes(parameters.challengeType),
-            correlationId: correlationId,
+            correlationId: startResponse.correlation_id || correlationId,
             telemetryManager: telemetryManager,
         };
 
@@ -92,7 +92,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
     async submitCode(
         parameters: ResetPasswordSubmitCodeParams
     ): Promise<ResetPasswordPasswordRequiredResult> {
-        const correlationId = parameters.correlationId;
+        const correlationId = parameters.correlationId || this.correlationId;
         ensureArgumentIsNotEmptyString(
             "parameters.code",
             parameters.code,
@@ -103,7 +103,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
@@ -131,7 +131,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         );
 
         return {
-            correlationId: response.correlation_id,
+            correlationId: response.correlation_id || correlationId,
             continuationToken: response.continuation_token ?? "",
         };
     }
@@ -144,11 +144,12 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
     async resendCode(
         parameters: ResetPasswordResendCodeParams
     ): Promise<ResetPasswordCodeRequiredResult> {
+        const correlationId = parameters.correlationId || this.correlationId;
         const apiId = PublicApiId.PASSWORD_RESET_RESEND_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
@@ -156,7 +157,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const challengeRequest: ResetPasswordChallengeRequest = {
             continuation_token: parameters.continuationToken,
             challenge_type: this.getChallengeTypes(parameters.challengeType),
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
             telemetryManager: telemetryManager,
         };
 
@@ -171,7 +172,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
     async submitNewPassword(
         parameters: ResetPasswordSubmitNewPasswordParams
     ): Promise<ResetPasswordCompletedResult> {
-        const correlationId = parameters.correlationId;
+        const correlationId = parameters.correlationId || this.correlationId;
 
         ensureArgumentIsNotEmptyString(
             "parameters.newPassword",
@@ -183,7 +184,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
@@ -207,13 +208,13 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
 
         this.logger.verbose(
             "Submit endpoint called successfully with new password for password reset.",
-            correlationId
+            submitResponse.correlation_id || correlationId
         );
 
         return this.performPollCompletionRequest(
             submitResponse.continuation_token ?? "",
             submitResponse.poll_interval,
-            correlationId,
+            submitResponse.correlation_id || correlationId,
             telemetryManager
         );
     }
@@ -234,18 +235,18 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
 
         this.logger.verbose(
             "Challenge endpoint for password reset returned successfully.",
-            correlationId
+            response.correlation_id || correlationId
         );
 
         if (response.challenge_type === ChallengeType.OOB) {
             // Code is required
             this.logger.verbose(
                 "Code is required for password reset flow.",
-                correlationId
+                response.correlation_id || correlationId
             );
 
             return {
-                correlationId: response.correlation_id,
+                correlationId: response.correlation_id || correlationId,
                 continuationToken: response.continuation_token ?? "",
                 challengeChannel: response.challenge_channel ?? "",
                 challengeTargetLabel: response.challenge_target_label ?? "",
@@ -257,13 +258,13 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
 
         this.logger.error(
             `Unsupported challenge type '${response.challenge_type}' returned from challenge endpoint for password reset.`,
-            correlationId
+            response.correlation_id || correlationId
         );
 
         throw new CustomAuthApiError(
             CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
             `Unsupported challenge type '${response.challenge_type}'.`,
-            correlationId
+            response.correlation_id || correlationId
         );
     }
 

@@ -47,4 +47,6 @@ export type AccountEntity = {
     /** Timestamp when the entry was last updated */
     lastUpdatedAt: string;
     dataBoundary?: DataBoundary;
+    /** API identifier for telemetry to indicate which API cached this account */
+    cachedByApiId?: number;
 };

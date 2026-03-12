@@ -17,8 +17,9 @@ import {
     InteractionStatus,
     PublicClientApplication,
 } from "@azure/msal-browser";
-import { testAccount, TEST_CONFIG } from "./TestConstants";
-import { IMsalContext, MsalConsumer, MsalProvider } from "../src/index";
+import { testAccount, TEST_CONFIG } from "./TestConstants.js";
+import { IMsalContext, MsalConsumer } from "../src/MsalContext.js";
+import { MsalProvider } from "../src/MsalProvider.js";
 
 describe("MsalProvider tests", () => {
     let pca: PublicClientApplication;
@@ -50,6 +51,7 @@ describe("MsalProvider tests", () => {
                 const eventStart: EventMessage = {
                     eventType: EventType.HANDLE_REDIRECT_START,
                     interactionType: InteractionType.Redirect,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
                     payload: null,
                     error: null,
                     timestamp: 10000,
@@ -62,6 +64,7 @@ describe("MsalProvider tests", () => {
                 const eventEnd: EventMessage = {
                     eventType: EventType.HANDLE_REDIRECT_END,
                     interactionType: InteractionType.Redirect,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
                     payload: null,
                     error: null,
                     timestamp: 10000,
@@ -116,6 +119,7 @@ describe("MsalProvider tests", () => {
             let eventMessage: EventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_START,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -133,6 +137,7 @@ describe("MsalProvider tests", () => {
             eventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_END,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -204,6 +209,7 @@ describe("MsalProvider tests", () => {
             let eventMessage: EventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_START,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -221,6 +227,7 @@ describe("MsalProvider tests", () => {
             eventMessage = {
                 eventType: EventType.LOGIN_SUCCESS,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -260,6 +267,7 @@ describe("MsalProvider tests", () => {
             let eventMessage: EventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_START,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -276,6 +284,7 @@ describe("MsalProvider tests", () => {
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_FAILURE,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -314,6 +323,7 @@ describe("MsalProvider tests", () => {
             let eventMessage: EventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_START,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -330,6 +340,7 @@ describe("MsalProvider tests", () => {
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_START,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -348,6 +359,7 @@ describe("MsalProvider tests", () => {
             eventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_END,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -366,7 +378,6 @@ describe("MsalProvider tests", () => {
 
         test("Login Success", async () => {
             const TestComponent = ({ accounts, inProgress }: IMsalContext) => {
-                console.log(accounts, inProgress);
                 if (
                     accounts.length === 1 &&
                     inProgress === InteractionStatus.None
@@ -395,6 +406,7 @@ describe("MsalProvider tests", () => {
             let eventMessage: EventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_START,
                 interactionType: InteractionType.Popup,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -412,6 +424,7 @@ describe("MsalProvider tests", () => {
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                 interactionType: InteractionType.Popup,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -427,6 +440,7 @@ describe("MsalProvider tests", () => {
             eventMessage = {
                 eventType: EventType.LOGIN_SUCCESS,
                 interactionType: InteractionType.Popup,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -474,6 +488,7 @@ describe("MsalProvider tests", () => {
             let eventMessage: EventMessage = {
                 eventType: EventType.LOGOUT_START,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -491,6 +506,7 @@ describe("MsalProvider tests", () => {
             eventMessage = {
                 eventType: EventType.LOGOUT_END,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -538,6 +554,7 @@ describe("MsalProvider tests", () => {
             let eventMessage: EventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_START,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -555,6 +572,7 @@ describe("MsalProvider tests", () => {
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -610,6 +628,7 @@ describe("MsalProvider tests", () => {
             let eventMessage: EventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_START,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -627,6 +646,7 @@ describe("MsalProvider tests", () => {
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_FAILURE,
                 interactionType: InteractionType.Redirect,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -674,6 +694,7 @@ describe("MsalProvider tests", () => {
             let eventMessage: EventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_START,
                 interactionType: InteractionType.Popup,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -691,6 +712,7 @@ describe("MsalProvider tests", () => {
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                 interactionType: InteractionType.Popup,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -738,6 +760,7 @@ describe("MsalProvider tests", () => {
             let eventMessage: EventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_START,
                 interactionType: InteractionType.Popup,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -755,6 +778,7 @@ describe("MsalProvider tests", () => {
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_FAILURE,
                 interactionType: InteractionType.Popup,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -806,6 +830,7 @@ describe("MsalProvider tests", () => {
             let eventMessage: EventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_START,
                 interactionType: InteractionType.Silent,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -827,6 +852,7 @@ describe("MsalProvider tests", () => {
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                 interactionType: InteractionType.Silent,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -878,6 +904,7 @@ describe("MsalProvider tests", () => {
             let eventMessage: EventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_START,
                 interactionType: InteractionType.Silent,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -899,6 +926,7 @@ describe("MsalProvider tests", () => {
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_FAILURE,
                 interactionType: InteractionType.Silent,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,
@@ -940,6 +968,7 @@ describe("MsalProvider tests", () => {
             const eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                 interactionType: null,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 payload: null,
                 error: null,
                 timestamp: 10000,

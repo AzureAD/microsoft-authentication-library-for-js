@@ -1,6 +1,6 @@
 variables:
     CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
-    WindowsContainerImage: "onebranch.azurecr.io/windows/ltsc2019/vse2022:latest" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
+    WindowsContainerImage: "onebranch.azurecr.io/windows/ltsc2022/vse2022:latest" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
     DEBIAN_FRONTEND: noninteractive
 resources:
     repositories:
@@ -11,7 +11,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: master
+          ref: dev
 
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
@@ -19,6 +19,9 @@ extends:
         globalSdl:
             policheck:
                 break: true
+        featureFlags:
+            WindowsHostVersion:
+                Version: 2022
         stages:
             - stage: sdl
               displayName: "Run SDL Checks"

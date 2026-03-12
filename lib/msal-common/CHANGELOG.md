@@ -1,51 +1,284 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Thu, 02 Oct 2025 21:58:40 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 02 Mar 2026 19:25:47 GMT and should not be manually modified. -->
 
 <!-- Start content -->
 
-## 16.0.0-alpha.0
+## 16.2.0
 
-Thu, 02 Oct 2025 21:58:40 GMT
-
-### Major changes
-
--   Remove encodeExtraQueryParams from config #7701 (shylasummers@microsoft.com)
--   Configuration changes to AuthOptions #7695 (joarroyo@microsoft.com)
--   Move requests from MSAL Common to MSAL Node #7790 (joarroyo@microsoft.com)
--   Remove deprecated functions and parameters (shylasummers@microsoft.com)
--   Refactor AccountEntity into type #7674 (shylasummers@microsoft.com)
--   Remove all requested claims references (hemoral@microsoft.com)
--   Refactor event types and InteractionStatus to be more concise #8009 (shylasummers@microsoft.com)
--   Rename fromNativeBroker to fromPlatformBroker #7940 (shylasummers@microsoft.com)
--   Bump eslint-config-msal to v0.0.0
--   Bump msal-test-utils to v0.0.1
--   Bump rollup-msal to v0.0.0
+Mon, 02 Mar 2026 19:25:47 GMT
 
 ### Minor changes
 
--   Cache upgrade & rollback support (thomas.norling@microsoft.com)
--   Decompose nested telemetry events #7818 (kshabelko@microsoft.com)
--   Decompose nested constants #7782 (kshabelko@microsoft.com)
--   Create eslint rule to check all error codes are documented #7860 (kshabelko@microsoft.com)
--   Make correlation id mandatory for Logger calls #8071 (kshabelko@microsoft.com)
--   Deprecate claimsBasedCachingEnabled as part of Configuration change #7697 (joarroyo@microsoft.com)
--   Remove queue time instrumentation #7747 (kshabelko@microsoft.com)
--   Add correlationIds to cache APIs #7865 (thomas.norling@microsoft.com)
--   Update AccountInfo construction to include tenant-specific claims #7978 (hemoral@microsoft.com)
--   Instrument timed out and cancelled redirects #7989 (kshabelko@microsoft.com)
--   Move auth error messages out of the bundle #7744 (kshabelko@microsoft.com)
--   Format logging strings for future minification #7999 (kshabelko@microsoft.com)
+- Nest dynamic telemetry events [#8357](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8357) (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 16.1.0
+
+Tue, 24 Feb 2026 21:51:51 GMT
+
+### Minor changes
+
+- Remove matchPattern from StringUtils [#8355](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8355) (joarroyo@microsoft.com)
+- Add silentRefreshReason telemetry field to PerformanceEvent #8336 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ### Patches
 
--   Remove RequestValidator class (thomas.norling@microsoft.com)
--   Adding new UX_NOT_ALLOWED suberror under InteractionRequired error type #7844 (lalimasharda@microsoft.com)
--   Add normalizeUrlForComparison utility function to handle URL encoding consistently (#7636) (copilot@github.com)
--   Upgrade/rollback telemetry #7738 (thomas.norling@microsoft.com)
--   Fix cache not used for getting token if scopes are empty (PR #7121) (198982749+Copilot@users.noreply.github.com)
--   Fix v4 merge errors #7726 (joarroyo@microsoft.com)
--   remove access tokens synchronously (thomas.norling@microsoft.com)
+- Add interrupted_user to InteractionRequired Error list (#8322) (hemoral@microsoft.com)
+
+## 16.0.4
+
+Tue, 10 Feb 2026 23:04:28 GMT
+
+### Patches
+
+- Fix INetworkModule Typedocs [#8277](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8277) (thomas.norling@microsoft.com)
+- [v5] Add new authority metadata [#8310](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8310) (hemoral@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 16.0.3
+
+Wed, 28 Jan 2026 18:43:41 GMT
+
+### Patches
+
+- loadExternalTokens fixes [#8259](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8259) (thomas.norling@microsoft.com)
+- Add cachedByApiId field to AccountEntity for telemetry tracking [#8236](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8236) (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 16.0.2
+
+Sat, 17 Jan 2026 03:11:36 GMT
+
+### Major changes
+
+- Remove encodeExtraQueryParams from config #7701 (shylasummers@microsoft.com)
+- Configuration changes to AuthOptions #7695 (joarroyo@microsoft.com)
+- Move requests from MSAL Common to MSAL Node #7790 (joarroyo@microsoft.com)
+- Remove deprecated functions and parameters (shylasummers@microsoft.com)
+- Refactor AccountEntity into type #7674 (shylasummers@microsoft.com)
+- Remove all requested claims references (hemoral@microsoft.com)
+- Refactor event types and InteractionStatus to be more concise #8009 (shylasummers@microsoft.com)
+- Rename fromNativeBroker to fromPlatformBroker #7940 (shylasummers@microsoft.com)
+
+### Minor changes
+
+- Remove redundant perf client logging #8079 (kshabelko@microsoft.com)
+- Implement redirect bridge to support COOP [#8118](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8118) (kshabelko@microsoft.com)
+- Minify logging strings with rollup plugin #8000 (kshabelko@microsoft.com)
+- Refactor BaseClient into Token Protocol #8119 (thomas.norling@microsoft.com)
+- Add support for authorize call using method POST#7997 (hemoral@microsoft.com)
+- Instrument data boundary claim #8074 (kshabelko@microsoft.com)
+- Cache upgrade & rollback support (thomas.norling@microsoft.com)
+- Decompose nested telemetry events #7818 (kshabelko@microsoft.com)
+- Decompose nested constants #7782 (kshabelko@microsoft.com)
+- Create eslint rule to check all error codes are documented #7860 (kshabelko@microsoft.com)
+- Make correlation id mandatory for Logger calls #8071 (kshabelko@microsoft.com)
+- Deprecate claimsBasedCachingEnabled as part of Configuration change #7697 (joarroyo@microsoft.com)
+- Remove queue time instrumentation #7747 (kshabelko@microsoft.com)
+- Add correlationIds to cache APIs #7865 (thomas.norling@microsoft.com)
+- Update AccountInfo construction to include tenant-specific claims #7978 (hemoral@microsoft.com)
+- Instrument timed out and cancelled redirects #7989 (kshabelko@microsoft.com)
+- Move auth error messages out of the bundle #7744 (kshabelko@microsoft.com)
+- Format logging strings for future minification #7999 (kshabelko@microsoft.com)
+
+### Patches
+
+- Add dist-browser to msal-common files (joarroyo@microsoft.com)
+- Remove beta tag (joarroyo@microsoft.com)
+- Add telemetry for refresh token expiration (cache/network) and offset [#8230](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8230) (thomas.norling@microsoft.com)
+- Use cross-env for environment variable management in build scripts #8191 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+- error surfacing changes (akaliugonna@microsoft.com)
+- Add new cloud instances to authority metadata #8121 (hemoral@microsoft.com)
+- Remove RequestValidator class (thomas.norling@microsoft.com)
+- Adding new UX_NOT_ALLOWED suberror under InteractionRequired error type #7844 (lalimasharda@microsoft.com)
+- Add normalizeUrlForComparison utility function to handle URL encoding consistently (#7636) (copilot@github.com)
+- Upgrade/rollback telemetry #7738 (thomas.norling@microsoft.com)
+- Fix cache not used for getting token if scopes are empty (PR #7121) (198982749+Copilot@users.noreply.github.com)
+- Fix v4 merge errors #7726 (joarroyo@microsoft.com)
+- remove access tokens synchronously (thomas.norling@microsoft.com)
+
+### Changes
+
+- Mark package for prerelease (beta) (msaljsbuilds@microsoft.com)
+- Bump to pre-release alpha (hemoral@microsoft.com)
+- Remove unused AccountEntity Util function [#8122](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8122) (thomas.norling@microsoft.com)
+- KMSI Support #8123 (thomas.norling@microsoft.com)
+
+## 15.14.1
+
+Sat, 17 Jan 2026 01:12:52 GMT
+
+### Patches
+
+- loadExternalTokens fixes [#8242](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8242) (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.14.0
+
+Tue, 13 Jan 2026 14:23:32 GMT
+
+### Minor changes
+
+- Add telemetry support for loading external tokens and related events #8231 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Add telemetry for RT expiration [#8224](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8224) (thomas.norling@microsoft.com)
+- Track ApiId when setting/getting accounts (thomas.norling@microsoft.com)
+
+## 15.13.3
+
+Thu, 04 Dec 2025 05:46:36 GMT
+
+### Patches
+
+- Add DOM API configuration, #8171 (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.13.2
+
+Wed, 19 Nov 2025 23:13:10 GMT
+
+### Patches
+
+- error surfacing changes (akaliugonna@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.13.1
+
+Wed, 29 Oct 2025 00:04:33 GMT
+
+### Patches
+
+- Respect KMSI (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.13.0
+
+Wed, 24 Sep 2025 21:54:45 GMT
+
+### Minor changes
+
+- Instrument data boundary claim #8054 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.12.0
+
+Tue, 19 Aug 2025 21:26:21 GMT
+
+### Minor changes
+
+- Add Platform Telemetry (PR #7991) (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix cache not used for getting token if scopes are empty (PR #7121) (198982749+Copilot@users.noreply.github.com)
+- Add normalizeUrlForComparison utility function to handle URL encoding consistently (#7636) (copilot@github.com)
+
+## 15.11.0
+
+Tue, 12 Aug 2025 22:53:32 GMT
+
+### Minor changes
+
+- Instrument timed out or cancelled pre-redirect requests #7984 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- fixed bug in getAccountFilteredBy API to return null if account filter passed in does not have truthy values #7960 (lalimasharda@microsoft.com)
+
+## 15.10.0
+
+Tue, 05 Aug 2025 20:00:24 GMT
+
+### Minor changes
+
+- Update AccountInfo construction to include tenant-specific claims #7949 (hemoral@microsoft.com)
+- Cache upgrade & rollback support (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.9.0
+
+Wed, 23 Jul 2025 14:54:36 GMT
+
+### Minor changes
+
+- Add support for authorize call using method POST #7920 (hemoral@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.8.1
+
+Tue, 08 Jul 2025 14:21:12 GMT
+
+### Patches
+
+- Remove RequestValidator class (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.8.0
+
+Tue, 01 Jul 2025 14:23:25 GMT
+
+### Minor changes
+
+- Add correlationIds to cache APIs #7819 (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Add lastUpdatedAt to cache entities (thomas.norling@microsoft.com)
+
+## 15.7.1
+
+Wed, 18 Jun 2025 15:21:55 GMT
+
+### Patches
+
+- remove access tokens synchronously (thomas.norling@microsoft.com)
+- added UX_NOT_ALLOWED suberror to InteractionRequired error type #7834 (lalimasharda@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 15.7.0
 

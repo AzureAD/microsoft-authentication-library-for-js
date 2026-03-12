@@ -41,6 +41,10 @@ export const NodeAuthErrorMessage = {
         code: "thumbprint_missing_from_client_certificate",
         desc: "Client certificate does not contain a SHA-1 or SHA-256 thumbprint.",
     },
+    redirectUriNotSupported: {
+        code: "redirect_uri_not_supported",
+        desc: "RedirectUri is not supported in this scenario. Please remove redirectUri from the request.",
+    },
 };
 
 export class NodeAuthError extends AuthError {
@@ -126,6 +130,16 @@ export class NodeAuthError extends AuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.thumbprintMissing.code,
             NodeAuthErrorMessage.thumbprintMissing.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when redirectUri is provided in an unsupported scenario
+     */
+    static createRedirectUriNotSupportedError(): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.redirectUriNotSupported.code,
+            NodeAuthErrorMessage.redirectUriNotSupported.desc
         );
     }
 }

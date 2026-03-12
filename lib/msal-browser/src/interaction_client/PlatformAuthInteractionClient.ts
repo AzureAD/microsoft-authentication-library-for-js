@@ -77,7 +77,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { HandleRedirectPromiseOptions } from "../controllers/IController.js";
+import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -562,7 +562,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         // cache accounts and tokens in the appropriate storage
-        await this.cacheAccount(baseAccount);
+        await this.cacheAccount(baseAccount, AuthToken.isKmsi(idTokenClaims));
         await this.cacheNativeTokens(
             response,
             request,
@@ -748,6 +748,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             correlationId: this.correlationId,
             state: response.state,
             fromPlatformBroker: true,
+            ...(request.resource && { resource: request.resource }),
         };
 
         return result;
@@ -757,9 +758,17 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * cache the account entity in browser storage
      * @param accountEntity
      */
-    async cacheAccount(accountEntity: AccountEntity): Promise<void> {
+    async cacheAccount(
+        accountEntity: AccountEntity,
+        kmsi: boolean
+    ): Promise<void> {
         // Store the account info and hence `nativeAccountId` in browser cache
-        await this.browserStorage.setAccount(accountEntity, this.correlationId);
+        await this.browserStorage.setAccount(
+            accountEntity,
+            this.correlationId,
+            kmsi,
+            this.apiId
+        );
         // Remove any existing cached tokens for this account in browser storage
         this.browserStorage.removeAccountContext(
             AccountEntityUtils.getAccountInfo(accountEntity),
@@ -833,6 +842,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         return this.nativeStorageManager.saveCacheRecord(
             nativeCacheRecord,
             this.correlationId,
+            AuthToken.isKmsi(idTokenClaims),
+            this.apiId,
             request.storeInCache
         );
     }
@@ -955,8 +966,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
             extraParameters: {
-                ...request.extraQueryParameters,
-                ...request.tokenQueryParameters,
+                ...request.extraParameters,
             },
             extendedExpiryToken: false, // Make this configurable?
             keyId: request.popKid,

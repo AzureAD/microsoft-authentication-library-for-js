@@ -3,8 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { BaseClient } from "./BaseClient.js";
-import { ClientConfiguration } from "../config/ClientConfiguration.js";
+import {
+    buildClientConfiguration,
+    ClientConfiguration,
+    CommonClientConfiguration,
+} from "../config/ClientConfiguration.js";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
@@ -21,15 +24,70 @@ import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
 import { TokenClaims } from "../account/TokenClaims.js";
 import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
-import { getTenantFromAuthorityString } from "../authority/Authority.js";
+import {
+    Authority,
+    getTenantFromAuthorityString,
+} from "../authority/Authority.js";
+import { Logger } from "../logger/Logger.js";
+import { ICrypto } from "../crypto/ICrypto.js";
+import { CacheManager } from "../cache/CacheManager.js";
+import { INetworkModule } from "../network/INetworkModule.js";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
+import { version, name } from "../packageMetadata.js";
 
 /** @internal */
-export class SilentFlowClient extends BaseClient {
+export class SilentFlowClient {
+    // Logger object
+    public logger: Logger;
+
+    // Application config
+    protected config: CommonClientConfiguration;
+
+    // Crypto Interface
+    protected cryptoUtils: ICrypto;
+
+    // Storage Interface
+    protected cacheManager: CacheManager;
+
+    // Network Interface
+    protected networkClient: INetworkModule;
+
+    // Server Telemetry Manager
+    protected serverTelemetryManager: ServerTelemetryManager | null;
+
+    // Default authority object
+    public authority: Authority;
+
+    // Performance telemetry client
+    protected performanceClient: IPerformanceClient;
+
     constructor(
         configuration: ClientConfiguration,
         performanceClient: IPerformanceClient
     ) {
-        super(configuration, performanceClient);
+        // Set the configuration
+        this.config = buildClientConfiguration(configuration);
+
+        // Initialize the logger
+        this.logger = new Logger(this.config.loggerOptions, name, version);
+
+        // Initialize crypto
+        this.cryptoUtils = this.config.cryptoInterface;
+
+        // Initialize storage interface
+        this.cacheManager = this.config.storageInterface;
+
+        // Set the network interface
+        this.networkClient = this.config.networkInterface;
+
+        // Set TelemetryManager
+        this.serverTelemetryManager = this.config.serverTelemetryManager;
+
+        // set Authority
+        this.authority = this.config.authOptions.authority;
+
+        // set performance telemetry client
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -94,6 +152,17 @@ export class SilentFlowClient extends BaseClient {
             throw createClientAuthError(
                 ClientAuthErrorCodes.tokenRefreshRequired
             );
+        } else if (request.resource) {
+            // cached access token must have a resource that matches the request resource for MCP scenarios
+            if (cachedAccessToken.resource !== request.resource) {
+                this.setCacheOutcome(
+                    CacheOutcome.NO_CACHED_ACCESS_TOKEN,
+                    request.correlationId
+                );
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired
+                );
+            }
         } else if (
             cachedAccessToken.refreshOn &&
             TimeUtils.isTokenExpired(cachedAccessToken.refreshOn, 0)

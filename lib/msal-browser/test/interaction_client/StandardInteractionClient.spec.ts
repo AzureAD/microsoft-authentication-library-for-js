@@ -13,6 +13,8 @@ import {
     AccountInfo,
     CommonAuthorizationUrlRequest,
     AccountEntityUtils,
+    ClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import {
@@ -26,9 +28,7 @@ import {
     TEST_URIS,
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
-    TEST_REQ_CNF_DATA,
     ID_TOKEN_CLAIMS,
-    TEST_TOKENS,
 } from "../utils/StringConstants.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
@@ -325,6 +325,75 @@ describe("StandardInteractionClient", () => {
         expect(authCodeRequest.account).toEqual(request.account);
         expect(authCodeRequest.sid).toEqual(request.sid);
     });
+
+    it("initializeAuthorizationRequest sets httpMethod to GET by default", async () => {
+        const request: CommonAuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: Constants.ResponseMode.QUERY,
+            nonce: "",
+        };
+
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Redirect
+        );
+        expect(authCodeRequest.httpMethod).toEqual(Constants.HttpMethod.GET);
+    });
+
+    it("initializeAuthorizationRequest logs warning when redirect URI has different origin", async () => {
+        const request: RedirectRequest = {
+            redirectUri: "https://different-origin.com/auth",
+            scopes: ["scope"],
+        };
+
+        const loggerWarningSpy = jest.spyOn(testClient["logger"], "warning");
+        const performanceAddFieldsSpy = jest.spyOn(
+            testClient["performanceClient"],
+            "addFields"
+        );
+
+        await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Redirect
+        );
+
+        expect(loggerWarningSpy).toHaveBeenCalledWith(
+            "The origin of the redirect URI does not match the origin of the current page. This is likely to cause issues with authentication.",
+            undefined
+        );
+        expect(performanceAddFieldsSpy).toHaveBeenCalledWith(
+            { isRedirectUriCrossOrigin: true },
+            undefined
+        );
+    });
+
+    it("initializeAuthorizationRequest does not log warning when redirect URI has same origin", async () => {
+        const request: RedirectRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+        };
+
+        const loggerWarningSpy = jest.spyOn(testClient["logger"], "warning");
+        const performanceAddFieldsSpy = jest.spyOn(
+            testClient["performanceClient"],
+            "addFields"
+        );
+
+        await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Redirect
+        );
+
+        expect(loggerWarningSpy).not.toHaveBeenCalled();
+        expect(performanceAddFieldsSpy).not.toHaveBeenCalledWith(
+            { isRedirectUriCrossOrigin: true },
+            expect.any(String)
+        );
+    });
 });
 
 describe("StandardInteractionClient OIDCOptions Tests", () => {
@@ -335,7 +404,9 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                OIDCOptions: { responseMode: Constants.ResponseMode.QUERY },
+                OIDCOptions: {
+                    responseMode: Constants.ResponseMode.QUERY,
+                },
             },
             system: {
                 protocolMode: ProtocolMode.OIDC,
@@ -404,5 +475,90 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
             InteractionType.Redirect
         );
         expect(authCodeRequest.responseMode).toBe(Constants.ResponseMode.QUERY);
+    });
+});
+
+describe("StandardInteractionClient EAR Tests", () => {
+    let pca: PublicClientApplication;
+    let testClient: testStandardInteractionClient;
+
+    beforeEach(() => {
+        pca = new PublicClientApplication({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            },
+            system: {
+                protocolMode: ProtocolMode.EAR,
+            },
+        });
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
+        // @ts-ignore
+        testClient = new testStandardInteractionClient(
+            //@ts-ignore
+            pca.config,
+            //@ts-ignore
+            pca.browserStorage,
+            //@ts-ignore
+            pca.browserCrypto,
+            //@ts-ignore
+            pca.logger,
+            //@ts-ignore
+            pca.eventHandler,
+            //@ts-ignore
+            null,
+            //@ts-ignore
+            pca.performanceClient
+        );
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it("initializeAuthorizationRequest throws error when protocolMode is EAR and httpMethod is GET", async () => {
+        const request: CommonAuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: Constants.ResponseMode.QUERY,
+            nonce: "",
+            httpMethod: Constants.HttpMethod.GET,
+        };
+
+        try {
+            await testClient.initializeAuthorizationRequest(
+                request,
+                InteractionType.Redirect
+            );
+            throw "Unexpected! Should throw";
+        } catch (e) {
+            expect(e).toBeInstanceOf(ClientConfigurationError);
+            expect((e as ClientConfigurationError).errorCode).toEqual(
+                ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+            );
+        }
+    });
+
+    it("initializeAuthorizationRequest sets httpMethod to POST when protocolMode is EAR and httpMethod is not set", async () => {
+        const request: CommonAuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: Constants.ResponseMode.QUERY,
+            nonce: "",
+        };
+
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Redirect
+        );
+        expect(authCodeRequest.httpMethod).toEqual(Constants.HttpMethod.POST);
     });
 });

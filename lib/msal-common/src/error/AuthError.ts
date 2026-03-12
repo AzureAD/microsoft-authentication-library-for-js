@@ -4,6 +4,7 @@
  */
 
 import * as AuthErrorCodes from "./AuthErrorCodes.js";
+import type { PlatformBrokerError } from "./PlatformBrokerError.js";
 export { AuthErrorCodes };
 
 export function getDefaultErrorMessage(code: string): string {
@@ -33,6 +34,11 @@ export class AuthError extends Error {
      * CorrelationId associated with the error
      */
     correlationId: string;
+
+    /**
+     * Default PlatformBrokerError from MsalNodeRuntime when broker is enabled
+     */
+    platformBrokerError?: PlatformBrokerError;
 
     constructor(errorCode?: string, errorMessage?: string, suberror?: string) {
         const message =

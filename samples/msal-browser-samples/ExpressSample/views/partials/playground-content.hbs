@@ -1,0 +1,323 @@
+<div class="playground-container">
+    <h1>🎮 MSAL.js Playground</h1>
+    <p class="description">Test MSAL APIs with custom configurations and request parameters</p>
+
+    <div class="playground-layout">
+        <!-- Left Panel: Configuration -->
+        <div class="config-panel">
+            <div class="card">
+                <h2>Configuration</h2>
+                <div class="form-group">
+                    <label for="msalConfig">PublicClientApplication Configuration</label>
+                    <textarea id="msalConfig" class="config-textarea" rows="15"
+                        placeholder='Configure your PublicClientApplication instance (will auto-populate with defaults)'></textarea>
+                    <small class="form-hint">Configure your PublicClientApplication instance. Click "Reset to Defaults"
+                        to load example configuration.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="tokenRequest">Token Request Object</label>
+                    <textarea id="tokenRequest" class="config-textarea" rows="10"
+                        placeholder='Configure request parameters (will auto-populate with defaults)'></textarea>
+                    <small class="form-hint">Configure request parameters for token acquisition. Includes scopes,
+                        prompt, loginHint, and more.</small>
+                </div>
+
+                <div class="form-actions">
+                    <button id="resetConfig" class="btn btn-secondary">Reset to Defaults</button>
+                    <button id="applyConfig" class="btn btn-primary">Apply Configuration</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: API Actions & Response -->
+        <div class="actions-panel">
+            <div class="card">
+                <h2>API Actions</h2>
+                <div class="button-grid">
+                    <button id="btnAcquireTokenRedirect" class="btn btn-action">
+                        <span class="btn-icon">🔄</span>
+                        acquireTokenRedirect
+                    </button>
+                    <button id="btnAcquireTokenPopup" class="btn btn-action">
+                        <span class="btn-icon">🪟</span>
+                        acquireTokenPopup
+                    </button>
+                    <button id="btnAcquireTokenSilent" class="btn btn-action">
+                        <span class="btn-icon">🤫</span>
+                        acquireTokenSilent
+                    </button>
+                    <button id="btnSsoSilent" class="btn btn-action">
+                        <span class="btn-icon">🔐</span>
+                        ssoSilent
+                    </button>
+                    <button id="btnGetAllAccounts" class="btn btn-action btn-info">
+                        <span class="btn-icon">👥</span>
+                        getAllAccounts
+                    </button>
+                    <button id="btnGetActiveAccount" class="btn btn-action btn-info">
+                        <span class="btn-icon">👤</span>
+                        getActiveAccount
+                    </button>
+                    <button id="btnLogoutRedirect" class="btn btn-action btn-warning">
+                        <span class="btn-icon">🚪</span>
+                        logoutRedirect
+                    </button>
+                    <button id="btnLogoutPopup" class="btn btn-action btn-warning">
+                        <span class="btn-icon">🚪</span>
+                        logoutPopup
+                    </button>
+                </div>
+            </div>
+
+            <div class="card response-card">
+                <div class="response-header">
+                    <h2>Response</h2>
+                    <div class="response-actions">
+                        <button id="copyResponse" class="btn btn-small btn-secondary" title="Copy to clipboard">
+                            📋 Copy
+                        </button>
+                        <button id="clearResponse" class="btn btn-small btn-secondary" title="Clear response">
+                            🗑️ Clear
+                        </button>
+                    </div>
+                </div>
+                <div id="responseDisplay" class="response-display">
+                    <div class="response-placeholder">
+                        <span class="response-icon">💬</span>
+                        <p>API responses will appear here</p>
+                        <small>Click any action button above to see the result</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .playground-container {
+        width: 100%;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .playground-container h1 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .playground-container .description {
+        color: #666;
+        margin-bottom: 30px;
+    }
+
+    .playground-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        overflow: hidden;
+    }
+
+    .config-panel,
+    .actions-panel {
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .card {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        min-width: 0;
+    }
+
+    .card h2 {
+        font-size: 1.3rem;
+        margin-bottom: 20px;
+        color: #333;
+        border-bottom: 2px solid #0078d4;
+        padding-bottom: 10px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+    }
+
+    .config-textarea {
+        width: 100%;
+        padding: 12px;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 13px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        resize: vertical;
+        background: #f8f8f8;
+    }
+
+    .config-textarea:focus {
+        outline: none;
+        border-color: #0078d4;
+        background: white;
+    }
+
+    .form-hint {
+        display: block;
+        margin-top: 5px;
+        color: #666;
+        font-size: 0.85rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .button-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .btn-action {
+        padding: 15px;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #0078d4;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+        background: #005a9e;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-action.btn-info {
+        background: #107c10;
+    }
+
+    .btn-action.btn-info:hover {
+        background: #0c5c0c;
+    }
+
+    .btn-action.btn-warning {
+        background: #d83b01;
+    }
+
+    .btn-action.btn-warning:hover {
+        background: #a52c00;
+    }
+
+    .btn-icon {
+        font-size: 1.2rem;
+    }
+
+    .response-card {
+        margin-top: 20px;
+    }
+
+    .response-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .response-header h2 {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .response-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-small {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .response-display {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 20px;
+        border-radius: 6px;
+        min-height: 300px;
+        max-height: 600px;
+        overflow: auto;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        white-space: pre;
+    }
+
+    .response-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        min-height: 260px;
+        color: #666;
+        text-align: center;
+    }
+
+    .response-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.3;
+    }
+
+    .response-placeholder p {
+        margin: 0 0 5px 0;
+        color: #888;
+    }
+
+    .response-placeholder small {
+        color: #666;
+    }
+
+    .response-content {
+        display: block;
+    }
+
+    .response-error {
+        color: #f48771;
+    }
+
+    .response-success {
+        color: #4ec9b0;
+    }
+
+    @media (max-width: 968px) {
+        .playground-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .button-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

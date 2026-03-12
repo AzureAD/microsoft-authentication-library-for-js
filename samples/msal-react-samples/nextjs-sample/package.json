@@ -10,17 +10,17 @@
         "start": "next start"
     },
     "dependencies": {
-        "@azure/msal-browser": "^5.0.0-alpha.0",
-        "@azure/msal-react": "^5.0.0-alpha.0",
+        "@azure/msal-browser": "^5.0.0",
+        "@azure/msal-react": "^5.0.0",
         "@emotion/cache": "^11.10.5",
         "@emotion/react": "^11.10.5",
         "@emotion/server": "^11.10.0",
         "@emotion/styled": "^11.10.5",
         "@mui/icons-material": "^5.10.14",
         "@mui/material": "^5.10.14",
-        "next": "^15.3.1",
-        "react": "^19.1.0",
-        "react-dom": "^19.1.0"
+        "next": "^15.5.7",
+        "react": "^19.2.1",
+        "react-dom": "^19.2.1"
     },
     "devDependencies": {
         "@types/jest": "^29.5.2",

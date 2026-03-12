@@ -27,10 +27,8 @@ import {
     ClientCredentialRequest,
     Configuration,
     AuthorizationCodeRequest,
-    ClientCredentialClient,
     RefreshTokenRequest,
     SilentFlowRequest,
-    ClientApplication,
 } from "../../src/index.js";
 import {
     CAE_CONSTANTS,
@@ -50,6 +48,8 @@ import { NodeAuthError } from "../../src/error/NodeAuthError.js";
 import { INetworkModule } from "../../../msal-common/lib/types/exports-common.js";
 import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
 import * as NodeClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";
+import { ClientApplication } from "../../src/client/ClientApplication.js";
+import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
 
 jest.mock("jsonwebtoken");
 

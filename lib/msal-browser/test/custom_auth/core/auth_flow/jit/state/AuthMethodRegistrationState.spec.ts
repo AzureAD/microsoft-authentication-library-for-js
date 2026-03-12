@@ -13,20 +13,16 @@ import {
 } from "../../../../../../src/custom_auth/core/auth_flow/jit/state/AuthMethodRegistrationStateParameters.js";
 import { AuthMethodDetails } from "../../../../../../src/custom_auth/core/auth_flow/jit/AuthMethodDetails.js";
 import { JitClient } from "../../../../../../src/custom_auth/core/interaction_client/jit/JitClient.js";
-import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
-import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
-import { Logger } from "@azure/msal-common/browser";
 import {
     createJitVerificationRequiredResult,
     createJitCompletedResult,
 } from "../../../../../../src/custom_auth/core/interaction_client/jit/result/JitActionResult.js";
 import { AuthenticationMethod } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiResponseTypes.js";
+import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
+import { customAuthConfig } from "../../../../test_resources/CustomAuthConfig.js";
 
 describe("JitState", () => {
     let mockJitClient: jest.Mocked<JitClient>;
-    let mockCacheClient: jest.Mocked<CustomAuthSilentCacheClient>;
-    let mockConfig: CustomAuthBrowserConfiguration;
-    let mockLogger: jest.Mocked<Logger>;
     let correlationId: string;
 
     const mockAuthMethod: AuthenticationMethod = {
@@ -43,19 +39,6 @@ describe("JitState", () => {
             challengeAuthMethod: jest.fn(),
             submitChallenge: jest.fn(),
         } as any;
-
-        mockCacheClient = {} as any;
-
-        mockConfig = {
-            customAuth: {
-                challengeTypes: ["oob"],
-            },
-        } as any;
-
-        mockLogger = {
-            verbose: jest.fn(),
-            error: jest.fn(),
-        } as any;
     });
 
     describe("AuthMethodRegistrationRequiredState", () => {
@@ -65,11 +48,11 @@ describe("JitState", () => {
         beforeEach(() => {
             stateParameters = {
                 correlationId,
-                logger: mockLogger,
-                config: mockConfig,
+                logger: getDefaultLogger(),
+                config: customAuthConfig as any,
                 continuationToken: "test-token",
                 jitClient: mockJitClient,
-                cacheClient: mockCacheClient,
+                cacheClient: {} as any,
                 scopes: ["scope1"],
                 username: "testuser",
                 authMethods: [mockAuthMethod],
@@ -165,11 +148,11 @@ describe("JitState", () => {
         beforeEach(() => {
             stateParameters = {
                 correlationId,
-                logger: mockLogger,
-                config: mockConfig,
+                logger: getDefaultLogger(),
+                config: customAuthConfig as any,
                 continuationToken: "test-token",
                 jitClient: mockJitClient,
-                cacheClient: mockCacheClient,
+                cacheClient: {} as any,
                 scopes: ["scope1"],
                 username: "testuser",
                 challengeChannel: "email",

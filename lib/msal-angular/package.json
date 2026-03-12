@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "5.0.0-alpha.0",
+  "version": "5.1.1",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -33,21 +33,23 @@
   },
   "typings": "./dist/azure-msal-angular.d.ts",
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": [
+      "major"
+    ]
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^19.2.3",
-    "@angular/animations": "^19.2.2",
-    "@angular/cli": "^19.2.3",
-    "@angular/common": "^19.2.2",
-    "@angular/compiler": "^19.2.2",
-    "@angular/compiler-cli": "^19.2.2",
-    "@angular/core": "^19.2.2",
-    "@angular/forms": "^19.2.2",
-    "@angular/platform-browser": "^19.2.2",
-    "@angular/platform-browser-dynamic": "^19.2.2",
-    "@angular/router": "^19.2.2",
-    "@azure/msal-browser": "^5.0.0-alpha.0",
+    "@angular-devkit/build-angular": "^19.2.19",
+    "@angular/animations": "^19.2.19",
+    "@angular/cli": "^19.2.19",
+    "@angular/common": "^19.2.19",
+    "@angular/compiler": "^19.2.19",
+    "@angular/compiler-cli": "^19.2.19",
+    "@angular/core": "^19.2.19",
+    "@angular/forms": "^19.2.19",
+    "@angular/platform-browser": "^19.2.19",
+    "@angular/platform-browser-dynamic": "^19.2.19",
+    "@angular/router": "^19.2.19",
+    "@azure/msal-browser": "^5.4.0",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
@@ -68,7 +70,7 @@
     "zone.js": "~0.15.0"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^5.0.0-alpha.0",
+    "@azure/msal-browser": "^5.4.0",
     "rxjs": "^7.0.0"
   }
 }

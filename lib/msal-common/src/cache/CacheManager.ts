@@ -90,7 +90,9 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract setAccount(
         account: AccountEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean,
+        apiId: number
     ): Promise<void>;
 
     /**
@@ -109,7 +111,8 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract setIdTokenCredential(
         idToken: IdTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void>;
 
     /**
@@ -128,7 +131,8 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract setAccessTokenCredential(
         accessToken: AccessTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void>;
 
     /**
@@ -147,7 +151,8 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract setRefreshTokenCredential(
         refreshToken: RefreshTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void>;
 
     /**
@@ -554,6 +559,8 @@ export abstract class CacheManager implements ICacheManager {
     async saveCacheRecord(
         cacheRecord: CacheRecord,
         correlationId: string,
+        kmsi: boolean,
+        apiId: number,
         storeInCache?: StoreInCache
     ): Promise<void> {
         if (!cacheRecord) {
@@ -564,13 +571,19 @@ export abstract class CacheManager implements ICacheManager {
 
         try {
             if (!!cacheRecord.account) {
-                await this.setAccount(cacheRecord.account, correlationId);
+                await this.setAccount(
+                    cacheRecord.account,
+                    correlationId,
+                    kmsi,
+                    apiId
+                );
             }
 
             if (!!cacheRecord.idToken && storeInCache?.idToken !== false) {
                 await this.setIdTokenCredential(
                     cacheRecord.idToken,
-                    correlationId
+                    correlationId,
+                    kmsi
                 );
             }
 
@@ -580,7 +593,8 @@ export abstract class CacheManager implements ICacheManager {
             ) {
                 await this.saveAccessToken(
                     cacheRecord.accessToken,
-                    correlationId
+                    correlationId,
+                    kmsi
                 );
             }
 
@@ -590,7 +604,8 @@ export abstract class CacheManager implements ICacheManager {
             ) {
                 await this.setRefreshTokenCredential(
                     cacheRecord.refreshToken,
-                    correlationId
+                    correlationId,
+                    kmsi
                 );
             }
 
@@ -616,7 +631,8 @@ export abstract class CacheManager implements ICacheManager {
      */
     private async saveAccessToken(
         credential: AccessTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void> {
         const accessTokenFilter: CredentialFilter = {
             clientId: credential.clientId,
@@ -656,7 +672,7 @@ export abstract class CacheManager implements ICacheManager {
                 }
             }
         });
-        await this.setAccessTokenCredential(credential, correlationId);
+        await this.setAccessTokenCredential(credential, correlationId, kmsi);
     }
 
     /**

@@ -28,7 +28,7 @@ import { EventCallbackFunction } from "../event/EventMessage.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
-import { HandleRedirectPromiseOptions } from "../controllers/IController.js";
+import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 
 export interface IPublicClientApplication {
     // TODO: Make request mandatory in the next major version?
@@ -49,7 +49,7 @@ export interface IPublicClientApplication {
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     removePerformanceCallback(callbackId: string): boolean;
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
-    getAllAccounts(): AccountInfo[];
+    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
     handleRedirectPromise(
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null>;

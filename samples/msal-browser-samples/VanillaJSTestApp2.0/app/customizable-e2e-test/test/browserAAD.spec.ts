@@ -201,6 +201,41 @@ describe("AAD-Prod Tests", () => {
             });
         });
 
+        it("Redirect bridge reads cache keys for ORIGIN_URI during redirect flow", async () => {
+            const customStartPage = sampleHomeUrl + "?redirectBridgeOriginUriTest=1";
+            const redirectStartPageRequest: RedirectRequest = {
+                ...aadTokenRequest,
+                redirectStartPage: customStartPage,
+            };
+            fs.writeFileSync(
+                "./app/customizable-e2e-test/testConfig.json",
+                JSON.stringify({
+                    msalConfig: aadMsalConfig,
+                    request: redirectStartPageRequest,
+                })
+            );
+            await page.reload();
+            await pcaInitializedPoller(page, 5000);
+
+            const testName = "redirectBridgeCacheKeys";
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+
+            await clickLoginRedirect(screenshot, page);
+
+            await enterCredentials(page, screenshot, username, accountPwd);
+            await waitForReturnToApp(screenshot, page);
+
+            // Verify the browser navigated back to the custom redirectStartPage
+            expect(page.url()).toContain("redirectBridgeOriginUriTest=1");
+
+            // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
+        });
+
         it("Performs loginPopup", async () => {
             const testName = "popupBaseCase";
             const screenshot = new Screenshot(
@@ -459,6 +494,30 @@ describe("AAD-Prod Tests", () => {
             });
         });
 
+        it("acquireTokenRedirect with httpMethod = POST", async () => {
+            testName = "acquireTokenRedirectUsingPost";
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            await page.waitForSelector("#acquireTokenRedirectPost");
+
+            // Remove access_tokens from cache so we can verify acquisition
+            const tokenStore = await BrowserCache.getTokens();
+            await BrowserCache.removeTokens(tokenStore.refreshTokens);
+            await BrowserCache.removeTokens(tokenStore.accessTokens);
+            await page.click("#acquireTokenRedirectPost");
+            await page.waitForSelector("#scopes-acquired");
+            await screenshot.takeScreenshot(
+                page,
+                "acquireTokenRedirectPostGotTokens"
+            );
+
+            // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
+        });
+
         it("acquireTokenPopup", async () => {
             testName = "acquireTokenPopup";
             screenshot = new Screenshot(
@@ -471,6 +530,27 @@ describe("AAD-Prod Tests", () => {
             await BrowserCache.removeTokens(tokenStore.refreshTokens);
             await BrowserCache.removeTokens(tokenStore.accessTokens);
             await page.click("#acquireTokenPopup");
+            await page.waitForSelector("#scopes-acquired");
+            await screenshot.takeScreenshot(page, "acquireTokenPopupGotTokens");
+
+            // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
+        });
+
+        it("acquireTokenPopup with httpMethod = POST", async () => {
+            testName = "acquireTokenPopupUsingPost";
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            await page.waitForSelector("#acquireTokenPopupPost");
+
+            // Remove access_tokens from cache so we can verify acquisition
+            const tokenStore = await BrowserCache.getTokens();
+            await BrowserCache.removeTokens(tokenStore.refreshTokens);
+            await BrowserCache.removeTokens(tokenStore.accessTokens);
+            await page.click("#acquireTokenPopupPost");
             await page.waitForSelector("#scopes-acquired");
             await screenshot.takeScreenshot(page, "acquireTokenPopupGotTokens");
 

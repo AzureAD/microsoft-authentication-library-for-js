@@ -22,14 +22,10 @@ import {
     Logger,
     Constants,
 } from "@azure/msal-common/browser";
-import {
-    BrowserCacheLocation,
-    BrowserConstants,
-} from "../utils/BrowserConstants.js";
+import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { NavigationClient } from "../navigation/NavigationClient.js";
 import { FetchClient } from "../network/FetchClient.js";
-import * as BrowserUtils from "../utils/BrowserUtils.js";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -90,6 +86,10 @@ export type BrowserAuthOptions = {
      * Flag of whether the STS will send back additional parameters to specify where the tokens should be retrieved from.
      */
     instanceAware?: boolean;
+    /**
+     * Flag on whether a resource parameter is required for token requests. Used for MCP flows.
+     */
+    isMcp?: boolean;
 };
 
 /** @internal */
@@ -129,17 +129,13 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     navigationClient?: INavigationClient;
     /**
-     * Sets the timeout for waiting for a response hash in a popup. Will take precedence over loadFrameTimeout if both are set.
+     * Sets the timeout for waiting for response from a popup using BroadcastChannel
      */
-    windowHashTimeout?: number;
+    popupBridgeTimeout?: number;
     /**
-     * Sets the timeout for waiting for a response hash in an iframe. Will take precedence over loadFrameTimeout if both are set.
+     * Sets the timeout for waiting for response from an iframe using BroadcastChannel
      */
-    iframeHashTimeout?: number;
-    /**
-     * Sets the timeout for waiting for a response hash in an iframe or popup
-     */
-    loadFrameTimeout?: number;
+    iframeBridgeTimeout?: number;
     /**
      * Time to wait for redirection to occur before resolving promise
      */
@@ -160,10 +156,6 @@ export type BrowserSystemOptions = SystemOptions & {
      * Sets the timeout for waiting for the native broker handshake to resolve
      */
     nativeBrokerHandshakeTimeout?: number;
-    /**
-     * Sets the interval length in milliseconds for polling the location attribute in popup windows (default is 30ms)
-     */
-    pollIntervalMilliseconds?: number;
     /**
      * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
      */
@@ -240,7 +232,9 @@ export function buildConfiguration(
         cloudDiscoveryMetadata: "",
         authorityMetadata: "",
         redirectUri:
-            typeof window !== "undefined" ? BrowserUtils.getCurrentUri() : "",
+            typeof window !== "undefined" && window.location
+                ? window.location.href.split("?")[0].split("#")[0]
+                : "",
         postLogoutRedirectUri: "",
         clientCapabilities: [],
         OIDCOptions: {
@@ -256,6 +250,7 @@ export function buildConfiguration(
             tenant: "",
         },
         instanceAware: false,
+        isMcp: false,
     };
 
     // Default cache options for browser
@@ -282,12 +277,10 @@ export function buildConfiguration(
             ? new FetchClient()
             : StubbedNetworkModule,
         navigationClient: new NavigationClient(),
-        loadFrameTimeout: 0,
-        // If loadFrameTimeout is provided, use that as default.
-        windowHashTimeout:
-            userInputSystem?.loadFrameTimeout || DEFAULT_POPUP_TIMEOUT_MS,
-        iframeHashTimeout:
-            userInputSystem?.loadFrameTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
+        popupBridgeTimeout:
+            userInputSystem?.popupBridgeTimeout || DEFAULT_POPUP_TIMEOUT_MS,
+        iframeBridgeTimeout:
+            userInputSystem?.iframeBridgeTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         allowRedirectInIframe: false,
         navigatePopups: true,
@@ -295,7 +288,6 @@ export function buildConfiguration(
         nativeBrokerHandshakeTimeout:
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
-        pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
         protocolMode: ProtocolMode.AAD,
     };
 

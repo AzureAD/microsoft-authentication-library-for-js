@@ -44,4 +44,5 @@ export type AuthenticationResult = {
     msGraphHost?: string;
     code?: string;
     fromPlatformBroker?: boolean;
+    resource?: string;
 };

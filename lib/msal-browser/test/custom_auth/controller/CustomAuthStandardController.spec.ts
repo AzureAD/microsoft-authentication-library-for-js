@@ -31,6 +31,7 @@ jest.mock(
             requestChallenge: jest.fn(),
             requestTokensWithPassword: jest.fn(),
             requestTokensWithOTP: jest.fn(),
+            requestAuthMethods: jest.fn(),
         };
         let signUpApiClient = {
             start: jest.fn(),
@@ -432,6 +433,369 @@ describe("CustomAuthStandardController", () => {
             expect(result).toBeInstanceOf(SignInResult);
             expect(result.error).toBeDefined();
             expect(result.error).toBeInstanceOf(SignInError);
+        });
+
+        it("should handle invalid client configuration error", async () => {
+            const configError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "Invalid client configuration",
+                "correlation-id"
+            );
+            signInApiClient.initiate.mockRejectedValue(configError);
+
+            const signInInputs: SignInInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.signIn(signInInputs);
+
+            expect(result).toBeInstanceOf(SignInResult);
+            expect(result.error).toBeDefined();
+            expect(result.isFailed()).toBe(true);
+        });
+
+        it("should handle null signInInputs gracefully", async () => {
+            const result = await controller.signIn(null as any);
+
+            expect(result).toBeInstanceOf(SignInResult);
+            expect(result.error).toBeDefined();
+            expect(result.error).toBeInstanceOf(SignInError);
+            expect(result.isFailed()).toBe(true);
+        });
+
+        it("should handle undefined signInInputs gracefully", async () => {
+            const result = await controller.signIn(undefined as any);
+
+            expect(result).toBeInstanceOf(SignInResult);
+            expect(result.error).toBeDefined();
+            expect(result.error).toBeInstanceOf(SignInError);
+            expect(result.isFailed()).toBe(true);
+        });
+
+        it("should handle whitespace-only username", async () => {
+            const signInInputs: SignInInputs = {
+                correlationId: "correlation-id",
+                username: "   ",
+            };
+
+            const result = await controller.signIn(signInInputs);
+
+            expect(result).toBeInstanceOf(SignInResult);
+            expect(result.error).toBeDefined();
+            expect(result.error).toBeInstanceOf(SignInError);
+            expect(result.isFailed()).toBe(true);
+        });
+
+        it("should handle sign-in with custom scopes", async () => {
+            signInApiClient.initiate.mockResolvedValue({
+                challenge_type: ChallengeType.PASSWORD,
+                correlation_id: "corr123",
+                continuation_token: "continuation_token_1",
+            });
+
+            const signInInputs: SignInInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+                scopes: ["custom.scope1", "custom.scope2", "custom.scope3"],
+            };
+
+            const result = await controller.signIn(signInInputs);
+
+            expect(result).toBeInstanceOf(SignInResult);
+            expect(result.error).toBeUndefined();
+            expect(result.isPasswordRequired()).toBe(true);
+            // Verify scopes are passed through
+            expect(result.state?.constructor.name).toBe(
+                "SignInPasswordRequiredState"
+            );
+        });
+
+        it("should handle sign-in when user is already signed in", async () => {
+            // Mock that a user is already cached
+            jest.spyOn(controller, "getCurrentAccount").mockReturnValue({
+                data: {} as any,
+                error: undefined,
+            } as any);
+
+            const signInInputs: SignInInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.signIn(signInInputs);
+
+            expect(result).toBeInstanceOf(SignInResult);
+            expect(result.error).toBeDefined();
+            expect(result.isFailed()).toBe(true);
+        });
+
+        it("should handle sign-in with unsupported challenge type", async () => {
+            // Setup the API to throw an error for unsupported challenge type
+            const unsupportedError = new Error("Unsupported challenge type");
+            unsupportedError.name = "CustomAuthApiError";
+            signInApiClient.initiate.mockRejectedValue(unsupportedError);
+
+            const signInInputs: SignInInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.signIn(signInInputs);
+
+            expect(result).toBeInstanceOf(SignInResult);
+            expect(result.error).toBeDefined();
+            expect(result.isFailed()).toBe(true);
+        });
+
+        it("should handle sign-in with API network error", async () => {
+            // Setup the API to throw a network error
+            const networkError = new Error("Network error during sign-in");
+            networkError.name = "NetworkError";
+            signInApiClient.initiate.mockRejectedValue(networkError);
+
+            const signInInputs: SignInInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.signIn(signInInputs);
+
+            expect(result).toBeInstanceOf(SignInResult);
+            expect(result.error).toBeDefined();
+            expect(result.isFailed()).toBe(true);
+        });
+
+        it("should handle sign-in with MFA required after password submission", async () => {
+            signInApiClient.initiate.mockResolvedValue({
+                continuation_token: "continuation_token_1",
+            });
+            signInApiClient.requestChallenge.mockResolvedValue({
+                challenge_type: ChallengeType.PASSWORD,
+                correlation_id: "corr123",
+                continuation_token: "continuation_token_2",
+            });
+            signInApiClient.requestAuthMethods.mockResolvedValue({
+                correlation_id: "corr123",
+                auth_methods: [
+                    {
+                        id: "email_method",
+                        type: "email",
+                        channel: "email",
+                        login_hint: "user@example.com",
+                    },
+                    {
+                        id: "sms_method",
+                        type: "sms",
+                        channel: "sms",
+                        login_hint: "+1234567890",
+                    },
+                ],
+            });
+
+            // Mock MFA required error - the API should throw, not return
+            const mfaError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.CREDENTIAL_REQUIRED,
+                "MFA required",
+                "corr123",
+                [55003], // MFA_REQUIRED suberror code
+                undefined,
+                undefined,
+                "mfa_continuation_token"
+            );
+            mfaError.subError = "mfa_required"; // Set the MFA_REQUIRED suberror
+            signInApiClient.requestTokensWithPassword.mockRejectedValue(
+                mfaError
+            );
+
+            const signInInputs: SignInInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+                password: "test-password",
+            };
+
+            const result = await controller.signIn(signInInputs);
+
+            expect(result).toBeInstanceOf(SignInResult);
+            expect(result.error).toBeUndefined();
+            expect(result.isMfaRequired()).toBe(true);
+            expect(result.state?.constructor.name).toBe("MfaAwaitingState");
+        });
+
+        it("should handle network failure during sign-up start", async () => {
+            const networkError = new Error("Network failure");
+            networkError.name = "NetworkError";
+            signUpApiClient.start.mockRejectedValue(networkError);
+
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result).toBeInstanceOf(SignUpResult);
+            expect(result.error).toBeDefined();
+            expect(result.error).toBeInstanceOf(SignUpError);
+            expect(result.isFailed()).toBe(true);
+        });
+
+        it("should handle sign-up with custom attributes", async () => {
+            signUpApiClient.start.mockResolvedValue({
+                continuation_token: "continuation_token_1",
+            });
+            signUpApiClient.requestChallenge.mockResolvedValue({
+                challenge_type: ChallengeType.PASSWORD,
+                correlation_id: "corr123",
+                continuation_token: "continuation_token_2",
+            });
+
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+                attributes: {
+                    firstName: "John",
+                    lastName: "Doe",
+                    company: "Test Corp",
+                },
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result).toBeInstanceOf(SignUpResult);
+            expect(result.error).toBeUndefined();
+            expect(result.isPasswordRequired()).toBe(true);
+        });
+
+        it("should handle sign-up with both password and attributes", async () => {
+            signUpApiClient.start.mockResolvedValue({
+                continuation_token: "continuation_token_1",
+            });
+            signUpApiClient.requestChallenge.mockResolvedValue({
+                challenge_type: ChallengeType.PASSWORD,
+                correlation_id: "corr123",
+                continuation_token: "continuation_token_2",
+            });
+
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+                password: "test-password",
+                attributes: {
+                    firstName: "Jane",
+                    lastName: "Smith",
+                },
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result).toBeInstanceOf(SignUpResult);
+            expect(result.error).toBeUndefined();
+            expect(result.isPasswordRequired()).toBe(true);
+        });
+
+        it("should handle sign-up with invalid attribute format", async () => {
+            const invalidAttributeError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "Invalid attribute format",
+                "correlation-id"
+            );
+            signUpApiClient.start.mockRejectedValue(invalidAttributeError);
+
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+                attributes: {
+                    invalidAttribute: null,
+                } as any,
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result).toBeInstanceOf(SignUpResult);
+            expect(result.error).toBeDefined();
+            expect(result.isFailed()).toBe(true);
+        });
+
+        it("should handle sign-up when user is already signed in", async () => {
+            // Mock that a user is already cached
+            jest.spyOn(controller, "getCurrentAccount").mockReturnValue({
+                data: {} as any,
+                error: undefined,
+            } as any);
+
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result).toBeInstanceOf(SignUpResult);
+            expect(result.error).toBeDefined();
+            expect(result.isFailed()).toBe(true);
+        });
+
+        it("should handle username already exists error", async () => {
+            const userExistsError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.USER_ALREADY_EXISTS,
+                "Username already exists",
+                "correlation-id"
+            );
+            signUpApiClient.start.mockRejectedValue(userExistsError);
+
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "existing@test.com",
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result).toBeInstanceOf(SignUpResult);
+            expect(result.error).toBeDefined();
+            expect(result.isFailed()).toBe(true);
+        });
+
+        it("should handle server internal error during sign-up", async () => {
+            const serverError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.HTTP_REQUEST_FAILED,
+                "Internal server error",
+                "correlation-id"
+            );
+            signUpApiClient.start.mockRejectedValue(serverError);
+
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result).toBeInstanceOf(SignUpResult);
+            expect(result.error).toBeDefined();
+            expect(result.isFailed()).toBe(true);
+        });
+
+        it("should handle malformed challenge response during sign-up", async () => {
+            signUpApiClient.start.mockResolvedValue({
+                continuation_token: "continuation_token_1",
+            });
+            signUpApiClient.requestChallenge.mockResolvedValue({
+                // Missing required challenge_type field
+                correlation_id: "corr123",
+                continuation_token: "continuation_token_2",
+            });
+
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result).toBeInstanceOf(SignUpResult);
+            expect(result.error).toBeDefined();
+            expect(result.isFailed()).toBe(true);
         });
     });
 

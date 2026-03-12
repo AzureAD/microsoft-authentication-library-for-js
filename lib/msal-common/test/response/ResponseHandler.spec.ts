@@ -183,7 +183,8 @@ describe("ResponseHandler.ts", () => {
                         testResponse,
                         testAuthority,
                         timestamp,
-                        testRequest
+                        testRequest,
+                        0
                     );
                 expect(tokenResp).toBeUndefined();
             } catch (e) {
@@ -262,7 +263,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
         });
 
@@ -331,7 +333,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
         });
 
@@ -398,7 +401,51 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
+            );
+        });
+
+        it("adds rt expiry to performance fields when refresh_token_expires_in provided", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const refreshTokenExpiresIn = 600;
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                refresh_token_expires_in: refreshTokenExpiresIn,
+            };
+
+            const perfClient = new StubPerformanceClient();
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                perfClient,
+                null,
+                null
+            );
+
+            const reqTimestamp = 1000;
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                reqTimestamp,
+                testRequest,
+                0
+            );
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    ntwkRtExpiresOnSeconds:
+                        reqTimestamp + refreshTokenExpiresIn,
+                },
+                testRequest.correlationId
             );
         });
 
@@ -430,7 +477,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
             expect(response.code).toEqual(testSpaCode);
         });
@@ -513,7 +561,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
         });
     });
@@ -544,7 +593,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.familyId).toBe("");
@@ -592,7 +642,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
@@ -640,7 +691,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
@@ -672,10 +724,156 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.requestId).toBe("");
+        });
+
+        it("saves tokens to cache when handling refresh token response and account exists in cache under authority alias", async () => {
+            // Re-apply only the mocks we need
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue("login.microsoftonline.com");
+            claimsStub.mockImplementation((encodedIdToken, crypto) => {
+                return ID_TOKEN_CLAIMS as TokenClaims;
+            });
+
+            // Mock authority metadata to recognize aliases
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAuthorityMetadataByAlias"
+            ).mockImplementation((host: string) => {
+                // login.microsoftonline.com and login.windows.net are aliases of each other
+                const aliases = [
+                    "login.microsoftonline.com",
+                    "login.windows.net",
+                    "login.microsoft.com",
+                ];
+                if (aliases.includes(host)) {
+                    return {
+                        aliases: aliases,
+                        preferred_cache: "login.windows.net",
+                        preferred_network: "login.microsoftonline.com",
+                        aliasesFromNetwork: false,
+                        canonical_authority: host,
+                        authorization_endpoint: "",
+                        token_endpoint: "",
+                        end_session_endpoint: "",
+                        issuer: "",
+                        jwks_uri: "",
+                        endpointsFromNetwork: false,
+                        expiresAt: 0,
+                    };
+                }
+                return null;
+            });
+
+            // Mock getAllAccounts to return an account when called with matching filter
+            // This simulates that the account exists in cache under an authority alias
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAllAccounts"
+            ).mockReturnValue([testAccount]);
+
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+
+            const saveCacheRecordSpy = jest.spyOn(
+                CacheManager.prototype,
+                "saveCacheRecord"
+            );
+
+            const timestamp = TimeUtils.nowSeconds();
+            // handlingRefreshTokenResponse = true, forceCacheRefreshTokenResponse = false
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest,
+                0, // apiId
+                undefined, // authCodePayload
+                undefined, // userAssertionHash
+                true, // handlingRefreshTokenResponse
+                false // forceCacheRefreshTokenResponse
+            );
+
+            // Verify saveCacheRecord was called, meaning tokens were saved even though
+            // the account was cached under a different authority alias
+            expect(saveCacheRecordSpy).toHaveBeenCalled();
+        });
+
+        it("does not save tokens to cache when handling refresh token response and account does not exist in cache", async () => {
+            // Ensure no accounts in cache
+            const allAccountKeys = testCacheManager.getAccountKeys();
+            for (const key of allAccountKeys) {
+                const account = testCacheManager.getAccount(key);
+                if (account) {
+                    testCacheManager.removeAccount(
+                        AccountEntityUtils.getAccountInfo(account),
+                        "test-correlation-id"
+                    );
+                }
+            }
+
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+
+            const saveCacheRecordSpy = jest.spyOn(
+                CacheManager.prototype,
+                "saveCacheRecord"
+            );
+
+            const timestamp = TimeUtils.nowSeconds();
+            // handlingRefreshTokenResponse = true, forceCacheRefreshTokenResponse = false
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest,
+                0, // apiId
+                undefined, // authCodePayload
+                undefined, // userAssertionHash
+                true, // handlingRefreshTokenResponse
+                false // forceCacheRefreshTokenResponse
+            );
+
+            // Verify saveCacheRecord was NOT called, meaning tokens were not saved
+            expect(saveCacheRecordSpy).not.toHaveBeenCalled();
         });
     });
 
@@ -858,7 +1056,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -905,7 +1104,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -952,7 +1152,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -996,7 +1197,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {

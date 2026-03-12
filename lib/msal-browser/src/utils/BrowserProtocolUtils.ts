@@ -31,7 +31,7 @@ export function extractBrowserRequestState(
 
     try {
         const requestStateObj: RequestStateObject =
-            ProtocolUtils.parseRequestState(browserCrypto, state);
+            ProtocolUtils.parseRequestState(browserCrypto.base64Decode, state);
         return requestStateObj.libraryState.meta as BrowserStateObject;
     } catch (e) {
         throw createClientAuthError(ClientAuthErrorCodes.invalidState);

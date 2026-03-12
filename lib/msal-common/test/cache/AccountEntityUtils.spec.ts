@@ -1,4 +1,3 @@
-import { AccountEntity } from "../../src/cache/entities/AccountEntity.js";
 import {
     mockAccountEntity,
     mockIdTokenEntity,
@@ -28,13 +27,12 @@ import {
     generateAccountKey,
     mockCrypto,
 } from "../client/ClientTestUtils.js";
-import { AccountInfo, TenantProfile } from "../../src/account/AccountInfo.js";
+import { TenantProfile } from "../../src/account/AccountInfo.js";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import { LogLevel, Logger } from "../../src/logger/Logger.js";
 import { Authority } from "../../src/authority/Authority.js";
 import { AuthorityType } from "../../src/authority/AuthorityType.js";
-import { TokenClaims } from "../../src/index.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
@@ -365,16 +363,23 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
         expect(accountInfo.tenantProfiles).toMatchObject(tenantProfiles);
     });
 
-    it("getAccountInfo creates a new tenantProfiles map if AccountEntity does not have a tenantProfiles array", () => {
+    it("getAccountInfo creates home tenant profile if AccountEntity does not have a tenantProfiles array", () => {
         const accountEntity = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         accountEntity.tenantProfiles = undefined;
 
         const accountInfo = AccountEntityUtils.getAccountInfo(accountEntity);
         expect(accountInfo.tenantProfiles).toBeDefined();
-        expect(accountInfo.tenantProfiles?.size).toBe(0);
-        expect(accountInfo.tenantProfiles).toMatchObject(
-            new Map<string, TenantProfile>()
+        // Should create the home tenant profile from realm and localAccountId
+        expect(accountInfo.tenantProfiles?.size).toBe(1);
+        expect(accountInfo.tenantProfiles?.has(accountEntity.realm)).toBe(true);
+        const homeTenantProfile = accountInfo.tenantProfiles?.get(
+            accountEntity.realm
         );
+        expect(homeTenantProfile?.tenantId).toBe(accountEntity.realm);
+        expect(homeTenantProfile?.localAccountId).toBe(
+            accountEntity.localAccountId
+        );
+        expect(homeTenantProfile?.isHomeTenant).toBe(true);
     });
 
     it("isSingleTenant returns true if AccountEntity does not have a tenantProfiles array", () => {
@@ -388,231 +393,6 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
         const accountEntity = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
         expect(AccountEntityUtils.isSingleTenant(accountEntity)).toBe(false);
-    });
-
-    describe("AccountEntityUtils.accountInfoIsEqual()", () => {
-        let acc: AccountEntity;
-        let idTokenClaims: TokenClaims;
-        beforeEach(() => {
-            // Set up stubs
-            idTokenClaims = {
-                ver: "2.0",
-                iat: 1536361411,
-                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                exp: 1536361411,
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
-
-            const homeAccountId = AccountEntityUtils.generateHomeAccountId(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-                AuthorityType.Default,
-                logger,
-                cryptoInterface,
-                TEST_CONFIG.CORRELATION_ID,
-                idTokenClaims
-            );
-
-            acc = AccountEntityUtils.createAccountEntity(
-                {
-                    homeAccountId,
-                    idTokenClaims: idTokenClaims,
-                },
-                authority
-            );
-        });
-
-        it("returns true if two account info objects have the same values", () => {
-            const acc1: AccountInfo = AccountEntityUtils.getAccountInfo(acc);
-            const acc2: AccountInfo = { ...acc1 };
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc2, false)
-            ).toBe(true);
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc2, true)
-            ).toBe(true);
-        });
-
-        it("returns false if two account info objects represent the same user but have different iat claims", () => {
-            const acc1: AccountInfo = {
-                ...AccountEntityUtils.getAccountInfo(acc),
-                idTokenClaims: idTokenClaims,
-            };
-            const acc2: AccountInfo = {
-                username: acc1.username,
-                homeAccountId: acc1.homeAccountId,
-                localAccountId: acc1.localAccountId,
-                environment: acc1.environment,
-                tenantId: acc1.tenantId,
-                loginHint: acc1.loginHint,
-                idTokenClaims: {
-                    ...acc1.idTokenClaims,
-                    iat: 100,
-                },
-            };
-            const acc3: AccountInfo = {
-                username: acc1.username,
-                homeAccountId: acc1.homeAccountId,
-                localAccountId: acc1.localAccountId,
-                environment: acc1.environment,
-                tenantId: acc1.tenantId,
-                loginHint: acc1.loginHint,
-                idTokenClaims: {
-                    ...acc1.idTokenClaims,
-                    iat: undefined,
-                },
-            };
-
-            // iat claims are different
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc2, false)
-            ).toBe(true);
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc2, true)
-            ).toBe(false);
-
-            // iat claim is missing on 1 account
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc3, false)
-            ).toBe(true);
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc3, true)
-            ).toBe(false);
-        });
-
-        it("returns false if two account info objects represent the same user but have different nonce claims", () => {
-            const acc1: AccountInfo = {
-                ...AccountEntityUtils.getAccountInfo(acc),
-                idTokenClaims: idTokenClaims,
-            };
-            const acc2: AccountInfo = {
-                username: acc1.username,
-                homeAccountId: acc1.homeAccountId,
-                localAccountId: acc1.localAccountId,
-                environment: acc1.environment,
-                tenantId: acc1.tenantId,
-                loginHint: acc1.loginHint,
-                idTokenClaims: {
-                    ...acc1.idTokenClaims,
-                    nonce: "56789",
-                },
-            };
-            const acc3: AccountInfo = {
-                username: acc1.username,
-                homeAccountId: acc1.homeAccountId,
-                localAccountId: acc1.localAccountId,
-                environment: acc1.environment,
-                tenantId: acc1.tenantId,
-                loginHint: acc1.loginHint,
-                idTokenClaims: {
-                    ...acc1.idTokenClaims,
-                    nonce: undefined,
-                },
-            };
-
-            // nonce claims are different
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc2, false)
-            ).toBe(true);
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc2, true)
-            ).toBe(false);
-
-            // nonce claim is missing on 1 account
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc3, false)
-            ).toBe(true);
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc3, true)
-            ).toBe(false);
-        });
-
-        it("returns false if required AccountInfo parameters are not equal", () => {
-            const acc1: AccountInfo = {
-                ...AccountEntityUtils.getAccountInfo(acc),
-                idTokenClaims: idTokenClaims,
-            };
-            const acc2: AccountInfo = { ...acc1 };
-            const acc3: AccountInfo = { ...acc1 };
-            const acc4: AccountInfo = { ...acc1 };
-            const acc5: AccountInfo = { ...acc1 };
-            const acc6: AccountInfo = { ...acc1 };
-            const acc7: AccountInfo = { ...acc1 };
-            const acc8: AccountInfo = { ...acc1 };
-            acc2.homeAccountId = "mockHomeAccountId2";
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc2, false)
-            ).toBe(false);
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc2, true)
-            ).toBe(false);
-            acc3.localAccountId = "mockLocalAccountId2";
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc3, false)
-            ).toBe(false);
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc3, true)
-            ).toBe(false);
-            acc4.environment = "mockEnv2";
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc4, false)
-            ).toBe(false);
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc4, true)
-            ).toBe(false);
-            acc5.tenantId = "mockTenant2";
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc5, false)
-            ).toBe(false);
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc5, true)
-            ).toBe(false);
-            acc6.username = "mockUsername2";
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc6, false)
-            ).toBe(false);
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc6, true)
-            ).toBe(false);
-            acc7.name = "mockName2";
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc7, false)
-            ).toBe(true);
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc7, true)
-            ).toBe(true);
-            acc8.idTokenClaims = {};
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc8, false)
-            ).toBe(true);
-            expect(
-                AccountEntityUtils.accountInfoIsEqual(acc1, acc8, true)
-            ).toBe(false);
-        });
-
-        it("returns false if an account info object is invalid", () => {
-            const acc1 = null;
-            const acc2: AccountInfo = AccountEntityUtils.getAccountInfo(acc);
-            expect(AccountEntityUtils.accountInfoIsEqual(acc1, acc2)).toBe(
-                false
-            );
-
-            const acc3: AccountInfo = AccountEntityUtils.getAccountInfo(acc);
-            const acc4 = null;
-            expect(AccountEntityUtils.accountInfoIsEqual(acc3, acc4)).toBe(
-                false
-            );
-
-            const acc5 = null;
-            const acc6 = null;
-            expect(AccountEntityUtils.accountInfoIsEqual(acc5, acc6)).toBe(
-                false
-            );
-        });
     });
 
     describe("AccountEntity createAccount with dataBoundary", () => {

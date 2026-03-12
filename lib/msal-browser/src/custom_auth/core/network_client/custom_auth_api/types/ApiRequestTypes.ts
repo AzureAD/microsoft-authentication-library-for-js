@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { GrantType } from "../../../../CustomAuthConstants.js";
 import { ApiRequestBase } from "./ApiTypesBase.js";
 
 /* Sign-in API request types */
@@ -29,10 +30,15 @@ export interface SignInPasswordTokenRequest extends SignInTokenRequestBase {
 
 export interface SignInOobTokenRequest extends SignInTokenRequestBase {
     oob: string;
+    grant_type: typeof GrantType.OOB | typeof GrantType.MFA_OOB;
 }
 
 export interface SignInContinuationTokenRequest extends SignInTokenRequestBase {
     username?: string;
+}
+
+export interface SignInIntrospectRequest extends ApiRequestBase {
+    continuation_token: string;
 }
 
 /* Sign-up API request types */

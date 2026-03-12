@@ -10,6 +10,7 @@ import {
     Logger,
     ScopeSet,
     Authority,
+    AuthorityFactory,
     AuthorityOptions,
     ExternalTokenResponse,
     AccountEntity,
@@ -22,6 +23,9 @@ import {
     TimeUtils,
     AccountEntityUtils,
     buildStaticAuthorityOptions,
+    invokeAsync,
+    IPerformanceClient,
+    StubPerformanceClient,
 } from "@azure/msal-common/browser";
 import { buildConfiguration, Configuration } from "../config/Configuration.js";
 import type { SilentRequest } from "../request/SilentRequest.js";
@@ -36,6 +40,9 @@ import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
 import { EventHandler } from "../event/EventHandler.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
+import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
+import { ApiId } from "../utils/BrowserConstants.js";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -45,16 +52,19 @@ export type LoadTokenOptions = {
 
 /**
  * API to load tokens to msal-browser cache.
- * @param request
- * @param response
- * @param options
+ * @param config - Object to configure the MSAL app.
+ * @param request - Silent request containing authority, scopes, and account.
+ * @param response - External token response to load into the cache.
+ * @param options - Options controlling how tokens are loaded into the cache.
+ * @param performanceClient - Optional performance client used for telemetry measurements.
  * @returns `AuthenticationResult` for the response that was loaded.
  */
 export async function loadExternalTokens(
     config: Configuration,
     request: SilentRequest,
     response: ExternalTokenResponse,
-    options: LoadTokenOptions
+    options: LoadTokenOptions,
+    performanceClient: IPerformanceClient = new StubPerformanceClient()
 ): Promise<AuthenticationResult> {
     BrowserUtils.blockNonBrowserEnvironment();
 
@@ -63,100 +73,145 @@ export async function loadExternalTokens(
     const correlationId =
         request.correlationId || BrowserCrypto.createNewGuid();
 
-    const idTokenClaims = response.id_token
-        ? AuthToken.extractTokenClaims(response.id_token, base64Decode)
-        : undefined;
-
-    const authorityOptions: AuthorityOptions = {
-        protocolMode: browserConfig.system.protocolMode,
-        knownAuthorities: browserConfig.auth.knownAuthorities,
-        cloudDiscoveryMetadata: browserConfig.auth.cloudDiscoveryMetadata,
-        authorityMetadata: browserConfig.auth.authorityMetadata,
-    };
-
-    const logger = new Logger(browserConfig.system.loggerOptions || {});
-    const cryptoOps = new CryptoOps(logger, browserConfig.telemetry.client);
-    const storage = new BrowserCacheManager(
-        browserConfig.auth.clientId,
-        browserConfig.cache,
-        cryptoOps,
-        logger,
-        browserConfig.telemetry.client,
-        new EventHandler(logger),
-        buildStaticAuthorityOptions(browserConfig.auth)
+    const rootMeasurement = performanceClient.startMeasurement(
+        BrowserRootPerformanceEvents.LoadExternalTokens,
+        correlationId
     );
 
-    const authority = request.authority
-        ? new Authority(
-              Authority.generateAuthority(
-                  request.authority,
-                  request.azureCloudOptions
-              ),
-              browserConfig.system.networkClient,
-              storage,
-              authorityOptions,
-              logger,
-              request.correlationId || BrowserCrypto.createNewGuid(),
-              browserConfig.telemetry.client
-          )
-        : undefined;
+    try {
+        const idTokenClaims = response.id_token
+            ? AuthToken.extractTokenClaims(response.id_token, base64Decode)
+            : undefined;
+        const kmsi = AuthToken.isKmsi(idTokenClaims || {});
 
-    const cacheRecordAccount: AccountEntity = await loadAccount(
-        request,
-        options.clientInfo || response.client_info || "",
-        correlationId,
-        storage,
-        logger,
-        cryptoOps,
-        idTokenClaims,
-        authority
-    );
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: browserConfig.system.protocolMode,
+            knownAuthorities: browserConfig.auth.knownAuthorities,
+            cloudDiscoveryMetadata: browserConfig.auth.cloudDiscoveryMetadata,
+            authorityMetadata: browserConfig.auth.authorityMetadata,
+        };
 
-    const idToken = await loadIdToken(
-        response,
-        cacheRecordAccount.homeAccountId,
-        cacheRecordAccount.environment,
-        cacheRecordAccount.realm,
-        correlationId,
-        storage,
-        logger,
-        config.auth.clientId
-    );
+        const logger = new Logger(browserConfig.system.loggerOptions || {});
+        const cryptoOps = new CryptoOps(logger, browserConfig.telemetry.client);
+        const storage = new BrowserCacheManager(
+            browserConfig.auth.clientId,
+            browserConfig.cache,
+            cryptoOps,
+            logger,
+            browserConfig.telemetry.client,
+            new EventHandler(logger),
+            buildStaticAuthorityOptions(browserConfig.auth)
+        );
 
-    const accessToken = await loadAccessToken(
-        request,
-        response,
-        cacheRecordAccount.homeAccountId,
-        cacheRecordAccount.environment,
-        cacheRecordAccount.realm,
-        options,
-        correlationId,
-        storage,
-        logger,
-        config.auth.clientId
-    );
+        const authorityString =
+            request.authority || browserConfig.auth.authority;
+        const authority = await AuthorityFactory.createDiscoveredInstance(
+            Authority.generateAuthority(
+                authorityString,
+                request.azureCloudOptions
+            ),
+            browserConfig.system.networkClient,
+            storage,
+            authorityOptions,
+            logger,
+            correlationId,
+            performanceClient
+        );
 
-    const refreshToken = await loadRefreshToken(
-        response,
-        cacheRecordAccount.homeAccountId,
-        cacheRecordAccount.environment,
-        correlationId,
-        storage,
-        logger,
-        config.auth.clientId
-    );
+        const cacheRecordAccount: AccountEntity = await invokeAsync(
+            loadAccount,
+            BrowserPerformanceEvents.LoadAccount,
+            logger,
+            performanceClient,
+            correlationId
+        )(
+            request,
+            options.clientInfo || response.client_info || "",
+            correlationId,
+            storage,
+            logger,
+            cryptoOps,
+            authority,
+            idTokenClaims
+        );
 
-    return generateAuthenticationResult(
-        request,
-        {
-            account: cacheRecordAccount,
-            idToken,
-            accessToken,
-            refreshToken,
-        },
-        idTokenClaims,
-        authority
-    );
+        const idToken = await invokeAsync(
+            loadIdToken,
+            BrowserPerformanceEvents.LoadIdToken,
+            logger,
+            performanceClient,
+            correlationId
+        )(
+            response,
+            cacheRecordAccount.homeAccountId,
+            cacheRecordAccount.environment,
+            cacheRecordAccount.realm,
+            kmsi,
+            correlationId,
+            storage,
+            logger,
+            config.auth.clientId
+        );
+
+        const accessToken = await invokeAsync(
+            loadAccessToken,
+            BrowserPerformanceEvents.LoadAccessToken,
+            logger,
+            performanceClient,
+            correlationId
+        )(
+            request,
+            response,
+            cacheRecordAccount.homeAccountId,
+            cacheRecordAccount.environment,
+            cacheRecordAccount.realm,
+            kmsi,
+            options,
+            correlationId,
+            storage,
+            logger,
+            config.auth.clientId
+        );
+
+        const refreshToken = await invokeAsync(
+            loadRefreshToken,
+            BrowserPerformanceEvents.LoadRefreshToken,
+            logger,
+            performanceClient,
+            correlationId
+        )(
+            response,
+            cacheRecordAccount.homeAccountId,
+            cacheRecordAccount.environment,
+            kmsi,
+            correlationId,
+            storage,
+            logger,
+            config.auth.clientId,
+            performanceClient
+        );
+
+        rootMeasurement.end(
+            { success: true },
+            undefined,
+            AccountEntityUtils.getAccountInfo(cacheRecordAccount)
+        );
+
+        return generateAuthenticationResult(
+            request,
+            {
+                account: cacheRecordAccount,
+                idToken,
+                accessToken,
+                refreshToken,
+            },
+            authority,
+            idTokenClaims
+        );
+    } catch (error) {
+        rootMeasurement.end({ success: false }, error);
+        throw error;
+    }
 }
 
 /**
@@ -175,8 +230,8 @@ async function loadAccount(
     storage: BrowserCacheManager,
     logger: Logger,
     cryptoObj: ICrypto,
-    idTokenClaims?: TokenClaims,
-    authority?: Authority
+    authority: Authority,
+    idTokenClaims?: TokenClaims
 ): Promise<AccountEntity> {
     logger.verbose("TokenCache - loading account", correlationId);
 
@@ -185,11 +240,16 @@ async function loadAccount(
             AccountEntityUtils.createAccountEntityFromAccountInfo(
                 request.account
             );
-        await storage.setAccount(accountEntity, correlationId);
+        await storage.setAccount(
+            accountEntity,
+            correlationId,
+            AuthToken.isKmsi(idTokenClaims || {}),
+            ApiId.loadExternalTokens
+        );
         return accountEntity;
-    } else if (!authority || (!clientInfo && !idTokenClaims)) {
+    } else if (!clientInfo && !idTokenClaims) {
         logger.error(
-            "TokenCache - if an account is not provided on the request, authority and either clientInfo or idToken must be provided instead.",
+            "TokenCache - if an account is not provided on the request, clientInfo or idToken must be provided instead.",
             correlationId
         );
         throw createBrowserAuthError(BrowserAuthErrorCodes.unableToLoadToken);
@@ -214,14 +274,19 @@ async function loadAccount(
         correlationId,
         idTokenClaims,
         clientInfo,
-        authority.hostnameAndPort,
+        authority.getPreferredCache(),
         claimsTenantId,
         undefined, // authCodePayload
         undefined, // nativeAccountId
         logger
     );
 
-    await storage.setAccount(cachedAccount, correlationId);
+    await storage.setAccount(
+        cachedAccount,
+        correlationId,
+        AuthToken.isKmsi(idTokenClaims || {}),
+        ApiId.loadExternalTokens
+    );
     return cachedAccount;
 }
 
@@ -238,6 +303,7 @@ async function loadIdToken(
     homeAccountId: string,
     environment: string,
     tenantId: string,
+    kmsi: boolean,
     correlationId: string,
     storage: BrowserCacheManager,
     logger: Logger,
@@ -260,7 +326,7 @@ async function loadIdToken(
         tenantId
     );
 
-    await storage.setIdTokenCredential(idTokenEntity, correlationId);
+    await storage.setIdTokenCredential(idTokenEntity, correlationId, kmsi);
     return idTokenEntity;
 }
 
@@ -279,6 +345,7 @@ async function loadAccessToken(
     homeAccountId: string,
     environment: string,
     tenantId: string,
+    kmsi: boolean,
     options: LoadTokenOptions,
     correlationId: string,
     storage: BrowserCacheManager,
@@ -330,7 +397,11 @@ async function loadAccessToken(
         base64Decode
     );
 
-    await storage.setAccessTokenCredential(accessTokenEntity, correlationId);
+    await storage.setAccessTokenCredential(
+        accessTokenEntity,
+        correlationId,
+        kmsi
+    );
     return accessTokenEntity;
 }
 
@@ -346,10 +417,12 @@ async function loadRefreshToken(
     response: ExternalTokenResponse,
     homeAccountId: string,
     environment: string,
+    kmsi: boolean,
     correlationId: string,
     storage: BrowserCacheManager,
     logger: Logger,
-    clientId: string
+    clientId: string,
+    performanceClient: IPerformanceClient
 ): Promise<RefreshTokenEntity | null> {
     if (!response.refresh_token) {
         logger.verbose(
@@ -359,6 +432,16 @@ async function loadRefreshToken(
         return null;
     }
 
+    const expiresOn = response.refresh_token_expires_in
+        ? response.refresh_token_expires_in + TimeUtils.nowSeconds()
+        : undefined;
+    performanceClient.addFields(
+        {
+            extRtExpiresOnSeconds: expiresOn,
+        },
+        correlationId
+    );
+
     logger.verbose("TokenCache - loading refresh token", correlationId);
     const refreshTokenEntity = CacheHelpers.createRefreshTokenEntity(
         homeAccountId,
@@ -367,10 +450,14 @@ async function loadRefreshToken(
         clientId,
         response.foci,
         undefined, // userAssertionHash
-        response.refresh_token_expires_in
+        expiresOn
     );
 
-    await storage.setRefreshTokenCredential(refreshTokenEntity, correlationId);
+    await storage.setRefreshTokenCredential(
+        refreshTokenEntity,
+        correlationId,
+        kmsi
+    );
     return refreshTokenEntity;
 }
 
@@ -385,8 +472,8 @@ async function loadRefreshToken(
 function generateAuthenticationResult(
     request: SilentRequest,
     cacheRecord: CacheRecord & { account: AccountEntity },
-    idTokenClaims?: TokenClaims,
-    authority?: Authority
+    authority: Authority,
+    idTokenClaims?: TokenClaims
 ): AuthenticationResult {
     let accessToken: string = "";
     let responseScopes: Array<string> = [];
@@ -410,7 +497,7 @@ function generateAuthenticationResult(
     const accountEntity = cacheRecord.account;
 
     return {
-        authority: authority ? authority.canonicalAuthority : "",
+        authority: authority.canonicalAuthority,
         uniqueId: cacheRecord.account.localAccountId,
         tenantId: cacheRecord.account.realm,
         scopes: responseScopes,

@@ -5,7 +5,6 @@
 
 import {
     AuthenticationResult,
-    BaseClient,
     ClientConfiguration,
     Constants,
 } from "@azure/msal-common";
@@ -17,7 +16,8 @@ import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
 } from "../test_kit/StringConstants.js";
-import { UsernamePasswordClient } from "../../src/index.js";
+import { BaseClient } from "../../src/client/BaseClient.js";
+import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient.js";
 import {
     ClientTestUtils,
     checkMockedNetworkRequest,
@@ -116,7 +116,7 @@ describe("Username Password unit tests", () => {
         checkMockedNetworkRequest(returnVal, checks);
     });
 
-    it("Adds tokenQueryParameters to the /token request", async () => {
+    it("Adds extraQueryParameters to the /token request", async () => {
         const badExecutePostToTokenEndpointMock = jest.spyOn(
             UsernamePasswordClient.prototype,
             <any>"executePostToTokenEndpoint"
@@ -136,7 +136,7 @@ describe("Username Password unit tests", () => {
             password: MOCK_PASSWORD,
             claims: TEST_CONFIG.CLAIMS,
             correlationId: RANDOM_TEST_GUID,
-            tokenQueryParameters: {
+            extraQueryParameters: {
                 testParam1: "testValue1",
                 testParam2: "",
                 testParam3: "testValue3",

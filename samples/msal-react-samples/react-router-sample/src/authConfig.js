@@ -16,7 +16,7 @@ export const msalConfig = {
     auth: {
         clientId: process.env.REACT_APP_CLIENT_ID,
         authority: process.env.REACT_APP_AUTHORITY,
-        redirectUri: "/",
+        redirectUri: process.env.REACT_APP_REDIRECT_URI,
         postLogoutRedirectUri: "/",
         onRedirectNavigate: () => !BrowserUtils.isInIframe()
     },
