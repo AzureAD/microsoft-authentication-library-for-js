@@ -243,20 +243,12 @@ export function getStandardAuthorizeRequestParameters(
         );
     }
 
-    // ignore config claims if skipBrokerClaims is set to true and this is a brokered authentication flow
-    const configClaims =
-        request.skipBrokerClaims &&
-        parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)
-            ? undefined
-            : authOptions.clientCapabilities;
-
-    if (request.claims || (configClaims && configClaims.length > 0)) {
-        RequestParameterBuilder.addClaims(
-            parameters,
-            request.claims,
-            configClaims
-        );
-    }
+    RequestParameterBuilder.addClaimsWithBrokerSupport(
+        parameters,
+        request.claims,
+        authOptions.clientCapabilities,
+        request.skipBrokerClaims
+    );
 
     // If extraQueryParameters includes instance_aware its value will be added when extraQueryParameters are added
     if (

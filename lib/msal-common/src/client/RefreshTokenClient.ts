@@ -19,7 +19,6 @@ import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
-import { StringUtils } from "../utils/StringUtils.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import {
@@ -553,23 +552,12 @@ export class RefreshTokenClient {
             this.performanceClient
         );
 
-        // ignore config claims if skipBrokerClaims is set to true and this is a brokered authentication flow
-        const configClaims =
-            request.skipBrokerClaims &&
-            parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)
-                ? undefined
-                : this.config.authOptions.clientCapabilities;
-
-        if (
-            !StringUtils.isEmptyObj(request.claims) ||
-            (configClaims && configClaims.length > 0)
-        ) {
-            RequestParameterBuilder.addClaims(
-                parameters,
-                request.claims,
-                configClaims
-            );
-        }
+        RequestParameterBuilder.addClaimsWithBrokerSupport(
+            parameters,
+            request.claims,
+            this.config.authOptions.clientCapabilities,
+            request.skipBrokerClaims
+        );
 
         return UrlUtils.mapToQueryString(parameters);
     }

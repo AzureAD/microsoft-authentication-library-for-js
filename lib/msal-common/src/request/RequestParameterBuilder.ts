@@ -18,6 +18,7 @@ import {
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
 import { ClientInfo } from "../account/ClientInfo.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { StringUtils } from "../utils/StringUtils.js";
 
 export function instrumentBrokerParams(
     parameters: Map<string, string>,
@@ -221,6 +222,34 @@ export function addClaims(
         );
     }
     parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
+}
+
+/**
+ * Adds claims to request parameters, conditionally excluding clientCapabilities
+ * when skipBrokerClaims is true and a brokered flow is in effect.
+ * @param parameters - The request parameters map
+ * @param claims - The claims string from the request
+ * @param clientCapabilities - The client capabilities from configuration
+ * @param skipBrokerClaims - Whether to skip broker claims
+ */
+export function addClaimsWithBrokerSupport(
+    parameters: Map<string, string>,
+    claims?: string,
+    clientCapabilities?: Array<string>,
+    skipBrokerClaims?: boolean
+): void {
+    // Skip clientCapabilities if skipBrokerClaims is set to true and this is a brokered authentication flow
+    const configClaims =
+        skipBrokerClaims && parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)
+            ? undefined
+            : clientCapabilities;
+
+    if (
+        !StringUtils.isEmptyObj(claims) ||
+        (configClaims && configClaims.length > 0)
+    ) {
+        addClaims(parameters, claims, configClaims);
+    }
 }
 
 /**

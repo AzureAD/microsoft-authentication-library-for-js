@@ -96,7 +96,7 @@ export type BaseAuthRequest = {
      */
     resource?: string;
     /**
-     * When true and a brokered flow is used (for example, when broker params or an embeddedClientId are present), clientCapabilities from configuration will be excluded from claims; ignored for non-brokered flows.
+     * When true and a brokered flow is in effect—i.e., when a broker client id (brk_client_id), typically derived from embeddedClientId or other broker parameters, is included in the request—clientCapabilities from configuration will be excluded from claims. Has no effect when brk_client_id is not present (non-brokered flows).
      */
     skipBrokerClaims?: boolean;
     /**
