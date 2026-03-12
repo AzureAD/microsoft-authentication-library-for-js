@@ -302,7 +302,9 @@ export abstract class CacheManager implements ICacheManager {
     ): AccountInfo | null {
         if (
             Object.keys(accountFilter).length === 0 ||
-            Object.values(accountFilter).every((value) => !value)
+            Object.values(accountFilter).every(
+                (value) => value === null || value === undefined || value === ""
+            )
         ) {
             this.commonLogger.warning(
                 "getAccountInfoFilteredBy: Account filter is empty or invalid, returning null",
