@@ -405,7 +405,7 @@ describe("RequestParameterBuilder unit tests", () => {
         const parameters = new Map<string, string>();
         const claims = JSON.stringify({ userinfo: { given_name: null } });
         RequestParameterBuilder.addClaims(parameters, claims, ["CP1"]);
-        
+
         const claimsParam = parameters.get(AADServerParamKeys.CLAIMS);
         expect(claimsParam).toBeDefined();
         const parsed = JSON.parse(claimsParam!);
