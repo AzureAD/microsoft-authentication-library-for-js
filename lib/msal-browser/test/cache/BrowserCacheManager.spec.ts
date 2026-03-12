@@ -39,7 +39,7 @@ import {
     AccountEntityUtils,
     Constants,
     CredentialEntity,
-    AccountFilter
+    AccountFilter,
 } from "@azure/msal-common/browser";
 import {
     ApiId,
