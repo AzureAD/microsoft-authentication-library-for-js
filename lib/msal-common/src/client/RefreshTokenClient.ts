@@ -509,6 +509,7 @@ export class RefreshTokenClient extends BaseClient {
             this.performanceClient
         );
 
+        // ignore config claims if skipBrokerClaims is set to true and this is a brokered authentication flow
         const configClaims =
             request.skipBrokerClaims &&
             parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)

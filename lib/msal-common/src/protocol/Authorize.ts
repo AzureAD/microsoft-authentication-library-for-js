@@ -231,6 +231,7 @@ export function getStandardAuthorizeRequestParameters(
         );
     }
 
+    // ignore config claims if skipBrokerClaims is set to true and this is a brokered authentication flow
     const configClaims =
         request.skipBrokerClaims &&
         parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)
@@ -238,7 +239,6 @@ export function getStandardAuthorizeRequestParameters(
             : authOptions.clientCapabilities;
 
     if (request.claims || (configClaims && configClaims.length > 0)) {
-        // ignore config capabilities if claims are explicitly passed in the request for brokered auth flows
         RequestParameterBuilder.addClaims(
             parameters,
             request.claims,
