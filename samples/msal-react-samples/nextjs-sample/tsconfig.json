@@ -1,3 +1,8 @@
 {
-    "extends": "../tsconfig.json"
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "incremental": true,
+    "jsx": "preserve",
+    "types": ["node", "jest"]
+  }
 }
