@@ -40,8 +40,8 @@ The `@azure/msal-react` package described by the code in this folder uses the [`
 
 | MSAL React version    | MSAL support status | Supported React versions |
 | --------------------- | ------------------- | ------------------------ |
-| MSAL React v5 (alpha) | Active development  | 19                       |
-| MSAL React v3         | Active development  | 16, 17, 18, 19           |
+| MSAL React v5         | Active development  | 19                       |
+| MSAL React v3         | In maintenance      | 16, 17, 18, 19           |
 | MSAL React v1, v2     | In maintenance      | 16, 17, 18               |
 
 **Note:** There have been no functional changes in the MSAL React v2 release.
