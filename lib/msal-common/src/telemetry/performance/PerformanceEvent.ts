@@ -672,6 +672,12 @@ export type PerformanceEvent = {
     startPageVisibility?: string | null;
 
     /**
+     * Online status when the event started.
+     * Read from: https://developer.mozilla.org/docs/Web/API/NavigatorOnLine/onLine
+     */
+    startOnlineStatus?: boolean | null;
+
+    /**
      * Unix millisecond timestamp when the event was initiated.
      *
      * @type {number}
@@ -779,6 +785,7 @@ export type PerformanceEvent = {
     incompleteSubMeasurements?: Map<string, SubMeasurement>;
 
     visibilityChangeCount?: number;
+    onlineStatusChangeCount?: number;
     incompleteSubsCount?: number;
 
     /**
