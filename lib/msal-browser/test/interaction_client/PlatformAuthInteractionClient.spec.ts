@@ -1958,7 +1958,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(parsedClaims.access_token).toBeUndefined();
         });
 
-        it("returns undefined claims when no claims or client capabilities are provided", async () => {
+        it("returns empty claims JSON when no claims or client capabilities are provided", async () => {
             const nativeRequest =
                 // @ts-ignore
                 await platformAuthInteractionClient.initializeNativeRequest({

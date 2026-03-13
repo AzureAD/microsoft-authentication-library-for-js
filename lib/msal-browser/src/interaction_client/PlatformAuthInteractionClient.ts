@@ -33,6 +33,7 @@ import {
     AccountEntityUtils,
     Constants,
     PerformanceEvents,
+    RequestParameterBuilder,
 } from "@azure/msal-common/browser";
 import {
     BaseInteractionClient,
@@ -78,7 +79,6 @@ import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
-import { RequestParameterBuilder } from "@azure/msal-common";
 
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
