@@ -79,7 +79,9 @@ export type AuthorizeResponse = {
     accountId?: string;
     /**
      * Client data returned by the server when clidata=1 is sent on the request.
-     * URL-encoded string in the format: account_type|error|sub_error|cloud_instance|caller_data_boundary
+     * On the wire, this is sent as a URL-encoded string in the format:
+     *   account_type|error|sub_error|cloud_instance|caller_data_boundary
+     * In this parsed AuthorizeResponse object, the value is already URL-decoded.
      */
     clientdata?: string;
 };
