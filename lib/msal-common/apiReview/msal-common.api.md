@@ -89,7 +89,8 @@ declare namespace AADServerParamKeys {
         INSTANCE_AWARE,
         EAR_JWK,
         EAR_JWE_CRYPTO,
-        RESOURCE
+        RESOURCE,
+        CLI_DATA
     }
 }
 export { AADServerParamKeys }
@@ -244,6 +245,11 @@ function addCcsUpn(parameters: Map<string, string>, loginHint: string): void;
 //
 // @public
 function addClaims(parameters: Map<string, string>, claims?: string, clientCapabilities?: Array<string>): void;
+
+// Warning: (ae-missing-release-tag) "addCliData" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function addCliData(parameters: Map<string, string>): void;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "addClientAssertion" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -891,6 +897,7 @@ export type AuthorizeResponse = {
     correlation_id?: string;
     claims?: string;
     accountId?: string;
+    clientdata?: string;
 };
 
 // Warning: (ae-missing-release-tag) "authTimeNotFound" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1439,6 +1446,11 @@ const CLIENT_REQUEST_ID = "client-request-id";
 //
 // @public (undocumented)
 const CLIENT_SECRET = "client_secret";
+
+// Warning: (ae-missing-release-tag) "CLI_DATA" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const CLI_DATA = "clidata";
 
 // Warning: (ae-missing-release-tag) "ClientAssertion" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -3434,6 +3446,7 @@ export type PerformanceEvent = {
     errorCode?: string;
     subErrorCode?: string;
     serverErrorNo?: string;
+    serverSubErrorNo?: string;
     libraryName: string;
     libraryVersion: string;
     previousLibraryVersion?: string;
@@ -3905,6 +3918,7 @@ declare namespace RequestParameterBuilder {
         addRequestTokenUse,
         addGrantType,
         addClientInfo,
+        addCliData,
         addInstanceAware,
         addExtraParameters,
         addClientCapabilitiesToClaims,

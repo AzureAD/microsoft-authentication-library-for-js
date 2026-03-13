@@ -77,4 +77,9 @@ export type AuthorizeResponse = {
      * AccountId for the user, returned when platform broker is available to use
      */
     accountId?: string;
+    /**
+     * Client data returned by the server when clidata=1 is sent on the request.
+     * URL-encoded string in the format: account_type|error|sub_error|cloud_instance|caller_data_boundary
+     */
+    clientdata?: string;
 };
