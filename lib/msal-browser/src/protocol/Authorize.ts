@@ -89,7 +89,9 @@ export function parseClientData(clientdata?: string): ClientData | null {
     try {
         // Only decode when the string appears to contain percent-encoded sequences
         const shouldDecode = /%(?:[0-9A-Fa-f]{2})/.test(clientdata);
-        const decoded = shouldDecode ? decodeURIComponent(clientdata) : clientdata;
+        const decoded = shouldDecode
+            ? decodeURIComponent(clientdata)
+            : clientdata;
         const parts = decoded.split("|");
 
         if (parts.length < 5) {
