@@ -1965,7 +1965,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     scopes: ["User.Read"],
                 });
 
-            expect(nativeRequest.claims).toBe("{}");
+            expect(nativeRequest.claims).toBeUndefined();
         });
 
         it("does not add xms_cc when client capabilities array is empty", async () => {
