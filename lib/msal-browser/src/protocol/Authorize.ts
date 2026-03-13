@@ -70,8 +70,13 @@ const clientDataAccountTypeMapping = new Map([
 /**
  * Parses the clientdata response parameter from the /authorize endpoint.
  *
- * The clientdata value is URL-encoded and pipe-delimited:
+ * Logically, the clientdata value is URL-encoded and pipe-delimited:
  *   urlencoded(account_type | error | sub_error | cloud_instance | caller_data_boundary)
+ *
+ * In normal browser flows, this value may already have been URL-decoded
+ * (e.g. by URLSearchParams). This function will only apply decodeURIComponent
+ * when the string appears to contain percent-encoded sequences to avoid
+ * double-decoding.
  *
  * @param clientdata - The raw clientdata string from the authorize response
  * @returns Parsed ClientData object, or null if the input is empty/invalid
@@ -82,7 +87,9 @@ export function parseClientData(clientdata?: string): ClientData | null {
     }
 
     try {
-        const decoded = decodeURIComponent(clientdata);
+        // Only decode when the string appears to contain percent-encoded sequences
+        const shouldDecode = /%(?:[0-9A-Fa-f]{2})/.test(clientdata);
+        const decoded = shouldDecode ? decodeURIComponent(clientdata) : clientdata;
         const parts = decoded.split("|");
 
         if (parts.length < 5) {
