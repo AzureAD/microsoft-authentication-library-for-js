@@ -35,6 +35,7 @@ import {
     buildAccountToCache,
     InProgressPerformanceEvent,
     ServerTelemetryManager,
+    RequestParameterBuilder,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -73,7 +74,6 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { RequestParameterBuilder } from "@azure/msal-common";
 
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
