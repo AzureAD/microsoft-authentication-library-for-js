@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update claims for brokering cases (#8409)",
-  "packageName": "@azure/msal-common",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
-}

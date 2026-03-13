@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Wed, 04 Mar 2026 18:47:06 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 13 Mar 2026 04:32:06 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.16.1
+
+Fri, 13 Mar 2026 04:32:06 GMT
+
+### Patches
+
+- Update claims for brokering cases (#8409) (sameera.gajjarapu@microsoft.com)
+- Track online/offline status change [#8410](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8410) (thomas.norling@microsoft.com)
+- Additional telemetry for monitor_window_timeout errors [#8380](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8380) (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 15.16.0
 
