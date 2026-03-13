@@ -1739,5 +1739,289 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "https://graph.microsoft.com"
             );
         });
+
+        it("merges client capabilities with empty claims", async () => {
+            const pcaWithClientCapabilities = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    clientCapabilities: ["CP1", "CP2", "CP3"],
+                },
+            });
+            await pcaWithClientCapabilities.initialize();
+            const platformAuthClientWithCapabilities =
+                new PlatformAuthInteractionClient(
+                    // @ts-ignore
+                    (pcaWithClientCapabilities as any).controller.config,
+                    // @ts-ignore
+                    (
+                        pcaWithClientCapabilities as any
+                    ).controller.browserStorage,
+                    // @ts-ignore
+                    (pcaWithClientCapabilities as any).controller.browserCrypto,
+                    // @ts-ignore
+                    (pcaWithClientCapabilities as any).controller.logger,
+                    // @ts-ignore
+                    (pcaWithClientCapabilities as any).controller.eventHandler,
+                    (
+                        pcaWithClientCapabilities as any
+                    ).controller.navigationClient,
+                    ApiId.acquireTokenSilent_silentFlow,
+                    // @ts-ignore
+                    (
+                        pcaWithClientCapabilities as any
+                    ).controller.performanceClient,
+                    wamProvider,
+                    "nativeAccountId",
+                    (
+                        pcaWithClientCapabilities as any
+                    ).controller.nativeInternalStorage,
+                    "correlationId"
+                );
+
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthClientWithCapabilities.initializeNativeRequest(
+                    {
+                        scopes: ["User.Read"],
+                    }
+                );
+
+            expect(nativeRequest.claims).toBeDefined();
+            const parsedClaims = JSON.parse(nativeRequest.claims || "");
+            expect(parsedClaims.access_token).toBeDefined();
+            expect(parsedClaims.access_token.xms_cc).toBeDefined();
+            expect(parsedClaims.access_token.xms_cc.values).toEqual([
+                "CP1",
+                "CP2",
+                "CP3",
+            ]);
+        });
+
+        it("merges client capabilities with existing claims", async () => {
+            const pcaWithClientCapabilities = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    clientCapabilities: ["CP1", "CP2", "CP3"],
+                },
+            });
+            await pcaWithClientCapabilities.initialize();
+            const platformAuthClientWithCapabilities =
+                new PlatformAuthInteractionClient(
+                    // @ts-ignore
+                    (pcaWithClientCapabilities as any).controller.config,
+                    // @ts-ignore
+                    (
+                        pcaWithClientCapabilities as any
+                    ).controller.browserStorage,
+                    // @ts-ignore
+                    (pcaWithClientCapabilities as any).controller.browserCrypto,
+                    // @ts-ignore
+                    (pcaWithClientCapabilities as any).controller.logger,
+                    // @ts-ignore
+                    (pcaWithClientCapabilities as any).controller.eventHandler,
+                    (
+                        pcaWithClientCapabilities as any
+                    ).controller.navigationClient,
+                    ApiId.acquireTokenPopup,
+                    // @ts-ignore
+                    (
+                        pcaWithClientCapabilities as any
+                    ).controller.performanceClient,
+                    platformAuthDOMHandler,
+                    "nativeAccountId",
+                    (
+                        pcaWithClientCapabilities as any
+                    ).controller.nativeInternalStorage,
+                    "correlationId"
+                );
+
+            const existingClaims = JSON.stringify({
+                userinfo: {
+                    given_name: { essential: true },
+                },
+            });
+
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthClientWithCapabilities.initializeNativeRequest(
+                    {
+                        scopes: ["User.Read"],
+                        claims: existingClaims,
+                    }
+                );
+
+            expect(nativeRequest.claims).toBeDefined();
+            const parsedClaims = JSON.parse(nativeRequest.claims || "");
+
+            // Verify existing claims are preserved
+            expect(parsedClaims.userinfo).toBeDefined();
+            expect(parsedClaims.userinfo.given_name).toEqual({
+                essential: true,
+            });
+
+            // Verify client capabilities are added
+            expect(parsedClaims.access_token).toBeDefined();
+            expect(parsedClaims.access_token.xms_cc).toBeDefined();
+            expect(parsedClaims.access_token.xms_cc.values).toEqual([
+                "CP1",
+                "CP2",
+                "CP3",
+            ]);
+        });
+
+        it("merges client capabilities with existing access_token claims", async () => {
+            const pcaWithClientCapabilities = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    clientCapabilities: ["CP1", "CP2", "CP3"],
+                },
+            });
+            await pcaWithClientCapabilities.initialize();
+            const platformAuthClientWithCapabilities =
+                new PlatformAuthInteractionClient(
+                    // @ts-ignore
+                    (pcaWithClientCapabilities as any).controller.config,
+                    // @ts-ignore
+                    (
+                        pcaWithClientCapabilities as any
+                    ).controller.browserStorage,
+                    // @ts-ignore
+                    (pcaWithClientCapabilities as any).controller.browserCrypto,
+                    // @ts-ignore
+                    (pcaWithClientCapabilities as any).controller.logger,
+                    // @ts-ignore
+                    (pcaWithClientCapabilities as any).controller.eventHandler,
+                    (
+                        pcaWithClientCapabilities as any
+                    ).controller.navigationClient,
+                    ApiId.acquireTokenRedirect,
+                    // @ts-ignore
+                    (
+                        pcaWithClientCapabilities as any
+                    ).controller.performanceClient,
+                    wamProvider,
+                    "nativeAccountId",
+                    (
+                        pcaWithClientCapabilities as any
+                    ).controller.nativeInternalStorage,
+                    "correlationId"
+                );
+
+            const existingClaims = JSON.stringify({
+                access_token: {
+                    custom_claim: "custom_value",
+                },
+            });
+
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthClientWithCapabilities.initializeNativeRequest(
+                    {
+                        scopes: ["User.Read"],
+                        claims: existingClaims,
+                    }
+                );
+
+            expect(nativeRequest.claims).toBeDefined();
+            const parsedClaims = JSON.parse(nativeRequest.claims || "");
+
+            // Verify existing access_token claims are preserved
+            expect(parsedClaims.access_token.custom_claim).toEqual(
+                "custom_value"
+            );
+
+            // Verify client capabilities are added
+            expect(parsedClaims.access_token.xms_cc).toBeDefined();
+            expect(parsedClaims.access_token.xms_cc.values).toEqual([
+                "CP1",
+                "CP2",
+                "CP3",
+            ]);
+        });
+
+        it("does not modify claims when no client capabilities are configured", async () => {
+            const existingClaims = JSON.stringify({
+                userinfo: {
+                    given_name: { essential: true },
+                },
+            });
+
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializeNativeRequest({
+                    scopes: ["User.Read"],
+                    claims: existingClaims,
+                });
+
+            expect(nativeRequest.claims).toEqual(existingClaims);
+            const parsedClaims = JSON.parse(nativeRequest.claims || "");
+            expect(parsedClaims.access_token).toBeUndefined();
+        });
+
+        it("returns undefined claims when no claims or client capabilities are provided", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializeNativeRequest({
+                    scopes: ["User.Read"],
+                });
+
+            expect(nativeRequest.claims).toBe("{}");
+        });
+
+        it("does not add xms_cc when client capabilities array is empty", async () => {
+            const pcaWithEmptyCapabilities = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    clientCapabilities: [],
+                },
+            });
+            await pcaWithEmptyCapabilities.initialize();
+            const platformAuthClientWithEmptyCapabilities =
+                new PlatformAuthInteractionClient(
+                    // @ts-ignore
+                    (pcaWithEmptyCapabilities as any).controller.config,
+                    // @ts-ignore
+                    (pcaWithEmptyCapabilities as any).controller.browserStorage,
+                    // @ts-ignore
+                    (pcaWithEmptyCapabilities as any).controller.browserCrypto,
+                    // @ts-ignore
+                    (pcaWithEmptyCapabilities as any).controller.logger,
+                    // @ts-ignore
+                    (pcaWithEmptyCapabilities as any).controller.eventHandler,
+                    (
+                        pcaWithEmptyCapabilities as any
+                    ).controller.navigationClient,
+                    ApiId.acquireTokenRedirect,
+                    // @ts-ignore
+                    (
+                        pcaWithEmptyCapabilities as any
+                    ).controller.performanceClient,
+                    wamProvider,
+                    "nativeAccountId",
+                    (
+                        pcaWithEmptyCapabilities as any
+                    ).controller.nativeInternalStorage,
+                    "correlationId"
+                );
+
+            const existingClaims = JSON.stringify({
+                userinfo: {
+                    given_name: { essential: true },
+                },
+            });
+
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthClientWithEmptyCapabilities.initializeNativeRequest(
+                    {
+                        scopes: ["User.Read"],
+                        claims: existingClaims,
+                    }
+                );
+
+            expect(nativeRequest.claims).toEqual(existingClaims);
+            const parsedClaims = JSON.parse(nativeRequest.claims || "");
+            expect(parsedClaims.access_token).toBeUndefined();
+        });
     });
 });
