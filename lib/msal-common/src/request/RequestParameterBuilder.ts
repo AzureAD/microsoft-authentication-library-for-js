@@ -458,6 +458,13 @@ export function addClientInfo(parameters: Map<string, string>): void {
     parameters.set(CLIENT_INFO, "1");
 }
 
+/**
+ * add clidata=1 to request to indicate client data support
+ */
+export function addCliData(parameters: Map<string, string>): void {
+    parameters.set(AADServerParamKeys.CLI_DATA, "1");
+}
+
 export function addInstanceAware(parameters: Map<string, string>): void {
     if (!parameters.has(AADServerParamKeys.INSTANCE_AWARE)) {
         parameters.set(AADServerParamKeys.INSTANCE_AWARE, "true");

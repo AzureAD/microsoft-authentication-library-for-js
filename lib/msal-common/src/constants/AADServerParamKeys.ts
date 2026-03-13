@@ -61,3 +61,4 @@ export const BROKER_REDIRECT_URI = "brk_redirect_uri";
 export const INSTANCE_AWARE = "instance_aware";
 export const EAR_JWK = "ear_jwk";
 export const EAR_JWE_CRYPTO = "ear_jwe_crypto";
+export const CLI_DATA = "clidata";

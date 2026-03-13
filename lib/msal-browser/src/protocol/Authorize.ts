@@ -46,6 +46,90 @@ import { decryptEarResponse } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 /**
+ * Parsed representation of the clientdata response parameter from the /authorize endpoint.
+ *
+ * Format: urlencoded(account_type|error|sub_error|cloud_instance|caller_data_boundary)
+ */
+type ClientData = {
+    /** Account type: MSA, AAD */
+    accountType: string;
+    /** Error code string (e.g. "0x8004345C" for MSA) */
+    error: string;
+    /** Sub-error code string (e.g. "0x80043588" for MSA) */
+    subError: string;
+    /** Cloud instance hostname (e.g. "login.microsoftonline.com") */
+    cloudInstance: string;
+    /** Caller data boundary (e.g. "none" for MSA) */
+    callerDataBoundary: string;
+};
+
+const clientDataAccountTypeMapping = new Map([
+    ["e", "AAD"],
+    ["m", "MSA"],
+]);
+
+/**
+ * Parses the clientdata response parameter from the /authorize endpoint.
+ *
+ * The clientdata value is URL-encoded and pipe-delimited:
+ *   urlencoded(account_type | error | sub_error | cloud_instance | caller_data_boundary)
+ *
+ * @param clientdata - The raw clientdata string from the authorize response
+ * @returns Parsed ClientData object, or null if the input is empty/invalid
+ */
+export function parseClientData(clientdata?: string): ClientData | null {
+    if (!clientdata) {
+        return null;
+    }
+
+    try {
+        const decoded = decodeURIComponent(clientdata);
+        const parts = decoded.split("|");
+
+        if (parts.length < 5) {
+            return null;
+        }
+
+        return {
+            accountType:
+                clientDataAccountTypeMapping.get(parts[0]?.trim() || "") || "",
+            error: parts[1]?.trim() || "",
+            subError: parts[2]?.trim() || "",
+            cloudInstance: parts[3]?.trim() || "",
+            callerDataBoundary: parts[4]?.trim() || "",
+        };
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Instruments account type, error, and suberror from clientdata
+ */
+function instrumentClientData(
+    response: AuthorizeResponse,
+    correlationId: string,
+    performanceClient: IPerformanceClient
+): void {
+    const parsed = parseClientData(response.clientdata);
+    parsed?.accountType &&
+        performanceClient.addFields(
+            { accountType: parsed.accountType },
+            correlationId
+        );
+    parsed?.error &&
+        performanceClient.addFields(
+            { serverErrorNo: parsed.error },
+            correlationId
+        );
+    parsed?.subError &&
+        performanceClient.addFields(
+            { serverSubErrorNo: parsed.subError },
+            correlationId
+        );
+}
+
+/**
  * Returns map of parameters that are applicable to all calls to /authorize whether using PKCE or EAR
  * @param config
  * @param authority
@@ -412,6 +496,10 @@ export async function handleResponseCode(
         config.auth.clientId,
         request
     );
+
+    // Instrument clientdata telemetry fields from the authorize response
+    instrumentClientData(response, request.correlationId, performanceClient);
+
     if (response.accountId) {
         return invokeAsync(
             handleResponsePlatformBroker,
@@ -491,6 +579,9 @@ export async function handleResponseEAR(
         config.auth.clientId,
         request
     );
+
+    // Instrument clientdata telemetry fields from the authorize response
+    instrumentClientData(response, request.correlationId, performanceClient);
 
     // Validate state & check response for errors
     AuthorizeProtocol.validateAuthorizationResponse(response, request.state);
