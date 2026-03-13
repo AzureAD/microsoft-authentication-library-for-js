@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773159431919,
+  "lastUpdate": 1773420835306,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19971,6 +19971,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.03%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "48cd5e0af83a8da6d32df43996b4c2d9ffe1fa4c",
+          "message": "Migrate msal-react samples from CRA to Vite (#8423)\n\nMigrate msal-react samples from CRA to Vite.\nUpdate migration guides.",
+          "timestamp": "2026-03-13T12:48:01-04:00",
+          "tree_id": "0dfd94a67041fe9ed5790ce0360d1454e64bf6de",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/48cd5e0af83a8da6d32df43996b4c2d9ffe1fa4c"
+        },
+        "date": 1773420829852,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 210640,
+            "range": "±1.18%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 221656,
+            "range": "±0.78%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
           }
         ]
       }
