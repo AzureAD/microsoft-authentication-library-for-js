@@ -20,6 +20,8 @@ MSAL React v5 supports React 19.2.1 or greater. It no longer supports React 16, 
 
 ## React 18 compatibility note
 
+React 18 has reached end of life, which is why MSAL React v5 dropped support for it.
+
 If your app is still on React 18, installing `@azure/msal-react@^5` may fail due to peer dependency constraints.
 
 - Temporary install workaround: `npm install --legacy-peer-deps`
