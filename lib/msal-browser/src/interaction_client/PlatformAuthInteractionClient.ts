@@ -73,6 +73,8 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+import { RequestParameterBuilder } from "@azure/msal-common";
 
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -917,12 +919,22 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const canonicalAuthority = await this.getCanonicalAuthority(request);
 
         // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
-        const { scopes, ...remainingProperties } = request;
+        const { scopes, claims, ...remainingProperties } = request;
         const scopeSet = new ScopeSet(scopes || []);
         scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
 
+        const mergedClaims =
+            this.config.auth.clientCapabilities &&
+            this.config.auth.clientCapabilities.length
+                ? RequestParameterBuilder.addClientCapabilitiesToClaims(
+                      claims,
+                      this.config.auth.clientCapabilities
+                  )
+                : claims;
+
         const validatedRequest: PlatformAuthRequest = {
             ...remainingProperties,
+            claims: mergedClaims,
             accountId: this.accountId,
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
