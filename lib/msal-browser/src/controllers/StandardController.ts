@@ -276,11 +276,8 @@ export class StandardController implements IController {
         this.activeSilentTokenRequests = new Map();
 
         // Register listener functions
-        this.trackPageVisibility = this.trackPageVisibility.bind(this);
-
-        // Register listener functions
-        this.trackPageVisibilityWithMeasurement =
-            this.trackPageVisibilityWithMeasurement.bind(this);
+        this.trackStateChangeWithMeasurement =
+            this.trackStateChangeWithMeasurement.bind(this);
     }
 
     static async createController(
@@ -292,15 +289,30 @@ export class StandardController implements IController {
         return controller;
     }
 
-    private trackPageVisibility(correlationId?: string): void {
+    private trackStateChange(correlationId: string, event: Event): void {
         if (!correlationId) {
             return;
         }
-        this.logger.info("Perf: Visibility change detected");
-        this.performanceClient.incrementFields(
-            { visibilityChangeCount: 1 },
-            correlationId
-        );
+
+        if (event.type === "visibilitychange") {
+            this.logger.info("Perf: Visibility change detected");
+            this.performanceClient.incrementFields(
+                { visibilityChangeCount: 1 },
+                correlationId
+            );
+        } else if (event.type === "online") {
+            this.logger.info("Perf: Online status change detected");
+            this.performanceClient.incrementFields(
+                { onlineStatusChangeCount: 1 },
+                correlationId
+            );
+        } else if (event.type === "offline") {
+            this.logger.info("Perf: Offline status change detected");
+            this.performanceClient.incrementFields(
+                { onlineStatusChangeCount: 1 },
+                correlationId
+            );
+        }
     }
 
     /**
@@ -978,7 +990,7 @@ export class StandardController implements IController {
             });
     }
 
-    private trackPageVisibilityWithMeasurement(): void {
+    private trackStateChangeWithMeasurement(event: Event): void {
         const measurement =
             this.ssoSilentMeasurement ||
             this.acquireTokenByCodeAsyncMeasurement;
@@ -986,13 +998,43 @@ export class StandardController implements IController {
             return;
         }
 
-        this.logger.info(
-            "Perf: Visibility change detected in ",
-            measurement.event.name
-        );
-        measurement.increment({
-            visibilityChangeCount: 1,
-        });
+        if (event.type === "visibilitychange") {
+            this.logger.info(
+                "Perf: Visibility change detected in ",
+                measurement.event.name
+            );
+            measurement.increment({
+                visibilityChangeCount: 1,
+            });
+        } else if (event.type === "online") {
+            this.logger.info(
+                "Perf: Online status change detected in ",
+                measurement.event.name
+            );
+            measurement.increment({
+                onlineStatusChangeCount: 1,
+            });
+        } else if (event.type === "offline") {
+            this.logger.info(
+                "Perf: Offline status change detected in ",
+                measurement.event.name
+            );
+            measurement.increment({
+                onlineStatusChangeCount: 1,
+            });
+        }
+    }
+
+    private addStateChangeListeners(listener: (event: Event) => void): void {
+        document.addEventListener("visibilitychange", listener);
+        window.addEventListener("online", listener);
+        window.addEventListener("offline", listener);
+    }
+
+    private removeStateChangeListeners(listener: (event: Event) => void): void {
+        document.removeEventListener("visibilitychange", listener);
+        window.removeEventListener("online", listener);
+        window.removeEventListener("offline", listener);
     }
 
     /**
@@ -1108,12 +1150,10 @@ export class StandardController implements IController {
         );
         this.ssoSilentMeasurement?.increment({
             visibilityChangeCount: 0,
+            onlineStatusChangeCount: 0,
         });
 
-        document.addEventListener(
-            "visibilitychange",
-            this.trackPageVisibilityWithMeasurement
-        );
+        this.addStateChangeListeners(this.trackStateChangeWithMeasurement);
         this.logger.verbose("ssoSilent called", correlationId);
         this.eventHandler.emitEvent(
             EventType.SSO_SILENT_START,
@@ -1187,9 +1227,8 @@ export class StandardController implements IController {
                 throw e;
             })
             .finally(() => {
-                document.removeEventListener(
-                    "visibilitychange",
-                    this.trackPageVisibilityWithMeasurement
+                this.removeStateChangeListeners(
+                    this.trackStateChangeWithMeasurement
                 );
             });
     }
@@ -1364,11 +1403,9 @@ export class StandardController implements IController {
             );
         this.acquireTokenByCodeAsyncMeasurement?.increment({
             visibilityChangeCount: 0,
+            onlineStatusChangeCount: 0,
         });
-        document.addEventListener(
-            "visibilitychange",
-            this.trackPageVisibilityWithMeasurement
-        );
+        this.addStateChangeListeners(this.trackStateChangeWithMeasurement);
         const silentAuthCodeClient = this.createSilentAuthCodeClient(
             request.correlationId
         );
@@ -1391,9 +1428,8 @@ export class StandardController implements IController {
                 throw tokenRenewalError;
             })
             .finally(() => {
-                document.removeEventListener(
-                    "visibilitychange",
-                    this.trackPageVisibilityWithMeasurement
+                this.removeStateChangeListeners(
+                    this.trackStateChangeWithMeasurement
                 );
             });
         return silentTokenResult;
@@ -2288,8 +2324,8 @@ export class StandardController implements IController {
         request: SilentRequest & { correlationId: string },
         account: AccountInfo
     ): Promise<AuthenticationResult> {
-        const trackPageVisibility = () =>
-            this.trackPageVisibility(request.correlationId);
+        const trackStateChange = (event: Event) =>
+            this.trackStateChange(request.correlationId, event);
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.AcquireTokenSilentAsync,
             request.correlationId
@@ -2303,12 +2339,12 @@ export class StandardController implements IController {
 
         if (request.correlationId) {
             this.performanceClient.incrementFields(
-                { visibilityChangeCount: 0 },
+                { visibilityChangeCount: 0, onlineStatusChangeCount: 0 },
                 request.correlationId
             );
         }
 
-        document.addEventListener("visibilitychange", trackPageVisibility);
+        this.addStateChangeListeners(trackStateChange);
 
         const silentRequest = await invokeAsync(
             initializeSilentRequest,
@@ -2454,10 +2490,7 @@ export class StandardController implements IController {
                 throw tokenRenewalError;
             })
             .finally(() => {
-                document.removeEventListener(
-                    "visibilitychange",
-                    trackPageVisibility
-                );
+                this.removeStateChangeListeners(trackStateChange);
             });
     }
 

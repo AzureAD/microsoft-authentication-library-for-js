@@ -92,6 +92,27 @@ describe("BrowserPerformanceClient.ts", () => {
             expect(result?.startPageVisibility).toBe("visible");
             expect(result?.endPageVisibility).toBe("visible");
         });
+
+        it("captures online status at measurement start", () => {
+            jest.spyOn(
+                Object.getPrototypeOf(navigator),
+                "onLine",
+                "get"
+            ).mockReturnValue(true);
+
+            const browserPerfClient = new BrowserPerformanceClient(
+                testAppConfig
+            );
+
+            const measurement = browserPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+
+            const result = measurement.end();
+
+            expect(result?.startOnlineStatus).toBe(true);
+        });
     });
 
     describe("setPreQueueTime", () => {
