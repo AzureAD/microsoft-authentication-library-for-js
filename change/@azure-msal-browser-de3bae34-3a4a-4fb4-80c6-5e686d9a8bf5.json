@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add missing client capabilities in platform broker flows",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
