@@ -194,6 +194,7 @@ describe("Authorize Protocol Tests", () => {
                     BrowserConstants.MSAL_SKU
                 );
                 checkInputProperties(AADServerParamKeys.X_CLIENT_VER, version);
+                checkInputProperties(AADServerParamKeys.CLI_DATA, "1");
 
                 // Verify correlationId is present in authorize URL query params
                 const actionUrl = new URL(form.action);
@@ -465,6 +466,253 @@ describe("Authorize Protocol Tests", () => {
             expect(
                 actionUrl.searchParams.get(AADServerParamKeys.CLIENT_REQUEST_ID)
             ).toEqual(validRequest.correlationId);
+        });
+
+        it("Includes clidata=1 in form post body", async () => {
+            const form = await Authorize.getCodeForm(
+                document,
+                config,
+                authority,
+                validRequest,
+                logger,
+                performanceClient
+            );
+
+            const cliDataInput = form.elements.namedItem(
+                AADServerParamKeys.CLI_DATA
+            ) as HTMLInputElement;
+            expect(cliDataInput).toBeTruthy();
+            expect(cliDataInput.value).toEqual("1");
+        });
+    });
+
+    describe("instrumentClientData Tests", () => {
+        const config = buildConfiguration(
+            { auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID } },
+            true
+        );
+        const logger = new Logger({});
+        const performanceClient = new StubPerformanceClient();
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: ProtocolMode.EAR,
+            knownAuthorities: [],
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: "",
+        };
+        const eventHandler = new EventHandler();
+        const cacheManager = new BrowserCacheManager(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            config.cache,
+            new CryptoOps(logger, performanceClient),
+            logger,
+            performanceClient,
+            eventHandler
+        );
+        let authority: Authority;
+        const validRequest: CommonAuthorizationUrlRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            scopes: ["openid", "profile"],
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            redirectUri: window.location.href,
+            state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+            nonce: ID_TOKEN_CLAIMS.nonce,
+            responseMode: ResponseMode.FRAGMENT,
+            codeChallenge: "code-challenge",
+            earJwk: validEarJWK,
+        };
+
+        beforeAll(async () => {
+            jest.useFakeTimers();
+            authority = await AuthorityFactory.createDiscoveredInstance(
+                TEST_CONFIG.validAuthority,
+                config.system.networkClient,
+                cacheManager,
+                authorityOptions,
+                logger,
+                TEST_CONFIG.CORRELATION_ID,
+                performanceClient
+            );
+        });
+
+        afterAll(() => {
+            jest.useRealTimers();
+        });
+
+        it("handleResponseEAR instruments clientdata telemetry when clientdata is present", async () => {
+            const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
+            // clientdata: m|0x8004345C|0x80047857|none|login.microsoftonline.com
+            const clientdata =
+                "m%7C0x8004345C%7C0x80047857%7Cnone%7Clogin.microsoftonline.com";
+            const response = {
+                ear_jwe: validEarJWE,
+                state: validRequest.state,
+                clientdata,
+            };
+
+            await Authorize.handleResponseEAR(
+                validRequest,
+                response,
+                ApiId.acquireTokenPopup,
+                config,
+                authority,
+                cacheManager,
+                cacheManager,
+                eventHandler,
+                logger,
+                performanceClient
+            );
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    accountType: "MSA",
+                }),
+                validRequest.correlationId
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    serverErrorNo: "0x8004345C",
+                }),
+                validRequest.correlationId
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    serverSubErrorNo: "0x80047857",
+                }),
+                validRequest.correlationId
+            );
+            addFieldsSpy.mockRestore();
+        });
+
+        it("handleResponseEAR does not instrument clientdata when clientdata is absent", async () => {
+            const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
+            addFieldsSpy.mockClear();
+            const response = {
+                ear_jwe: validEarJWE,
+                state: validRequest.state,
+            };
+
+            await Authorize.handleResponseEAR(
+                validRequest,
+                response,
+                ApiId.acquireTokenPopup,
+                config,
+                authority,
+                cacheManager,
+                cacheManager,
+                eventHandler,
+                logger,
+                performanceClient
+            );
+
+            // addFields may be called for other reasons, but NOT with clientData fields
+            const clientDataCalls = addFieldsSpy.mock.calls.filter(
+                (call: unknown[]) => {
+                    const fields = call[0] as
+                        | Record<string, unknown>
+                        | undefined;
+                    return fields && "serverErrorNo" in fields;
+                }
+            );
+            expect(clientDataCalls).toHaveLength(0);
+            addFieldsSpy.mockRestore();
+        });
+
+        it("handleResponseEAR instruments Entra (AAD) account type from clientdata", async () => {
+            const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
+            // clientdata: e|AADSTS50076|basic_action|login.microsoftonline.com|none
+            const clientdata =
+                "e%7CAADSTS50076%7Cbasic_action%7Clogin.microsoftonline.com%7Cnone";
+            const response = {
+                ear_jwe: validEarJWE,
+                state: validRequest.state,
+                clientdata,
+            };
+
+            await Authorize.handleResponseEAR(
+                validRequest,
+                response,
+                ApiId.acquireTokenPopup,
+                config,
+                authority,
+                cacheManager,
+                cacheManager,
+                eventHandler,
+                logger,
+                performanceClient
+            );
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    accountType: "AAD",
+                }),
+                validRequest.correlationId
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    serverErrorNo: "AADSTS50076",
+                }),
+                validRequest.correlationId
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    serverSubErrorNo: "basic_action",
+                }),
+                validRequest.correlationId
+            );
+            addFieldsSpy.mockRestore();
+        });
+
+        it("handleResponseCode instruments clientdata telemetry before processing response", async () => {
+            const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
+            // clientdata: e|AADSTS65001|consent_required|login.microsoftonline.com|none
+            const clientdata =
+                "e%7CAADSTS65001%7Cconsent_required%7Clogin.microsoftonline.com%7Cnone";
+            const response = {
+                // Use accountId so it hits the platformBroker path, which throws without a provider
+                accountId: "test-account-id",
+                state: validRequest.state,
+                clientdata,
+            };
+
+            try {
+                await Authorize.handleResponseCode(
+                    validRequest,
+                    response,
+                    "code-verifier",
+                    ApiId.acquireTokenPopup,
+                    config,
+                    {} as any, // authClient not needed — accountId path is taken
+                    cacheManager,
+                    cacheManager,
+                    eventHandler,
+                    logger,
+                    performanceClient
+                    // no platformAuthProvider → throws nativeConnectionNotEstablished
+                );
+            } catch {
+                // Expected: nativeConnectionNotEstablished
+            }
+
+            // instrumentClientData ran before the throw
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    accountType: "AAD",
+                }),
+                validRequest.correlationId
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    serverErrorNo: "AADSTS65001",
+                }),
+                validRequest.correlationId
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    serverSubErrorNo: "consent_required",
+                }),
+                validRequest.correlationId
+            );
+            addFieldsSpy.mockRestore();
         });
     });
 });
