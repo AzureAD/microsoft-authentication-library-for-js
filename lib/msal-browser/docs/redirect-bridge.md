@@ -11,6 +11,26 @@ This guide provides framework-specific instructions for setting up the redirect 
 > The URI must match **exactly** — including path, protocol, and port.
 > Failure to update the app registration will result in `redirect_uri_mismatch` errors.
 
+> [!WARNING]
+> If the redirect bridge is **not** set up, all authentication flows **except**
+> `acquireTokenRedirect` / `loginRedirect` will stop working.
+> `ssoSilent`, `acquireTokenPopup`, and `loginPopup` depend on the redirect
+> bridge to receive the authentication response from the identity provider.
+> `acquireTokenSilent` is also affected when the refresh token is expired and
+> MSAL falls back to acquiring a new token in a hidden iframe (the same
+> mechanism used by `ssoSilent`). Without the redirect bridge, the popup or
+> iframe cannot communicate the response back to the main application window.
+
+> [!CAUTION]
+> **Do NOT load the redirect bridge page from a CDN** (e.g., jsdelivr, unpkg,
+> cdnjs). The redirect bridge receives the raw authentication response —
+> including authorization codes and tokens — directly from the identity
+> provider. Loading this page from a third-party CDN creates a **supply-chain
+> and token-theft risk**: a compromised CDN asset could intercept the
+> authentication response before it reaches your application. Always bundle the
+> redirect bridge with your application or serve it from your own
+> infrastructure.
+
 ## Angular
 
 1. **Create the redirect bridge component** (`src/app/redirect/redirect.component.ts`):

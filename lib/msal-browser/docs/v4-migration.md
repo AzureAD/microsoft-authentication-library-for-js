@@ -359,6 +359,20 @@ The setup varies by build system — see the **[Redirect Bridge — Framework-Sp
 
 **See also:** [Redirect URI considerations](./login-user.md#redirecturi-considerations) | [Popup interaction_in_progress errors](./login-user.md#handling-popup-interaction_in_progress-errors) | [MDN: COOP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy)
 
+> [!WARNING]
+> If the redirect bridge is **not** set up, all authentication flows **except**
+> `acquireTokenRedirect` / `loginRedirect` will stop working — this includes
+> `ssoSilent`, `acquireTokenPopup`, and `loginPopup`. `acquireTokenSilent` is
+> also affected when the refresh token is expired and MSAL falls back to a
+> hidden iframe flow.
+
+> [!CAUTION]
+> **Do NOT load the redirect bridge page from a CDN** (e.g., jsdelivr, unpkg,
+> cdnjs). The bridge receives the raw authentication response and loading it
+> from a third-party CDN creates a supply-chain and token-theft risk. Always
+> bundle the redirect bridge with your application or serve it from your own
+> infrastructure. See the [Redirect Bridge guide](./redirect-bridge.md) for details.
+
 ##### 2. Update your MSAL configuration
 
 Point `redirectUri` to a new redirect bridge page:
