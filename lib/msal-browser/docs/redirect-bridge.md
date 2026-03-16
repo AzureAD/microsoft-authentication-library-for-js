@@ -11,6 +11,34 @@ This guide provides framework-specific instructions for setting up the redirect 
 > The URI must match **exactly** — including path, protocol, and port.
 > Failure to update the app registration will result in `redirect_uri_mismatch` errors.
 
+> [!WARNING]
+> If the redirect bridge is **not** set up, all authentication flows that rely
+> on a popup or hidden iframe will stop working. `ssoSilent`,
+> `acquireTokenPopup`, and `loginPopup` depend on the redirect bridge to
+> receive the authentication response from the identity provider.
+> `acquireTokenSilent` is also affected when the refresh token is expired and
+> MSAL falls back to acquiring a new token in a hidden iframe (the same
+> mechanism used by `ssoSilent`). Without the redirect bridge, the popup or
+> iframe cannot communicate the response back to the main application window.
+>
+> Redirect flows (`loginRedirect` / `acquireTokenRedirect`) **can** work
+> without the redirect bridge **only if** your `redirectUri` points to a page
+> that directly processes the authentication response (for example, using
+> `handleRedirectPromise` as in MSAL v4). However, when following the v5
+> guidance in this document—where `redirectUri` is set to the redirect bridge
+> page that calls `broadcastResponseToMainFrame()`—those redirect flows will
+> also fail if the bridge page is missing or not implemented correctly.
+
+> [!CAUTION]
+> **Do NOT load the redirect bridge page from a CDN** (e.g., jsdelivr, unpkg,
+> cdnjs). The redirect bridge receives the raw authentication response —
+> including authorization codes and tokens — directly from the identity
+> provider. Loading this page from a third-party CDN creates a **supply-chain
+> and token-theft risk**: a compromised CDN asset could intercept the
+> authentication response before it reaches your application. Always bundle the
+> redirect bridge with your application or serve it from your own
+> infrastructure.
+
 ## Angular
 
 1. **Create the redirect bridge component** (`src/app/redirect/redirect.component.ts`):
