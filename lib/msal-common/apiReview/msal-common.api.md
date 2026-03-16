@@ -250,6 +250,11 @@ function addClaims(parameters: Map<string, string>, claims?: string, clientCapab
 // @public
 function addCliData(parameters: Map<string, string>): void;
 
+// Warning: (ae-missing-release-tag) "addCliData" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function addCliData(parameters: Map<string, string>): void;
+
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "addClientAssertion" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
