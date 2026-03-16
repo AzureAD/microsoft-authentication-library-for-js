@@ -76,6 +76,9 @@ export function getStandardAuthorizeRequestParameters(
     // add client_info=1
     RequestParameterBuilder.addClientInfo(parameters);
 
+    // add clidata=1
+    RequestParameterBuilder.addCliData(parameters);
+
     if (request.prompt) {
         RequestParameterBuilder.addPrompt(parameters, request.prompt);
         performanceClient?.addFields({ prompt: request.prompt }, correlationId);

@@ -105,6 +105,9 @@ describe("Authorize Protocol Tests", () => {
                     )}`
                 )
             ).toBe(true);
+            expect(loginUrl.includes(`${AADServerParamKeys.CLI_DATA}=1`)).toBe(
+                true
+            );
         });
 
         it("Creates an authorization url passing in optional parameters", async () => {
