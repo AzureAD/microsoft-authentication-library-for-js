@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773420835306,
+  "lastUpdate": 1773680205933,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20009,6 +20009,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.78%",
             "unit": "ops/sec",
             "extra": "231 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f16b843f05d7afc2759e770cdc44c36739fb9152",
+          "message": "Enhance redirect bridge documentation (#8433)\n\nEnhance redirect bridge documentation with warnings and cautions about\nsetup and security risks",
+          "timestamp": "2026-03-16T09:49:57-07:00",
+          "tree_id": "3c12f9f7331f19a23432330c0c6eb0b5a2342302",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f16b843f05d7afc2759e770cdc44c36739fb9152"
+        },
+        "date": 1773680202570,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 241600,
+            "range": "±0.88%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 240156,
+            "range": "±0.93%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
