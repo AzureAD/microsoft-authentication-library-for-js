@@ -39,6 +39,7 @@ import {
     AccountEntityUtils,
     Constants,
     CredentialEntity,
+    AccountFilter,
 } from "@azure/msal-common/browser";
 import {
     ApiId,
@@ -55,6 +56,7 @@ import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformance
 import { EventHandler } from "../../src/event/EventHandler.js";
 import { version } from "../../src/packageMetadata.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
+import { getAccount } from "../../src/cache/AccountManager.js";
 import { isEncrypted } from "../../src/cache/EncryptedData.js";
 import { SessionStorage } from "../../src/cache/SessionStorage.js";
 
