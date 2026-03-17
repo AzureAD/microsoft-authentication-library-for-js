@@ -922,12 +922,17 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const scopeSet = new ScopeSet(scopes || []);
         scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
 
+        // ignore config claims if skipBrokerClaims is set to true and this is a brokered authentication flow
+        const configClaims =
+            request.skipBrokerClaims && !!request.embeddedClientId
+                ? undefined
+                : this.config.auth.clientCapabilities;
+
         const mergedClaims =
-            this.config.auth.clientCapabilities &&
-            this.config.auth.clientCapabilities.length
+            configClaims && configClaims.length
                 ? RequestParameterBuilder.addClientCapabilitiesToClaims(
                       claims,
-                      this.config.auth.clientCapabilities
+                      configClaims
                   )
                 : claims;
 
