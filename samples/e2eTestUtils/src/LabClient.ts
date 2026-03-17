@@ -1,4 +1,4 @@
-import { ClientCertificateCredential } from "@azure/identity";
+import { DefaultAzureCredential, TokenCredential } from "@azure/identity";
 import { SecretClient } from "@azure/keyvault-secrets";
 import {
     ENV_VARIABLES,
@@ -20,6 +20,9 @@ dotenv.config({ path: __dirname + `/../../../../.env` });
 if (!process.env[ENV_VARIABLES.CLIENT_ID]) {
     dotenv.config({ path: __dirname + `/../../../.env` });
 }
+
+// Enable SNI (send certificate chain) for cert-based auth in CI
+process.env["AZURE_CLIENT_SEND_CERTIFICATE_CHAIN"] = "true";
 
 /**
  * Represents an entry in the UPN JSON stored in Key Vault.
@@ -61,26 +64,16 @@ type AppConfig = {
 };
 
 export class LabClient {
-    private credentials: ClientCertificateCredential;
+    private credentials: TokenCredential;
     private labKeyVaultClient: SecretClient;
     private mobileBuildKeyVaultClient: SecretClient;
     private msalTeamKeyVaultClient: SecretClient;
 
     constructor() {
-        const tenant = process.env[ENV_VARIABLES.TENANT];
-        const clientId = process.env[ENV_VARIABLES.CLIENT_ID];
-        const client_cert_path = process.env[ENV_VARIABLES.CERTIFICATE_PATH];
-        if (!tenant || !clientId || !client_cert_path) {
-            throw "Environment variables not set!";
-        }
-        this.credentials = new ClientCertificateCredential(
-            tenant,
-            clientId,
-            client_cert_path,
-            {
-                sendCertificateChain: true,
-            }
-        );
+        // Uses DefaultAzureCredential which tries multiple auth methods:
+        // - CI: EnvironmentCredential (cert from pipeline)
+        // - Local: AzureCliCredential (az login)
+        this.credentials = new DefaultAzureCredential();
         this.labKeyVaultClient = new SecretClient(
             LAB_KEY_VAULT_URL,
             this.credentials

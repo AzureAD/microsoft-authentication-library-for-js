@@ -12,8 +12,11 @@ import {
     ConfidentialClientApplication,
     Configuration,
 } from "@azure/msal-node";
-import { ClientCertificateCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
 import getClientCredentialsToken from "../app";
+
+// Enable SNI (send certificate chain) for cert-based auth in CI
+process.env["AZURE_CLIENT_SEND_CERTIFICATE_CHAIN"] = "true";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
@@ -29,12 +32,7 @@ describe("Client Credentials AAD Prod Tests", () => {
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
 
-        const credentials = new ClientCertificateCredential(
-            process.env[ENV_VARIABLES.TENANT] as string,
-            process.env[ENV_VARIABLES.CLIENT_ID] as string,
-            process.env[ENV_VARIABLES.CERTIFICATE_PATH] as string,
-            { sendCertificateChain: true }
-        );
+        const credentials = new DefaultAzureCredential();
         [thumbprint, privateKey, x5c] = await getCertificateInfo(
             credentials,
             LAB_KEY_VAULT_URL,
