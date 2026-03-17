@@ -1908,7 +1908,8 @@ describe("PopupClient", () => {
                 5000,
                 clientImpl.logger,
                 clientImpl.browserCrypto,
-                request
+                request,
+                clientImpl.performanceClient
             );
 
             expect(response).toEqual("code=testCode&state=testState");
@@ -1944,7 +1945,8 @@ describe("PopupClient", () => {
                 5000,
                 clientImpl.logger,
                 clientImpl.browserCrypto,
-                request
+                request,
+                clientImpl.performanceClient
             );
 
             expect(response).toEqual("code=authCode&state=testState456");
@@ -1984,7 +1986,8 @@ describe("PopupClient", () => {
                     100,
                     clientImpl.logger,
                     clientImpl.browserCrypto,
-                    request
+                    request,
+                    clientImpl.performanceClient
                 )
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.timedOut,
@@ -2041,14 +2044,16 @@ describe("PopupClient", () => {
                 5000,
                 clientImpl.logger,
                 clientImpl.browserCrypto,
-                request1
+                request1,
+                clientImpl.performanceClient
             );
 
             const promise2 = BrowserUtils.waitForBridgeResponse(
                 5000,
                 clientImpl.logger,
                 clientImpl.browserCrypto,
-                request2
+                request2,
+                clientImpl.performanceClient
             );
 
             const [response1, response2] = await Promise.all([

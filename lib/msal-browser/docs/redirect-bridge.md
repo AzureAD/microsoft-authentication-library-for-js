@@ -11,6 +11,34 @@ This guide provides framework-specific instructions for setting up the redirect 
 > The URI must match **exactly** — including path, protocol, and port.
 > Failure to update the app registration will result in `redirect_uri_mismatch` errors.
 
+> [!WARNING]
+> If the redirect bridge is **not** set up, all authentication flows that rely
+> on a popup or hidden iframe will stop working. `ssoSilent`,
+> `acquireTokenPopup`, and `loginPopup` depend on the redirect bridge to
+> receive the authentication response from the identity provider.
+> `acquireTokenSilent` is also affected when the refresh token is expired and
+> MSAL falls back to acquiring a new token in a hidden iframe (the same
+> mechanism used by `ssoSilent`). Without the redirect bridge, the popup or
+> iframe cannot communicate the response back to the main application window.
+>
+> Redirect flows (`loginRedirect` / `acquireTokenRedirect`) **can** work
+> without the redirect bridge **only if** your `redirectUri` points to a page
+> that directly processes the authentication response (for example, using
+> `handleRedirectPromise` as in MSAL v4). However, when following the v5
+> guidance in this document—where `redirectUri` is set to the redirect bridge
+> page that calls `broadcastResponseToMainFrame()`—those redirect flows will
+> also fail if the bridge page is missing or not implemented correctly.
+
+> [!CAUTION]
+> **Do NOT load the redirect bridge page from a CDN** (e.g., jsdelivr, unpkg,
+> cdnjs). The redirect bridge receives the raw authentication response —
+> including authorization codes and tokens — directly from the identity
+> provider. Loading this page from a third-party CDN creates a **supply-chain
+> and token-theft risk**: a compromised CDN asset could intercept the
+> authentication response before it reaches your application. Always bundle the
+> redirect bridge with your application or serve it from your own
+> infrastructure.
+
 ## Angular
 
 1. **Create the redirect bridge component** (`src/app/redirect/redirect.component.ts`):
@@ -113,6 +141,8 @@ export default defineConfig({
 ```
 
 During development (`vite dev`), the redirect page is automatically served at `/redirect.html`. In production builds, Rollup will emit both `index.html` and `redirect.html` in the output directory.
+
+> **Sample:** See the [react-router-sample](../../../samples/msal-react-samples/react-router-sample), [typescript-sample](../../../samples/msal-react-samples/typescript-sample), and [b2c-sample](../../../samples/msal-react-samples/b2c-sample).
 
 ## Webpack
 
@@ -252,117 +282,6 @@ This prevents MSAL from processing the auth response hash before `broadcastRespo
 No `next.config.js` changes are needed for either router — Next.js serves pages automatically.
 
 > **Sample:** See the [nextjs-sample](../../../samples/msal-react-samples/nextjs-sample) for a Pages Router example.
-
-## Create React App (CRA)
-
-The recommended approach for CRA is to use a **dedicated static HTML file** placed in the `public/` folder. CRA copies everything in `public/` to the build output as-is, so `public/redirect.html` is served at `/redirect.html` with no React bundle attached — exactly what the redirect bridge requires.
-
-### Recommended: dedicated `public/redirect.html`
-
-1. **Create `public/redirect.html`**:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Redirect</title>
-</head>
-<body>
-    <p>Processing authentication...</p>
-    <!--
-        Ensure that msal-redirect-bridge.min.js (the UMD bundle) is hosted at this path,
-        for example by copying it from the @azure/msal-browser package into your public/ folder.
-    -->
-    <script src="/msal-redirect-bridge.min.js"></script>
-    <script>
-        msalRedirectBridge.broadcastResponseToMainFrame().catch(function (error) {
-            console.error("Error broadcasting response:", error);
-        });
-    </script>
-</body>
-</html>
-```
-
-2. **Set `redirectUri`** in your MSAL configuration to point to this file:
-
-```javascript
-const msalConfig = {
-    auth: {
-        clientId: "YOUR_CLIENT_ID",
-        redirectUri: window.location.origin + "/redirect.html",
-    },
-};
-```
-
-This page is served as plain HTML — it does **not** load your React application bundle, React Router, or `MsalProvider`. No changes to `App.js` or routing are required.
-
-> **Important:** The `public/redirect.html` example above uses the UMD bundle (`msal-redirect-bridge.min.js`) and the global `msalRedirectBridge` object. This makes the page usable in a wide range of browsers, including those that do not support native ES modules. If you prefer to use an ES module instead, you can replace the UMD `<script>` tag with a `<script type="module">` block that imports `broadcastResponseToMainFrame` from `@azure/msal-browser/redirect-bridge`, or you can use the SPA route approach described below.
-
-### Alternative: SPA route (React Router)
-
-> **Caveat:** This approach mounts the redirect URI inside the React Router SPA, so the **full application bundle** — including React, React Router, and all your app code — is downloaded and executed on the redirect page. For most apps the extra overhead is negligible, but it can slow down the authentication round-trip. If you use hash-based routing (`HashRouter`) you will also need to ensure the redirect URI hash is not consumed by the router before `broadcastResponseToMainFrame` runs.
-
-If you prefer to keep everything inside the SPA, follow these steps to create a dedicated route that runs the bridge script and place it **outside** `MsalProvider`:
-
-1. **Create `src/pages/Redirect.jsx`**:
-
-```jsx
-import { useEffect } from "react";
-import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
-
-export function Redirect() {
-    useEffect(() => {
-        broadcastResponseToMainFrame().catch((error) => {
-            console.error("Error broadcasting response to main frame:", error);
-        });
-    }, []);
-
-    return <p>Processing authentication...</p>;
-}
-```
-
-2. **Create a layout component** that wraps child routes in `MsalProvider` (`src/components/MsalProviderLayout.jsx`):
-
-```jsx
-import { Outlet } from "react-router-dom";
-import { MsalProvider } from "@azure/msal-react";
-
-export function MsalProviderLayout({ instance }) {
-    return (
-        <MsalProvider instance={instance}>
-            <Outlet />
-        </MsalProvider>
-    );
-}
-```
-
-3. **Add the redirect route outside the layout** in your `App.js`:
-
-```jsx
-import { Routes, Route } from "react-router-dom";
-import { MsalProviderLayout } from "./components/MsalProviderLayout";
-import { Redirect } from "./pages/Redirect";
-import { Home } from "./pages/Home";
-import { Profile } from "./pages/Profile";
-
-function App({ msalInstance }) {
-    return (
-        <Routes>
-            {/* Redirect route is NOT wrapped in MsalProvider */}
-            <Route path="/redirect" element={<Redirect />} />
-
-            {/* All other routes share MsalProvider via the layout */}
-            <Route element={<MsalProviderLayout instance={msalInstance} />}>
-                <Route path="/" element={<Home />} />
-                <Route path="/profile" element={<Profile />} />
-            </Route>
-        </Routes>
-    );
-}
-```
-
-> **Sample:** See the [react-router-sample](../../../samples/msal-react-samples/react-router-sample) and [typescript-sample](../../../samples/msal-react-samples/typescript-sample).
 
 ## Express.js / Node.js Backend
 
