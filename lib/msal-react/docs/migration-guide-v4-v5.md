@@ -16,14 +16,14 @@ MSAL Browser v5 requires a dedicated redirect page/bridge for authentication flo
 Please see the [COOP section in the MSAL Browser v4-v5 migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v4-migration.md#cross-origin-opener-policy-coop-support).
 
 ## Updated React version support
-MSAL React v5 supports React 18.0.0 or greater and React 19.0.0 or greater. It no longer supports React 16 or 17.
+MSAL React v5 supports React 18.0.0 or greater and React 19.2.1 or greater. It no longer supports React 16 or 17.
 
 ## Peer dependency ranges
 
-MSAL React v5 declares its `react` peer dependency as `"^18.0.0 || ^19.0.0"`. This means:
+MSAL React v5 declares its `react` peer dependency as `"^18.0.0 || ^19.2.1"`. This means:
 
 - Applications using React 18.x will satisfy the peer dependency without errors or warnings.
-- Applications using React 19.x will satisfy the peer dependency without errors or warnings.
+- Applications using React 19.2.1 or newer (within the React 19.x line) will satisfy the peer dependency without errors or warnings.
 - No `--legacy-peer-deps` flag is required for either version.
 
 ### Known considerations
