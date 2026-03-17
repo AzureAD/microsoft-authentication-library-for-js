@@ -35,6 +35,7 @@ import {
     buildAccountToCache,
     InProgressPerformanceEvent,
     ServerTelemetryManager,
+    RequestParameterBuilder,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -917,12 +918,27 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const canonicalAuthority = await this.getCanonicalAuthority(request);
 
         // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
-        const { scopes, ...remainingProperties } = request;
+        const { scopes, claims, ...remainingProperties } = request;
         const scopeSet = new ScopeSet(scopes || []);
         scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
 
+        // ignore config claims if skipBrokerClaims is set to true and this is a brokered authentication flow
+        const configClaims =
+            request.skipBrokerClaims && !!request.embeddedClientId
+                ? undefined
+                : this.config.auth.clientCapabilities;
+
+        const mergedClaims =
+            configClaims && configClaims.length
+                ? RequestParameterBuilder.addClientCapabilitiesToClaims(
+                      claims,
+                      configClaims
+                  )
+                : claims;
+
         const validatedRequest: PlatformAuthRequest = {
             ...remainingProperties,
+            claims: mergedClaims,
             accountId: this.accountId,
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
