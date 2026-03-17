@@ -39,7 +39,10 @@ jobs:
                 - name: "npm_config_cache"
                   value: "$(Pipeline.Workspace)/.npm"
                 - name: "samplePath"
-                  value: "samples/msal-react-samples/${{ sample }}"
+                  ${{ if eq(parameters.poolType, 'windows') }}:
+                      value: "samples/msal-react-samples/${{ sample }}"
+                  ${{ else }}:
+                      value: "samples/msal-react-samples/${{ sample }}"
 
             steps:
                 - template: .pipelines/templates/build-var-dump.yml@1P
@@ -122,7 +125,7 @@ jobs:
                 - task: CmdLine@2
                   displayName: "Create screenshot folder"
                   inputs:
-                      script: mkdir -p ${{ replace(samplePath, '/', '\\') }}\test\screenshots\react18
+                      script: mkdir -p ${{ replace(variables.samplePath, '/', '\') }}\test\screenshots\react18
 
                 - task: Npm@1
                   displayName: "Test ${{ sample }}"
@@ -150,7 +153,7 @@ jobs:
                 - task: CopyFiles@2
                   condition: failed()
                   inputs:
-                      SourceFolder: "$(samplePath)/test/screenshots/react18"
+                      SourceFolder: "${{ variables.samplePath }}/test/screenshots/react18"
                       Contents: "**"
                       TargetFolder: $(Build.ArtifactStagingDirectory)
 
