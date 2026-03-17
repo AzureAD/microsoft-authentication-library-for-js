@@ -122,7 +122,7 @@ jobs:
                 - task: CmdLine@2
                   displayName: "Create screenshot folder"
                   inputs:
-                      script: mkdir -p $(samplePath)/test/screenshots/react18
+                      script: mkdir -p ${{ replace(samplePath, '/', '\\') }}\test\screenshots\react18
 
                 - task: Npm@1
                   displayName: "Test ${{ sample }}"
