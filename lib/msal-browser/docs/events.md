@@ -49,6 +49,9 @@ Adding an event callback will return an id. This id can be used to remove the ca
 msalInstance.removeEventCallback(callbackId);
 ```
 
+ [!NOTE]
+ Please do not use events for critical flows in your application, or for telemetry, as they are not guaranteed to be emitted in all cases and are not meant for controlling the logic of your application. They are meant to be used as a way to interact with MSAL and update your UI accordingly, and should not be used as the only way to determine if an action was successful or not. Always use the response from the API calls to determine if an action was successful or not.
+
 ### Handling errors
 
 Due to the way `EventError` is defined, handling errors emitted with an event may require validating that the error is of the correct type before accessing specific properties on the emitted error. The error can be cast to `AuthError` or checked that it is an instance of `AuthError`.
