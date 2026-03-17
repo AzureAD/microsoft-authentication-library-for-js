@@ -122,7 +122,7 @@ jobs:
                 - task: CmdLine@2
                   displayName: "Create screenshot folder"
                   inputs:
-                      script: mkdir -p $(samplePath)/test/screenshots
+                      script: mkdir -p $(samplePath)/test/screenshots/react18
 
                 - task: Npm@1
                   displayName: "Test ${{ sample }}"
@@ -150,7 +150,7 @@ jobs:
                 - task: CopyFiles@2
                   condition: failed()
                   inputs:
-                      SourceFolder: "$(samplePath)/test/screenshots"
+                      SourceFolder: "$(samplePath)/test/screenshots/react18"
                       Contents: "**"
                       TargetFolder: $(Build.ArtifactStagingDirectory)
 
