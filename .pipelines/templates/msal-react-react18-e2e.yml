@@ -79,7 +79,7 @@ jobs:
                   inputs:
                       targetType: inline
                       script: |
-                          npm pkg set "overrides.react=^18" "overrides.react-dom=^18"
+                          npm pkg set "overrides.react=^18" "overrides.react-dom=^18" "overrides.@types/react=^18" "overrides.@types/react-dom=^18"
                           npm install
                       workingDirectory: "./"
 
@@ -99,6 +99,13 @@ jobs:
                       command: "custom"
                       customCommand: "run build:all"
                       workingDir: "lib/msal-react"
+
+                - task: Npm@1
+                  displayName: "Build msal-node"
+                  inputs:
+                      command: "custom"
+                      customCommand: "run build:all"
+                      workingDir: "lib/msal-node"
 
                 - task: Npm@1
                   displayName: "Build ${{ sample }}"
