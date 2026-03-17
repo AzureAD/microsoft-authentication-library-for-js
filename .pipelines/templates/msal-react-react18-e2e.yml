@@ -159,7 +159,7 @@ jobs:
                   condition: succeededOrFailed()
                   inputs:
                       targetPath: $(Build.ArtifactStagingDirectory)
-                      artifact: "drop_e2e_test_validate_msal_react_r18_${{ replace(sample, '-', '_') }}_Node_v22"
+                      artifact: "drop_e2e_test_validate_msal_react_r18_${{ replace(sample, '-', '_') }}"
                       publishLocation: "pipeline"
 
                 - template: .pipelines/templates/remove-keyvault-secrets.yml@1P
