@@ -2,6 +2,59 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Fri, 13 Mar 2026 22:36:58 GMT",
+      "version": "5.5.0",
+      "tag": "@azure/msal-browser_v5.5.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "48cd5e0af83a8da6d32df43996b4c2d9ffe1fa4c",
+            "comment": "Additional telemetry for monitor_window_timeout errors [#8385](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8385)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "48cd5e0af83a8da6d32df43996b4c2d9ffe1fa4c",
+            "comment": "Fix JSON object conversion in PlatformDOMRequest [#8348](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8348)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "48cd5e0af83a8da6d32df43996b4c2d9ffe1fa4c",
+            "comment": "Add MCP Support [#8363](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8363)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.3.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 02 Mar 2026 19:25:47 GMT",
       "version": "5.4.0",
       "tag": "@azure/msal-browser_v5.4.0",
