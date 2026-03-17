@@ -17,11 +17,7 @@ export {
     createNestablePublicClientApplication,
     createStandardPublicClientApplication,
 } from "./app/PublicClientApplication.js";
-export { PublicClientNext } from "./app/PublicClientNext.js";
-export {
-    IController,
-    HandleRedirectPromiseOptions,
-} from "./controllers/IController.js";
+export { IController } from "./controllers/IController.js";
 export {
     Configuration,
     BrowserAuthOptions,
@@ -45,7 +41,10 @@ export {
     BrowserAuthError,
     BrowserAuthErrorCodes,
 } from "./error/BrowserAuthError.js";
-export { BrowserConfigurationAuthError } from "./error/BrowserConfigurationAuthError.js";
+export {
+    BrowserConfigurationAuthError,
+    BrowserConfigurationAuthErrorCodes,
+} from "./error/BrowserConfigurationAuthError.js";
 
 // Interfaces
 export {
@@ -65,6 +64,7 @@ export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest.js"
 export { AuthenticationResult } from "./response/AuthenticationResult.js";
 export { ClearCacheRequest } from "./request/ClearCacheRequest.js";
 export { InitializeApplicationRequest } from "./request/InitializeApplicationRequest.js";
+export { HandleRedirectPromiseOptions } from "./request/HandleRedirectPromiseOptions.js";
 
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache.js";
@@ -118,8 +118,6 @@ export const OIDC_DEFAULT_SCOPES = Constants.OIDC_DEFAULT_SCOPES;
 export {
     // Account
     AccountInfo,
-    AccountEntity,
-    AccountEntityUtils,
     IdTokenClaims,
     // Error
     AuthError,
@@ -143,9 +141,6 @@ export {
     ProtocolMode,
     // Server Response
     ExternalTokenResponse,
-    // Utils
-    StringUtils,
-    UrlString,
     // AzureCloudInstance enum
     AzureCloudInstance,
     AzureCloudOptions,
@@ -157,6 +152,7 @@ export {
     TenantProfile,
     IPerformanceClient,
     StubPerformanceClient,
+    enforceResourceParameter,
 } from "@azure/msal-common/browser";
 export * as BrowserRootPerformanceEvents from "./telemetry/BrowserRootPerformanceEvents.js";
 

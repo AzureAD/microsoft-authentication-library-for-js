@@ -23,6 +23,12 @@ import { AuthMethodRegistrationRequiredState } from "../../../src/custom_auth/co
 import { AuthMethodVerificationRequiredState } from "../../../src/custom_auth/core/auth_flow/jit/state/AuthMethodRegistrationState.js";
 import { AuthMethodRegistrationChallengeMethodResult } from "../../../src/custom_auth/core/auth_flow/jit/result/AuthMethodRegistrationChallengeMethodResult.js";
 import { AuthMethodRegistrationSubmitChallengeResult } from "../../../src/custom_auth/core/auth_flow/jit/result/AuthMethodRegistrationSubmitChallengeResult.js";
+import {
+    MfaAwaitingState,
+    MfaVerificationRequiredState,
+} from "../../../src/custom_auth/core/auth_flow/mfa/state/MfaState.js";
+import { MfaRequestChallengeResult } from "../../../src/custom_auth/core/auth_flow/mfa/result/MfaRequestChallengeResult.js";
+import { MfaSubmitChallengeResult } from "../../../src/custom_auth/core/auth_flow/mfa/result/MfaSubmitChallengeResult.js";
 
 describe("Sign up", () => {
     let app: CustomAuthPublicClientApplication;
@@ -977,6 +983,209 @@ describe("Sign up", () => {
         );
     });
 
+    it("should handle JIT registration required after signUp() completion and complete flow with SMS verification", async () => {
+        // Step 1: Mock /signup/v1.0/start - successful start
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-1",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /signup/v1.0/challenge - email challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "oob",
+                binding_method: "prompt",
+                challenge_channel: "email",
+                challenge_target_label: "te**@te**.com",
+                code_length: 8,
+                interval: 300,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /signup/v1.0/continue - code submission (requires password)
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                continuation_token: "test-continuation-token-3",
+                error: "credential_required",
+                error_description: "Credential required.",
+                error_codes: [55103],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /signup/v1.0/challenge - password requirement
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-4",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 5: Mock /signup/v1.0/continue - password submission (signup complete)
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "signup-completion-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 6: Mock /oauth2/token - JIT registration required during signIn after signup
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description:
+                    "Strong authentication method registration is required.",
+                suberror: "registration_required",
+                continuation_token: "jit-continuation-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 7: Mock /register/v1.0/introspect - available authentication methods
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "jit-introspect-token",
+                methods: [
+                    {
+                        id: "sms",
+                        login_hint: "0000000000",
+                    },
+                ],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 8: Mock /register/v1.0/challenge - email challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "jit-challenge-token",
+                challenge_type: "oob",
+                challenge_channel: "sms",
+                challenge_target: "0000000000",
+                code_length: 6,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 9: Mock /register/v1.0/continue - challenge submission
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "jit-verified-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 10: Mock /oauth2/token - successful completion after JIT registration
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => TestServerTokenResponse,
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        const attributes: UserAccountAttributes = {
+            city: "test-city",
+        };
+
+        const signUpInputs: SignUpInputs = {
+            username: "test@test.com",
+            correlationId: correlationId,
+            attributes: attributes,
+        };
+
+        // Start SignUp flow
+        const startResult = await app.signUp(signUpInputs);
+        expect(startResult).toBeInstanceOf(SignUpResult);
+        expect(startResult.error).toBeUndefined();
+        expect(startResult.isCodeRequired()).toBe(true);
+
+        // Submit code
+        const submitCodeResult = await (
+            startResult.state as SignUpCodeRequiredState
+        ).submitCode("12345678");
+        expect(submitCodeResult).toBeInstanceOf(SignUpSubmitCodeResult);
+        expect(submitCodeResult.error).toBeUndefined();
+        expect(submitCodeResult.isPasswordRequired()).toBe(true);
+
+        // Submit password
+        const submitPasswordResult = await (
+            submitCodeResult.state as SignUpPasswordRequiredState
+        ).submitPassword("valid-password");
+        expect(submitPasswordResult).toBeInstanceOf(SignUpSubmitPasswordResult);
+        expect(submitPasswordResult.error).toBeUndefined();
+        expect(submitPasswordResult.isCompleted()).toBe(true);
+
+        // SignIn after signup completion - should trigger JIT
+        const signInResult = await (
+            submitPasswordResult.state as SignUpCompletedState
+        ).signIn();
+
+        // Verify JIT registration is required
+        expect(signInResult).toBeInstanceOf(SignInResult);
+        expect(signInResult.error).toBeUndefined();
+        expect(signInResult.isAuthMethodRegistrationRequired()).toBe(true);
+
+        const jitState =
+            signInResult.state as AuthMethodRegistrationRequiredState;
+        expect(jitState.getAuthMethods()).toHaveLength(1);
+        expect(jitState.getAuthMethods()[0].id).toBe("sms");
+
+        // Challenge the sms authentication method
+        const challengeResult = await jitState.challengeAuthMethod({
+            authMethodType: jitState.getAuthMethods()[0],
+            verificationContact: "0000000000",
+        });
+
+        expect(challengeResult).toBeInstanceOf(
+            AuthMethodRegistrationChallengeMethodResult
+        );
+        expect(challengeResult.error).toBeUndefined();
+        expect(challengeResult.isVerificationRequired()).toBe(true);
+
+        const verificationState =
+            challengeResult.state as AuthMethodVerificationRequiredState;
+        expect(verificationState.getChannel()).toBe("sms");
+        expect(verificationState.getSentTo()).toBe("0000000000");
+        expect(verificationState.getCodeLength()).toBe(6);
+
+        // Submit verification code
+        const submitResult = await verificationState.submitChallenge("123456");
+
+        expect(submitResult).toBeInstanceOf(
+            AuthMethodRegistrationSubmitChallengeResult
+        );
+        expect(submitResult.error).toBeUndefined();
+        expect(submitResult.isCompleted()).toBe(true);
+        expect(submitResult.data).toBeInstanceOf(CustomAuthAccountData);
+        expect(submitResult.data?.getAccount()?.idToken).toStrictEqual(
+            TestServerTokenResponse.id_token
+        );
+    });
+
     it("should handle JIT registration with fast-pass scenario (same email as sign-up)", async () => {
         // Setup basic signup flow
         (fetch as jest.Mock)
@@ -1726,5 +1935,409 @@ describe("Sign up", () => {
         expect(challengeResult.error).toBeDefined();
         expect(challengeResult.isFailed()).toBe(true);
         expect(challengeResult.error?.isInvalidInput()).toBe(true);
+    });
+
+    it("should handle MFA required after signUp() completion and complete flow with email verification", async () => {
+        // Step 1: Mock /signup/v1.0/start - successful start
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-1",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /signup/v1.0/challenge - email challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "oob",
+                binding_method: "prompt",
+                challenge_channel: "email",
+                challenge_target_label: "te**@te**.com",
+                code_length: 8,
+                interval: 300,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /signup/v1.0/continue - code submission (requires password)
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                continuation_token: "test-continuation-token-3",
+                error: "credential_required",
+                error_description: "Credential required.",
+                error_codes: [55103],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /signup/v1.0/challenge - password requirement
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-4",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 5: Mock /signup/v1.0/continue - password submission (signup complete)
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "signup-completion-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 6: Mock /oauth2/token - MFA required during signIn after signup
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description: "Multi-factor authentication is required.",
+                suberror: "mfa_required",
+                continuation_token: "mfa-continuation-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 7: Mock /oauth2/introspect - return available methods
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "method-selection-token",
+                methods: [
+                    {
+                        id: "email-method-id",
+                        challenge_type: "oob",
+                        challenge_channel: "email",
+                        login_hint: "jo**@co***so.com",
+                    },
+                    {
+                        id: "sms-method-id",
+                        challenge_type: "oob",
+                        challenge_channel: "sms",
+                        login_hint: "+1***5678",
+                    },
+                ],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 8: Mock /oauth2/challenge - MFA challenge request
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "mfa-challenge-token",
+                challenge_type: "oob",
+                challenge_channel: "email",
+                challenge_target_label: "jo**@co***so.com",
+                code_length: 6,
+                binding_method: "prompt",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 9: Mock /oauth2/token - successful MFA completion
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => TestServerTokenResponse,
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        const attributes: UserAccountAttributes = {
+            city: "test-city",
+        };
+
+        const signUpInputs: SignUpInputs = {
+            username: "test@test.com",
+            correlationId: correlationId,
+            attributes: attributes,
+        };
+
+        // Start SignUp flow
+        const startResult = await app.signUp(signUpInputs);
+        expect(startResult).toBeInstanceOf(SignUpResult);
+        expect(startResult.error).toBeUndefined();
+        expect(startResult.isCodeRequired()).toBe(true);
+
+        // Submit code
+        const submitCodeResult = await (
+            startResult.state as SignUpCodeRequiredState
+        ).submitCode("12345678");
+        expect(submitCodeResult).toBeInstanceOf(SignUpSubmitCodeResult);
+        expect(submitCodeResult.error).toBeUndefined();
+        expect(submitCodeResult.isPasswordRequired()).toBe(true);
+
+        // Submit password
+        const submitPasswordResult = await (
+            submitCodeResult.state as SignUpPasswordRequiredState
+        ).submitPassword("valid-password");
+        expect(submitPasswordResult).toBeInstanceOf(SignUpSubmitPasswordResult);
+        expect(submitPasswordResult.error).toBeUndefined();
+        expect(submitPasswordResult.isCompleted()).toBe(true);
+
+        // SignIn after signup completion - should trigger MFA
+        const signInResult = await (
+            submitPasswordResult.state as SignUpCompletedState
+        ).signIn();
+
+        // Verify MFA is required
+        expect(signInResult).toBeInstanceOf(SignInResult);
+        expect(signInResult.error).toBeUndefined();
+        expect(signInResult.isMfaRequired()).toBe(true);
+
+        const mfaState = signInResult.state as MfaAwaitingState;
+
+        // Request MFA challenge
+        const requestChallengeResult = await mfaState.requestChallenge(
+            "email-method-id"
+        );
+
+        expect(requestChallengeResult).toBeInstanceOf(
+            MfaRequestChallengeResult
+        );
+        expect(requestChallengeResult.error).toBeUndefined();
+        expect(requestChallengeResult.isVerificationRequired()).toBe(true);
+        expect(requestChallengeResult.state).toBeInstanceOf(
+            MfaVerificationRequiredState
+        );
+
+        const verificationState =
+            requestChallengeResult.state as MfaVerificationRequiredState;
+
+        // Verify MFA verification state properties
+        expect(verificationState.getChannel()).toBe("email");
+        expect(verificationState.getSentTo()).toBe("jo**@co***so.com");
+        expect(verificationState.getCodeLength()).toBe(6);
+
+        // Submit MFA challenge
+        const submitChallengeResult = await verificationState.submitChallenge(
+            "123456"
+        );
+
+        expect(submitChallengeResult).toBeInstanceOf(MfaSubmitChallengeResult);
+        expect(submitChallengeResult.error).toBeUndefined();
+        expect(submitChallengeResult.isCompleted()).toBe(true);
+        expect(submitChallengeResult.data).toBeInstanceOf(
+            CustomAuthAccountData
+        );
+    });
+
+    it("should handle MFA required after signUp() completion and complete flow with SMS verification", async () => {
+        // Step 1: Mock /signup/v1.0/start - successful start
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-1",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /signup/v1.0/challenge - email challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "oob",
+                binding_method: "prompt",
+                challenge_channel: "email",
+                challenge_target_label: "te**@te**.com",
+                code_length: 8,
+                interval: 300,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /signup/v1.0/continue - code submission (requires password)
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                continuation_token: "test-continuation-token-3",
+                error: "credential_required",
+                error_description: "Credential required.",
+                error_codes: [55103],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /signup/v1.0/challenge - password requirement
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-4",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 5: Mock /signup/v1.0/continue - password submission (signup complete)
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "signup-completion-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 6: Mock /oauth2/token - MFA required during signIn after signup
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description: "Multi-factor authentication is required.",
+                suberror: "mfa_required",
+                continuation_token: "mfa-continuation-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 7: Mock /oauth2/introspect - return available methods
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "method-selection-token",
+                methods: [
+                    {
+                        id: "email-method-id",
+                        challenge_type: "oob",
+                        challenge_channel: "email",
+                        login_hint: "jo**@co***so.com",
+                    },
+                    {
+                        id: "sms-method-id",
+                        challenge_type: "oob",
+                        challenge_channel: "sms",
+                        login_hint: "+1***5678",
+                    },
+                ],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 8: Mock /oauth2/challenge - MFA challenge request
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "mfa-challenge-token",
+                challenge_type: "oob",
+                challenge_channel: "sms",
+                challenge_target_label: "0000000000",
+                code_length: 6,
+                binding_method: "prompt",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 9: Mock /oauth2/token - successful MFA completion
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => TestServerTokenResponse,
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        const attributes: UserAccountAttributes = {
+            city: "test-city",
+        };
+
+        const signUpInputs: SignUpInputs = {
+            username: "test@test.com",
+            correlationId: correlationId,
+            attributes: attributes,
+        };
+
+        // Start SignUp flow
+        const startResult = await app.signUp(signUpInputs);
+        expect(startResult).toBeInstanceOf(SignUpResult);
+        expect(startResult.error).toBeUndefined();
+        expect(startResult.isCodeRequired()).toBe(true);
+
+        // Submit code
+        const submitCodeResult = await (
+            startResult.state as SignUpCodeRequiredState
+        ).submitCode("12345678");
+        expect(submitCodeResult).toBeInstanceOf(SignUpSubmitCodeResult);
+        expect(submitCodeResult.error).toBeUndefined();
+        expect(submitCodeResult.isPasswordRequired()).toBe(true);
+
+        // Submit password
+        const submitPasswordResult = await (
+            submitCodeResult.state as SignUpPasswordRequiredState
+        ).submitPassword("valid-password");
+        expect(submitPasswordResult).toBeInstanceOf(SignUpSubmitPasswordResult);
+        expect(submitPasswordResult.error).toBeUndefined();
+        expect(submitPasswordResult.isCompleted()).toBe(true);
+
+        // SignIn after signup completion - should trigger MFA
+        const signInResult = await (
+            submitPasswordResult.state as SignUpCompletedState
+        ).signIn();
+
+        // Verify MFA is required
+        expect(signInResult).toBeInstanceOf(SignInResult);
+        expect(signInResult.error).toBeUndefined();
+        expect(signInResult.isMfaRequired()).toBe(true);
+
+        const mfaState = signInResult.state as MfaAwaitingState;
+
+        // Request MFA challenge
+        const requestChallengeResult = await mfaState.requestChallenge(
+            "sms-method-id"
+        );
+
+        expect(requestChallengeResult).toBeInstanceOf(
+            MfaRequestChallengeResult
+        );
+        expect(requestChallengeResult.error).toBeUndefined();
+        expect(requestChallengeResult.isVerificationRequired()).toBe(true);
+        expect(requestChallengeResult.state).toBeInstanceOf(
+            MfaVerificationRequiredState
+        );
+
+        const verificationState =
+            requestChallengeResult.state as MfaVerificationRequiredState;
+
+        // Verify MFA verification state properties
+        expect(verificationState.getChannel()).toBe("sms");
+        expect(verificationState.getSentTo()).toBe("0000000000");
+        expect(verificationState.getCodeLength()).toBe(6);
+
+        // Submit MFA challenge
+        const submitChallengeResult = await verificationState.submitChallenge(
+            "123456"
+        );
+
+        expect(submitChallengeResult).toBeInstanceOf(MfaSubmitChallengeResult);
+        expect(submitChallengeResult.error).toBeUndefined();
+        expect(submitChallengeResult.isCompleted()).toBe(true);
+        expect(submitChallengeResult.data).toBeInstanceOf(
+            CustomAuthAccountData
+        );
     });
 });

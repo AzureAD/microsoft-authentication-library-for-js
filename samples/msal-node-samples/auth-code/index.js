@@ -72,6 +72,10 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
             * The cached state must then be passed as part of authCodeResponse in ClientApplicaiton.acquireTokenByCode API call, 
             * to be validated before the authorization code is sent to the server in exchange for an access token.
             * 
+            * For security and privacy reasons, we do not recommend putting URLs or other sensitive data directly in the state 
+            * parameter. Instead, use a key or identifier that corresponds to data stored in server-side storage 
+            * (e.g., session storage, database), allowing your app to securely reference the necessary data after authentication.
+            * 
             * For more information about state,
             * visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6
             */

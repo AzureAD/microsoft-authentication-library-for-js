@@ -139,7 +139,6 @@ export const HandleCodeResponse = "handleCodeResponse";
 export const HandleResponseEar = "handleResponseEar";
 export const HandleResponsePlatformBroker = "handleResponsePlatformBroker";
 export const HandleResponseCode = "handleResponseCode";
-export const UpdateTokenEndpointAuthority = "updateTokenEndpointAuthority";
 
 export const AuthClientAcquireToken = "authClientAcquireToken";
 
@@ -180,3 +179,8 @@ export const Encrypt = "encrypt";
 export const Decrypt = "decrypt";
 export const GenerateEarKey = "generateEarKey";
 export const DecryptEarResponse = "decryptEarResponse";
+
+export const LoadAccount = "loadAccount";
+export const LoadIdToken = "loadIdToken";
+export const LoadAccessToken = "loadAccessToken";
+export const LoadRefreshToken = "loadRefreshToken";

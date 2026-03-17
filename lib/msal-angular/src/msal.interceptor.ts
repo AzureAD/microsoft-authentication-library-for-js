@@ -17,7 +17,6 @@ import {
   BrowserConfigurationAuthError,
   InteractionStatus,
   InteractionType,
-  StringUtils,
 } from "@azure/msal-browser";
 import { Observable, EMPTY, of } from "rxjs";
 import { switchMap, catchError, take, filter } from "rxjs/operators";
@@ -44,6 +43,15 @@ export class MsalInterceptor implements HttpInterceptor {
     @Inject(DOCUMENT) document?: any
   ) {
     this._document = document as Document;
+
+    if (this.msalInterceptorConfig.strictMatching === undefined) {
+      this.authService
+        .getLogger()
+        .warning(
+          `[MSAL] strictMatching is enabled by default. See: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/msal-interceptor.md#strict-matching-strictmatching`,
+          ""
+        );
+    }
   }
 
   intercept(
@@ -297,13 +305,44 @@ export class MsalInterceptor implements HttpInterceptor {
     // URL properties from https://developer.mozilla.org/en-US/docs/Web/API/URL
     const urlProperties = ["protocol", "host", "pathname", "search", "hash"];
 
+    // Maps URL property names to the component identifiers used by matchPatternStrict.
+    const componentMap: Record<
+      string,
+      "protocol" | "host" | "path" | "search" | "hash"
+    > = {
+      protocol: "protocol",
+      host: "host",
+      pathname: "path",
+      search: "search",
+      hash: "hash",
+    };
+
+    const useStrictMatching =
+      this.msalInterceptorConfig.strictMatching !== false;
+
     for (const property of urlProperties) {
       if (keyComponents[property]) {
         const decodedInput = decodeURIComponent(keyComponents[property]);
-        if (
-          !StringUtils.matchPattern(decodedInput, endpointComponents[property])
-        ) {
-          return false;
+        if (useStrictMatching) {
+          /*
+           * Strict matching (v5 default): anchored patterns, metacharacters
+           * are treated as literals, host wildcards do not span dot separators.
+           */
+          const component = componentMap[property];
+          if (
+            !this.matchPatternStrict(
+              decodedInput,
+              endpointComponents[property],
+              component
+            )
+          ) {
+            return false;
+          }
+        } else {
+          // Legacy matching: preserved for backwards compatibility with v4.
+          if (!this.matchPattern(decodedInput, endpointComponents[property])) {
+            return false;
+          }
         }
       }
     }
@@ -392,5 +431,65 @@ export class MsalInterceptor implements HttpInterceptor {
     }
 
     return null;
+  }
+
+  /**
+   * Tests if a given string matches a given pattern, with support for wildcards and queries.
+   * @param pattern Wildcard pattern to string match. Supports "*" for wildcards and "?" for queries
+   * @param input String to match against
+   */
+  private matchPattern(pattern: string, input: string): boolean {
+    /**
+     * Wildcard support: https://stackoverflow.com/a/3117248/4888559
+     * Queries: replaces "?" in string with escaped "\?" for regex test
+     */
+    // eslint-disable-next-line security/detect-non-literal-regexp
+    const regex: RegExp = new RegExp(
+      pattern
+        .replace(/\\/g, "\\\\")
+        .replace(/\*/g, "[^ ]*")
+        .replace(/\?/g, "\\?")
+    );
+
+    return regex.test(input);
+  }
+
+  /**
+   * Tests if a given string matches a given pattern using stricter, anchored
+   * matching semantics.
+   *
+   * Differences from `matchPattern` (legacy):
+   * - All regex metacharacters (including `.` and `?`) are treated as literals.
+   * - The generated regex is anchored with `^` and `$` (full-string match).
+   * - `*` wildcard behaviour depends on the URL component:
+   *   - `host`: `*` maps to `[^.]*` — matches any characters that do NOT
+   *     include `.`, so wildcards stay within a single DNS label.
+   *   - All other components: `*` matches any characters.
+   *
+   * @param pattern - The protectedResourceMap key pattern.
+   * @param input - The URL component value from the outgoing request.
+   * @param component - Which URL component is being matched.
+   * @returns `true` if the full input string matches the pattern.
+   */
+  private matchPatternStrict(
+    pattern: string,
+    input: string,
+    component: "protocol" | "host" | "path" | "search" | "hash"
+  ): boolean {
+    // Step 1: Escape all regex metacharacters so literals (including . and ?) match literally.
+    let regexBody = pattern.replace(/[.+^${}()|[\]\\*?]/g, "\\$&");
+
+    // Step 2: Replace escaped wildcards with component-aware regex equivalents.
+    if (component === "host") {
+      regexBody = regexBody.replace(/\\\*/g, "[^.]*");
+    } else {
+      // Path, protocol, search, hash: `*` matches any characters.
+      regexBody = regexBody.replace(/\\\*/g, ".*");
+    }
+
+    // Step 3: Anchor for full-string matching.
+    // eslint-disable-next-line security/detect-non-literal-regexp
+    const regex = new RegExp(`^${regexBody}$`);
+    return regex.test(input);
   }
 }

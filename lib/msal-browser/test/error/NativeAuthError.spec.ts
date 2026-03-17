@@ -62,6 +62,14 @@ describe("NativeAuthError Unit Tests", () => {
                 expect(isFatalNativeAuthError(error)).toBe(true);
             });
 
+            it("should return true for isFatal when extension throws an error", () => {
+                const error = new NativeAuthError(
+                    NativeAuthErrorCodes.pageException,
+                    "extension threw error"
+                );
+                expect(isFatalNativeAuthError(error)).toBe(true);
+            });
+
             it("should return false for isFatal", () => {
                 const error = new NativeAuthError(
                     "testError",

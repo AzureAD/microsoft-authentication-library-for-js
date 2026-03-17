@@ -1,29 +1,218 @@
 # Change Log - @azure/msal-react
 
-<!-- This log was last generated on Thu, 02 Oct 2025 21:58:36 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 13 Mar 2026 22:36:58 GMT and should not be manually modified. -->
 
 <!-- Start content -->
 
-## 5.0.0-alpha.0
+## 5.0.7
 
-Thu, 02 Oct 2025 21:58:36 GMT
-
-### Major changes
-
--   Refactor event types and InteractionStatus to be more concise #8009 (shylasummers@microsoft.com)
--   Remove support for old versions of Node and React #8014 (shylasummers@microsoft.com)
--   Bump @azure/msal-browser to v5.0.0-alpha.0
--   Bump eslint-config-msal to v0.0.0
--   Bump msal-test-utils to v0.0.1
-
-### Minor changes
-
--   Make correlation id mandatory for Logger calls #8071 (kshabelko@microsoft.com)
--   Format logging strings for future minification #7999 (kshabelko@microsoft.com)
+Fri, 13 Mar 2026 22:36:58 GMT
 
 ### Patches
 
--   Refactor AccountEntity into type #7674 (shylasummers@microsoft.com)
+- Bump @azure/msal-browser to v5.5.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 5.0.6
+
+Mon, 02 Mar 2026 19:25:47 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.4.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 5.0.5
+
+Tue, 24 Feb 2026 21:51:51 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.3.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 5.0.4
+
+Tue, 10 Feb 2026 23:04:28 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.2.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 5.0.3
+
+Wed, 28 Jan 2026 18:43:41 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.1.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 5.0.2
+
+Sat, 17 Jan 2026 03:11:36 GMT
+
+### Major changes
+
+- Refactor event types and InteractionStatus to be more concise #8009 (shylasummers@microsoft.com)
+- Remove support for old versions of Node and React #8014 (shylasummers@microsoft.com)
+
+### Minor changes
+
+- Make correlation id mandatory for Logger calls #8071 (kshabelko@microsoft.com)
+- Format logging strings for future minification #7999 (kshabelko@microsoft.com)
+
+### Patches
+
+- Bump @azure/msal-browser to v5.0.2
+- Remove beta tag (joarroyo@microsoft.com)
+- Address react and next CVEs #8182 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Refactor AccountEntity into type #7674 (shylasummers@microsoft.com)
+
+### Changes
+
+- Mark package for prerelease (beta) (msaljsbuilds@microsoft.com)
+- Bump to pre-release alpha (hemoral@microsoft.com)
+- Remove dependency on msal-browser Util functions [#8122](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8122) (thomas.norling@microsoft.com)
+
+## 3.0.25
+
+Sat, 17 Jan 2026 01:12:52 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.28.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.0.24
+
+Tue, 13 Jan 2026 14:23:33 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.28.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.0.23
+
+Thu, 04 Dec 2025 05:46:37 GMT
+
+### Patches
+
+- Address react and next CVEs #8179 (kshabelko@microsoft.com)
+- Bump @azure/msal-browser to v4.27.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.0.22
+
+Wed, 19 Nov 2025 23:13:11 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.26.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.0.21
+
+Wed, 29 Oct 2025 00:04:34 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.26.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.0.20
+
+Wed, 24 Sep 2025 21:54:45 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.24.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.0.19
+
+Tue, 19 Aug 2025 21:26:21 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.21.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.0.18
+
+Tue, 12 Aug 2025 22:53:33 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.20.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.0.17
+
+Tue, 05 Aug 2025 20:00:24 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.19.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.0.16
+
+Wed, 23 Jul 2025 14:54:36 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.16.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.0.15
+
+Tue, 08 Jul 2025 14:21:12 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.15.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.0.14
+
+Tue, 01 Jul 2025 14:23:25 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.14.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.0.13
+
+Wed, 18 Jun 2025 15:21:55 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.13.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
 
 ## 3.0.12
 

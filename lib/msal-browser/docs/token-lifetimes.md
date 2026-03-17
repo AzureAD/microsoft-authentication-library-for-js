@@ -85,7 +85,7 @@ A Cache Lookup Policy can be optionally provided to the request. The Cache Looku
 
 ```javascript
 var username = "test@contoso.com";
-var currentAccount = msalInstance.getAccountByUsername(username);
+var currentAccount = msalInstance.getAccount({ username });
 var silentRequest = {
     scopes: ["Mail.Read"],
     account: currentAccount,
@@ -115,7 +115,7 @@ const tokenResponse = await msalInstance.acquireTokenSilent(silentRequest).catch
 
 ```javascript
 var username = "test@contoso.com";
-var currentAccount = msalInstance.getAccountByUsername(username);
+var currentAccount = msalInstance.getAccount({ username });
 var silentRequest = {
     scopes: ["Mail.Read"],
     account: currentAccount,

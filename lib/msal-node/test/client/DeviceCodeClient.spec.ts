@@ -5,7 +5,6 @@
 
 import {
     AuthErrorCodes,
-    BaseClient,
     ClientConfiguration,
     createAuthError,
     createClientAuthError,
@@ -26,7 +25,8 @@ import {
     checkMockedNetworkRequest,
     ClientTestUtils,
 } from "./ClientTestUtils.js";
-import { DeviceCodeClient } from "../../src/index.js";
+import { BaseClient } from "../../src/client/BaseClient.js";
+import { DeviceCodeClient } from "../../src/client/DeviceCodeClient.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { CommonDeviceCodeRequest } from "../../src/request/CommonDeviceCodeRequest.js";
 import * as NodeClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";

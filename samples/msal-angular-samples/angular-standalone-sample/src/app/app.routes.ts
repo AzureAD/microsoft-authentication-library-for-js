@@ -2,9 +2,14 @@ import { Routes } from '@angular/router';
 import { FailedComponent } from './failed/failed.component';
 import { HomeComponent } from './home/home.component';
 import { ProfileComponent } from './profile/profile.component';
+import { RedirectComponent } from './redirect/redirect.component';
 import { MsalGuard } from '@azure/msal-angular';
 
 export const routes: Routes = [
+  {
+    path: 'redirect',
+    component: RedirectComponent,
+  },
   {
     path: 'profile',
     component: ProfileComponent,

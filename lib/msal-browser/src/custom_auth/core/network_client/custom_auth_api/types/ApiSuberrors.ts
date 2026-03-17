@@ -13,3 +13,5 @@ export const INVALID_OOB_VALUE = "invalid_oob_value";
 export const ATTRIBUTE_VALIATION_FAILED = "attribute_validation_failed";
 export const NATIVEAUTHAPI_DISABLED = "nativeauthapi_disabled";
 export const REGISTRATION_REQUIRED = "registration_required";
+export const MFA_REQUIRED = "mfa_required";
+export const PROVIDER_BLOCKED_BY_REPUTATION = "provider_blocked_by_rep";

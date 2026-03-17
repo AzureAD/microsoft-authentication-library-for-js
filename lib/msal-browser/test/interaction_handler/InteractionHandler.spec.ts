@@ -23,11 +23,13 @@ import {
     CcsCredential,
     CcsCredentialType,
     StubPerformanceClient,
+    AuthorityFactory,
 } from "@azure/msal-common/browser";
 import {
     Configuration,
     buildConfiguration,
 } from "../../src/config/Configuration.js";
+import { ApiId } from "../../src/utils/BrowserConstants.js";
 import {
     TEST_CONFIG,
     TEST_URIS,
@@ -317,12 +319,14 @@ describe("InteractionHandler.ts Unit Tests", () => {
                         responseMode: "fragment",
                         nonce: TEST_CONFIG.CORRELATION_ID,
                         state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                    }
+                    },
+                    ApiId.acquireTokenPopup
                 );
 
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(acquireTokenSpy).toHaveBeenCalledWith(
                 testAuthCodeRequest,
+                ApiId.acquireTokenPopup,
                 testCodeResponse
             );
             expect(acquireTokenSpy).not.toThrow();
@@ -330,87 +334,6 @@ describe("InteractionHandler.ts Unit Tests", () => {
     });
 
     describe("handleCodeResponse()", () => {
-        // TODO: Need to improve these tests
-        it("successfully uses a new authority if cloud_instance_host_name is different", async () => {
-            const idTokenClaims = {
-                ver: "2.0",
-                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                exp: "1536361411",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-                login_hint: "testLoginHint",
-            };
-            const testCodeResponse: AuthorizationCodePayload = {
-                code: "authcode",
-                nonce: idTokenClaims.nonce,
-                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                cloud_instance_host_name: "login.windows.net",
-            };
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                environment: "login.windows.net",
-                tenantId: idTokenClaims.tid,
-                username: idTokenClaims.preferred_username,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
-                loginHint: idTokenClaims.login_hint,
-            };
-            const testTokenResponse: AuthenticationResult = {
-                authority: authorityInstance.canonicalAuthority,
-                accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
-                fromCache: false,
-                scopes: ["scope1", "scope2"],
-                account: testAccount,
-                correlationId: RANDOM_TEST_GUID,
-                expiresOn: TestTimeUtils.nowDateWithOffset(
-                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
-                ),
-                idTokenClaims: idTokenClaims,
-                tenantId: idTokenClaims.tid,
-                uniqueId: idTokenClaims.oid,
-                state: "testState",
-                tokenType: Constants.AuthenticationScheme.BEARER,
-            };
-            const updateAuthoritySpy = jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "updateAuthority"
-            );
-            const acquireTokenSpy = jest
-                .spyOn(AuthorizationCodeClient.prototype, "acquireToken")
-                .mockResolvedValue(testTokenResponse);
-            const interactionHandler = new TestInteractionHandler(
-                authCodeModule,
-                browserStorage
-            );
-            await interactionHandler.initiateAuthRequest("testNavUrl");
-            const tokenResponse = await interactionHandler.handleCodeResponse(
-                testCodeResponse,
-                {
-                    authority: TEST_CONFIG.validAuthority,
-                    scopes: ["User.Read"],
-                    correlationId: TEST_CONFIG.CORRELATION_ID,
-                    redirectUri: "/",
-                    responseMode: "fragment",
-                    nonce: TEST_CONFIG.CORRELATION_ID,
-                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                }
-            );
-            expect(updateAuthoritySpy).toHaveBeenCalledWith(
-                testCodeResponse.cloud_instance_host_name,
-                TEST_CONFIG.CORRELATION_ID
-            );
-            expect(tokenResponse).toEqual(testTokenResponse);
-            expect(acquireTokenSpy).toHaveBeenCalledWith(
-                testAuthCodeRequest,
-                testCodeResponse
-            );
-            expect(acquireTokenSpy).not.toThrow();
-        });
-
         it("successfully adds login_hint as CCS credential to auth code request", async () => {
             const idTokenClaims = {
                 ver: "2.0",
@@ -477,11 +400,13 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     responseMode: "fragment",
                     nonce: TEST_CONFIG.CORRELATION_ID,
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                }
+                },
+                ApiId.acquireTokenRedirect
             );
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(acquireTokenSpy).toHaveBeenCalledWith(
                 testAuthCodeRequest,
+                ApiId.acquireTokenRedirect,
                 testCodeResponse
             );
             expect(acquireTokenSpy).not.toThrow();

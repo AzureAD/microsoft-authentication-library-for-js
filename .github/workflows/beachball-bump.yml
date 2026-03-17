@@ -6,7 +6,6 @@ on:
     types: [closed]
     branches:
       - dev
-      - msal-v5
 
 concurrency:
   group: beachball-bump

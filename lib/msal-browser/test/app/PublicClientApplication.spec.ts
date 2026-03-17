@@ -50,7 +50,6 @@ import {
     AccountEntityUtils,
     Constants,
 } from "@azure/msal-common/browser";
-import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 import {
     ApiId,
     BrowserCacheLocation,
@@ -84,7 +83,6 @@ import {
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
-import * as PopupUtils from "../../src/utils/PopupUtils.js";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient.js";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient.js";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient.js";
@@ -203,9 +201,20 @@ const testRequest: CommonAuthorizationUrlRequest = {
     nonce: ID_TOKEN_CLAIMS.nonce,
 };
 
+jest.mock("@azure/msal-common/browser", () => ({
+    ...jest.requireActual("@azure/msal-common/browser"),
+    ProtocolUtils: {
+        ...jest.requireActual("@azure/msal-common/browser").ProtocolUtils,
+        setRequestState: jest.fn(),
+    },
+}));
+
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     let pca: PublicClientApplication;
     let browserStorage: BrowserCacheManager;
+    let mockSetRequestState: jest.MockedFunction<
+        typeof ProtocolUtils.setRequestState
+    >;
     beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
@@ -258,6 +267,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             return authorityMetadata;
         });
+
+        mockSetRequestState =
+            ProtocolUtils.setRequestState as jest.MockedFunction<
+                typeof ProtocolUtils.setRequestState
+            >;
+        mockSetRequestState.mockReturnValue(
+            TEST_STATE_VALUES.TEST_STATE_SILENT
+        );
     });
 
     afterEach(() => {
@@ -272,17 +289,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca).not.toBe(null);
             expect(pca instanceof PublicClientApplication).toBeTruthy();
             done();
-        });
-
-        it("Sets isBroker to false", () => {
-            const config = {
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            };
-            pca = new PublicClientApplication(config);
-            // @ts-ignore
-            expect(pca.isBroker).toBe(false);
         });
     });
 
@@ -682,26 +688,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(preGenerateSpy).toHaveBeenCalledTimes(1);
         });
-
-        it("passes in isBroker in request", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    allowPlatformBroker: false,
-                },
-            });
-            const initializeControllerSpy = jest.spyOn(
-                StandardController.prototype,
-                "initialize"
-            );
-            await pca.initialize();
-            expect(initializeControllerSpy).toHaveBeenCalledWith(
-                undefined,
-                false
-            );
-        });
     });
 
     describe("handleRedirectPromise", () => {
@@ -800,9 +786,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(event.correlationId).toBeDefined();
                 expect(event.success).toBeTruthy();
                 expect(
-                    event["handleRedirectPromiseDurationMs"]
+                    event.ext?.["handleRedirectPromiseDurationMs"]
                 ).toBeGreaterThanOrEqual(0);
-                expect(event["handleRedirectPromiseCallCount"]).toEqual(1);
+                expect(event.ext?.["handleRedirectPromiseCallCount"]).toEqual(
+                    1
+                );
                 expect(event.success).toBeTruthy();
                 expect(event.accountType).toEqual(undefined);
                 pca.removePerformanceCallback(callbackId);
@@ -955,10 +943,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(event.correlationId).toBeDefined();
                     expect(event.success).toBeTruthy();
                     expect(
-                        event["handleNativeRedirectPromiseDurationMs"]
+                        event.ext?.["handleNativeRedirectPromiseDurationMs"]
                     ).toBeGreaterThanOrEqual(0);
                     expect(
-                        event["handleNativeRedirectPromiseCallCount"]
+                        event.ext?.["handleNativeRedirectPromiseCallCount"]
                     ).toEqual(1);
                     expect(event.success).toBeTruthy();
                     expect(event.accountType).toEqual("MSA");
@@ -1663,6 +1651,34 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.initialize();
         });
 
+        it("records isMcp on InitializeClientApplication telemetry event", (done) => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                },
+            };
+            pca = new PublicClientApplication(config);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                for (const event of events) {
+                    if (
+                        event.name ===
+                        BrowserRootPerformanceEvents.InitializeClientApplication
+                    ) {
+                        expect(event.isMcp).toBe(true);
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    }
+                }
+            });
+
+            pca.initialize();
+        });
+
         it("falls back to web flow if prompt is select_account", async () => {
             const config = {
                 auth: {
@@ -1897,18 +1913,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error if called in a popup", (done) => {
-            const oldWindowOpener = window.opener;
-            const oldWindowName = window.name;
-            const newWindow = {
-                ...window,
-            };
-
-            // @ts-ignore
-            delete window.opener;
-            // @ts-ignore
-            delete window.name;
-            window.opener = newWindow;
-            window.name = "msal.testPopup";
+            Object.defineProperty(window, "location", {
+                configurable: true,
+                enumerable: true,
+                writable: true,
+                value: new URL(
+                    `http://localhost?state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
+                ),
+            });
 
             jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(false);
             pca.acquireTokenRedirect({ scopes: ["openid"] })
@@ -1925,8 +1937,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     done();
                 })
                 .finally(() => {
-                    window.name = oldWindowName;
-                    window.opener = oldWindowOpener;
+                    Object.defineProperty(window, "location", {
+                        value: {
+                            hash: "",
+                            origin: "https://localhost:8081",
+                            pathname: "/",
+                            search: "",
+                            href: "https://localhost:8081/index.html",
+                            protocol: "http:",
+                            hostname: "localhost",
+                            port: "8081",
+                        },
+                        writable: true,
+                    });
                 });
         });
 
@@ -2362,6 +2385,109 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     throw new Error("success path should not be reached");
                 })
                 .catch((e) => {});
+        });
+
+        it("throws an error if isMcp is true and resource is not provided in request", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenRedirect({ scopes: [] })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.resourceParameterRequired
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraQueryParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenRedirect({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraQueryParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenRedirect({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("succeeds when isMcp is true and resource is provided", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            const redirectClientSpy: jest.SpyInstance = jest
+                .spyOn(RedirectClient.prototype, "acquireToken")
+                .mockResolvedValue();
+
+            const response = await pca.acquireTokenRedirect({
+                scopes: [],
+                resource: "testresource.example.com",
+            });
+            expect(response).toEqual(undefined);
+            expect(redirectClientSpy).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -3004,19 +3130,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error if called in a popup", (done) => {
-            const oldWindowOpener = window.opener;
-            const oldWindowName = window.name;
-
-            const newWindow = {
-                ...window,
-            };
-
-            // @ts-ignore
-            delete window.opener;
-            // @ts-ignore
-            delete window.name;
-            window.opener = newWindow;
-            window.name = "msal.testPopup";
+            Object.defineProperty(window, "location", {
+                configurable: true,
+                enumerable: true,
+                writable: true,
+                value: new URL(
+                    `http://localhost?state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
+                ),
+            });
 
             pca.acquireTokenPopup({ scopes: ["openid"] })
                 .catch((e) => {
@@ -3032,8 +3153,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     done();
                 })
                 .finally(() => {
-                    window.name = oldWindowName;
-                    window.opener = oldWindowOpener;
+                    Object.defineProperty(window, "location", {
+                        value: {
+                            hash: "",
+                            origin: "https://localhost:8081",
+                            pathname: "/",
+                            search: "",
+                            href: "https://localhost:8081/index.html",
+                            protocol: "http:",
+                            hostname: "localhost",
+                            port: "8081",
+                        },
+                        writable: true,
+                    });
                 });
         });
 
@@ -3119,7 +3251,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
-            jest.spyOn(PopupUtils, "monitorPopupForHash").mockRejectedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 "Not important for this test"
             );
 
@@ -3176,7 +3308,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
-            jest.spyOn(PopupUtils, "monitorPopupForHash").mockRejectedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 "Not important for this test"
             );
             try {
@@ -3192,6 +3324,125 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // @ts-ignore
             const preGenPkce2: PkceCodes = testPca.controller.pkceCode;
             expect(preGenPkce2).toBeUndefined();
+        });
+
+        it("throws an error if isMcp is true and resource is not provided in request", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenPopup({ scopes: [] })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.resourceParameterRequired
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraQueryParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenPopup({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraQueryParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenPopup({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("succeeds when isMcp is true and resource is provided in request", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+            const popupClientSpy: jest.SpyInstance = jest
+                .spyOn(PopupClient.prototype, "acquireToken")
+                .mockResolvedValue(testTokenResponse);
+
+            const response = await pca.acquireTokenPopup({
+                scopes: [],
+                resource: "testresource.example.com",
+            });
+            expect(response?.idToken).not.toBeNull();
+            expect(response).toEqual(testTokenResponse);
+            expect(popupClientSpy).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -3388,6 +3639,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("does not mutate request correlation id", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    iframeBridgeTimeout: 100,
+                },
+            });
+
             const request: SilentRequest = {
                 scopes: [],
             };
@@ -3438,7 +3698,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .mockResolvedValue(testTokenResponse);
 
             jest.spyOn(EventHandler.prototype, "emitEvent").mockImplementation(
-                (eventType, interactionType) => {
+                (eventType, _correlationId, interactionType) => {
                     if (
                         eventType === EventType.ACQUIRE_TOKEN_START &&
                         interactionType === InteractionType.Silent
@@ -3555,6 +3815,136 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scenarioId: "test-scenario-id",
                 account: testAccount,
             }).catch(() => {});
+        });
+
+        it("throws an error if isMcp is true and resource is not provided in request", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.resourceParameterRequired
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraQueryParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.ssoSilent({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraQueryParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.ssoSilent({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("succeeds when isMcp is true and resource is provided", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+
+            let ssoSilentFired = false;
+            const silentClientSpy: jest.SpyInstance = jest
+                .spyOn(SilentIframeClient.prototype, "acquireToken")
+                .mockResolvedValue(testTokenResponse);
+
+            jest.spyOn(EventHandler.prototype, "emitEvent").mockImplementation(
+                (eventType, _correlationId, interactionType) => {
+                    if (
+                        eventType === EventType.ACQUIRE_TOKEN_START &&
+                        interactionType === InteractionType.Silent
+                    ) {
+                        ssoSilentFired = true;
+                    }
+                }
+            );
+            const response = await pca.ssoSilent({
+                scopes: [],
+                resource: "testresource.example.com",
+            });
+            expect(response?.idToken).not.toBeNull();
+            expect(response).toEqual(testTokenResponse);
+            expect(silentClientSpy).toHaveBeenCalledTimes(1);
+            expect(ssoSilentFired).toBe(true);
         });
     });
 
@@ -4518,7 +4908,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 silentRequest3,
             ]);
 
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedTokenRequest,
+                ApiId.acquireTokenSilent_silentFlow
+            );
             expect(atsSpy).toHaveBeenCalledTimes(1);
             expect(silentATStub).toHaveBeenCalledTimes(1);
             expect(parallelResponse[0]).toEqual(testTokenResponse);
@@ -4723,15 +5116,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 sshCertSilentRequest3,
             ]);
 
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest2);
-            expect(silentATStub).toHaveBeenCalledWith(expectedPopTokenRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(expectedPopTokenRequest2);
             expect(silentATStub).toHaveBeenCalledWith(
-                expectedSshCertificateRequest1
+                expectedTokenRequest1,
+                61
             );
             expect(silentATStub).toHaveBeenCalledWith(
-                expectedSshCertificateRequest2
+                expectedTokenRequest2,
+                61
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedPopTokenRequest1,
+                61
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedPopTokenRequest2,
+                61
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedSshCertificateRequest1,
+                61
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedSshCertificateRequest2,
+                61
             );
             expect(silentATStub).toHaveBeenCalledTimes(6);
         });
@@ -4818,8 +5225,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentRequest3 = pca.acquireTokenSilent(tokenRequest2);
             await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
 
-            expect(silentATStub).toHaveBeenCalledWith(tokenRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(tokenRequest2);
+            expect(silentATStub).toHaveBeenCalledWith(tokenRequest1, 61);
+            expect(silentATStub).toHaveBeenCalledWith(tokenRequest2, 61);
             expect(silentATStub).toHaveBeenCalledTimes(2);
         });
 
@@ -5240,9 +5647,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
                 RANDOM_TEST_GUID
             );
-            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                TEST_STATE_VALUES.TEST_STATE_SILENT
-            );
             const CommonSilentFlowRequest: SilentRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
@@ -5307,9 +5711,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: { ...testIdTokenClaims },
             };
 
-            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                TEST_STATE_VALUES.TEST_STATE_SILENT
-            );
             const silentRequest: SilentRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
@@ -5488,9 +5889,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             };
 
-            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                TEST_STATE_VALUES.TEST_STATE_SILENT
-            );
             const silentRequest: SilentRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
@@ -5801,6 +6199,277 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(silentRefreshSpy).toHaveBeenCalledTimes(0);
                 expect(silentIframeSpy).toHaveBeenCalledTimes(1);
             });
+
+            describe("silentRefreshReason telemetry", () => {
+                it("adds silentRefreshReason telemetry field with errorCode when refresh token error triggers iframe fallback", (done) => {
+                    jest.spyOn(
+                        SilentCacheClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(refreshRequiredCacheError);
+                    jest.spyOn(
+                        SilentRefreshClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(refreshRequiredServerError);
+                    jest.spyOn(
+                        SilentIframeClient.prototype,
+                        "acquireToken"
+                    ).mockResolvedValue(testTokenResponse);
+
+                    const callbackId = pca.addPerformanceCallback((events) => {
+                        expect(events[0].silentRefreshReason).toBe(
+                            BrowserConstants.INVALID_GRANT_ERROR
+                        );
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    });
+
+                    pca.acquireTokenSilent({
+                        scopes: ["openid"],
+                        account: testAccount,
+                        cacheLookupPolicy: CacheLookupPolicy.Default,
+                        correlationId: RANDOM_TEST_GUID,
+                    });
+                });
+
+                it("adds silentRefreshReason telemetry field with errorCode and subError when subError is present", (done) => {
+                    const errorWithSubError = new ServerError(
+                        BrowserConstants.INVALID_GRANT_ERROR,
+                        "Refresh Token expired",
+                        "bad_token"
+                    );
+
+                    jest.spyOn(
+                        SilentCacheClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(refreshRequiredCacheError);
+                    jest.spyOn(
+                        SilentRefreshClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(errorWithSubError);
+                    jest.spyOn(
+                        SilentIframeClient.prototype,
+                        "acquireToken"
+                    ).mockResolvedValue(testTokenResponse);
+
+                    const callbackId = pca.addPerformanceCallback((events) => {
+                        expect(events[0].silentRefreshReason).toBe(
+                            `${BrowserConstants.INVALID_GRANT_ERROR}|bad_token`
+                        );
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    });
+
+                    pca.acquireTokenSilent({
+                        scopes: ["openid"],
+                        account: testAccount,
+                        cacheLookupPolicy: CacheLookupPolicy.Default,
+                        correlationId: RANDOM_TEST_GUID,
+                    });
+                });
+
+                it("adds silentRefreshReason telemetry field with refreshTokenExpired error code", (done) => {
+                    const refreshTokenExpiredError =
+                        createInteractionRequiredAuthError(
+                            InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                        );
+
+                    jest.spyOn(
+                        SilentCacheClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(refreshRequiredCacheError);
+                    jest.spyOn(
+                        SilentRefreshClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(refreshTokenExpiredError);
+                    jest.spyOn(
+                        SilentIframeClient.prototype,
+                        "acquireToken"
+                    ).mockResolvedValue(testTokenResponse);
+
+                    const callbackId = pca.addPerformanceCallback((events) => {
+                        expect(events[0].silentRefreshReason).toBe(
+                            InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                        );
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    });
+
+                    pca.acquireTokenSilent({
+                        scopes: ["openid"],
+                        account: testAccount,
+                        cacheLookupPolicy: CacheLookupPolicy.Default,
+                        correlationId: RANDOM_TEST_GUID,
+                    });
+                });
+
+                it("adds silentRefreshReason telemetry field with noTokensFound error code", (done) => {
+                    const noTokensFoundError =
+                        createInteractionRequiredAuthError(
+                            InteractionRequiredAuthErrorCodes.noTokensFound
+                        );
+
+                    jest.spyOn(
+                        SilentCacheClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(refreshRequiredCacheError);
+                    jest.spyOn(
+                        SilentRefreshClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(noTokensFoundError);
+                    jest.spyOn(
+                        SilentIframeClient.prototype,
+                        "acquireToken"
+                    ).mockResolvedValue(testTokenResponse);
+
+                    const callbackId = pca.addPerformanceCallback((events) => {
+                        expect(events[0].silentRefreshReason).toBe(
+                            InteractionRequiredAuthErrorCodes.noTokensFound
+                        );
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    });
+
+                    pca.acquireTokenSilent({
+                        scopes: ["openid"],
+                        account: testAccount,
+                        cacheLookupPolicy: CacheLookupPolicy.Default,
+                        correlationId: RANDOM_TEST_GUID,
+                    });
+                });
+            });
+        });
+
+        it("throws an error if isMcp is true and resource is not provided in request", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenSilent({ scopes: [] })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.resourceParameterRequired
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraQueryParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenSilent({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraQueryParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenSilent({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("succeeds when isMcp is true and resource is provided", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+                state: "test-state",
+            };
+            const silentCacheSpy: jest.SpyInstance = jest
+                .spyOn(SilentCacheClient.prototype, "acquireToken")
+                .mockResolvedValue(testTokenResponse);
+            const silentRefreshSpy = jest.spyOn(
+                SilentRefreshClient.prototype,
+                "acquireToken"
+            );
+            const silentIframeSpy = jest.spyOn(
+                SilentIframeClient.prototype,
+                "acquireToken"
+            );
+
+            const response = await pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
+                resource: "testresource.example.com",
+            });
+            expect(response?.idToken).not.toBeNull();
+            expect(response).toEqual(testTokenResponse);
+            expect(silentCacheSpy).toHaveBeenCalledTimes(1);
+            expect(silentRefreshSpy).toHaveBeenCalledTimes(0);
+            expect(silentIframeSpy).toHaveBeenCalledTimes(0);
         });
     });
 
@@ -6376,7 +7045,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     PopupClient.prototype,
                     "openSizedPopup"
                 ).mockReturnValue(popupWindow);
-                jest.spyOn(PopupUtils, "cleanPopup").mockImplementation();
             });
 
             it("Clears active account on logoutRedirect with no account", async () => {
@@ -6995,7 +7663,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             ]);
 
             secondBrowserStorageInstance
-                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID, true, 0)
                 .then(async () => {
                     // Create a second PCA instance to simulate another tab
                     const pca2 = new PublicClientApplication({
@@ -7033,7 +7701,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             ]);
 
             secondBrowserStorageInstance
-                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID, true, 0)
                 .then(() => {
                     // Ensure account is present in the cache before setting it as active
                     secondBrowserStorageInstance.setActiveAccount(
@@ -7220,6 +7888,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
+                },
+                system: {
+                    iframeBridgeTimeout: 100,
                 },
             };
             pca = new PublicClientApplication(config);

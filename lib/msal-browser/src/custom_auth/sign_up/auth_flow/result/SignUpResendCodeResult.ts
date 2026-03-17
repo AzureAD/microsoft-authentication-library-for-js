@@ -7,6 +7,10 @@ import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.j
 import { SignUpResendCodeError } from "../error_type/SignUpError.js";
 import type { SignUpCodeRequiredState } from "../state/SignUpCodeRequiredState.js";
 import { SignUpFailedState } from "../state/SignUpFailedState.js";
+import {
+    SIGN_UP_FAILED_STATE_TYPE,
+    SIGN_UP_CODE_REQUIRED_STATE_TYPE,
+} from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Result of resending code in a sign-up operation.
@@ -42,7 +46,7 @@ export class SignUpResendCodeResult extends AuthFlowResultBase<
      * Checks if the result is in a failed state.
      */
     isFailed(): this is SignUpResendCodeResult & { state: SignUpFailedState } {
-        return this.state instanceof SignUpFailedState;
+        return this.state.stateType === SIGN_UP_FAILED_STATE_TYPE;
     }
 
     /**
@@ -51,11 +55,7 @@ export class SignUpResendCodeResult extends AuthFlowResultBase<
     isCodeRequired(): this is SignUpResendCodeResult & {
         state: SignUpCodeRequiredState;
     } {
-        /*
-         * The instanceof operator couldn't be used here to check the state type since the circular dependency issue.
-         * So we are using the constructor name to check the state type.
-         */
-        return this.state.constructor?.name === "SignUpCodeRequiredState";
+        return this.state.stateType === SIGN_UP_CODE_REQUIRED_STATE_TYPE;
     }
 }
 

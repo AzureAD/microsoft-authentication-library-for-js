@@ -10,25 +10,22 @@ import {
     CacheHelpers,
     CacheManager,
     ICrypto,
-    LogLevel,
     Logger,
     createClientAuthError,
     Constants,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     AuthError,
-    BrowserCacheLocation,
     CacheLookupPolicy,
+    ClientAuthError,
     ClientAuthErrorCodes,
     Configuration,
     IPublicClientApplication,
-    SilentRequest,
 } from "../../src/index.js";
 import { buildConfiguration } from "../../src/config/Configuration.js";
 import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
-    TEST_DATA_CLIENT_INFO,
     TEST_TOKENS,
 } from "../utils/StringConstants.js";
 import { IBridgeProxy } from "../../src/naa/IBridgeProxy.js";
@@ -42,13 +39,11 @@ import {
     NAA_CLIENT_ID,
     NAA_CORRELATION_ID,
     NAA_SCOPE,
-    SILENT_TOKEN_REQUEST,
     SILENT_TOKEN_RESPONSE,
 } from "../naa/BridgeProxyConstants.js";
 import BridgeProxy from "../../src/naa/BridgeProxy.js";
 import { NestedAppAuthAdapter } from "../../src/naa/mapping/NestedAppAuthAdapter.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
-import exp from "constants";
 import { TestTimeUtils } from "msal-test-utils";
 
 function stubProvider(config: Configuration) {
@@ -132,6 +127,121 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             expect(pca.controller).toBeInstanceOf(NestedAppAuthController);
             expect(pca.getActiveAccount()).toBeNull();
             done();
+        });
+    });
+
+    describe("acquireTokenInteractive tests", () => {
+        it("acquireTokenInteractive throws if request is missing resource parameter and isMcp is true", async () => {
+            const mcpConfig = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    isMcp: true,
+                },
+            };
+
+            const mcpPca = await createNestablePublicClientApplication(
+                mcpConfig
+            );
+
+            await expect(() =>
+                mcpPca.acquireTokenPopup({
+                    scopes: [NAA_SCOPE],
+                    correlationId: NAA_CORRELATION_ID,
+                } as any)
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.resourceParameterRequired
+                )
+            );
+        });
+
+        it("acquireTokenInteractive throws if resource is provided in both request and extraQueryParameters when isMcp is true", async () => {
+            const mcpConfig = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    isMcp: true,
+                },
+            };
+
+            const mcpPca = await createNestablePublicClientApplication(
+                mcpConfig
+            );
+
+            await expect(() =>
+                mcpPca.acquireTokenPopup({
+                    scopes: [NAA_SCOPE],
+                    correlationId: NAA_CORRELATION_ID,
+                    resource: "https://resource.example.com",
+                    extraQueryParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                } as any)
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("acquireTokenInteractive throws if resource is provided in both request and extraParameters when isMcp is true", async () => {
+            const mcpConfig = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    isMcp: true,
+                },
+            };
+
+            const mcpPca = await createNestablePublicClientApplication(
+                mcpConfig
+            );
+
+            await expect(() =>
+                mcpPca.acquireTokenPopup({
+                    scopes: [NAA_SCOPE],
+                    correlationId: NAA_CORRELATION_ID,
+                    resource: "https://resource.example.com",
+                    extraParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                } as any)
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("acquireTokenInteractive passes resource parameter to bridge if included", async () => {
+            const resource = "https://resource.example.com";
+            const mcpConfig = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    isMcp: true,
+                },
+            };
+
+            const mcpPca = await createNestablePublicClientApplication(
+                mcpConfig
+            );
+            mockBridge.addAuthResultResponse(
+                "GetTokenPopup",
+                SILENT_TOKEN_RESPONSE
+            );
+
+            await mcpPca.acquireTokenPopup({
+                scopes: [NAA_SCOPE],
+                resource: resource,
+                correlationId: NAA_CORRELATION_ID,
+            } as any);
+
+            const bridgeRequest = JSON.parse(
+                mockBridge.getBridgeRequests().at(-1)!
+            ) as any;
+            expect(bridgeRequest.tokenParams?.resource).toBe(resource);
         });
     });
 
@@ -419,8 +529,340 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             expect(bridgeRequest.tokenParams?.forceRefresh).toBeUndefined();
         });
 
+        describe("response validation", () => {
+            it("acquireTokenSilent derives account fields from idTokenClaims when bridge returns minimal account", async () => {
+                // Bridge returns minimal account with only required fields
+                const minimalAccountResponse = {
+                    token: {
+                        ...SILENT_TOKEN_RESPONSE.token,
+                    },
+                    account: {
+                        environment: "login.microsoftonline.com",
+                        username: "", // Empty - should be derived from claims
+                        // No homeAccountId, localAccountId, tenantId, name, etc.
+                    },
+                };
+                mockBridge.addAuthResultResponse(
+                    "GetToken",
+                    minimalAccountResponse
+                );
+
+                const testRequest = {
+                    scopes: [NAA_SCOPE],
+                    account: testAccount,
+                    correlationId: NAA_CORRELATION_ID,
+                    cacheLookupPolicy: CacheLookupPolicy.Skip,
+                };
+
+                const response = await pca.acquireTokenSilent(testRequest);
+
+                // Account fields should be derived from idTokenClaims in the token response
+                const expectedClaims = SILENT_TOKEN_RESPONSE.account
+                    .idTokenClaims as Record<string, unknown>;
+                expect(response.account).toBeDefined();
+                expect(response.account?.localAccountId).toBe(
+                    expectedClaims.oid
+                );
+                expect(response.account?.tenantId).toBe(expectedClaims.tid);
+                expect(response.account?.username).toBe(
+                    expectedClaims.preferred_username
+                );
+                expect(response.account?.name).toBe(expectedClaims.name);
+            });
+
+            it("acquireTokenSilent throws error when bridge returns empty environment", async () => {
+                const invalidAccountResponse = {
+                    token: {
+                        ...SILENT_TOKEN_RESPONSE.token,
+                    },
+                    account: {
+                        environment: "", // Empty - should throw
+                        username: "test@contoso.com",
+                    },
+                };
+                mockBridge.addAuthResultResponse(
+                    "GetToken",
+                    invalidAccountResponse
+                );
+
+                const testRequest = {
+                    scopes: [NAA_SCOPE],
+                    account: testAccount,
+                    correlationId: NAA_CORRELATION_ID,
+                    cacheLookupPolicy: CacheLookupPolicy.Skip,
+                };
+
+                await expect(() =>
+                    pca.acquireTokenSilent(testRequest)
+                ).rejects.toBeInstanceOf(ClientAuthError);
+            });
+        });
+
         afterEach(() => {
             jest.restoreAllMocks();
+        });
+
+        it("acquireTokenSilent returns cached token when isMcp is true and cachedAccessToken.resource matches request.resource", async () => {
+            const resource = "https://resource.example.com";
+
+            const mcpConfig = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    isMcp: true,
+                },
+            };
+
+            const mcpPca = await createNestablePublicClientApplication(
+                mcpConfig
+            );
+            const mcpController = (mcpPca as any).controller;
+
+            const accountContext = {
+                homeAccountId: testAccount.homeAccountId,
+                environment: testAccount.environment,
+                tenantId: testAccount.tenantId,
+            };
+            jest.spyOn(
+                mcpController.bridgeProxy,
+                "getAccountContext"
+            ).mockReturnValue(accountContext);
+
+            const accountManager = require("../../src/cache/AccountManager.js");
+            jest.spyOn(accountManager, "getAccount").mockReturnValue(
+                testAccount
+            );
+
+            const tokenKeys = {
+                idToken: ["idTokenKey"],
+                accessToken: ["accessTokenKey"],
+                refreshToken: [],
+                appMetadata: [],
+            };
+            jest.spyOn(
+                mcpController.browserStorage,
+                "getTokenKeys"
+            ).mockReturnValue(tokenKeys);
+
+            const cachedAccessToken = {
+                secret: TEST_TOKENS.ACCESS_TOKEN,
+                cachedAt: "1000000000",
+                expiresOn: "9999999999",
+                resource,
+                realm: testAccount.tenantId,
+                target: NAA_SCOPE,
+            };
+            const getAccessTokenSpy = jest
+                .spyOn(mcpController.browserStorage, "getAccessToken")
+                .mockReturnValue(cachedAccessToken);
+
+            const cachedIdToken = {
+                secret: TEST_TOKENS.IDTOKEN_V2,
+            };
+            jest.spyOn(
+                mcpController.browserStorage,
+                "getIdToken"
+            ).mockReturnValue(cachedIdToken);
+
+            const expectedResult: AuthenticationResult = {
+                ...testTokenResponse,
+                fromCache: true,
+                accessToken: cachedAccessToken.secret,
+                idToken: cachedIdToken.secret,
+                account: testAccount,
+            };
+            const toAuthenticationResultFromCacheSpy = jest
+                .spyOn(
+                    mcpController.nestedAppAuthAdapter,
+                    "toAuthenticationResultFromCache"
+                )
+                .mockReturnValue(expectedResult as any);
+
+            const bridgeGetTokenSilentSpy = jest.spyOn(
+                mcpController.bridgeProxy,
+                "getTokenSilent"
+            );
+
+            const response = await mcpPca.acquireTokenSilent({
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                resource,
+                correlationId: NAA_CORRELATION_ID,
+                cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+            } as any);
+
+            expect(response).toEqual(expectedResult);
+            expect(response.fromCache).toBe(true);
+            expect(bridgeGetTokenSilentSpy).not.toHaveBeenCalled();
+            expect(getAccessTokenSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    homeAccountId: testAccount.homeAccountId,
+                }),
+                expect.objectContaining({ resource }),
+                tokenKeys,
+                testAccount.tenantId
+            );
+            expect(toAuthenticationResultFromCacheSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    homeAccountId: testAccount.homeAccountId,
+                }),
+                expect.objectContaining({ secret: cachedIdToken.secret }),
+                expect.objectContaining({ resource }),
+                expect.objectContaining({ resource }),
+                NAA_CORRELATION_ID
+            );
+        });
+
+        it("acquireTokenSilent falls back to bridge when isMcp is true and cachedAccessToken.resource does not match request.resource", async () => {
+            const requestResource = "https://resource.example.com";
+            const cachedResource = "https://different-resource.example.com";
+
+            const mcpConfig = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    isMcp: true,
+                },
+            };
+
+            const mcpPca = await createNestablePublicClientApplication(
+                mcpConfig
+            );
+            const mcpController = (mcpPca as any).controller;
+
+            const accountContext = {
+                homeAccountId: testAccount.homeAccountId,
+                environment: testAccount.environment,
+                tenantId: testAccount.tenantId,
+            };
+            jest.spyOn(
+                mcpController.bridgeProxy,
+                "getAccountContext"
+            ).mockReturnValue(accountContext);
+
+            const accountManager = require("../../src/cache/AccountManager.js");
+            jest.spyOn(accountManager, "getAccount").mockReturnValue(
+                testAccount
+            );
+
+            const tokenKeys = {
+                idToken: ["idTokenKey"],
+                accessToken: ["accessTokenKey"],
+                refreshToken: [],
+                appMetadata: [],
+            };
+            jest.spyOn(
+                mcpController.browserStorage,
+                "getTokenKeys"
+            ).mockReturnValue(tokenKeys);
+
+            const cachedAccessToken = {
+                secret: TEST_TOKENS.ACCESS_TOKEN,
+                cachedAt: "1000000000",
+                expiresOn: "9999999999",
+                resource: cachedResource,
+                realm: testAccount.tenantId,
+                target: NAA_SCOPE,
+            };
+            jest.spyOn(
+                mcpController.browserStorage,
+                "getAccessToken"
+            ).mockReturnValue(cachedAccessToken);
+
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+            const bridgeGetTokenSilentSpy = jest.spyOn(
+                mcpController.bridgeProxy,
+                "getTokenSilent"
+            );
+
+            await mcpPca.acquireTokenSilent({
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                resource: requestResource,
+                correlationId: NAA_CORRELATION_ID,
+                cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+            } as any);
+
+            expect(bridgeGetTokenSilentSpy).toHaveBeenCalledTimes(1);
+            const bridgeRequest = JSON.parse(
+                mockBridge.getBridgeRequests().at(-1)!
+            ) as any;
+            expect(bridgeRequest.tokenParams?.resource).toBe(requestResource);
+        });
+
+        it("acquireTokenSilent falls back to bridge when isMcp is true and cached AT doesn't have a resource", async () => {
+            const requestResource = "https://resource.example.com";
+
+            const mcpConfig = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    isMcp: true,
+                },
+            };
+
+            const mcpPca = await createNestablePublicClientApplication(
+                mcpConfig
+            );
+            const mcpController = (mcpPca as any).controller;
+
+            const accountContext = {
+                homeAccountId: testAccount.homeAccountId,
+                environment: testAccount.environment,
+                tenantId: testAccount.tenantId,
+            };
+            jest.spyOn(
+                mcpController.bridgeProxy,
+                "getAccountContext"
+            ).mockReturnValue(accountContext);
+
+            const accountManager = require("../../src/cache/AccountManager.js");
+            jest.spyOn(accountManager, "getAccount").mockReturnValue(
+                testAccount
+            );
+
+            const tokenKeys = {
+                idToken: ["idTokenKey"],
+                accessToken: ["accessTokenKey"],
+                refreshToken: [],
+                appMetadata: [],
+            };
+            jest.spyOn(
+                mcpController.browserStorage,
+                "getTokenKeys"
+            ).mockReturnValue(tokenKeys);
+
+            const cachedAccessToken = {
+                secret: TEST_TOKENS.ACCESS_TOKEN,
+                cachedAt: "1000000000",
+                expiresOn: "9999999999",
+                realm: testAccount.tenantId,
+                target: NAA_SCOPE,
+            };
+            jest.spyOn(
+                mcpController.browserStorage,
+                "getAccessToken"
+            ).mockReturnValue(cachedAccessToken);
+
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+            const bridgeGetTokenSilentSpy = jest.spyOn(
+                mcpController.bridgeProxy,
+                "getTokenSilent"
+            );
+
+            await mcpPca.acquireTokenSilent({
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                resource: requestResource,
+                correlationId: NAA_CORRELATION_ID,
+                cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+            } as any);
+
+            expect(bridgeGetTokenSilentSpy).toHaveBeenCalledTimes(1);
+            const bridgeRequest = JSON.parse(
+                mockBridge.getBridgeRequests().at(-1)!
+            ) as any;
+            expect(bridgeRequest.tokenParams?.resource).toBe(requestResource);
         });
     });
 

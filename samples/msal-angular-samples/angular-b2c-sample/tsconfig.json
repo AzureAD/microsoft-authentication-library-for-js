@@ -18,10 +18,6 @@
     "target": "ES2022",
     "module": "es2020",
     "esModuleInterop": true,
-    "lib": [
-      "es2021",
-      "dom"
-    ],
     "paths": {
       "@angular/*": [
         "./node_modules/@angular/*"

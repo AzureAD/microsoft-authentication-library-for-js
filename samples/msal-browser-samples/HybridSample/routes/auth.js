@@ -7,8 +7,8 @@ const msalInstance = require('./msal');
 const dotenv = require("dotenv");
 dotenv.config();
 
-router.use('/lib', express.static(path.join(__dirname, '../node_modules/@azure/msal-browser/lib')));
-
+router.use('/lib', express.static(path.join(__dirname, '../../../../lib/msal-browser/lib')));
+router.use('/redirect-bridge', express.static(path.join(__dirname, '../../../../lib/msal-browser/lib/redirect-bridge')));
 // Route to automatically redirect the user to login
 router.get('/login', (req, res) => {
     const authCodeUrlParameters = {
@@ -121,6 +121,13 @@ router.get('/client-redirect', function(req, res, next) {
 
 router.get('/implicit-redirect', function(req, res, next) {
     res.render('implicit-redirect', {
+        ...data,
+        ...req.session
+    });
+});
+
+router.get('/redirect', function(req, res, next) {
+    res.render('redirect', {
         ...data,
         ...req.session
     });

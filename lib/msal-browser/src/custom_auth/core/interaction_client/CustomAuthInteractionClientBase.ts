@@ -99,13 +99,14 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
     protected async handleTokenResponse(
         tokenResponse: SignInTokenResponse,
         requestScopes: string[],
-        correlationId: string
+        correlationId: string,
+        apiId: number
     ): Promise<AuthenticationResult> {
         this.logger.verbose("Processing token response.", correlationId);
 
         const requestTimestamp = Math.round(new Date().getTime() / 1000.0);
 
-        // Save tokens and create authentication result 44s
+        // Save tokens and create authentication result
         const result =
             await this.tokenResponseHandler.handleServerTokenResponse(
                 tokenResponse,
@@ -116,7 +117,8 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
                     correlationId:
                         tokenResponse.correlation_id ?? correlationId,
                     scopes: requestScopes,
-                }
+                },
+                apiId
             );
 
         return result as AuthenticationResult;

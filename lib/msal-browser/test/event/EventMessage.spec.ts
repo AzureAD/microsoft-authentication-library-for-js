@@ -3,9 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { InteractionStatus, InteractionType } from "../../src";
-import { EventMessage, EventMessageUtils } from "../../src/event/EventMessage";
-import { EventType } from "../../src/event/EventType";
+import {
+    InteractionStatus,
+    InteractionType,
+} from "../../src/utils/BrowserConstants.js";
+import {
+    EventMessage,
+    EventMessageUtils,
+} from "../../src/event/EventMessage.js";
+import { EventType } from "../../src/event/EventType.js";
 
 describe("EventMessage.ts Unit Tests", () => {
     describe("getInteractionStatusFromEvent()", () => {
@@ -15,6 +21,7 @@ describe("EventMessage.ts Unit Tests", () => {
             payload: null,
             error: null,
             timestamp: 0,
+            correlationId: "test-correlation-id",
         };
 
         it("returns status AcquireToken with event type ACQUIRE_TOKEN_START", () => {

@@ -68,6 +68,12 @@ export const HTTP_GATEWAY_TIMEOUT: number = 504;
 export const HTTP_SERVER_ERROR_RANGE_END: number = 599;
 export const HTTP_MULTI_SIDED_ERROR: number = 600;
 
+export const HttpMethod = {
+    GET: "GET",
+    POST: "POST",
+} as const;
+export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
+
 export const OIDC_DEFAULT_SCOPES = [
     OPENID_SCOPE,
     PROFILE_SCOPE,

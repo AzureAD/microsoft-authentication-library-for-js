@@ -63,7 +63,7 @@ export function getAuthCodeRequestUrl(
         );
     }
 
-    RequestParameterBuilder.addExtraQueryParameters(
+    RequestParameterBuilder.addExtraParameters(
         parameters,
         request.extraQueryParameters || {}
     );

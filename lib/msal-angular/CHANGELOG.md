@@ -1,12 +1,65 @@
 # Change Log - @azure/msal-angular
 
-<!-- This log was last generated on Thu, 02 Oct 2025 21:58:46 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 13 Mar 2026 22:36:57 GMT and should not be manually modified. -->
 
 <!-- Start content -->
 
-## 5.0.0-alpha.0
+## 5.1.2
 
-Thu, 02 Oct 2025 21:58:46 GMT
+Fri, 13 Mar 2026 22:36:57 GMT
+
+### Patches
+
+- Add strictMatching runtime warning when strictMatching is not explicitly configured [#8388](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8388) (joarroyo@microsoft.com)
+- Update angular dependencies (joarroyo@microsoft.com)
+- Bump @azure/msal-browser to v5.5.0
+- Bump eslint-config-msal to v0.0.0
+
+## 5.1.1
+
+Mon, 02 Mar 2026 19:25:47 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.4.0
+- Bump eslint-config-msal to v0.0.0
+
+## 5.1.0
+
+Tue, 24 Feb 2026 21:51:51 GMT
+
+### Minor changes
+
+- Make strictMatching default [#8355](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8355) (joarroyo@microsoft.com)
+- Bump @azure/msal-browser to v5.3.0
+- Bump eslint-config-msal to v0.0.0
+
+### Patches
+
+- Update dev dependencies [#8335](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8335) (joarroyo@microsoft.com)
+
+## 5.0.4
+
+Tue, 10 Feb 2026 23:04:27 GMT
+
+### Patches
+
+- Add handleRedirectObservable options [#8278](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/8278) (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v5.2.0
+- Bump eslint-config-msal to v0.0.0
+
+## 5.0.3
+
+Wed, 28 Jan 2026 18:43:41 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.1.0
+- Bump eslint-config-msal to v0.0.0
+
+## 5.0.2
+
+Sat, 17 Jan 2026 03:11:36 GMT
 
 ### Major changes
 
@@ -15,8 +68,6 @@ Thu, 02 Oct 2025 21:58:46 GMT
 - Remove deprecated functions and parameters (shylasummers@microsoft.com)
 - Upgrade MSAL Angular to Angular 19 (shylasummers@microsoft.com)
 - Update handleRedirectPromise signature to consolidate hash into options type (hemoral@microsoft.com)
-- Bump @azure/msal-browser to v5.0.0-alpha.0
-- Bump eslint-config-msal to v0.0.0
 
 ### Minor changes
 
@@ -25,7 +76,134 @@ Thu, 02 Oct 2025 21:58:46 GMT
 
 ### Patches
 
+- Bump @azure/msal-browser to v5.0.2
+- Bump eslint-config-msal to v0.0.0
+- Remove beta tag (joarroyo@microsoft.com)
 - Remove legacy APIs (shylasummers@microsoft.com)
+
+### Changes
+
+- Mark package for prerelease (beta) (msaljsbuilds@microsoft.com)
+- Bump to pre-release alpha (hemoral@microsoft.com)
+- Remove dependency on msal-browser Util functions [#8122](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8122) (thomas.norling@microsoft.com)
+
+## 4.0.25
+
+Sat, 17 Jan 2026 01:12:52 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.28.1
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.24
+
+Tue, 13 Jan 2026 14:23:33 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.28.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.23
+
+Thu, 04 Dec 2025 05:46:37 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.27.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.22
+
+Wed, 19 Nov 2025 23:13:11 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.26.2
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.21
+
+Wed, 29 Oct 2025 00:04:34 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.26.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.20
+
+Wed, 24 Sep 2025 21:54:45 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.24.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.19
+
+Tue, 19 Aug 2025 21:26:21 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.21.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.18
+
+Tue, 12 Aug 2025 22:53:33 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.20.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.17
+
+Tue, 05 Aug 2025 20:00:24 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.19.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.16
+
+Wed, 23 Jul 2025 14:54:36 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.16.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.15
+
+Tue, 08 Jul 2025 14:21:12 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.15.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.14
+
+Tue, 01 Jul 2025 14:23:25 GMT
+
+### Patches
+
+- Fix build output during publishing (shylasummers@microsoft.com)
+- Bump @azure/msal-browser to v4.14.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.13
+
+Wed, 18 Jun 2025 15:21:55 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.13.2
+- Bump eslint-config-msal to v0.0.0
 
 ## 4.0.12
 

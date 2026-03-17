@@ -4,7 +4,7 @@
  */
 
 import { PkceCodes } from "@azure/msal-common";
-import { CryptoProvider } from "./../../src/index.js";
+import { CryptoProvider } from "./../../src/crypto/CryptoProvider.js";
 import { GuidGenerator } from "./../../src/crypto/GuidGenerator.js";
 
 describe("CryptoOps", () => {

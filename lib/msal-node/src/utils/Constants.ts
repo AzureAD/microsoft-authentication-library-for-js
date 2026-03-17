@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { Constants as CommonConstants } from "@azure/msal-common/node";
 import { DefaultManagedIdentityRetryPolicy } from "../retry/DefaultManagedIdentityRetryPolicy.js";
 import { ImdsRetryPolicy } from "../retry/ImdsRetryPolicy.js";
 
@@ -88,18 +87,10 @@ export type ManagedIdentityIdType =
  * http methods
  */
 export const HttpMethod = {
-    GET: "get",
-    POST: "post",
+    GET: "GET",
+    POST: "POST",
 } as const;
 export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
-
-export const ProxyStatus = {
-    SUCCESS: CommonConstants.HTTP_SUCCESS,
-    SUCCESS_RANGE_START: CommonConstants.HTTP_SUCCESS_RANGE_START,
-    SUCCESS_RANGE_END: CommonConstants.HTTP_SUCCESS_RANGE_END,
-    SERVER_ERROR: CommonConstants.HTTP_SERVER_ERROR,
-} as const;
-export type ProxyStatus = (typeof ProxyStatus)[keyof typeof ProxyStatus];
 
 /**
  * Constants used for region discovery
@@ -160,6 +151,8 @@ export const ApiId = {
     acquireTokenByUsernamePassword: 371,
     acquireTokenByDeviceCode: 671,
     acquireTokenByClientCredential: 771,
+    acquireTokenByOBO: 772,
+    acquireTokenWithManagedIdentity: 773,
     acquireTokenByCode: 871,
     acquireTokenByRefreshToken: 872,
 };

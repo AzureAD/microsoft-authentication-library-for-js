@@ -10,7 +10,7 @@
         "build:package": "npm run build:all --workspace=lib/msal-browser"
     },
     "dependencies": {
-        "@azure/msal-browser": "^5.0.0-alpha.0",
+        "@azure/msal-browser": "^5.0.0",
         "dotenv": "^16.0.3",
         "express": "^4.18.2",
         "express-handlebars": "^7.0.7"
@@ -21,7 +21,7 @@
         "env-cmd": "^10.1.0",
         "jest": "^30.0.5",
         "jest-junit": "^16.0.0",
-        "nodemon": "^2.0.22",
+        "nodemon": "^3.1.11",
         "ts-jest": "^29.4.1"
     },
     "jest-junit": {

@@ -54,13 +54,14 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     async start(
         parameters: SignUpStartParams
     ): Promise<SignUpPasswordRequiredResult | SignUpCodeRequiredResult> {
+        const correlationId = parameters.correlationId || this.correlationId;
         const apiId = !parameters.password
             ? PublicApiId.SIGN_UP_START
             : PublicApiId.SIGN_UP_WITH_PASSWORD_START;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
@@ -71,12 +72,12 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             attributes: parameters.attributes,
             challenge_type: this.getChallengeTypes(parameters.challengeType),
             telemetryManager,
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
         };
 
         this.logger.verbose(
             "Calling start endpoint for sign up.",
-            parameters.correlationId
+            correlationId
         );
 
         const startResponse = await this.customAuthApiClient.signUpApi.start(
@@ -85,14 +86,14 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         this.logger.verbose(
             "Start endpoint called for sign up.",
-            parameters.correlationId
+            startResponse.correlation_id || correlationId
         );
 
         const challengeRequest: SignUpChallengeRequest = {
             continuation_token: startResponse.continuation_token ?? "",
             challenge_type: this.getChallengeTypes(parameters.challengeType),
             telemetryManager,
-            correlationId: startResponse.correlation_id,
+            correlationId: startResponse.correlation_id || correlationId,
         };
 
         return this.performChallengeRequest(challengeRequest);
@@ -110,11 +111,12 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         | SignUpPasswordRequiredResult
         | SignUpAttributesRequiredResult
     > {
+        const correlationId = parameters.correlationId || this.correlationId;
         const apiId = PublicApiId.SIGN_UP_SUBMIT_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
@@ -123,7 +125,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             continuation_token: parameters.continuationToken,
             oob: parameters.code,
             telemetryManager,
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
         };
 
         const result = await this.performContinueRequest(
@@ -134,14 +136,14 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
                 this.customAuthApiClient.signUpApi.continueWithCode(
                     requestSubmitCode
                 ),
-            parameters.correlationId
+            correlationId
         );
 
         if (result.type === SIGN_UP_CODE_REQUIRED_RESULT_TYPE) {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
                 "The challenge type 'oob' is invalid after submtting code for sign up.",
-                parameters.correlationId
+                result.correlationId || correlationId
             );
         }
 
@@ -150,48 +152,49 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
     /**
      * Submits the password for the sign up flow.
-     * @param parameter The parameters for the sign up submit password action.
+     * @param parameters The parameters for the sign up submit password action.
      * @returns The result of the sign up submit password action.
      */
     async submitPassword(
-        parameter: SignUpSubmitPasswordParams
+        parameters: SignUpSubmitPasswordParams
     ): Promise<
         | SignUpCompletedResult
         | SignUpCodeRequiredResult
         | SignUpAttributesRequiredResult
     > {
+        const correlationId = parameters.correlationId || this.correlationId;
         const apiId = PublicApiId.SIGN_UP_SUBMIT_PASSWORD;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
 
         const requestSubmitPwd: SignUpContinueWithPasswordRequest = {
-            continuation_token: parameter.continuationToken,
-            password: parameter.password,
+            continuation_token: parameters.continuationToken,
+            password: parameters.password,
             telemetryManager,
-            correlationId: parameter.correlationId,
+            correlationId: correlationId,
         };
 
         const result = await this.performContinueRequest(
             "SignUpClient.submitPassword",
-            parameter,
+            parameters,
             telemetryManager,
             () =>
                 this.customAuthApiClient.signUpApi.continueWithPassword(
                     requestSubmitPwd
                 ),
-            parameter.correlationId
+            correlationId
         );
 
         if (result.type === SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE) {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
                 "The challenge type 'password' is invalid after submtting password for sign up.",
-                parameter.correlationId
+                result.correlationId || correlationId
             );
         }
 
@@ -200,47 +203,48 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
     /**
      * Submits the attributes for the sign up flow.
-     * @param parameter The parameters for the sign up submit attributes action.
+     * @param parameters The parameters for the sign up submit attributes action.
      * @returns The result of the sign up submit attributes action.
      */
     async submitAttributes(
-        parameter: SignUpSubmitUserAttributesParams
+        parameters: SignUpSubmitUserAttributesParams
     ): Promise<
         | SignUpCompletedResult
         | SignUpPasswordRequiredResult
         | SignUpCodeRequiredResult
     > {
+        const correlationId = parameters.correlationId || this.correlationId;
         const apiId = PublicApiId.SIGN_UP_SUBMIT_ATTRIBUTES;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
         const reqWithAttr: SignUpContinueWithAttributesRequest = {
-            continuation_token: parameter.continuationToken,
-            attributes: parameter.attributes,
+            continuation_token: parameters.continuationToken,
+            attributes: parameters.attributes,
             telemetryManager,
-            correlationId: parameter.correlationId,
+            correlationId: correlationId,
         };
 
         const result = await this.performContinueRequest(
             "SignUpClient.submitAttributes",
-            parameter,
+            parameters,
             telemetryManager,
             () =>
                 this.customAuthApiClient.signUpApi.continueWithAttributes(
                     reqWithAttr
                 ),
-            parameter.correlationId
+            correlationId
         );
 
         if (result.type === SIGN_UP_ATTRIBUTES_REQUIRED_RESULT_TYPE) {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.ATTRIBUTES_REQUIRED,
                 "User attributes required",
-                parameter.correlationId,
+                result.correlationId || correlationId,
                 [],
                 "",
                 result.requiredAttributes,
@@ -259,11 +263,12 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     async resendCode(
         parameters: SignUpResendCodeParams
     ): Promise<SignUpCodeRequiredResult> {
+        const correlationId = parameters.correlationId || this.correlationId;
         const apiId = PublicApiId.SIGN_UP_RESEND_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
@@ -272,7 +277,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             continuation_token: parameters.continuationToken ?? "",
             challenge_type: this.getChallengeTypes(parameters.challengeType),
             telemetryManager,
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
         };
 
         const result = await this.performChallengeRequest(challengeRequest);
@@ -281,7 +286,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
                 "The challenge type 'password' is invalid after resending code for sign up.",
-                parameters.correlationId
+                result.correlationId || correlationId
             );
         }
 
@@ -301,18 +306,19 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         this.logger.verbose(
             "Challenge endpoint called for sign up.",
-            request.correlationId
+            challengeResponse.correlation_id || request.correlationId
         );
 
         if (challengeResponse.challenge_type === ChallengeType.OOB) {
             // Code is required
             this.logger.verbose(
                 "Challenge type is oob for sign up.",
-                request.correlationId
+                challengeResponse.correlation_id || request.correlationId
             );
 
             return createSignUpCodeRequiredResult({
-                correlationId: challengeResponse.correlation_id,
+                correlationId:
+                    challengeResponse.correlation_id || request.correlationId,
                 continuationToken: challengeResponse.continuation_token ?? "",
                 challengeChannel: challengeResponse.challenge_channel ?? "",
                 challengeTargetLabel:
@@ -331,24 +337,25 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             // Password is required
             this.logger.verbose(
                 "Challenge type is password for sign up.",
-                request.correlationId
+                challengeResponse.correlation_id || request.correlationId
             );
 
             return createSignUpPasswordRequiredResult({
-                correlationId: challengeResponse.correlation_id,
+                correlationId:
+                    challengeResponse.correlation_id || request.correlationId,
                 continuationToken: challengeResponse.continuation_token ?? "",
             });
         }
 
         this.logger.error(
             `Unsupported challenge type '${challengeResponse.challenge_type}' for sign up.`,
-            request.correlationId
+            challengeResponse.correlation_id || request.correlationId
         );
 
         throw new CustomAuthApiError(
             CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
             `Unsupported challenge type '${challengeResponse.challenge_type}'.`,
-            request.correlationId
+            challengeResponse.correlation_id || request.correlationId
         );
     }
 
@@ -374,18 +381,18 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
             this.logger.verbose(
                 `Continue endpoint called by '${callerName}' for sign up.`,
-                requestCorrelationId
+                response.correlation_id || requestCorrelationId
             );
 
             return createSignUpCompletedResult({
-                correlationId: requestCorrelationId,
+                correlationId: response.correlation_id || requestCorrelationId,
                 continuationToken: response.continuation_token ?? "",
             });
         } catch (error) {
             if (error instanceof CustomAuthApiError) {
                 return this.handleContinueResponseError(
                     error,
-                    error.correlationId ?? requestCorrelationId,
+                    error.correlationId || requestCorrelationId,
                     requestParams,
                     telemetryManager
                 );
@@ -423,7 +430,10 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             );
 
             const continuationToken =
-                this.readContinuationTokenFromResponeError(responseError);
+                this.readContinuationTokenFromResponeError(
+                    responseError,
+                    correlationId
+                );
 
             // Call the challenge endpoint to ensure the password challenge type is supported.
             const challengeRequest: SignUpChallengeRequest = {
@@ -443,14 +453,16 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
                 challengeResult.type === SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE
             ) {
                 return createSignUpPasswordRequiredResult({
-                    correlationId: correlationId,
+                    correlationId:
+                        challengeResult.correlationId || correlationId,
                     continuationToken: challengeResult.continuationToken,
                 });
             }
 
             if (challengeResult.type === SIGN_UP_CODE_REQUIRED_RESULT_TYPE) {
                 return createSignUpCodeRequiredResult({
-                    correlationId: challengeResult.correlationId,
+                    correlationId:
+                        challengeResult.correlationId || correlationId,
                     continuationToken: challengeResult.continuationToken,
                     challengeChannel: challengeResult.challengeChannel,
                     challengeTargetLabel: challengeResult.challengeTargetLabel,
@@ -475,7 +487,10 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             );
 
             const continuationToken =
-                this.readContinuationTokenFromResponeError(responseError);
+                this.readContinuationTokenFromResponeError(
+                    responseError,
+                    correlationId
+                );
 
             return createSignUpAttributesRequiredResult({
                 correlationId: correlationId,
@@ -512,13 +527,14 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     }
 
     private readContinuationTokenFromResponeError(
-        responseError: CustomAuthApiError
+        responseError: CustomAuthApiError,
+        correlationId: string
     ): string {
         if (!responseError.continuationToken) {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.CONTINUATION_TOKEN_MISSING,
                 "Continuation token is missing in the response body",
-                responseError.correlationId
+                correlationId
             );
         }
 

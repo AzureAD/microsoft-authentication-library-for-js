@@ -57,7 +57,7 @@ import {
     getDiscoveredAuthority,
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
-import { HandleRedirectPromiseOptions } from "../controllers/IController.js";
+import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -144,6 +144,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserStorage.resetRequestCache(this.correlationId);
                 this.eventHandler.emitEvent(
                     EventType.RESTORE_FROM_BFCACHE,
+                    this.correlationId,
                     InteractionType.Redirect
                 );
             }
@@ -218,38 +219,42 @@ export class RedirectClient extends StandardInteractionClient {
         );
 
         try {
-            // Initialize the client
-            const authClient: AuthorizationCodeClient = await invokeAsync(
-                this.createAuthCodeClient.bind(this),
-                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-                this.logger,
-                this.performanceClient,
-                this.correlationId
-            )({
-                serverTelemetryManager,
-                requestAuthority: redirectRequest.authority,
-                requestAzureCloudOptions: redirectRequest.azureCloudOptions,
-                requestExtraQueryParameters:
-                    redirectRequest.extraQueryParameters,
-                account: redirectRequest.account,
-            });
+            if (redirectRequest.httpMethod === Constants.HttpMethod.POST) {
+                return await this.executeCodeFlowWithPost(redirectRequest);
+            } else {
+                // Initialize the client
+                const authClient: AuthorizationCodeClient = await invokeAsync(
+                    this.createAuthCodeClient.bind(this),
+                    BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                    this.logger,
+                    this.performanceClient,
+                    this.correlationId
+                )({
+                    serverTelemetryManager,
+                    requestAuthority: redirectRequest.authority,
+                    requestAzureCloudOptions: redirectRequest.azureCloudOptions,
+                    requestExtraQueryParameters:
+                        redirectRequest.extraQueryParameters,
+                    account: redirectRequest.account,
+                });
 
-            // Create acquire token url.
-            const navigateUrl = await invokeAsync(
-                Authorize.getAuthCodeRequestUrl,
-                PerformanceEvents.GetAuthCodeUrl,
-                this.logger,
-                this.performanceClient,
-                request.correlationId
-            )(
-                this.config,
-                authClient.authority,
-                redirectRequest,
-                this.logger,
-                this.performanceClient
-            );
-            // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            return await this.initiateAuthRequest(navigateUrl);
+                // Create acquire token url.
+                const navigateUrl = await invokeAsync(
+                    Authorize.getAuthCodeRequestUrl,
+                    PerformanceEvents.GetAuthCodeUrl,
+                    this.logger,
+                    this.performanceClient,
+                    request.correlationId
+                )(
+                    this.config,
+                    authClient.authority,
+                    redirectRequest,
+                    this.logger,
+                    this.performanceClient
+                );
+                // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
+                return await this.initiateAuthRequest(navigateUrl);
+            }
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(this.correlationId);
@@ -299,13 +304,24 @@ export class RedirectClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )();
+        const pkceCodes = await invokeAsync(
+            generatePkceCodes,
+            BrowserPerformanceEvents.GeneratePkceCodes,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(this.performanceClient, this.logger, correlationId);
+
         const redirectRequest = {
             ...request,
             earJwk: earJwk,
+            codeChallenge: pkceCodes.challenge,
         };
+
         this.browserStorage.cacheAuthorizeRequest(
             redirectRequest,
-            this.correlationId
+            this.correlationId,
+            pkceCodes.verifier
         );
 
         const form = await Authorize.getEARForm(
@@ -316,6 +332,53 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
+        form.submit();
+        return new Promise<void>((resolve, reject) => {
+            setTimeout(() => {
+                reject(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.timedOut,
+                        "failed_to_redirect"
+                    )
+                );
+            }, this.config.system.redirectNavigationTimeout);
+        });
+    }
+
+    /**
+     * Executes classic Authorization Code flow with a POST request.
+     * @param request
+     */
+    async executeCodeFlowWithPost(
+        request: CommonAuthorizationUrlRequest
+    ): Promise<void> {
+        const correlationId = request.correlationId;
+        // Get the frame handle for the silent request
+        const discoveredAuthority = await invokeAsync(
+            getDiscoveredAuthority,
+            BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
+            this.config,
+            this.correlationId,
+            this.performanceClient,
+            this.browserStorage,
+            this.logger
+        );
+
+        this.browserStorage.cacheAuthorizeRequest(request, this.correlationId);
+
+        const form = await Authorize.getCodeForm(
+            document,
+            this.config,
+            discoveredAuthority,
+            request,
+            this.logger,
+            this.performanceClient
+        );
+
         form.submit();
         return new Promise<void>((resolve, reject) => {
             setTimeout(() => {
@@ -757,6 +820,7 @@ export class RedirectClient extends StandardInteractionClient {
         try {
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_START,
+                this.correlationId,
                 InteractionType.Redirect,
                 logoutRequest
             );
@@ -797,6 +861,7 @@ export class RedirectClient extends StandardInteractionClient {
                     if (validLogoutRequest.account?.homeAccountId) {
                         this.eventHandler.emitEvent(
                             EventType.LOGOUT_SUCCESS,
+                            this.correlationId,
                             InteractionType.Redirect,
                             validLogoutRequest
                         );
@@ -812,6 +877,7 @@ export class RedirectClient extends StandardInteractionClient {
             if (validLogoutRequest.account?.homeAccountId) {
                 this.eventHandler.emitEvent(
                     EventType.LOGOUT_SUCCESS,
+                    this.correlationId,
                     InteractionType.Redirect,
                     validLogoutRequest
                 );
@@ -867,12 +933,14 @@ export class RedirectClient extends StandardInteractionClient {
             }
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_FAILURE,
+                this.correlationId,
                 InteractionType.Redirect,
                 null,
                 e as EventError
             );
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_END,
+                this.correlationId,
                 InteractionType.Redirect
             );
             throw e;
@@ -880,6 +948,7 @@ export class RedirectClient extends StandardInteractionClient {
 
         this.eventHandler.emitEvent(
             EventType.LOGOUT_END,
+            this.correlationId,
             InteractionType.Redirect
         );
     }

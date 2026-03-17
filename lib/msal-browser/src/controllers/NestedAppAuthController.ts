@@ -5,7 +5,6 @@
 
 import {
     CommonAuthorizationUrlRequest,
-    CommonSilentFlowRequest,
     PerformanceCallbackFunction,
     AccountInfo,
     Logger,
@@ -19,6 +18,8 @@ import {
     AccountFilter,
     AuthError,
     AccountEntityUtils,
+    AuthToken,
+    enforceResourceParameter,
 } from "@azure/msal-common/browser";
 import * as RootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -31,13 +32,13 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import {
-    ApiId,
     WrapperSKU,
     InteractionType,
     DEFAULT_REQUEST,
     CacheLookupPolicy,
+    ApiId,
 } from "../utils/BrowserConstants.js";
-import { IController, HandleRedirectPromiseOptions } from "./IController.js";
+import { IController } from "./IController.js";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
 import { IBridgeProxy } from "../naa/IBridgeProxy.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
@@ -56,6 +57,8 @@ import * as AccountManager from "../cache/AccountManager.js";
 import { AccountContext } from "../naa/BridgeAccountContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+
 export class NestedAppAuthController implements IController {
     // OperatingContext
     protected readonly operatingContext: NestedAppOperatingContext;
@@ -201,6 +204,7 @@ export class NestedAppAuthController implements IController {
 
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
+            correlationId,
             InteractionType.Popup,
             validRequest
         );
@@ -213,6 +217,7 @@ export class NestedAppAuthController implements IController {
         atPopupMeasurement.add({ nestedAppAuthRequest: true });
 
         try {
+            enforceResourceParameter(this.config.auth.isMcp, validRequest);
             const naaRequest =
                 this.nestedAppAuthAdapter.toNaaTokenRequest(validRequest);
             const reqTimestamp = TimeUtils.nowSeconds();
@@ -247,6 +252,7 @@ export class NestedAppAuthController implements IController {
 
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
+                correlationId,
                 InteractionType.Popup,
                 result
             );
@@ -273,6 +279,7 @@ export class NestedAppAuthController implements IController {
                     : this.nestedAppAuthAdapter.fromBridgeError(e);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
+                correlationId,
                 InteractionType.Popup,
                 null,
                 e as EventError
@@ -302,6 +309,7 @@ export class NestedAppAuthController implements IController {
         const correlationId = validRequest.correlationId || createNewGuid();
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
+            correlationId,
             InteractionType.Silent,
             validRequest
         );
@@ -311,6 +319,7 @@ export class NestedAppAuthController implements IController {
         if (result) {
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
+                correlationId,
                 InteractionType.Silent,
                 result
             );
@@ -331,6 +340,7 @@ export class NestedAppAuthController implements IController {
         });
 
         try {
+            enforceResourceParameter(this.config.auth.isMcp, validRequest);
             const naaRequest =
                 this.nestedAppAuthAdapter.toNaaTokenRequest(validRequest);
             naaRequest.forceRefresh = validRequest.forceRefresh;
@@ -364,6 +374,7 @@ export class NestedAppAuthController implements IController {
 
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
+                correlationId,
                 InteractionType.Silent,
                 result
             );
@@ -387,6 +398,7 @@ export class NestedAppAuthController implements IController {
                     : this.nestedAppAuthAdapter.fromBridgeError(e);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
+                correlationId,
                 InteractionType.Silent,
                 null,
                 e as EventError
@@ -457,6 +469,7 @@ export class NestedAppAuthController implements IController {
         if (result) {
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
+                correlationId,
                 InteractionType.Silent,
                 result
             );
@@ -481,6 +494,7 @@ export class NestedAppAuthController implements IController {
 
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_FAILURE,
+            correlationId,
             InteractionType.Silent,
             null
         );
@@ -565,6 +579,17 @@ export class NestedAppAuthController implements IController {
                 correlationId
             );
             return Promise.resolve(null);
+        } else if (authRequest.resource) {
+            const requestedResource = authRequest.resource;
+            const cachedResource = cachedAccessToken.resource;
+
+            if (!cachedResource || cachedResource !== requestedResource) {
+                this.logger.verbose(
+                    "Cached access token resource does not match requested resource for MCP flow",
+                    correlationId
+                );
+                return Promise.resolve(null);
+            }
         }
 
         const cachedIdToken = this.browserStorage.getIdToken(
@@ -631,44 +656,6 @@ export class NestedAppAuthController implements IController {
     }
 
     /**
-     * acquireTokenNative flow is not currently supported in nested app auth
-     * @param request
-     * @param apiId
-     * @param accountId
-     */
-    acquireTokenNative(
-        request: // eslint-disable-line @typescript-eslint/no-unused-vars
-        | SilentRequest
-            | Partial<
-                  Omit<
-                      CommonAuthorizationUrlRequest,
-                      | "responseMode"
-                      | "earJwk"
-                      | "codeChallenge"
-                      | "codeChallengeMethod"
-                      | "platformBroker"
-                  >
-              >
-            | PopupRequest,
-        apiId: ApiId, // eslint-disable-line @typescript-eslint/no-unused-vars
-        accountId?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): Promise<AuthenticationResult> {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-
-    /**
-     * acquireTokenByRefreshToken flow is not currently supported in nested app auth
-     * @param commonRequest
-     * @param silentRequest
-     */
-    acquireTokenByRefreshToken(
-        commonRequest: CommonSilentFlowRequest, // eslint-disable-line @typescript-eslint/no-unused-vars
-        silentRequest: SilentRequest // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): Promise<AuthenticationResult> {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-
-    /**
      * Adds event callbacks to array
      * @param callback
      * @param eventTypes
@@ -723,55 +710,6 @@ export class NestedAppAuthController implements IController {
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
         return AccountManager.getAccount(
             accountFilter,
-            this.logger,
-            this.browserStorage,
-            createNewGuid()
-        );
-    }
-
-    /**
-     * Returns the signed in account matching username.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found.
-     * This API is provided for convenience but getAccountById should be used for best reliability
-     * @param username
-     * @returns The account object stored in MSAL
-     */
-    getAccountByUsername(username: string): AccountInfo | null {
-        return AccountManager.getAccountByUsername(
-            username,
-            this.logger,
-            this.browserStorage,
-            createNewGuid()
-        );
-    }
-
-    /**
-     * Returns the signed in account matching homeAccountId.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found
-     * @param homeAccountId
-     * @returns The account object stored in MSAL
-     */
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        return AccountManager.getAccountByHomeId(
-            homeAccountId,
-            this.logger,
-            this.browserStorage,
-            createNewGuid()
-        );
-    }
-
-    /**
-     * Returns the signed in account matching localAccountId.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found
-     * @param localAccountId
-     * @returns The account object stored in MSAL
-     */
-    getAccountByLocalId(localAccountId: string): AccountInfo | null {
-        return AccountManager.getAccountByLocalId(
-            localAccountId,
             this.logger,
             this.browserStorage,
             createNewGuid()
@@ -921,7 +859,9 @@ export class NestedAppAuthController implements IController {
             );
         await this.browserStorage.setAccount(
             accountEntity,
-            result.correlationId
+            result.correlationId,
+            AuthToken.isKmsi(result.idTokenClaims),
+            ApiId.hydrateCache
         );
         return this.browserStorage.hydrateCache(result, request);
     }

@@ -30,25 +30,29 @@ describe("LocalStorage tests", () => {
             idTokenKey,
             idTokenVal,
             TEST_CONFIG.CORRELATION_ID,
-            Date.now().toString()
+            Date.now().toString(),
+            false
         );
         await localStorageInstance.setUserData(
             accessTokenKey,
             accessTokenVal,
             TEST_CONFIG.CORRELATION_ID,
-            Date.now().toString()
+            Date.now().toString(),
+            false
         );
         await localStorageInstance.setUserData(
             refreshTokenKey,
             refreshTokenVal,
             TEST_CONFIG.CORRELATION_ID,
-            Date.now().toString()
+            Date.now().toString(),
+            false
         );
         await localStorageInstance.setUserData(
             accountKey,
             accountVal,
             TEST_CONFIG.CORRELATION_ID,
-            Date.now().toString()
+            Date.now().toString(),
+            false
         );
 
         localStorage.setItem(
@@ -169,7 +173,8 @@ describe("LocalStorage tests", () => {
             "testKey",
             "testVal",
             TEST_CONFIG.CORRELATION_ID,
-            Date.now().toString()
+            Date.now().toString(),
+            false
         );
         expect(localStorage.getItem("testKey")).toBeTruthy(); // Encrypted
         expect(localStorageInstance.getUserData("testKey")).toBe("testVal"); // From in-memory
@@ -218,13 +223,34 @@ describe("LocalStorage tests", () => {
             "testKey",
             "testVal",
             TEST_CONFIG.CORRELATION_ID,
-            Date.now().toString()
+            Date.now().toString(),
+            false
         );
 
         const encrypted = localStorage.getItem("testKey") || "";
         expect(JSON.parse(encrypted)).toHaveProperty("id");
         expect(JSON.parse(encrypted)).toHaveProperty("data");
         expect(JSON.parse(encrypted)).toHaveProperty("nonce");
+        expect(localStorageInstance.getUserData("testKey")).toBe("testVal");
+    });
+
+    it("setUserData stores unencrypted when KMSI is true", async () => {
+        const localStorageInstance = new LocalStorage(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            logger,
+            performanceClient
+        );
+        await localStorageInstance.initialize(TEST_CONFIG.CORRELATION_ID);
+
+        await localStorageInstance.setUserData(
+            "testKey",
+            "testVal",
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString(),
+            true
+        );
+
+        expect(localStorage.getItem("testKey")).toBe("testVal");
         expect(localStorageInstance.getUserData("testKey")).toBe("testVal");
     });
 
@@ -252,7 +278,8 @@ describe("LocalStorage tests", () => {
             "testKey",
             "testVal",
             TEST_CONFIG.CORRELATION_ID,
-            Date.now().toString()
+            Date.now().toString(),
+            false
         );
 
         expect(localStorageInstance1.getUserData("testKey")).toBe("testVal");

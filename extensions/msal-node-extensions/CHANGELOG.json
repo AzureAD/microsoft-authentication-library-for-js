@@ -1,2125 +1,2848 @@
 {
-    "name": "@azure/msal-node-extensions",
-    "entries": [
-        {
-            "date": "Thu, 02 Oct 2025 21:58:37 GMT",
-            "version": "5.0.0-alpha.0",
-            "tag": "@azure/msal-node-extensions_v5.0.0-alpha.0",
-            "comments": {
-                "major": [
-                    {
-                        "author": "shylasummers@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "561d1e4bf93a6bbb46e874ec603eec4f9f390bc9",
-                        "comment": "Remove support for old versions of Node and React #8014"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v16.0.0-alpha.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump msal-test-utils to v0.0.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ],
-                "patch": [
-                    {
-                        "author": "shylasummers@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "1de977d13dce2f8a48c1c774c6329334a19d8f14",
-                        "comment": "Rename fromNativeBroker to fromPlatformBroker #7940"
-                    },
-                    {
-                        "author": "shylasummers@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "61101e92c101936f4d587ba91117a8f83a1e4c49",
-                        "comment": "Add handling for redirect URI based on platform #7939"
-                    }
-                ],
-                "none": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "508969936d30b3230ef4e5d18c446f3c1463b7bd",
-                        "comment": "Update build scripts for Typedoc compatibility #7985"
-                    },
-                    {
-                        "author": "joarroyo@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "92b3b5adb726fdadaef80b46e95f006ad1aec100",
-                        "comment": "Merge dev into v5 #7808"
-                    },
-                    {
-                        "author": "joarroyo@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "53f7d511c4abe24e3182f35f70c87de2b6aa3c7a",
-                        "comment": "Merge dev changes to v5 branch #7748"
-                    },
-                    {
-                        "author": "shylasummers@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "f452f795ff8a4bd3b14c0aaed3d3cded6e441f33",
-                        "comment": "allow major changes for msal-node-extensions"
-                    }
-                ],
-                "minor": [
-                    {
-                        "author": "kshabelko@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "36dc89bede23d89bc73c762104afdb1c222077c8",
-                        "comment": "Make correlation id mandatory for Logger calls #8071"
-                    },
-                    {
-                        "author": "kshabelko@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "14622dbe161ee20ee7417681b25e086f39cb2ab8",
-                        "comment": "Decompose nested constants #7782"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Fri, 30 May 2025 22:36:45 GMT",
-            "version": "1.5.14",
-            "tag": "@azure/msal-node-extensions_v1.5.14",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "shylasummers@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "8323e24e3b5b09124bfb83c0e4bbec013a2b7a0c",
-                        "comment": "update common version"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump msal-test-utils to v0.0.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 06 May 2025 22:47:43 GMT",
-            "version": "1.5.13",
-            "tag": "@azure/msal-node-extensions_v1.5.13",
-            "comments": {
-                "none": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "b6098464c80f3db124ca3db145446ddb71be936d",
-                        "comment": "New dev dependency"
-                    }
-                ],
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v15.6.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump msal-test-utils to v0.0.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 29 Apr 2025 20:25:48 GMT",
-            "version": "1.5.12",
-            "tag": "@azure/msal-node-extensions_v1.5.12",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v15.5.2",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump msal-test-utils to v0.0.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 15 Apr 2025 23:34:14 GMT",
-            "version": "1.5.11",
-            "tag": "@azure/msal-node-extensions_v1.5.11",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v15.5.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump msal-test-utils to v0.0.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 08 Apr 2025 16:56:06 GMT",
-            "version": "1.5.10",
-            "tag": "@azure/msal-node-extensions_v1.5.10",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v15.5.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump msal-test-utils to v0.0.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 25 Mar 2025 22:29:34 GMT",
-            "version": "1.5.9",
-            "tag": "@azure/msal-node-extensions_v1.5.9",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "8bbed7012616d9106c923d08b5c4e408a741577f",
-                        "comment": "Update @azure/msal-node-runtime dependency to ^0.18.1"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v15.4.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump msal-test-utils to v0.0.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Thu, 20 Mar 2025 22:09:04 GMT",
-            "version": "1.5.8",
-            "tag": "@azure/msal-node-extensions_v1.5.8",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v15.3.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump msal-test-utils to v0.0.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 11 Mar 2025 18:51:25 GMT",
-            "version": "1.5.7",
-            "tag": "@azure/msal-node-extensions_v1.5.7",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "joarroyo@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "6f441e3c2deb388242c10be98186935cfe7d2a2e",
-                        "comment": "Use TimeUtils for time/date conversion #7613"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v15.2.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump msal-test-utils to v0.0.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 04 Mar 2025 23:02:15 GMT",
-            "version": "1.5.6",
-            "tag": "@azure/msal-node-extensions_v1.5.6",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "joarroyo@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "29bf8d4cdef8572ff45d94d9b31fd839d20d0098",
-                        "comment": "Fix NativeBrokerPlugin expiresOn bug #7602"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 18 Feb 2025 18:51:41 GMT",
-            "version": "1.5.5",
-            "tag": "@azure/msal-node-extensions_v1.5.5",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v15.2.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Wed, 05 Feb 2025 00:15:19 GMT",
-            "version": "1.5.4",
-            "tag": "@azure/msal-node-extensions_v1.5.4",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v15.1.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 03 Feb 2025 17:48:09 GMT",
-            "version": "1.5.3",
-            "tag": "@azure/msal-node-extensions_v1.5.3",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v15.1.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Wed, 22 Jan 2025 21:45:31 GMT",
-            "version": "1.5.2",
-            "tag": "@azure/msal-node-extensions_v1.5.2",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v15.0.2",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Wed, 15 Jan 2025 05:05:17 GMT",
-            "version": "1.5.1",
-            "tag": "@azure/msal-node-extensions_v1.5.1",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "f0802a137253a664b0ca6ec3749c2df79e0c6ddb",
-                        "comment": "Update msal-common dependency"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v15.0.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 19 Nov 2024 17:21:57 GMT",
-            "version": "1.5.0",
-            "tag": "@azure/msal-node-extensions_v1.5.0",
-            "comments": {
-                "minor": [
-                    {
-                        "author": "tyleonha@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "6362e79cfff838ec5c57efbfeffc3e5262dc2513",
-                        "comment": "Allow requiring msal-node-extensions without Dpapi dependency"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 05 Nov 2024 18:58:46 GMT",
-            "version": "1.4.0",
-            "tag": "@azure/msal-node-extensions_v1.4.0",
-            "comments": {
-                "minor": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.16.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 08 Oct 2024 16:51:05 GMT",
-            "version": "1.3.0",
-            "tag": "@azure/msal-node-extensions_v1.3.0",
-            "comments": {
-                "minor": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "34c39709d1eedf3e051d80a978e94fe8f75b44cf",
-                        "comment": "Fix POP token acquisition via MsalRuntime"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Thu, 03 Oct 2024 00:40:42 GMT",
-            "version": "1.2.0",
-            "tag": "@azure/msal-node-extensions_v1.2.0",
-            "comments": {
-                "none": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Thu, 19 Sep 2024 23:48:30 GMT",
-            "version": "1.2.0",
-            "tag": "@azure/msal-node-extensions_v1.2.0",
-            "comments": {
-                "minor": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "1111b2cb77d7ae26dd0b57719953f7d1fb3c3de9",
-                        "comment": "Fix type resolution when using moduleResolution node16"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.15.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump rollup-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Wed, 28 Aug 2024 23:06:01 GMT",
-            "version": "1.1.0",
-            "tag": "@azure/msal-node-extensions_v1.1.0",
-            "comments": {
-                "undefined": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.14.2",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 13 Aug 2024 23:25:09 GMT",
-            "version": "1.1.0",
-            "tag": "@azure/msal-node-extensions_v1.1.0",
-            "comments": {
-                "undefined": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.14.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 23 Jul 2024 14:19:34 GMT",
-            "version": "1.1.0",
-            "tag": "@azure/msal-node-extensions_v1.1.0",
-            "comments": {
-                "minor": [
-                    {
-                        "author": "kshabelko@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "99f8152a15ba356dba35ea424c670086bf8d776f",
-                        "comment": "Track MSAL node SKU for broker flows #7213"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.14.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 16 Jul 2024 18:22:27 GMT",
-            "version": "1.0.21",
-            "tag": "@azure/msal-node-extensions_v1.0.21",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.13.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 01 Jul 2024 19:18:29 GMT",
-            "version": "1.0.20",
-            "tag": "@azure/msal-node-extensions_v1.0.20",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.13.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 10 Jun 2024 22:30:36 GMT",
-            "version": "1.0.19",
-            "tag": "@azure/msal-node-extensions_v1.0.19",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.12.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 04 Jun 2024 00:08:57 GMT",
-            "version": "1.0.18",
-            "tag": "@azure/msal-node-extensions_v1.0.18",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.11.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 28 May 2024 21:37:23 GMT",
-            "version": "1.0.17",
-            "tag": "@azure/msal-node-extensions_v1.0.17",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 06 May 2024 23:48:17 GMT",
-            "version": "1.0.16",
-            "tag": "@azure/msal-node-extensions_v1.0.16",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.10.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Thu, 11 Apr 2024 21:46:57 GMT",
-            "version": "1.0.15",
-            "tag": "@azure/msal-node-extensions_v1.0.15",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
-                        "comment": "Add install script to workaround regression in npm version 10.4.0"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.9.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ],
-                "none": [
-                    {
-                        "author": "hemoral@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
-                        "comment": "Migrate ADO Pipelines to OneBranch #6992"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Wed, 27 Mar 2024 18:41:17 GMT",
-            "version": "1.0.14",
-            "tag": "@azure/msal-node-extensions_v1.0.14",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.8.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Fri, 22 Mar 2024 20:32:39 GMT",
-            "version": "1.0.13",
-            "tag": "@azure/msal-node-extensions_v1.0.13",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.8.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Sat, 17 Feb 2024 01:49:06 GMT",
-            "version": "1.0.12",
-            "tag": "@azure/msal-node-extensions_v1.0.12",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.7.1",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Wed, 07 Feb 2024 22:00:37 GMT",
-            "version": "1.0.11",
-            "tag": "@azure/msal-node-extensions_v1.0.11",
-            "comments": {
-                "none": [
-                    {
-                        "author": "hemoral@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
-                        "comment": "Update shared config version references to use local files #6855"
-                    },
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
-                        "comment": "Fix tests #6849"
-                    }
-                ],
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.7.0",
-                        "commit": "not available"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump eslint-config-msal to v0.0.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 23 Jan 2024 00:06:05 GMT",
-            "version": "1.0.10",
-            "tag": "@azure/msal-node-extensions_v1.0.10",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "altinokd@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "2c5e4f1c72835d4dc47a72d158094af89964b9b0",
-                        "comment": "Create require when it is not defined in MJS"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.6.1",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 09 Jan 2024 00:03:25 GMT",
-            "version": "1.0.9",
-            "tag": "@azure/msal-node-extensions_v1.0.9",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
-                        "comment": "Set engines field to >=16"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.6.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Fri, 01 Dec 2023 18:46:06 GMT",
-            "version": "1.0.8",
-            "tag": "@azure/msal-node-extensions_v1.0.8",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
-                        "comment": "add Node 16 to engines"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.5.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 07 Nov 2023 00:01:50 GMT",
-            "version": "1.0.7",
-            "tag": "@azure/msal-node-extensions_v1.0.7",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "janusz@corechain.tech",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "25472ea4b5fb2ecef8eada945fa7c9f7eb0f2557",
-                        "comment": "fix: Environment.getUserRootDirectory() only ever executes Windows code path"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.4.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 30 Oct 2023 21:38:25 GMT",
-            "version": "1.0.6",
-            "tag": "@azure/msal-node-extensions_v1.0.6",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "janusz@corechain.tech",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "ffe542b30693153a63afeb3a98ff2804b846d13e",
-                        "comment": "Fix downstream ESM imports, fixes #6573"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.3.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Wed, 18 Oct 2023 17:24:19 GMT",
-            "version": "1.0.5",
-            "tag": "@azure/msal-node-extensions_v1.0.5",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.2.0",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Thu, 05 Oct 2023 18:06:40 GMT",
-            "version": "1.0.4",
-            "tag": "@azure/msal-node-extensions_v1.0.4",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "4d75b093973b1c0b01feb4601f07d10390d44dd2",
-                        "comment": "Refactor ClientAuthError for reduced size #6433"
-                    },
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "ae92c9a9fefcdc98b3bff206d66c9bc4db1db76c",
-                        "comment": "Refactor ClientConfigurationError #6471"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.1.0",
-                        "commit": "not available"
-                    }
-                ],
-                "none": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "fbbb9060775198412eead3e844ef6f4d1968cea3",
-                        "comment": "Turn off composite/project references"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 05 Sep 2023 22:13:48 GMT",
-            "version": "1.0.3",
-            "tag": "@azure/msal-node-extensions_v1.0.3",
-            "comments": {
-                "none": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "1e7ac8c21451783cc25303e9be5713daa1350343",
-                        "comment": "shared jest config"
-                    },
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "7b0c4cbfc05b32145acbbb9308d945eb4dd85d31",
-                        "comment": "Update lint step"
-                    }
-                ],
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.0.3",
-                        "commit": "not available"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Fri, 18 Aug 2023 18:40:02 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.2",
-            "version": "1.0.2",
-            "comments": {
-                "none": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "d6bdb1c9987e54a347874537025c17e70b546f36",
-                        "comment": "Typedocs"
-                    }
-                ],
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.0.2",
-                        "commit": "05b714f7670e8195f9440f8dd2f750ba6896c3bb"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Fri, 11 Aug 2023 19:00:44 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.1",
-            "version": "1.0.1",
-            "comments": {
-                "patch": [
-                    {
-                        "author": "hemoral@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "ae5fbc436e4c9b331494caa599510bb5f7b10272",
-                        "comment": "Update dist settings for packages #6322"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.0.1",
-                        "commit": "69d1715ac133eb486d94f87ebbb3fc61b4df3910"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 07 Aug 2023 18:15:15 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0",
-            "version": "1.0.0",
-            "comments": {
-                "none": [
-                    {
-                        "author": "hemoral@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "94ee143a36f1cccc72ca0ed41206c10e239637d7",
-                        "comment": "Remove disallowedChangeTypes from package.json files"
-                    },
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "88f49fb55daa60410bbbc126856bdb7d2189817a",
-                        "comment": "Replace lerna with npm workspaces #6136"
-                    },
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "c34e759455a7cbb86cba943923cff34f5b942e28",
-                        "comment": "Fix formatting #6264"
-                    },
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "f714b51f03eb87ccd0102d886c814b3dab2b5cc9",
-                        "comment": "DevDependency updates"
-                    }
-                ],
-                "prerelease": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "ab44706bcf8e5a281b70ac93a44c58420c07d16a",
-                        "comment": "Add exports to package.json and update type to module #6194"
-                    }
-                ],
-                "patch": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.0.0",
-                        "commit": "94ee143a36f1cccc72ca0ed41206c10e239637d7"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Thu, 06 Jul 2023 00:01:33 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-beta.1",
-            "version": "1.0.0-beta.1",
-            "comments": {
-                "none": [],
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.0.0-beta.1",
-                        "commit": "4ccef1b8a11ca5643c11eb9586e45f8e45398e8c"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Thu, 15 Jun 2023 22:19:25 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-beta.0",
-            "version": "1.0.0-beta.0",
-            "comments": {
-                "none": [
-                    {
-                        "author": "hemoral@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
-                        "comment": "Msal v3 final rebase #5859"
-                    },
-                    {
-                        "author": "kshabelko@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "e17eb91a3fd848b44b76bc65bacf20239a0dc62a",
-                        "comment": "Bundle local version of msal-common into msal-node-extensions #5923"
-                    },
-                    {
-                        "author": "hemoral@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "46ab9fdc01dfe3f6884ef83e9166a6f3d8af0c38",
-                        "comment": "Merge LTS changelogs"
-                    },
-                    {
-                        "author": "kshabelko@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "db4f4fa56e8dcec65a9d1a0653af4b128ac3b725",
-                        "comment": "Update `msal-common` bundling config for `msal-node-extensions` #5943"
-                    },
-                    {
-                        "author": "kshabelko@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
-                        "comment": "Rebase dev onto v3 #5843"
-                    },
-                    {
-                        "author": "kshabelko@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "85bbdefbd59785a8dd3fc46368409d95472bd2a1",
-                        "comment": "Fix prepack hook #5967"
-                    }
-                ],
-                "prerelease": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "5103db3b25e67df292175158e722a2bb35d898fd",
-                        "comment": "Include prebuilt binaries"
-                    },
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "b4bbf7c584b0943b9edbdbb30e568b30bf6a203a",
-                        "comment": "Drop TSDX in favor of using rollup & jest directly #5893"
-                    },
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "3ba0520a2eaaef6a863fe67aabbedbc89d0a354d",
-                        "comment": "enable strict type checking"
-                    },
-                    {
-                        "author": "kshabelko@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
-                        "comment": "Bump typescript version to 4.9.5 #5750"
-                    },
-                    {
-                        "author": "kshabelko@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "42dd47713c8c8e362fa3cd54cbf7367140d9fb06",
-                        "comment": "Switch from enums to object literals to reduce the bundle size #6068"
-                    },
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "33fb5c38aa2e089080d11d4bb5a941a2b97b5f0a",
-                        "comment": "Fix response expiresOn property"
-                    },
-                    {
-                        "author": "hemoral@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "8788b7d52841f088d330aa881d1196a33e9e6f7a",
-                        "comment": "Revert to common as a regular dependency #5985"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v14.0.0-beta.0",
-                        "commit": "c7bd70a0521c2f0a397bed5109bf443db674a8a4"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 01 May 2023 20:47:42 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.34",
-            "version": "1.0.0-alpha.34",
-            "comments": {
-                "prerelease": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "b7e8f3ee815056b55e30bcfb92d436f024e515f5",
-                        "comment": "Update token expiry"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v13.0.0",
-                        "commit": "38c29bdb23f75989f9b1efcdd038e28586370fb0"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 03 Apr 2023 21:29:32 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.32",
-            "version": "1.0.0-alpha.32",
-            "comments": {
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v12.0.0",
-                        "commit": "98cb8fce7ff4199e528ffe819dccbf58d28a8c80"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 07 Mar 2023 16:48:52 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.31",
-            "version": "1.0.0-alpha.31",
-            "comments": {
-                "prerelease": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "32ec95d8bcc91b89f3e834948c7922eac036f729",
-                        "comment": "Expose NativeBrokerPlugin #5485"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v11.0.0",
-                        "commit": "cbd2c9ddae007b1ca0468a3299aebe0ae053bf80"
-                    }
-                ],
-                "none": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "7d0ef8cb6792a30a29ec94011ff8ea1f5ca6a9bc",
-                        "comment": "update package-lock"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 06 Feb 2023 18:51:50 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.30",
-            "version": "1.0.0-alpha.30",
-            "comments": {
-                "prerelease": [
-                    {
-                        "author": "fredrik.rasch@gmail.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "b7d772937a74abf2342fd044b1d8f6a58394af43",
-                        "comment": "Add Logging options to IPersistenceConfiguration #5626"
-                    },
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "479c057de9d35a037d7383d69a5e6f8956ba91ea",
-                        "comment": "Include packageMetadata in bundle #5638"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v10.0.0",
-                        "commit": "a7d7ecc41dbd3aed621d22a3e3263aee25ce6c10"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 09 Jan 2023 22:44:58 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.29",
-            "version": "1.0.0-alpha.29",
-            "comments": {
-                "none": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "67a1646f747e9885b0abd8996c91c474ad655ba4",
-                        "comment": "Address dependabot alerts"
-                    }
-                ],
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v9.0.2",
-                        "commit": "1c8f7d7e2fde5d0b701f7eb5bd1866177a5f8794"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Wed, 07 Dec 2022 16:53:07 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.28",
-            "version": "1.0.0-alpha.28",
-            "comments": {
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v9.0.1",
-                        "commit": "48cb414b1a722dacf5439a1df6bad070cff62aa4"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 21 Nov 2022 19:14:45 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.27",
-            "version": "1.0.0-alpha.27",
-            "comments": {
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v9.0.0",
-                        "commit": "b6454bd1ff556f8d3482689d6a769e5e659a9f7d"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 07 Nov 2022 22:46:55 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.26",
-            "version": "1.0.0-alpha.26",
-            "comments": {
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v8.0.0",
-                        "commit": "ae6f326996be7eec25faa19d3f714b860a424878"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 10 Oct 2022 22:27:03 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.25",
-            "version": "1.0.0-alpha.25",
-            "comments": {
-                "prerelease": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "fe12deee891197c95de4b69f83aca9ca60881f19",
-                        "comment": "Migrate from nan to node-api #5280"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v7.6.0",
-                        "commit": "1bb8ed44ca44617636fb62199deb005d69341fb7"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 03 Oct 2022 22:12:27 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.24",
-            "version": "1.0.0-alpha.24",
-            "comments": {
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v7.5.0",
-                        "commit": "22b4edc74bd5a561ded056cf6451a8371598c76c"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 12 Sep 2022 18:19:32 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.23",
-            "version": "1.0.0-alpha.23",
-            "comments": {
-                "none": [
-                    {
-                        "author": "hemoral@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "ffde7158aba741b804d5558fc162c1f1c45c28cd",
-                        "comment": "Post Release September 2022 #5186"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v7.4.1",
-                        "commit": "cf19d12246949f9cb99f4853953cbefb7d27009e"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Fri, 02 Sep 2022 18:06:53 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.23",
-            "version": "1.0.0-alpha.23",
-            "comments": {
-                "none": [
-                    {
-                        "author": "lalimasharda@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "191e574ad0384623b6c96e198791412f0867f5f1",
-                        "comment": "Fixing files to follow max-len rule #5136"
-                    },
-                    {
-                        "author": "lalimasharda@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "65a790ce0e53305831c1a20f162dad028be91eb4",
-                        "comment": "fix for failing unit test #6899"
-                    }
-                ],
-                "prerelease": [
-                    {
-                        "author": "miles@svtrobotics.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "e2e8e8cc3894302e55873b86b0ab8300054d7863",
-                        "comment": "Point to the correct esm file in msal-node-extensions package.json (#5135)"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v7.4.0",
-                        "commit": "75e3189e8cf3d46497a7587d7f221057a5f0ede6"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 01 Aug 2022 22:22:36 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.22",
-            "version": "1.0.0-alpha.22",
-            "comments": {
-                "none": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "674ff0c4a543fb2b5b52f3a7aed4fe32b387b7b2",
-                        "comment": "Update package-lock"
-                    },
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "c8eb53d59a2df026832a914284c0bfb61486a016",
-                        "comment": "Package-lock updates"
-                    }
-                ],
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v7.3.0",
-                        "commit": "9ddeaca3f2b983b459cd0b4651aa4a7adc10e18c"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 18 Jul 2022 23:26:21 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.21",
-            "version": "1.0.0-alpha.21",
-            "comments": {
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v7.2.0",
-                        "commit": "1b74296d45864f3721895819733ea5ee39006b6f"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 05 Jul 2022 22:37:04 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.20",
-            "version": "1.0.0-alpha.20",
-            "comments": {
-                "none": [
-                    {
-                        "author": "kamausamuel11@gmail.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "511ec6c19263c558562a8d4b26b576c0d137c144",
-                        "comment": "fix: updated extensions to use msal-common 6.4.0 #4536"
-                    }
-                ],
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v7.1.0",
-                        "commit": "bfd3760ce1aca6b4be8ae937606215676a72e5c5"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 13 Jun 2022 22:28:09 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.19",
-            "version": "1.0.0-alpha.19",
-            "comments": {
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v7.0.0",
-                        "commit": "e325d870a211b4ad6fa97bb95b6b224299247940"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 06 Jun 2022 22:13:00 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.18",
-            "version": "1.0.0-alpha.18",
-            "comments": {
-                "none": [
-                    {
-                        "author": "hemoral@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "c03bd9cbf5a3c31cfcd86de7ab718c10b7d08304",
-                        "comment": "Update extensions package-lock to fix audit #4786"
-                    }
-                ],
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v6.4.0",
-                        "commit": "3b8942d3cf281352236b820c931a89b4dbcbf85b"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 02 May 2022 22:23:33 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.17",
-            "version": "1.0.0-alpha.17",
-            "comments": {
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v6.3.0",
-                        "commit": "cbf5e7a6c81d01ce40bfbcbca9be158c5ee395aa"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 04 Apr 2022 21:12:42 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.16",
-            "version": "1.0.0-alpha.16",
-            "comments": {
-                "none": [
-                    {
-                        "author": "kamausamuel11@gmail.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "35b26ea1a6f9ced206b1a801626cd898a4f1a5ca",
-                        "comment": "fix: resolve the minimist audit error"
-                    }
-                ],
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v6.2.0",
-                        "commit": "63c34341780208480edc2f86e623ba12a7f847c3"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 07 Mar 2022 23:28:43 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.15",
-            "version": "1.0.0-alpha.15",
-            "comments": {
-                "none": [
-                    {
-                        "author": "joarroyo@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "4939a80fc6dea18841099446da011a9211243f54",
-                        "comment": "Update node-gyp to version 9 #4567"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 08 Feb 2022 00:41:06 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.15",
-            "version": "1.0.0-alpha.15",
-            "comments": {
-                "none": [
-                    {
-                        "author": "kamausamuel11@gmail.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "5767008f8ef9f3b05aeba421cc4aa6c6bb616e86",
-                        "comment": "fix: update package-lock files"
-                    },
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "19f76b1d9cd2b0f1a4a7e4765c8ee9e7e17f3d59",
-                        "comment": "Test changes #4383"
-                    },
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "539ca525a356c0d4a7bd1d4da5271f8a2988f944",
-                        "comment": "Resolve lint errors #4363"
-                    }
-                ],
-                "prerelease": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "33e9d56dd3e8c1523d70b6e3cff4214035b44e08",
-                        "comment": "Update keytar dependency to ^7.8.0 #4483"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v6.1.0",
-                        "commit": "639253acbc825e1f19ca712bc72dce8da149e3e8"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 04 Jan 2022 00:20:29 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.14",
-            "version": "1.0.0-alpha.14",
-            "comments": {
-                "none": [
-                    {
-                        "author": "hemoral@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "60e2cfc0e9daa3c24e994617b4ac42aef6880b74",
-                        "comment": "Add support for requested claims in silent token acquisition #4296"
-                    }
-                ],
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v6.0.0",
-                        "commit": "bd9b1af91c278926ab2e6943cf90817a7ac4957b"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 07 Dec 2021 00:17:01 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.13",
-            "version": "1.0.0-alpha.13",
-            "comments": {
-                "none": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "02dbd9172368bfc69e4a47f01a3ada0b96345c81",
-                        "comment": "Package.json updates"
-                    },
-                    {
-                        "author": "kamausamuel11@gmail.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "8259de7520d2940d290332cd03c5b8babeb0966e",
-                        "comment": "deps: run an audit fix for msal-node-extensions"
-                    }
-                ],
-                "prerelease": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "commit": "e020f3511ddc25be0c04a60362698da0112b8c0c",
-                        "comment": "Use https to install bindings dependency #4234"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v5.2.0",
-                        "commit": "d7c209f7aa3ae4380a77a31ff1319fbf7201ae45"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 01 Nov 2021 23:53:22 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.12",
-            "version": "1.0.0-alpha.12",
-            "comments": {
-                "prerelease": [
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v5.1.0",
-                        "commit": "6ac29855822ce1ba9531a68bcaa6f37443ef16c0"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Mon, 04 Oct 2021 23:12:35 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.11",
-            "version": "1.0.0-alpha.11",
-            "comments": {
-                "prerelease": [
-                    {
-                        "author": "kamausamuel11@gmail.com",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "fix: integrate forked bindings package",
-                        "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
-                    },
-                    {
-                        "author": "beachball",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Bump @azure/msal-common to v5.0.1",
-                        "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
-                    }
-                ],
-                "none": [
-                    {
-                        "author": "thomas.norling@microsoft.com",
-                        "package": "@azure/msal-node-extensions",
-                        "comment": "Update beachball config",
-                        "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Thu, 09 Sep 2021 23:58:01 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.10",
-            "version": "1.0.0-alpha.10",
-            "comments": {
-                "prerelease": [
-                    {
-                        "comment": "Upgrade msal-common to v5 for Node extensions",
-                        "author": "janutter@microsoft.com",
-                        "commit": "ad3eeeb85b92035a1389e49a6cc182c3085a1ba1",
-                        "package": "@azure/msal-node-extensions"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Thu, 22 Jul 2021 22:50:22 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.9",
-            "version": "1.0.0-alpha.9",
-            "comments": {
-                "prerelease": [
-                    {
-                        "comment": "feat: add the persistence creator (#3859)",
-                        "author": "samuelkamau@microsoft.com",
-                        "commit": "a916871108c93904a62e7729edb0e2287719a532",
-                        "package": "@azure/msal-node-extensions"
-                    },
-                    {
-                        "comment": "fix: bump up the msal-common version",
-                        "author": "samuelkamau@microsoft.com",
-                        "commit": "2bf61e9e1ed3697352269537f7e24ebbac4d926b",
-                        "package": "@azure/msal-node-extensions"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Tue, 29 Jun 2021 00:28:30 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.8",
-            "version": "1.0.0-alpha.8",
-            "comments": {
-                "prerelease": [
-                    {
-                        "comment": "verifyPersistence returns the right value on failure(#3787)",
-                        "author": "sameera.gajjarapu@microsoft.com",
-                        "commit": "dc8086acc0ccc91e066e886adffd5895911d33f0",
-                        "package": "@azure/msal-node-extensions"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Wed, 23 Jun 2021 00:01:49 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.7",
-            "version": "1.0.0-alpha.7",
-            "comments": {
-                "prerelease": [
-                    {
-                        "comment": "Add logs to test beachball",
-                        "author": "sameera.gajjarapu@microsoft.com",
-                        "commit": "cc28e43b3dcdb45f2469b14cf52a223f7d59b0d9",
-                        "package": "@azure/msal-node-extensions"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Fri, 05 Mar 2021 21:26:46 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.6",
-            "version": "1.0.0-alpha.6",
-            "comments": {
-                "prerelease": [
-                    {
-                        "comment": "Fix lint in extensions to trigger version bump",
-                        "author": "janutter@microsoft.com",
-                        "commit": "4901e740f2687447f1eac537dac71ef243ce957a",
-                        "package": "@azure/msal-node-extensions"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Wed, 03 Mar 2021 22:13:23 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.5",
-            "version": "1.0.0-alpha.5",
-            "comments": {
-                "prerelease": [
-                    {
-                        "comment": "Fix npm audit warnings",
-                        "author": "janutter@microsoft.com",
-                        "commit": "751026cdaa24dd370c50ad714bf0b1d54c71fbde",
-                        "package": "@azure/msal-node-extensions"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Wed, 14 Oct 2020 23:45:07 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.4",
-            "version": "1.0.0-alpha.4",
-            "comments": {
-                "prerelease": [
-                    {
-                        "comment": "Update PersistenceCachePlugin (#2348)",
-                        "author": "sameera.gajjarapu@microsoft.com",
-                        "commit": "26723689e35918c59bd6ce58ba8cb886118676c6",
-                        "package": "@azure/msal-node-extensions"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Wed, 30 Sep 2020 17:58:33 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.3",
-            "version": "1.0.0-alpha.3",
-            "comments": {
-                "none": [
-                    {
-                        "comment": "Updating the pre-release version(#2342)",
-                        "author": "sameera.gajjarapu@microsoft.com",
-                        "commit": "bc3f324edd6cf83937c31f73d3aefc6dbaf5f748",
-                        "package": "@azure/msal-node-extensions"
-                    },
-                    {
-                        "comment": "Update changelog versions for msal-node and extensions (#2336)",
-                        "author": "hemoral@microsoft.com",
-                        "commit": "323875a725e0d5049ff6742a9ca5160c2d4b7d0d",
-                        "package": "@azure/msal-node-extensions"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Wed, 23 Sep 2020 21:13:48 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.3",
-            "version": "1.0.0-alpha.3",
-            "comments": {
-                "prerelease": [
-                    {
-                        "comment": "Update error message (#2265)",
-                        "author": "sagonzal@microsoft.com",
-                        "commit": "81d044a2a4640ebfa8b3bd80cb30cc2c602bbef1",
-                        "package": "@azure/msal-node-extensions"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Thu, 17 Sep 2020 23:16:22 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0",
-            "version": "1.0.0-alpha.2",
-            "comments": {
-                "none": [
-                    {
-                        "comment": "Update msal-node-extensionst to use central eslint configuration",
-                        "author": "janutter@microsoft.com",
-                        "commit": "fc49c6f16b3f7a62a67d249107fc484272133305",
-                        "package": "@azure/msal-node-extensions"
-                    }
-                ]
-            }
-        },
-        {
-            "date": "Thu, 13 Aug 2020 02:20:48 GMT",
-            "tag": "@azure/msal-node-extensions_v1.0.0-alpha.2",
-            "version": "1.0.0-alpha.2",
-            "comments": {
-                "none": [
-                    {
-                        "comment": "updating files for automated release steps",
-                        "author": "prkanher@microsoft.com",
-                        "commit": "791409e7c9975218ae2b3a91e6a6a190b59474b1",
-                        "package": "@azure/msal-node-extensions"
-                    }
-                ]
-            }
-        }
-    ]
+  "name": "@azure/msal-node-extensions",
+  "entries": [
+    {
+      "date": "Fri, 13 Mar 2026 22:36:58 GMT",
+      "version": "5.1.0",
+      "tag": "@azure/msal-node-extensions_v5.1.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "48cd5e0af83a8da6d32df43996b4c2d9ffe1fa4c",
+            "comment": "\"Add MCP Support [#8363](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8363)\""
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.3.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 02 Mar 2026 19:25:47 GMT",
+      "version": "5.0.6",
+      "tag": "@azure/msal-node-extensions_v5.0.6",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.2.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 24 Feb 2026 21:51:51 GMT",
+      "version": "5.0.5",
+      "tag": "@azure/msal-node-extensions_v5.0.5",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.1.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 10 Feb 2026 23:04:28 GMT",
+      "version": "5.0.4",
+      "tag": "@azure/msal-node-extensions_v5.0.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.0.4",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 28 Jan 2026 18:43:41 GMT",
+      "version": "5.0.3",
+      "tag": "@azure/msal-node-extensions_v5.0.3",
+      "comments": {
+        "none": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "b400c05c152d931d081e5effadba46b5907ad36b",
+            "comment": "Disallow major changes #15525"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.0.3",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 17 Jan 2026 03:11:36 GMT",
+      "version": "5.0.2",
+      "tag": "@azure/msal-node-extensions_v5.0.2",
+      "comments": {
+        "major": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "561d1e4bf93a6bbb46e874ec603eec4f9f390bc9",
+            "comment": "Remove support for old versions of Node and React #8014"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "36dc89bede23d89bc73c762104afdb1c222077c8",
+            "comment": "Make correlation id mandatory for Logger calls #8071"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "14622dbe161ee20ee7417681b25e086f39cb2ab8",
+            "comment": "Decompose nested constants #7782"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.0.2",
+            "commit": "not available"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "63b58a46024f25de8dd3d0274d1dfb747ed0e404",
+            "comment": "Remove beta tag "
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "akaliugonna@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "aba49029206aa8beaa28916b0a5378e7a2adb80d",
+            "comment": "error surfacing changes"
+          },
+          {
+            "author": "akaliugonna@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "aba49029206aa8beaa28916b0a5378e7a2adb80d",
+            "comment": "Surface Errors from MsalRuntime with Interaction Required #7961"
+          },
+          {
+            "author": "akaliugonna@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "aba49029206aa8beaa28916b0a5378e7a2adb80d",
+            "comment": "Enable passing of redirect uri to broker plugin #8153"
+          },
+          {
+            "author": "akaliugonna@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "aba49029206aa8beaa28916b0a5378e7a2adb80d",
+            "comment": "Bump msal-node-runtime to v0.20.0"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "1de977d13dce2f8a48c1c774c6329334a19d8f14",
+            "comment": "Rename fromNativeBroker to fromPlatformBroker #7940"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "61101e92c101936f4d587ba91117a8f83a1e4c49",
+            "comment": "Add handling for redirect URI based on platform #7939"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "msaljsbuilds@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "db66fe31b1e210f12923c5bab475c4bb0877450d",
+            "comment": "Mark package for prerelease (beta)"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "aba49029206aa8beaa28916b0a5378e7a2adb80d",
+            "comment": "Bump to pre-release alpha"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "508969936d30b3230ef4e5d18c446f3c1463b7bd",
+            "comment": "Update build scripts for Typedoc compatibility #7985"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "92b3b5adb726fdadaef80b46e95f006ad1aec100",
+            "comment": "Merge dev into v5 #7808"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "53f7d511c4abe24e3182f35f70c87de2b6aa3c7a",
+            "comment": "Merge dev changes to v5 branch #7748"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "f452f795ff8a4bd3b14c0aaed3d3cded6e441f33",
+            "comment": "allow major changes for msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 17 Jan 2026 01:12:52 GMT",
+      "version": "1.5.28",
+      "tag": "@azure/msal-node-extensions_v1.5.28",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.14.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 13 Jan 2026 14:23:33 GMT",
+      "version": "1.5.27",
+      "tag": "@azure/msal-node-extensions_v1.5.27",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.14.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 04 Dec 2025 05:46:37 GMT",
+      "version": "1.5.26",
+      "tag": "@azure/msal-node-extensions_v1.5.26",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.13.3",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 19 Nov 2025 23:13:10 GMT",
+      "version": "1.5.25",
+      "tag": "@azure/msal-node-extensions_v1.5.25",
+      "comments": {
+        "patch": [
+          {
+            "author": "akaliugonna@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "8c5f422e30152d4970d70da2882b38ffc0224a2c",
+            "comment": "error surfacing changes"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.13.2",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 29 Oct 2025 00:04:34 GMT",
+      "version": "1.5.24",
+      "tag": "@azure/msal-node-extensions_v1.5.24",
+      "comments": {
+        "patch": [
+          {
+            "author": "akaliugonna@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "5a25c350f0e7a18e1d88ae6393fd6e847595da83",
+            "comment": "Bump msal-node-runtime to v0.20.0"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.13.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 24 Sep 2025 21:54:45 GMT",
+      "version": "1.5.23",
+      "tag": "@azure/msal-node-extensions_v1.5.23",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.13.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 27 Aug 2025 00:59:59 GMT",
+      "version": "1.5.22",
+      "tag": "@azure/msal-node-extensions_v1.5.22",
+      "comments": {
+        "patch": [
+          {
+            "author": "akaliugonna@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "1a521c3e7631d4ed50d3082d26036162a4ef483e",
+            "comment": "enable passing of redirect uri"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 19 Aug 2025 21:26:21 GMT",
+      "version": "1.5.21",
+      "tag": "@azure/msal-node-extensions_v1.5.21",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.12.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 12 Aug 2025 22:53:33 GMT",
+      "version": "1.5.20",
+      "tag": "@azure/msal-node-extensions_v1.5.20",
+      "comments": {
+        "patch": [
+          {
+            "author": "akaliugonna@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "ebcfec14bc4f20e5dad40ba38d491492948cefee",
+            "comment": "Surface Errors from MsalRuntime with Interaction Required #7961"
+          },
+          {
+            "author": "akaliugonna@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "ebcfec14bc4f20e5dad40ba38d491492948cefee",
+            "comment": "Bump msal-node-runtime to v0.19.0"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.11.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "ebcfec14bc4f20e5dad40ba38d491492948cefee",
+            "comment": "Update build scripts for Typedoc compatibility #7985"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 05 Aug 2025 20:00:24 GMT",
+      "version": "1.5.19",
+      "tag": "@azure/msal-node-extensions_v1.5.19",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.10.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 23 Jul 2025 14:54:36 GMT",
+      "version": "1.5.18",
+      "tag": "@azure/msal-node-extensions_v1.5.18",
+      "comments": {
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "afeaeddc777577b1b16f0084f5e5f9e4c15ee5e9",
+            "comment": "Add handling for redirect URI based on platform #7908"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.9.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 08 Jul 2025 14:21:12 GMT",
+      "version": "1.5.17",
+      "tag": "@azure/msal-node-extensions_v1.5.17",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.8.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 01 Jul 2025 14:23:25 GMT",
+      "version": "1.5.16",
+      "tag": "@azure/msal-node-extensions_v1.5.16",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.8.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 18 Jun 2025 15:21:55 GMT",
+      "version": "1.5.15",
+      "tag": "@azure/msal-node-extensions_v1.5.15",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.7.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 30 May 2025 22:36:45 GMT",
+      "version": "1.5.14",
+      "tag": "@azure/msal-node-extensions_v1.5.14",
+      "comments": {
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "8323e24e3b5b09124bfb83c0e4bbec013a2b7a0c",
+            "comment": "update common version"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 06 May 2025 22:47:43 GMT",
+      "version": "1.5.13",
+      "tag": "@azure/msal-node-extensions_v1.5.13",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "b6098464c80f3db124ca3db145446ddb71be936d",
+            "comment": "New dev dependency"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.6.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 29 Apr 2025 20:25:48 GMT",
+      "version": "1.5.12",
+      "tag": "@azure/msal-node-extensions_v1.5.12",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.5.2",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 15 Apr 2025 23:34:14 GMT",
+      "version": "1.5.11",
+      "tag": "@azure/msal-node-extensions_v1.5.11",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.5.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 08 Apr 2025 16:56:06 GMT",
+      "version": "1.5.10",
+      "tag": "@azure/msal-node-extensions_v1.5.10",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.5.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 25 Mar 2025 22:29:34 GMT",
+      "version": "1.5.9",
+      "tag": "@azure/msal-node-extensions_v1.5.9",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "8bbed7012616d9106c923d08b5c4e408a741577f",
+            "comment": "Update @azure/msal-node-runtime dependency to ^0.18.1"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.4.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 20 Mar 2025 22:09:04 GMT",
+      "version": "1.5.8",
+      "tag": "@azure/msal-node-extensions_v1.5.8",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.3.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 11 Mar 2025 18:51:25 GMT",
+      "version": "1.5.7",
+      "tag": "@azure/msal-node-extensions_v1.5.7",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "6f441e3c2deb388242c10be98186935cfe7d2a2e",
+            "comment": "Use TimeUtils for time/date conversion #7613"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.2.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 04 Mar 2025 23:02:15 GMT",
+      "version": "1.5.6",
+      "tag": "@azure/msal-node-extensions_v1.5.6",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "29bf8d4cdef8572ff45d94d9b31fd839d20d0098",
+            "comment": "Fix NativeBrokerPlugin expiresOn bug #7602"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 18 Feb 2025 18:51:41 GMT",
+      "version": "1.5.5",
+      "tag": "@azure/msal-node-extensions_v1.5.5",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.2.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 05 Feb 2025 00:15:19 GMT",
+      "version": "1.5.4",
+      "tag": "@azure/msal-node-extensions_v1.5.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.1.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 03 Feb 2025 17:48:09 GMT",
+      "version": "1.5.3",
+      "tag": "@azure/msal-node-extensions_v1.5.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.1.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 22 Jan 2025 21:45:31 GMT",
+      "version": "1.5.2",
+      "tag": "@azure/msal-node-extensions_v1.5.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.0.2",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 15 Jan 2025 05:05:17 GMT",
+      "version": "1.5.1",
+      "tag": "@azure/msal-node-extensions_v1.5.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "f0802a137253a664b0ca6ec3749c2df79e0c6ddb",
+            "comment": "Update msal-common dependency"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 19 Nov 2024 17:21:57 GMT",
+      "version": "1.5.0",
+      "tag": "@azure/msal-node-extensions_v1.5.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "tyleonha@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "6362e79cfff838ec5c57efbfeffc3e5262dc2513",
+            "comment": "Allow requiring msal-node-extensions without Dpapi dependency"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 05 Nov 2024 18:58:46 GMT",
+      "version": "1.4.0",
+      "tag": "@azure/msal-node-extensions_v1.4.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.16.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 08 Oct 2024 16:51:05 GMT",
+      "version": "1.3.0",
+      "tag": "@azure/msal-node-extensions_v1.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "34c39709d1eedf3e051d80a978e94fe8f75b44cf",
+            "comment": "Fix POP token acquisition via MsalRuntime"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 03 Oct 2024 00:40:42 GMT",
+      "version": "1.2.0",
+      "tag": "@azure/msal-node-extensions_v1.2.0",
+      "comments": {
+        "none": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 19 Sep 2024 23:48:30 GMT",
+      "version": "1.2.0",
+      "tag": "@azure/msal-node-extensions_v1.2.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "1111b2cb77d7ae26dd0b57719953f7d1fb3c3de9",
+            "comment": "Fix type resolution when using moduleResolution node16"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.15.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 28 Aug 2024 23:06:01 GMT",
+      "version": "1.1.0",
+      "tag": "@azure/msal-node-extensions_v1.1.0",
+      "comments": {
+        "undefined": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.14.2",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 13 Aug 2024 23:25:09 GMT",
+      "version": "1.1.0",
+      "tag": "@azure/msal-node-extensions_v1.1.0",
+      "comments": {
+        "undefined": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.14.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 23 Jul 2024 14:19:34 GMT",
+      "version": "1.1.0",
+      "tag": "@azure/msal-node-extensions_v1.1.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "99f8152a15ba356dba35ea424c670086bf8d776f",
+            "comment": "Track MSAL node SKU for broker flows #7213"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.14.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 16 Jul 2024 18:22:27 GMT",
+      "version": "1.0.21",
+      "tag": "@azure/msal-node-extensions_v1.0.21",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.13.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 01 Jul 2024 19:18:29 GMT",
+      "version": "1.0.20",
+      "tag": "@azure/msal-node-extensions_v1.0.20",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.13.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 10 Jun 2024 22:30:36 GMT",
+      "version": "1.0.19",
+      "tag": "@azure/msal-node-extensions_v1.0.19",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.12.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 04 Jun 2024 00:08:57 GMT",
+      "version": "1.0.18",
+      "tag": "@azure/msal-node-extensions_v1.0.18",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.11.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 28 May 2024 21:37:23 GMT",
+      "version": "1.0.17",
+      "tag": "@azure/msal-node-extensions_v1.0.17",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 06 May 2024 23:48:17 GMT",
+      "version": "1.0.16",
+      "tag": "@azure/msal-node-extensions_v1.0.16",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.10.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 11 Apr 2024 21:46:57 GMT",
+      "version": "1.0.15",
+      "tag": "@azure/msal-node-extensions_v1.0.15",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
+            "comment": "Add install script to workaround regression in npm version 10.4.0"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.9.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
+            "comment": "Migrate ADO Pipelines to OneBranch #6992"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 27 Mar 2024 18:41:17 GMT",
+      "version": "1.0.14",
+      "tag": "@azure/msal-node-extensions_v1.0.14",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.8.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 22 Mar 2024 20:32:39 GMT",
+      "version": "1.0.13",
+      "tag": "@azure/msal-node-extensions_v1.0.13",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.8.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 17 Feb 2024 01:49:06 GMT",
+      "version": "1.0.12",
+      "tag": "@azure/msal-node-extensions_v1.0.12",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.7.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 07 Feb 2024 22:00:37 GMT",
+      "version": "1.0.11",
+      "tag": "@azure/msal-node-extensions_v1.0.11",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Update shared config version references to use local files #6855"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Fix tests #6849"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.7.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 23 Jan 2024 00:06:05 GMT",
+      "version": "1.0.10",
+      "tag": "@azure/msal-node-extensions_v1.0.10",
+      "comments": {
+        "patch": [
+          {
+            "author": "altinokd@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "2c5e4f1c72835d4dc47a72d158094af89964b9b0",
+            "comment": "Create require when it is not defined in MJS"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.6.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 09 Jan 2024 00:03:25 GMT",
+      "version": "1.0.9",
+      "tag": "@azure/msal-node-extensions_v1.0.9",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Set engines field to >=16"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.6.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 01 Dec 2023 18:46:06 GMT",
+      "version": "1.0.8",
+      "tag": "@azure/msal-node-extensions_v1.0.8",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "add Node 16 to engines"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.5.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Nov 2023 00:01:50 GMT",
+      "version": "1.0.7",
+      "tag": "@azure/msal-node-extensions_v1.0.7",
+      "comments": {
+        "patch": [
+          {
+            "author": "janusz@corechain.tech",
+            "package": "@azure/msal-node-extensions",
+            "commit": "25472ea4b5fb2ecef8eada945fa7c9f7eb0f2557",
+            "comment": "fix: Environment.getUserRootDirectory() only ever executes Windows code path"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.4.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 30 Oct 2023 21:38:25 GMT",
+      "version": "1.0.6",
+      "tag": "@azure/msal-node-extensions_v1.0.6",
+      "comments": {
+        "patch": [
+          {
+            "author": "janusz@corechain.tech",
+            "package": "@azure/msal-node-extensions",
+            "commit": "ffe542b30693153a63afeb3a98ff2804b846d13e",
+            "comment": "Fix downstream ESM imports, fixes #6573"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.3.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 18 Oct 2023 17:24:19 GMT",
+      "version": "1.0.5",
+      "tag": "@azure/msal-node-extensions_v1.0.5",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.2.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 05 Oct 2023 18:06:40 GMT",
+      "version": "1.0.4",
+      "tag": "@azure/msal-node-extensions_v1.0.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "4d75b093973b1c0b01feb4601f07d10390d44dd2",
+            "comment": "Refactor ClientAuthError for reduced size #6433"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "ae92c9a9fefcdc98b3bff206d66c9bc4db1db76c",
+            "comment": "Refactor ClientConfigurationError #6471"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.1.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "fbbb9060775198412eead3e844ef6f4d1968cea3",
+            "comment": "Turn off composite/project references"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 05 Sep 2023 22:13:48 GMT",
+      "version": "1.0.3",
+      "tag": "@azure/msal-node-extensions_v1.0.3",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "1e7ac8c21451783cc25303e9be5713daa1350343",
+            "comment": "shared jest config"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "7b0c4cbfc05b32145acbbb9308d945eb4dd85d31",
+            "comment": "Update lint step"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.0.3",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 18 Aug 2023 18:40:02 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.2",
+      "version": "1.0.2",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "d6bdb1c9987e54a347874537025c17e70b546f36",
+            "comment": "Typedocs"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.0.2",
+            "commit": "05b714f7670e8195f9440f8dd2f750ba6896c3bb"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 11 Aug 2023 19:00:44 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.1",
+      "version": "1.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "ae5fbc436e4c9b331494caa599510bb5f7b10272",
+            "comment": "Update dist settings for packages #6322"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.0.1",
+            "commit": "69d1715ac133eb486d94f87ebbb3fc61b4df3910"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Aug 2023 18:15:15 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "94ee143a36f1cccc72ca0ed41206c10e239637d7",
+            "comment": "Remove disallowedChangeTypes from package.json files"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "88f49fb55daa60410bbbc126856bdb7d2189817a",
+            "comment": "Replace lerna with npm workspaces #6136"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "c34e759455a7cbb86cba943923cff34f5b942e28",
+            "comment": "Fix formatting #6264"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "f714b51f03eb87ccd0102d886c814b3dab2b5cc9",
+            "comment": "DevDependency updates"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "ab44706bcf8e5a281b70ac93a44c58420c07d16a",
+            "comment": "Add exports to package.json and update type to module #6194"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.0.0",
+            "commit": "94ee143a36f1cccc72ca0ed41206c10e239637d7"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 06 Jul 2023 00:01:33 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-beta.1",
+      "version": "1.0.0-beta.1",
+      "comments": {
+        "none": [],
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.0.0-beta.1",
+            "commit": "4ccef1b8a11ca5643c11eb9586e45f8e45398e8c"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 15 Jun 2023 22:19:25 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-beta.0",
+      "version": "1.0.0-beta.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Msal v3 final rebase #5859"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "e17eb91a3fd848b44b76bc65bacf20239a0dc62a",
+            "comment": "Bundle local version of msal-common into msal-node-extensions #5923"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "46ab9fdc01dfe3f6884ef83e9166a6f3d8af0c38",
+            "comment": "Merge LTS changelogs"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "db4f4fa56e8dcec65a9d1a0653af4b128ac3b725",
+            "comment": "Update `msal-common` bundling config for `msal-node-extensions` #5943"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Rebase dev onto v3 #5843"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "85bbdefbd59785a8dd3fc46368409d95472bd2a1",
+            "comment": "Fix prepack hook #5967"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "5103db3b25e67df292175158e722a2bb35d898fd",
+            "comment": "Include prebuilt binaries"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "b4bbf7c584b0943b9edbdbb30e568b30bf6a203a",
+            "comment": "Drop TSDX in favor of using rollup & jest directly #5893"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "3ba0520a2eaaef6a863fe67aabbedbc89d0a354d",
+            "comment": "enable strict type checking"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Bump typescript version to 4.9.5 #5750"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "42dd47713c8c8e362fa3cd54cbf7367140d9fb06",
+            "comment": "Switch from enums to object literals to reduce the bundle size #6068"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "33fb5c38aa2e089080d11d4bb5a941a2b97b5f0a",
+            "comment": "Fix response expiresOn property"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "8788b7d52841f088d330aa881d1196a33e9e6f7a",
+            "comment": "Revert to common as a regular dependency #5985"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.0.0-beta.0",
+            "commit": "c7bd70a0521c2f0a397bed5109bf443db674a8a4"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 01 May 2023 20:47:42 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.34",
+      "version": "1.0.0-alpha.34",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "b7e8f3ee815056b55e30bcfb92d436f024e515f5",
+            "comment": "Update token expiry"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v13.0.0",
+            "commit": "38c29bdb23f75989f9b1efcdd038e28586370fb0"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 03 Apr 2023 21:29:32 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.32",
+      "version": "1.0.0-alpha.32",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v12.0.0",
+            "commit": "98cb8fce7ff4199e528ffe819dccbf58d28a8c80"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Mar 2023 16:48:52 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.31",
+      "version": "1.0.0-alpha.31",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "32ec95d8bcc91b89f3e834948c7922eac036f729",
+            "comment": "Expose NativeBrokerPlugin #5485"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v11.0.0",
+            "commit": "cbd2c9ddae007b1ca0468a3299aebe0ae053bf80"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "7d0ef8cb6792a30a29ec94011ff8ea1f5ca6a9bc",
+            "comment": "update package-lock"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 06 Feb 2023 18:51:50 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.30",
+      "version": "1.0.0-alpha.30",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "fredrik.rasch@gmail.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "b7d772937a74abf2342fd044b1d8f6a58394af43",
+            "comment": "Add Logging options to IPersistenceConfiguration #5626"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "479c057de9d35a037d7383d69a5e6f8956ba91ea",
+            "comment": "Include packageMetadata in bundle #5638"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v10.0.0",
+            "commit": "a7d7ecc41dbd3aed621d22a3e3263aee25ce6c10"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 09 Jan 2023 22:44:58 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.29",
+      "version": "1.0.0-alpha.29",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "67a1646f747e9885b0abd8996c91c474ad655ba4",
+            "comment": "Address dependabot alerts"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v9.0.2",
+            "commit": "1c8f7d7e2fde5d0b701f7eb5bd1866177a5f8794"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 07 Dec 2022 16:53:07 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.28",
+      "version": "1.0.0-alpha.28",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v9.0.1",
+            "commit": "48cb414b1a722dacf5439a1df6bad070cff62aa4"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 21 Nov 2022 19:14:45 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.27",
+      "version": "1.0.0-alpha.27",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v9.0.0",
+            "commit": "b6454bd1ff556f8d3482689d6a769e5e659a9f7d"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Nov 2022 22:46:55 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.26",
+      "version": "1.0.0-alpha.26",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v8.0.0",
+            "commit": "ae6f326996be7eec25faa19d3f714b860a424878"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 10 Oct 2022 22:27:03 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.25",
+      "version": "1.0.0-alpha.25",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "fe12deee891197c95de4b69f83aca9ca60881f19",
+            "comment": "Migrate from nan to node-api #5280"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v7.6.0",
+            "commit": "1bb8ed44ca44617636fb62199deb005d69341fb7"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 03 Oct 2022 22:12:27 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.24",
+      "version": "1.0.0-alpha.24",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v7.5.0",
+            "commit": "22b4edc74bd5a561ded056cf6451a8371598c76c"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 12 Sep 2022 18:19:32 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.23",
+      "version": "1.0.0-alpha.23",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "ffde7158aba741b804d5558fc162c1f1c45c28cd",
+            "comment": "Post Release September 2022 #5186"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v7.4.1",
+            "commit": "cf19d12246949f9cb99f4853953cbefb7d27009e"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 02 Sep 2022 18:06:53 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.23",
+      "version": "1.0.0-alpha.23",
+      "comments": {
+        "none": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "191e574ad0384623b6c96e198791412f0867f5f1",
+            "comment": "Fixing files to follow max-len rule #5136"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "65a790ce0e53305831c1a20f162dad028be91eb4",
+            "comment": "fix for failing unit test #6899"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "miles@svtrobotics.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "e2e8e8cc3894302e55873b86b0ab8300054d7863",
+            "comment": "Point to the correct esm file in msal-node-extensions package.json (#5135)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v7.4.0",
+            "commit": "75e3189e8cf3d46497a7587d7f221057a5f0ede6"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 01 Aug 2022 22:22:36 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.22",
+      "version": "1.0.0-alpha.22",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "674ff0c4a543fb2b5b52f3a7aed4fe32b387b7b2",
+            "comment": "Update package-lock"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "c8eb53d59a2df026832a914284c0bfb61486a016",
+            "comment": "Package-lock updates"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v7.3.0",
+            "commit": "9ddeaca3f2b983b459cd0b4651aa4a7adc10e18c"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 18 Jul 2022 23:26:21 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.21",
+      "version": "1.0.0-alpha.21",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v7.2.0",
+            "commit": "1b74296d45864f3721895819733ea5ee39006b6f"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 05 Jul 2022 22:37:04 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.20",
+      "version": "1.0.0-alpha.20",
+      "comments": {
+        "none": [
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "511ec6c19263c558562a8d4b26b576c0d137c144",
+            "comment": "fix: updated extensions to use msal-common 6.4.0 #4536"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v7.1.0",
+            "commit": "bfd3760ce1aca6b4be8ae937606215676a72e5c5"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 13 Jun 2022 22:28:09 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.19",
+      "version": "1.0.0-alpha.19",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v7.0.0",
+            "commit": "e325d870a211b4ad6fa97bb95b6b224299247940"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 06 Jun 2022 22:13:00 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.18",
+      "version": "1.0.0-alpha.18",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "c03bd9cbf5a3c31cfcd86de7ab718c10b7d08304",
+            "comment": "Update extensions package-lock to fix audit #4786"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v6.4.0",
+            "commit": "3b8942d3cf281352236b820c931a89b4dbcbf85b"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 02 May 2022 22:23:33 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.17",
+      "version": "1.0.0-alpha.17",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v6.3.0",
+            "commit": "cbf5e7a6c81d01ce40bfbcbca9be158c5ee395aa"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 04 Apr 2022 21:12:42 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.16",
+      "version": "1.0.0-alpha.16",
+      "comments": {
+        "none": [
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "35b26ea1a6f9ced206b1a801626cd898a4f1a5ca",
+            "comment": "fix: resolve the minimist audit error"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v6.2.0",
+            "commit": "63c34341780208480edc2f86e623ba12a7f847c3"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Mar 2022 23:28:43 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.15",
+      "version": "1.0.0-alpha.15",
+      "comments": {
+        "none": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "4939a80fc6dea18841099446da011a9211243f54",
+            "comment": "Update node-gyp to version 9 #4567"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 08 Feb 2022 00:41:06 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.15",
+      "version": "1.0.0-alpha.15",
+      "comments": {
+        "none": [
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "5767008f8ef9f3b05aeba421cc4aa6c6bb616e86",
+            "comment": "fix: update package-lock files"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "19f76b1d9cd2b0f1a4a7e4765c8ee9e7e17f3d59",
+            "comment": "Test changes #4383"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "539ca525a356c0d4a7bd1d4da5271f8a2988f944",
+            "comment": "Resolve lint errors #4363"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "33e9d56dd3e8c1523d70b6e3cff4214035b44e08",
+            "comment": "Update keytar dependency to ^7.8.0 #4483"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v6.1.0",
+            "commit": "639253acbc825e1f19ca712bc72dce8da149e3e8"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 04 Jan 2022 00:20:29 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.14",
+      "version": "1.0.0-alpha.14",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "60e2cfc0e9daa3c24e994617b4ac42aef6880b74",
+            "comment": "Add support for requested claims in silent token acquisition #4296"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v6.0.0",
+            "commit": "bd9b1af91c278926ab2e6943cf90817a7ac4957b"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Dec 2021 00:17:01 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.13",
+      "version": "1.0.0-alpha.13",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "02dbd9172368bfc69e4a47f01a3ada0b96345c81",
+            "comment": "Package.json updates"
+          },
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "8259de7520d2940d290332cd03c5b8babeb0966e",
+            "comment": "deps: run an audit fix for msal-node-extensions"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "e020f3511ddc25be0c04a60362698da0112b8c0c",
+            "comment": "Use https to install bindings dependency #4234"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v5.2.0",
+            "commit": "d7c209f7aa3ae4380a77a31ff1319fbf7201ae45"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 01 Nov 2021 23:53:22 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.12",
+      "version": "1.0.0-alpha.12",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v5.1.0",
+            "commit": "6ac29855822ce1ba9531a68bcaa6f37443ef16c0"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 04 Oct 2021 23:12:35 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.11",
+      "version": "1.0.0-alpha.11",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-node-extensions",
+            "comment": "fix: integrate forked bindings package",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v5.0.1",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Update beachball config",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 09 Sep 2021 23:58:01 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.10",
+      "version": "1.0.0-alpha.10",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Upgrade msal-common to v5 for Node extensions",
+            "author": "janutter@microsoft.com",
+            "commit": "ad3eeeb85b92035a1389e49a6cc182c3085a1ba1",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Jul 2021 22:50:22 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.9",
+      "version": "1.0.0-alpha.9",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "feat: add the persistence creator (#3859)",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "a916871108c93904a62e7729edb0e2287719a532",
+            "package": "@azure/msal-node-extensions"
+          },
+          {
+            "comment": "fix: bump up the msal-common version",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "2bf61e9e1ed3697352269537f7e24ebbac4d926b",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 29 Jun 2021 00:28:30 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.8",
+      "version": "1.0.0-alpha.8",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "verifyPersistence returns the right value on failure(#3787)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "dc8086acc0ccc91e066e886adffd5895911d33f0",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 23 Jun 2021 00:01:49 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.7",
+      "version": "1.0.0-alpha.7",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Add logs to test beachball",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "cc28e43b3dcdb45f2469b14cf52a223f7d59b0d9",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 05 Mar 2021 21:26:46 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.6",
+      "version": "1.0.0-alpha.6",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix lint in extensions to trigger version bump",
+            "author": "janutter@microsoft.com",
+            "commit": "4901e740f2687447f1eac537dac71ef243ce957a",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 03 Mar 2021 22:13:23 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.5",
+      "version": "1.0.0-alpha.5",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix npm audit warnings",
+            "author": "janutter@microsoft.com",
+            "commit": "751026cdaa24dd370c50ad714bf0b1d54c71fbde",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 14 Oct 2020 23:45:07 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.4",
+      "version": "1.0.0-alpha.4",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Update PersistenceCachePlugin (#2348)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "26723689e35918c59bd6ce58ba8cb886118676c6",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 30 Sep 2020 17:58:33 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.3",
+      "version": "1.0.0-alpha.3",
+      "comments": {
+        "none": [
+          {
+            "comment": "Updating the pre-release version(#2342)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "bc3f324edd6cf83937c31f73d3aefc6dbaf5f748",
+            "package": "@azure/msal-node-extensions"
+          },
+          {
+            "comment": "Update changelog versions for msal-node and extensions (#2336)",
+            "author": "hemoral@microsoft.com",
+            "commit": "323875a725e0d5049ff6742a9ca5160c2d4b7d0d",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 23 Sep 2020 21:13:48 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.3",
+      "version": "1.0.0-alpha.3",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Update error message (#2265)",
+            "author": "sagonzal@microsoft.com",
+            "commit": "81d044a2a4640ebfa8b3bd80cb30cc2c602bbef1",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 17 Sep 2020 23:16:22 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0",
+      "version": "1.0.0-alpha.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update msal-node-extensionst to use central eslint configuration",
+            "author": "janutter@microsoft.com",
+            "commit": "fc49c6f16b3f7a62a67d249107fc484272133305",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 13 Aug 2020 02:20:48 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.2",
+      "version": "1.0.0-alpha.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "updating files for automated release steps",
+            "author": "prkanher@microsoft.com",
+            "commit": "791409e7c9975218ae2b3a91e6a6a190b59474b1",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    }
+  ]
 }

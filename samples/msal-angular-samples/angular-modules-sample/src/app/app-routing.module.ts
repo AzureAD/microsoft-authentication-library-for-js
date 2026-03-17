@@ -5,8 +5,13 @@ import { BrowserUtils } from '@azure/msal-browser';
 import { ProfileComponent } from './profile/profile.component';
 import { HomeComponent } from './home/home.component';
 import { FailedComponent } from './failed/failed.component';
+import { RedirectComponent } from './redirect/redirect.component';
 
 const routes: Routes = [
+  {
+    path: 'redirect',
+    component: RedirectComponent,
+  },
   {
     path: 'profile',
     component: ProfileComponent,
@@ -24,8 +29,9 @@ const routes: Routes = [
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, {
-    // Don't perform initial navigation in iframes or popups
-    initialNavigation: !BrowserUtils.isInIframe() && !BrowserUtils.isInPopup() ? 'enabledNonBlocking' : 'disabled' // Set to enabledBlocking to use Angular Universal
+    // Enable navigation for redirect bridge to work in popups
+    // Only disable navigation in iframes (not in popups)
+    initialNavigation: !BrowserUtils.isInIframe() ? 'enabledNonBlocking' : 'disabled'
   })],
   exports: [RouterModule]
 })

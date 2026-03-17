@@ -13,6 +13,9 @@
 1. [Roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md)
 1. [Prerequisites](#prerequisites)
 1. [Installation](#installation)
+    - [CDN Deprecation](#cdn-deprecation)
+    - [Via npm](#via-npm)
+    - [Via Yarn](#via-yarn)
 1. [Usage](#usage)
     - [Migrating from Previous MSAL Versions](#migrating-from-previous-msal-versions)
     - [MSAL Basics](#msal-basics)
@@ -27,19 +30,16 @@
 
 ## About
 
-The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Azure AD](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
+The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Microsoft Entra ID](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
 The `@azure/msal-browser` package described by the code in this folder uses the [`@azure/msal-common` package](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-common) as a dependency to enable authentication in JavaScript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section [below](#implicit-flow-vs-authorization-code-flow-with-pkce).
 
-This is an improvement upon the previous `@azure/msal` library which will utilize the authorization code flow in the browser. Most features available in the old library will be available in this one, but there are nuances to the authentication flow in both. The `@azure/msal-browser` package does NOT support the implicit flow.
+The `@azure/msal-browser` package **does NOT** support the implicit flow.
+
 
 ## FAQ
 
 See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md).
-
-## Roadmap
-
-See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md).
 
 ## Prerequisites
 
@@ -49,18 +49,32 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 
 ## Installation
 
+### CDN Deprecation
+
+> :warning: The `@azure/msal-browser` CDN has been fully deprecated as of `@azure/msal-browser@3.0.0` and is no longer supported. App developers using the MSAL CDN must upgrade to the latest possible version and consume MSAL through a package manager or bundling tool of their choice. For more information on version support, consult the table in the project [README.md](../../README.md#library-version-support-status).
+
 ### Via NPM
 
 ```javascript
 npm install @azure/msal-browser
 ```
 
+### Via Yarn
+
+```javascript
+yarn add @azure/msal-browser
+```
+
 ## Usage
 
 ### Migrating from Previous MSAL Versions
 
--   [Migrating from MSAL v1.x to MSAL v2.x](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v1-migration.md)
+Select the guide that matches your current MSAL version:
+
+-   [Migrating from MSAL v4.x to MSAL v5.x](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v4-migration.md)
+-   [Migrating from MSAL v3.x to MSAL v4.x](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v3-migration.md)
 -   [Migrating from MSAL v2.x to MSAL v3.x](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v2-migration.md)
+-   [Migrating from MSAL v1.x to MSAL v2.x](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v1-migration.md)
 
 ### MSAL Basics
 
@@ -77,13 +91,11 @@ npm install @azure/msal-browser
 -   [Request and Response Details](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md)
 -   [Cache Storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md)
 -   [Performance Enhancements](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/performance.md)
--   [Instance Aware Flow](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/instance-aware.md)
+-   [MCP Flows](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-v5/lib/msal-browser/docs/mcp.md)
 
 ## Samples
 
 The [`msal-browser-samples` folder](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples) contains sample applications for our libraries.
-
-More instructions to run the samples can be found in the [`README.md` file](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/Readme.md) of the VanillaJSTestApp2.0 folder.
 
 More advanced samples backed with a tutorial can be found in the [Azure Samples](https://github.com/Azure-Samples) space on GitHub:
 
@@ -132,11 +144,9 @@ npm test
 npm run test:coverage
 ```
 
-## Implicit Flow vs Authorization Code Flow with PKCE
+## Authorization Code Flow with Proof Key for Code Exchange (PKCE)
 
-`@azure/msal-browser` implements the [OAuth 2.0 Authorization Code Flow with PKCE](https://tools.ietf.org/html/rfc7636) for browser-based applications. This is a significant improvement over the Implicit Flow that was used in `@azure/msal`, `msal` or `adal-angular`.
-
-### Authorization Code Flow with PKCE
+`@azure/msal-browser` implements the [OAuth 2.0 Authorization Code Flow with PKCE](https://tools.ietf.org/html/rfc7636) for browser-based applications.
 
 The Authorization Code Flow with Proof Key for Code Exchange (PKCE) is the current industry standard for securing OAuth 2.0 authorization in public clients, including single-page applications (SPAs). Key benefits include:
 
@@ -145,28 +155,11 @@ The Authorization Code Flow with Proof Key for Code Exchange (PKCE) is the curre
 - **Refresh Token Support**: Enables long-lived sessions through refresh tokens
 - **OIDC Compliance**: Fully compliant with OpenID Connect standards
 
-### Implicit Flow (Deprecated)
-
-The Implicit Flow was the previous standard for SPAs but has been deprecated due to security concerns:
-
-- **Tokens in URLs**: Access tokens are returned in URL fragments, making them visible in browser history and server logs
-- **No Refresh Tokens**: Implicit flow cannot securely deliver refresh tokens to public clients
-- **Increased Attack Surface**: Tokens are more susceptible to token leakage attacks
-
-### Migration Considerations
-
-- **`@azure/msal-browser` only supports Authorization Code Flow with PKCE** - Implicit Flow is not supported
-- If you're migrating from `@azure/msal`, `msal` or `adal-angular`, see our [migration guide](./docs/v1-migration.md)
-- Your Azure AD app registration needs to be configured for the Authorization Code Flow
-- Existing applications using Implicit Flow should migrate to Authorization Code Flow for improved security
-
-For more technical details about these flows, refer to the [Microsoft identity platform documentation](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow).
-
 ## Framework Wrappers
 
 If you are using a framework such as Angular or React you may be interested in using one of our wrapper libraries:
 
--   Angular: [@azure/msal-angular v2](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular)
+-   Angular: [@azure/msal-angular](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular)
 -   React: [@azure/msal-react](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react)
 
 ## Security Reporting

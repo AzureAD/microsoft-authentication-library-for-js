@@ -58,12 +58,12 @@ describe("Configuration.ts Class Unit Tests", () => {
             false
         );
         expect(emptyConfig.system?.networkClient).toBeDefined();
-        expect(emptyConfig.system?.windowHashTimeout).toBeDefined();
-        expect(emptyConfig.system?.windowHashTimeout).toBe(
+        expect(emptyConfig.system?.popupBridgeTimeout).toBeDefined();
+        expect(emptyConfig.system?.popupBridgeTimeout).toBe(
             DEFAULT_POPUP_TIMEOUT_MS
         );
-        expect(emptyConfig.system?.iframeHashTimeout).toBeDefined();
-        expect(emptyConfig.system?.iframeHashTimeout).toBe(
+        expect(emptyConfig.system?.iframeBridgeTimeout).toBeDefined();
+        expect(emptyConfig.system?.iframeBridgeTimeout).toBe(
             DEFAULT_IFRAME_TIMEOUT_MS
         );
         expect(emptyConfig.system?.tokenRenewalOffsetSeconds).toBe(300);
@@ -87,59 +87,22 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(config.system?.allowPlatformBroker).toBe(true);
     });
 
-    it("sets timeouts with loadFrameTimeout", () => {
+    it("sets bridge timeouts", () => {
         const config: Configuration = buildConfiguration(
             {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    loadFrameTimeout: 100,
+                    iframeBridgeTimeout: 5000,
+                    popupBridgeTimeout: 50000,
                 },
             },
             true
         );
 
-        expect(config.system?.iframeHashTimeout).toBe(100);
-        expect(config.system?.windowHashTimeout).toBe(100);
-    });
-
-    it("sets timeouts with hash timeouts", () => {
-        const config: Configuration = buildConfiguration(
-            {
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    iframeHashTimeout: 5000,
-                    windowHashTimeout: 50000,
-                },
-            },
-            true
-        );
-
-        expect(config.system?.iframeHashTimeout).toBe(5000);
-        expect(config.system?.windowHashTimeout).toBe(50000);
-    });
-
-    it("sets timeouts with loadFrameTimeout and hash timeouts", () => {
-        const config: Configuration = buildConfiguration(
-            {
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    iframeHashTimeout: 6001,
-                    windowHashTimeout: 6002,
-                    loadFrameTimeout: 500,
-                },
-            },
-            true
-        );
-
-        expect(config.system?.iframeHashTimeout).toBe(6001);
-        expect(config.system?.windowHashTimeout).toBe(6002);
-        expect(config.system?.loadFrameTimeout).toBe(500);
+        expect(config.system?.iframeBridgeTimeout).toBe(5000);
+        expect(config.system?.popupBridgeTimeout).toBe(50000);
     });
 
     it("Tests logger", () => {
@@ -238,7 +201,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
                 },
                 system: {
-                    windowHashTimeout: TEST_POPUP_TIMEOUT_MS,
+                    popupBridgeTimeout: TEST_POPUP_TIMEOUT_MS,
                     tokenRenewalOffsetSeconds: TEST_OFFSET,
                     loggerOptions: {
                         loggerCallback: testLoggerCallback,
@@ -265,8 +228,10 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.cache?.cacheLocation).toBe("localStorage");
         // System config checks
         expect(newConfig.system).not.toBeNull();
-        expect(newConfig.system?.windowHashTimeout).not.toBeNull();
-        expect(newConfig.system?.windowHashTimeout).toBe(TEST_POPUP_TIMEOUT_MS);
+        expect(newConfig.system?.popupBridgeTimeout).not.toBeNull();
+        expect(newConfig.system?.popupBridgeTimeout).toBe(
+            TEST_POPUP_TIMEOUT_MS
+        );
         expect(newConfig.system?.tokenRenewalOffsetSeconds).not.toBeNull();
         expect(newConfig.system?.tokenRenewalOffsetSeconds).toBe(TEST_OFFSET);
         expect(newConfig.system?.loggerOptions).not.toBeNull();

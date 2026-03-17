@@ -6,7 +6,6 @@
 import {
     AuthenticationResult,
     Authority,
-    BaseClient,
     CcsCredentialType,
     ClientAssertion,
     ClientConfiguration,
@@ -21,9 +20,10 @@ import {
     UrlString,
     UrlUtils,
     getClientAssertion,
-    StubPerformanceClient,
 } from "@azure/msal-common/node";
+import { ApiId } from "../utils/Constants.js";
 import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePasswordRequest.js";
+import { BaseClient } from "./BaseClient.js";
 
 /**
  * Oauth2.0 Password grant client
@@ -33,7 +33,7 @@ import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePassword
  */
 export class UsernamePasswordClient extends BaseClient {
     constructor(configuration: ClientConfiguration) {
-        super(configuration, new StubPerformanceClient());
+        super(configuration);
     }
 
     /**
@@ -74,7 +74,8 @@ export class UsernamePasswordClient extends BaseClient {
             response.body,
             this.authority,
             reqTimestamp,
-            request
+            request,
+            ApiId.acquireTokenByUsernamePassword
         );
 
         return tokenResponse;

@@ -11,7 +11,6 @@ import {
     AuthenticationResult,
     Authority,
     AuthToken,
-    BaseClient,
     ClientAuthErrorCodes,
     ClientConfiguration,
     createClientAuthError,
@@ -28,10 +27,11 @@ import {
     ClientAssertion,
     getClientAssertion,
     UrlUtils,
-    StubPerformanceClient,
 } from "@azure/msal-common/node";
+import { ApiId } from "../utils/Constants.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest.js";
+import { BaseClient } from "./BaseClient.js";
 
 /**
  * On-Behalf-Of client
@@ -42,7 +42,7 @@ export class OnBehalfOfClient extends BaseClient {
     private userAssertionHash: string;
 
     constructor(configuration: ClientConfiguration) {
-        super(configuration, new StubPerformanceClient());
+        super(configuration);
     }
 
     /**
@@ -310,6 +310,7 @@ export class OnBehalfOfClient extends BaseClient {
             this.authority,
             reqTimestamp,
             request,
+            ApiId.acquireTokenByOBO,
             undefined,
             userAssertionHash
         );

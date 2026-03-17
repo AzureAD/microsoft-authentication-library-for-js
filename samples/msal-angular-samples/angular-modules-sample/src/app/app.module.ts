@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { NgModule } from '@angular/core';
+import { NgModule, provideZoneChangeDetection } from '@angular/core';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -11,6 +11,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
 import { ProfileComponent } from './profile/profile.component';
+import { RedirectComponent } from './redirect/redirect.component';
 
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import {
@@ -31,7 +32,6 @@ import {
   MSAL_INSTANCE,
   MSAL_INTERCEPTOR_CONFIG,
   MsalGuardConfiguration,
-  MsalRedirectComponent,
 } from '@azure/msal-angular';
 import { FailedComponent } from './failed/failed.component';
 import { environment } from 'src/environments/environment';
@@ -45,7 +45,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
     auth: {
       clientId: environment.msalConfig.auth.clientId,
       authority: environment.msalConfig.auth.authority,
-      redirectUri: '/',
+      redirectUri: '/redirect',
       postLogoutRedirectUri: '/',
     },
     cache: {
@@ -85,14 +85,15 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
   };
 }
 
-@NgModule({ 
+@NgModule({
     declarations: [
         AppComponent,
         HomeComponent,
         ProfileComponent,
+        RedirectComponent,
         FailedComponent,
     ],
-    bootstrap: [AppComponent, MsalRedirectComponent], 
+    bootstrap: [AppComponent],
     imports: [
         BrowserModule,
         NoopAnimationsModule, // Animations cause delay which interfere with E2E tests
@@ -101,7 +102,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
         MatToolbarModule,
         MatListModule,
         MatMenuModule,
-        MsalModule], 
+        MsalModule],
     providers: [
         {
             provide: HTTP_INTERCEPTORS,
@@ -124,5 +125,6 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
         MsalGuard,
         MsalBroadcastService,
         provideHttpClient(withInterceptorsFromDi()),
+        provideZoneChangeDetection({ eventCoalescing: true }),
     ] })
 export class AppModule {}

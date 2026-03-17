@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MsalBroadcastService, MsalService } from '@azure/msal-angular';
 import {
   AuthenticationResult,
@@ -13,7 +13,7 @@ import { filter } from 'rxjs/operators';
     selector: 'app-home',
     templateUrl: './home.component.html',
     styleUrls: [],
-    imports: [CommonModule]
+    imports: []
 })
 export class HomeComponent implements OnInit {
   loginDisplay = false;

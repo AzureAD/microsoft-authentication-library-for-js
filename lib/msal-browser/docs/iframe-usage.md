@@ -25,7 +25,7 @@ Iframed and parent apps with the same-origin may have access to the same MSAL.js
 
 ### Apps with cross-origin
 
-Iframed and parent apps with cross-origin can make use of the [ssoSilent()](./login-user.md#silent-login-with-ssosilent) API to achieve single sign-on. To do so, the parent app should pass down either an **account**, a **loginHint** (username) or a **session id** (sid) to the iframed app. 
+Iframed and parent apps with cross-origin can make use of the [ssoSilent()](./login-user.md#silent-login-with-ssosilent) API to achieve single sign-on. To do so, the parent app should pass down either an **account**, a **loginHint** (username) or a **session id** (sid) to the iframed app.
 
 Apps can attempt to use `ssoSilent` without any of the above parameters. However be aware that there are [additional considerations](./login-user.md#silent-login-with-ssosilent) when using `ssoSilent` without providing any information about the user's session.
 
@@ -40,7 +40,7 @@ const myMSALObj = new msal.PublicClientApplication({
     auth: {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_ID",
-        redirectUri: "/redirect", // set to a blank page for handling auth code response via popups
+        redirectUri: "/redirect", // must point to a page that implements the redirect bridge
     },
     cache: {
         cacheLocation: "localStorage", // set your cache location to local storage
@@ -48,7 +48,7 @@ const myMSALObj = new msal.PublicClientApplication({
 });
 
 window.onload = () => {
-    
+
     const urlParams = new URLSearchParams(window.location.search);
     const sid = urlParams.get("sid");
 
@@ -72,7 +72,7 @@ const myMSALObj = new msal.PublicClientApplication({
     auth: {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_ID",
-        redirectUri: "/redirect", // set to a blank page for handling auth code response via popups
+        redirectUri: "/redirect", // must point to a page that implements the redirect bridge
     },
     cache: {
         cacheLocation: "localStorage", // set your cache location to local storage

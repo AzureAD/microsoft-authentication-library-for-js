@@ -52,7 +52,7 @@ Using `logoutRedirect` will clear local cache of user tokens then redirect the w
 [Configuration options](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionrequest) can be provided to customize the behavior:
 
 ```javascript
-const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
+const currentAccount = msalInstance.getAccount({ homeAccountId });
 await msalInstance.logoutRedirect({
     account: currentAccount,
     postLogoutRedirectUri: "https://contoso.com/loggedOut"
@@ -92,7 +92,7 @@ The `logoutPopup` API will open the server signout page in a popup, allowing you
 [Configuration options](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionpopuprequest) can be provided to customize the behavior.
 
 ```javascript
-const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
+const currentAccount = msalInstance.getAccount({ homeAccountId });
 await msalInstance.logoutPopup({
     account: currentAccount,
     postLogoutRedirectUri: "https://contoso.com/loggedOut",
@@ -119,7 +119,7 @@ If your client application has the [login_hint optional claim](https://docs.micr
 The first and simplest option is to provide the account object you want to end the session for to the logout API. MSAL will check to see if the `login_hint` claim is available in the account's ID token and automatically add it to the end session request as `logout_hint` to skip the account picker prompt.
 
 ```javascript
-const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
+const currentAccount = msalInstance.getAccount({ homeAccountId });
 // The account's ID Token must contain the login_hint optional claim to avoid the account picker
 await msalInstance.logoutRedirect({ account: currentAccount});
 ```
@@ -129,7 +129,7 @@ await msalInstance.logoutRedirect({ account: currentAccount});
 Alternatively, if you prefer to manually set the `logoutHint`, you can extract the `login_hint` claim in your app and set it as the `logoutHint` in the logout request:
 
 ```javascript
-const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
+const currentAccount = msalInstance.getAccount({ homeAccountId });
 
 // Extract login hint to use as logout hint
 const logoutHint = currentAccount.idTokenClaims.login_hint;

@@ -7,6 +7,10 @@ import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.j
 import { ResetPasswordResendCodeError } from "../error_type/ResetPasswordError.js";
 import type { ResetPasswordCodeRequiredState } from "../state/ResetPasswordCodeRequiredState.js";
 import { ResetPasswordFailedState } from "../state/ResetPasswordFailedState.js";
+import {
+    RESET_PASSWORD_FAILED_STATE_TYPE,
+    RESET_PASSWORD_CODE_REQUIRED_STATE_TYPE,
+} from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Result of resending code in a reset password operation.
@@ -46,7 +50,7 @@ export class ResetPasswordResendCodeResult extends AuthFlowResultBase<
     isFailed(): this is ResetPasswordResendCodeResult & {
         state: ResetPasswordFailedState;
     } {
-        return this.state instanceof ResetPasswordFailedState;
+        return this.state.stateType === RESET_PASSWORD_FAILED_STATE_TYPE;
     }
 
     /**
@@ -55,13 +59,7 @@ export class ResetPasswordResendCodeResult extends AuthFlowResultBase<
     isCodeRequired(): this is ResetPasswordResendCodeResult & {
         state: ResetPasswordCodeRequiredState;
     } {
-        /*
-         * The instanceof operator couldn't be used here to check the state type since the circular dependency issue.
-         * So we are using the constructor name to check the state type.
-         */
-        return (
-            this.state.constructor?.name === "ResetPasswordCodeRequiredState"
-        );
+        return this.state.stateType === RESET_PASSWORD_CODE_REQUIRED_STATE_TYPE;
     }
 }
 

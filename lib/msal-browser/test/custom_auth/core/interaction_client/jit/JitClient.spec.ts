@@ -5,12 +5,10 @@
 
 import { JitClient } from "../../../../../src/custom_auth/core/interaction_client/jit/JitClient.js";
 import {
-    JitGetAuthMethodsParams,
     JitChallengeAuthMethodParams,
     JitSubmitChallengeParams,
 } from "../../../../../src/custom_auth/core/interaction_client/jit/parameter/JitParams.js";
 import {
-    JIT_GET_AUTH_METHODS_RESULT_TYPE,
     JIT_VERIFICATION_REQUIRED_RESULT_TYPE,
     JIT_COMPLETED_RESULT_TYPE,
 } from "../../../../../src/custom_auth/core/interaction_client/jit/result/JitActionResult.js";
@@ -103,46 +101,6 @@ describe("JitClient", () => {
             mockedApiClient,
             customAuthAuthority
         );
-    });
-
-    describe("getAuthMethods", () => {
-        it("should call introspect endpoint and return auth methods", async () => {
-            const mockAuthMethods: AuthenticationMethod[] = [
-                {
-                    id: "email",
-                    challenge_type: "oob",
-                    challenge_channel: "email",
-                    login_hint: "user@example.com",
-                },
-            ];
-
-            const mockIntrospectResponse = {
-                correlation_id: mockCorrelationId,
-                continuation_token: mockContinuationToken,
-                methods: mockAuthMethods,
-            };
-
-            registerApiClient.introspect.mockResolvedValue(
-                mockIntrospectResponse
-            );
-
-            const params: JitGetAuthMethodsParams = {
-                correlationId: mockCorrelationId,
-                continuationToken: mockContinuationToken,
-            };
-
-            const result = await jitClient.getAuthMethods(params);
-
-            expect(result.type).toBe(JIT_GET_AUTH_METHODS_RESULT_TYPE);
-            expect(result.correlationId).toBe(mockCorrelationId);
-            expect(result.continuationToken).toBe(mockContinuationToken);
-            expect(result.authMethods).toBe(mockAuthMethods);
-            expect(registerApiClient.introspect).toHaveBeenCalledWith({
-                continuation_token: mockContinuationToken,
-                correlationId: mockCorrelationId,
-                telemetryManager: expect.any(Object),
-            });
-        });
     });
 
     describe("challengeAuthMethod", () => {

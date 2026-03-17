@@ -44,7 +44,7 @@ Please see [here](https://github.com/AzureAD/microsoft-authentication-library-fo
 
 ### What versions of Angular are supported?
 
-MSAL Angular v5 currently supports Angular 18, 19 and 20.
+MSAL Angular v5 currently supports Angular 19, 20, and 21.
 
 MSAL Angular v4 currently supports Angular 15, 16, 17, 18, 19 and 20.
 
@@ -149,7 +149,15 @@ Please see our [MsalGuard doc](https://github.com/AzureAD/microsoft-authenticati
 
 ### How do I get accounts?
 
-The `@azure/msal-browser` instance used by `@azure/msal-angular` exposes multiple methods for getting account information. We recommend using `getAllAccounts()` to get all accounts, and `getAccountByHomeId()` and `getAccountByLocalId()` to get specific accounts. Note that while `getAccountByUsername()` is available, it should be a secondary choice, as it may be less reliable and is for convenience only. See the [`@azure/msal-browser` docs](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_browser.publicclientapplication.html) for more details on account methods.
+The `@azure/msal-browser` instance used by `@azure/msal-angular` exposes multiple methods for getting account information. We recommend using `getAllAccounts()` to get all accounts that match a filter, and `getAccount()` to get a specific account that is expected to be the only one to match the filter.
+
+Example:
+
+```javascript
+const account = msalInstance.getAccount({ username: "SEARCH_USERNAME" });
+```
+
+See the [`@azure/msal-browser` Accounts doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/accounts.md#account-filter-object) for more details on account methods.
 
 We recommend subscribing to the `inProgress$` observable of `MsalBroadcastService` and filtering for `InteractionStatus.None` before retrieving account information. This ensures that all interactions have completed before getting account information. See [our sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-samples/angular-modules-sample/src/app/app.component.ts#L45) for an example of this use.
 

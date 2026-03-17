@@ -63,7 +63,6 @@ export class AuthProvider {
                     logLevel: LogLevel.Verbose,
                     piiLoggingEnabled: false,
                 },
-                // proxyUrl: "http://localhost:8888" // uncomment to capture traffic with Fiddler
             },
         } as Configuration;
 
@@ -96,6 +95,10 @@ export class AuthProvider {
          * MSAL Node allows you to pass your custom state as state parameter in the Request object.
          * The state parameter can also be used to encode information about the app's state before redirect.
          * You can pass the user's state in the app, such as the page or view they were on, as input to this parameter.
+         * 
+         * For security and privacy reasons, we do not recommend putting URLs or other sensitive data directly in the
+         * state parameter. Instead, use a key or identifier that corresponds to data stored in server-side storage 
+         * (e.g., session storage, database), allowing your app to securely reference the necessary data after authentication.
          */
         const state = this.cryptoProvider.base64Encode(
             JSON.stringify({

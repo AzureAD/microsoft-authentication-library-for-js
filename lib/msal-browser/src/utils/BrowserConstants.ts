@@ -32,10 +32,6 @@ export const BrowserConstants = {
      */
     POPUP_NAME_PREFIX: "msal",
     /**
-     * Default popup monitor poll interval in milliseconds
-     */
-    DEFAULT_POLL_INTERVAL_MS: 30,
-    /**
      * Msal-browser SKU
      */
     MSAL_SKU: "msal.js.browser",
@@ -115,6 +111,7 @@ export type InMemoryCacheKeys =
  * Before adding a new code you must claim it in the MSAL Telemetry tracker as these number spaces are shared across all MSALs
  * 0-99 Silent Flow
  * 800-899 Auth Code Flow
+ * 900-999 Misc
  */
 export const ApiId = {
     acquireTokenRedirect: 861,
@@ -126,8 +123,34 @@ export const ApiId = {
     acquireTokenSilent_silentFlow: 61,
     logout: 961,
     logoutPopup: 962,
+    hydrateCache: 963,
+    loadExternalTokens: 964,
 } as const;
 export type ApiId = (typeof ApiId)[keyof typeof ApiId];
+
+/**
+ * API Names for Telemetry purposes.
+ */
+export const ApiName = {
+    861: "acquireTokenRedirect",
+    862: "acquireTokenPopup",
+    863: "ssoSilent",
+    864: "acquireTokenSilent_authCode",
+    865: "handleRedirectPromise",
+    866: "acquireTokenByCode",
+    61: "acquireTokenSilent_silentFlow",
+    961: "logout",
+    962: "logoutPopup",
+    963: "hydrateCache",
+    964: "loadExternalTokens",
+} as const satisfies Record<ApiId, string>;
+
+export const apiIdToName = (id: number | undefined): string => {
+    if (typeof id === "number" && id in ApiName) {
+        return ApiName[id as ApiId];
+    }
+    return "unknown";
+};
 
 /*
  * Interaction type of the API - used for state and telemetry

@@ -16,42 +16,40 @@ type RawMetadata = {
     instanceDiscoveryMetadata: CloudInstanceDiscoveryResponse;
 };
 
-export const rawMetdataJSON: RawMetadata = {
-    endpointMetadata: {
-        "login.microsoftonline.com": {
-            token_endpoint:
-                "https://login.microsoftonline.com/{tenantid}/oauth2/v2.0/token",
-            jwks_uri:
-                "https://login.microsoftonline.com/{tenantid}/discovery/v2.0/keys",
-            issuer: "https://login.microsoftonline.com/{tenantid}/v2.0",
-            authorization_endpoint:
-                "https://login.microsoftonline.com/{tenantid}/oauth2/v2.0/authorize",
-            end_session_endpoint:
-                "https://login.microsoftonline.com/{tenantid}/oauth2/v2.0/logout",
-        },
-        "login.chinacloudapi.cn": {
-            token_endpoint:
-                "https://login.chinacloudapi.cn/{tenantid}/oauth2/v2.0/token",
-            jwks_uri:
-                "https://login.chinacloudapi.cn/{tenantid}/discovery/v2.0/keys",
-            issuer: "https://login.partner.microsoftonline.cn/{tenantid}/v2.0",
-            authorization_endpoint:
-                "https://login.chinacloudapi.cn/{tenantid}/oauth2/v2.0/authorize",
-            end_session_endpoint:
-                "https://login.chinacloudapi.cn/{tenantid}/oauth2/v2.0/logout",
-        },
-        "login.microsoftonline.us": {
-            token_endpoint:
-                "https://login.microsoftonline.us/{tenantid}/oauth2/v2.0/token",
-            jwks_uri:
-                "https://login.microsoftonline.us/{tenantid}/discovery/v2.0/keys",
-            issuer: "https://login.microsoftonline.us/{tenantid}/v2.0",
-            authorization_endpoint:
-                "https://login.microsoftonline.us/{tenantid}/oauth2/v2.0/authorize",
-            end_session_endpoint:
-                "https://login.microsoftonline.us/{tenantid}/oauth2/v2.0/logout",
-        },
+// Build endpoint metadata dynamically to avoid string duplication
+const endpointHosts: Array<{ host: string; issuerHost?: string }> = [
+    { host: "login.microsoftonline.com" },
+    {
+        host: "login.chinacloudapi.cn",
+        issuerHost: "login.partner.microsoftonline.cn", // Issuer differs
     },
+    { host: "login.microsoftonline.us" },
+    { host: "login.sovcloud-identity.fr" },
+    { host: "login.sovcloud-identity.de" },
+    { host: "login.sovcloud-identity.sg" },
+];
+
+function buildOpenIdConfig(
+    host: string,
+    issuerHost: string
+): OpenIdConfigResponse {
+    return {
+        token_endpoint: `https://${host}/{tenantid}/oauth2/v2.0/token`,
+        jwks_uri: `https://${host}/{tenantid}/discovery/v2.0/keys`,
+        issuer: `https://${issuerHost}/{tenantid}/v2.0`,
+        authorization_endpoint: `https://${host}/{tenantid}/oauth2/v2.0/authorize`,
+        end_session_endpoint: `https://${host}/{tenantid}/oauth2/v2.0/logout`,
+    };
+}
+
+const dynamicEndpointMetadata: RawMetadata["endpointMetadata"] =
+    endpointHosts.reduce((acc, { host, issuerHost }) => {
+        acc[host] = buildOpenIdConfig(host, issuerHost || host);
+        return acc;
+    }, {} as Record<string, OpenIdConfigResponse>);
+
+export const rawMetdataJSON: RawMetadata = {
+    endpointMetadata: dynamicEndpointMetadata,
     instanceDiscoveryMetadata: {
         tenant_discovery_endpoint:
             "https://{canonicalAuthority}/v2.0/.well-known/openid-configuration",
@@ -91,6 +89,21 @@ export const rawMetdataJSON: RawMetadata = {
                 preferred_network: "login-us.microsoftonline.com",
                 preferred_cache: "login-us.microsoftonline.com",
                 aliases: ["login-us.microsoftonline.com"],
+            },
+            {
+                preferred_network: "login.sovcloud-identity.fr",
+                preferred_cache: "login.sovcloud-identity.fr",
+                aliases: ["login.sovcloud-identity.fr"],
+            },
+            {
+                preferred_network: "login.sovcloud-identity.de",
+                preferred_cache: "login.sovcloud-identity.de",
+                aliases: ["login.sovcloud-identity.de"],
+            },
+            {
+                preferred_network: "login.sovcloud-identity.sg",
+                preferred_cache: "login.sovcloud-identity.sg",
+                aliases: ["login.sovcloud-identity.sg"],
             },
         ],
     },

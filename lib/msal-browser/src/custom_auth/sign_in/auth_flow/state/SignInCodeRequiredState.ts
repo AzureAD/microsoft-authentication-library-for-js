@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthAccountData } from "../../../get_account/auth_flow/CustomAuthAccountData.js";
 import {
     SignInResendCodeParams,
     SignInSubmitCodeParams,
@@ -12,12 +11,17 @@ import { SignInResendCodeResult } from "../result/SignInResendCodeResult.js";
 import { SignInSubmitCodeResult } from "../result/SignInSubmitCodeResult.js";
 import { SignInCodeRequiredStateParameters } from "./SignInStateParameters.js";
 import { SignInState } from "./SignInState.js";
-import { SignInCompletedState } from "./SignInCompletedState.js";
+import { SIGN_IN_CODE_REQUIRED_STATE_TYPE } from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Sign-in code required state.
  */
 export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredStateParameters> {
+    /**
+     * The type of the state.
+     */
+    stateType = SIGN_IN_CODE_REQUIRED_STATE_TYPE;
+
     /**
      * Once user configures email one-time passcode as a authentication method in Microsoft Entra, a one-time passcode will be sent to the user’s email.
      * Submit this one-time passcode to continue sign-in flow.
@@ -45,7 +49,7 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
                 this.stateParameters.correlationId
             );
 
-            const completedResult =
+            const submitCodeResult =
                 await this.stateParameters.signInClient.submitCode(
                     submitCodeParams
                 );
@@ -55,17 +59,18 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
                 this.stateParameters.correlationId
             );
 
-            const accountInfo = new CustomAuthAccountData(
-                completedResult.authenticationResult.account,
-                this.stateParameters.config,
-                this.stateParameters.cacheClient,
-                this.stateParameters.logger,
-                this.stateParameters.correlationId
+            const nextState = this.handleSignInResult(
+                submitCodeResult,
+                this.stateParameters.scopes
             );
 
+            if (nextState.error) {
+                return SignInSubmitCodeResult.createWithError(nextState.error);
+            }
+
             return new SignInSubmitCodeResult(
-                new SignInCompletedState(),
-                accountInfo
+                nextState.state,
+                nextState.accountInfo
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
@@ -115,6 +120,7 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
                     signInClient: this.stateParameters.signInClient,
                     cacheClient: this.stateParameters.cacheClient,
                     jitClient: this.stateParameters.jitClient,
+                    mfaClient: this.stateParameters.mfaClient,
                     username: this.stateParameters.username,
                     codeLength: result.codeLength,
                     scopes: this.stateParameters.scopes,

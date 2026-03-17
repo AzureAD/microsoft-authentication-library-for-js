@@ -101,7 +101,13 @@ export class MockStorageClass extends CacheManager {
         return null;
     }
 
-    async setAccount(value: AccountEntity): Promise<void> {
+    async setAccount(
+        value: AccountEntity,
+        _correlationId?: string,
+        _kmsi?: boolean,
+        apiId?: number
+    ): Promise<void> {
+        value.cachedByApiId = apiId;
         const key = generateAccountKey(
             AccountEntityUtils.getAccountInfo(value)
         );
@@ -286,6 +292,15 @@ export const mockCrypto = {
     },
 };
 
+export const mockNetworkClient = {
+    sendGetRequestAsync<T>(): T {
+        return {} as T;
+    },
+    sendPostRequestAsync<T>(): T {
+        return {} as T;
+    },
+};
+
 export class ClientTestUtils {
     static async createTestClientConfiguration(
         telem: boolean = false,
@@ -303,15 +318,6 @@ export class ClientTestUtils {
 
         const testLoggerCallback = (): void => {
             return;
-        };
-
-        const mockHttpClient = {
-            sendGetRequestAsync<T>(): T {
-                return {} as T;
-            },
-            sendPostRequestAsync<T>(): T {
-                return {} as T;
-            },
         };
 
         const authority = await getDiscoveredAuthority(
@@ -339,7 +345,7 @@ export class ClientTestUtils {
                 redirectUri: "https://localhost",
             },
             storageInterface: mockStorage,
-            networkInterface: mockHttpClient,
+            networkInterface: mockNetworkClient,
             cryptoInterface: mockCrypto,
             loggerOptions: {
                 loggerCallback: testLoggerCallback,
@@ -380,15 +386,6 @@ export async function getDiscoveredAuthority(
         }
     )
 ): Promise<Authority> {
-    const mockHttpClient = {
-        sendGetRequestAsync<T>(): T {
-            return {} as T;
-        },
-        sendPostRequestAsync<T>(): T {
-            return {} as T;
-        },
-    };
-
     const authorityOptions: AuthorityOptions = {
         protocolMode: protocolMode,
         knownAuthorities: [TEST_CONFIG.validAuthority],
@@ -405,7 +402,7 @@ export async function getDiscoveredAuthority(
 
     const authority = new Authority(
         TEST_CONFIG.validAuthority,
-        mockHttpClient,
+        mockNetworkClient,
         mockStorage,
         authorityOptions,
         logger,

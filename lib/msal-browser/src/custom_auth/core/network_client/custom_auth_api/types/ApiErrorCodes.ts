@@ -24,3 +24,4 @@ export const PASSWORD_CHANGE_FAILED = "password_change_failed";
 export const PASSWORD_RESET_TIMEOUT = "password_reset_timeout";
 export const CLIENT_INFO_MISSING = "client_info_missing";
 export const EXPIRED_TOKEN = "expired_token";
+export const ACCESS_DENIED = "access_denied";

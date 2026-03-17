@@ -8,15 +8,14 @@ import {
     AccountEntity,
     Constants,
     AuthToken,
-    BaseClient,
     CacheManager,
     ClientConfiguration,
     AccountEntityUtils,
     IdTokenEntity,
     ScopeSet,
     TimeUtils,
+    AuthenticationResult,
 } from "@azure/msal-common";
-import { AuthenticationResult, OnBehalfOfClient } from "../../src/index.js";
 import {
     AUTHENTICATION_RESULT,
     CAE_CONSTANTS,
@@ -33,6 +32,8 @@ import {
 import { EncodingUtils } from "../../src/utils/EncodingUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { CommonOnBehalfOfRequest } from "../../src/request/CommonOnBehalfOfRequest.js";
+import { OnBehalfOfClient } from "../../src/client/OnBehalfOfClient.js";
+import { BaseClient } from "../../src/client/BaseClient.js";
 
 describe("OnBehalfOf unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
@@ -229,46 +230,6 @@ describe("OnBehalfOf unit tests", () => {
                     expect(authResult4.fromCache).toBe(false);
                 }
             );
-        });
-
-        it("Adds tokenQueryParameters to the /token request", async () => {
-            const badExecutePostToTokenEndpointMock = jest.spyOn(
-                OnBehalfOfClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            );
-            // no implementation has been mocked, the acquireToken call will fail
-
-            const fakeConfig: ClientConfiguration =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client: OnBehalfOfClient = new OnBehalfOfClient(fakeConfig);
-
-            const oboRequest: CommonOnBehalfOfRequest = {
-                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                oboAssertion: "user_assertion_hash",
-                skipCache: true,
-                claims: TEST_CONFIG.CLAIMS,
-                tokenQueryParameters: {
-                    testParam1: "testValue1",
-                    testParam2: "",
-                    testParam3: "testValue3",
-                },
-            };
-
-            await expect(client.acquireToken(oboRequest)).rejects.toThrow();
-
-            if (!badExecutePostToTokenEndpointMock.mock.lastCall) {
-                fail("executePostToTokenEndpointMock was not called");
-            }
-            const url: string = badExecutePostToTokenEndpointMock.mock
-                .lastCall[0] as string;
-            expect(
-                url.includes(
-                    "/token?testParam1=testValue1&testParam3=testValue3"
-                )
-            ).toBeTruthy();
-            expect(!url.includes("/token?testParam2=")).toBeTruthy();
         });
 
         it("Does not add claims when empty object provided", async () => {

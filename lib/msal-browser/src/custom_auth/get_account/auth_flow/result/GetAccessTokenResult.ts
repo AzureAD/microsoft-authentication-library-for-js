@@ -10,6 +10,10 @@ import {
     GetAccessTokenCompletedState,
     GetAccessTokenFailedState,
 } from "../state/GetAccessTokenState.js";
+import {
+    GET_ACCESS_TOKEN_COMPLETED_STATE_TYPE,
+    GET_ACCESS_TOKEN_FAILED_STATE_TYPE,
+} from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Result of getting an access token.
@@ -48,7 +52,7 @@ export class GetAccessTokenResult extends AuthFlowResultBase<
     isCompleted(): this is GetAccessTokenResult & {
         state: GetAccessTokenCompletedState;
     } {
-        return this.state instanceof GetAccessTokenCompletedState;
+        return this.state.stateType === GET_ACCESS_TOKEN_COMPLETED_STATE_TYPE;
     }
 
     /**
@@ -57,7 +61,7 @@ export class GetAccessTokenResult extends AuthFlowResultBase<
     isFailed(): this is GetAccessTokenResult & {
         state: GetAccessTokenFailedState;
     } {
-        return this.state instanceof GetAccessTokenFailedState;
+        return this.state.stateType === GET_ACCESS_TOKEN_FAILED_STATE_TYPE;
     }
 }
 

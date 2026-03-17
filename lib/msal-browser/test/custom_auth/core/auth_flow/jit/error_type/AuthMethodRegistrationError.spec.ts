@@ -58,7 +58,7 @@ describe("JitError", () => {
             expect(error.isRedirectRequired()).toBe(false);
         });
 
-        it("should return false for isIncorrectVerificationContact (placeholder)", () => {
+        it("should return false for isInvalidInput when not invalid input error", () => {
             const customAuthError = new CustomAuthError("test", "test");
             const error = new AuthMethodRegistrationChallengeMethodError(
                 customAuthError
@@ -67,10 +67,10 @@ describe("JitError", () => {
             expect(error.isInvalidInput()).toBe(false);
         });
 
-        it("should return true for isIncorrectVerificationContact when API error with error code 901001", () => {
+        it("should return true for isInvalidInput when API error with error code 901001", () => {
             const apiError = new CustomAuthApiError(
                 CustomAuthApiErrorCode.INVALID_REQUEST,
-                "Incorrect verification contact",
+                "Invalid input provided",
                 "correlation-id",
                 [901001]
             );
@@ -81,7 +81,7 @@ describe("JitError", () => {
             expect(error.isInvalidInput()).toBe(true);
         });
 
-        it("should return false for isIncorrectVerificationContact when different error code", () => {
+        it("should return false for isInvalidInput when different error code", () => {
             const apiError = new CustomAuthApiError(
                 CustomAuthApiErrorCode.INVALID_GRANT,
                 "Other error",
@@ -93,6 +93,60 @@ describe("JitError", () => {
             );
 
             expect(error.isInvalidInput()).toBe(false);
+        });
+
+        it("should return true for isVerificationContactBlocked when ACCESS_DENIED with PROVIDER_BLOCKED_BY_REPUTATION subError", () => {
+            const apiError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.ACCESS_DENIED,
+                "Verification contact blocked by reputation system",
+                "correlation-id",
+                [],
+                CustomAuthApiSuberror.PROVIDER_BLOCKED_BY_REPUTATION
+            );
+            const error = new AuthMethodRegistrationChallengeMethodError(
+                apiError
+            );
+
+            expect(error.isVerificationContactBlocked()).toBe(true);
+        });
+
+        it("should return false for isVerificationContactBlocked when ACCESS_DENIED but different subError", () => {
+            const apiError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.ACCESS_DENIED,
+                "Other access denied scenario",
+                "correlation-id",
+                [],
+                CustomAuthApiSuberror.INVALID_OOB_VALUE
+            );
+            const error = new AuthMethodRegistrationChallengeMethodError(
+                apiError
+            );
+
+            expect(error.isVerificationContactBlocked()).toBe(false);
+        });
+
+        it("should return false for isVerificationContactBlocked when subError matches but error != ACCESS_DENIED", () => {
+            const apiError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "Verification contact blocked by reputation system",
+                "correlation-id",
+                [],
+                CustomAuthApiSuberror.PROVIDER_BLOCKED_BY_REPUTATION
+            );
+            const error = new AuthMethodRegistrationChallengeMethodError(
+                apiError
+            );
+
+            expect(error.isVerificationContactBlocked()).toBe(false);
+        });
+
+        it("should return false for isVerificationContactBlocked when not CustomAuthApiError", () => {
+            const customAuthError = new CustomAuthError("test", "test");
+            const error = new AuthMethodRegistrationChallengeMethodError(
+                customAuthError
+            );
+
+            expect(error.isVerificationContactBlocked()).toBe(false);
         });
     });
 

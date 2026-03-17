@@ -10,8 +10,6 @@ export interface JitClientParametersBase {
     continuationToken: string;
 }
 
-export type JitGetAuthMethodsParams = JitClientParametersBase;
-
 export interface JitChallengeAuthMethodParams extends JitClientParametersBase {
     authMethod: AuthenticationMethod;
     verificationContact: string;

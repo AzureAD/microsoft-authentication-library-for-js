@@ -7,6 +7,10 @@ import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.j
 import { SignUpSubmitAttributesError } from "../error_type/SignUpError.js";
 import { SignUpCompletedState } from "../state/SignUpCompletedState.js";
 import { SignUpFailedState } from "../state/SignUpFailedState.js";
+import {
+    SIGN_UP_FAILED_STATE_TYPE,
+    SIGN_UP_COMPLETED_STATE_TYPE,
+} from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Result of a sign-up operation that requires attributes.
@@ -46,7 +50,7 @@ export class SignUpSubmitAttributesResult extends AuthFlowResultBase<
     isFailed(): this is SignUpSubmitAttributesResult & {
         state: SignUpFailedState;
     } {
-        return this.state instanceof SignUpFailedState;
+        return this.state.stateType === SIGN_UP_FAILED_STATE_TYPE;
     }
 
     /**
@@ -55,7 +59,7 @@ export class SignUpSubmitAttributesResult extends AuthFlowResultBase<
     isCompleted(): this is SignUpSubmitAttributesResult & {
         state: SignUpCompletedState;
     } {
-        return this.state instanceof SignUpCompletedState;
+        return this.state.stateType === SIGN_UP_COMPLETED_STATE_TYPE;
     }
 }
 

@@ -12,6 +12,7 @@ export const GrantType = {
     CONTINUATION_TOKEN: "continuation_token",
     REDIRECT: "redirect",
     ATTRIBUTES: "attributes",
+    MFA_OOB: "mfa_oob",
 } as const;
 
 export const ChallengeType = {

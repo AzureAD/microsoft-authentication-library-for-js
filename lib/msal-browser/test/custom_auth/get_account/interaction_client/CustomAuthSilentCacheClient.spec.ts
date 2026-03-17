@@ -410,18 +410,20 @@ async function saveTokensIntoCache(
     refreshTokenEntity?: RefreshTokenEntity
 ): Promise<void> {
     accountEntity
-        ? await cacheManager.setAccount(accountEntity, correlationId)
+        ? await cacheManager.setAccount(accountEntity, correlationId, true, 0)
         : null;
     accessTokenEntity
         ? await cacheManager.setAccessTokenCredential(
               accessTokenEntity,
-              correlationId
+              correlationId,
+              true
           )
         : null;
     refreshTokenEntity
         ? await cacheManager.setRefreshTokenCredential(
               refreshTokenEntity,
-              correlationId
+              correlationId,
+              true
           )
         : null;
 }

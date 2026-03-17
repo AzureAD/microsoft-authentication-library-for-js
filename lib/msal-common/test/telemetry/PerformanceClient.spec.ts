@@ -126,7 +126,7 @@ describe("PerformanceClient.spec.ts", () => {
                 sampleApplicationTelemetry.appVersion
             );
             expect(
-                events[0][
+                events[0].ext?.[
                     "refreshTokenClientAcquireTokenWithCachedRefreshTokenDurationMs"
                 ]
             ).toBe(Math.floor(samplePerfDuration));
@@ -212,12 +212,14 @@ describe("PerformanceClient.spec.ts", () => {
             expect(events.length).toEqual(1);
             const event = events[0];
             expect(
-                event[
+                event.ext?.[
                     "refreshTokenClientAcquireTokenWithCachedRefreshTokenDurationMs"
                 ]
             ).toBe(Math.floor(samplePerfDuration));
             expect(
-                event["refreshTokenClientCreateTokenRequestBodyDurationMs"]
+                event.ext?.[
+                    "refreshTokenClientCreateTokenRequestBodyDurationMs"
+                ]
             ).toBe(Math.floor(samplePerfDuration));
             expect(event.incompleteSubsCount).toEqual(0);
             done();
@@ -353,13 +355,15 @@ describe("PerformanceClient.spec.ts", () => {
             expect(events.length).toEqual(1);
             const event = events[0];
             expect(
-                event["refreshTokenClientAcquireTokenDurationMs"]
+                event.ext?.["refreshTokenClientAcquireTokenDurationMs"]
             ).toBeUndefined();
             expect(
-                event["refreshTokenClientExecutePostToTokenEndpointDurationMs"]
+                event.ext?.[
+                    "refreshTokenClientExecutePostToTokenEndpointDurationMs"
+                ]
             ).toBe(Math.floor(samplePerfDuration));
             expect(
-                event["silentCacheClientAcquireTokenDurationMs"]
+                event.ext?.["silentCacheClientAcquireTokenDurationMs"]
             ).toBeUndefined();
             expect(event.incompleteSubsCount).toEqual(2);
             done();
@@ -403,7 +407,7 @@ describe("PerformanceClient.spec.ts", () => {
             expect(events.length).toBe(1);
             const event = events[0];
             expect(
-                events[0][
+                events[0].ext?.[
                     "refreshTokenClientExecutePostToTokenEndpointDurationMs"
                 ]
             ).toBe(Math.floor(durationMs));
@@ -451,9 +455,9 @@ describe("PerformanceClient.spec.ts", () => {
             expect(events.length).toBe(1);
             expect(events[0].eventId).toBe(event1Id);
             expect(events[0].success).toBeFalsy();
-            expect(events[0]["refreshTokenClientAcquireTokenDurationMs"]).toBe(
-                Math.floor(samplePerfDuration)
-            );
+            expect(
+                events[0].ext?.["refreshTokenClientAcquireTokenDurationMs"]
+            ).toBe(Math.floor(samplePerfDuration));
 
             done();
         });
@@ -631,6 +635,86 @@ describe("PerformanceClient.spec.ts", () => {
                 PerformanceEvents.RefreshTokenClientAcquireToken,
                 correlationId
             );
+            topLevelEvent.end(
+                {
+                    success: false,
+                },
+                error
+            );
+        });
+
+        it("does not set serverErrorNo from ServerError when serverErrorNo is already present", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const error = new ServerError(
+                "test-error-code",
+                undefined,
+                undefined,
+                "70011"
+            );
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                // serverErrorNo was already set via addFields (clientdata),
+                // so addError should NOT overwrite serverErrorNo
+                expect(event.serverErrorNo).toEqual("basic-server-error-code");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                correlationId
+            );
+
+            // Simulate instrumentClientData having set serverErrorNo via addFields
+            mockPerfClient.addFields(
+                { serverErrorNo: "basic-server-error-code" },
+                correlationId
+            );
+
+            topLevelEvent.end(
+                {
+                    success: false,
+                },
+                error
+            );
+        });
+
+        it("does not set serverErrorNo from InteractionRequiredAuthError when serverErrorNo is already present", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const error = new InteractionRequiredAuthError(
+                "test-error-code",
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                "70011"
+            );
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                // serverErrorNo was already set via addFields (clientdata),
+                // so addError should NOT overwrite serverErrorNo
+                expect(event.serverErrorNo).toEqual("basic-server-error-code");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                correlationId
+            );
+
+            // Simulate instrumentClientData having set serverErrorNo via addFields
+            mockPerfClient.addFields(
+                { serverErrorNo: "basic-server-error-code" },
+                correlationId
+            );
+
             topLevelEvent.end(
                 {
                     success: false,
@@ -1488,6 +1572,193 @@ describe("PerformanceClient.spec.ts", () => {
                 correlationId
             );
             topLevelEvent.end({ success: true }, undefined, testAccount);
+        });
+
+        it("endMeasurement overwrites accountType previously set via addFields when account is provided", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            // AAD account (tid is NOT the MSA tenant)
+            const aadAccount = {
+                homeAccountId: "test-home-account-id",
+                environment: "login.microsoftonline.com",
+                tenantId: "test-tenant-id",
+                username: "test@example.com",
+                localAccountId: "test-local-account-id",
+                idTokenClaims: {
+                    tid: "test-tenant-id",
+                },
+            };
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                // The account-derived type ("AAD") must overwrite the
+                // addFields value ("MSA") — account info is authoritative.
+                expect(event.accountType).toBe("AAD");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                correlationId
+            );
+
+            // Simulate instrumentClientData setting accountType via addFields
+            mockPerfClient.addFields({ accountType: "MSA" }, correlationId);
+
+            // End with an AAD account — endMeasurement should overwrite accountType
+            topLevelEvent.end({ success: true }, undefined, aadAccount);
+        });
+
+        it("addFields accountType is preserved when endMeasurement is called without account", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                // No account passed to end(), so the addFields value should remain
+                expect(event.accountType).toBe("MSA");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                correlationId
+            );
+
+            // Simulate instrumentClientData setting accountType via addFields
+            mockPerfClient.addFields({ accountType: "MSA" }, correlationId);
+
+            // End without account — addFields value should be preserved
+            topLevelEvent.end({ success: true });
+        });
+    });
+
+    describe("Dynamic fields", () => {
+        it("routes dynamic-prefixed fields in incrementFields to event.ext", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.ext).toBeDefined();
+                expect(event.ext?.["someApiCallCount"]).toBe(3);
+                // Static fields should NOT be in dynamic
+                expect(event.visibilityChangeCount).toBe(1);
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                correlationId
+            );
+            topLevelEvent.increment({
+                ["ext.someApiCallCount"]: 2,
+            });
+            topLevelEvent.increment({
+                ["ext.someApiCallCount"]: 1,
+            });
+            topLevelEvent.increment({ visibilityChangeCount: 1 });
+            topLevelEvent.end({ success: true });
+        });
+
+        it("routes dynamic-prefixed fields in addFields to event.ext", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.ext).toBeDefined();
+                expect(event.ext?.["customLabel"]).toBe("myValue");
+                // Static fields should be at the top level
+                expect(event.extensionId).toBe("test-ext");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                correlationId
+            );
+            topLevelEvent.add({
+                ["ext.customLabel"]: "myValue",
+                extensionId: "test-ext",
+            });
+            topLevelEvent.end({ success: true });
+        });
+
+        it("stores sub-measurement durationMs in event.ext", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.ext).toBeDefined();
+                expect(
+                    event.ext?.[
+                        "refreshTokenClientAcquireTokenWithCachedRefreshTokenDurationMs"
+                    ]
+                ).toBe(Math.floor(samplePerfDuration));
+                // Top-level durationMs should still work
+                expect(event.durationMs).toBeDefined();
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                correlationId
+            );
+
+            const subMeasurement = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken,
+                correlationId
+            );
+            subMeasurement.end({ success: true });
+
+            topLevelEvent.end({ success: true });
+        });
+
+        it("merges dynamic fields from multiple addFields calls", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.ext?.["fieldA"]).toBe("valueA");
+                expect(event.ext?.["fieldB"]).toBe(42);
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                correlationId
+            );
+            topLevelEvent.add({ ["ext.fieldA"]: "valueA" });
+            topLevelEvent.add({ ["ext.fieldB"]: 42 });
+            topLevelEvent.end({ success: true });
+        });
+
+        it("does not create ext object when no dynamic fields are set", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.ext).toBeUndefined();
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                correlationId
+            );
+            topLevelEvent.add({ extensionId: "test" });
+            topLevelEvent.end({ success: true });
         });
     });
 });

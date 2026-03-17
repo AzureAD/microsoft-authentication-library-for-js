@@ -105,6 +105,9 @@ describe("Authorize Protocol Tests", () => {
                     )}`
                 )
             ).toBe(true);
+            expect(loginUrl.includes(`${AADServerParamKeys.CLI_DATA}=1`)).toBe(
+                true
+            );
         });
 
         it("Creates an authorization url passing in optional parameters", async () => {
@@ -890,32 +893,7 @@ describe("Authorize Protocol Tests", () => {
 
         it("Uses loginHint param instead of sid from account prompt!=None when account does not include loginHint", async () => {
             const testAccount = { ...TEST_ACCOUNT_INFO, loginHint: undefined };
-            const testTokenClaims: Required<
-                Omit<
-                    TokenClaims,
-                    | "home_oid"
-                    | "upn"
-                    | "cloud_instance_host_name"
-                    | "cnf"
-                    | "emails"
-                    | "iat"
-                    | "x5c_ca"
-                    | "ts"
-                    | "at"
-                    | "u"
-                    | "p"
-                    | "m"
-                    | "login_hint"
-                    | "aud"
-                    | "nbf"
-                    | "roles"
-                    | "amr"
-                    | "idp"
-                    | "auth_time"
-                    | "tfp"
-                    | "acr"
-                >
-            > = {
+            const testTokenClaims: TokenClaims = {
                 ver: "2.0",
                 iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
                 sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -971,33 +949,7 @@ describe("Authorize Protocol Tests", () => {
 
         it("Uses login_hint param instead of username if sid is not present in token claims for account or request and account does not have loginHint", async () => {
             const testAccount = { ...TEST_ACCOUNT_INFO, loginHint: undefined };
-            const testTokenClaims: Required<
-                Omit<
-                    TokenClaims,
-                    | "home_oid"
-                    | "upn"
-                    | "cloud_instance_host_name"
-                    | "cnf"
-                    | "emails"
-                    | "sid"
-                    | "iat"
-                    | "x5c_ca"
-                    | "ts"
-                    | "at"
-                    | "u"
-                    | "p"
-                    | "m"
-                    | "login_hint"
-                    | "aud"
-                    | "nbf"
-                    | "roles"
-                    | "amr"
-                    | "idp"
-                    | "auth_time"
-                    | "tfp"
-                    | "acr"
-                >
-            > = {
+            const testTokenClaims: TokenClaims = {
                 ver: "2.0",
                 iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
                 sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -1338,7 +1290,7 @@ describe("Authorize Protocol Tests", () => {
                     request,
                     new Logger({})
                 );
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 params,
                 request.extraQueryParameters!
             );
@@ -1370,7 +1322,7 @@ describe("Authorize Protocol Tests", () => {
                     request,
                     new Logger({})
                 );
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 params,
                 request.extraQueryParameters!
             );
@@ -1430,7 +1382,7 @@ describe("Authorize Protocol Tests", () => {
                     request,
                     new Logger({})
                 );
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 params,
                 request.extraQueryParameters!
             );

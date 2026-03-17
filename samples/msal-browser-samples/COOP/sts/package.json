@@ -1,0 +1,22 @@
+{
+  "name": "lmso-popup-coop",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "main": "lmso_server.js",
+  "scripts": {
+    "start": "node lmso_server.js",
+    "start:https": "node lmso_server.js -h",
+    "test": "npx playwright test",
+    "generate:certs": "openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 7 -nodes -subj /CN=localhost"
+  },
+  "dependencies": {
+    "@azure/msal-node": "^5.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "path": "^0.11.14"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0"
+  }
+}

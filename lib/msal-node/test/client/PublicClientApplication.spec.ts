@@ -14,7 +14,6 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
 } from "../utils/TestConstants.js";
 import {
-    AuthenticationResult,
     AuthorizationCodeClient,
     RefreshTokenClient,
     SilentFlowClient,
@@ -42,21 +41,17 @@ import {
 } from "@azure/msal-common/node";
 import {
     Configuration,
-    DeviceCodeClient,
     ILoopbackClient,
     InteractiveRequest,
     PublicClientApplication,
-    CryptoProvider,
     DeviceCodeRequest,
     AuthorizationCodeRequest,
     RefreshTokenRequest,
     AuthorizationUrlRequest,
-    UsernamePasswordRequest,
     SilentFlowRequest,
 } from "../../src/index.js";
 import http from "http";
 
-import * as msalNode from "../../src/index.js";
 import { setupServerTelemetryManagerMock } from "./test-fixtures.js";
 import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils.js";
 
@@ -70,6 +65,7 @@ import {
 } from "@azure/msal-common/node";
 import {
     AUTHENTICATION_RESULT,
+    DEVICE_CODE_RESPONSE,
     TEST_CONFIG,
     TEST_TOKENS,
 } from "../test_kit/StringConstants.js";
@@ -81,6 +77,8 @@ import { TokenCache } from "../../src/index.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { StubPerformanceClient } from "@azure/msal-common";
+import { DeviceCodeClient } from "../../src/client/DeviceCodeClient.js";
+import { CryptoProvider } from "../../src/crypto/CryptoProvider.js";
 
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
@@ -90,6 +88,64 @@ jest.mock("../../src/client/DeviceCodeClient");
 jest.mock("../../src/client/ClientCredentialClient");
 jest.mock("../../src/client/OnBehalfOfClient");
 jest.mock("../../src/client/UsernamePasswordClient");
+
+const testAccountEntity: AccountEntity =
+    buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+
+function createTestAccount(): AccountInfo {
+    return {
+        ...AccountEntityUtils.getAccountInfo(testAccountEntity),
+        idTokenClaims: ID_TOKEN_CLAIMS,
+        idToken: TEST_TOKENS.IDTOKEN_V2,
+    };
+}
+
+function createTestIdToken(): IdTokenEntity {
+    return {
+        homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+        environment: testAccountEntity.environment,
+        realm: ID_TOKEN_CLAIMS.tid,
+        secret: AUTHENTICATION_RESULT.body.id_token,
+        credentialType: CommonConstants.CredentialType.ID_TOKEN,
+        lastUpdatedAt: Date.now().toString(),
+    };
+}
+
+function createTestAccessToken(): AccessTokenEntity {
+    const cachedAt = `${TimeUtils.nowSeconds()}`;
+    return {
+        homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+        environment: testAccountEntity.environment,
+        realm: ID_TOKEN_CLAIMS.tid,
+        secret: AUTHENTICATION_RESULT.body.access_token,
+        target:
+            TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
+            " " +
+            TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
+        credentialType: CommonConstants.CredentialType.ACCESS_TOKEN,
+        cachedAt,
+        expiresOn: (
+            Number(cachedAt) + AUTHENTICATION_RESULT.body.expires_in
+        ).toString(),
+        refreshOn: `${Number(cachedAt) - 1}`,
+        tokenType: CommonConstants.AuthenticationScheme.BEARER,
+        lastUpdatedAt: Date.now().toString(),
+    };
+}
+
+function createTestRefreshToken(): RefreshTokenEntity {
+    return {
+        homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+        environment: testAccountEntity.environment,
+        realm: ID_TOKEN_CLAIMS.tid,
+        secret: AUTHENTICATION_RESULT.body.refresh_token,
+        credentialType: CommonConstants.CredentialType.REFRESH_TOKEN,
+        lastUpdatedAt: Date.now().toString(),
+    };
+}
 
 describe("PublicClientApplication", () => {
     // @ts-ignore
@@ -135,22 +191,18 @@ describe("PublicClientApplication", () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
         };
 
-        const deviceCodeClientSpy = jest.spyOn(msalNode, "DeviceCodeClient");
-        const fakeAuthResult = { foo: "bar" };
+        const fakeAuthResult = mockAuthenticationResult;
         jest.spyOn(
             DeviceCodeClient.prototype,
             "acquireToken"
-        ).mockImplementation(() =>
-            Promise.resolve(fakeAuthResult as unknown as AuthenticationResult)
-        );
+        ).mockImplementation(() => Promise.resolve(fakeAuthResult));
 
         const authApp = new PublicClientApplication(appConfig);
         const result = await authApp.acquireTokenByDeviceCode(request);
-        expect(deviceCodeClientSpy).toHaveBeenCalledTimes(1);
         expect(result).toEqual(fakeAuthResult);
     });
 
-    test("acquireTokenByAuthorizationCode", async () => {
+    test("acquireTokenByCode", async () => {
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
@@ -174,7 +226,7 @@ describe("PublicClientApplication", () => {
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
     });
 
-    test("acquireTokenByAuthorizationCode with nonce", async () => {
+    test("acquireTokenByCode with nonce", async () => {
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
@@ -204,7 +256,7 @@ describe("PublicClientApplication", () => {
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
     });
 
-    test("acquireTokenByAuthorizationCode with state validation", async () => {
+    test("acquireTokenByCode with state validation", async () => {
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
@@ -254,57 +306,6 @@ describe("PublicClientApplication", () => {
     });
 
     describe("acquireTokenSilent tests", () => {
-        const testAccountEntity: AccountEntity =
-            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const testAccount: AccountInfo = {
-            ...AccountEntityUtils.getAccountInfo(testAccountEntity),
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
-        };
-        const testIdToken: IdTokenEntity = {
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            environment: testAccountEntity.environment,
-            realm: ID_TOKEN_CLAIMS.tid,
-            secret: AUTHENTICATION_RESULT.body.id_token,
-            credentialType: CommonConstants.CredentialType.ID_TOKEN,
-            lastUpdatedAt: Date.now().toString(),
-        };
-        const testAccessTokenEntity: AccessTokenEntity = {
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            environment: testAccountEntity.environment,
-            realm: ID_TOKEN_CLAIMS.tid,
-            secret: AUTHENTICATION_RESULT.body.access_token,
-            target:
-                TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
-                " " +
-                TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
-            credentialType: CommonConstants.CredentialType.ACCESS_TOKEN,
-            cachedAt: `${TimeUtils.nowSeconds()}`,
-            expiresOn: (
-                TimeUtils.nowSeconds() + AUTHENTICATION_RESULT.body.expires_in
-            ).toString(),
-            tokenType: CommonConstants.AuthenticationScheme.BEARER,
-            lastUpdatedAt: Date.now().toString(),
-        };
-        const testRefreshTokenEntity: RefreshTokenEntity = {
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            environment: testAccountEntity.environment,
-            realm: ID_TOKEN_CLAIMS.tid,
-            secret: AUTHENTICATION_RESULT.body.refresh_token,
-            credentialType: CommonConstants.CredentialType.REFRESH_TOKEN,
-            lastUpdatedAt: Date.now().toString(),
-        };
-        testAccessTokenEntity.refreshOn = `${
-            Number(testAccessTokenEntity.cachedAt) - 1
-        }`;
-        testAccessTokenEntity.expiresOn = `${
-            Number(testAccessTokenEntity.cachedAt) +
-            AUTHENTICATION_RESULT.body.expires_in
-        }`;
-
         test("acquireTokenSilent succeeds", async () => {
             const request: SilentFlowRequest = {
                 account: mockAccountInfo,
@@ -466,27 +467,31 @@ describe("PublicClientApplication", () => {
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                HttpClient.prototype,
+                "sendPostRequestAsync"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                createTestIdToken()
             );
             jest.spyOn(
                 CacheManager.prototype,
                 "getAccessToken"
-            ).mockReturnValue(testAccessTokenEntity);
+            ).mockReturnValue(createTestAccessToken());
             jest.spyOn(
                 CacheManager.prototype,
                 "getRefreshToken"
-            ).mockReturnValue(testRefreshTokenEntity);
+            ).mockReturnValue(createTestRefreshToken());
             jest.spyOn(NodeStorage.prototype, "getAccount").mockReturnValue(
                 testAccountEntity
             );
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAllAccounts"
+            ).mockReturnValue([createTestAccount()]);
 
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount,
+                account: createTestAccount(),
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
@@ -556,17 +561,14 @@ describe("PublicClientApplication", () => {
                 );
 
             expect(accessTokenFromCache?.clientId).toEqual(
-                testAccessTokenEntity.clientId
+                createTestAccessToken().clientId
             );
         });
 
-        it("Adds tokenQueryParameters to the /token request", (done) => {
+        it("Adds extraQueryParameters to the /token request", (done) => {
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-            jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
+            jest.spyOn(HttpClient.prototype, "sendPostRequestAsync")
                 // @ts-expect-error
                 .mockImplementation((url: string) => {
                     try {
@@ -589,24 +591,18 @@ describe("PublicClientApplication", () => {
                 Authority.prototype,
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            testAccessTokenEntity.refreshOn = `${
-                Number(testAccessTokenEntity.cachedAt) - 1
-            }`;
-            testAccessTokenEntity.expiresOn = `${
-                Number(testAccessTokenEntity.cachedAt) +
-                AUTHENTICATION_RESULT.body.expires_in
-            }`;
+            const accessToken = createTestAccessToken();
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                createTestIdToken()
             );
             jest.spyOn(
                 CacheManager.prototype,
                 "getAccessToken"
-            ).mockReturnValue(testAccessTokenEntity);
+            ).mockReturnValue(accessToken);
             jest.spyOn(
                 CacheManager.prototype,
                 "getRefreshToken"
-            ).mockReturnValue(testRefreshTokenEntity);
+            ).mockReturnValue(createTestRefreshToken());
             jest.spyOn(
                 MockStorageClass.prototype,
                 "getAccount"
@@ -614,11 +610,11 @@ describe("PublicClientApplication", () => {
 
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount,
+                account: createTestAccount(),
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
-                tokenQueryParameters: {
+                extraQueryParameters: {
                     testParam1: "testValue1",
                     testParam2: "",
                     testParam3: "testValue3",
@@ -629,6 +625,57 @@ describe("PublicClientApplication", () => {
             authApp.acquireTokenSilent(silentFlowRequest).catch(() => {
                 // Catch errors thrown after the function call this test is testing
             });
+        });
+
+        test("acquireTokenSilent throws error when redirectUri is provided", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+            const request: SilentFlowRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                account: createTestAccount(),
+                redirectUri: "http://localhost:3000/redirect",
+            };
+
+            await expect(authApp.acquireTokenSilent(request)).rejects.toThrow(
+                "RedirectUri is not supported in this scenario"
+            );
+        });
+
+        test("acquireTokenSilent resets redirectUri when broker fallback occurs", async () => {
+            // Create a broker plugin with broker unavailable
+            const mockBrokerPlugin = new MockNativeBrokerPlugin();
+            mockBrokerPlugin.isBrokerAvailable = false;
+
+            const authApp = new PublicClientApplication({
+                ...appConfig,
+                broker: {
+                    nativeBrokerPlugin: mockBrokerPlugin,
+                },
+            });
+
+            const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
+            jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
+                (config) =>
+                    new silentFlowClient(config, new StubPerformanceClient())
+            );
+            jest.spyOn(
+                silentFlowClient.prototype,
+                "acquireCachedToken"
+            ).mockResolvedValue([
+                mockAuthenticationResult,
+                CommonConstants.CacheOutcome.NOT_APPLICABLE,
+            ]);
+
+            const request: SilentFlowRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                account: createTestAccount(),
+                redirectUri: "http://localhost:3000/redirect",
+            };
+
+            // This should not throw and should reset redirectUri to empty string and continue with the request
+            const response = await authApp.acquireTokenSilent(request);
+
+            expect(response).toEqual(mockAuthenticationResult);
+            expect(request.redirectUri).toBe("");
         });
     });
 
@@ -1058,6 +1105,64 @@ describe("PublicClientApplication", () => {
                 done();
             });
         });
+
+        test("acquireTokenInteractive throws error when redirectUri is provided", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: "http://localhost:3000/redirect",
+                openBrowser: jest.fn(),
+            };
+
+            await expect(
+                authApp.acquireTokenInteractive(request)
+            ).rejects.toThrow("RedirectUri is not supported in this scenario");
+        });
+
+        test("acquireTokenInteractive resets redirectUri when broker fallback occurs", async () => {
+            // Create a broker plugin with broker unavailable to simulate fallback scenario
+            const mockBrokerPlugin = new MockNativeBrokerPlugin();
+            mockBrokerPlugin.isBrokerAvailable = false;
+
+            const authApp = new PublicClientApplication({
+                ...appConfig,
+                broker: {
+                    nativeBrokerPlugin: mockBrokerPlugin,
+                },
+            });
+
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: "http://localhost:3000/redirect",
+                openBrowser: jest.fn(),
+            };
+
+            jest.spyOn(
+                LoopbackClient.prototype,
+                "listenForAuthCode"
+            ).mockResolvedValue({
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            });
+
+            jest.spyOn(
+                LoopbackClient.prototype,
+                "getRedirectUri"
+            ).mockReturnValue(TEST_CONSTANTS.REDIRECT_URI);
+
+            jest.spyOn(authApp, "acquireTokenByCode").mockResolvedValue(
+                mockAuthenticationResult
+            );
+
+            jest.spyOn(authApp, "getAuthCodeUrl").mockResolvedValue(
+                TEST_CONSTANTS.AUTH_CODE_URL
+            );
+
+            // This should not throw and should reset redirectUri to empty string
+            const response = await authApp.acquireTokenInteractive(request);
+
+            expect(response).toEqual(mockAuthenticationResult);
+            expect(request.redirectUri).toBe("");
+        });
     });
 
     describe("signOut tests", () => {
@@ -1257,23 +1362,6 @@ describe("PublicClientApplication", () => {
         expect(url).toContain(appConfig.auth.clientId);
         expect(url).toContain(encodeURIComponent(request.redirectUri));
         expect(url).toContain(encodeURIComponent(request.scopes.join(" ")));
-    });
-
-    test("acquireTokenByUsernamePassword", async () => {
-        const request: UsernamePasswordRequest = {
-            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-            username: TEST_CONSTANTS.USERNAME,
-            password: TEST_CONSTANTS.PASSWORD,
-        };
-
-        const usernamePasswordClientSpy = jest.spyOn(
-            msalNode,
-            "UsernamePasswordClient"
-        );
-
-        const authApp = new PublicClientApplication(appConfig);
-        await authApp.acquireTokenByUsernamePassword(request);
-        expect(usernamePasswordClientSpy).toHaveBeenCalledTimes(1);
     });
 
     test("acquireToken default authority", async () => {
@@ -1536,5 +1624,648 @@ describe("PublicClientApplication", () => {
         ).rejects.toMatchObject(
             createClientAuthError(ClientAuthErrorCodes.stateMismatch)
         );
+    });
+});
+
+describe("MCP flow tests", () => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    const mcpConfig: Configuration = {
+        auth: {
+            clientId: TEST_CONSTANTS.CLIENT_ID,
+            authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
+            isMcp: true,
+        },
+    };
+
+    const makeAccessTokenEntity = (resource?: string): AccessTokenEntity => ({
+        ...createTestAccessToken(),
+        ...(resource !== undefined ? { resource } : {}),
+    });
+
+    describe("acquireTokenSilent", () => {
+        test("throws resource_parameter_required when isMcp is true and no resource provided", async () => {
+            const request: SilentFlowRequest = {
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenSilent(request)
+            ).rejects.toMatchObject({
+                errorCode: "resource_parameter_required",
+            });
+        });
+
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraParameters", async () => {
+            const request: SilentFlowRequest = {
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
+                extraParameters: { resource: "https://resource.example.com" },
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenSilent(request)
+            ).rejects.toMatchObject({
+                errorCode: "misplaced_resource_parameter",
+            });
+        });
+
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraQueryParameters", async () => {
+            const request: SilentFlowRequest = {
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
+                extraQueryParameters: {
+                    resource: "https://resource.example.com",
+                },
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenSilent(request)
+            ).rejects.toMatchObject({
+                errorCode: "misplaced_resource_parameter",
+            });
+        });
+
+        test("succeeds when isMcp is true and resource is provided", async () => {
+            const request: SilentFlowRequest = {
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
+            };
+            const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
+            jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
+                (config) =>
+                    new silentFlowClient(config, new StubPerformanceClient())
+            );
+            // We test the functionality of acquireCachedToken later in this file
+            jest.spyOn(
+                silentFlowClient.prototype,
+                "acquireCachedToken"
+            ).mockResolvedValue([
+                mockAuthenticationResult,
+                CommonConstants.CacheOutcome.NOT_APPLICABLE,
+            ]);
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenSilent(request)
+            ).resolves.toBeDefined();
+        });
+
+        test("returns cached token when resource in access token matches resource in request", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
+                createTestIdToken()
+            );
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccessToken"
+            ).mockReturnValue(
+                makeAccessTokenEntity("https://resource.example.com")
+            );
+            jest.spyOn(
+                CacheManager.prototype,
+                "getRefreshToken"
+            ).mockReturnValue(createTestRefreshToken());
+            jest.spyOn(NodeStorage.prototype, "getAccount").mockReturnValue(
+                testAccountEntity
+            );
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAllAccounts"
+            ).mockReturnValue([createTestAccount()]);
+
+            const request: SilentFlowRequest = {
+                account: createTestAccount(),
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            const result = await authApp.acquireTokenSilent(request);
+            expect(result.accessToken).toEqual(
+                AUTHENTICATION_RESULT.body.access_token
+            );
+        });
+
+        test("falls back when cached token resource does not match request resource", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            AUTHENTICATION_RESULT.body.client_info =
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+            const sendPostSpy = jest
+                .spyOn(HttpClient.prototype, "sendPostRequestAsync")
+                .mockResolvedValue(AUTHENTICATION_RESULT);
+            jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
+                createTestIdToken()
+            );
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccessToken"
+            ).mockReturnValue(
+                makeAccessTokenEntity("https://other-resource.example.com")
+            );
+            jest.spyOn(
+                CacheManager.prototype,
+                "getRefreshToken"
+            ).mockReturnValue(createTestRefreshToken());
+            jest.spyOn(NodeStorage.prototype, "getAccount").mockReturnValue(
+                testAccountEntity
+            );
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAllAccounts"
+            ).mockReturnValue([createTestAccount()]);
+
+            const request: SilentFlowRequest = {
+                account: createTestAccount(),
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            const result = await authApp.acquireTokenSilent(request);
+            expect(sendPostSpy).toHaveBeenCalledTimes(1);
+            expect(result.accessToken).toEqual(
+                AUTHENTICATION_RESULT.body.access_token
+            );
+        });
+    });
+
+    describe("acquireTokenByDeviceCode", () => {
+        test("throws resource_parameter_required when isMcp is true and no resource provided", async () => {
+            const request: DeviceCodeRequest = {
+                deviceCodeCallback: () => {},
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenByDeviceCode(request)
+            ).rejects.toMatchObject({
+                errorCode: "resource_parameter_required",
+            });
+        });
+
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraParameters", async () => {
+            const request: DeviceCodeRequest = {
+                deviceCodeCallback: () => {},
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
+                extraParameters: { resource: "https://resource.example.com" },
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenByDeviceCode(request)
+            ).rejects.toMatchObject({
+                errorCode: "misplaced_resource_parameter",
+            });
+        });
+
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraQueryParameters", async () => {
+            const request: DeviceCodeRequest = {
+                deviceCodeCallback: () => {},
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
+                extraQueryParameters: {
+                    resource: "https://resource.example.com",
+                },
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenByDeviceCode(request)
+            ).rejects.toMatchObject({
+                errorCode: "misplaced_resource_parameter",
+            });
+        });
+
+        test("succeeds when isMcp is true and resource is provided", async () => {
+            jest.spyOn(
+                DeviceCodeClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(mockAuthenticationResult);
+            const request: DeviceCodeRequest = {
+                deviceCodeCallback: () => {},
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenByDeviceCode(request)
+            ).resolves.toEqual(mockAuthenticationResult);
+        });
+
+        test("stores resource in cached access token", async () => {
+            const { DeviceCodeClient: RealDeviceCodeClient } =
+                jest.requireActual("../../src/client/DeviceCodeClient.js");
+            (DeviceCodeClient as unknown as jest.Mock).mockImplementation(
+                (config: any) => new RealDeviceCodeClient(config)
+            );
+
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            AUTHENTICATION_RESULT.body.client_info =
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+            jest.spyOn(HttpClient.prototype, "sendPostRequestAsync")
+                .mockResolvedValueOnce({
+                    headers: {},
+                    body: {
+                        user_code: DEVICE_CODE_RESPONSE.userCode,
+                        device_code: DEVICE_CODE_RESPONSE.deviceCode,
+                        verification_uri: DEVICE_CODE_RESPONSE.verificationUri,
+                        expires_in: DEVICE_CODE_RESPONSE.expiresIn,
+                        interval: DEVICE_CODE_RESPONSE.interval,
+                        message: DEVICE_CODE_RESPONSE.message,
+                    },
+                    status: 200,
+                })
+                .mockResolvedValueOnce(AUTHENTICATION_RESULT);
+            const saveCacheRecordSpy = jest.spyOn(
+                CacheManager.prototype,
+                "saveCacheRecord"
+            );
+
+            const request: DeviceCodeRequest = {
+                deviceCodeCallback: () => {},
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await authApp.acquireTokenByDeviceCode(request);
+
+            expect(saveCacheRecordSpy).toHaveBeenCalled();
+            const cacheRecord = saveCacheRecordSpy.mock.calls[0][0];
+            expect(cacheRecord.accessToken?.resource).toBe(
+                "https://resource.example.com"
+            );
+        });
+    });
+
+    describe("acquireTokenInteractive", () => {
+        test("throws resource_parameter_required when isMcp is true and no resource provided", async () => {
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                openBrowser: async () => {},
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenInteractive(request)
+            ).rejects.toMatchObject({
+                errorCode: "resource_parameter_required",
+            });
+        });
+
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraParameters", async () => {
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                openBrowser: async () => {},
+                resource: "https://resource.example.com",
+                extraParameters: { resource: "https://resource.example.com" },
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenInteractive(request)
+            ).rejects.toMatchObject({
+                errorCode: "misplaced_resource_parameter",
+            });
+        });
+
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraQueryParameters", async () => {
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                openBrowser: async () => {},
+                resource: "https://resource.example.com",
+                extraQueryParameters: {
+                    resource: "https://resource.example.com",
+                },
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenInteractive(request)
+            ).rejects.toMatchObject({
+                errorCode: "misplaced_resource_parameter",
+            });
+        });
+
+        test("succeeds when isMcp is true and resource is provided", async () => {
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
+                state: "123",
+            };
+            const customLoopbackClient: ILoopbackClient = {
+                listenForAuthCode: jest.fn(() =>
+                    Promise.resolve(testServerCodeResponse)
+                ),
+                getRedirectUri: jest.fn(() => TEST_CONSTANTS.REDIRECT_URI),
+                closeServer: jest.fn(() => {}),
+            };
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                openBrowser: async () => {},
+                loopbackClient: customLoopbackClient,
+                resource: "https://resource.example.com",
+            };
+            const MockAuthorizationCodeClient =
+                getMsalCommonAutoMock().AuthorizationCodeClient;
+            jest.spyOn(
+                msalCommon,
+                "AuthorizationCodeClient"
+            ).mockImplementation(
+                (config) =>
+                    new MockAuthorizationCodeClient(
+                        config,
+                        new StubPerformanceClient()
+                    )
+            );
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockReturnValue(TEST_CONSTANTS.AUTH_CODE_URL);
+            jest.spyOn(
+                MockAuthorizationCodeClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(mockAuthenticationResult);
+
+            const authApp = new PublicClientApplication(mcpConfig);
+            const result = await authApp.acquireTokenInteractive(request);
+            expect(result.accessToken).toEqual(
+                mockAuthenticationResult.accessToken
+            );
+            expect(result.idToken).toEqual(mockAuthenticationResult.idToken);
+            expect(result.account).toEqual(mockAuthenticationResult.account);
+        });
+
+        test("stores resource in cached access token", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            AUTHENTICATION_RESULT.body.client_info =
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+            jest.spyOn(
+                HttpClient.prototype,
+                "sendPostRequestAsync"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            const saveCacheRecordSpy = jest.spyOn(
+                CacheManager.prototype,
+                "saveCacheRecord"
+            );
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
+                state: "123",
+            };
+            const customLoopbackClient: ILoopbackClient = {
+                listenForAuthCode: jest.fn(() =>
+                    Promise.resolve(testServerCodeResponse)
+                ),
+                getRedirectUri: jest.fn(() => TEST_CONSTANTS.REDIRECT_URI),
+                closeServer: jest.fn(() => {}),
+            };
+            const request: InteractiveRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                openBrowser: async () => {},
+                loopbackClient: customLoopbackClient,
+                resource: "https://resource.example.com",
+            };
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockReturnValue(TEST_CONSTANTS.AUTH_CODE_URL);
+
+            const authApp = new PublicClientApplication(mcpConfig);
+            await authApp.acquireTokenInteractive(request);
+
+            expect(saveCacheRecordSpy).toHaveBeenCalled();
+            const cacheRecord = saveCacheRecordSpy.mock.calls[0][0];
+            expect(cacheRecord.accessToken?.resource).toBe(
+                "https://resource.example.com"
+            );
+        });
+    });
+
+    describe("acquireTokenByCode", () => {
+        test("throws resource_parameter_required when isMcp is true and no resource provided", async () => {
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenByCode(request)
+            ).rejects.toMatchObject({
+                errorCode: "resource_parameter_required",
+            });
+        });
+
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraParameters", async () => {
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                resource: "https://resource.example.com",
+                extraParameters: { resource: "https://resource.example.com" },
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenByCode(request)
+            ).rejects.toMatchObject({
+                errorCode: "misplaced_resource_parameter",
+            });
+        });
+
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraQueryParameters", async () => {
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                resource: "https://resource.example.com",
+                extraQueryParameters: {
+                    resource: "https://resource.example.com",
+                },
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenByCode(request)
+            ).rejects.toMatchObject({
+                errorCode: "misplaced_resource_parameter",
+            });
+        });
+
+        test("succeeds when isMcp is true and resource is provided", async () => {
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                resource: "https://resource.example.com",
+            };
+            const mockAuthCodeClient =
+                getMsalCommonAutoMock().AuthorizationCodeClient;
+            jest.spyOn(
+                msalCommon,
+                "AuthorizationCodeClient"
+            ).mockImplementation(
+                (config) =>
+                    new mockAuthCodeClient(config, new StubPerformanceClient())
+            );
+            jest.spyOn(
+                mockAuthCodeClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(mockAuthenticationResult);
+            const authApp = new PublicClientApplication(mcpConfig);
+            const result = await authApp.acquireTokenByCode(request);
+            expect(result).toEqual(mockAuthenticationResult);
+        });
+
+        test("stores resource in cached access token", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            AUTHENTICATION_RESULT.body.client_info =
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+            jest.spyOn(
+                HttpClient.prototype,
+                "sendPostRequestAsync"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            const saveCacheRecordSpy = jest.spyOn(
+                CacheManager.prototype,
+                "saveCacheRecord"
+            );
+
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                resource: "https://resource.example.com",
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await authApp.acquireTokenByCode(request);
+
+            expect(saveCacheRecordSpy).toHaveBeenCalled();
+            const cacheRecord = saveCacheRecordSpy.mock.calls[0][0];
+            expect(cacheRecord.accessToken?.resource).toBe(
+                "https://resource.example.com"
+            );
+        });
+    });
+
+    describe("acquireTokenByRefreshToken", () => {
+        test("throws resource_parameter_required when isMcp is true and no resource provided", async () => {
+            const request: RefreshTokenRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenByRefreshToken(request)
+            ).rejects.toMatchObject({
+                errorCode: "resource_parameter_required",
+            });
+        });
+
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraParameters", async () => {
+            const request: RefreshTokenRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+                resource: "https://resource.example.com",
+                extraParameters: { resource: "https://resource.example.com" },
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenByRefreshToken(request)
+            ).rejects.toMatchObject({
+                errorCode: "misplaced_resource_parameter",
+            });
+        });
+
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraQueryParameters", async () => {
+            const request: RefreshTokenRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+                resource: "https://resource.example.com",
+                extraQueryParameters: {
+                    resource: "https://resource.example.com",
+                },
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await expect(
+                authApp.acquireTokenByRefreshToken(request)
+            ).rejects.toMatchObject({
+                errorCode: "misplaced_resource_parameter",
+            });
+        });
+
+        test("succeeds when isMcp is true and resource is provided", async () => {
+            const request: RefreshTokenRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+                resource: "https://resource.example.com",
+            };
+            const mockRefreshTokenClient =
+                getMsalCommonAutoMock().RefreshTokenClient;
+            jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
+                (config) =>
+                    new mockRefreshTokenClient(
+                        config,
+                        new StubPerformanceClient()
+                    )
+            );
+            jest.spyOn(
+                mockRefreshTokenClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(mockAuthenticationResult);
+            const authApp = new PublicClientApplication(mcpConfig);
+            const result = await authApp.acquireTokenByRefreshToken(request);
+            expect(result).toEqual(mockAuthenticationResult);
+        });
+
+        test("stores resource in cached access token", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            AUTHENTICATION_RESULT.body.client_info =
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+            jest.spyOn(
+                HttpClient.prototype,
+                "sendPostRequestAsync"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAllAccounts"
+            ).mockReturnValue([createTestAccount()]);
+            const saveCacheRecordSpy = jest.spyOn(
+                CacheManager.prototype,
+                "saveCacheRecord"
+            );
+
+            const request: RefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+                resource: "https://resource.example.com",
+            };
+            const authApp = new PublicClientApplication(mcpConfig);
+            await authApp.acquireTokenByRefreshToken(request);
+
+            expect(saveCacheRecordSpy).toHaveBeenCalled();
+            const cacheRecord = saveCacheRecordSpy.mock.calls[0][0];
+            expect(cacheRecord.accessToken?.resource).toBe(
+                "https://resource.example.com"
+            );
+        });
     });
 });

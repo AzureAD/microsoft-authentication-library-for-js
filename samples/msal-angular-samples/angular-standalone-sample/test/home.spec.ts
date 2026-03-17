@@ -140,12 +140,8 @@ describe('/ (Home Page)', () => {
     if (!popupPage) {
       throw new Error('Popup window was not opened');
     }
-    const popupWindowClosed = new Promise<void>((resolve) =>
-      popupPage.once('close', resolve)
-    );
 
     await enterCredentials(popupPage, screenshot, username, accountPwd);
-    await popupWindowClosed;
 
     await page.waitForSelector("xpath/.//p[contains(., 'Login successful!')]", {
       timeout: 3000,

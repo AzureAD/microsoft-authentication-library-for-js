@@ -45,6 +45,99 @@ import { decryptEarResponse } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 /**
+ * Parsed representation of the clientdata response parameter from the /authorize endpoint.
+ *
+ * Format: urlencoded(account_type|error|sub_error|cloud_instance|caller_data_boundary)
+ */
+type ClientData = {
+    /** Account type: MSA, AAD */
+    accountType: string;
+    /** Error code string (e.g. "0x8004345C" for MSA) */
+    error: string;
+    /** Sub-error code string (e.g. "0x80043588" for MSA) */
+    subError: string;
+    /** Cloud instance hostname (e.g. "login.microsoftonline.com") */
+    cloudInstance: string;
+    /** Caller data boundary (e.g. "none" for MSA) */
+    callerDataBoundary: string;
+};
+
+const clientDataAccountTypeMapping = new Map([
+    ["e", "AAD"],
+    ["m", "MSA"],
+]);
+
+/**
+ * Parses the clientdata response parameter from the /authorize endpoint.
+ *
+ * Logically, the clientdata value is URL-encoded and pipe-delimited:
+ *   urlencoded(account_type | error | sub_error | cloud_instance | caller_data_boundary)
+ *
+ * In normal browser flows, this value may already have been URL-decoded
+ * (e.g. by URLSearchParams). This function will only apply decodeURIComponent
+ * when the string appears to contain percent-encoded sequences to avoid
+ * double-decoding.
+ *
+ * @param clientdata - The raw clientdata string from the authorize response
+ * @returns Parsed ClientData object, or null if the input is empty/invalid
+ */
+export function parseClientData(clientdata?: string): ClientData | null {
+    if (!clientdata) {
+        return null;
+    }
+
+    try {
+        // Only decode when the string appears to contain percent-encoded sequences
+        const shouldDecode = /%(?:[0-9A-Fa-f]{2})/.test(clientdata);
+        const decoded = shouldDecode
+            ? decodeURIComponent(clientdata)
+            : clientdata;
+        const parts = decoded.split("|");
+
+        if (parts.length < 5) {
+            return null;
+        }
+
+        return {
+            accountType:
+                clientDataAccountTypeMapping.get(parts[0]?.trim() || "") || "",
+            error: parts[1]?.trim() || "",
+            subError: parts[2]?.trim() || "",
+            cloudInstance: parts[3]?.trim() || "",
+            callerDataBoundary: parts[4]?.trim() || "",
+        };
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Instruments account type, error, and suberror from clientdata
+ */
+function instrumentClientData(
+    response: AuthorizeResponse,
+    correlationId: string,
+    performanceClient: IPerformanceClient
+): void {
+    const parsed = parseClientData(response.clientdata);
+    parsed?.accountType &&
+        performanceClient.addFields(
+            { accountType: parsed.accountType },
+            correlationId
+        );
+    parsed?.error &&
+        performanceClient.addFields(
+            { serverErrorNo: parsed.error },
+            correlationId
+        );
+    parsed?.subError &&
+        performanceClient.addFields(
+            { serverSubErrorNo: parsed.subError },
+            correlationId
+        );
+}
+
+/**
  * Returns map of parameters that are applicable to all calls to /authorize whether using PKCE or EAR
  * @param config
  * @param authority
@@ -160,10 +253,11 @@ export async function getAuthCodeRequestUrl(
         Constants.S256_CODE_CHALLENGE_METHOD
     );
 
-    RequestParameterBuilder.addExtraQueryParameters(
-        parameters,
-        request.extraQueryParameters || {}
-    );
+    // Merge extraQueryParameters and extraParameters to be appended to request URL
+    RequestParameterBuilder.addExtraParameters(parameters, {
+        ...request.extraQueryParameters,
+        ...request.extraParameters,
+    });
 
     return AuthorizeProtocol.getAuthorizeUrl(authority, parameters);
 }
@@ -197,11 +291,82 @@ export async function getEARForm(
     );
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
 
+    // Also add codeChallenge as backup in case EAR is not supported
+    RequestParameterBuilder.addCodeChallengeParams(
+        parameters,
+        request.codeChallenge,
+        Constants.S256_CODE_CHALLENGE_METHOD
+    );
+
+    RequestParameterBuilder.addExtraParameters(parameters, {
+        ...request.extraParameters,
+    });
+
     const queryParams = new Map<string, string>();
-    RequestParameterBuilder.addExtraQueryParameters(
+    RequestParameterBuilder.addExtraParameters(
         queryParams,
         request.extraQueryParameters || {}
     );
+
+    // Add correlationId to query params so gateway can propagate it to IDPs
+    RequestParameterBuilder.addCorrelationId(
+        queryParams,
+        request.correlationId
+    );
+
+    const url = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
+
+    return createForm(frame, url, parameters);
+}
+
+/**
+ * Gets the form that will be posted to /authorize with request parameters when using POST method
+ */
+export async function getCodeForm(
+    frame: Document,
+    config: BrowserConfiguration,
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<HTMLFormElement> {
+    const parameters = await getStandardParameters(
+        config,
+        authority,
+        request,
+        logger,
+        performanceClient
+    );
+
+    RequestParameterBuilder.addResponseType(
+        parameters,
+        Constants.OAuthResponseType.CODE
+    );
+
+    RequestParameterBuilder.addCodeChallengeParams(
+        parameters,
+        request.codeChallenge,
+        request.codeChallengeMethod || Constants.S256_CODE_CHALLENGE_METHOD
+    );
+
+    // Add extraParameters to the request body
+    RequestParameterBuilder.addExtraParameters(parameters, {
+        ...request.extraParameters,
+    });
+
+    // Add extraQueryParameters to be appended to request URL
+    const queryParams = new Map<string, string>();
+    RequestParameterBuilder.addExtraParameters(
+        queryParams,
+        request.extraQueryParameters || {}
+    );
+
+    // Add correlationId to query params so gateway can propagate it to IDPs
+    RequestParameterBuilder.addCorrelationId(
+        queryParams,
+        request.correlationId
+    );
+
     const url = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
 
     return createForm(frame, url, parameters);
@@ -288,7 +453,7 @@ export async function handleResponsePlatformBroker(
         request.correlationId
     );
     const { userRequestState } = ProtocolUtils.parseRequestState(
-        browserCrypto,
+        browserCrypto.base64Decode,
         request.state
     );
     return invokeAsync(
@@ -335,6 +500,10 @@ export async function handleResponseCode(
         config.auth.clientId,
         request
     );
+
+    // Instrument clientdata telemetry fields from the authorize response
+    instrumentClientData(response, request.correlationId, performanceClient);
+
     if (response.accountId) {
         return invokeAsync(
             handleResponsePlatformBroker,
@@ -375,7 +544,7 @@ export async function handleResponseCode(
         logger,
         performanceClient,
         request.correlationId
-    )(response, request);
+    )(response, request, apiId);
 
     return result;
 }
@@ -414,6 +583,9 @@ export async function handleResponseEAR(
         config.auth.clientId,
         request
     );
+
+    // Instrument clientdata telemetry fields from the authorize response
+    instrumentClientData(response, request.correlationId, performanceClient);
 
     // Validate state & check response for errors
     AuthorizeProtocol.validateAuthorizationResponse(response, request.state);
@@ -493,6 +665,7 @@ export async function handleResponseEAR(
         authority,
         TimeUtils.nowSeconds(),
         request,
+        apiId,
         additionalData,
         undefined,
         undefined,

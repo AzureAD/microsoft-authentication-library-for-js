@@ -13,11 +13,17 @@ import { SignUpAttributesRequiredStateParameters } from "./SignUpStateParameters
 import { UserAttribute } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 import { SignUpCompletedState } from "./SignUpCompletedState.js";
 import { SignInScenario } from "../../../sign_in/auth_flow/SignInScenario.js";
+import { SIGN_UP_ATTRIBUTES_REQUIRED_STATE_TYPE } from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Sign-up attributes required state.
  */
 export class SignUpAttributesRequiredState extends SignUpState<SignUpAttributesRequiredStateParameters> {
+    /**
+     * The type of the state.
+     */
+    stateType = SIGN_UP_ATTRIBUTES_REQUIRED_STATE_TYPE;
+
     /**
      * Submits attributes to continue sign-up flow.
      * This methods is used to submit required attributes.
@@ -84,6 +90,7 @@ export class SignUpAttributesRequiredState extends SignUpState<SignUpAttributesR
                         signInClient: this.stateParameters.signInClient,
                         cacheClient: this.stateParameters.cacheClient,
                         jitClient: this.stateParameters.jitClient,
+                        mfaClient: this.stateParameters.mfaClient,
                         username: this.stateParameters.username,
                         signInScenario: SignInScenario.SignInAfterSignUp,
                     })

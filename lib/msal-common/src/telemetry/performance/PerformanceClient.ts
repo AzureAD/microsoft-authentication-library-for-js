@@ -11,6 +11,7 @@ import {
     PerformanceCallbackFunction,
 } from "./IPerformanceClient.js";
 import {
+    EXT_FIELD_PREFIX,
     IntFields,
     PerformanceEvent,
     PerformanceEventContext,
@@ -144,8 +145,10 @@ export function addError(
         event.errorCode = error.errorCode;
         event.subErrorCode = error.subError;
         if (
-            error instanceof ServerError ||
-            error instanceof InteractionRequiredAuthError
+            !event.serverErrorNo &&
+            (error instanceof ServerError ||
+                error instanceof InteractionRequiredAuthError) &&
+            error.errorNo
         ) {
             event.serverErrorNo = error.errorNo;
         }
@@ -350,17 +353,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     ): InProgressPerformanceEvent {
         // Generate a placeholder correlation if the request does not provide one
         const eventCorrelationId = correlationId || this.generateId();
-        if (!correlationId) {
-            this.logger.info(
-                `PerformanceClient: No correlation id provided for '${measureName}', generating`,
-                eventCorrelationId
-            );
-        }
-
-        this.logger.trace(
-            `PerformanceClient: Performance measurement started for '${measureName}'`,
-            eventCorrelationId
-        );
 
         const inProgressEvent: PerformanceEvent = {
             eventId: this.generateId(),
@@ -460,18 +452,19 @@ export abstract class PerformanceClient implements IPerformanceClient {
             rootEvent.incompleteSubMeasurements?.delete(event.eventId);
         }
 
-        this.logger.trace(
-            `PerformanceClient: Performance measurement ended for '${event.name}': '${event.durationMs}' ms`,
-            event.correlationId
-        );
-
         if (error) {
             addError(error, this.logger, rootEvent);
         }
 
-        // Add sub-measurement attribute to root event.
+        // Add sub-measurement attribute to root event's ext field.
         if (!isRoot) {
-            rootEvent[event.name + "DurationMs"] = Math.floor(event.durationMs);
+            rootEvent.ext = {
+                ...rootEvent.ext,
+                ...event.ext,
+            };
+            rootEvent.ext[event.name + "DurationMs"] = Math.floor(
+                event.durationMs
+            );
             return { ...rootEvent };
         }
 
@@ -535,16 +528,38 @@ export abstract class PerformanceClient implements IPerformanceClient {
         fields: { [key: string]: {} | undefined },
         correlationId: string
     ): void {
-        this.logger.trace(
-            "PerformanceClient: Updating static fields",
-            correlationId
-        );
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
-            this.eventsByCorrelationId.set(correlationId, {
+            const staticFields: { [key: string]: {} | undefined } = {};
+            const dynamicFields: Record<string, string | number> = {};
+
+            for (const key in fields) {
+                if (key.startsWith(EXT_FIELD_PREFIX)) {
+                    const dynamicKey = key.slice(EXT_FIELD_PREFIX.length);
+                    const value = fields[key];
+                    if (
+                        typeof value === "string" ||
+                        typeof value === "number"
+                    ) {
+                        dynamicFields[dynamicKey] = value;
+                    }
+                } else {
+                    staticFields[key] = fields[key];
+                }
+            }
+
+            const updatedEvent: PerformanceEvent = {
                 ...event,
-                ...fields,
-            });
+                ...staticFields,
+            };
+            if (Object.keys(dynamicFields).length) {
+                updatedEvent.ext = {
+                    ...updatedEvent.ext,
+                    ...dynamicFields,
+                };
+            }
+
+            this.eventsByCorrelationId.set(correlationId, updatedEvent);
         } else {
             this.logger.trace(
                 "PerformanceClient: Event not found for",
@@ -562,19 +577,32 @@ export abstract class PerformanceClient implements IPerformanceClient {
         fields: { [key: string]: number | undefined },
         correlationId: string
     ): void {
-        this.logger.trace(
-            "PerformanceClient: Updating counters",
-            correlationId
-        );
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
             for (const counter in fields) {
-                if (!event.hasOwnProperty(counter)) {
-                    event[counter] = 0;
-                } else if (isNaN(Number(event[counter]))) {
-                    return;
+                if (counter.startsWith(EXT_FIELD_PREFIX)) {
+                    event.ext = event.ext || {};
+                    // Route to ext sub-object
+                    const dynamicKey = counter.slice(EXT_FIELD_PREFIX.length);
+                    const currentValue = event.ext[dynamicKey];
+                    if (currentValue === undefined) {
+                        event.ext[dynamicKey] = 0;
+                    } else if (isNaN(Number(currentValue))) {
+                        return;
+                    }
+                    event.ext[dynamicKey] =
+                        (Number(event.ext[dynamicKey]) || 0) +
+                        (fields[counter] ?? 0);
+                } else {
+                    /* eslint-disable custom-msal/no-dynamic-telemetry-fields -- internal dispatching of static fields by name */
+                    if (!event.hasOwnProperty(counter)) {
+                        event[counter] = 0;
+                    } else if (isNaN(Number(event[counter]))) {
+                        return;
+                    }
+                    event[counter] += fields[counter];
+                    /* eslint-enable custom-msal/no-dynamic-telemetry-fields */
                 }
-                event[counter] += fields[counter];
             }
         } else {
             this.logger.trace(
@@ -596,10 +624,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected cacheEventByCorrelationId(event: PerformanceEvent): void {
         const rootEvent = this.eventsByCorrelationId.get(event.correlationId);
         if (rootEvent) {
-            this.logger.trace(
-                `PerformanceClient: Performance measurement for '${event.name}' added/updated`,
-                event.correlationId
-            );
             rootEvent.incompleteSubMeasurements =
                 rootEvent.incompleteSubMeasurements || new Map();
             rootEvent.incompleteSubMeasurements.set(event.eventId, {
@@ -607,10 +631,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 startTimeMs: event.startTimeMs,
             });
         } else {
-            this.logger.trace(
-                `PerformanceClient: Performance measurement for '${event.name}' started`,
-                event.correlationId
-            );
             this.eventsByCorrelationId.set(event.correlationId, { ...event });
             this.eventStack.set(event.correlationId, []);
         }
@@ -622,16 +642,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} correlationId
      */
     discardMeasurements(correlationId: string): void {
-        this.logger.trace(
-            "PerformanceClient: Performance measurements discarded",
-            correlationId
-        );
         this.eventsByCorrelationId.delete(correlationId);
-
-        this.logger.trace(
-            "PerformanceClient: Event stack discarded",
-            correlationId
-        );
         this.eventStack.delete(correlationId);
     }
 
@@ -715,9 +726,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     private truncateIntegralFields(event: PerformanceEvent): void {
         this.intFields.forEach((key) => {
+            /* eslint-disable custom-msal/no-dynamic-telemetry-fields -- internal truncation of known integer fields */
             if (key in event && typeof event[key] === "number") {
                 event[key] = Math.floor(event[key]);
             }
+            /* eslint-enable custom-msal/no-dynamic-telemetry-fields */
         });
     }
 
