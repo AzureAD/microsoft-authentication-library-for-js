@@ -90,7 +90,7 @@ automatically falls back to a standard `PublicClientApplication`.
 If NAA is not available, use `loginRedirect()` / `acquireTokenRedirect()`
 instead of popup or silent APIs. The redirect flow happens entirely within the
 iframe's browsing context — there is no cross-window communication, so storage
-partitioning does not apply. You will need to set `allowRedirectInIframe: true`:
+partitioning does not apply. You will need to set `system.allowRedirectInIframe: true`:
 
 ```javascript
 const msalConfig = {
