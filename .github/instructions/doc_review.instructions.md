@@ -1,6 +1,6 @@
 ---
 applyTo: "**/lib/*/src/**"
-description: "Use when modifying source code in any MSAL library. Checks whether documentation needs to be updated to reflect code changes. Covers API behavior, configuration options, error messages, authentication flows, iframe/popup/redirect behavior, and migration guides."
+description: "Use when modifying source code under lib/*/src/ for core MSAL libraries. Checks whether documentation needs to be updated to reflect code changes. Covers API behavior, configuration options, error messages, authentication flows, iframe/popup/redirect behavior, and migration guides."
 ---
 
 # Documentation Review After Code Changes
