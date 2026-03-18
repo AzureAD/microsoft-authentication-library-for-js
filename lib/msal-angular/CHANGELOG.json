@@ -2,6 +2,39 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Fri, 13 Mar 2026 22:36:57 GMT",
+      "version": "5.1.2",
+      "tag": "@azure/msal-angular_v5.1.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "48cd5e0af83a8da6d32df43996b4c2d9ffe1fa4c",
+            "comment": "Add strictMatching runtime warning when strictMatching is not explicitly configured [#8388](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8388)"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "48cd5e0af83a8da6d32df43996b4c2d9ffe1fa4c",
+            "comment": "Update angular dependencies"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.5.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 02 Mar 2026 19:25:47 GMT",
       "version": "5.1.1",
       "tag": "@azure/msal-angular_v5.1.1",

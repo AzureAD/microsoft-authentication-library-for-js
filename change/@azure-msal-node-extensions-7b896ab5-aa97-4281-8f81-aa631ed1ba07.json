@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "\"Add MCP Support [#8363](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8363)\"",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
-}
