@@ -10,7 +10,6 @@
 > redirect bridge's `BroadcastChannel` message never arrives. Other browsers
 > are expected to adopt similar partitioning in the future.
 >
->
 > See the [Redirect Bridge — Cross-Origin Iframe
 > Limitation](./redirect-bridge.md#cross-origin-iframe-limitation) section for
 > full details and recommended alternatives.
