@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773680205933,
+  "lastUpdate": 1773852678206,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20045,6 +20045,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 240156,
             "range": "±0.93%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3de432579bc9a74398e98151bbc28cc41ce1d9b2",
+          "message": "[v5] Add React 18 support (#8437)\n\n## Add React 18 support to `@azure/msal-react`\n\nWidens peer dependency support from React 19-only to React 18 and 19. No\nruntime code changes were required.\n\n### Changes\n\n**`lib/msal-react`**\n- `peerDependencies.react`: `\"^19.2.1\"` → `\"^18.0.0 || ^19.0.0\"`\n- Updated `README.md`, `getting-started.md`, and\n`migration-guide-v4-v5.md` to document dual React version support\n\n**Samples**\n- Widened `react`/`react-dom` ranges to `\"^18.0.0 || ^19.2.1\"` in\n`react-router-sample`, `typescript-sample`, and `b2c-sample`\n- Widened `@types/react`/`@types/react-dom` to `\"^18.0.0 || ^19.1.3\"` in\n`typescript-sample`\n\n**CI**\n- Added `.pipelines/templates/msal-react-react18-e2e.yml`: local 3P-only\ntemplate that overrides React to `^18` via `npm pkg set overrides` and\nruns E2E tests against the three non-Next.js samples (`nextjs-sample`\nrequires React 19)\n- Wired into `.pipelines/3p-e2e.yml` alongside the existing React 19\njobs\n\n---------\n\nCo-authored-by: Konstantin <kshabelko@microsoft.com>\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-03-18T09:44:45-07:00",
+          "tree_id": "6d5f1438bd1ff13c44eac10c92eefc9c973d7704",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/3de432579bc9a74398e98151bbc28cc41ce1d9b2"
+        },
+        "date": 1773852674814,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 239386,
+            "range": "±0.94%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 240760,
+            "range": "±0.74%",
             "unit": "ops/sec",
             "extra": "234 samples"
           }
