@@ -41,16 +41,16 @@ This guide provides framework-specific instructions for setting up the redirect 
 
 ## Cross-Origin Iframe Limitation
 
-The redirect bridge relies on the [BroadcastChannel API](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel) to send the authentication response from the popup (or hidden iframe) back to the main application window. Starting with **Chromium 115+** (Chrome, Edge, and other Chromium-based browsers), [third-party storage partitioning](https://developers.google.com/privacy-sandbox/cookies/storage-partitioning) is enforced, which means `BroadcastChannel` is **partitioned by top-level site**, not just by origin. Other browsers are expected to adopt similar partitioning in the future.
+The redirect bridge relies on the [BroadcastChannel API](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel) to send the authentication response from the popup back to the main application window. Starting with **Chromium 115+** (Chrome, Edge, and other Chromium-based browsers), [third-party storage partitioning](https://developers.google.com/privacy-sandbox/cookies/storage-partitioning) is enforced, which means `BroadcastChannel` is **partitioned by top-level site**, not just by origin. Other browsers are expected to adopt similar partitioning in the future.
 
-This causes popup-based and silent flows to fail when your application runs inside a **cross-origin iframe**:
+This causes **popup-based flows** to fail when your application runs inside a **cross-origin iframe**:
 
 | Context | Top-level site | BroadcastChannel partition |
 |---|---|---|
 | Your app in the iframe | `hostplatform.com` | `hostplatform.com` |
 | Popup opened by the iframe | `yourapp.com` (popup is its own top-level context) | `yourapp.com` |
 
-Although both the iframe and the popup share the same **origin** (`yourapp.com`), they are in **different storage partitions**. The redirect bridge sends the response on a `BroadcastChannel` in the popup's partition, but the iframe is listening on a channel in the host platform's partition — the message never arrives, and the authentication flow times out.
+Although both the iframe and the popup share the same **origin** (`yourapp.com`), the popup is in a **different storage partition**. The redirect bridge sends the response on a `BroadcastChannel` in the popup's partition, but the iframe is listening on a channel in the host platform's partition — the message never arrives, and the authentication flow times out.
 
 > [!IMPORTANT]
 > This is a browser-level constraint — not a bug in MSAL. There is no secure
@@ -88,9 +88,10 @@ automatically falls back to a standard `PublicClientApplication`.
 #### Option 2: Redirect flow within the iframe (fallback)
 
 If NAA is not available, use `loginRedirect()` / `acquireTokenRedirect()`
-instead of popup or silent APIs. The redirect flow happens entirely within the
-iframe's browsing context — there is no cross-window communication, so storage
-partitioning does not apply. You will need to set `system.allowRedirectInIframe: true`:
+instead of popup APIs. The redirect flow happens entirely within the iframe's
+browsing context and does not use `BroadcastChannel`, so the redirect bridge
+partition mismatch does not apply. You will need to set
+`system.allowRedirectInIframe: true`:
 
 ```javascript
 const msalConfig = {

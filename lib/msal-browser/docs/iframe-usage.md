@@ -1,15 +1,17 @@
 # Using MSAL in iframed apps
 
 > [!IMPORTANT]
-> **Cross-origin iframes and popup/silent flows:** Starting with Chromium 115+
+> **Cross-origin iframes and popup flows:** Starting with Chromium 115+
 > (Chrome, Edge, and other Chromium-based browsers), `BroadcastChannel` (and
 > other storage APIs) are partitioned by top-level site. This means that
-> `loginPopup()`, `acquireTokenPopup()`, `ssoSilent()`, and
-> `acquireTokenSilent()` (when it falls back to a hidden iframe) **will not
-> work** when your application runs in a cross-origin iframe, because the
-> redirect bridge cannot communicate with the main application across different
-> storage partitions. Other browsers are expected to adopt similar partitioning
-> in the future. See the [Redirect Bridge — Cross-Origin Iframe
+> `loginPopup()` and `acquireTokenPopup()` **will not work** when your
+> application runs in a cross-origin iframe, because the popup opens as its own
+> top-level context with a different storage partition than the iframe — the
+> redirect bridge's `BroadcastChannel` message never arrives. Other browsers
+> are expected to adopt similar partitioning in the future.
+>
+>
+> See the [Redirect Bridge — Cross-Origin Iframe
 > Limitation](./redirect-bridge.md#cross-origin-iframe-limitation) section for
 > full details and recommended alternatives.
 >
@@ -30,8 +32,10 @@ By default, MSAL prevents full-frame redirects to **Azure AD** authentication en
 - When using [popup APIs](./initialization.md#popup-apis), you need to take into account any [sandboxing](https://html.spec.whatwg.org/multipage/origin.html#sandboxing) restrictions imposed by the parent app. In particular, the parent app needs to set the `allow-popups` flag when the iframe is sandboxed.
 
 > [!WARNING]
-> Popup and silent APIs from a **cross-origin** iframe are subject to
-> [third-party storage partitioning](#third-party-storage-partitioning-and-the-redirect-bridge).
+> Popup APIs from a **cross-origin** iframe are affected by
+> [third-party storage partitioning](#third-party-storage-partitioning-and-the-redirect-bridge),
+> which breaks the redirect bridge's `BroadcastChannel` communication.
+> Silent APIs may also be affected by third-party cookie restrictions.
 > If your app is embedded in a cross-origin iframe, see the callout above for
 > recommended alternatives.
 
@@ -54,17 +58,6 @@ Iframed and parent apps with the same-origin may have access to the same MSAL.js
 ### Apps with cross-origin
 
 Iframed and parent apps with cross-origin can make use of the [ssoSilent()](./login-user.md#silent-login-with-ssosilent) API to achieve single sign-on. To do so, the parent app should pass down either an **account**, a **loginHint** (username) or a **session id** (sid) to the iframed app.
-
-> [!WARNING]
-> `ssoSilent()` relies on the [redirect bridge](./redirect-bridge.md), which
-> uses `BroadcastChannel` to return the authentication response. In browsers
-> with [third-party storage partitioning](#third-party-storage-partitioning-and-the-redirect-bridge)
-> (Chromium 115+), `ssoSilent()` **will not work** from a cross-origin iframe
-> because the `BroadcastChannel` used by the redirect bridge is partitioned by
-> top-level site. If your app runs in a cross-origin iframe, consider using
-> [Nested App Authentication (NAA)](./initialization.md#nested-app-configuration)
-> instead, or fall back to `loginRedirect()` with
-> `system.allowRedirectInIframe: true` (subject to IdP iframe restrictions).
 
 Apps can attempt to use `ssoSilent` without any of the above parameters. However be aware that there are [additional considerations](./login-user.md#silent-login-with-ssosilent) when using `ssoSilent` without providing any information about the user's session.
 
@@ -184,15 +177,10 @@ You can use MSAL.js with a [front-channel logout URI](https://openid.net/specs/o
 
 Starting with **Chromium 115+** (Chrome, Edge, and other Chromium-based browsers), [third-party storage partitioning](https://developers.google.com/privacy-sandbox/cookies/storage-partitioning) is enforced. Storage APIs — including `BroadcastChannel`, `localStorage`, `sessionStorage`, `IndexedDB`, `ServiceWorker`, and `SharedWorker` — are partitioned by the **top-level site**, not just by origin. Other browsers are expected to adopt similar partitioning in the future.
 
-The MSAL [redirect bridge](./redirect-bridge.md) uses `BroadcastChannel` to send the authentication response from the popup (or hidden iframe) back to the main application. When your app runs in a cross-origin iframe, the popup and the iframe are in **different storage partitions**, so the `BroadcastChannel` message from the redirect bridge never reaches your app. This causes authentication flows to time out with a `timed_out` (`redirect_bridge_timeout`) error.
+The MSAL [redirect bridge](./redirect-bridge.md) uses `BroadcastChannel` to send the authentication response from the popup back to the main application. When your app runs in a cross-origin iframe and opens a popup, the popup becomes its own top-level browsing context — placing it in a **different storage partition** than the iframe. The `BroadcastChannel` message from the redirect bridge never reaches your app, causing the authentication flow to time out with a `timed_out` (`redirect_bridge_timeout`) error.
 
-**Affected flows when running in a cross-origin iframe:**
-- `loginPopup()` / `acquireTokenPopup()`
-- `ssoSilent()`
-- `acquireTokenSilent()` (when the refresh token is expired and MSAL falls back to a hidden iframe)
-
-**Unaffected flows:**
-- `loginRedirect()` / `acquireTokenRedirect()` — these navigate within the iframe's browsing context and do not rely on cross-window communication
+**Affected flows (BroadcastChannel partition mismatch):**
+- `loginPopup()` / `acquireTokenPopup()` — the popup opens as a new top-level context with a different partition than the iframe
 
 ### Recommended solutions
 
