@@ -87,22 +87,36 @@ export async function sha256Digest(dataString: string): Promise<ArrayBuffer> {
         data
     ) as Promise<ArrayBuffer>;
 }
-
 /**
  * Populates buffer with cryptographically random values.
+ * Falls back to Math.random() if crypto is unavailable.
  * @param dataBuffer
  */
 export function getRandomValues(dataBuffer: Uint8Array): Uint8Array {
-    return window.crypto.getRandomValues(dataBuffer);
+    try{
+        validateCryptoAvailable(true);
+        return window.crypto.getRandomValues(dataBuffer);
+    } catch {
+        for (let i = 0; i < dataBuffer.length; i++) {
+            dataBuffer[i] = Math.floor(Math.random() * 256);
+        }
+    }
+    return dataBuffer;
 }
 
 /**
  * Returns random Uint32 value.
+ * Falls back to Math.random() if crypto is unavailable.
  * @returns {number}
  */
 function getRandomUint32(): number {
-    window.crypto.getRandomValues(UINT32_ARR);
-    return UINT32_ARR[0];
+    try {
+        validateCryptoAvailable(true);
+        window.crypto.getRandomValues(UINT32_ARR);
+        return UINT32_ARR[0];
+    } catch {
+        return Math.floor(Math.random() * 0x100000000);
+    }
 }
 
 /**
