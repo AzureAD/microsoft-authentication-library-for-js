@@ -945,17 +945,22 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         const canonicalAuthority = await this.getCanonicalAuthority(request);
 
+        // ignore config claims if skipBrokerClaims is set to true and this is a brokered authentication flow
+        const configClaims =
+            request.skipBrokerClaims && !!request.embeddedClientId
+                ? undefined
+                : this.config.auth.clientCapabilities;
+
         // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
         const { scopes, claims, ...remainingProperties } = request;
         const scopeSet = new ScopeSet(scopes || []);
         scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
 
         const mergedClaims =
-            this.config.auth.clientCapabilities &&
-            this.config.auth.clientCapabilities.length
+            configClaims && configClaims.length
                 ? RequestParameterBuilder.addClientCapabilitiesToClaims(
                       claims,
-                      this.config.auth.clientCapabilities
+                      configClaims
                   )
                 : claims;
 
