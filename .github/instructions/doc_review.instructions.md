@@ -9,6 +9,8 @@ When modifying source code under `lib/*/src/`, check whether documentation in th
 
 ## What to check
 
+Each library has its own `docs/` directory. When reviewing changes, look for the corresponding docs in the **same library** that was modified (e.g., changes to `lib/msal-node/src/` should be checked against `lib/msal-node/docs/`).
+
 ### API surface changes
 
 - New or renamed public methods, classes, interfaces, or properties → update relevant docs and add usage examples
@@ -17,24 +19,24 @@ When modifying source code under `lib/*/src/`, check whether documentation in th
 
 ### Behavioral changes
 
-- Changes to authentication flows (popup, redirect, silent, NAA) → update [login-user.md](../../lib/msal-browser/docs/login-user.md), [iframe-usage.md](../../lib/msal-browser/docs/iframe-usage.md), [redirect-bridge.md](../../lib/msal-browser/docs/redirect-bridge.md)
-- Changes to caching behavior → update [caching.md](../../lib/msal-browser/docs/caching.md)
-- Changes to error handling or new error codes → update error documentation
-- Changes to token acquisition or renewal logic → update [token-lifetimes.md](../../lib/msal-browser/docs/token-lifetimes.md)
+- Changes to authentication flows (popup, redirect, silent, NAA) → update the corresponding library's flow documentation. For msal-browser, key docs include: `login-user.md`, `iframe-usage.md`, `redirect-bridge.md`. For msal-node, see `initialize-*.md` files.
+- Changes to caching behavior → update the library's caching documentation (e.g., `caching.md` for msal-browser)
+- Changes to error handling or new error codes → update error documentation in the affected library
+- Changes to token acquisition or renewal logic → update the library's token lifecycle docs (e.g., `token-lifetimes.md` for msal-browser)
 
 ### Configuration changes
 
-- New or changed configuration options → update [configuration.md](../../lib/msal-browser/docs/configuration.md)
+- New or changed configuration options → update the library's configuration documentation (e.g., `configuration.md` for msal-browser)
 - Changed defaults → call out in migration docs
 
-### Browser/platform constraints
+### Browser/platform constraints (msal-browser specific)
 
-- Changes affected by browser security policies (COOP, COEP, storage partitioning, iframe sandboxing) → update [redirect-bridge.md](../../lib/msal-browser/docs/redirect-bridge.md), [iframe-usage.md](../../lib/msal-browser/docs/iframe-usage.md)
+- Changes affected by browser security policies (COOP, COEP, storage partitioning, iframe sandboxing) → update `lib/msal-browser/docs/redirect-bridge.md`, `lib/msal-browser/docs/iframe-usage.md`
 - Changes to cross-origin or cross-window communication → update relevant flow docs and known limitations
 
 ### Migration impact
 
-- Breaking changes → update the latest migration guide (e.g., `v4-migration.md`)
+- Breaking changes → update the latest migration guide in the affected library's docs (e.g., `v4-migration.md`)
 - Behavioral changes that could surprise users → add notes to migration docs even if not strictly breaking
 
 ## How to flag
