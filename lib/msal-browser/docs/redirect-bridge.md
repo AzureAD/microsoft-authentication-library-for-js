@@ -113,7 +113,7 @@ const msalConfig = {
 > `X-FRAME-OPTIONS: DENY` error. This means redirect flows in iframes are
 > primarily supported for **Azure AD B2C** with the
 > [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login),
-> or for silent token renewal where no user interaction is required.
+> or for non-interactive redirect-in-iframe scenarios where no user interaction is required. This is distinct from MSAL's silent token renewal APIs (`ssoSilent` / `acquireTokenSilent`), which use a hidden iframe with `prompt=none` and are subject to third-party cookie and tracking-prevention restrictions.
 
 For more information on running MSAL in iframes, see
 [Using MSAL in iframed apps](./iframe-usage.md).
