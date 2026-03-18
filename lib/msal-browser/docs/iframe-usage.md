@@ -1,13 +1,15 @@
 # Using MSAL in iframed apps
 
 > [!IMPORTANT]
-> **Cross-origin iframes and popup/silent flows:** Starting with Chrome 115+,
-> browsers partition `BroadcastChannel` (and other storage APIs) by top-level
-> site. This means that `loginPopup()`, `acquireTokenPopup()`, `ssoSilent()`,
-> and `acquireTokenSilent()` (when it falls back to a hidden iframe) **will not
+> **Cross-origin iframes and popup/silent flows:** Starting with Chromium 115+
+> (Chrome, Edge, and other Chromium-based browsers), `BroadcastChannel` (and
+> other storage APIs) are partitioned by top-level site. This means that
+> `loginPopup()`, `acquireTokenPopup()`, `ssoSilent()`, and
+> `acquireTokenSilent()` (when it falls back to a hidden iframe) **will not
 > work** when your application runs in a cross-origin iframe, because the
 > redirect bridge cannot communicate with the main application across different
-> storage partitions. See the [Redirect Bridge — Cross-Origin Iframe
+> storage partitions. Other browsers are expected to adopt similar partitioning
+> in the future. See the [Redirect Bridge — Cross-Origin Iframe
 > Limitation](./redirect-bridge.md#cross-origin-iframe-limitation) section for
 > full details and recommended alternatives.
 >
@@ -52,6 +54,17 @@ Iframed and parent apps with the same-origin may have access to the same MSAL.js
 ### Apps with cross-origin
 
 Iframed and parent apps with cross-origin can make use of the [ssoSilent()](./login-user.md#silent-login-with-ssosilent) API to achieve single sign-on. To do so, the parent app should pass down either an **account**, a **loginHint** (username) or a **session id** (sid) to the iframed app.
+
+> [!WARNING]
+> `ssoSilent()` relies on the [redirect bridge](./redirect-bridge.md), which
+> uses `BroadcastChannel` to return the authentication response. In browsers
+> with [third-party storage partitioning](#third-party-storage-partitioning-and-the-redirect-bridge)
+> (Chromium 115+), `ssoSilent()` **will not work** from a cross-origin iframe
+> because the `BroadcastChannel` used by the redirect bridge is partitioned by
+> top-level site. If your app runs in a cross-origin iframe, consider using
+> [Nested App Authentication (NAA)](./initialization.md#nested-app-configuration)
+> instead, or fall back to `loginRedirect()` with
+> `system.allowRedirectInIframe: true` (subject to IdP iframe restrictions).
 
 Apps can attempt to use `ssoSilent` without any of the above parameters. However be aware that there are [additional considerations](./login-user.md#silent-login-with-ssosilent) when using `ssoSilent` without providing any information about the user's session.
 
@@ -169,7 +182,7 @@ You can use MSAL.js with a [front-channel logout URI](https://openid.net/specs/o
 
 ## Third-Party Storage Partitioning and the Redirect Bridge
 
-Starting with **Chrome 115+**, browsers enforce [third-party storage partitioning](https://developers.google.com/privacy-sandbox/cookies/storage-partitioning). Storage APIs — including `BroadcastChannel`, `localStorage`, `sessionStorage`, `IndexedDB`, `ServiceWorker`, and `SharedWorker` — are partitioned by the **top-level site**, not just by origin.
+Starting with **Chromium 115+** (Chrome, Edge, and other Chromium-based browsers), [third-party storage partitioning](https://developers.google.com/privacy-sandbox/cookies/storage-partitioning) is enforced. Storage APIs — including `BroadcastChannel`, `localStorage`, `sessionStorage`, `IndexedDB`, `ServiceWorker`, and `SharedWorker` — are partitioned by the **top-level site**, not just by origin. Other browsers are expected to adopt similar partitioning in the future.
 
 The MSAL [redirect bridge](./redirect-bridge.md) uses `BroadcastChannel` to send the authentication response from the popup (or hidden iframe) back to the main application. When your app runs in a cross-origin iframe, the popup and the iframe are in **different storage partitions**, so the `BroadcastChannel` message from the redirect bridge never reaches your app. This causes authentication flows to time out with a `timed_out` (`redirect_bridge_timeout`) error.
 

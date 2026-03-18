@@ -41,7 +41,7 @@ This guide provides framework-specific instructions for setting up the redirect 
 
 ## Cross-Origin Iframe Limitation
 
-The redirect bridge relies on the [BroadcastChannel API](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel) to send the authentication response from the popup (or hidden iframe) back to the main application window. Starting with **Chrome 115+**, browsers enforce [third-party storage partitioning](https://developers.google.com/privacy-sandbox/cookies/storage-partitioning), which means `BroadcastChannel` is **partitioned by top-level site**, not just by origin.
+The redirect bridge relies on the [BroadcastChannel API](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel) to send the authentication response from the popup (or hidden iframe) back to the main application window. Starting with **Chromium 115+** (Chrome, Edge, and other Chromium-based browsers), [third-party storage partitioning](https://developers.google.com/privacy-sandbox/cookies/storage-partitioning) is enforced, which means `BroadcastChannel` is **partitioned by top-level site**, not just by origin. Other browsers are expected to adopt similar partitioning in the future.
 
 This causes popup-based and silent flows to fail when your application runs inside a **cross-origin iframe**:
 
