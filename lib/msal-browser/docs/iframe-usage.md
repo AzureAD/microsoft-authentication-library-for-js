@@ -17,7 +17,7 @@
 > the host application at the top level, avoiding cross-window communication
 > entirely. NAA is supported by Microsoft hosts such as **Teams**, **Outlook**,
 > and **Microsoft 365**. For other hosts, use `loginRedirect()` with
-> `allowRedirectInIframe: true` as a fallback (subject to IdP iframe
+> `system.allowRedirectInIframe: true` as a fallback (subject to IdP iframe
 > restrictions — see below).
 
 By default, MSAL prevents full-frame redirects to **Azure AD** authentication endpoint when an app is rendered inside an iframe, which means you cannot use [redirect APIs](./initialization.md#redirect-apis) for user interaction with the IdP:
