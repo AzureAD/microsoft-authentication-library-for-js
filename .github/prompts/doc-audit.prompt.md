@@ -9,7 +9,7 @@ Review all recent code changes and compare them against the existing documentati
 
 ## Steps
 
-1. **Identify changed files**: Run `git diff --name-only origin/dev...HEAD` to find source files modified on the current branch relative to the default branch (`dev`).
+1. **Identify changed files**: Run `git diff --name-only upstream/dev...HEAD` to find source files modified on the current branch relative to the default branch (`dev`).
 
 2. **Categorize changes**: For each changed source file, determine the nature of the change:
    - New or modified public API (methods, classes, interfaces, types)
