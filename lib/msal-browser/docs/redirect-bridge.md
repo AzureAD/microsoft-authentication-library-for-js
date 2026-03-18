@@ -39,6 +39,84 @@ This guide provides framework-specific instructions for setting up the redirect 
 > redirect bridge with your application or serve it from your own
 > infrastructure.
 
+## Cross-Origin Iframe Limitation
+
+The redirect bridge relies on the [BroadcastChannel API](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel) to send the authentication response from the popup (or hidden iframe) back to the main application window. Starting with **Chrome 115+**, browsers enforce [third-party storage partitioning](https://developers.google.com/privacy-sandbox/cookies/storage-partitioning), which means `BroadcastChannel` is **partitioned by top-level site**, not just by origin.
+
+This causes popup-based and silent flows to fail when your application runs inside a **cross-origin iframe**:
+
+| Context | Top-level site | BroadcastChannel partition |
+|---|---|---|
+| Your app in the iframe | `hostplatform.com` | `hostplatform.com` |
+| Popup opened by the iframe | `yourapp.com` (popup is its own top-level context) | `yourapp.com` |
+
+Although both the iframe and the popup share the same **origin** (`yourapp.com`), they are in **different storage partitions**. The redirect bridge sends the response on a `BroadcastChannel` in the popup's partition, but the iframe is listening on a channel in the host platform's partition — the message never arrives, and the authentication flow times out.
+
+> [!IMPORTANT]
+> This is a browser-level constraint — not a bug in MSAL. There is no secure
+> client-side workaround that avoids this partitioning while preserving the
+> security guarantees of the redirect bridge.
+
+### Recommended alternatives for cross-origin iframe scenarios
+
+#### Option 1: Nested App Authentication (recommended)
+
+If the host platform supports it, use [Nested App Authentication (NAA)](./initialization.md#nested-app-configuration).
+With NAA, the iframe delegates authentication entirely to the host application
+via `createNestablePublicClientApplication`. The host authenticates the user at
+the top level (where there are no partitioning issues) and provides tokens to
+the nested app through the NAA bridge. This avoids popup and silent flows from
+within the iframe altogether.
+
+```javascript
+import { createNestablePublicClientApplication } from "@azure/msal-browser";
+
+const pca = await createNestablePublicClientApplication({
+    auth: {
+        clientId: "your-client-id",
+        authority: "https://login.microsoftonline.com/your-tenant-id",
+    },
+});
+```
+
+NAA is supported out of the box by Microsoft host platforms such as **Teams**,
+**Outlook**, and **Microsoft 365**. For custom host platforms, the host must
+implement the [NAA bridge protocol](./initialization.md#nested-app-configuration).
+If the NAA bridge is not available, `createNestablePublicClientApplication`
+automatically falls back to a standard `PublicClientApplication`.
+
+#### Option 2: Redirect flow within the iframe (fallback)
+
+If NAA is not available, use `loginRedirect()` / `acquireTokenRedirect()`
+instead of popup or silent APIs. The redirect flow happens entirely within the
+iframe's browsing context — there is no cross-window communication, so storage
+partitioning does not apply. You will need to set `allowRedirectInIframe: true`:
+
+```javascript
+const msalConfig = {
+    auth: {
+        clientId: "your-client-id",
+        authority: "https://login.microsoftonline.com/your-tenant-id",
+        redirectUri: "/redirect",
+    },
+    system: {
+        allowRedirectInIframe: true,
+    },
+};
+```
+
+> [!NOTE]
+> Redirect flows in iframes require the identity provider to allow rendering in
+> an iframe. **Azure AD / Microsoft Entra ID** will refuse to render interactive
+> prompts (credential entry, consent, etc.) inside an iframe and will return an
+> `X-FRAME-OPTIONS: DENY` error. This means redirect flows in iframes are
+> primarily supported for **Azure AD B2C** with the
+> [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login),
+> or for silent token renewal where no user interaction is required.
+
+For more information on running MSAL in iframes, see
+[Using MSAL in iframed apps](./iframe-usage.md).
+
 ## Angular
 
 1. **Create the redirect bridge component** (`src/app/redirect/redirect.component.ts`):

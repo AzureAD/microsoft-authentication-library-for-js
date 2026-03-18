@@ -56,6 +56,7 @@ Please note the below guidance before opting in for Nested app authentication:
 -   `createNestablePublicClientApplication` will fall back to `createStandardPublicClientApplication` if nested app bridge is unavailable or the Hub is not configured to support nested app authentication.
 -   If an application does not want to be Nested App, it should use `createStandardPublicClientApplication` instead.
 -   Certain account lookup APIs are not supported in NAA apps, please refer to [active accounts](./accounts.md#active-account-apis).
+-   **Cross-origin iframe scenarios:** If your app runs inside a cross-origin iframe, NAA is the **recommended** approach for authentication. Due to [third-party storage partitioning](https://developers.google.com/privacy-sandbox/cookies/storage-partitioning) in modern browsers (Chrome 115+), popup and silent flows that rely on the [redirect bridge](./redirect-bridge.md) will not work from a cross-origin iframe. NAA avoids this limitation entirely by delegating authentication to the host application at the top level. See [Redirect Bridge — Cross-Origin Iframe Limitation](./redirect-bridge.md#cross-origin-iframe-limitation) and [Using MSAL in iframed apps](./iframe-usage.md) for more details.
 
 ## Initializing the PublicClientApplication object
 
