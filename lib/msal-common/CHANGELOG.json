@@ -2,6 +2,47 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 18 Mar 2026 20:47:24 GMT",
+      "version": "16.4.0",
+      "tag": "@azure/msal-common_v16.4.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3de432579bc9a74398e98151bbc28cc41ce1d9b2",
+            "comment": "bugfix - added filter validity check in getAccountInfoFilteredBy() [#8105](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8105)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3de432579bc9a74398e98151bbc28cc41ce1d9b2",
+            "comment": "Add support for client data telemetry with CLI_DATA parameter [#8378](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8378)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 13 Mar 2026 22:36:58 GMT",
       "version": "16.3.0",
       "tag": "@azure/msal-common_v16.3.0",
