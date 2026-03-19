@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773925425872,
+  "lastUpdate": 1773933018486,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20123,6 +20123,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.92%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7b5a01f81ee14c62485280b5367ffc70ad4a105e",
+          "message": "Enhance iframe usage documentation to address cross-origin iframe limitations (#8441)\n\nEnhance iframe usage documentation to address cross-origin iframe\nlimitations and recommend Nested App Authentication for improved\ncompatibility",
+          "timestamp": "2026-03-19T10:45:25-04:00",
+          "tree_id": "0eda07d85d9d41c0954da76209bdc0fe07126fdf",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/7b5a01f81ee14c62485280b5367ffc70ad4a105e"
+        },
+        "date": 1773933015066,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 238890,
+            "range": "±0.76%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 236367,
+            "range": "±0.92%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
