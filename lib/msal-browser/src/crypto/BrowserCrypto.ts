@@ -98,7 +98,7 @@ export function getRandomValues(dataBuffer: Uint8Array): Uint8Array {
 
 /**
  * Returns random Uint32 value.
- * Falls back to Math.random() if crypto is unavailable.
+ * Falls back to Math.random() if crypto is unavailable (e.g. classic JS runtime environments).
  * @returns {number}
  */
 function getRandomUint32(): number {
