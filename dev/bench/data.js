@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773933018486,
+  "lastUpdate": 1773962968461,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20161,6 +20161,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.92%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5c0394e7c61693af34cb654ebbcb29bcd5cf6b40",
+          "message": "Set correlation ID after initialization for NAA (#8447)\n\nThis PR sets the correlation id using the `BrowserCrypto` class after\ninitialization of the NAA app in `createNestablePublicClientApplication`\nto avoid an error where window.crypto is not available in certain\nscenarios (e.g. classic JS runtime)\n\nAddresses #8412",
+          "timestamp": "2026-03-19T16:22:03-07:00",
+          "tree_id": "ea58ed59121821909d5fba435500c0b19a421ae9",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5c0394e7c61693af34cb654ebbcb29bcd5cf6b40"
+        },
+        "date": 1773962965053,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 250261,
+            "range": "±0.97%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 244721,
+            "range": "±0.98%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
           }
         ]
       }
