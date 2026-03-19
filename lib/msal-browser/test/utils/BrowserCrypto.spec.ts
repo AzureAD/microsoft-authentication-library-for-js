@@ -68,23 +68,5 @@ describe("BrowserCrypto.ts Function Unit Tests", () => {
 
             expect(s.size).toEqual(arr.length);
         });
-
-        it("getRandomValues populates buffer without crypto", () => {
-            const buffer = new Uint8Array(16);
-            const result = BrowserCrypto.getRandomValues(buffer);
-
-            expect(result).toBe(buffer);
-            expect(result.length).toBe(16);
-        });
-
-        it("getRandomValues returns values in valid range without crypto", () => {
-            const buffer = new Uint8Array(1000);
-            BrowserCrypto.getRandomValues(buffer);
-
-            for (let i = 0; i < buffer.length; i++) {
-                expect(buffer[i]).toBeGreaterThanOrEqual(0);
-                expect(buffer[i]).toBeLessThan(256);
-            }
-        });
     });
 });
