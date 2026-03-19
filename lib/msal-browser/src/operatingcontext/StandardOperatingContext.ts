@@ -40,7 +40,7 @@ export class StandardOperatingContext extends BaseOperatingContext {
      * @returns Promise<boolean> indicating whether this operating context is currently available.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async initialize(correlationId: string): Promise<boolean> {
+    async initialize(correlationId?: string): Promise<boolean> {
         this.available = typeof window !== "undefined";
         return this.available;
         /*

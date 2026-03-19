@@ -98,17 +98,11 @@ export function getRandomValues(dataBuffer: Uint8Array): Uint8Array {
 
 /**
  * Returns random Uint32 value.
- * Falls back to Math.random() if crypto is unavailable (e.g. classic JS runtime environments).
  * @returns {number}
  */
 function getRandomUint32(): number {
-    try {
-        validateCryptoAvailable(true);
-        window.crypto.getRandomValues(UINT32_ARR);
-        return UINT32_ARR[0];
-    } catch {
-        return Math.floor(Math.random() * 0x100000000);
-    }
+    window.crypto.getRandomValues(UINT32_ARR);
+    return UINT32_ARR[0];
 }
 
 /**
