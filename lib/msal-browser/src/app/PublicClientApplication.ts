@@ -366,11 +366,11 @@ export async function createNestablePublicClientApplication(
         controller: IController
     ) => IPublicClientApplication
 ): Promise<IPublicClientApplication> {
-    const cid = correlationId || createNewGuid();
     const nestedAppAuth = new NestedAppOperatingContext(configuration);
-    await nestedAppAuth.initialize(cid);
+    await nestedAppAuth.initialize(correlationId);
 
     if (nestedAppAuth.isAvailable()) {
+        const cid = correlationId || createNewGuid();
         const controller = new NestedAppAuthController(nestedAppAuth);
         const nestablePCA = pcaFactory
             ? pcaFactory(configuration, controller)
