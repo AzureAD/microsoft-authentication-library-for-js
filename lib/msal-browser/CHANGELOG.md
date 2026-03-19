@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Fri, 13 Mar 2026 04:32:06 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 18 Mar 2026 20:48:29 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.30.0
+
+Wed, 18 Mar 2026 20:48:29 GMT
+
+### Minor changes
+
+- Add support for client data telemetry with CLI_DATA parameter #8378 (https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8378) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.17.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Add missing client capabilities in platform broker flows [#8429](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8429) (lalimasharda@microsoft.com)
 
 ## 4.29.1
 
