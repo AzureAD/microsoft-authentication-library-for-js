@@ -29,5 +29,4 @@ describe("BrowserCrypto.ts Function Unit Tests", () => {
 
         expect(s.size).toEqual(arr.length);
     });
-
 });
