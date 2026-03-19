@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 18 Mar 2026 20:47:24 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 19 Mar 2026 23:46:44 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.6.1
+
+Thu, 19 Mar 2026 23:46:44 GMT
+
+### Patches
+
+- Set correlation ID after initialization for NAA [#8447](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8447) (shylasummers@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 5.6.0
 
