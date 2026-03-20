@@ -169,7 +169,7 @@ jobs:
                       - task: CopyFiles@2
                         condition: failed()
                         inputs:
-                            SourceFolder: "${{ variables.samplePath }}/test/screenshots/react18"
+                            SourceFolder: "$(samplePath)/test/screenshots/react18"
                             Contents: "**"
                             TargetFolder: $(Build.ArtifactStagingDirectory)
 
