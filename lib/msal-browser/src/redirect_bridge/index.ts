@@ -96,10 +96,24 @@ export async function broadcastResponseToMainFrame(
         }
 
         /*
-         * Strip existing hash from the origin URL before appending the auth response
-         * to avoid creating a malformed URL with two # fragments (e.g. /#/route#code=xxx)
-         * or query params trapped inside the fragment (e.g. /#/route?state=xxx).
-         * The original hash is restored later by RedirectClient.handleRedirectPromise.
+         * For apps that use hash-based routing (e.g. "/#/route"), the redirect bridge
+         * must carefully reconstruct the URL so that the authentication response does
+         * not break client-side routing:
+         *
+         * - When the server returns the response in the fragment (response_mode=fragment),
+         *   the existing route fragment is stripped from the origin URL before appending
+         *   the auth response. This avoids malformed URLs with two "#" fragments
+         *   (e.g. "/#/route#code=..." or "/#/route#id_token=...").
+         *
+         * - When the server returns the response in the query string (response_mode=query),
+         *   the query parameters are inserted before the existing fragment so that the
+         *   hash-based route (e.g. "/#/route") is preserved and continues to work. This
+         *   configuration (responseMode: "query") is often recommended for hash-routed SPAs.
+         *
+         * The original route fragment (e.g. "/#/route") is restored later by
+         * RedirectClient.handleRedirectPromise when navigateToLoginRequestUrl is enabled,
+         * so the application is returned to the original hash-routed location after the
+         * authentication response is processed.
          */
         const baseUrl = navigateToUrl || BrowserUtils.getHomepage();
         const baseHashIndex = baseUrl.indexOf("#");
