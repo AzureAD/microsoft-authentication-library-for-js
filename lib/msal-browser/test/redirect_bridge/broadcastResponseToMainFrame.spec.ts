@@ -351,8 +351,12 @@ describe("broadcastResponseToMainFrame", () => {
             ).mock.calls[0][0] as string;
 
             // When auth response is in query, the origin hash should be preserved
-            expect(callArgs).toContain("/#/dashboard");
-            expect(callArgs).toContain("?state=");
+            const stateIndex = callArgs.indexOf("?state=");
+            const hashIndex = callArgs.indexOf("/#/dashboard");
+            expect(stateIndex).toBeGreaterThanOrEqual(0);
+            expect(hashIndex).toBeGreaterThanOrEqual(0);
+            // Ensure the query parameters appear before the hash-based route
+            expect(stateIndex).toBeLessThan(hashIndex);
         });
 
         it("strips hash from origin URL with complex hash-based route", async () => {
