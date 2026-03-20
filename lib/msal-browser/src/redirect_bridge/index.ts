@@ -96,19 +96,28 @@ export async function broadcastResponseToMainFrame(
         }
 
         /*
-         * Strip existing hash from the origin URL before appending the auth response hash
-         * to avoid creating a malformed URL with two # fragments (e.g. /#/route#code=xxx).
+         * Strip existing hash from the origin URL before appending the auth response
+         * to avoid creating a malformed URL with two # fragments (e.g. /#/route#code=xxx)
+         * or query params trapped inside the fragment (e.g. /#/route?state=xxx).
          * The original hash is restored later by RedirectClient.handleRedirectPromise.
          */
-        let baseUrl = navigateToUrl || BrowserUtils.getHomepage();
-        if (hasResponseInHash) {
-            const hashIndex = baseUrl.indexOf("#");
-            if (hashIndex > -1) {
-                baseUrl = baseUrl.substring(0, hashIndex);
-            }
+        const baseUrl = navigateToUrl || BrowserUtils.getHomepage();
+        const baseHashIndex = baseUrl.indexOf("#");
+        let homepage: string;
+        if (baseHashIndex > -1 && hasResponseInHash) {
+            // Hash response: strip origin hash to avoid double # fragments
+            homepage = `${baseUrl.substring(
+                0,
+                baseHashIndex
+            )}${fullUrlResponse}`;
+        } else if (baseHashIndex > -1 && hasResponseInQuery) {
+            // Query response: insert query params before the existing hash fragment
+            const preHash = baseUrl.substring(0, baseHashIndex);
+            const fragment = baseUrl.substring(baseHashIndex);
+            homepage = `${preHash}${fullUrlResponse}${fragment}`;
+        } else {
+            homepage = `${baseUrl}${fullUrlResponse}`;
         }
-
-        const homepage = `${baseUrl}${fullUrlResponse}`;
         await navClient.navigateInternal(homepage, navigationOptions);
 
         // Do NOT clear URL for redirect flow - we're navigating away anyway
