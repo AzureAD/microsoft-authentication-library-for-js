@@ -7,17 +7,18 @@ $clientIdName = "AZURE_CLIENT_ID="
 $clientCertPathName = "AZURE_CLIENT_CERTIFICATE_PATH="
 $sessionSecretName = "SESSION_SECRET="
 
-# Create file if it doesn't exist
-if (-Not (Test-Path $dotEnvFileName)) {
-    Write-Output "Creating $dotEnvFileName file..."
-    New-Item -Path . -Name $dotEnvFileName -ItemType "file"
+# Always start with a fresh .env file to avoid duplicate entries
+if (Test-Path $dotEnvFileName) {
+    Write-Output "Overwriting existing $dotEnvFileName file..."
+    Remove-Item $dotEnvFileName
 }
 else {
-    Write-Output "$dotEnvFileName file already exists..."
+    Write-Output "Creating $dotEnvFileName file..."
 }
+New-Item -Path . -Name $dotEnvFileName -ItemType "file" | Out-Null
 
 # Output Tenant Id to dotEnv file
-$tenantIdInfo | Out-File -File $dotEnvFileName -Append
+$tenantIdInfo | Out-File -File $dotEnvFileName -Append -Encoding utf8
 # login - you should have permission already to ready the necessary keyvault
 # if not, ask your manager to help with onboarding
 az login --output none
@@ -45,10 +46,13 @@ $clientIdNameValue = "$clientIdName$clientIdValue"
 $clientCertPathNameValue = "$clientCertPathName" + '"' + $fullPemPath + '"'
 
 
-$clientIdNameValue | Out-File -File $dotEnvFileName -Append
-$clientCertPathNameValue | Out-File -File $dotEnvFileName -Append
-$sessionSecretNameValue | Out-File -File $dotEnvFileName -Append
+$clientIdNameValue | Out-File -File $dotEnvFileName -Append -Encoding utf8
+$clientCertPathNameValue | Out-File -File $dotEnvFileName -Append -Encoding utf8
+$sessionSecretNameValue | Out-File -File $dotEnvFileName -Append -Encoding utf8
 
-# Dotenv will not parse CLRF correctly, so we need to replace it with LF
-(Get-Content $dotEnvFileName -Raw).Replace("`r`n", "`n") | Set-Content $dotEnvFileName -Force
+# Dotenv will not parse CRLF correctly, so we need to replace it with LF
+# Also strip BOM if present (Windows PowerShell 5.1 adds a UTF-8 BOM with -Encoding utf8)
+$content = [System.IO.File]::ReadAllText((Resolve-Path $dotEnvFileName).Path)
+$content = $content.TrimStart([char]0xFEFF).Replace("`r`n", "`n")
+[System.IO.File]::WriteAllText((Resolve-Path $dotEnvFileName).Path, $content, [System.Text.UTF8Encoding]::new($false))
 
