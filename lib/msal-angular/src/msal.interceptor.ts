@@ -73,45 +73,54 @@ export class MsalInterceptor implements HttpInterceptor {
     }
 
     // Sets account as active account or first account
-    let account: AccountInfo;
-    if (!!this.authService.instance.getActiveAccount()) {
+    const handleAccount = (account: AccountInfo): Observable<HttpEvent<any>> => {
+      const authRequest =
+        typeof this.msalInterceptorConfig.authRequest === "function"
+          ? this.msalInterceptorConfig.authRequest(this.authService, req, {
+              account: account,
+            })
+          : { ...this.msalInterceptorConfig.authRequest, account };
+
       this.authService
         .getLogger()
-        .verbose("Interceptor - active account selected");
-      account = this.authService.instance.getActiveAccount();
-    } else {
+        .info(`Interceptor - ${scopes.length} scopes found for endpoint`);
       this.authService
         .getLogger()
-        .verbose("Interceptor - no active account, fallback to first account");
-      account = this.authService.instance.getAllAccounts()[0];
-    }
+        .infoPii(`Interceptor - [${scopes}] scopes found for ${req.url}`);
 
-    const authRequest =
-      typeof this.msalInterceptorConfig.authRequest === "function"
-        ? this.msalInterceptorConfig.authRequest(this.authService, req, {
-            account: account,
-          })
-        : { ...this.msalInterceptorConfig.authRequest, account };
+      return this.acquireToken(authRequest, scopes, account).pipe(
+        switchMap((result: AuthenticationResult) => {
+          this.authService
+            .getLogger()
+            .verbose("Interceptor - setting authorization headers");
+          const headers = req.headers.set(
+            "Authorization",
+            `Bearer ${result.accessToken}`
+          );
 
-    this.authService
-      .getLogger()
-      .info(`Interceptor - ${scopes.length} scopes found for endpoint`);
-    this.authService
-      .getLogger()
-      .infoPii(`Interceptor - [${scopes}] scopes found for ${req.url}`);
+          const requestClone = req.clone({ headers });
+          return next.handle(requestClone);
+        })
+      );
+    };
 
-    return this.acquireToken(authRequest, scopes, account).pipe(
-      switchMap((result: AuthenticationResult) => {
+    return this.authService.getActiveAccount().pipe(
+      switchMap((activeAccount: AccountInfo) => {
+        if (!!activeAccount) {
+          this.authService
+            .getLogger()
+            .verbose("Interceptor - active account selected");
+          return handleAccount(activeAccount);
+        }
+
         this.authService
           .getLogger()
-          .verbose("Interceptor - setting authorization headers");
-        const headers = req.headers.set(
-          "Authorization",
-          `Bearer ${result.accessToken}`
+          .verbose("Interceptor - no active account, fallback to first account");
+        return this.authService.getAllAccounts().pipe(
+          switchMap((allAccounts: AccountInfo[]) => {
+            return handleAccount(allAccounts[0]);
+          })
         );
-
-        const requestClone = req.clone({ headers });
-        return next.handle(requestClone);
       })
     );
   }

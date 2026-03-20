@@ -16,8 +16,9 @@ import {
   SsoSilentRequest,
   Logger,
   WrapperSKU,
+  AccountInfo,
 } from "@azure/msal-browser";
-import { Observable, from } from "rxjs";
+import { EMPTY, Observable, from, of } from "rxjs";
 import { IMsalService } from "./IMsalService";
 import { name, version } from "./packageMetadata";
 import { MSAL_INSTANCE } from "./constants";
@@ -27,6 +28,8 @@ import { MsalBroadcastService } from "./msal.broadcast.service";
 export class MsalService implements IMsalService {
   private redirectHash: string;
   private logger: Logger;
+  public initialized: boolean = false;
+  private initializePromise: Promise<void> = null;
 
   constructor(
     @Inject(MSAL_INSTANCE) public instance: IPublicClientApplication,
@@ -40,24 +43,49 @@ export class MsalService implements IMsalService {
     this.instance.initializeWrapperLibrary(WrapperSKU.Angular, version);
   }
 
+  private _initialize(): Promise<void> {
+    if (this.initialized) {
+      return Promise.resolve();
+    }
+    this.initializePromise = this.instance.initialize().then(() => {
+      this.initialized = true;
+      this.initializePromise = null;
+    });
+    return this.initializePromise;
+  }
+
   initialize(): Observable<void> {
-    return from(this.instance.initialize());
+    if (this.initialized) {
+      return EMPTY;
+    }
+    if (!this.initializePromise) {
+      this._initialize();
+    }
+    return from(this.initializePromise);
   }
   acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult> {
+    if (!this.initialized) {
+      return from(this._initialize().then(() => this.instance.acquireTokenPopup(request)));
+    }
     return from(this.instance.acquireTokenPopup(request));
   }
   acquireTokenRedirect(request: RedirectRequest): Observable<void> {
+    if (!this.initialized) {
+      return from(this._initialize().then(() => this.instance.acquireTokenRedirect(request)));
+    }
     return from(this.instance.acquireTokenRedirect(request));
   }
   acquireTokenSilent(
     silentRequest: SilentRequest
   ): Observable<AuthenticationResult> {
+    if (!this.initialized) {
+      return from(this._initialize().then(() => this.instance.acquireTokenSilent(silentRequest)));
+    }
     return from(this.instance.acquireTokenSilent(silentRequest));
   }
   handleRedirectObservable(hash?: string): Observable<AuthenticationResult> {
     return from(
-      this.instance
-        .initialize()
+      this._initialize()
         .then(() =>
           this.instance.handleRedirectPromise(hash || this.redirectHash)
         )
@@ -68,23 +96,53 @@ export class MsalService implements IMsalService {
     );
   }
   loginPopup(request?: PopupRequest): Observable<AuthenticationResult> {
+    if (!this.initialized) {
+      return from(this._initialize().then(() => this.instance.loginPopup(request)));
+    }
     return from(this.instance.loginPopup(request));
   }
   loginRedirect(request?: RedirectRequest): Observable<void> {
+    if (!this.initialized) {
+      return from(this._initialize().then(() => this.instance.loginRedirect(request)));
+    }
     return from(this.instance.loginRedirect(request));
   }
   // @deprecated: Use logoutRedirect or logoutPopup
   logout(logoutRequest?: EndSessionRequest): Observable<void> {
+    if (!this.initialized) {
+      return from(this._initialize().then(() => this.instance.logout(logoutRequest)));
+    }
     return from(this.instance.logout(logoutRequest));
   }
   logoutRedirect(logoutRequest?: EndSessionRequest): Observable<void> {
+    if (!this.initialized) {
+      return from(this._initialize().then(() => this.instance.logoutRedirect(logoutRequest)));
+    }
     return from(this.instance.logoutRedirect(logoutRequest));
   }
   logoutPopup(logoutRequest?: EndSessionPopupRequest): Observable<void> {
+    if (!this.initialized) {
+      return from(this._initialize().then(() => this.instance.logoutPopup(logoutRequest)));
+    }
     return from(this.instance.logoutPopup(logoutRequest));
   }
   ssoSilent(request: SsoSilentRequest): Observable<AuthenticationResult> {
+    if (!this.initialized) {
+      return from(this._initialize().then(() => this.instance.ssoSilent(request)));
+    }
     return from(this.instance.ssoSilent(request));
+  }
+  getActiveAccount(): Observable<AccountInfo> {
+    if (!this.initialized) {
+      return from(this._initialize().then(() => this.instance.getActiveAccount()));
+    }
+    return of(this.instance.getActiveAccount());
+  }
+  getAllAccounts(): Observable<AccountInfo[]> {
+    if (!this.initialized) {
+      return from(this._initialize().then(() => this.instance.getAllAccounts()));
+    }
+    return of(this.instance.getAllAccounts());
   }
   /**
    * Gets logger for msal-angular.
