@@ -38,6 +38,7 @@ import {
     initiateCodeRequest,
     initiateCodeFlowWithPost,
     initiateEarRequest,
+    removeHiddenIframe,
 } from "../interaction_handler/SilentHandler.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
@@ -276,7 +277,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             earJwk: earJwk,
             codeChallenge: pkceCodes.challenge,
         };
-        await invokeAsync(
+        const iframe = await invokeAsync(
             initiateEarRequest,
             BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
             this.logger,
@@ -291,19 +292,30 @@ export class SilentIframeClient extends StandardInteractionClient {
         );
 
         const responseType = this.config.auth.OIDCOptions.responseMode;
-        const responseString = await invokeAsync(
-            BrowserUtils.waitForBridgeResponse,
-            BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(
-            this.config.system.iframeBridgeTimeout,
-            this.logger,
-            this.browserCrypto,
-            request,
-            this.performanceClient
-        );
+        let responseString: string;
+        try {
+            responseString = await invokeAsync(
+                BrowserUtils.waitForBridgeResponse,
+                BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                this.config.system.iframeBridgeTimeout,
+                this.logger,
+                this.browserCrypto,
+                request,
+                this.performanceClient
+            );
+        } finally {
+            invoke(
+                removeHiddenIframe,
+                BrowserPerformanceEvents.RemoveHiddenIframe,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(iframe);
+        }
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
@@ -415,8 +427,9 @@ export class SilentIframeClient extends StandardInteractionClient {
             codeChallenge: pkceCodes.challenge,
         };
 
+        let iframe: HTMLIFrameElement;
         if (request.httpMethod === Constants.HttpMethod.POST) {
-            await invokeAsync(
+            iframe = await invokeAsync(
                 initiateCodeFlowWithPost,
                 BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
                 this.logger,
@@ -446,7 +459,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             );
 
             // Get the frame handle for the silent request
-            await invokeAsync(
+            iframe = await invokeAsync(
                 initiateCodeRequest,
                 BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
                 this.logger,
@@ -457,19 +470,30 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         const responseType = this.config.auth.OIDCOptions.responseMode;
         // Wait for response from the redirect bridge.
-        const responseString = await invokeAsync(
-            BrowserUtils.waitForBridgeResponse,
-            BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(
-            this.config.system.iframeBridgeTimeout,
-            this.logger,
-            this.browserCrypto,
-            request,
-            this.performanceClient
-        );
+        let responseString: string;
+        try {
+            responseString = await invokeAsync(
+                BrowserUtils.waitForBridgeResponse,
+                BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                this.config.system.iframeBridgeTimeout,
+                this.logger,
+                this.browserCrypto,
+                request,
+                this.performanceClient
+            );
+        } finally {
+            invoke(
+                removeHiddenIframe,
+                BrowserPerformanceEvents.RemoveHiddenIframe,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(iframe);
+        }
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
