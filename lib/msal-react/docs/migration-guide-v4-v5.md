@@ -16,21 +16,23 @@ MSAL Browser v5 requires a dedicated redirect page/bridge for authentication flo
 Please see the [COOP section in the MSAL Browser v4-v5 migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v4-migration.md#cross-origin-opener-policy-coop-support).
 
 ## Updated React version support
-MSAL React v5 supports React 18.0.0 or greater and React 19.2.1 or greater. It no longer supports React 16 or 17.
+MSAL React v5 supports React 16.8.0 or greater through React 19.x. This includes React 16 (16.8+), 17, 18, and 19.
 
 ## Peer dependency ranges
 
-MSAL React v5 declares its `react` peer dependency as `"^18.0.0 || ^19.2.1"`. This means:
+MSAL React v5 declares its `react` peer dependency as `">=16.8.0 <20.0.0"`. This means:
 
-- Applications using React 18.x will satisfy the peer dependency without errors or warnings.
-- Applications using React 19.2.1 or newer (within the React 19.x line) will satisfy the peer dependency without errors or warnings.
-- No `--legacy-peer-deps` flag is required for either version.
+- Applications using React 16.8 or newer will satisfy the peer dependency without errors or warnings.
+- Applications using React 17.x, 18.x, or 19.x will satisfy the peer dependency without errors or warnings.
+- No `--legacy-peer-deps` flag is required for any supported version.
 
 ### Known considerations
 
-- **`@types/react`**: If you use TypeScript, install the `@types/react` version matching your React major version (`@types/react@^18` for React 18, `@types/react@^19` for React 19). Both are compatible with the MSAL React v5 public API surface.
-- **`@testing-library/react`**: v14+ supports React 18; v16+ supports both React 18 and 19. Choose the version that matches your React version.
-- **`react-dom`**: Install the same major version of `react-dom` as `react` (e.g., `react-dom@^18` with `react@^18`).
+- **React 16/17 note**: React hooks are required. Minimum supported version is React 16.8.0.
+- **`@types/react`**: If you use TypeScript, install the `@types/react` version matching your React major version (`@types/react@^16` for React 16, `@types/react@^17` for React 17, `@types/react@^18` for React 18, `@types/react@^19` for React 19). All are compatible with the MSAL React v5 public API surface.
+- **`@testing-library/react`**: v12 supports React 16/17; v14+ supports React 18; v16+ supports both React 18 and 19. Choose the version that matches your React version.
+- **`react-dom`**: Install the same major version of `react-dom` as `react` (e.g., `react-dom@^16` with `react@^16`).
+- **Rendering API**: React 16 and 17 use `ReactDOM.render()`. React 18+ uses `createRoot()`. MSAL React itself does not call either API — your application chooses the rendering method.
 
 ## Migrating from Create React App (react-scripts)
 

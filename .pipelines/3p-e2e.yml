@@ -119,10 +119,36 @@ extends:
                             - "b2c-sample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
-                  - template: .pipelines/templates/msal-react-react18-e2e.yml@self
+                  - template: .pipelines/templates/msal-react-compat-e2e.yml@self
                     parameters:
                         poolType: ${{ parameters.poolType }}
                         sourceBranch: ${{ variables.sourceBranch }}
+                        reactVersion: "18"
+                        reactOverride: "^18"
+                        debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        samples:
+                            - "react-router-sample"
+                            - "typescript-sample"
+                            - "b2c-sample"
+                  - template: .pipelines/templates/msal-react-compat-e2e.yml@self
+                    parameters:
+                        poolType: ${{ parameters.poolType }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        reactVersion: "17"
+                        reactOverride: "^17"
+                        debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        samples:
+                            - "react-router-sample"
+                            - "typescript-sample"
+                            - "b2c-sample"
+                  - template: .pipelines/templates/msal-react-compat-e2e.yml@self
+                    parameters:
+                        poolType: ${{ parameters.poolType }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        reactVersion: "16"
+                        reactOverride: "^16.8.0"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         samples:

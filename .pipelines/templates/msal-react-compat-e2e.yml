@@ -7,6 +7,10 @@ parameters:
           - "windows"
     - name: "sourceBranch"
       type: string
+    - name: "reactVersion"
+      type: string
+    - name: "reactOverride"
+      type: string
     - name: "npmInstallTimeout"
       type: number
       default: 15
@@ -22,8 +26,8 @@ parameters:
 
 jobs:
     - ${{ each sample in parameters.samples }}:
-          - job: validate_msal_react_r18_${{ replace(sample, '-', '_') }}
-            displayName: "[msal-react] - ${{ sample }} - React 18 - Node v22"
+          - job: validate_msal_react_r${{ parameters.reactVersion }}_${{ replace(sample, '-', '_') }}
+            displayName: "[msal-react] - ${{ sample }} - React ${{ parameters.reactVersion }} - Node v22"
 
             pool:
                 type: ${{ parameters.poolType }}
@@ -75,11 +79,11 @@ jobs:
                       timeout: ${{ parameters.npmInstallTimeout }}
 
                 - task: CmdLine@2
-                  displayName: "Override sample to React 18 via npm overrides"
+                  displayName: "Override sample to React ${{ parameters.reactVersion }} via npm overrides"
                   inputs:
                       targetType: inline
                       script: |
-                          npm pkg set "overrides.react=^18" "overrides.react-dom=^18" "overrides.@types/react=^18" "overrides.@types/react-dom=^18"
+                          npm pkg set "overrides.react=${{ parameters.reactOverride }}" "overrides.react-dom=${{ parameters.reactOverride }}" "overrides.@types/react=${{ parameters.reactOverride }}" "overrides.@types/react-dom=${{ parameters.reactOverride }}"
                           npm install
                       workingDirectory: "./"
 
@@ -132,7 +136,7 @@ jobs:
                 - task: CmdLine@2
                   displayName: "Create screenshot folder"
                   inputs:
-                      script: mkdir -p ${{ replace(variables.samplePath, '/', '\') }}\test\screenshots\react18
+                      script: mkdir -p ${{ replace(variables.samplePath, '/', '\') }}\test\screenshots\react${{ parameters.reactVersion }}
 
                 - task: Npm@1
                   displayName: "Test ${{ sample }}"
@@ -155,12 +159,12 @@ jobs:
                   condition: succeededOrFailed()
                   inputs:
                       testResultsFiles: "$(samplePath)/${{ sample }}.xml"
-                      testRunTitle: "${{ sample }}-react18"
+                      testRunTitle: "${{ sample }}-react${{ parameters.reactVersion }}"
 
                 - task: CopyFiles@2
                   condition: failed()
                   inputs:
-                      SourceFolder: "${{ variables.samplePath }}/test/screenshots/react18"
+                      SourceFolder: "${{ variables.samplePath }}/test/screenshots/react${{ parameters.reactVersion }}"
                       Contents: "**"
                       TargetFolder: $(Build.ArtifactStagingDirectory)
 
@@ -169,7 +173,7 @@ jobs:
                   condition: succeededOrFailed()
                   inputs:
                       targetPath: $(Build.ArtifactStagingDirectory)
-                      artifact: "drop_e2e_test_validate_msal_react_r18_${{ replace(sample, '-', '_') }}"
+                      artifact: "drop_e2e_test_validate_msal_react_r${{ parameters.reactVersion }}_${{ replace(sample, '-', '_') }}"
                       publishLocation: "pipeline"
 
                 - template: .pipelines/templates/remove-keyvault-secrets.yml@1P
