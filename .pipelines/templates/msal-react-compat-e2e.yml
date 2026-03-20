@@ -7,10 +7,6 @@ parameters:
           - "windows"
     - name: "sourceBranch"
       type: string
-    - name: "reactVersion"
-      type: string
-    - name: "reactOverride"
-      type: string
     - name: "npmInstallTimeout"
       type: number
       default: 15
@@ -23,11 +19,21 @@ parameters:
           - "react-router-sample"
           - "typescript-sample"
           - "b2c-sample"
+    - name: "reactVersions"
+      type: object
+      default:
+          - version: "18"
+            override: "^18"
+          - version: "17"
+            override: "^17"
+          - version: "16"
+            override: "^16.8.0"
 
 jobs:
-    - ${{ each sample in parameters.samples }}:
-          - job: validate_msal_react_r${{ parameters.reactVersion }}_${{ replace(sample, '-', '_') }}
-            displayName: "[msal-react] - ${{ sample }} - React ${{ parameters.reactVersion }} - Node v22"
+    - ${{ each rv in parameters.reactVersions }}:
+      - ${{ each sample in parameters.samples }}:
+          - job: validate_msal_react_r${{ rv.version }}_${{ replace(sample, '-', '_') }}
+            displayName: "[msal-react] - ${{ sample }} - React ${{ rv.version }} - Node v22"
 
             pool:
                 type: ${{ parameters.poolType }}
@@ -79,11 +85,11 @@ jobs:
                       timeout: ${{ parameters.npmInstallTimeout }}
 
                 - task: CmdLine@2
-                  displayName: "Override sample to React ${{ parameters.reactVersion }} via npm overrides"
+                  displayName: "Override sample to React ${{ rv.version }} via npm overrides"
                   inputs:
                       targetType: inline
                       script: |
-                          npm pkg set "overrides.react=${{ parameters.reactOverride }}" "overrides.react-dom=${{ parameters.reactOverride }}" "overrides.@types/react=${{ parameters.reactOverride }}" "overrides.@types/react-dom=${{ parameters.reactOverride }}"
+                          npm pkg set "overrides.react=${{ rv.override }}" "overrides.react-dom=${{ rv.override }}" "overrides.@types/react=${{ rv.override }}" "overrides.@types/react-dom=${{ rv.override }}"
                           npm install
                       workingDirectory: "./"
 
@@ -136,7 +142,7 @@ jobs:
                 - task: CmdLine@2
                   displayName: "Create screenshot folder"
                   inputs:
-                      script: mkdir -p ${{ replace(variables.samplePath, '/', '\') }}\test\screenshots\react${{ parameters.reactVersion }}
+                      script: mkdir -p ${{ replace(variables.samplePath, '/', '\') }}\test\screenshots\react${{ rv.version }}
 
                 - task: Npm@1
                   displayName: "Test ${{ sample }}"
@@ -159,12 +165,12 @@ jobs:
                   condition: succeededOrFailed()
                   inputs:
                       testResultsFiles: "$(samplePath)/${{ sample }}.xml"
-                      testRunTitle: "${{ sample }}-react${{ parameters.reactVersion }}"
+                      testRunTitle: "${{ sample }}-react${{ rv.version }}"
 
                 - task: CopyFiles@2
                   condition: failed()
                   inputs:
-                      SourceFolder: "${{ variables.samplePath }}/test/screenshots/react${{ parameters.reactVersion }}"
+                      SourceFolder: "${{ variables.samplePath }}/test/screenshots/react${{ rv.version }}"
                       Contents: "**"
                       TargetFolder: $(Build.ArtifactStagingDirectory)
 
@@ -173,7 +179,7 @@ jobs:
                   condition: succeededOrFailed()
                   inputs:
                       targetPath: $(Build.ArtifactStagingDirectory)
-                      artifact: "drop_e2e_test_validate_msal_react_r${{ parameters.reactVersion }}_${{ replace(sample, '-', '_') }}"
+                      artifact: "drop_e2e_test_validate_msal_react_r${{ rv.version }}_${{ replace(sample, '-', '_') }}"
                       publishLocation: "pipeline"
 
                 - template: .pipelines/templates/remove-keyvault-secrets.yml@1P
