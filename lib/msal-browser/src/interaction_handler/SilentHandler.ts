@@ -130,7 +130,7 @@ function createHiddenIframe(): HTMLIFrameElement {
 
 /**
  * @hidden
- * Removes a hidden iframe from the DOM.
+ * Removes a hidden iframe from `document.body` if it is a direct child.
  * @param iframe - The iframe element to remove.
  */
 export function removeHiddenIframe(iframe: HTMLIFrameElement): void {

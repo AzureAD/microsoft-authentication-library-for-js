@@ -1314,15 +1314,6 @@ describe("SilentIframeClient", () => {
             it("removes hidden iframe even when waitForBridgeResponse rejects", async () => {
                 const iframe = document.createElement("iframe");
                 document.body.appendChild(iframe);
-                jest.spyOn(
-                    AuthorizeProtocol,
-                    "getAuthCodeRequestUrl"
-                ).mockResolvedValue(testNavUrl);
-                jest.spyOn(
-                    SilentHandler,
-                    "initiateCodeRequest"
-                ).mockResolvedValue(iframe);
-                jest.restoreAllMocks();
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
                     TEST_STATE_VALUES.TEST_STATE_SILENT
                 );
