@@ -127,3 +127,14 @@ function createHiddenIframe(): HTMLIFrameElement {
 
     return authFrame;
 }
+
+/**
+ * @hidden
+ * Removes a hidden iframe from the DOM.
+ * @param iframe - The iframe element to remove.
+ */
+export function removeHiddenIframe(iframe: HTMLIFrameElement): void {
+    if (document.body === iframe.parentNode) {
+        document.body.removeChild(iframe);
+    }
+}

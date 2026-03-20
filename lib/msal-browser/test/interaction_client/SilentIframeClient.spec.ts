@@ -1284,6 +1284,69 @@ describe("SilentIframeClient", () => {
                 expect(initiateCodeRequestSpy).toHaveBeenCalled();
                 expect(tokenResp).toEqual(testTokenResponse);
             });
+
+            it("removes hidden iframe after successful token acquisition", async () => {
+                const iframe = document.createElement("iframe");
+                document.body.appendChild(iframe);
+                jest.spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl")
+                    .mockResolvedValue(testNavUrl);
+                jest.spyOn(SilentHandler, "initiateCodeRequest")
+                    .mockResolvedValue(iframe);
+                const removeIframeSpy = jest.spyOn(SilentHandler, "removeHiddenIframe");
+
+                await silentIframeClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    account: testAccount,
+                });
+
+                expect(removeIframeSpy).toHaveBeenCalledWith(iframe);
+                expect(document.body.contains(iframe)).toBe(false);
+            });
+
+            it("removes hidden iframe even when waitForBridgeResponse rejects", async () => {
+                const iframe = document.createElement("iframe");
+                document.body.appendChild(iframe);
+                jest.spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl")
+                    .mockResolvedValue(testNavUrl);
+                jest.spyOn(SilentHandler, "initiateCodeRequest")
+                    .mockResolvedValue(iframe);
+                jest.restoreAllMocks();
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_SILENT
+                );
+                jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER,
+                });
+                jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                    RANDOM_TEST_GUID
+                );
+                jest.spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl")
+                    .mockResolvedValue(testNavUrl);
+                jest.spyOn(SilentHandler, "initiateCodeRequest")
+                    .mockResolvedValue(iframe);
+                jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.timedOut,
+                        "redirect_bridge_timeout"
+                    )
+                );
+                const removeIframeSpy = jest.spyOn(SilentHandler, "removeHiddenIframe");
+
+                await expect(
+                    silentIframeClient.acquireToken({
+                        redirectUri: TEST_URIS.TEST_REDIR_URI,
+                        loginHint: "testLoginHint",
+                        account: testAccount,
+                    })
+                ).rejects.toMatchObject({
+                    errorCode: BrowserAuthErrorCodes.timedOut,
+                });
+
+                expect(removeIframeSpy).toHaveBeenCalledWith(iframe);
+                expect(document.body.contains(iframe)).toBe(false);
+            });
         });
 
         describe("storeInCache tests", () => {
