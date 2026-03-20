@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774029011066,
+  "lastUpdate": 1774037035980,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20275,6 +20275,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.96%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5e2a9eee303c956725fd1e88cf7519578417e3c9",
+          "message": "Remove hidden iframe after receiving response from the redirect bridge (#8459)\n\nThis pull request improves the reliability and cleanliness of the silent\nauthentication flow by ensuring that hidden iframes created for silent\ntoken acquisition are always removed from the DOM, regardless of whether\nthe operation succeeds or fails. It introduces a new utility function\nfor removing iframes, integrates it into the main authentication logic,\nand adds comprehensive tests to verify this behavior.\n\n**Silent iframe cleanup improvements:**\n\n* Added a new `removeHiddenIframe` function in `SilentHandler.ts` to\nsafely remove hidden iframes from the DOM after silent authentication\nattempts.\n* Updated `SilentIframeClient.ts` to always remove the hidden iframe in\na `finally` block after waiting for the authentication response,\nensuring cleanup on both success and error cases.\n[[1]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faR41)\n[[2]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faL279-R280)\n[[3]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faL294-R297)\n[[4]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faR310-R318)\n[[5]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faR430-R432)\n[[6]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faL449-R462)\n[[7]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faL460-R475)\n[[8]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faR488-R496)\n\n**Testing and validation:**\n\n* Added new tests in `SilentIframeClient.spec.ts` to verify that the\nhidden iframe is removed after both successful and failed token\nacquisition attempts.\n* Added unit tests for the `removeHiddenIframe` function in\n`SilentHandler.spec.ts` to ensure correct behavior in various DOM\nscenarios.\n\n---------\n\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-03-20T12:57:25-07:00",
+          "tree_id": "80246cc001efabaa13ed6bef63233d4c46990a12",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5e2a9eee303c956725fd1e88cf7519578417e3c9"
+        },
+        "date": 1774037031830,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 237667,
+            "range": "±0.93%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 239364,
+            "range": "±1.05%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
