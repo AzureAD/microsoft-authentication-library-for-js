@@ -282,8 +282,7 @@ describe("broadcastResponseToMainFrame", () => {
         it("strips existing hash from cached origin URL when auth response is in hash", async () => {
             const testClientId = "test-client-id-hash";
             // Simulate a hash-routed SPA: the origin URL has a hash fragment
-            const cachedOriginUrl =
-                "https://localhost:3000/#/dashboard";
+            const cachedOriginUrl = "https://localhost:3000/#/dashboard";
 
             mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
                 clientId: testClientId,
@@ -332,8 +331,7 @@ describe("broadcastResponseToMainFrame", () => {
 
         it("preserves origin URL hash when auth response is only in query string", async () => {
             const testClientId = "test-client-id-query";
-            const cachedOriginUrl =
-                "https://localhost:3000/#/dashboard";
+            const cachedOriginUrl = "https://localhost:3000/#/dashboard";
 
             mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
                 clientId: testClientId,
