@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Set correlation ID after initialization for NAA [#8447](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8447)",
-  "packageName": "@azure/msal-browser",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
-}
