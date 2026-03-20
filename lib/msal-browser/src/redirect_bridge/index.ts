@@ -115,14 +115,23 @@ export async function broadcastResponseToMainFrame(
             const preHash = baseUrl.substring(0, baseHashIndex);
             const fragment = baseUrl.substring(baseHashIndex);
             // If the base URL already has query params, join with "&" instead of adding a second "?"
-            if (preHash.indexOf("?") !== -1 && fullUrlResponse.startsWith("?")) {
-                homepage = `${preHash}${fullUrlResponse.replace("?", "&")}${fragment}`;
+            if (
+                preHash.indexOf("?") !== -1 &&
+                fullUrlResponse.startsWith("?")
+            ) {
+                homepage = `${preHash}${fullUrlResponse.replace(
+                    "?",
+                    "&"
+                )}${fragment}`;
             } else {
                 homepage = `${preHash}${fullUrlResponse}${fragment}`;
             }
         } else {
             // No hash fragment: append auth response to the end of the base URL
-            if (baseUrl.indexOf("?") !== -1 && fullUrlResponse.startsWith("?")) {
+            if (
+                baseUrl.indexOf("?") !== -1 &&
+                fullUrlResponse.startsWith("?")
+            ) {
                 // Base URL already has query params; avoid creating a second "?"
                 homepage = `${baseUrl}${fullUrlResponse.replace("?", "&")}`;
             } else {

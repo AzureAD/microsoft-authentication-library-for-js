@@ -309,10 +309,9 @@ describe("broadcastResponseToMainFrame", () => {
             );
         });
 
-        it("strips existing hash from cached origin URL when no clientId in interaction status", async () => {
-            // Set interaction status WITHOUT a clientId so the code falls through
-            // to the getHomepage() fallback. But also cache an origin URL with a
-            // hash under a different key path to verify the fallback is exercised.
+        it("falls back to homepage when interaction status JSON is unparseable", async () => {
+            // Invalid JSON triggers the catch block, so navigateToUrl stays empty
+            // and getHomepage() is used as the fallback
             mockSessionStorage[`msal.interaction.status`] = "invalid-json";
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -325,6 +324,28 @@ describe("broadcastResponseToMainFrame", () => {
 
             // getHomepage() returns origin + "/" which has no hash,
             // so the result should simply be homepage + auth hash
+            const hashCount = (callArgs.match(/#/g) || []).length;
+            expect(hashCount).toBe(1);
+            expect(callArgs).toContain(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
+        });
+
+        it("falls back to homepage when interaction status has no clientId", async () => {
+            // Valid JSON but without clientId means cached origin URL is never looked up
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                type: "redirect",
+            });
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            const callArgs = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0] as string;
+
+            // No clientId means no cached origin URL, falls back to getHomepage()
             const hashCount = (callArgs.match(/#/g) || []).length;
             expect(hashCount).toBe(1);
             expect(callArgs).toContain(

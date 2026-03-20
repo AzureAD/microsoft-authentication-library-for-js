@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix hash handling in broadcastResponseToMainFrame to prevent malformed URLs #8460 (https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8460)",
+  "comment": "Fix hash handling in broadcastResponseToMainFrame to prevent malformed URLs [#8460](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8460)",
   "packageName": "@azure/msal-browser",
   "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"
