@@ -152,4 +152,5 @@ extends:
                             - "angular-modules-sample"
                             - "angular-standalone-sample"
                         debug: ${{ parameters.debug }}
-                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}                        enableScreenshots: ${{ parameters.enableScreenshots }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        enableScreenshots: ${{ parameters.enableScreenshots }}
