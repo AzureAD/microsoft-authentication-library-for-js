@@ -95,9 +95,20 @@ export async function broadcastResponseToMainFrame(
             fullUrlResponse = urlQuery;
         }
 
-        const homepage = `${
-            navigateToUrl || BrowserUtils.getHomepage()
-        }${fullUrlResponse}`;
+        /*
+         * Strip existing hash from the origin URL before appending the auth response hash
+         * to avoid creating a malformed URL with two # fragments (e.g. /#/route#code=xxx).
+         * The original hash is restored later by RedirectClient.handleRedirectPromise.
+         */
+        let baseUrl = navigateToUrl || BrowserUtils.getHomepage();
+        if (hasResponseInHash) {
+            const hashIndex = baseUrl.indexOf("#");
+            if (hashIndex > -1) {
+                baseUrl = baseUrl.substring(0, hashIndex);
+            }
+        }
+
+        const homepage = `${baseUrl}${fullUrlResponse}`;
         await navClient.navigateInternal(homepage, navigationOptions);
 
         // Do NOT clear URL for redirect flow - we're navigating away anyway
