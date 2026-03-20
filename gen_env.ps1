@@ -10,7 +10,7 @@ $sessionSecretName = "SESSION_SECRET="
 # Always start with a fresh .env file to avoid duplicate entries
 if (Test-Path $dotEnvFileName) {
     Write-Output "Overwriting existing $dotEnvFileName file..."
-    Remove-Item $dotEnvFileName
+    Remove-Item $dotEnvFileName -Force -ErrorAction Stop
 }
 else {
     Write-Output "Creating $dotEnvFileName file..."
@@ -29,8 +29,8 @@ $clientIdValue = $(az keyvault secret show --name "LabVaultAppId" --vault-name "
 $pfxPath = "LabCert.pfx";
 $pemPath = "LabCert.pem";
 # Clean up existing cert files to avoid errors on re-run
-if (Test-Path $pfxPath) { Remove-Item $pfxPath }
-if (Test-Path $pemPath) { Remove-Item $pemPath }
+if (Test-Path $pfxPath) { Remove-Item $pfxPath -Force -ErrorAction Stop }
+if (Test-Path $pemPath) { Remove-Item $pemPath -Force -ErrorAction Stop }
 # get the lab app cert
 az keyvault secret download --vault-name "msidlabs" -n "LabAuth" --file $pfxPath --encoding base64
 # convert pfx file to pem
@@ -54,8 +54,8 @@ $clientCertPathNameValue | Out-File -File $dotEnvFileName -Append -Encoding utf8
 $sessionSecretNameValue | Out-File -File $dotEnvFileName -Append -Encoding utf8
 
 # Dotenv will not parse CRLF correctly, so we need to replace it with LF
-# Also strip BOM if present (Windows PowerShell 5.1 adds a UTF-8 BOM with -Encoding utf8)
-$content = [System.IO.File]::ReadAllText((Resolve-Path $dotEnvFileName).Path)
-$content = $content.TrimStart([char]0xFEFF).Replace("`r`n", "`n")
-[System.IO.File]::WriteAllText((Resolve-Path $dotEnvFileName).Path, $content, [System.Text.UTF8Encoding]::new($false))
+# ReadAllText auto-strips BOM; WriteAllText with UTF8Encoding($false) writes clean UTF-8 without BOM
+$envPath = (Resolve-Path $dotEnvFileName).Path
+$content = [System.IO.File]::ReadAllText($envPath).Replace("`r`n", "`n")
+[System.IO.File]::WriteAllText($envPath, $content, [System.Text.UTF8Encoding]::new($false))
 
