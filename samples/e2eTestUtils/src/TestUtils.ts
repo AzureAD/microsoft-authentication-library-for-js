@@ -20,7 +20,7 @@ export class Screenshot {
     constructor(foldername: string) {
         this.folderName = foldername;
         this.screenshotNum = 0;
-        this.enabled = process.env.ENABLE_E2E_SCREENSHOTS === "true";
+        this.enabled = process.env["ENABLE_E2E_SCREENSHOTS"] === "true";
         if (this.enabled) {
             createFolder(this.folderName);
         }
