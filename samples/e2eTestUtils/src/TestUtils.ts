@@ -15,14 +15,21 @@ const WAIT_FOR_NAVIGATION_CONFIG: WaitForOptions = {
 export class Screenshot {
     private folderName: string;
     private screenshotNum: number;
+    private enabled: boolean;
 
     constructor(foldername: string) {
         this.folderName = foldername;
         this.screenshotNum = 0;
-        createFolder(this.folderName);
+        this.enabled = process.env.ENABLE_E2E_SCREENSHOTS === "true";
+        if (this.enabled) {
+            createFolder(this.folderName);
+        }
     }
 
     async takeScreenshot(page: Page, screenshotName: string): Promise<void> {
+        if (!this.enabled) {
+            return;
+        }
         await page.screenshot({
             path: `${this.folderName}/${++this
                 .screenshotNum}_${screenshotName}.png`,

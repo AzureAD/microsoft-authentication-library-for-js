@@ -13,6 +13,9 @@ parameters:
     - name: "debug"
       type: boolean
       default: false
+    - name: "enableScreenshots"
+      type: boolean
+      default: false
     - name: "samples"
       type: object
       default:
@@ -129,10 +132,11 @@ jobs:
                       pfxPath: "$(Build.SourcesDirectory)/LabCert.pfx"
                       pemPath: "$(Build.SourcesDirectory)/LabCert.pem"
 
-                - task: CmdLine@2
-                  displayName: "Create screenshot folder"
-                  inputs:
-                      script: mkdir -p ${{ replace(variables.samplePath, '/', '\') }}\test\screenshots\react18
+                - ${{ if eq(parameters.enableScreenshots, true) }}:
+                      - task: CmdLine@2
+                        displayName: "Create screenshot folder"
+                        inputs:
+                            script: mkdir -p ${{ replace(variables.samplePath, '/', '\') }}\test\screenshots\react18
 
                 - task: Npm@1
                   displayName: "Test ${{ sample }}"
@@ -149,6 +153,8 @@ jobs:
                       AZURE_TENANT_ID: $(AZURE_TENANT_ID)
                       JEST_JUNIT_OUTPUT_NAME: "${{ sample }}.xml"
                       SESSION_SECRET: $(EXPRESS_SESSION_SECRET)
+                      ${{ if eq(parameters.enableScreenshots, true) }}:
+                          ENABLE_E2E_SCREENSHOTS: "true"
 
                 - task: PublishTestResults@2
                   displayName: "Publish Test Results"
@@ -157,19 +163,20 @@ jobs:
                       testResultsFiles: "$(samplePath)/${{ sample }}.xml"
                       testRunTitle: "${{ sample }}-react18"
 
-                - task: CopyFiles@2
-                  condition: failed()
-                  inputs:
-                      SourceFolder: "${{ variables.samplePath }}/test/screenshots/react18"
-                      Contents: "**"
-                      TargetFolder: $(Build.ArtifactStagingDirectory)
+                - ${{ if eq(parameters.enableScreenshots, true) }}:
+                      - task: CopyFiles@2
+                        condition: failed()
+                        inputs:
+                            SourceFolder: "${{ variables.samplePath }}/test/screenshots/react18"
+                            Contents: "**"
+                            TargetFolder: $(Build.ArtifactStagingDirectory)
 
-                - task: PublishPipelineArtifact@1
-                  displayName: "Upload screenshots to artifacts"
-                  condition: succeededOrFailed()
-                  inputs:
-                      targetPath: $(Build.ArtifactStagingDirectory)
-                      artifact: "drop_e2e_test_validate_msal_react_r18_${{ replace(sample, '-', '_') }}"
-                      publishLocation: "pipeline"
+                      - task: PublishPipelineArtifact@1
+                        displayName: "Upload screenshots to artifacts"
+                        condition: succeededOrFailed()
+                        inputs:
+                            targetPath: $(Build.ArtifactStagingDirectory)
+                            artifact: "drop_e2e_test_validate_msal_react_r18_${{ replace(sample, '-', '_') }}"
+                            publishLocation: "pipeline"
 
                 - template: .pipelines/templates/remove-keyvault-secrets.yml@1P
