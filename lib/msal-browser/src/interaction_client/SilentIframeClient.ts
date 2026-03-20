@@ -486,13 +486,15 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.performanceClient
             );
         } finally {
-            invoke(
-                removeHiddenIframe,
-                BrowserPerformanceEvents.RemoveHiddenIframe,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(iframe);
+            if (iframe) {
+                invoke(
+                    removeHiddenIframe,
+                    BrowserPerformanceEvents.RemoveHiddenIframe,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(iframe);
+            }
         }
 
         const serverParams = invoke(
