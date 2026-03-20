@@ -43,7 +43,7 @@ const response = await msalInstance.acquireTokenSilent(request);
 
 #### Behavior Summary
 
-| `skipBrokerClaims` | `embeddedClientId` set | `clientCapabilities` included in claims |
+| `skipBrokerClaims` | `broker param` set | `clientCapabilities` included in claims |
 |--------------------|------------------------|-----------------------------------------|
 | `false` / not set  | Yes                    | Yes                                     |
 | `false` / not set  | No                     | Yes                                     |
