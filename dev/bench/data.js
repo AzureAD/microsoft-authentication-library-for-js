@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774027625587,
+  "lastUpdate": 1774029011066,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20237,6 +20237,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.81%",
             "unit": "ops/sec",
             "extra": "232 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "93e7a7fb1a90323da951eaecbe94771d9ae960ee",
+          "message": "Enhance documentation review instructions and add audit prompt for code changes (#8442)\n\nThis pull request introduces a new, detailed process for reviewing and\nauditing documentation in response to code changes, specifically for the\nMSAL libraries. It adds a comprehensive documentation review checklist\nand an automated documentation audit prompt, and updates the Copilot\nreview instructions to reference these new resources.\n\nDocumentation review process improvements:\n\n* Added a new documentation review checklist in\n`.github/instructions/doc_review.instructions.md`, outlining when and\nhow to check for required documentation updates after code changes,\nincluding API, behavioral, configuration, and migration impacts.\n* Updated `.github/copilot-instructions.md` to reference the new\ndocumentation review checklist, ensuring reviewers know where to find\nthe full set of documentation review criteria.\n\nAutomation and audit enhancements:\n\n* Introduced `.github/prompts/doc-audit.prompt.md`, which provides a\nstep-by-step prompt for auditing documentation against recent code\nchanges, including mapping code changes to documentation,\ncross-referencing for accuracy, and suggesting specific fixes.\n\n---------\n\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-03-20T17:23:29Z",
+          "tree_id": "7c673e51749c19e504ac04a25b5a55ae24be542b",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/93e7a7fb1a90323da951eaecbe94771d9ae960ee"
+        },
+        "date": 1774029006547,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 220053,
+            "range": "±1.13%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 216886,
+            "range": "±0.96%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
