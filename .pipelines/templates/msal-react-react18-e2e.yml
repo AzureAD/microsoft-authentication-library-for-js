@@ -133,10 +133,12 @@ jobs:
                       pemPath: "$(Build.SourcesDirectory)/LabCert.pem"
 
                 - ${{ if eq(parameters.enableScreenshots, true) }}:
-                      - task: CmdLine@2
+                      - task: PowerShell@2
                         displayName: "Create screenshot folder"
                         inputs:
-                            script: mkdir -p ${{ replace(variables.samplePath, '/', '\') }}\test\screenshots\react18
+                            targetType: "inline"
+                            script: New-Item -ItemType Directory -Force -Path "${{ variables.samplePath }}/test/screenshots/react18"
+                            pwsh: true
 
                 - task: Npm@1
                   displayName: "Test ${{ sample }}"
@@ -173,7 +175,7 @@ jobs:
 
                       - task: PublishPipelineArtifact@1
                         displayName: "Upload screenshots to artifacts"
-                        condition: succeededOrFailed()
+                        condition: failed()
                         inputs:
                             targetPath: $(Build.ArtifactStagingDirectory)
                             artifact: "drop_e2e_test_validate_msal_react_r18_${{ replace(sample, '-', '_') }}"
