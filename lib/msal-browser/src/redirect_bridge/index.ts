@@ -135,8 +135,12 @@ export async function broadcastResponseToMainFrame(
              * (e.g., /#/route#code=...)
              */
             const hashIndex = baseUrl.indexOf("#");
-            const baseUrlWithoutHash =
+            let baseUrlWithoutHash =
                 hashIndex === -1 ? baseUrl : baseUrl.substring(0, hashIndex);
+            // Strip bare trailing "?" to avoid "??" when responseFragment starts with "?"
+            if (baseUrlWithoutHash.endsWith("?")) {
+                baseUrlWithoutHash = baseUrlWithoutHash.slice(0, -1);
+            }
 
             let responseFragment = "";
             if (hasResponseInHash && hasResponseInQuery) {

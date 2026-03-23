@@ -375,6 +375,36 @@ describe("broadcastResponseToMainFrame", () => {
             expect(navigatedUrl).toContain("code=");
         });
 
+        it("strips bare trailing '?' from fallback URL to avoid double '??'", async () => {
+            const testClientId = "fallback-bare-query-client";
+            const originUrlWithBareQuery = "https://localhost:8081/?";
+
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "signin",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                originUrlWithBareQuery;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            // Force fallback by making setItem throw
+            (window.sessionStorage.setItem as jest.Mock).mockImplementation(
+                () => {
+                    throw new Error("QuotaExceeded");
+                }
+            );
+
+            await broadcastResponseToMainFrame();
+
+            const navigatedUrl = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0];
+            // Should not start with "https://localhost:8081/??" (double question mark)
+            expect(navigatedUrl).not.toContain("??");
+            expect(navigatedUrl).toContain("code=");
+        });
+
         it("falls back to URL-based response when client_id is not available", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
