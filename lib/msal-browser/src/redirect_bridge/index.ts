@@ -69,23 +69,23 @@ export async function broadcastResponseToMainFrame(
         let clientId = "";
         const interactionKey = `${PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         /*
-         * Retrieve the original navigation URL from sessionStorage.
-         * sessionStorage access is outside the try/catch so failures
-         * propagate immediately. Only JSON.parse is caught since
-         * interaction status may be missing or malformed.
+         * Retrieve the clientId and original navigation URL from
+         * sessionStorage. If sessionStorage access or JSON.parse fails,
+         * we fall back to URL-based navigation below.
          */
-        const rawInteractionStatus =
-            window.sessionStorage.getItem(interactionKey);
         try {
+            const rawInteractionStatus =
+                window.sessionStorage.getItem(interactionKey);
             const interactionStatus = JSON.parse(rawInteractionStatus || "");
             clientId = interactionStatus.clientId || "";
-        } catch (e) {
-            // JSON.parse failed — interaction status is missing or malformed
-        }
 
-        if (clientId) {
-            const originKey = `${PREFIX}.${clientId}.${TemporaryCacheKeys.ORIGIN_URI}`;
-            navigateToUrl = window.sessionStorage.getItem(originKey) || "";
+            if (clientId) {
+                const originKey = `${PREFIX}.${clientId}.${TemporaryCacheKeys.ORIGIN_URI}`;
+                navigateToUrl =
+                    window.sessionStorage.getItem(originKey) || "";
+            }
+        } catch (e) {
+            // sessionStorage access or JSON.parse failed
         }
 
         /*
@@ -99,19 +99,29 @@ export async function broadcastResponseToMainFrame(
          * This avoids appending the auth response to the URL, which would
          * create malformed URLs for hash-routed SPAs (e.g. /#/route#code=...).
          *
-         * If clientId is unavailable (interaction status missing/malformed),
-         * fall back to appending the auth response to the navigation URL so
-         * handleRedirectPromise can still extract it from window.location.
+         * If caching fails (clientId unavailable, quota exceeded, storage
+         * disabled), fall back to appending the auth response to the
+         * navigation URL so handleRedirectPromise can still extract it
+         * from window.location.
          */
-        let homepage: string;
+        let navigationUrl: string;
+        let cached = false;
         if (clientId) {
-            window.sessionStorage.setItem(
-                `${PREFIX}.${clientId}.${TemporaryCacheKeys.URL_HASH}`,
-                payload
-            );
-            homepage = navigateToUrl || BrowserUtils.getHomepage();
+            try {
+                window.sessionStorage.setItem(
+                    `${PREFIX}.${clientId}.${TemporaryCacheKeys.URL_HASH}`,
+                    payload
+                );
+                cached = true;
+            } catch (e) {
+                // sessionStorage write failed — fall through to URL-based fallback
+            }
+        }
+
+        if (cached) {
+            navigationUrl = navigateToUrl || BrowserUtils.getHomepage();
         } else {
-            // Reconstruct response URL for fallback when clientId is unknown
+            // Reconstruct response URL for fallback when caching is unavailable
             let responseFragment = "";
             if (hasResponseInHash && hasResponseInQuery) {
                 responseFragment = `${urlQuery}${urlHash}`;
@@ -120,10 +130,10 @@ export async function broadcastResponseToMainFrame(
             } else {
                 responseFragment = urlQuery;
             }
-            homepage = `${BrowserUtils.getHomepage()}${responseFragment}`;
+            navigationUrl = `${BrowserUtils.getHomepage()}${responseFragment}`;
         }
 
-        await navClient.navigateInternal(homepage, navigationOptions);
+        await navClient.navigateInternal(navigationUrl, navigationOptions);
 
         // Do NOT clear URL for redirect flow - we're navigating away anyway
         return;

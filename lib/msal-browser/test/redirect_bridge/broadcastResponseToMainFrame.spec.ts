@@ -284,7 +284,7 @@ describe("broadcastResponseToMainFrame", () => {
             ).not.toHaveBeenCalled();
         });
 
-        it("throws when sessionStorage.getItem fails", async () => {
+        it("falls back to URL-based navigation when sessionStorage.getItem fails", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
             // Make sessionStorage.getItem throw
@@ -294,12 +294,17 @@ describe("broadcastResponseToMainFrame", () => {
                 }
             );
 
-            await expect(broadcastResponseToMainFrame()).rejects.toThrow(
-                "SessionStorage unavailable"
-            );
+            await broadcastResponseToMainFrame();
+
+            // Should still navigate with auth response in URL as fallback
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
+            const navigatedUrl = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0];
+            expect(navigatedUrl).toContain("code=");
         });
 
-        it("throws when sessionStorage.setItem fails", async () => {
+        it("falls back to URL-based navigation when sessionStorage.setItem fails", async () => {
             const testClientId = "setitem-fail-client";
 
             mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
@@ -316,9 +321,14 @@ describe("broadcastResponseToMainFrame", () => {
                 }
             );
 
-            await expect(broadcastResponseToMainFrame()).rejects.toThrow(
-                "QuotaExceeded"
-            );
+            await broadcastResponseToMainFrame();
+
+            // Should still navigate with auth response in URL as fallback
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
+            const navigatedUrl = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0];
+            expect(navigatedUrl).toContain("code=");
         });
 
         it("falls back to URL-based response when client_id is not available", async () => {
