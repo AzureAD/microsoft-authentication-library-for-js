@@ -66,6 +66,29 @@ try {
 }
 ```
 
+Note: If you are using `msal-angular` or `msal-react`, redirects are handled differently, and you should see the [`msal-angular` redirect doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/redirects.md) and [`msal-react` FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md#how-do-i-handle-the-redirect-flow-in-a-react-app) for more details.
+
+The redirect APIs are asynchronous (i.e. return a promise) `void` functions which redirect the browser window after caching some basic info. If you choose to use the redirect APIs, be aware that **you MUST call `handleRedirectPromise()` to correctly handle the API**. You can use the following function to perform an action when this token exchange is completed:
+
+```javascript
+msalInstance
+    .handleRedirectPromise()
+    .then((tokenResponse) => {
+        // Check if the tokenResponse is null
+        // If the tokenResponse !== null, then you are coming back from a successful authentication redirect.
+        // If the tokenResponse === null, you are not coming back from an auth redirect.
+    })
+    .catch((error) => {
+        // handle error, either in the library or coming back from the server
+    });
+```
+
+This will also allow you to retrieve tokens on page reload. See the [onPageLoad sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/onPageLoad/) for more information on usage.
+
+It is not recommended to use both interaction types in a single application.
+
+**Note:** `handleRedirectPromise` will optionally accept a hash value to be processed, defaulting to the current value of `window.location.hash`. This
+
 ## Account APIs
 
 When a login call has succeeded, you can use the `getAllAccounts()` function to retrieve information about currently signed in users.
