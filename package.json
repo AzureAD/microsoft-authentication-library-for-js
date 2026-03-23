@@ -12,7 +12,7 @@
         "@microsoft/api-extractor": "^7.43.4",
         "@octokit/graphql": "^4.6.0",
         "@octokit/rest": "^18.2.1",
-        "beachball": "^2.22.4",
+        "beachball": "^2.63.1",
         "dotenv": "^8.2.0",
         "eslint": "^7.8.1",
         "eslint-import-resolver-typescript": "^3.7.0",
