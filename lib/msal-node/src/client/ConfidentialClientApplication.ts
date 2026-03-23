@@ -185,7 +185,7 @@ export class ConfidentialClientApplication
         const authority = new UrlString(validRequest.authority);
         const tenantId = authority.getUrlComponents().PathSegments[0];
         if (
-            Object.values(AADAuthorityConstants).includes(
+            [AADAuthorityConstants.COMMON, AADAuthorityConstants.ORGANIZATIONS].includes(
                 tenantId as AADAuthorityConstants
             )
         ) {
