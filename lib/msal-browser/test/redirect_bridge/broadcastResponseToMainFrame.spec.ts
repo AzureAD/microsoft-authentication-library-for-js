@@ -11,6 +11,7 @@ import {
     TEST_STATE_VALUES,
     RANDOM_TEST_GUID,
 } from "../utils/StringConstants.js";
+import { TemporaryCacheKeys } from "../../src/utils/BrowserConstants.js";
 
 jest.mock("../../src/navigation/NavigationClient.js");
 
@@ -186,18 +187,20 @@ describe("broadcastResponseToMainFrame", () => {
 
             await broadcastResponseToMainFrame();
 
-            // Verify navigation was called with homepage + hash
+            // Verify navigation was called with homepage (no auth hash appended)
             expect(NavigationClient).toHaveBeenCalled();
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
-                expect.stringContaining(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                ),
+                expect.any(String),
                 expect.objectContaining({
                     apiId: expect.any(Number),
                     noHistory: true,
                     timeout: expect.any(Number),
                 })
             );
+            const navigatedUrl = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0];
+            expect(navigatedUrl).not.toContain("code=");
 
             // URL should NOT be cleared for redirect flow (we're navigating away)
             expect(mockHistoryReplaceState).not.toHaveBeenCalled();
@@ -206,7 +209,7 @@ describe("broadcastResponseToMainFrame", () => {
             expect(window.close).not.toHaveBeenCalled();
         });
 
-        it("uses sessionStorage URL when client_id is present in interaction status", async () => {
+        it("caches payload in sessionStorage and navigates to origin URL when client_id is present", async () => {
             const testClientId = "test-client-id-123";
             const cachedOriginUrl = "https://localhost:8081/custom-page.html";
 
@@ -224,9 +227,43 @@ describe("broadcastResponseToMainFrame", () => {
 
             await broadcastResponseToMainFrame();
 
-            // Verify navigation was called with cached URL from sessionStorage
+            // Verify payload was cached in sessionStorage under URL_HASH key
+            expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
+                `msal.${testClientId}.${TemporaryCacheKeys.URL_HASH}`,
+                expect.stringContaining("code=thisIsATestCode")
+            );
+
+            // Verify navigation was called with the origin URL (not modified with auth hash)
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
-                expect.stringContaining(cachedOriginUrl),
+                cachedOriginUrl,
+                expect.any(Object)
+            );
+        });
+
+        it("navigates to hash-routed origin URL without appending auth response", async () => {
+            const testClientId = "test-client-id-456";
+            const hashRoutedOriginUrl = "https://localhost:8081/#/dashboard";
+
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "redirect",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                hashRoutedOriginUrl;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Verify payload was cached
+            expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
+                `msal.${testClientId}.${TemporaryCacheKeys.URL_HASH}`,
+                expect.stringContaining("code=thisIsATestCode")
+            );
+
+            // Verify navigation goes to the hash-routed URL directly (no double-hash)
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
+                hashRoutedOriginUrl,
                 expect.any(Object)
             );
         });
@@ -247,7 +284,7 @@ describe("broadcastResponseToMainFrame", () => {
             ).not.toHaveBeenCalled();
         });
 
-        it("falls back to homepage when sessionStorage access fails", async () => {
+        it("throws when sessionStorage.getItem fails", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
             // Make sessionStorage.getItem throw
@@ -257,26 +294,53 @@ describe("broadcastResponseToMainFrame", () => {
                 }
             );
 
-            await broadcastResponseToMainFrame();
-
-            // Should still navigate successfully using homepage fallback
-            expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
-            expect(mockHistoryReplaceState).not.toHaveBeenCalled();
+            await expect(broadcastResponseToMainFrame()).rejects.toThrow(
+                "SessionStorage unavailable"
+            );
         });
 
-        it("falls back to homepage when client_id is not in interaction status", async () => {
+        it("throws when sessionStorage.setItem fails", async () => {
+            const testClientId = "setitem-fail-client";
+
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "redirect",
+            });
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            // Make sessionStorage.setItem throw
+            (window.sessionStorage.setItem as jest.Mock).mockImplementation(
+                () => {
+                    throw new Error("QuotaExceeded");
+                }
+            );
+
+            await expect(broadcastResponseToMainFrame()).rejects.toThrow(
+                "QuotaExceeded"
+            );
+        });
+
+        it("falls back to homepage and does not cache payload when client_id is not available", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
             await broadcastResponseToMainFrame();
 
-            // Should navigate using homepage since no clientId in session storage means no cached origin URL lookup
+            // Should navigate to homepage since no clientId means no cached origin URL
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
-            const callArgs = (
+            const navigatedUrl = (
                 mockNavigationClient.navigateInternal as jest.Mock
             ).mock.calls[0][0];
-            expect(callArgs).toContain(
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            // Should not contain auth response params
+            expect(navigatedUrl).not.toContain("code=");
+
+            // sessionStorage.setItem should not be called with a urlHash key
+            const setItemCalls = (window.sessionStorage.setItem as jest.Mock)
+                .mock.calls;
+            const urlHashCalls = setItemCalls.filter(([key]: [string]) =>
+                key.includes(`${TemporaryCacheKeys.URL_HASH}`)
             );
+            expect(urlHashCalls).toHaveLength(0);
         });
     });
 
@@ -291,7 +355,7 @@ describe("broadcastResponseToMainFrame", () => {
             expect(window.close).toHaveBeenCalled();
         });
 
-        it("handles hybrid query + hash response", async () => {
+        it("handles hybrid query + hash response by caching payload", async () => {
             const testClientId = "hybrid-client-id";
 
             // Set up sessionStorage with interaction status containing clientId and type
@@ -305,13 +369,18 @@ describe("broadcastResponseToMainFrame", () => {
 
             await broadcastResponseToMainFrame();
 
-            // For redirect flow, should navigate with full query + hash
+            // For redirect flow, payload should be cached in sessionStorage
+            expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
+                `msal.${testClientId}.${TemporaryCacheKeys.URL_HASH}`,
+                expect.stringContaining("code=test_code")
+            );
+
+            // Navigation URL should not contain the auth response
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
-            const callArgs = (
+            const navigatedUrl = (
                 mockNavigationClient.navigateInternal as jest.Mock
             ).mock.calls[0][0];
-            expect(callArgs).toContain("?state=");
-            expect(callArgs).toContain("&code=test_code");
+            expect(navigatedUrl).not.toContain("code=test_code");
         });
 
         it("strips leading ? from query string", async () => {

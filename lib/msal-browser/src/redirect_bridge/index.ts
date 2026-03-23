@@ -66,38 +66,47 @@ export async function broadcastResponseToMainFrame(
         };
 
         let navigateToUrl = "";
+        let clientId = "";
         const interactionKey = `${PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
+        /*
+         * Retrieve the original navigation URL from sessionStorage.
+         * sessionStorage.getItem is outside the try/catch so access failures
+         * propagate immediately. JSON.parse may throw if interaction status
+         * is missing or malformed; in that case we fall back to homepage
+         * navigation without caching.
+         */
+        const rawInteractionStatus =
+            window.sessionStorage.getItem(interactionKey);
         try {
-            /*
-             * Retrieve the original navigation URL from sessionStorage
-             */
-            const { clientId } = JSON.parse(
-                window.sessionStorage.getItem(interactionKey) || ""
-            );
+            const interactionStatus = JSON.parse(rawInteractionStatus || "");
+            clientId = interactionStatus.clientId || "";
             if (clientId) {
                 const cacheKey = `${PREFIX}.${clientId}.${TemporaryCacheKeys.ORIGIN_URI}`;
                 navigateToUrl = window.sessionStorage.getItem(cacheKey) || "";
             }
         } catch (e) {
-            // SessionStorage access may fail in some contexts, use default
+            // JSON.parse failed — interaction status is missing or malformed
         }
 
-        // Reconstruct full URL with auth response (preserve original format)
-        let fullUrlResponse = "";
-        if (hasResponseInHash && hasResponseInQuery) {
-            // Hybrid format
-            fullUrlResponse = `${urlQuery}${urlHash}`;
-        } else if (hasResponseInHash) {
-            // Hash only
-            fullUrlResponse = urlHash;
-        } else {
-            // Query only
-            fullUrlResponse = urlQuery;
+        /*
+         * Cache the auth response payload in sessionStorage under the URL_HASH
+         * key, then navigate directly to the origin URL. This replicates what
+         * RedirectClient.handleRedirectPromise does when the current page is
+         * not the loginRequestUrl: it caches the response and navigates.
+         *
+         * On the target page, handleRedirectPromise will find no response in
+         * the URL but will pick up the cached payload from sessionStorage.
+         * This avoids appending the auth response to the URL, which would
+         * create malformed URLs for hash-routed SPAs (e.g. /#/route#code=...).
+         */
+        if (clientId) {
+            window.sessionStorage.setItem(
+                `${PREFIX}.${clientId}.${TemporaryCacheKeys.URL_HASH}`,
+                payload
+            );
         }
 
-        const homepage = `${
-            navigateToUrl || BrowserUtils.getHomepage()
-        }${fullUrlResponse}`;
+        const homepage = navigateToUrl || BrowserUtils.getHomepage();
         await navClient.navigateInternal(homepage, navigationOptions);
 
         // Do NOT clear URL for redirect flow - we're navigating away anyway
