@@ -182,12 +182,12 @@ describe("broadcastResponseToMainFrame", () => {
     });
 
     describe("Success cases - Redirect flow", () => {
-        it("navigates to homepage for redirect flow and does NOT broadcast", async () => {
+        it("navigates to homepage with auth response in URL when no interaction status is set", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
             await broadcastResponseToMainFrame();
 
-            // Verify navigation was called with homepage (no auth hash appended)
+            // With no clientId, falls back to appending auth response to URL
             expect(NavigationClient).toHaveBeenCalled();
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
                 expect.any(String),
@@ -200,7 +200,7 @@ describe("broadcastResponseToMainFrame", () => {
             const navigatedUrl = (
                 mockNavigationClient.navigateInternal as jest.Mock
             ).mock.calls[0][0];
-            expect(navigatedUrl).not.toContain("code=");
+            expect(navigatedUrl).toContain("code=");
 
             // URL should NOT be cleared for redirect flow (we're navigating away)
             expect(mockHistoryReplaceState).not.toHaveBeenCalled();
@@ -216,7 +216,7 @@ describe("broadcastResponseToMainFrame", () => {
             // Set up sessionStorage with interaction status containing clientId and type
             mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
                 clientId: testClientId,
-                type: "redirect",
+                type: "signin",
             });
 
             // Set up sessionStorage with cached origin URL
@@ -246,7 +246,7 @@ describe("broadcastResponseToMainFrame", () => {
 
             mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
                 clientId: testClientId,
-                type: "redirect",
+                type: "signin",
             });
             mockSessionStorage[`msal.${testClientId}.request.origin`] =
                 hashRoutedOriginUrl;
@@ -304,7 +304,7 @@ describe("broadcastResponseToMainFrame", () => {
 
             mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
                 clientId: testClientId,
-                type: "redirect",
+                type: "signin",
             });
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -321,18 +321,17 @@ describe("broadcastResponseToMainFrame", () => {
             );
         });
 
-        it("falls back to homepage and does not cache payload when client_id is not available", async () => {
+        it("falls back to URL-based response when client_id is not available", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
             await broadcastResponseToMainFrame();
 
-            // Should navigate to homepage since no clientId means no cached origin URL
+            // Should navigate with auth response appended to URL as fallback
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
             const navigatedUrl = (
                 mockNavigationClient.navigateInternal as jest.Mock
             ).mock.calls[0][0];
-            // Should not contain auth response params
-            expect(navigatedUrl).not.toContain("code=");
+            expect(navigatedUrl).toContain("code=");
 
             // sessionStorage.setItem should not be called with a urlHash key
             const setItemCalls = (window.sessionStorage.setItem as jest.Mock)
@@ -355,13 +354,13 @@ describe("broadcastResponseToMainFrame", () => {
             expect(window.close).toHaveBeenCalled();
         });
 
-        it("handles hybrid query + hash response by caching payload", async () => {
+        it("caches query-string auth response when hash contains non-auth fragment (redirect flow)", async () => {
             const testClientId = "hybrid-client-id";
 
             // Set up sessionStorage with interaction status containing clientId and type
             mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
                 clientId: testClientId,
-                type: "redirect",
+                type: "signin",
             });
 
             window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&code=test_code`;

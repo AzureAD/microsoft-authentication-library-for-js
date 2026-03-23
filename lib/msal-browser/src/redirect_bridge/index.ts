@@ -70,22 +70,22 @@ export async function broadcastResponseToMainFrame(
         const interactionKey = `${PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         /*
          * Retrieve the original navigation URL from sessionStorage.
-         * sessionStorage.getItem is outside the try/catch so access failures
-         * propagate immediately. JSON.parse may throw if interaction status
-         * is missing or malformed; in that case we fall back to homepage
-         * navigation without caching.
+         * sessionStorage access is outside the try/catch so failures
+         * propagate immediately. Only JSON.parse is caught since
+         * interaction status may be missing or malformed.
          */
         const rawInteractionStatus =
             window.sessionStorage.getItem(interactionKey);
         try {
             const interactionStatus = JSON.parse(rawInteractionStatus || "");
             clientId = interactionStatus.clientId || "";
-            if (clientId) {
-                const cacheKey = `${PREFIX}.${clientId}.${TemporaryCacheKeys.ORIGIN_URI}`;
-                navigateToUrl = window.sessionStorage.getItem(cacheKey) || "";
-            }
         } catch (e) {
             // JSON.parse failed — interaction status is missing or malformed
+        }
+
+        if (clientId) {
+            const originKey = `${PREFIX}.${clientId}.${TemporaryCacheKeys.ORIGIN_URI}`;
+            navigateToUrl = window.sessionStorage.getItem(originKey) || "";
         }
 
         /*
@@ -98,15 +98,31 @@ export async function broadcastResponseToMainFrame(
          * the URL but will pick up the cached payload from sessionStorage.
          * This avoids appending the auth response to the URL, which would
          * create malformed URLs for hash-routed SPAs (e.g. /#/route#code=...).
+         *
+         * If clientId is unavailable (interaction status missing/malformed),
+         * fall back to appending the auth response to the navigation URL so
+         * handleRedirectPromise can still extract it from window.location.
          */
+        let homepage: string;
         if (clientId) {
             window.sessionStorage.setItem(
                 `${PREFIX}.${clientId}.${TemporaryCacheKeys.URL_HASH}`,
                 payload
             );
+            homepage = navigateToUrl || BrowserUtils.getHomepage();
+        } else {
+            // Reconstruct response URL for fallback when clientId is unknown
+            let responseFragment = "";
+            if (hasResponseInHash && hasResponseInQuery) {
+                responseFragment = `${urlQuery}${urlHash}`;
+            } else if (hasResponseInHash) {
+                responseFragment = urlHash;
+            } else {
+                responseFragment = urlQuery;
+            }
+            homepage = `${BrowserUtils.getHomepage()}${responseFragment}`;
         }
 
-        const homepage = navigateToUrl || BrowserUtils.getHomepage();
         await navClient.navigateInternal(homepage, navigationOptions);
 
         // Do NOT clear URL for redirect flow - we're navigating away anyway
