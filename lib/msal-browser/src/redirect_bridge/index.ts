@@ -81,8 +81,7 @@ export async function broadcastResponseToMainFrame(
 
             if (clientId) {
                 const originKey = `${PREFIX}.${clientId}.${TemporaryCacheKeys.ORIGIN_URI}`;
-                navigateToUrl =
-                    window.sessionStorage.getItem(originKey) || "";
+                navigateToUrl = window.sessionStorage.getItem(originKey) || "";
             }
         } catch (e) {
             // sessionStorage access or JSON.parse failed
@@ -121,7 +120,19 @@ export async function broadcastResponseToMainFrame(
         if (cached) {
             navigationUrl = navigateToUrl || BrowserUtils.getHomepage();
         } else {
-            // Reconstruct response URL for fallback when caching is unavailable
+            /*
+             * Reconstruct response URL for fallback when caching is unavailable.
+             * Prefer the cached origin URL when available; fall back to homepage.
+             */
+            const baseUrl = navigateToUrl || BrowserUtils.getHomepage();
+            /*
+             * Strip any existing hash fragment to avoid double-hash URLs
+             * (e.g., /#/route#code=...)
+             */
+            const hashIndex = baseUrl.indexOf("#");
+            const baseUrlWithoutHash =
+                hashIndex === -1 ? baseUrl : baseUrl.substring(0, hashIndex);
+
             let responseFragment = "";
             if (hasResponseInHash && hasResponseInQuery) {
                 responseFragment = `${urlQuery}${urlHash}`;
@@ -130,7 +141,7 @@ export async function broadcastResponseToMainFrame(
             } else {
                 responseFragment = urlQuery;
             }
-            navigationUrl = `${BrowserUtils.getHomepage()}${responseFragment}`;
+            navigationUrl = `${baseUrlWithoutHash}${responseFragment}`;
         }
 
         await navClient.navigateInternal(navigationUrl, navigationOptions);
