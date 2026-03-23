@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { parseAuthResponseFromUrl } from "../utils/BrowserUtils.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import {
     ApiId,
@@ -33,7 +32,7 @@ export async function broadcastResponseToMainFrame(
 ): Promise<void> {
     let parsedResponse;
     try {
-        parsedResponse = parseAuthResponseFromUrl();
+        parsedResponse = BrowserUtils.parseAuthResponseFromUrl();
     } catch (error) {
         // Clear hash and query string before re-throwing parse errors
         if (typeof window.history.replaceState === "function") {
