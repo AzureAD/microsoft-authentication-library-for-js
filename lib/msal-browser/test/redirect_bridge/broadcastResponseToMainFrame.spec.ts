@@ -484,6 +484,70 @@ describe("broadcastResponseToMainFrame", () => {
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
             );
         });
+
+        it("handles hybrid auth response (query + hash both with state) for redirect flow", async () => {
+            const testClientId = "test-client-id-hybrid";
+            const cachedOriginUrl = "https://myapp.com/page#/dashboard";
+
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "redirect",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
+            // Both query and hash contain state — true hybrid response
+            window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&code=test_code`;
+            window.location.hash = `#state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&session_state=session123`;
+
+            await broadcastResponseToMainFrame();
+
+            const callArgs = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0] as string;
+
+            // Query part appended before hash, only one #, only one ?
+            const hashCount = (callArgs.match(/#/g) || []).length;
+            expect(hashCount).toBe(1);
+            const questionCount = (callArgs.match(/\?/g) || []).length;
+            expect(questionCount).toBe(1);
+            // Query params come before hash
+            expect(callArgs.indexOf("?state=")).toBeLessThan(
+                callArgs.indexOf("#state=")
+            );
+        });
+
+        it("handles hybrid auth response with existing query params in origin URL (no double ?)", async () => {
+            const testClientId = "test-client-id-hybrid-q";
+            const cachedOriginUrl =
+                "https://myapp.com/page?ref=email#/dashboard";
+
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "redirect",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
+            // Both query and hash contain state — true hybrid response
+            window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&code=test_code`;
+            window.location.hash = `#state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&session_state=session123`;
+
+            await broadcastResponseToMainFrame();
+
+            const callArgs = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0] as string;
+
+            // Must not produce double "?" — existing query merged with "&"
+            const questionCount = (callArgs.match(/\?/g) || []).length;
+            expect(questionCount).toBe(1);
+            expect(callArgs).toContain("?ref=email&state=");
+
+            // Only one # from the auth response hash
+            const hashCount = (callArgs.match(/#/g) || []).length;
+            expect(hashCount).toBe(1);
+        });
     });
 
     describe("Hybrid response format (query + hash)", () => {
