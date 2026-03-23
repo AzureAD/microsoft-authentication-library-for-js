@@ -268,6 +268,50 @@ describe("broadcastResponseToMainFrame", () => {
             );
         });
 
+        it("strips bare trailing '?' from origin URL before navigating", async () => {
+            const testClientId = "test-client-bare-query";
+            const originUrlWithBareQuery = "https://localhost:8081/?";
+
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "signin",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                originUrlWithBareQuery;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Verify navigation strips the bare "?" to match canonical URL form
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
+                "https://localhost:8081/",
+                expect.any(Object)
+            );
+        });
+
+        it("preserves non-empty query string in origin URL when navigating", async () => {
+            const testClientId = "test-client-query";
+            const originUrlWithQuery = "https://localhost:8081/?test=value";
+
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "signin",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                originUrlWithQuery;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Verify non-empty query string is preserved
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
+                originUrlWithQuery,
+                expect.any(Object)
+            );
+        });
+
         it("uses custom NavigationClient when provided", async () => {
             const customNavClient = {
                 navigateInternal: jest.fn().mockResolvedValue(undefined),

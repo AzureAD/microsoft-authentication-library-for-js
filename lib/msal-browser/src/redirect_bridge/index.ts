@@ -83,7 +83,7 @@ export async function broadcastResponseToMainFrame(
                 const originKey = `${PREFIX}.${clientId}.${TemporaryCacheKeys.ORIGIN_URI}`;
                 navigateToUrl = window.sessionStorage.getItem(originKey) || "";
             }
-        } catch (e) {
+        } catch {
             // sessionStorage access or JSON.parse failed
         }
 
@@ -112,13 +112,18 @@ export async function broadcastResponseToMainFrame(
                     payload
                 );
                 cached = true;
-            } catch (e) {
+            } catch {
                 // sessionStorage write failed — fall through to URL-based fallback
             }
         }
 
         if (cached) {
-            navigationUrl = navigateToUrl || BrowserUtils.getHomepage();
+            const url = navigateToUrl || BrowserUtils.getHomepage();
+            /*
+             * Strip bare trailing "?" (empty query string) so the final URL
+             * matches the canonical form
+             */
+            navigationUrl = url.endsWith("?") ? url.slice(0, -1) : url;
         } else {
             /*
              * Reconstruct response URL for fallback when caching is unavailable.
