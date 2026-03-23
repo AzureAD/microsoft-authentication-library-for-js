@@ -77,6 +77,12 @@ export async function broadcastResponseToMainFrame(
             if (clientId) {
                 const cacheKey = `${PREFIX}.${clientId}.${TemporaryCacheKeys.ORIGIN_URI}`;
                 navigateToUrl = window.sessionStorage.getItem(cacheKey) || "";
+
+                // handle origin uri containing hash
+                const hashIndex = navigateToUrl.indexOf("#");
+                if (hashIndex > 0) {
+                    navigateToUrl = navigateToUrl.substring(0, hashIndex);
+                }
             }
         } catch (e) {
             // SessionStorage access may fail in some contexts, use default
