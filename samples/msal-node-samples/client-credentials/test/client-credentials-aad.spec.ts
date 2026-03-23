@@ -5,7 +5,11 @@ import {
     LabApiQueryParams,
     NodeCacheTestUtils,
     LabClient,
+    getCertificateInfo,
+    LAB_KEY_VAULT_URL,
+    LAB_CERT_NAME,
 } from "e2e-test-utils";
+import { DefaultAzureCredential } from "@azure/identity";
 import { ConfidentialClientApplication } from "@azure/msal-node";
 import config from "../config/AAD.json";
 
@@ -15,9 +19,14 @@ const getClientCredentialsToken = require("../index");
 
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
-let clientID;
-let clientSecret;
-let authority;
+let clientID: string;
+let clientSecret: string;
+let authority: string;
+
+// Regional app config (ID4SLab2 tenant, requires SN+I certificate auth)
+const regionalAppId = "c7a0804c-df37-4387-a687-5f2e31f1c819";
+const regionalAuthority =
+    "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133";
 
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
 
@@ -25,9 +34,17 @@ describe("Client Credentials AAD Prod Tests", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(90000);
 
+    // Certificate credentials for regional test (SN+I required for ESTS-R)
+    let thumbprint: string;
+    let privateKey: string;
+    let x5c: string;
+
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
 
+        const credentials = new DefaultAzureCredential();
+
+        // Get S2S app config from Key Vault (client secret auth)
         const labApiParms: LabApiQueryParams = {
             appType: "cloud",
             publicClient: "no",
@@ -48,6 +65,13 @@ describe("Client Credentials AAD Prod Tests", () => {
         config.authOptions.clientId = clientID;
         config.authOptions.clientSecret = clientSecret;
         config.authOptions.authority = authority;
+
+        // Get lab certificate for regional test (SN+I auth)
+        [thumbprint, privateKey, x5c] = await getCertificateInfo(
+            credentials,
+            LAB_KEY_VAULT_URL,
+            LAB_CERT_NAME
+        );
     });
 
     describe("Acquire Token", () => {
@@ -78,7 +102,15 @@ describe("Client Credentials AAD Prod Tests", () => {
 
         it("Performs acquire token through regional authorities", async () => {
             confidentialClientApplication = new ConfidentialClientApplication({
-                auth: config.authOptions,
+                auth: {
+                    clientId: regionalAppId,
+                    authority: regionalAuthority,
+                    clientCertificate: {
+                        thumbprintSha256: thumbprint,
+                        privateKey: privateKey,
+                        x5c: x5c,
+                    },
+                },
                 cache: { cachePlugin },
             });
             await getClientCredentialsToken(
