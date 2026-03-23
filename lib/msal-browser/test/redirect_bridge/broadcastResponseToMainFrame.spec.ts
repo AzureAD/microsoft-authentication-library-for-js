@@ -231,6 +231,33 @@ describe("broadcastResponseToMainFrame", () => {
             );
         });
 
+        it("redirects to sessionStorage URL without hash", async () => {
+            const testClientId = "test-client-id-123";
+            const cachedOriginHash = "#someHashValue";
+            const cachedOriginUrl =
+                "https://localhost:8081/custom-page.html" + cachedOriginHash;
+
+            // Set up sessionStorage with interaction status containing clientId and type
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "redirect",
+            });
+
+            // Set up sessionStorage with cached origin URL
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Verify navigation was called with cached URL from sessionStorage
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
+                expect.not.stringContaining(cachedOriginHash),
+                expect.any(Object)
+            );
+        });
+
         it("uses custom NavigationClient when provided", async () => {
             const customNavClient = {
                 navigateInternal: jest.fn().mockResolvedValue(undefined),
