@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Document cross-origin iframe limitations for the redirect bridge and recommend NAA [#8441](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8441)",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "none"
-}
