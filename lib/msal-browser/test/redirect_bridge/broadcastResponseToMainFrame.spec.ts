@@ -281,7 +281,6 @@ describe("broadcastResponseToMainFrame", () => {
 
         it("strips existing hash from cached origin URL when auth response is in hash", async () => {
             const testClientId = "test-client-id-hash";
-            // Simulate a hash-routed SPA: the origin URL has a hash fragment
             const cachedOriginUrl = "https://localhost:3000/#/dashboard";
 
             mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
@@ -302,90 +301,13 @@ describe("broadcastResponseToMainFrame", () => {
             // Must NOT contain two # fragments (the bug produced /#/dashboard#code=...)
             const hashCount = (callArgs.match(/#/g) || []).length;
             expect(hashCount).toBe(1);
-
-            // Should navigate to the base URL + auth response hash (without the original hash)
             expect(callArgs).toBe(
                 `https://localhost:3000/${TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT}`
             );
         });
 
-        it("falls back to homepage when interaction status JSON is unparseable", async () => {
-            // Invalid JSON triggers the catch block, so navigateToUrl stays empty
-            // and getHomepage() is used as the fallback
-            mockSessionStorage[`msal.interaction.status`] = "invalid-json";
-
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-
-            await broadcastResponseToMainFrame();
-
-            const callArgs = (
-                mockNavigationClient.navigateInternal as jest.Mock
-            ).mock.calls[0][0] as string;
-
-            // getHomepage() returns origin + "/" which has no hash,
-            // so the result should simply be homepage + auth hash
-            const hashCount = (callArgs.match(/#/g) || []).length;
-            expect(hashCount).toBe(1);
-            expect(callArgs).toContain(
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-            );
-        });
-
-        it("falls back to homepage when interaction status has no clientId", async () => {
-            // Valid JSON but without clientId means cached origin URL is never looked up
-            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
-                type: "redirect",
-            });
-
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-
-            await broadcastResponseToMainFrame();
-
-            const callArgs = (
-                mockNavigationClient.navigateInternal as jest.Mock
-            ).mock.calls[0][0] as string;
-
-            // No clientId means no cached origin URL, falls back to getHomepage()
-            const hashCount = (callArgs.match(/#/g) || []).length;
-            expect(hashCount).toBe(1);
-            expect(callArgs).toContain(
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-            );
-        });
-
-        it("preserves origin URL hash when auth response is only in query string", async () => {
-            const testClientId = "test-client-id-query";
-            const cachedOriginUrl = "https://localhost:3000/#/dashboard";
-
-            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
-                clientId: testClientId,
-                type: "redirect",
-            });
-            mockSessionStorage[`msal.${testClientId}.request.origin`] =
-                cachedOriginUrl;
-
-            // Auth response in query string only (response_mode=query)
-            window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&code=test_code`;
-            window.location.hash = "";
-
-            await broadcastResponseToMainFrame();
-
-            const callArgs = (
-                mockNavigationClient.navigateInternal as jest.Mock
-            ).mock.calls[0][0] as string;
-
-            // When auth response is in query, the origin hash should be preserved
-            // and query params must appear before the hash fragment
-            const stateIndex = callArgs.indexOf("?state=");
-            const hashIndex = callArgs.indexOf("#/dashboard");
-            expect(stateIndex).toBeGreaterThanOrEqual(0);
-            expect(hashIndex).toBeGreaterThanOrEqual(0);
-            expect(stateIndex).toBeLessThan(hashIndex);
-        });
-
         it("strips hash from origin URL with complex hash-based route", async () => {
             const testClientId = "test-client-id-complex";
-            // Complex hash-based route with nested path and query params in hash
             const cachedOriginUrl =
                 "https://myapp.com/#/settings/profile?tab=security";
 
@@ -404,13 +326,38 @@ describe("broadcastResponseToMainFrame", () => {
                 mockNavigationClient.navigateInternal as jest.Mock
             ).mock.calls[0][0] as string;
 
-            // Must have exactly one # (from auth response)
             const hashCount = (callArgs.match(/#/g) || []).length;
             expect(hashCount).toBe(1);
-
-            // Should be base URL + auth hash
             expect(callArgs).toBe(
                 `https://myapp.com/${TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT}`
+            );
+        });
+
+        it("strips hash from origin URL that has both query params and hash", async () => {
+            const testClientId = "test-client-id-qh";
+            const cachedOriginUrl =
+                "https://myapp.com/page?ref=email#/dashboard";
+
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "redirect",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            const callArgs = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0] as string;
+
+            // Hash replaced, existing query preserved, no double #
+            const hashCount = (callArgs.match(/#/g) || []).length;
+            expect(hashCount).toBe(1);
+            expect(callArgs).toBe(
+                `https://myapp.com/page?ref=email${TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT}`
             );
         });
 
@@ -435,6 +382,106 @@ describe("broadcastResponseToMainFrame", () => {
 
             expect(callArgs).toBe(
                 `https://localhost:3000/app/page${TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT}`
+            );
+        });
+
+        it("preserves origin URL hash when auth response is only in query string", async () => {
+            const testClientId = "test-client-id-query";
+            const cachedOriginUrl = "https://localhost:3000/#/dashboard";
+
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "redirect",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
+            window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&code=test_code`;
+            window.location.hash = "";
+
+            await broadcastResponseToMainFrame();
+
+            const callArgs = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0] as string;
+
+            // Query params must appear before the hash fragment
+            const stateIndex = callArgs.indexOf("?state=");
+            const hashIndex = callArgs.indexOf("#/dashboard");
+            expect(stateIndex).toBeGreaterThanOrEqual(0);
+            expect(hashIndex).toBeGreaterThanOrEqual(0);
+            expect(stateIndex).toBeLessThan(hashIndex);
+        });
+
+        it("merges query response with existing query params in origin URL (no double ?)", async () => {
+            const testClientId = "test-client-id-dblq";
+            const cachedOriginUrl =
+                "https://myapp.com/page?ref=email#/dashboard";
+
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "redirect",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
+            window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&code=test_code`;
+            window.location.hash = "";
+
+            await broadcastResponseToMainFrame();
+
+            const callArgs = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0] as string;
+
+            // Must not have double "?" — second query joined with "&"
+            const questionCount = (callArgs.match(/\?/g) || []).length;
+            expect(questionCount).toBe(1);
+
+            // Original query, auth query, and hash all present in correct order
+            expect(callArgs).toContain("?ref=email&state=");
+            expect(callArgs).toContain("#/dashboard");
+            expect(callArgs.indexOf("?ref=email")).toBeLessThan(
+                callArgs.indexOf("#/dashboard")
+            );
+        });
+
+        it("falls back to homepage when interaction status JSON is unparseable", async () => {
+            mockSessionStorage[`msal.interaction.status`] = "invalid-json";
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            const callArgs = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0] as string;
+
+            // getHomepage() returns origin + "/" which has no hash
+            const hashCount = (callArgs.match(/#/g) || []).length;
+            expect(hashCount).toBe(1);
+            expect(callArgs).toContain(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
+        });
+
+        it("falls back to homepage when interaction status has no clientId", async () => {
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                type: "redirect",
+            });
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            const callArgs = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0] as string;
+
+            const hashCount = (callArgs.match(/#/g) || []).length;
+            expect(hashCount).toBe(1);
+            expect(callArgs).toContain(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
             );
         });
     });

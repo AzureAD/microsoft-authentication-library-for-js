@@ -82,19 +82,6 @@ export async function broadcastResponseToMainFrame(
             // SessionStorage access may fail in some contexts, use default
         }
 
-        // Reconstruct full URL with auth response (preserve original format)
-        let fullUrlResponse = "";
-        if (hasResponseInHash && hasResponseInQuery) {
-            // Hybrid format
-            fullUrlResponse = `${urlQuery}${urlHash}`;
-        } else if (hasResponseInHash) {
-            // Hash only
-            fullUrlResponse = urlHash;
-        } else {
-            // Query only
-            fullUrlResponse = urlQuery;
-        }
-
         /*
          * For apps that use hash-based routing (e.g. "/#/route"), the redirect bridge
          * must carefully reconstruct the URL so that the authentication response does
@@ -102,56 +89,37 @@ export async function broadcastResponseToMainFrame(
          *
          * - When the server returns the response in the fragment (response_mode=fragment),
          *   the existing route fragment is stripped from the origin URL before appending
-         *   the auth response. This avoids malformed URLs with two "#" fragments
-         *   (e.g. "/#/route#code=..." or "/#/route#id_token=...").
+         *   the auth response hash. This avoids malformed URLs with two "#" fragments
+         *   (e.g. "/#/route#code=...").
          *
          * - When the server returns the response in the query string (response_mode=query),
-         *   the query parameters are inserted before the existing fragment so that the
-         *   hash-based route (e.g. "/#/route") is preserved and continues to work. This
-         *   configuration (responseMode: "query") is often recommended for hash-routed SPAs.
+         *   the query parameters are inserted before any existing hash fragment so that
+         *   the hash-based route is preserved (e.g. "/#/route").
          *
-         * The original route fragment (e.g. "/#/route") is restored later by
-         * RedirectClient.handleRedirectPromise when navigateToLoginRequestUrl is enabled,
-         * so the application is returned to the original hash-routed location after the
-         * authentication response is processed.
+         * The original route fragment is restored later by
+         * RedirectClient.handleRedirectPromise when navigateToLoginRequestUrl is enabled.
          */
         const baseUrl = navigateToUrl || BrowserUtils.getHomepage();
-        const baseHashIndex = baseUrl.indexOf("#");
-        let homepage: string;
-        if (baseHashIndex > -1 && hasResponseInHash) {
-            // Hash response: strip origin hash to avoid double # fragments
-            homepage = `${baseUrl.substring(
-                0,
-                baseHashIndex
-            )}${fullUrlResponse}`;
-        } else if (baseHashIndex > -1 && hasResponseInQuery) {
-            // Query response: insert query params before the existing hash fragment
-            const preHash = baseUrl.substring(0, baseHashIndex);
-            const fragment = baseUrl.substring(baseHashIndex);
-            // If the base URL already has query params, join with "&" instead of adding a second "?"
-            if (
-                preHash.indexOf("?") !== -1 &&
-                fullUrlResponse.startsWith("?")
-            ) {
-                homepage = `${preHash}${fullUrlResponse.replace(
-                    "?",
-                    "&"
-                )}${fragment}`;
-            } else {
-                homepage = `${preHash}${fullUrlResponse}${fragment}`;
-            }
-        } else {
-            // No hash fragment: append auth response to the end of the base URL
-            if (
-                baseUrl.indexOf("?") !== -1 &&
-                fullUrlResponse.startsWith("?")
-            ) {
-                // Base URL already has query params; avoid creating a second "?"
-                homepage = `${baseUrl}${fullUrlResponse.replace("?", "&")}`;
-            } else {
-                homepage = `${baseUrl}${fullUrlResponse}`;
-            }
+
+        // Decompose baseUrl into path (everything before #) and fragment (# and after)
+        const baseHashIdx = baseUrl.indexOf("#");
+        const basePath =
+            baseHashIdx > -1 ? baseUrl.substring(0, baseHashIdx) : baseUrl;
+        const baseFragment =
+            baseHashIdx > -1 ? baseUrl.substring(baseHashIdx) : "";
+
+        // Build query portion: if auth response has query params, append to basePath
+        let queryPart = "";
+        if (hasResponseInQuery) {
+            queryPart = basePath.includes("?")
+                ? urlQuery.replace("?", "&")
+                : urlQuery;
         }
+
+        // Build hash portion: auth response hash replaces the original, otherwise preserve it
+        const hashPart = hasResponseInHash ? urlHash : baseFragment;
+
+        const homepage = `${basePath}${queryPart}${hashPart}`;
         await navClient.navigateInternal(homepage, navigationOptions);
 
         // Do NOT clear URL for redirect flow - we're navigating away anyway

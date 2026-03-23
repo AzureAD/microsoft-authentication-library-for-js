@@ -118,6 +118,18 @@ const msalConfig = {
 For more information on running MSAL in iframes, see
 [Using MSAL in iframed apps](./iframe-usage.md).
 
+## Hash-Based Routing
+
+Applications that use hash-based routing (e.g. React Router's `HashRouter`, Angular `useHash: true`, Vue Router hash mode) have URLs like `https://example.com/#/dashboard`. When the redirect bridge navigates back to the originating page with the authentication response, it must avoid creating malformed URLs with two `#` fragments (e.g. `/#/dashboard#code=...`).
+
+MSAL handles this automatically:
+
+- **`response_mode=fragment`** (default): The redirect bridge strips the existing hash-based route from the origin URL before appending the auth response hash. The URL becomes `https://example.com/#code=...&state=...`. After `handleRedirectPromise` processes the response, it restores the original route hash (e.g. `/#/dashboard`) when `navigateToLoginRequestUrl` is enabled (the default).
+
+- **`response_mode=query`**: The redirect bridge inserts the auth response query parameters *before* the hash fragment, producing `https://example.com/?code=...&state=...#/dashboard`. The hash-based route is preserved throughout.
+
+No special configuration is needed — both response modes work correctly with hash-based routing and the redirect bridge.
+
 ## Angular
 
 1. **Create the redirect bridge component** (`src/app/redirect/redirect.component.ts`):
