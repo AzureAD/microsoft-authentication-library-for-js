@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Redirect Bridge: Handle when a Redirect interaction was initiated from a page containing a hash",
+  "packageName": "@azure/msal-browser",
+  "email": "herman.jensen@intility.no",
+  "dependentChangeType": "patch"
+}
