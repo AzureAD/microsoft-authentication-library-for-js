@@ -274,4 +274,34 @@ describe("SilentHandler.ts Unit Tests", () => {
             expect(response2).toEqual("code=code2&state=state2");
         });
     });
+
+    describe("removeHiddenIframe", () => {
+        it("removes iframe from the DOM", () => {
+            const iframe = document.createElement("iframe");
+            document.body.appendChild(iframe);
+            expect(document.body.contains(iframe)).toBe(true);
+
+            SilentHandler.removeHiddenIframe(iframe);
+            expect(document.body.contains(iframe)).toBe(false);
+        });
+
+        it("does nothing when iframe is not in the DOM", () => {
+            const iframe = document.createElement("iframe");
+            expect(() =>
+                SilentHandler.removeHiddenIframe(iframe)
+            ).not.toThrow();
+        });
+
+        it("does nothing when iframe has a different parent", () => {
+            const container = document.createElement("div");
+            document.body.appendChild(container);
+            const iframe = document.createElement("iframe");
+            container.appendChild(iframe);
+
+            SilentHandler.removeHiddenIframe(iframe);
+            expect(container.contains(iframe)).toBe(true);
+
+            document.body.removeChild(container);
+        });
+    });
 });
