@@ -1016,6 +1016,39 @@ describe("MsalAuthenticationTemplate tests", () => {
         ).not.toBeInTheDocument();
     });
 
+    test("Renders provided error component in when rendered within React.StrictMode", async () => {
+        const error = new AuthError("login_failed");
+        jest.spyOn(pca, "loginPopup").mockImplementation(() => {
+            return Promise.reject(error);
+        });
+
+        const errorMessage = ({ error }: MsalAuthenticationResult) => {
+            if (error) {
+                return <p>Error Occurred: {error.errorCode}</p>;
+            }
+
+            return null;
+        };
+
+        render(
+            <React.StrictMode>
+                <MsalProvider instance={pca}>
+                    <p>This text will always display.</p>
+                    <MsalAuthenticationTemplate
+                        interactionType={InteractionType.Popup}
+                        errorComponent={errorMessage}
+                    >
+                        <span> A user is authenticated!</span>
+                    </MsalAuthenticationTemplate>
+                </MsalProvider>
+            </React.StrictMode>
+        );
+
+        expect(
+            await screen.findByText("Error Occurred: login_failed")
+        ).toBeInTheDocument();
+    });
+
     test("Throws invalid interaction type error", async () => {
         const error = new AuthError("login_failed");
         const loginPopupSpy = jest
