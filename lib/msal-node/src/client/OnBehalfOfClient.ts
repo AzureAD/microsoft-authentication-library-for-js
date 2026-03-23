@@ -198,10 +198,11 @@ export class OnBehalfOfClient extends BaseClient {
             this.cacheManager.getIdTokensByFilter(idTokenFilter, correlationId);
 
         // When acquiring a token on behalf of an application, there might not be an id token in the cache
-        if (Object.values(idTokenMap).length < 1) {
+        const idTokensFromCache: IdTokenEntity[] = [...idTokenMap.values()];
+        if (idTokensFromCache.length < 1) {
             return null;
         }
-        return Object.values(idTokenMap)[0] as IdTokenEntity;
+        return idTokensFromCache[0] as IdTokenEntity;
     }
 
     /**
