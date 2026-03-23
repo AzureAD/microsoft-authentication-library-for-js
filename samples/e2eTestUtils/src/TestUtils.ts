@@ -229,7 +229,7 @@ export async function fillPassword(page: Page, screenshot: Screenshot, password:
     try {
         await page.locator('span ::-p-text(Use your password)').setTimeout(1000).click().catch(() => {});
         await screenshot.takeScreenshot(page, "passwordPage");
-        await page.locator(`${Object.values(PasswordInputSelectors).join(", ")}`).setTimeout(2000).fill(password);
+        await page.locator(`${Object.values(PasswordInputSelectors).join(", ")}`).setTimeout(5000).fill(password);
         await screenshot.takeScreenshot(page, "loginPagePasswordFilled");
     } catch (e) {
         await screenshot.takeScreenshot(page, "failedToFillPassword").catch(() => {});
@@ -240,7 +240,7 @@ export async function fillPassword(page: Page, screenshot: Screenshot, password:
 export async function fillUsername(page: Page, screenshot: Screenshot, username: string): Promise<void> {
     try {
         await screenshot.takeScreenshot(page, "loginPage");
-        await page.locator(`${Object.values(UsernameSelectors).join(", ")}`).setTimeout(2000).fill(username);
+        await page.locator(`${Object.values(UsernameSelectors).join(", ")}`).setTimeout(5000).fill(username);
         await screenshot.takeScreenshot(page, "loginPageUsernameFilled");
     } catch (e) {
         await screenshot.takeScreenshot(page, "failedToFillUsername").catch(() => {});
@@ -250,8 +250,10 @@ export async function fillUsername(page: Page, screenshot: Screenshot, username:
 
 export async function clickSubmitButton(page: Page, screenshot: Screenshot): Promise<void> {
     try {
-        await page.locator(`${Object.values(SubmitButtonSelectors).join(", ")}`).setTimeout(2000).click();
-        await page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {});
+        await Promise.all([
+            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {}),
+            page.locator(`${Object.values(SubmitButtonSelectors).join(", ")}`).setTimeout(5000).click(),
+        ]);
     } catch (e) {
         await screenshot.takeScreenshot(page, "errorClickingSubmit").catch(() => {});
         throw e;
@@ -428,13 +430,17 @@ export async function clickLoginRedirect(
     screenshot: Screenshot,
     page: Page
 ): Promise<void> {
+    await page.waitForSelector("#SignIn", { timeout: 5000 });
     // Home Page
     await screenshot.takeScreenshot(page, "samplePageInit");
     // Click Sign In
     await page.click("#SignIn");
     await screenshot.takeScreenshot(page, "signInClicked");
     // Click Sign In With Redirect
-    await page.click("#redirect");
+    await Promise.all([
+        page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {}),
+        page.click("#redirect"),
+    ]);
 }
 
 export async function clickLogoutRedirect(
