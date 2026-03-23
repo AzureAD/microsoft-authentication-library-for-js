@@ -1016,7 +1016,6 @@ describe("MsalAuthenticationTemplate tests", () => {
         ).not.toBeInTheDocument();
     });
 
-    test("Renders provided error component in when rendered within React.StrictMode", async () => {
         const error = new AuthError("login_failed");
         jest.spyOn(pca, "loginPopup").mockImplementation(() => {
             return Promise.reject(error);
