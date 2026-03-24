@@ -328,7 +328,7 @@ When COOP headers are present on the authentication service response (e.g., `Cro
 **All authentication flows** (`acquireTokenSilent()`, `ssoSilent()`, `loginPopup()`, and `loginRedirect()`) now use the redirect bridge. The redirect bridge handles the authentication response differently based on the flow:
 
 - **Popup and silent flows**: The redirect bridge broadcasts the authentication response to the main application window using the BroadcastChannel API
-- **Redirect flow**: The redirect bridge navigates back to your application's page that initiated the redirect with the authentication response in the URL
+- **Redirect flow**: The redirect bridge caches the authentication response in `sessionStorage` and navigates back to your application's page that initiated the redirect. On the destination page, `handleRedirectPromise` picks up the cached response automatically. This avoids appending auth parameters to the URL, which would otherwise cause issues for single-page applications that use hash-based routing (e.g., `/#/dashboard`). If `sessionStorage` is unavailable (quota exceeded, restricted storage), the bridge still navigates to your application but `handleRedirectPromise` will return `null` and your app should handle re-authentication.
 
 #### How It Works
 
@@ -337,7 +337,7 @@ When COOP headers are present on the authentication service response (e.g., `Cro
 3. **Authentication flow**: The authority page completes the OAuth flow and receives the auth response
 4. **Response handling**: The redirect page uses the new `broadcastResponseToMainFrame()` function which:
     - For **popup/silent flows**: Broadcasts the response to the main window via BroadcastChannel API
-    - For **redirect flows**: Navigates to the page where the `acquireTokenRedirect` is initiated from with the auth response
+    - For **redirect flows**: Caches the response in `sessionStorage` and navigates to the page where `acquireTokenRedirect` was initiated, where `handleRedirectPromise` retrieves the cached response
 5. **Token acquisition**: The main application receives the response and completes token acquisition
 
 #### Migration Steps
