@@ -115,6 +115,7 @@ export const SubmitButtonSelectors = {
     ACCEPTBUTTON: "#acceptButton, input[name='acceptButton']",
     REMOTE_CONNECT_SUBMIT: "#remoteConnectSubmit, input[name='remoteConnectSubmit']",
     SUBMITBUTTON: "#submitButton, input[name='submitButton']",
+    INPUT_SUBMIT: "input[type='submit']",
     SUBMIT: "button[type='submit']"
 }
 
