@@ -6,8 +6,8 @@ This sample is derived from the [react-router-sample](../react-router-sample) an
 
 ## Notable files and what they demonstrate
 
-1. `./src/App.js` - Shows implementation of `MsalProvider`, all children will have access to `@azure/msal-react` context, hooks and components.
-1. `./src/index.js` - Shows intialization of the `PublicClientApplication` that is passed to `App.js`
+1. `./src/App.jsx` - Shows implementation of `MsalProvider`, all children will have access to `@azure/msal-react` context, hooks and components.
+1. `./src/index.jsx` - Shows intialization of the `PublicClientApplication` that is passed to `App.jsx`
 1. `./src/pages/Home.jsx` - Homepage, shows how to conditionally render content using `AuthenticatedTemplate` and `UnauthenticatedTemplate` depending on whether or not a user is signed in.
 1. `./src/pages/Profile.jsx` - Example of a protected route using `MsalAuthenticationTemplate`. If a user is not yet signed in, signin will be invoked automatically. If a user is signed in it will acquire an access token and make a call to MS Graph to fetch user profile data.
 1. `./src/authConfig.js` - Configuration options for `PublicClientApplication` and token requests.
@@ -55,7 +55,7 @@ These parameters are used in `./src/authConfig.js` to configure MSAL.
 npm install
 
 # Change directory to sample directory
-cd samples/msal-react-samples/react-router-sample
+cd samples/msal-react-samples/react17-sample
 
 # Build packages locally
 npm run build:package
@@ -75,13 +75,13 @@ You will also see any lint errors in the console.
 #### Running the sample production server
 
 1. In a command prompt, run `npm run build`.
-1. Next run `serve -s build`
+1. Next run `npx vite preview --port 3000 --strictPort`.
 1. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 1. Open [http://localhost:3000/profile](http://localhost:3000/profile) to see an example of a protected route. If you are not yet signed in, signin will be invoked automatically.
 
 #### Learn more about the 3rd-party libraries used to create this sample
 
 - [React documentation](https://reactjs.org/).
-- [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started)
+- [Vite documentation](https://vite.dev/guide/)
 - [React Router documentation](https://reactrouter.com/web/guides/quick-start)
 - [Material-UI documentation](https://material-ui.com/getting-started/installation/)
