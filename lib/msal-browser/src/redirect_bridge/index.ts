@@ -99,59 +99,26 @@ export async function broadcastResponseToMainFrame(
          * create malformed URLs for hash-routed SPAs (e.g. /#/route#code=...).
          *
          * If caching fails (clientId unavailable, quota exceeded, storage
-         * disabled), fall back to appending the auth response to the
-         * navigation URL so handleRedirectPromise can still extract it
-         * from window.location.
+         * disabled), we still navigate to the origin/homepage. The target
+         * page's handleRedirectPromise will return null and the app can
+         * handle re-authentication. Appending auth params to the URL would
+         * not help because handleRedirectPromise also relies on
+         * sessionStorage to persist tokens.
          */
-        let navigationUrl: string;
-        let cached = false;
         if (clientId) {
             try {
                 window.sessionStorage.setItem(
                     `${PREFIX}.${clientId}.${TemporaryCacheKeys.URL_HASH}`,
                     payload
                 );
-                cached = true;
             } catch {
-                // sessionStorage write failed — fall through to URL-based fallback
+                // sessionStorage write failed — navigate anyway; handleRedirectPromise will return null
             }
         }
 
-        if (cached) {
-            const url = navigateToUrl || BrowserUtils.getHomepage();
-            /*
-             * Strip bare trailing "?" (empty query string) so the final URL
-             * matches the canonical form
-             */
-            navigationUrl = url.endsWith("?") ? url.slice(0, -1) : url;
-        } else {
-            /*
-             * Reconstruct response URL for fallback when caching is unavailable.
-             * Prefer the cached origin URL when available; fall back to homepage.
-             */
-            const baseUrl = navigateToUrl || BrowserUtils.getHomepage();
-            /*
-             * Strip any existing hash fragment to avoid double-hash URLs
-             * (e.g., /#/route#code=...)
-             */
-            const hashIndex = baseUrl.indexOf("#");
-            let baseUrlWithoutHash =
-                hashIndex === -1 ? baseUrl : baseUrl.substring(0, hashIndex);
-            // Strip bare trailing "?" to avoid "??" when responseFragment starts with "?"
-            if (baseUrlWithoutHash.endsWith("?")) {
-                baseUrlWithoutHash = baseUrlWithoutHash.slice(0, -1);
-            }
-
-            let responseFragment = "";
-            if (hasResponseInHash && hasResponseInQuery) {
-                responseFragment = `${urlQuery}${urlHash}`;
-            } else if (hasResponseInHash) {
-                responseFragment = urlHash;
-            } else {
-                responseFragment = urlQuery;
-            }
-            navigationUrl = `${baseUrlWithoutHash}${responseFragment}`;
-        }
+        const url = navigateToUrl || BrowserUtils.getHomepage();
+        // Strip bare trailing "?" (empty query string) to match canonical URL form
+        const navigationUrl = url.endsWith("?") ? url.slice(0, -1) : url;
 
         await navClient.navigateInternal(navigationUrl, navigationOptions);
 

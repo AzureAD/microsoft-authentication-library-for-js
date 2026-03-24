@@ -182,25 +182,18 @@ describe("broadcastResponseToMainFrame", () => {
     });
 
     describe("Success cases - Redirect flow", () => {
-        it("navigates to homepage with auth response in URL when no interaction status is set", async () => {
+        it("navigates to homepage without auth params when no interaction status is set", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
             await broadcastResponseToMainFrame();
 
-            // With no clientId, falls back to appending auth response to URL
+            // With no clientId, navigates to homepage; handleRedirectPromise will return null
             expect(NavigationClient).toHaveBeenCalled();
-            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.objectContaining({
-                    apiId: expect.any(Number),
-                    noHistory: true,
-                    timeout: expect.any(Number),
-                })
-            );
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
             const navigatedUrl = (
                 mockNavigationClient.navigateInternal as jest.Mock
             ).mock.calls[0][0];
-            expect(navigatedUrl).toContain("code=");
+            expect(navigatedUrl).not.toContain("code=");
 
             // URL should NOT be cleared for redirect flow (we're navigating away)
             expect(mockHistoryReplaceState).not.toHaveBeenCalled();
@@ -328,7 +321,7 @@ describe("broadcastResponseToMainFrame", () => {
             ).not.toHaveBeenCalled();
         });
 
-        it("falls back to URL-based navigation when sessionStorage.getItem fails", async () => {
+        it("navigates to homepage when sessionStorage.getItem fails", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
             // Make sessionStorage.getItem throw
@@ -340,21 +333,24 @@ describe("broadcastResponseToMainFrame", () => {
 
             await broadcastResponseToMainFrame();
 
-            // Should still navigate with auth response in URL as fallback
+            // Should navigate to homepage without auth params
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
             const navigatedUrl = (
                 mockNavigationClient.navigateInternal as jest.Mock
             ).mock.calls[0][0];
-            expect(navigatedUrl).toContain("code=");
+            expect(navigatedUrl).not.toContain("code=");
         });
 
-        it("falls back to URL-based navigation when sessionStorage.setItem fails", async () => {
+        it("navigates to origin URL when sessionStorage.setItem fails", async () => {
             const testClientId = "setitem-fail-client";
+            const cachedOriginUrl = "https://localhost:8081/app";
 
             mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
                 clientId: testClientId,
                 type: "signin",
             });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
@@ -367,55 +363,26 @@ describe("broadcastResponseToMainFrame", () => {
 
             await broadcastResponseToMainFrame();
 
-            // Should still navigate with auth response in URL as fallback
+            // Should navigate to origin URL without auth params
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
             const navigatedUrl = (
                 mockNavigationClient.navigateInternal as jest.Mock
             ).mock.calls[0][0];
-            expect(navigatedUrl).toContain("code=");
+            expect(navigatedUrl).toBe(cachedOriginUrl);
+            expect(navigatedUrl).not.toContain("code=");
         });
 
-        it("strips bare trailing '?' from fallback URL to avoid double '??'", async () => {
-            const testClientId = "fallback-bare-query-client";
-            const originUrlWithBareQuery = "https://localhost:8081/?";
-
-            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
-                clientId: testClientId,
-                type: "signin",
-            });
-            mockSessionStorage[`msal.${testClientId}.request.origin`] =
-                originUrlWithBareQuery;
-
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-
-            // Force fallback by making setItem throw
-            (window.sessionStorage.setItem as jest.Mock).mockImplementation(
-                () => {
-                    throw new Error("QuotaExceeded");
-                }
-            );
-
-            await broadcastResponseToMainFrame();
-
-            const navigatedUrl = (
-                mockNavigationClient.navigateInternal as jest.Mock
-            ).mock.calls[0][0];
-            // Should not start with "https://localhost:8081/??" (double question mark)
-            expect(navigatedUrl).not.toContain("??");
-            expect(navigatedUrl).toContain("code=");
-        });
-
-        it("falls back to URL-based response when client_id is not available", async () => {
+        it("does not cache URL_HASH when client_id is not available", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
             await broadcastResponseToMainFrame();
 
-            // Should navigate with auth response appended to URL as fallback
+            // Should navigate without auth params
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
             const navigatedUrl = (
                 mockNavigationClient.navigateInternal as jest.Mock
             ).mock.calls[0][0];
-            expect(navigatedUrl).toContain("code=");
+            expect(navigatedUrl).not.toContain("code=");
 
             // sessionStorage.setItem should not be called with a urlHash key
             const setItemCalls = (window.sessionStorage.setItem as jest.Mock)
