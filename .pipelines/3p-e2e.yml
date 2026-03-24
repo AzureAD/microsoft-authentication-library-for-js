@@ -117,25 +117,11 @@ extends:
                             - "react-router-sample"
                             - "typescript-sample"
                             - "b2c-sample"
+                            - "react16-sample"
+                            - "react17-sample"
+                            - "react18-sample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
-                  - template: .pipelines/templates/msal-react-compat-e2e.yml@self
-                    parameters:
-                        poolType: ${{ parameters.poolType }}
-                        sourceBranch: ${{ variables.sourceBranch }}
-                        debug: ${{ parameters.debug }}
-                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
-                        samples:
-                            - "react-router-sample"
-                            - "typescript-sample"
-                            - "b2c-sample"
-                        reactVersions:
-                            - version: "18"
-                              override: "^18"
-                            - version: "17"
-                              override: "^17"
-                            - version: "16"
-                              override: "^16.8.0"
                 - ${{ if eq(parameters.runAngularTests, true) }}:
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
