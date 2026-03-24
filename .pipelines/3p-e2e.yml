@@ -30,6 +30,10 @@ parameters:
       displayName: "NPM Install Timeout (Tests)"
       type: number
       default: 15
+    - name: "enableScreenshots"
+      displayName: "Enable E2E Screenshots"
+      type: boolean
+      default: false
 
 variables:
     CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
@@ -80,6 +84,7 @@ extends:
                             - "ExpressSample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        enableScreenshots: ${{ parameters.enableScreenshots }}
                 - ${{ if eq(parameters.runNodeTests, true) }}:
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
@@ -102,6 +107,7 @@ extends:
                             # - "on-behalf-of"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        enableScreenshots: ${{ parameters.enableScreenshots }}
                 - ${{ if eq(parameters.runReactTests, true) }}:
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
@@ -122,6 +128,7 @@ extends:
                             - "react18-sample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        enableScreenshots: ${{ parameters.enableScreenshots }}
                 - ${{ if eq(parameters.runAngularTests, true) }}:
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
@@ -138,3 +145,4 @@ extends:
                             - "angular-standalone-sample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        enableScreenshots: ${{ parameters.enableScreenshots }}
