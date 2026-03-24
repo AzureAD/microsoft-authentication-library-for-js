@@ -162,6 +162,13 @@ export type BrowserSystemOptions = SystemOptions & {
     protocolMode?: ProtocolMode;
 };
 
+export type BrowserExperimentalOptions = {
+    /**
+     * Enables iframe timeout telemetry experiment for silent iframe bridge monitoring.
+     */
+    iframeTimeoutTelemetry?: boolean;
+};
+
 /**
  * Telemetry Options
  */
@@ -193,6 +200,10 @@ export type Configuration = {
      */
     system?: BrowserSystemOptions;
     /**
+     * This is where you can configure experimental features. These do not follow semver and may be changed or removed without a major version bump. Use with caution.
+     */
+    experimental?: BrowserExperimentalOptions;
+    /**
      * This is where you can configure telemetry data and options
      */
     telemetry?: BrowserTelemetryOptions;
@@ -203,6 +214,7 @@ export type BrowserConfiguration = {
     auth: InternalAuthOptions;
     cache: Required<CacheOptions>;
     system: Required<BrowserSystemOptions>;
+    experimental: Required<BrowserExperimentalOptions>;
     telemetry: Required<BrowserTelemetryOptions>;
 };
 
@@ -220,6 +232,7 @@ export function buildConfiguration(
         auth: userInputAuth,
         cache: userInputCache,
         system: userInputSystem,
+        experimental: userInputExperimental,
         telemetry: userInputTelemetry,
     }: Configuration,
     isBrowserEnvironment: boolean
@@ -305,6 +318,10 @@ export function buildConfiguration(
         client: new StubPerformanceClient(),
     };
 
+    const DEFAULT_EXPERIMENTAL_OPTIONS: Required<BrowserExperimentalOptions> = {
+        iframeTimeoutTelemetry: false,
+    };
+
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
     if (
         userInputSystem?.protocolMode !== ProtocolMode.OIDC &&
@@ -343,6 +360,10 @@ export function buildConfiguration(
         },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
         system: providedSystemOptions,
+        experimental: {
+            ...DEFAULT_EXPERIMENTAL_OPTIONS,
+            ...userInputExperimental,
+        },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
 

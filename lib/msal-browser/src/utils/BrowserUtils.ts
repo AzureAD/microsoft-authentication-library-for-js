@@ -11,11 +11,13 @@ import {
     RequestParameterBuilder,
     ICrypto,
     IPerformanceClient,
+    InProgressPerformanceEvent,
     Logger,
     CommonAuthorizationUrlRequest,
     CommonEndSessionRequest,
     ProtocolUtils,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -26,7 +28,10 @@ import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
 } from "../error/BrowserConfigurationAuthError.js";
-import { BrowserConfiguration } from "../config/Configuration.js";
+import {
+    BrowserConfiguration,
+    BrowserExperimentalOptions,
+} from "../config/Configuration.js";
 import { redirectBridgeEmptyResponse } from "../error/BrowserAuthErrorCodes.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 
@@ -236,7 +241,8 @@ export async function waitForBridgeResponse(
     logger: Logger,
     browserCrypto: ICrypto,
     request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
-    performanceClient: IPerformanceClient
+    performanceClient: IPerformanceClient,
+    experimentalConfig?: BrowserExperimentalOptions
 ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         logger.verbose(
@@ -249,6 +255,8 @@ export async function waitForBridgeResponse(
         performanceClient.addFields(
             {
                 redirectBridgeTimeoutMs: timeoutMs,
+                lateResponseExperimentEnabled:
+                    experimentalConfig?.iframeTimeoutTelemetry || false,
             },
             correlationId
         );
@@ -259,12 +267,27 @@ export async function waitForBridgeResponse(
         );
         const channel = new BroadcastChannel(libraryState.id);
         let responseString: string | undefined = undefined;
+        let timedOut = false;
+        let lateTimeoutId: number | undefined;
+        let lateMeasurement: InProgressPerformanceEvent | undefined;
 
         const timeoutId = window.setTimeout(() => {
             // Clear the active monitor
             activeBridgeMonitor = null;
-
-            channel.close();
+            if (experimentalConfig?.iframeTimeoutTelemetry) {
+                lateMeasurement = performanceClient.startMeasurement(
+                    BrowserPerformanceEvents.WaitForBridgeLateResponse,
+                    correlationId
+                );
+                timedOut = true;
+                lateTimeoutId = window.setTimeout(() => {
+                    lateMeasurement?.end({ success: false });
+                    clearTimeout(lateTimeoutId);
+                    channel.close();
+                }, 60000); // 60s late response timeout to allow for telemetry of late responses
+            } else {
+                channel.close();
+            }
             reject(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.timedOut,
@@ -287,6 +310,15 @@ export async function waitForBridgeResponse(
                 event?.data && typeof event.data.v === "number"
                     ? event.data.v
                     : undefined;
+
+            if (timedOut) {
+                lateMeasurement?.end({
+                    success: responseString ? true : false,
+                });
+                clearTimeout(lateTimeoutId);
+                channel.close();
+                return;
+            }
 
             performanceClient.addFields(
                 {
