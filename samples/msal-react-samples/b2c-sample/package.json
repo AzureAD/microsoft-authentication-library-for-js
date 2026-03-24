@@ -10,8 +10,8 @@
         "@emotion/styled": "^11.9.3",
         "@mui/icons-material": "^5.8.4",
         "@mui/material": "^5.9.0",
-        "react": ">=16.8.0 <20.0.0",
-        "react-dom": ">=16.8.0 <20.0.0",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
         "react-router-dom": "^6.7.0"
     },
     "devDependencies": {
