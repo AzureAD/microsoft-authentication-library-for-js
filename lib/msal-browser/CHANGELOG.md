@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 18 Mar 2026 20:48:29 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 24 Mar 2026 17:45:33 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.30.1-alpha.0
+
+Tue, 24 Mar 2026 17:45:33 GMT
+
+### Changes
+
+- Mark package for prerelease (alpha) (msaljsbuilds@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.30.0
 
