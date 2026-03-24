@@ -22,8 +22,7 @@ MSAL React v5 supports React 16.8.0 or greater through React 19.x. This includes
 
 MSAL React v5 declares its `react` peer dependency as `">=16.8.0 <20.0.0"`. This means:
 
-- Applications using React 16.8 or newer will satisfy the peer dependency without errors or warnings.
-- Applications using React 17.x, 18.x, or 19.x will satisfy the peer dependency without errors or warnings.
+- Applications using React 16.8 or newer (including 17.x, 18.x, and 19.x) will satisfy the peer dependency without errors or warnings.
 - No `--legacy-peer-deps` flag is required for any supported version.
 
 ### Known considerations

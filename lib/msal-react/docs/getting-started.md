@@ -45,6 +45,7 @@ root.render(<AppProvider />);
 For React 16 or 17, use `ReactDOM.render` instead:
 
 ```javascript
+import React from "react";
 import ReactDOM from "react-dom";
 
 ReactDOM.render(<AppProvider />, document.getElementById("root"));
