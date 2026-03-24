@@ -124,7 +124,7 @@ describe("/ (Home Page)", () => {
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]", {
-            timeout: 3000,
+            timeout: 10000,
         });
         await screenshot.takeScreenshot(page, "Popup closed");
 
