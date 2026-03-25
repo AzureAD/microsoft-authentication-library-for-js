@@ -23,7 +23,7 @@ let clientID: string;
 let clientSecret: string;
 let authority: string;
 
-// Regional app config (ID4SLab2 tenant, requires SN+I certificate auth)
+// Regional app config
 const regionalAppId = "c7a0804c-df37-4387-a687-5f2e31f1c819";
 const regionalAuthority =
     "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133";
@@ -34,7 +34,7 @@ describe("Client Credentials AAD Prod Tests", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(90000);
 
-    // Certificate credentials for regional test (SN+I required for ESTS-R)
+    // Certificate credentials for regional test
     let thumbprint: string;
     let privateKey: string;
     let x5c: string;

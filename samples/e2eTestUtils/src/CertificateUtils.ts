@@ -48,9 +48,7 @@ export const getCertificateInfo = async (
     const cert = await certClient.getCertificate(certName);
 
     if (!cert.cer) {
-        throw new Error(
-            `Certificate '${certName}' has no CER data in Key Vault`
-        );
+        throw `Certificate '${certName}' has no CER data in Key Vault`;
     }
 
     // Compute SHA-256 thumbprint from the certificate's DER data
@@ -65,12 +63,11 @@ export const getCertificateInfo = async (
     const secret = await secretClient.getSecret(certName);
 
     if (!secret.value) {
-        throw new Error(
-            `Secret for certificate '${certName}' is empty in Key Vault`
-        );
+        throw `Secret for certificate '${certName}' is empty in Key Vault`;
     }
 
     const pkcs12Certificate = Buffer.from(secret.value, "base64");
+    // write the PKCS#12 certificate to a temporary file
     fs.writeFileSync(p12FilePath, pkcs12Certificate);
 
     try {
@@ -83,7 +80,7 @@ export const getCertificateInfo = async (
             /-----BEGIN PRIVATE KEY-----[\s\S]*?-----END PRIVATE KEY-----/
         );
         if (!privateKeyMatch) {
-            throw new Error("Could not extract private key from PKCS#12");
+            throw "Could not extract private key from PKCS#12";
         }
         const privateKey = privateKeyMatch[0] + "\n";
         const privateKeyObject = createPrivateKey(privateKey);
@@ -97,7 +94,7 @@ export const getCertificateInfo = async (
             /-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g
         );
         if (!certMatches || certMatches.length === 0) {
-            throw new Error("Could not extract certificates from PKCS#12");
+            throw "Could not extract certificates from PKCS#12";
         }
         let certificates = certMatches.map((c: string) => c + "\n");
         let x5c = certificates.join("");
@@ -105,21 +102,26 @@ export const getCertificateInfo = async (
         // Ensure the certificate chain is in the correct order (leaf cert first)
         const x509FromFirstCertificate = new X509Certificate(certificates[0]);
 
+        // check if the private key matches the first certificate in the x5c
         if (!x509FromFirstCertificate.checkPrivateKey(privateKeyObject)) {
             const x509FromLastCertificate = new X509Certificate(
                 certificates[certificates.length - 1]
             );
 
+            // if it doesn't match, the x5c may be reversed (this is common when exporting certificates from azure key vault)
+            // check if the private key matches the last certificate in the x5c
             if (x509FromLastCertificate.checkPrivateKey(privateKeyObject)) {
+                // if it does, reverse the certs in the x5c
                 x5c = certificates.reverse().join("");
             } else {
-                throw new Error("Certificate is malformed");
+                // if it doesn't match, the certificate is malformed
+                throw "Certificate is malformed";
             }
         }
 
         return [thumbprint, privateKey, x5c];
     } catch (error) {
-        throw new Error(`Error processing PKCS#12 file: ${error}`);
+        throw `Error processing PKCS#12 file: ${error}`;
     } finally {
         // clean up temporary files
         try {
