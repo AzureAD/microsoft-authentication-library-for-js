@@ -1,7 +1,7 @@
 {
     "authOptions":
     {
-        "clientId": "4b0db8c2-9f26-4417-8bde-3f0e3656f8e0",
+        "clientId": "c6bb302a-1e38-408e-9754-87c18fe81c80",
         "authority": "https://login.microsoftonline.com/common/",
         "redirectUri": "http://localhost:3000/redirect"
     },

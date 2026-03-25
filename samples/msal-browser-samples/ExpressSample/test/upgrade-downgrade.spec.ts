@@ -80,7 +80,7 @@ describe("Upgrade/Downgrade Tests", () => {
         const accountKeys = storage[`msal.${currentAccountSchemaVersion}.account.keys`];
         expect(accountKeys).toBeTruthy();
         expect(JSON.parse(accountKeys!)).toHaveLength(1);
-        const tokenKeys = storage[`msal.${currentTokenSchemaVersion}.token.keys.b5c2e510-4a17-4feb-b219-e55aa5b74144`];
+        const tokenKeys = storage[`msal.${currentTokenSchemaVersion}.token.keys.0845a021-afdf-4126-abdd-099c5e6948e1`];
         expect(tokenKeys).toBeTruthy();
         expect(JSON.parse(tokenKeys!).idToken).toHaveLength(1);
         expect(JSON.parse(tokenKeys!).accessToken).toHaveLength(1);

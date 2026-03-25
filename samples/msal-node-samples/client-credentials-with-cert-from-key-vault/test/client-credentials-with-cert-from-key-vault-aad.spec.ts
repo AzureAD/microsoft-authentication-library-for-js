@@ -2,19 +2,17 @@ import {
     RETRY_TIMES,
     validateCacheLocation,
     NodeCacheTestUtils,
-    getKeyVaultSecretClient,
+    getCertificateInfo,
+    ENV_VARIABLES,
+    LAB_CERT_NAME,
+    LAB_KEY_VAULT_URL,
 } from "../../../e2eTestUtils/src";
 import {
     AuthenticationResult,
     ConfidentialClientApplication,
     Configuration,
 } from "@azure/msal-node";
-import { getCertificateInfo } from "../../../e2eTestUtils/src/CertificateUtils";
-import {
-    ENV_VARIABLES,
-    LAB_CERT_NAME,
-    LAB_KEY_VAULT_URL,
-} from "../../../e2eTestUtils/src/Constants";
+import { ClientCertificateCredential } from "@azure/identity";
 import getClientCredentialsToken from "../app";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
@@ -31,11 +29,15 @@ describe("Client Credentials AAD Prod Tests", () => {
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
 
-        const keyVaultSecretClient = await getKeyVaultSecretClient(
-            LAB_KEY_VAULT_URL
+        const credentials = new ClientCertificateCredential(
+            process.env[ENV_VARIABLES.TENANT] as string,
+            process.env[ENV_VARIABLES.CLIENT_ID] as string,
+            process.env[ENV_VARIABLES.CERTIFICATE_PATH] as string,
+            { sendCertificateChain: true }
         );
         [thumbprint, privateKey, x5c] = await getCertificateInfo(
-            keyVaultSecretClient,
+            credentials,
+            LAB_KEY_VAULT_URL,
             LAB_CERT_NAME
         );
 
