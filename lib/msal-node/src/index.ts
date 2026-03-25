@@ -58,6 +58,13 @@ export { DistributedCachePlugin } from "./cache/distributed/DistributedCachePlug
 // Constants
 export { ManagedIdentitySourceNames } from "./utils/Constants.js";
 
+// mTLS Proof-of-Possession
+export { MtlsHttpClient } from "./network/MtlsHttpClient.js";
+export {
+    buildMtlsTokenEndpoint,
+    extractTenantFromAuthority,
+} from "./utils/MtlsEndpointUtils.js";
+
 // Request objects
 export type { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest.js";
 export type { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest.js";
@@ -73,7 +80,8 @@ export type { ManagedIdentityRequestParams } from "./request/ManagedIdentityRequ
 
 const PromptValue = CommonConstants.PromptValue;
 const ResponseMode = CommonConstants.ResponseMode;
-export { PromptValue, ResponseMode };
+const AuthenticationScheme = CommonConstants.AuthenticationScheme;
+export { PromptValue, ResponseMode, AuthenticationScheme };
 
 export { CryptoProvider } from "./crypto/CryptoProvider.js";
 

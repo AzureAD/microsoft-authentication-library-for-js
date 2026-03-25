@@ -572,6 +572,18 @@ export function addSshJwk(
 }
 
 /**
+ * add token_type=mtls_pop to indicate a mutual-TLS Proof-of-Possession token request.
+ * Unlike the standard PoP scheme, mTLS PoP does not require a req_cnf parameter —
+ * the TLS handshake certificate itself serves as the binding proof.
+ */
+export function addMtlsPopTokenType(parameters: Map<string, string>): void {
+    parameters.set(
+        AADServerParamKeys.TOKEN_TYPE,
+        Constants.AuthenticationScheme.MTLS_POP
+    );
+}
+
+/**
  * add server telemetry fields
  * @param serverTelemetryManager
  */

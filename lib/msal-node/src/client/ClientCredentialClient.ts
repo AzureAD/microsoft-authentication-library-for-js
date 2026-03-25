@@ -36,6 +36,8 @@ import {
 } from "../config/Configuration.js";
 import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest.js";
 import { BaseClient } from "./BaseClient.js";
+import { MtlsHttpClient } from "../network/MtlsHttpClient.js";
+import { buildMtlsTokenEndpoint } from "../utils/MtlsEndpointUtils.js";
 
 /**
  * OAuth2.0 client credential grant
@@ -43,13 +45,16 @@ import { BaseClient } from "./BaseClient.js";
  */
 export class ClientCredentialClient extends BaseClient {
     private readonly appTokenProvider?: IAppTokenProvider;
+    private readonly mtlsConfig?: { cert: string; key: string };
 
     constructor(
         configuration: ClientConfiguration,
-        appTokenProvider?: IAppTokenProvider
+        appTokenProvider?: IAppTokenProvider,
+        mtlsConfig?: { cert: string; key: string }
     ) {
         super(configuration);
         this.appTokenProvider = appTokenProvider;
+        this.mtlsConfig = mtlsConfig;
     }
 
     /**
@@ -275,6 +280,15 @@ export class ClientCredentialClient extends BaseClient {
                 refresh_in: appTokenProviderResult.refreshInSeconds,
                 token_type: Constants.AuthenticationScheme.BEARER,
             };
+        } else if (
+            request.authenticationScheme ===
+            Constants.AuthenticationScheme.MTLS_POP
+        ) {
+            reqTimestamp = TimeUtils.nowSeconds();
+            serverTokenResponse = await this.executeMtlsTokenRequest(
+                request,
+                authority
+            );
         } else {
             const queryParametersString =
                 this.createTokenQueryParameters(request);
@@ -344,6 +358,43 @@ export class ClientCredentialClient extends BaseClient {
     }
 
     /**
+     * Performs the mTLS Proof-of-Possession token request.
+     * The mTLS handshake authenticates the client, so no client_assertion is sent.
+     * The token request is sent to the regional mtlsauth.microsoft.com endpoint.
+     */
+    private async executeMtlsTokenRequest(
+        request: CommonClientCredentialRequest,
+        authority: Authority
+    ): Promise<ServerAuthorizationTokenResponse> {
+        const region = request.azureRegion as string;
+        const tenantId = authority.tenant;
+        const mtlsEndpoint = buildMtlsTokenEndpoint(region, tenantId);
+
+        const requestBody = await this.createTokenRequestBody(request);
+        const headers: Record<string, string> =
+            this.createTokenRequestHeaders();
+
+        this.logger.info(
+            `Sending mTLS PoP token request to endpoint: ${mtlsEndpoint}`,
+            request.correlationId
+        );
+
+        const mtlsCert = this.mtlsConfig!.cert;
+        const mtlsKey = this.mtlsConfig!.key;
+
+        const mtlsClient = new MtlsHttpClient(mtlsCert, mtlsKey);
+        const response =
+            await mtlsClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
+                mtlsEndpoint,
+                { headers, body: requestBody }
+            );
+
+        const serverTokenResponse = response.body;
+        serverTokenResponse.status = response.status;
+        return serverTokenResponse;
+    }
+
+    /**
      * generate the request to the server in the acceptable format
      * @param request - CommonClientCredentialRequest provided by the developer
      */
@@ -394,24 +445,36 @@ export class ClientCredentialClient extends BaseClient {
             );
         }
 
-        // Use clientAssertion from request, fallback to client assertion in base configuration
-        const clientAssertion: ClientAssertion | undefined =
-            request.clientAssertion ||
-            this.config.clientCredentials.clientAssertion;
+        // For mTLS PoP, the TLS handshake authenticates the client — do NOT send client_assertion.
+        // For all other schemes, use the configured client assertion.
+        const isMtlsPop =
+            request.authenticationScheme ===
+            Constants.AuthenticationScheme.MTLS_POP;
 
-        if (clientAssertion) {
-            RequestParameterBuilder.addClientAssertion(
-                parameters,
-                await getClientAssertion(
-                    clientAssertion.assertion,
-                    this.config.authOptions.clientId,
-                    request.resourceRequestUri
-                )
-            );
-            RequestParameterBuilder.addClientAssertionType(
-                parameters,
-                clientAssertion.assertionType
-            );
+        if (!isMtlsPop) {
+            // Use clientAssertion from request, fallback to client assertion in base configuration
+            const clientAssertion: ClientAssertion | undefined =
+                request.clientAssertion ||
+                this.config.clientCredentials.clientAssertion;
+
+            if (clientAssertion) {
+                RequestParameterBuilder.addClientAssertion(
+                    parameters,
+                    await getClientAssertion(
+                        clientAssertion.assertion,
+                        this.config.authOptions.clientId,
+                        request.resourceRequestUri
+                    )
+                );
+                RequestParameterBuilder.addClientAssertionType(
+                    parameters,
+                    clientAssertion.assertionType
+                );
+            }
+        }
+
+        if (isMtlsPop) {
+            RequestParameterBuilder.addMtlsPopTokenType(parameters);
         }
 
         if (
