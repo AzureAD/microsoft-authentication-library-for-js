@@ -2,6 +2,27 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 25 Mar 2026 20:12:23 GMT",
+      "version": "5.6.2",
+      "tag": "@azure/msal-browser_v5.6.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2b995b135aa2614479eeea9bc558f5c80edd7679",
+            "comment": "Cache auth response in sessionStorage and navigate to origin URL without appending auth parameters [#8467](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8467)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2b995b135aa2614479eeea9bc558f5c80edd7679",
+            "comment": "Remove hidden iframe after receiving response from the redirect bridge [#8459](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8459)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 19 Mar 2026 23:46:44 GMT",
       "version": "5.6.1",
       "tag": "@azure/msal-browser_v5.6.1",

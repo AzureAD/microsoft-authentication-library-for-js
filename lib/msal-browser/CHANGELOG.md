@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Thu, 19 Mar 2026 23:46:44 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 25 Mar 2026 20:12:23 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.6.2
+
+Wed, 25 Mar 2026 20:12:23 GMT
+
+### Patches
+
+- Cache auth response in sessionStorage and navigate to origin URL without appending auth parameters [#8467](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8467) (kshabelko@microsoft.com)
+- Remove hidden iframe after receiving response from the redirect bridge [#8459](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8459) (kshabelko@microsoft.com)
 
 ## 5.6.1
 
