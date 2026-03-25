@@ -2,6 +2,147 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 19 Mar 2026 23:46:44 GMT",
+      "version": "5.6.1",
+      "tag": "@azure/msal-browser_v5.6.1",
+      "comments": {
+        "none": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5c0394e7c61693af34cb654ebbcb29bcd5cf6b40",
+            "comment": "Document cross-origin iframe limitations for the redirect bridge and recommend NAA [#8441](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8441)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5c0394e7c61693af34cb654ebbcb29bcd5cf6b40",
+            "comment": "Set correlation ID after initialization for NAA [#8447](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8447)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 18 Mar 2026 20:47:24 GMT",
+      "version": "5.6.0",
+      "tag": "@azure/msal-browser_v5.6.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3de432579bc9a74398e98151bbc28cc41ce1d9b2",
+            "comment": "Add support for client data telemetry with CLI_DATA parameter [#8378](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8378)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.4.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3de432579bc9a74398e98151bbc28cc41ce1d9b2",
+            "comment": "getNativeAccountId() bugfix for v5 [#8105](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8105)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 13 Mar 2026 22:36:58 GMT",
+      "version": "5.5.0",
+      "tag": "@azure/msal-browser_v5.5.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "48cd5e0af83a8da6d32df43996b4c2d9ffe1fa4c",
+            "comment": "Additional telemetry for monitor_window_timeout errors [#8385](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8385)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "48cd5e0af83a8da6d32df43996b4c2d9ffe1fa4c",
+            "comment": "Fix JSON object conversion in PlatformDOMRequest [#8348](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8348)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "48cd5e0af83a8da6d32df43996b4c2d9ffe1fa4c",
+            "comment": "Add MCP Support [#8363](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8363)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.3.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 02 Mar 2026 19:25:47 GMT",
       "version": "5.4.0",
       "tag": "@azure/msal-browser_v5.4.0",

@@ -698,6 +698,18 @@ describe("CacheManager.ts test cases", () => {
             ).toBeNull();
         });
 
+        it("returns null if filter passed in contains empty values", () => {
+            expect(
+                mockCache.cacheManager.getAccountInfoFilteredBy(
+                    {
+                        homeAccountId: "",
+                        loginHint: "",
+                    },
+                    RANDOM_TEST_GUID
+                )
+            ).toBeNull();
+        });
+
         it("returns an account matching filter", () => {
             const resultAccount =
                 mockCache.cacheManager.getAccountInfoFilteredBy(
@@ -767,6 +779,84 @@ describe("CacheManager.ts test cases", () => {
                 );
             expect(resultAccount).not.toBeNull();
             expect(resultAccount).toMatchObject(multiTenantAccount);
+        });
+
+        it("should return guest account when isHomeTenant filter is false", () => {
+            // Test the case where isHomeTenant=false filter is used and should match guest tenant profiles
+            const guestAccount =
+                mockCache.cacheManager.getAccountInfoFilteredBy(
+                    {
+                        homeAccountId: multiTenantAccount.homeAccountId,
+                        isHomeTenant: false,
+                    },
+                    RANDOM_TEST_GUID
+                );
+
+            expect(guestAccount).not.toBeNull();
+            expect(guestAccount?.tenantProfiles).toBeDefined();
+            if (guestAccount?.tenantProfiles) {
+                const currentTenantProfile = guestAccount.tenantProfiles.get(
+                    guestAccount.tenantId
+                );
+                expect(currentTenantProfile?.isHomeTenant).toBe(false);
+            }
+        });
+
+        it("should return null when filter values are undefined", () => {
+            // Test that when isHomeTenant filter is undefined, it doesn't affect filtering
+            const accountWithUndefinedFilter =
+                mockCache.cacheManager.getAccountInfoFilteredBy(
+                    {
+                        homeAccountId: undefined,
+                        isHomeTenant: undefined,
+                    },
+                    RANDOM_TEST_GUID
+                );
+
+            expect(accountWithUndefinedFilter).toEqual(null);
+        });
+
+        it("should filter combined with other filters properly", () => {
+            // Test that isHomeTenant filter works in combination with other filters
+            const accountByIdAndHomeTenant =
+                mockCache.cacheManager.getAccountInfoFilteredBy(
+                    {
+                        homeAccountId: multiTenantAccount.homeAccountId,
+                        tenantId: multiTenantAccount.tenantId,
+                        isHomeTenant: true,
+                    },
+                    RANDOM_TEST_GUID
+                );
+
+            expect(accountByIdAndHomeTenant).not.toBeNull();
+            expect(accountByIdAndHomeTenant?.homeAccountId).toEqual(
+                multiTenantAccount.homeAccountId
+            );
+            expect(accountByIdAndHomeTenant?.tenantId).toEqual(
+                multiTenantAccount.tenantId
+            );
+
+            if (accountByIdAndHomeTenant?.tenantProfiles) {
+                const currentTenantProfile =
+                    accountByIdAndHomeTenant.tenantProfiles.get(
+                        accountByIdAndHomeTenant.tenantId
+                    );
+                expect(currentTenantProfile?.isHomeTenant).toBe(true);
+            }
+        });
+
+        it("should return null when no matching tenant profiles exist", () => {
+            // Test edge case where filter criteria don't match any profiles
+            const nonExistentAccount =
+                mockCache.cacheManager.getAccountInfoFilteredBy(
+                    {
+                        homeAccountId: "non-existent-id",
+                        isHomeTenant: true,
+                    },
+                    RANDOM_TEST_GUID
+                );
+
+            expect(nonExistentAccount).toBeNull();
         });
     });
 

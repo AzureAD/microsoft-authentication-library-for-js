@@ -144,6 +144,11 @@ export type PerformanceEvent = {
     serverErrorNo?: string;
 
     /**
+     * Server sub error number
+     */
+    serverSubErrorNo?: string;
+
+    /**
      * Name of the library used for the operation.
      *
      * @type {string}

@@ -1,8 +1,29 @@
 # Change Log - @azure/msal-react
 
-<!-- This log was last generated on Mon, 02 Mar 2026 19:25:47 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 18 Mar 2026 20:47:24 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.1.0
+
+Wed, 18 Mar 2026 20:47:24 GMT
+
+### Minor changes
+
+- Add React 18 support for MSAL React [#8437](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8437) (joarroyo@microsoft.com)
+- Bump @azure/msal-browser to v5.6.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 5.0.7
+
+Fri, 13 Mar 2026 22:36:58 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.5.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
 
 ## 5.0.6
 
