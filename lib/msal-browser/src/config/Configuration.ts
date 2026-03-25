@@ -162,6 +162,7 @@ export type BrowserSystemOptions = SystemOptions & {
     protocolMode?: ProtocolMode;
 };
 
+/** @internal */
 export type BrowserExperimentalOptions = {
     /**
      * Enables iframe timeout telemetry experiment for silent iframe bridge monitoring.
@@ -201,7 +202,6 @@ export type Configuration = {
     system?: BrowserSystemOptions;
     /**
      * This is where you can configure experimental features. These do not follow semver and may be changed or removed without a major version bump. Use with caution.
-     * @internal
      */
     experimental?: BrowserExperimentalOptions;
     /**

@@ -333,9 +333,9 @@ declare namespace BrowserConfigurationAuthErrorCodes {
 }
 export { BrowserConfigurationAuthErrorCodes }
 
-// Warning: (ae-missing-release-tag) "BrowserExperimentalOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-internal-missing-underscore) The name "BrowserExperimentalOptions" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public (undocumented)
+// @internal (undocumented)
 export type BrowserExperimentalOptions = {
     iframeTimeoutTelemetry?: boolean;
 };
@@ -1507,6 +1507,8 @@ const userCancelled = "user_cancelled";
 // @public (undocumented)
 export const version = "5.6.1";
 
+// Warning: (ae-incompatible-release-tags) The symbol "waitForBridgeResponse" is marked as @public, but its signature references "BrowserExperimentalOptions" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "waitForBridgeResponse" is marked as @public, but its signature references "BrowserExperimentalOptions" which is marked as @internal
 // Warning: (ae-missing-release-tag) "waitForBridgeResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -1529,6 +1531,7 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/cache/LocalStorage.ts:366:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:429:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:460:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/config/Configuration.ts:206:5 - (ae-incompatible-release-tags) The symbol "experimental" is marked as @public, but its signature references "BrowserExperimentalOptions" which is marked as @internal
 // src/config/Configuration.ts:215:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:116:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:143:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
