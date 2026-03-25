@@ -157,7 +157,8 @@ describe("AAD-Prod Tests", () => {
                     request: relativeRedirectUriRequest,
                 })
             );
-            page.reload();
+            await page.reload();
+            await pcaInitializedPoller(page, 5000);
 
             const testName = "redirectBaseCase";
             const screenshot = new Screenshot(
@@ -185,7 +186,8 @@ describe("AAD-Prod Tests", () => {
                     request: relativeRedirectUriRequest,
                 })
             );
-            page.reload();
+            await page.reload();
+            await pcaInitializedPoller(page, 5000);
 
             const testName = "redirectBaseCase";
             const screenshot = new Screenshot(
