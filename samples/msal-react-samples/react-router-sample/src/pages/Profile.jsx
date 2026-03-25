@@ -1,8 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 
 // Msal imports
 import { MsalAuthenticationTemplate, useMsal } from "@azure/msal-react";
-import { EventType, InteractionType, InteractionRequiredAuthError } from "@azure/msal-browser";
+import { InteractionStatus, InteractionType, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { loginRequest } from "../authConfig";
 
 // Sample app imports
@@ -15,41 +15,21 @@ import { callMsGraph } from "../utils/MsGraphApiCall";
 import Paper from "@mui/material/Paper";
 
 const ProfileContent = () => {
-    const { instance } = useMsal();
+    const { instance, inProgress } = useMsal();
     const [graphData, setGraphData] = useState(null);
 
-    const fetchProfile = useCallback(() => {
-        if (!instance.getActiveAccount()) {
-            return;
-        }
-        callMsGraph().then(response => setGraphData(response)).catch((e) => {
-            if (e instanceof InteractionRequiredAuthError) {
-                instance.acquireTokenRedirect({
-                    ...loginRequest,
-                    account: instance.getActiveAccount()
-                });
-            }
-        });
-    }, [instance]);
-
     useEffect(() => {
-        // Attempt to fetch profile data immediately
-        fetchProfile();
-
-        // Subscribe to active account changes so the Graph call is retried
-        // once setActiveAccount has been called.
-        const callbackId = instance.addEventCallback((event) => {
-            if (event.eventType === EventType.ACTIVE_ACCOUNT_CHANGED) {
-                fetchProfile();
-            }
-        });
-
-        return () => {
-            if (callbackId) {
-                instance.removeEventCallback(callbackId);
-            }
-        };
-    }, [instance, fetchProfile]);
+        if (!graphData && inProgress === InteractionStatus.None) {
+            callMsGraph().then(response => setGraphData(response)).catch((e) => {
+                if (e instanceof InteractionRequiredAuthError) {
+                    instance.acquireTokenRedirect({
+                        ...loginRequest,
+                        account: instance.getActiveAccount()
+                    });
+                }
+            });
+        }
+    }, [inProgress, graphData, instance]);
   
     return (
         <Paper>
