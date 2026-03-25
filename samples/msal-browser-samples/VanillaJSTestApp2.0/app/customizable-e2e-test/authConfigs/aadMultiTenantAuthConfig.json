@@ -2,25 +2,26 @@
     "msalConfig": {
         "auth": {
             "clientId": "0845a021-afdf-4126-abdd-099c5e6948e1",
-            "authority": "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca",
+            "authority": "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133",
             "redirectUri": "/redirect"
         },
         "cache": {
-            "cacheLocation": "sessionStorage",
-            "storeAuthStateInCookie": false
+            "cacheLocation": "sessionStorage"
         },
         "system": {
             "allowPlatformBroker": false
         }
     },
     "request": {
-        "scopes": ["User.Read"]
+        "scopes": [
+            "User.Read"
+        ]
     },
     "tenants": {
-        "home":  {
-            "tenantId": "f645ad92-e38d-4d1a-b510-d1b09a74a8ca",
-            "authority": "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca"
-    },
+        "home": {
+            "tenantId": "c7cef333-42af-492c-afb0-21f74a661133",
+            "authority": "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133"
+        },
         "guest": {
             "tenantId": "8e44f19d-bbab-4a82-b76b-4cd0a6fbc97a",
             "authority": "https://login.microsoftonline.com/8e44f19d-bbab-4a82-b76b-4cd0a6fbc97a"
