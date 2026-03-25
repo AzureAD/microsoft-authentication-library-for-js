@@ -143,7 +143,7 @@ export async function setupCredentials(
 
     const { user, lab } = labConfig;
 
-    if (user.userType === "Guest") {
+    if (user.userType === "guest") {
         if (!user.homeUPN) {
             throw Error("Guest user does not have a homeUPN");
         }
