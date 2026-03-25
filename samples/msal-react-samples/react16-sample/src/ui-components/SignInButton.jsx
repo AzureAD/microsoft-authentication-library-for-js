@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMsal } from "@azure/msal-react";
 import Button from "@material-ui/core/Button";
 import MenuItem from '@material-ui/core/MenuItem';
@@ -19,6 +19,14 @@ export const SignInButton = () => {
     const [showPopupWarning, setShowPopupWarning] = useState(false);
     const open = Boolean(anchorEl);
 
+    // Track mounted state to avoid setting state after unmount (React 16 does not batch async state updates)
+    const isMountedRef = useRef(true);
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
     const handleLogin = async (loginType) => {
         setAnchorEl(null);
 
@@ -33,20 +41,24 @@ export const SignInButton = () => {
                     overrideInteractionInProgress: retryRequested
                 });
 
-                // Hide warning on success
-                setShowPopupWarning(false);
-                setRetryRequested(false);
-            } catch (error) {
-                // Hide warning on error
-                setShowPopupWarning(false);
-
-                if (error.errorCode === 'interaction_in_progress') {
-                    // Show retry dialog - let user decide whether to retry
-                    setShowRetryDialog(true);
-                } else {
-                    // Reset retry flag for other errors
+                // Hide warning on success — guard against unmounted component
+                if (isMountedRef.current) {
+                    setShowPopupWarning(false);
                     setRetryRequested(false);
-                    console.error(error);
+                }
+            } catch (error) {
+                // Hide warning on error — guard against unmounted component
+                if (isMountedRef.current) {
+                    setShowPopupWarning(false);
+
+                    if (error.errorCode === 'interaction_in_progress') {
+                        // Show retry dialog - let user decide whether to retry
+                        setShowRetryDialog(true);
+                    } else {
+                        // Reset retry flag for other errors
+                        setRetryRequested(false);
+                        console.error(error);
+                    }
                 }
             }
         } else if (loginType === "redirect") {
