@@ -363,6 +363,11 @@ function addLoginHint(parameters: Map<string, string>, loginHint: string): void;
 // @public
 function addLogoutHint(parameters: Map<string, string>, logoutHint: string): void;
 
+// Warning: (ae-missing-release-tag) "addMtlsPopTokenType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function addMtlsPopTokenType(parameters: Map<string, string>): void;
+
 // Warning: (ae-missing-release-tag) "addNativeBroker" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -579,6 +584,7 @@ export type AuthenticationResult = {
     code?: string;
     fromPlatformBroker?: boolean;
     resource?: string;
+    bindingCertificate?: string;
 };
 
 // Warning: (ae-missing-release-tag) "AuthenticationScheme" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -589,6 +595,7 @@ const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
     readonly SSH: "ssh-cert";
+    readonly MTLS_POP: "mtls_pop";
 };
 
 // @public (undocumented)
@@ -3926,6 +3933,7 @@ declare namespace RequestParameterBuilder {
         addPassword,
         addPopToken,
         addSshJwk,
+        addMtlsPopTokenType,
         addServerTelemetry,
         addThrottling,
         addLogoutHint,
