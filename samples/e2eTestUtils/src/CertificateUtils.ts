@@ -48,7 +48,7 @@ export const getCertificateInfo = async (
     const cert = await certClient.getCertificate(certName);
 
     if (!cert.cer) {
-        throw `Certificate '${certName}' has no CER data in Key Vault`;
+        throw new Error(`Certificate '${certName}' has no CER data in Key Vault`);
     }
 
     // Compute SHA-256 thumbprint from the certificate's DER data
@@ -56,14 +56,14 @@ export const getCertificateInfo = async (
     const pemLines = base64Cert.match(/.{1,64}/g)?.join("\n") || base64Cert;
     const certPem = `-----BEGIN CERTIFICATE-----\n${pemLines}\n-----END CERTIFICATE-----`;
     const leafX509 = new X509Certificate(certPem);
-    const thumbprint: string = leafX509.fingerprint256.replaceAll(":", "");
+    const thumbprint = leafX509.fingerprint256.replaceAll(":", "");
 
     // Fetch the PKCS#12 bundle from the corresponding secret
     const secretClient = new SecretClient(keyVaultUrl, credentials);
     const secret = await secretClient.getSecret(certName);
 
     if (!secret.value) {
-        throw `Secret for certificate '${certName}' is empty in Key Vault`;
+        throw new Error(`Secret for certificate '${certName}' is empty in Key Vault`);
     }
 
     const pkcs12Certificate = Buffer.from(secret.value, "base64");
@@ -80,7 +80,7 @@ export const getCertificateInfo = async (
             /-----BEGIN PRIVATE KEY-----[\s\S]*?-----END PRIVATE KEY-----/
         );
         if (!privateKeyMatch) {
-            throw "Could not extract private key from PKCS#12";
+            throw new Error("Could not extract private key from PKCS#12");
         }
         const privateKey = privateKeyMatch[0] + "\n";
         const privateKeyObject = createPrivateKey(privateKey);
@@ -94,7 +94,7 @@ export const getCertificateInfo = async (
             /-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g
         );
         if (!certMatches || certMatches.length === 0) {
-            throw "Could not extract certificates from PKCS#12";
+            throw new Error("Could not extract certificates from PKCS#12");
         }
         let certificates = certMatches.map((c: string) => c + "\n");
         let x5c = certificates.join("");
@@ -115,13 +115,13 @@ export const getCertificateInfo = async (
                 x5c = certificates.reverse().join("");
             } else {
                 // if it doesn't match, the certificate is malformed
-                throw "Certificate is malformed";
+                throw new Error("Certificate is malformed");
             }
         }
 
         return [thumbprint, privateKey, x5c];
     } catch (error) {
-        throw `Error processing PKCS#12 file: ${error}`;
+        throw new Error(`Error processing PKCS#12 file: ${error}`);
     } finally {
         // clean up temporary files
         try {
