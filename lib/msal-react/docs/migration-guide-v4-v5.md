@@ -15,25 +15,6 @@ MSAL Browser v5 requires a dedicated redirect page/bridge for authentication flo
 
 Please see the [COOP section in the MSAL Browser v4-v5 migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v4-migration.md#cross-origin-opener-policy-coop-support).
 
-## Updated React version support
-MSAL React v5 supports React 16.8.0 or greater through React 19.x. This includes React 16 (16.8+), 17, 18, and 19.
-
-## Peer dependency ranges
-
-MSAL React v5 declares its `react` peer dependency as `">=16.8.0 <19.0.0 || >=19.2.1 <20.0.0"`. This means:
-
-- Applications using React 16.8 through 18.x, or React 19.2.1+, will satisfy the peer dependency without errors or warnings.
-- React 19.0.0, 19.1.0, 19.1.1, and 19.2.0 are **excluded** due to [CVE-2025-55182](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2025-55182). Upgrade to React 19.2.1 or later.
-- No `--legacy-peer-deps` flag is required for any supported version.
-
-### Known considerations
-
-- **React 16/17 note**: React hooks are required. Minimum supported version is React 16.8.0.
-- **`@types/react`**: If you use TypeScript, install the `@types/react` version matching your React major version (`@types/react@^16` for React 16, `@types/react@^17` for React 17, `@types/react@^18` for React 18, `@types/react@^19` for React 19). All are compatible with the MSAL React v5 public API surface.
-- **`@testing-library/react`**: v12 supports React 16/17; v14+ supports React 18; v16+ supports both React 18 and 19. Choose the version that matches your React version.
-- **`react-dom`**: Install the same major version of `react-dom` as `react` (e.g., `react-dom@^16` with `react@^16`).
-- **Rendering API**: React 16 and 17 use `ReactDOM.render()`. React 18+ uses `createRoot()`. MSAL React itself does not call either API — your application chooses the rendering method.
-
 ## Migrating from Create React App (react-scripts)
 
 Create React App is deprecated and `react-scripts` does not support React 19. If your app uses `react-scripts`, you should migrate to a different build tool before upgrading to `@azure/msal-react@^5`. While React 18 is supported by `@azure/msal-react@^5`, CRA is no longer maintained and Vite is recommended.
