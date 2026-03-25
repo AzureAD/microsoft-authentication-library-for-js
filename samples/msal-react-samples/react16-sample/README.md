@@ -7,7 +7,7 @@ This sample is derived from the [react-router-sample](../react-router-sample) an
 ## Notable files and what they demonstrate
 
 1. `./src/App.jsx` - Shows implementation of `MsalProvider`, all children will have access to `@azure/msal-react` context, hooks and components.
-1. `./src/index.jsx` - Shows intialization of the `PublicClientApplication` that is passed to `App.jsx`
+1. `./src/index.jsx` - Shows initialization of the `PublicClientApplication` that is passed to `App.jsx`
 1. `./src/pages/Home.jsx` - Homepage, shows how to conditionally render content using `AuthenticatedTemplate` and `UnauthenticatedTemplate` depending on whether or not a user is signed in.
 1. `./src/pages/Profile.jsx` - Example of a protected route using `MsalAuthenticationTemplate`. If a user is not yet signed in, signin will be invoked automatically. If a user is signed in it will acquire an access token and make a call to MS Graph to fetch user profile data.
 1. `./src/authConfig.js` - Configuration options for `PublicClientApplication` and token requests.
@@ -41,7 +41,7 @@ For more information, visit:
 
 ### Configure the application
 
-- Open `./env.development` in an editor.
+- Open `./.env.development` in an editor.
 - Replace `ENTER_CLIENT_ID_HERE` with the Application (client) ID from the portal registration, or use the currently configured lab registration.
 - Replace `ENTER_TENANT_ID_HERE` with the tenant ID from the portal registration, or use the currently configured lab registration.
   - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.

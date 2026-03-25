@@ -25,7 +25,9 @@ export async function callMsGraph(accessToken) {
         headers: headers
     };
 
-    return fetch(graphConfig.graphMeEndpoint, options)
-        .then(response => response.json())
-        .catch(error => console.log(error));
+    const response = await fetch(graphConfig.graphMeEndpoint, options);
+    if (!response.ok) {
+        throw new Error(`MS Graph request failed: ${response.status} ${response.statusText}`);
+    }
+    return response.json();
 }

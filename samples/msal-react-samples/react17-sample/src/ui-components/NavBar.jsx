@@ -8,7 +8,7 @@ import { Link as RouterLink } from "react-router-dom";
 
 const NavBar = () => {
     return (
-        <div sx={{ flexGrow: 1 }}>
+        <div style={{ flexGrow: 1 }}>
             <AppBar position="static">
             <Toolbar>
                 <Typography sx={{ flexGrow: 1 }}>
