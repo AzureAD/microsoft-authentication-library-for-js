@@ -94,7 +94,7 @@ describe("/profile", () => {
 
         // Wait for Graph data to display
         await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]", {
-            timeout: 10000,
+            timeout: 5000,
         });
         await screenshot.takeScreenshot(page, "Graph data acquired");
 
@@ -141,7 +141,7 @@ describe("/profile", () => {
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]", {
-            timeout: 10000,
+            timeout: 3000,
         });
         await screenshot.takeScreenshot(page, "Popup closed");
 
@@ -161,7 +161,7 @@ describe("/profile", () => {
         await page.goto(`http://localhost:${port}/profile`);
         // Wait for Graph data to display
         await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]", {
-            timeout: 10000,
+            timeout: 5000,
         });
         await screenshot.takeScreenshot(page, "Graph data acquired");
         // Verify tokens are in cache

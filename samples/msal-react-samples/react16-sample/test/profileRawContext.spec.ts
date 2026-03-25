@@ -94,7 +94,7 @@ describe("/profileRawContext", () => {
 
         // Wait for Graph data to display
         await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]", {
-            timeout: 10000,
+            timeout: 5000,
         });
         await screenshot.takeScreenshot(page, "Graph data acquired");
 
