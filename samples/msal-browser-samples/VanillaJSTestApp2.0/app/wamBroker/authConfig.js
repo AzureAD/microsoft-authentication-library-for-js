@@ -9,7 +9,7 @@ const isPlatformBrokerAvailable = msal.isPlatformBrokerAvailable().then((isAvail
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "591ddbcc-105b-42c5-89e6-c7638c4124d4",
+        clientId: "57d46eaf-f643-4ef8-ba5f-ea27b2204321",
         //authority: "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca"
         authority: "https://login.microsoftonline.com/common"
     },
