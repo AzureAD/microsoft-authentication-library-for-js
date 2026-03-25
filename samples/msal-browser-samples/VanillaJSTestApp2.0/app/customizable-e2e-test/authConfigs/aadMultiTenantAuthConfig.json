@@ -23,8 +23,8 @@
             "authority": "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133"
         },
         "guest": {
-            "tenantId": "8e44f19d-bbab-4a82-b76b-4cd0a6fbc97a",
-            "authority": "https://login.microsoftonline.com/8e44f19d-bbab-4a82-b76b-4cd0a6fbc97a"
+            "tenantId": "10c419d4-4a50-45b2-aa4e-919fb84df24f",
+            "authority": "https://login.microsoftonline.com/10c419d4-4a50-45b2-aa4e-919fb84df24f"
         }
     }
 }
