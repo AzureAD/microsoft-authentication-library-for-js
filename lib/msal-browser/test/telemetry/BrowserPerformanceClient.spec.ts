@@ -100,7 +100,6 @@ describe("BrowserPerformanceClient.ts", () => {
             expect(result?.endPageVisibility).toBe("visible");
         });
 
-
         it("includes network information in performance event result", () => {
             jest.spyOn(
                 Object.getPrototypeOf(navigator),
