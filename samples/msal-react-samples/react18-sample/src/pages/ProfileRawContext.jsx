@@ -2,7 +2,7 @@ import { Component } from "react";
 
 // Msal imports
 import { MsalAuthenticationTemplate, MsalContext } from "@azure/msal-react";
-import { InteractionType, InteractionStatus, InteractionRequiredAuthError } from "@azure/msal-browser";
+import { InteractionType, EventType, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { loginRequest } from "../authConfig";
 
 // Sample app imports
@@ -29,27 +29,47 @@ class ProfileContent extends Component {
         this.state = {
             graphData: null,
         }
+
+        this.callbackId = null;
     }
 
-    setGraphData() {
-        if (!this.state.graphData && this.context.inProgress === InteractionStatus.None) {
-            callMsGraph().then(response => this.setState({graphData: response})).catch((e) => {
-                if (e instanceof InteractionRequiredAuthError) {
-                    this.context.instance.acquireTokenRedirect({
-                        ...loginRequest,
-                        account: this.context.instance.getActiveAccount()
-                    });
-                }
-            });
+    fetchGraphData() {
+        if (this.state.graphData) {
+            return;
         }
+
+        const instance = this.context.instance;
+        if (!instance.getActiveAccount()) {
+            return;
+        }
+
+        callMsGraph().then(response => this.setState({graphData: response})).catch((e) => {
+            if (e instanceof InteractionRequiredAuthError) {
+                instance.acquireTokenRedirect({
+                    ...loginRequest,
+                    account: instance.getActiveAccount()
+                });
+            }
+        });
     }
 
     componentDidMount() {
-        this.setGraphData();
+        // Attempt to fetch profile data immediately
+        this.fetchGraphData();
+
+        // Subscribe to active account changes so the Graph call is retried
+        // once setActiveAccount has been called.
+        this.callbackId = this.context.instance.addEventCallback((event) => {
+            if (event.eventType === EventType.ACTIVE_ACCOUNT_CHANGED) {
+                this.fetchGraphData();
+            }
+        });
     }
 
-    componentDidUpdate() {
-        this.setGraphData();
+    componentWillUnmount() {
+        if (this.callbackId) {
+            this.context.instance.removeEventCallback(this.callbackId);
+        }
     }
 
     render() {
