@@ -201,6 +201,7 @@ export type Configuration = {
     system?: BrowserSystemOptions;
     /**
      * This is where you can configure experimental features. These do not follow semver and may be changed or removed without a major version bump. Use with caution.
+     * @internal
      */
     experimental?: BrowserExperimentalOptions;
     /**
