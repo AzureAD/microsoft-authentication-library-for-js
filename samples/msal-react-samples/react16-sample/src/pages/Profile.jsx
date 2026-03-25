@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 // Msal imports
 import { MsalAuthenticationTemplate, useMsal } from "@azure/msal-react";
-import { InteractionStatus, InteractionType, InteractionRequiredAuthError } from "@azure/msal-browser";
+import { EventType, InteractionType, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { loginRequest } from "../authConfig";
 
 // Sample app imports
@@ -15,21 +15,44 @@ import { callMsGraph } from "../utils/MsGraphApiCall";
 import Paper from "@material-ui/core/Paper";
 
 const ProfileContent = () => {
-    const { instance, inProgress } = useMsal();
+    const { instance } = useMsal();
     const [graphData, setGraphData] = useState(null);
 
-    useEffect(() => {
-        if (!graphData && inProgress === InteractionStatus.None) {
-            callMsGraph().then(response => setGraphData(response)).catch((e) => {
-                if (e instanceof InteractionRequiredAuthError) {
-                    instance.acquireTokenRedirect({
-                        ...loginRequest,
-                        account: instance.getActiveAccount()
-                    });
-                }
-            });
+    const fetchProfile = useCallback(() => {
+        if (!instance.getActiveAccount()) {
+            return;
         }
-    }, [inProgress, graphData, instance]);
+        callMsGraph().then(response => setGraphData(response)).catch((e) => {
+            if (e instanceof InteractionRequiredAuthError) {
+                instance.acquireTokenRedirect({
+                    ...loginRequest,
+                    account: instance.getActiveAccount()
+                });
+            }
+        });
+    }, [instance]);
+
+    useEffect(() => {
+        // Attempt to fetch profile data immediately
+        fetchProfile();
+
+        // Subscribe to active account changes so the Graph call is retried
+        // once setActiveAccount has been called. In React 16/17 the render
+        // triggered by ACQUIRE_TOKEN_SUCCESS fires before the LOGIN_SUCCESS
+        // handler sets the active account, so getActiveAccount() returns null
+        // on the first attempt.
+        const callbackId = instance.addEventCallback((event) => {
+            if (event.eventType === EventType.ACTIVE_ACCOUNT_CHANGED) {
+                fetchProfile();
+            }
+        });
+
+        return () => {
+            if (callbackId) {
+                instance.removeEventCallback(callbackId);
+            }
+        };
+    }, [instance, fetchProfile]);
   
     return (
         <Paper>
