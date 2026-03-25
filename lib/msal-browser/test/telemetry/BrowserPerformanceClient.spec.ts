@@ -100,15 +100,13 @@ describe("BrowserPerformanceClient.ts", () => {
             expect(result?.endPageVisibility).toBe("visible");
         });
 
-        it("captures online status at measurement start", () => {
+
+        it("includes network information in performance event result", () => {
             jest.spyOn(
                 Object.getPrototypeOf(navigator),
                 "onLine",
                 "get"
             ).mockReturnValue(true);
-        });
-
-        it("includes network information in performance event result", () => {
             const browserPerfClient = new BrowserPerformanceClient(
                 testAppConfig
             );
