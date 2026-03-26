@@ -6,8 +6,8 @@
     "main": "src/index.ts",
     "dependencies": {
         "@azure/identity": "^4.5.0",
-        "@azure/keyvault-certificates": "^4.10.0",
-        "@azure/keyvault-secrets": "^4.8.0",
+        "@azure/keyvault-certificates": "~4.7.0",
+        "@azure/keyvault-secrets": "~4.7.0",
         "dotenv": "^8.2.0",
         "find-process": "^1.4.4"
     },
