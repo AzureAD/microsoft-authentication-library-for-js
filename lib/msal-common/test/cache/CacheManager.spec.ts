@@ -3,50 +3,50 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AuthenticationScheme,
-    CredentialType,
-} from "../../src/utils/Constants.js";
-import { AccountEntity } from "../../src/cache/entities/AccountEntity.js";
-import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity.js";
-import { CacheRecord } from "../../src/cache/entities/CacheRecord.js";
-import { AccountFilter } from "../../src/cache/utils/CacheTypes.js";
-import {
-    TEST_CONFIG,
-    TEST_TOKENS,
-    ID_TOKEN_CLAIMS,
-    CACHE_MOCKS,
-    TEST_POP_VALUES,
-    TEST_SSH_VALUES,
-    TEST_CRYPTO_VALUES,
-    TEST_ACCOUNT_INFO,
-    TEST_TOKEN_LIFETIMES,
-    ID_TOKEN_ALT_CLAIMS,
-    GUEST_ID_TOKEN_CLAIMS,
-    RANDOM_TEST_GUID,
-} from "../test_kit/StringConstants.js";
-import { AccountInfo } from "../../src/account/AccountInfo.js";
-import { MockCache } from "./MockCache.js";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
-import {
-    generateAccountKey,
-    generateCredentialKey,
-    mockCrypto,
-} from "../client/ClientTestUtils.js";
-import { TestError } from "../test_kit/TestErrors.js";
+import { AccountInfo } from "../../src/account/AccountInfo.js";
+import * as authorityMetadata from "../../src/authority/AuthorityMetadata.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
-import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity.js";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity.js";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity.js";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity.js";
-import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity.js";
+import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity.js";
+import { CacheRecord } from "../../src/cache/entities/CacheRecord.js";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity.js";
+import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
+import { AccountFilter } from "../../src/cache/utils/CacheTypes.js";
 import {
     CacheHelpers,
     CommonSilentFlowRequest,
     ScopeSet,
 } from "../../src/index.js";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
-import * as authorityMetadata from "../../src/authority/AuthorityMetadata.js";
+import {
+    AuthenticationScheme,
+    CredentialType,
+} from "../../src/utils/Constants.js";
+import {
+    generateAccountKey,
+    generateCredentialKey,
+    mockCrypto,
+} from "../client/ClientTestUtils.js";
+import {
+    CACHE_MOCKS,
+    GUEST_ID_TOKEN_CLAIMS,
+    ID_TOKEN_ALT_CLAIMS,
+    ID_TOKEN_CLAIMS,
+    RANDOM_TEST_GUID,
+    TEST_ACCOUNT_INFO,
+    TEST_CONFIG,
+    TEST_CRYPTO_VALUES,
+    TEST_POP_VALUES,
+    TEST_SSH_VALUES,
+    TEST_TOKEN_LIFETIMES,
+    TEST_TOKENS,
+} from "../test_kit/StringConstants.js";
+import { TestError } from "../test_kit/TestErrors.js";
+import { MockCache } from "./MockCache.js";
 
 describe("CacheManager.ts test cases", () => {
     const mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockCrypto, {
@@ -765,6 +765,30 @@ describe("CacheManager.ts test cases", () => {
             expect(reversedResultAccount?.tenantId).toBe(
                 GUEST_ID_TOKEN_CLAIMS.tid
             );
+        });
+
+        it("returns first inserted account when multiple accounts have idTokenClaims", () => {
+            const filter = {
+                homeAccountId: multiTenantAccount.homeAccountId,
+            };
+
+            // Verify insertion order: home tenant first, guest tenant second
+            const allAccounts = mockCache.cacheManager.getAllAccounts(
+                filter,
+                RANDOM_TEST_GUID
+            );
+            expect(allAccounts).toHaveLength(2);
+            expect(allAccounts[0].tenantId).toBe(ID_TOKEN_CLAIMS.tid);
+            expect(allAccounts[1].tenantId).toBe(GUEST_ID_TOKEN_CLAIMS.tid);
+
+            // getAccountInfoFilteredBy should return the first (home) account
+            const resultAccount =
+                mockCache.cacheManager.getAccountInfoFilteredBy(
+                    filter,
+                    RANDOM_TEST_GUID
+                );
+            expect(resultAccount).not.toBeNull();
+            expect(resultAccount?.tenantId).toBe(ID_TOKEN_CLAIMS.tid);
         });
 
         it("returns account matching filter with isHomeTenant = true", () => {
