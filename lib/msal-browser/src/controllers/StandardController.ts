@@ -928,7 +928,7 @@ export class StandardController implements IController {
 
         if (event.type === "visibilitychange") {
             this.logger.info(
-                `Perf: Visibility change detected in ${measurement.event.name}`,
+                `Perf: Visibility change detected in '${measurement.event.name}'`,
                 measurement.event.correlationId
             );
             measurement.increment({
@@ -936,7 +936,7 @@ export class StandardController implements IController {
             });
         } else if (event.type === "online") {
             this.logger.info(
-                `Perf: Online status change detected in ${measurement.event.name}`,
+                `Perf: Online status change detected in '${measurement.event.name}'`,
                 measurement.event.correlationId
             );
             measurement.increment({
@@ -944,7 +944,7 @@ export class StandardController implements IController {
             });
         } else if (event.type === "offline") {
             this.logger.info(
-                `Perf: Offline status change detected in ${measurement.event.name}`,
+                `Perf: Offline status change detected in '${measurement.event.name}'`,
                 measurement.event.correlationId
             );
             measurement.increment({
