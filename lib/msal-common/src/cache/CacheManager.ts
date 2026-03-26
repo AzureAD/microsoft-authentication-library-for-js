@@ -749,10 +749,22 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
+            if (
+                !!accountFilter.loginHint &&
+                !this.matchLoginHintFromAccountEntity(
+                    entity,
+                    accountFilter.loginHint,
+                    correlationId
+                )
+            ) {
+                return;
+            }
+
             // If at least one tenant profile matches the tenant profile filter, add the account to the list of matching accounts
             const tenantProfileFilter: TenantProfileFilter = {
                 localAccountId: accountFilter?.localAccountId,
                 name: accountFilter?.name,
+                loginHint: accountFilter?.loginHint,
             };
 
             const matchingTenantProfiles = entity.tenantProfiles?.filter(
@@ -1772,6 +1784,51 @@ export abstract class CacheManager implements ICacheManager {
         return !!(
             entity.nativeAccountId && nativeAccountId === entity.nativeAccountId
         );
+    }
+
+    /**
+     * helper to match loginHint from account entity
+     * @param entity
+     * @param loginHint
+     * @returns boolean indicating if the account entity matches the login hint
+     */
+    private matchLoginHintFromAccountEntity(
+        entity: AccountEntity,
+        loginHint: string,
+        correlationId: string
+    ): boolean {
+        // Check against the entity's loginHint property directly
+        if (entity.loginHint === loginHint) {
+            return true;
+        }
+
+        // Check against username (fallback)
+        if (this.matchUsername(entity.username, loginHint)) {
+            return true;
+        }
+
+        // Also check against UPN from ID token claims
+        try {
+            const accountInfo = AccountEntityUtils.getAccountInfo(entity);
+            const idToken = this.getIdToken(accountInfo, correlationId);
+
+            if (idToken) {
+                const idTokenClaims = extractTokenClaims(
+                    idToken.secret,
+                    this.cryptoImpl.base64Decode
+                );
+
+                if (idTokenClaims.upn === loginHint) {
+                    return true;
+                }
+            }
+        } catch (e) {
+            /*
+             * Silently fall through if ID token retrieval fails
+             */
+        }
+
+        return false;
     }
 
     /**
