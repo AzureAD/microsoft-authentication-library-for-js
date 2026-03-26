@@ -49,8 +49,10 @@ function handleResponse(resp) {
             if (currentAccounts.length === 0) {
                 return;
             } else if (currentAccounts.length > 1) {
-                activeAccount = currentAccounts.sort((account) => {
-                    return account.tenantId === account.homeAccountId.split(".")[1] ? -1 : 1; 
+                activeAccount = currentAccounts.sort((a, b) => {
+                    const aIsHome = a.tenantId === a.homeAccountId.split(".")[1] ? 1 : 0;
+                    const bIsHome = b.tenantId === b.homeAccountId.split(".")[1] ? 1 : 0;
+                    return bIsHome - aIsHome;
                 })[0];
             } else if (currentAccounts.length === 1) {
                 activeAccount = currentAccounts[0];
