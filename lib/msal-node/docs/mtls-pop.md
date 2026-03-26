@@ -24,7 +24,7 @@ This implementation covers the **Confidential Client Application (CCA) SNI certi
 2. MSAL sends the token request to the **regional `mtlsauth.microsoft.com` endpoint** over a mutual-TLS connection, using the certificate for the TLS handshake (not a `client_assertion` JWT).
 3. Entra STS validates the TLS certificate and **binds the issued token to that certificate**.
 4. The response contains an access token with `token_type=mtls_pop`.
-5. MSAL returns the token plus the `bindingCertificate` (the PEM cert string) so the app can configure downstream mTLS calls.
+5. MSAL returns the token plus the `bindingCertificate` (the public certificate PEM from `clientCertificate.x5c`) so the app can configure downstream mTLS calls. The private key reference is **not** included in the result — you already have it.
 
 ### Token request body
 
@@ -108,7 +108,7 @@ https.request(
 | **Authority must be tenanted** | Use `https://login.microsoftonline.com/{tenantId}`. `/common` and `/organizations` are not supported and will throw an error. |
 | **`azureRegion` is required** | The mTLS endpoint is regional: `https://{region}.mtlsauth.microsoft.com/{tenantId}/...`. No auto-discovery — you must provide the region explicitly. |
 | **`clientCertificate.x5c` is required** | The public certificate PEM. This is what MSAL uses for the TLS handshake. |
-| **`clientCertificate.privateKey` is required** | The private key PEM corresponding to the certificate. |
+| **`clientCertificate.privateKey` is required** | The private key corresponding to the certificate. Accepts a PEM string (`string`) or a `KeyObject` from `node:crypto` (for hardware-backed keys — see [Hardware-backed private keys](#hardware-backed-private-keys)). |
 | **SNI certificate (for production)** | In production the certificate must be issued by a Microsoft-trusted CA (OneCert / MSFT PKI) and registered with your Azure AD app registration. See [SNI documentation](./sni.md). |
 
 ---
@@ -145,6 +145,8 @@ const result = await cca.acquireTokenByClientCredential({
     },
 });
 ```
+
+> **Design note — one client per certificate:** `MtlsHttpClient` creates a single `https.Agent` bound to one certificate at construction time. This is appropriate for the Confidential Client path where the certificate is stable. For the Managed Identity path (future work), the certificate can rotate — that will require a different design (such as passing the certificate per-request via options, similar to the `INetworkModule2` pattern in msal-dotnet).
 
 ### Note on global `fetch()`
 
@@ -194,14 +196,25 @@ These flows are otherwise feasible in Node.js but cannot be completed without th
 > **Important**: `KeyObject` is only supported with `authenticationScheme: AuthenticationScheme.MTLS_POP`. Standard certificate-based flows use JWT signing, which requires a PEM string. If a `KeyObject` is provided as `privateKey`, do not use the same `ConfidentialClientApplication` instance for non-mTLS flows.
 
 ```typescript
+import * as fs from "fs";
 import { createPrivateKey } from "crypto";
-// Example: load a key using a hypothetical PKCS#11 addon
-// (msal-node has no dependency on pkcs11js or similar packages)
+import { ConfidentialClientApplication, AuthenticationScheme } from "@azure/msal-node";
+
+// --- Software key (PEM file) ---
 const keyObject = createPrivateKey({
     key: fs.readFileSync("path/to/private-key.pem"),
     format: "pem",
-    // For hardware keys: use your addon to produce a KeyObject instead
 });
+
+// --- Hardware key via a PKCS#11 addon (example with pkcs11js) ---
+// msal-node has NO dependency on pkcs11js or any HSM addon.
+// You produce the KeyObject using your chosen addon, then pass it to MSAL.
+//
+// import pkcs11js from "pkcs11js";
+// const keyObject = myPkcs11Addon.getPrivateKeyObject(slotId, keyId);
+//   ↑ returns a node:crypto KeyObject backed by the hardware key
+
+const cert = fs.readFileSync("path/to/cert.pem", "utf8");
 
 const cca = new ConfidentialClientApplication({
     auth: {
@@ -224,7 +237,7 @@ const result = await cca.acquireTokenByClientCredential({
 
 ---
 
-
+## Error reference
 
 | Error code | Meaning | Fix |
 |---|---|---|
