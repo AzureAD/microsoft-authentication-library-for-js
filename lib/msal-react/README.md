@@ -40,7 +40,7 @@ The `@azure/msal-react` package described by the code in this folder uses the [`
 
 | MSAL React version    | MSAL support status | Supported React versions |
 | --------------------- | ------------------- | ------------------------ |
-| MSAL React v5         | Active development  | 18, 19                   |
+| MSAL React v5         | Active development  | 16 (16.8+), 17, 18, 19  |
 | MSAL React v3         | In maintenance      | 16, 17, 18, 19           |
 | MSAL React v1, v2     | In maintenance      | 16, 17, 18               |
 
@@ -134,6 +134,9 @@ Our [samples directory](https://github.com/AzureAD/microsoft-authentication-libr
 -   [Next.js Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/nextjs-sample)
 -   [Gatsby Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/gatsby-sample)
 -   [B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/b2c-sample)
+-   [React 16 Compat Sample (MUI v4)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react16-sample)
+-   [React 17 Compat Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react17-sample)
+-   [React 18 Compat Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react18-sample)
 
 More advanced samples backed with a tutorial can be found in the [Azure Samples](https://github.com/Azure-Samples) space on GitHub:
 
