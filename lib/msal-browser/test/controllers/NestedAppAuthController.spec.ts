@@ -1123,7 +1123,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 loginHint: cachedAccountA.loginHint,
                 authorityType: "MSSTS",
                 clientInfo: "",
-                tenantProfiles: new Map()
+                tenantProfiles: []
             };
             
             jest.spyOn(cacheManager, "getAccount").mockReturnValue(accountEntityA);
