@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774037035980,
+  "lastUpdate": 1774499401874,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20313,6 +20313,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.05%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "29f55faf2b29270122c0d8fe2a8588d4809f946f",
+          "message": "[v5] Add support for React 16 and 17 (#8461)",
+          "timestamp": "2026-03-25T21:23:14-07:00",
+          "tree_id": "a3d24e8750533ebe561ff87cfe310fe0fd1afafe",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/29f55faf2b29270122c0d8fe2a8588d4809f946f"
+        },
+        "date": 1774499398174,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 237234,
+            "range": "±0.78%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 243828,
+            "range": "±0.75%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
