@@ -111,19 +111,25 @@ export class ConfidentialClientApplication
                 NodeClientAuthErrorCodes.invalidClientCredential
             );
         } else {
-            this.clientAssertion = !!this.config.auth.clientCertificate
-                .thumbprintSha256
-                ? ClientAssertion.fromCertificateWithSha256Thumbprint(
-                      this.config.auth.clientCertificate.thumbprintSha256,
-                      this.config.auth.clientCertificate.privateKey,
-                      this.config.auth.clientCertificate.x5c
-                  )
-                : ClientAssertion.fromCertificate(
-                      // guaranteed to be a string, due to prior error checking in this function
-                      this.config.auth.clientCertificate.thumbprint as string,
-                      this.config.auth.clientCertificate.privateKey,
-                      this.config.auth.clientCertificate.x5c
-                  );
+            const pk = this.config.auth.clientCertificate.privateKey;
+            if (typeof pk === "string") {
+                this.clientAssertion = !!this.config.auth.clientCertificate
+                    .thumbprintSha256
+                    ? ClientAssertion.fromCertificateWithSha256Thumbprint(
+                          this.config.auth.clientCertificate.thumbprintSha256,
+                          pk,
+                          this.config.auth.clientCertificate.x5c
+                      )
+                    : ClientAssertion.fromCertificate(
+                          // guaranteed to be a string, due to prior error checking in this function
+                          this.config.auth.clientCertificate.thumbprint as string,
+                          pk,
+                          this.config.auth.clientCertificate.x5c
+                      );
+            }
+            // If pk is a KeyObject, clientAssertion stays undefined.
+            // KeyObject keys are only supported with authenticationScheme: MTLS_POP,
+            // where the TLS handshake (not a JWT assertion) authenticates the client.
         }
         this.appTokenProvider = undefined;
     }
@@ -180,9 +186,13 @@ export class ConfidentialClientApplication
             ...request,
             ...validBaseRequest,
             clientAssertion,
-            // Restore the original scheme; initializeBaseRequest unconditionally resets it to Bearer
+            // Only override the scheme for MTLS_POP — for all other schemes, use whatever
+            // initializeBaseRequest resolved (BEARER). This prevents inadvertently passing
+            // unsupported schemes (e.g., POP) into ClientCredentialClient.
             authenticationScheme:
-                requestedScheme ?? Constants.AuthenticationScheme.BEARER,
+                requestedScheme === Constants.AuthenticationScheme.MTLS_POP
+                    ? Constants.AuthenticationScheme.MTLS_POP
+                    : baseRequest.authenticationScheme,
         };
 
         // Validate mTLS PoP preconditions before proceeding

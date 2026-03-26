@@ -17,6 +17,7 @@ jest.mock("https", () => {
 
 import * as https from "https";
 import * as http from "http";
+import * as crypto from "crypto";
 import { MtlsHttpClient } from "../../src/network/MtlsHttpClient.js";
 import { ClientAuthErrorCodes } from "@azure/msal-common";
 
@@ -64,14 +65,30 @@ describe("MtlsHttpClient", () => {
     });
 
     describe("constructor", () => {
-        it("creates an instance with cert and key", () => {
+        it("creates an instance with cert and key string", () => {
             const client = new MtlsHttpClient(TEST_CERT, TEST_KEY);
             expect(client).toBeInstanceOf(MtlsHttpClient);
+            // Agent is created eagerly in the constructor
+            expect(MockAgent).toHaveBeenCalledWith(
+                expect.objectContaining({ cert: TEST_CERT, key: TEST_KEY })
+            );
+        });
+
+        it("creates an instance with a KeyObject key", () => {
+            const { privateKey: keyObject } = crypto.generateKeyPairSync("ec", {
+                namedCurve: "P-256",
+            });
+            const client = new MtlsHttpClient(TEST_CERT, keyObject);
+            expect(client).toBeInstanceOf(MtlsHttpClient);
+            // KeyObject is passed directly to https.Agent (Node.js accepts it at runtime)
+            expect(MockAgent).toHaveBeenCalledWith(
+                expect.objectContaining({ cert: TEST_CERT, key: keyObject })
+            );
         });
     });
 
     describe("sendPostRequestAsync", () => {
-        it("passes cert and key to https.Agent", async () => {
+        it("passes cert and key to https.Agent (created once in constructor)", async () => {
             const mockResponse = createMockResponse(200);
             const mockReq = createMockRequest();
 
@@ -93,7 +110,12 @@ describe("MtlsHttpClient", () => {
                 }) as any
             );
 
+            // Agent is created eagerly in the constructor
             const client = new MtlsHttpClient(TEST_CERT, TEST_KEY);
+            expect(MockAgent).toHaveBeenCalledWith(
+                expect.objectContaining({ cert: TEST_CERT, key: TEST_KEY })
+            );
+
             const result = await client.sendPostRequestAsync(TEST_URL, {
                 headers: {
                     "Content-Type":
@@ -103,10 +125,6 @@ describe("MtlsHttpClient", () => {
             });
 
             expect(MockRequest).toHaveBeenCalled();
-            // Verify Agent was constructed with the correct cert and key
-            expect(MockAgent).toHaveBeenCalledWith(
-                expect.objectContaining({ cert: TEST_CERT, key: TEST_KEY })
-            );
             expect(result.status).toBe(200);
             expect((result.body as { access_token: string }).access_token).toBe(
                 "test_token"

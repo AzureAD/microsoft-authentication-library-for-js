@@ -66,14 +66,14 @@ const cca = new ConfidentialClientApplication({
 
 const result = await cca.acquireTokenByClientCredential({
     scopes: ["https://graph.microsoft.com/.default"],
-    azureRegion: "eastus",                              // ← required for mTLS PoP
+    azureRegion: "eastus",                              // ← required for SNI certificates and mTLS PoP
     authenticationScheme: AuthenticationScheme.MTLS_POP,
 });
 
 if (!result) throw new Error("No token returned");
 
 console.log("Token type:", result.tokenType);           // "mtls_pop"
-console.log("Binding cert:", result.bindingCertificate?.substring(0, 40));
+console.log("Binding cert:", result.bindingCertificate);
 
 // Use the bound token for downstream calls over mTLS
 const agent = new https.Agent({
@@ -127,7 +127,7 @@ The **code** is designed to be production-quality. Whether it successfully obtai
 
 ### SNI certificate
 
-The certificate must be issued by a Microsoft-trusted CA and registered with the Entra app registration using `sendX5C: true`. Arbitrary or self-signed certificates will be rejected by Entra STS. See the [SNI guide](./sni.md) and [certificate credentials guide](./certificate-credentials.md) for setup details.
+The certificate must be issued by a Microsoft-trusted CA and registered with the Entra app registration. The public certificate PEM must be provided via `clientCertificate.x5c`. Arbitrary or self-signed certificates will be rejected by Entra STS. See the [SNI guide](./sni.md) and [certificate credentials guide](./certificate-credentials.md) for setup details.
 
 ### Feature preview status
 
@@ -156,15 +156,17 @@ Node.js's built-in global `fetch()` (backed by `undici`) does **not** support pr
 
 There are two categories of exclusions:
 
-### Group 1 — Unavailable in Node.js (hard blockers)
+### Group 1 — Required only for the Managed Identity path; not available in Node.js
 
-These features are Windows/.NET-specific and have no equivalent in Node.js:
+These are Windows/.NET-specific capabilities needed to mint certificates via the IMDS (Managed Identity) path. They are **not required for the Confidential Client / SNI certificate path** implemented here.
 
 | Feature | Why it cannot be implemented |
 |---|---|
-| **KeyGuard / hardware-backed RSA keys** | Windows-only feature backed by Virtualization-Based Security (VBS). The msal-dotnet `IManagedIdentityKeyProvider` creates keys inside a VBS-protected enclave. No Node.js equivalent exists. |
-| **TPM/VBS attestation via MAA** | Requires calling `AttestationClientLib.dll`, a native Windows DLL that collects TPM/VBS evidence and obtains a JWT from Microsoft Azure Attestation. Native DLLs cannot be called from Node.js without a separate FFI package. |
-| **Windows certificate store** | Windows provides a built-in OS-level certificate store used for the persistent tier of msal-dotnet's two-tier certificate cache. Node.js has no built-in API to read or write the Windows certificate store. |
+| **KeyGuard / hardware-backed RSA keys** | Windows-only feature backed by Virtualization-Based Security (VBS). The msal-dotnet `IManagedIdentityKeyProvider` creates keys inside a VBS-protected enclave. No Node.js equivalent exists. Required by IMDS when minting the binding certificate. |
+| **TPM/VBS attestation via MAA** | Requires calling `AttestationClientLib.dll`, a native Windows DLL that collects TPM/VBS evidence and obtains a JWT from Microsoft Azure Attestation. Native DLLs cannot be called from Node.js without a separate FFI package. Required only for the Managed Identity certificate-minting flow. |
+| **Windows certificate store** | Windows provides a built-in OS-level certificate store used for the persistent tier of msal-dotnet's two-tier certificate cache. Node.js has no built-in API to read or write the Windows certificate store. Required only for the Managed Identity cert-lifecycle flow. |
+
+> **Note on hardware-backed private keys (cert-based auth):** For the Confidential Client path, `MtlsHttpClient` accepts a `KeyObject` (from `node:crypto`) as the private key in addition to a PEM string. This means you can use hardware-backed keys via PKCS#11 native addons (e.g., `pkcs11js`) — MSAL itself has no dependency on those addons. See [hardware key usage](#hardware-backed-private-keys) below.
 
 ### Group 2 — Not implemented because they depend on Group 1
 
@@ -185,7 +187,44 @@ These flows are otherwise feasible in Node.js but cannot be completed without th
 
 ---
 
-## Error reference
+## Hardware-backed private keys
+
+`clientCertificate.privateKey` accepts a `KeyObject` (from Node.js's built-in `crypto` module) in addition to a PEM string. This means you can use non-exportable hardware-backed keys via a PKCS#11 native addon — MSAL has no dependency on those addons; it simply passes the `KeyObject` to Node.js's `https.Agent`.
+
+> **Important**: `KeyObject` is only supported with `authenticationScheme: AuthenticationScheme.MTLS_POP`. Standard certificate-based flows use JWT signing, which requires a PEM string. If a `KeyObject` is provided as `privateKey`, do not use the same `ConfidentialClientApplication` instance for non-mTLS flows.
+
+```typescript
+import { createPrivateKey } from "crypto";
+// Example: load a key using a hypothetical PKCS#11 addon
+// (msal-node has no dependency on pkcs11js or similar packages)
+const keyObject = createPrivateKey({
+    key: fs.readFileSync("path/to/private-key.pem"),
+    format: "pem",
+    // For hardware keys: use your addon to produce a KeyObject instead
+});
+
+const cca = new ConfidentialClientApplication({
+    auth: {
+        clientId: "your-client-id",
+        authority: "https://login.microsoftonline.com/your-tenant-id",
+        clientCertificate: {
+            thumbprintSha256: "your-cert-sha256-thumbprint",
+            privateKey: keyObject,   // ← KeyObject accepted here
+            x5c: cert,
+        },
+    },
+});
+
+const result = await cca.acquireTokenByClientCredential({
+    scopes: ["https://graph.microsoft.com/.default"],
+    azureRegion: "eastus",
+    authenticationScheme: AuthenticationScheme.MTLS_POP,
+});
+```
+
+---
+
+
 
 | Error code | Meaning | Fix |
 |---|---|---|

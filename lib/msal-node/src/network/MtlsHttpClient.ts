@@ -5,6 +5,7 @@
 
 import * as https from "https";
 import * as http from "http";
+import { KeyObject } from "crypto";
 import {
     INetworkModule,
     NetworkRequestOptions,
@@ -27,16 +28,20 @@ import {
  * @public
  */
 export class MtlsHttpClient implements INetworkModule {
-    private readonly cert: string;
-    private readonly key: string;
+    private readonly agent: https.Agent;
 
     /**
      * @param cert - PEM-encoded X.509 client certificate (the `x5c` value from clientCertificate config)
-     * @param key - PEM-encoded private key corresponding to the certificate
+     * @param key - PEM-encoded private key or a `KeyObject` (from `node:crypto`) for hardware-backed keys
      */
-    constructor(cert: string, key: string) {
-        this.cert = cert;
-        this.key = key;
+    constructor(cert: string, key: string | KeyObject) {
+        this.agent = new https.Agent({
+            cert,
+            // https.Agent accepts string | Buffer | KeyObject at runtime.
+            // The "as any" cast works around a structural mismatch between the KeyObject
+            // exported from "crypto" and the one embedded in @types/node's tls.d.ts.
+            key: key as any,
+        });
     }
 
     /**
@@ -69,18 +74,13 @@ export class MtlsHttpClient implements INetworkModule {
         return new Promise((resolve, reject) => {
             const parsedUrl = new URL(url);
 
-            const agent = new https.Agent({
-                cert: this.cert,
-                key: this.key,
-            });
-
             const requestOptions: https.RequestOptions = {
                 hostname: parsedUrl.hostname,
                 port: parsedUrl.port || "443",
                 path: `${parsedUrl.pathname}${parsedUrl.search}`,
                 method,
                 headers: options?.headers || {},
-                agent,
+                agent: this.agent,
                 timeout,
             };
 

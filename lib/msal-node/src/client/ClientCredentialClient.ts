@@ -38,6 +38,8 @@ import { CommonClientCredentialRequest } from "../request/CommonClientCredential
 import { BaseClient } from "./BaseClient.js";
 import { MtlsHttpClient } from "../network/MtlsHttpClient.js";
 import { buildMtlsTokenEndpoint } from "../utils/MtlsEndpointUtils.js";
+import { NodeAuthError } from "../error/NodeAuthError.js";
+import { KeyObject } from "crypto";
 
 /**
  * OAuth2.0 client credential grant
@@ -45,12 +47,12 @@ import { buildMtlsTokenEndpoint } from "../utils/MtlsEndpointUtils.js";
  */
 export class ClientCredentialClient extends BaseClient {
     private readonly appTokenProvider?: IAppTokenProvider;
-    private readonly mtlsConfig?: { cert: string; key: string };
+    private readonly mtlsConfig?: { cert: string; key: string | KeyObject };
 
     constructor(
         configuration: ClientConfiguration,
         appTokenProvider?: IAppTokenProvider,
-        mtlsConfig?: { cert: string; key: string }
+        mtlsConfig?: { cert: string; key: string | KeyObject }
     ) {
         super(configuration);
         this.appTokenProvider = appTokenProvider;
@@ -379,10 +381,14 @@ export class ClientCredentialClient extends BaseClient {
             request.correlationId
         );
 
-        const mtlsCert = this.mtlsConfig!.cert;
-        const mtlsKey = this.mtlsConfig!.key;
+        if (!this.mtlsConfig?.cert || !this.mtlsConfig?.key) {
+            throw NodeAuthError.createMtlsPopCertificateRequiredError();
+        }
 
-        const mtlsClient = new MtlsHttpClient(mtlsCert, mtlsKey);
+        const mtlsClient = new MtlsHttpClient(
+            this.mtlsConfig.cert,
+            this.mtlsConfig.key
+        );
         const response =
             await mtlsClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
                 mtlsEndpoint,

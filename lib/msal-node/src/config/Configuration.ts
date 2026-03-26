@@ -16,6 +16,7 @@ import {
     ClientAssertionCallback,
     Constants,
 } from "@azure/msal-common/node";
+import { KeyObject } from "crypto";
 import { HttpClient } from "../network/HttpClient.js";
 import { ManagedIdentityId } from "./ManagedIdentityId.js";
 import { NodeAuthError } from "../error/NodeAuthError.js";
@@ -41,7 +42,13 @@ export type NodeAuthOptions = {
          */
         thumbprint?: string;
         thumbprintSha256?: string;
-        privateKey: string;
+        /**
+         * PEM-encoded private key string, or a `KeyObject` (from `node:crypto`) for hardware-backed keys.
+         *
+         * `KeyObject` is only supported when using `authenticationScheme: AuthenticationScheme.MTLS_POP`.
+         * Standard certificate-based flows require a PEM string for JWT signing.
+         */
+        privateKey: string | KeyObject;
         x5c?: string;
     };
     knownAuthorities?: Array<string>;
