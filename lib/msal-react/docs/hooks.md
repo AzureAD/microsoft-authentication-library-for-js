@@ -130,6 +130,8 @@ if (loading || inProgress === InteractionStatus.Login) {
 }
 ```
 
+> **Note:** If your component relies on `instance.getActiveAccount()` (for example, to call a protected API), be aware that `getActiveAccount()` may return `null` immediately after authentication completes. This happens because the render triggered by `ACQUIRE_TOKEN_SUCCESS` can run before `setActiveAccount()` has been called. To handle this, subscribe to the `ACTIVE_ACCOUNT_CHANGED` event and retry your logic when the active account becomes available. See [Reacting to active account changes](./events.md#reacting-to-active-account-changes) for examples.
+
 Docs for the APIs `PublicClientApplication` exposes can be found in the `@azure/msal-browser` docs:
 
 - [Login APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md)

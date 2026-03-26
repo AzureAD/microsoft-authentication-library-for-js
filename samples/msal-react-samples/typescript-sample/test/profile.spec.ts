@@ -29,11 +29,11 @@ async function verifyTokenStore(
             tokenStore.accessTokens,
             scopes
         )
-    ).toBeTruthy;
+    ).toBeTruthy();
     const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(
         "b5c2e510-4a17-4feb-b219-e55aa5b74144"
     );
-    expect(telemetryCacheEntry).not.toBeNull;
+    expect(telemetryCacheEntry).not.toBeNull();
     expect(telemetryCacheEntry!.cacheHits).toBeGreaterThanOrEqual(1);
 }
 
