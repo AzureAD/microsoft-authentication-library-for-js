@@ -1,11 +1,42 @@
 # Using MSAL in iframed apps
 
+> [!IMPORTANT]
+> **Cross-origin iframes and popup flows:** Starting with Chromium 115+
+> (Chrome, Edge, and other Chromium-based browsers), `BroadcastChannel` (and
+> other storage APIs) are partitioned by top-level site. This means that
+> `loginPopup()` and `acquireTokenPopup()` **will not work** when your
+> application runs in a cross-origin iframe, because the popup opens as its own
+> top-level context with a different storage partition than the iframe — the
+> redirect bridge's `BroadcastChannel` message never arrives. Other browsers
+> are expected to adopt similar partitioning in the future.
+>
+> See the [Redirect Bridge — Cross-Origin Iframe
+> Limitation](./redirect-bridge.md#cross-origin-iframe-limitation) section for
+> full details and recommended alternatives.
+>
+> **Recommended approach:** If the host platform supports it, use
+> [Nested App Authentication (NAA)](./initialization.md#nested-app-configuration)
+> via `createNestablePublicClientApplication`. NAA delegates authentication to
+> the host application at the top level, avoiding cross-window communication
+> entirely. NAA is supported by Microsoft hosts such as **Teams**, **Outlook**,
+> and **Microsoft 365**. For other hosts, use `loginRedirect()` with
+> `system.allowRedirectInIframe: true` as a fallback (subject to IdP iframe
+> restrictions — see below).
+
 By default, MSAL prevents full-frame redirects to **Azure AD** authentication endpoint when an app is rendered inside an iframe, which means you cannot use [redirect APIs](./initialization.md#redirect-apis) for user interaction with the IdP:
 
 - This restriction is imposed since **Azure AD** will refuse to render any prompt requiring user interaction (e.g. **credential entry**, **consent**, **logout** etc.) in an iframe by throwing the `X-FRAME OPTIONS SET TO DENY` [error](https://html.spec.whatwg.org/multipage/browsing-the-web.html#the-x-frame-options-header), a measure taken to prevent [clickjacking attacks](https://owasp.org/www-community/attacks/Clickjacking).
 - Instead, you'll have to rely on MSAL's [popup APIs](./initialization.md#popup-apis) if user interaction is required, and/or silent APIs (`ssoSilent()`, `acquireTokenSilent()`) if user interaction can be avoided.
 - Similarly, you'll have to use the [logoutPopup()](./logout.md#logoutpopup) API for sign-outs (:warning: if your app is using a version of msal-browser older than v2.13, make sure to upgrade and replace the `logout()` API, as it will attempt a full-frame redirect to Azure AD).
 - When using [popup APIs](./initialization.md#popup-apis), you need to take into account any [sandboxing](https://html.spec.whatwg.org/multipage/origin.html#sandboxing) restrictions imposed by the parent app. In particular, the parent app needs to set the `allow-popups` flag when the iframe is sandboxed.
+
+> [!WARNING]
+> Popup APIs from a **cross-origin** iframe are affected by
+> [third-party storage partitioning](#third-party-storage-partitioning-and-the-redirect-bridge),
+> which breaks the redirect bridge's `BroadcastChannel` communication.
+> Silent APIs may also be affected by third-party cookie restrictions.
+> If your app is embedded in a cross-origin iframe, see the callout above for
+> recommended alternatives.
 
 **Azure AD B2C** offers an [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login), which allows rendering a custom login UI in an iframe. Since MSAL prevents redirect in iframes by default, you'll need to set the [allowRedirectInIframe](./configuration.md#system-config-options) configuration option to **true** in order to make use of this feature. Note that enabling this option for apps on **Azure AD** is not recommended, due to the above restriction.
 
@@ -140,3 +171,19 @@ If you would like to minimize communication with IdP that requires user interact
 ## Single sign-out
 
 You can use MSAL.js with a [front-channel logout URI](https://openid.net/specs/openid-connect-backchannel-1_0.html) to achieve *single sign-out* effect between iframed and parent apps. For instance, if you would like users to automatically logout from iframed apps when they logout from the parent app, you should enable front-channel logout for the iframed apps. To do so, please refer to: [How to configure a front-channel logout URI](./logout.md#front-channel-logout).
+
+## Third-Party Storage Partitioning and the Redirect Bridge
+
+Starting with **Chromium 115+** (Chrome, Edge, and other Chromium-based browsers), [third-party storage partitioning](https://developers.google.com/privacy-sandbox/cookies/storage-partitioning) is enforced. Storage APIs — including `BroadcastChannel`, `localStorage`, `sessionStorage`, `IndexedDB`, `ServiceWorker`, and `SharedWorker` — are partitioned by the **top-level site**, not just by origin. Other browsers are expected to adopt similar partitioning in the future.
+
+The MSAL [redirect bridge](./redirect-bridge.md) uses `BroadcastChannel` to send the authentication response from the popup back to the main application. When your app runs in a cross-origin iframe and opens a popup, the popup becomes its own top-level browsing context — placing it in a **different storage partition** than the iframe. The `BroadcastChannel` message from the redirect bridge never reaches your app, causing the authentication flow to time out with a `timed_out` (`redirect_bridge_timeout`) error.
+
+**Affected flows (BroadcastChannel partition mismatch):**
+- `loginPopup()` / `acquireTokenPopup()` — the popup opens as a new top-level context with a different partition than the iframe
+
+### Recommended solutions
+
+1. **Nested App Authentication (NAA)** — The preferred approach for apps embedded in a host platform that supports the NAA bridge (e.g., Teams, Outlook, Microsoft 365). See [Nested App Configuration](./initialization.md#nested-app-configuration).
+2. **Redirect flow** — Use `loginRedirect()` with `allowRedirectInIframe: true` if the IdP allows rendering in an iframe (for example, Azure AD B2C with embedded sign-in).
+
+For the full technical explanation and code examples, see the [Redirect Bridge — Cross-Origin Iframe Limitation](./redirect-bridge.md#cross-origin-iframe-limitation).

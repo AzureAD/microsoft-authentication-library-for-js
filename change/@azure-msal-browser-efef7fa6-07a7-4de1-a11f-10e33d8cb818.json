@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Remove hidden iframe after receiving response from the redirect bridge [#8459](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8459)",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
