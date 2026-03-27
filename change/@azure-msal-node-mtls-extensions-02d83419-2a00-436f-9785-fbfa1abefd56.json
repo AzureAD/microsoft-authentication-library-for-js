@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add @azure/msal-node-mtls-extensions package: Managed Identity mTLS PoP via .NET subprocess (MsalMtlsMsiHelper.exe)",
+  "packageName": "@azure/msal-node-mtls-extensions",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
