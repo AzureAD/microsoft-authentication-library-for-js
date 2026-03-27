@@ -128,6 +128,8 @@ https.request(
 
 ## Requirements
 
+### Confidential Client / SNI cert path (`@azure/msal-node`)
+
 | Requirement | Details |
 |---|---|
 | **Authority must be tenanted** | Use `https://login.microsoftonline.com/{tenantId}`. `/common` and `/organizations` are not supported and will throw an error. |
@@ -135,6 +137,15 @@ https.request(
 | **`clientCertificate.x5c` is required** | The public certificate PEM. This is what MSAL uses for the TLS handshake. |
 | **`clientCertificate.privateKey` is required** | The private key corresponding to the certificate. Accepts a PEM string (`string`) or a `KeyObject` from `node:crypto` (for hardware-backed keys — see [Hardware-backed private keys](#hardware-backed-private-keys)). |
 | **SNI certificate (for production)** | In production the certificate must be issued by a Microsoft-trusted CA (OneCert / MSFT PKI) and registered with your Azure AD app registration. See [SNI documentation](./sni.md). |
+
+### Managed Identity path (`@azure/msal-node-mtls-extensions`)
+
+| Requirement | Details |
+|---|---|
+| **Windows only** | KeyGuard RSA keys require Windows VBS (Virtualization-Based Security). |
+| **`x64` or `arm64`** | Other architectures not supported. |
+| **Azure VM with Managed Identity configured** | System-assigned or user-assigned. |
+| **.NET 8 runtime on the VM** | `MsalMtlsMsiHelper.exe` is a framework-dependent binary. Check with `dotnet --version`. Pre-installed on most Azure VM images. |
 
 ---
 
@@ -171,7 +182,7 @@ const result = await cca.acquireTokenByClientCredential({
 });
 ```
 
-> **Design note — one client per certificate:** `MtlsHttpClient` creates a single `https.Agent` bound to one certificate at construction time. This is appropriate for the Confidential Client path where the certificate is stable. For the Managed Identity path (future work), the certificate can rotate — that will require a different design (such as passing the certificate per-request via options, similar to the `INetworkModule2` pattern in msal-dotnet).
+> **Design note — one client per certificate:** `MtlsHttpClient` creates a single `https.Agent` bound to one certificate at construction time. This is appropriate for the Confidential Client path where the certificate is stable for the lifetime of the application. For the Managed Identity path, certificate rotation is handled inside `MsalMtlsMsiHelper.exe` — Node.js never holds the certificate at all, so rotation is transparent.
 
 ### Note on global `fetch()`
 

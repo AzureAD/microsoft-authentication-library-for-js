@@ -21,6 +21,7 @@ subprocess, parsing the token response, and returning a standard `Authentication
 - **Windows only** — the KeyGuard key requires Windows VBS
 - `x64` or `arm64` architecture
 - Azure VM with a Managed Identity configured
+- **.NET 8 runtime** installed on the VM (check with `dotnet --version`; pre-installed on most Azure VM images)
 
 ## Installation
 
@@ -97,16 +98,48 @@ Node.js
   └─[3] Return AuthenticationResult
 ```
 
-## Bundled binary
+## Requirements (full list)
 
-`MsalMtlsMsiHelper.exe` is a self-contained .NET 8 application bundled at
-`bin/win-{arch}/MsalMtlsMsiHelper.exe`. It wraps
-[`Microsoft.Identity.Client`](https://learn.microsoft.com/en-us/azure/active-directory/develop/msal-net-migration)
-with the
-[`Microsoft.Identity.Client.KeyAttestation`](https://www.nuget.org/packages/Microsoft.Identity.Client.KeyAttestation)
-extension, which provides hardware-backed key management and attestation support.
+| Requirement | Notes |
+|---|---|
+| **Windows only** | KeyGuard RSA keys require Windows VBS |
+| `x64` or `arm64` | Other architectures not supported |
+| **Azure VM with Managed Identity** | System-assigned or user-assigned |
+| **.NET 8 runtime** | `MsalMtlsMsiHelper.exe` is a framework-dependent binary. .NET 8 is pre-installed on most Azure VM images. Check with `dotnet --version`. |
 
-**No .NET runtime is required on the target VM** — the binary is self-contained.
+> If .NET 8 is not available on your VM, it can be installed via the [Azure VM .NET extension](https://learn.microsoft.com/en-us/dotnet/core/install/linux-scripted-manual).
+
+## The `MsalMtlsMsiHelper.exe` binary
+
+`MsalMtlsMsiHelper.exe` is a **framework-dependent** .NET 8 application published to
+`bin/win-{arch}/MsalMtlsMsiHelper.exe` at build time. It is **not committed to git**.
+
+It wraps [`Microsoft.Identity.Client`](https://learn.microsoft.com/en-us/azure/active-directory/develop/msal-net-migration)
+with [`Microsoft.Identity.Client.KeyAttestation`](https://www.nuget.org/packages/Microsoft.Identity.Client.KeyAttestation),
+which provides hardware-backed KeyGuard key management and MAA attestation support.
+
+### Building the binary
+
+The binary is built automatically when you run `npm run build:binaries` or `npm pack`/`npm publish` (via `prepack`).
+
+**Requirements:** .NET 8 SDK and `windows-latest` GitHub Actions runner (or any Windows machine with .NET 8 SDK).
+
+```bash
+# Build TypeScript + .NET helper for both win-x64 and win-arm64
+npm run build:binaries
+```
+
+This calls `dotnet publish -r win-{arch} --self-contained false /p:PublishSingleFile=true` for each architecture.
+
+### CI / release
+
+The `.github/workflows/msal-node-mtls-extensions.yml` workflow:
+- Triggers on push/PR to `dev` touching this package
+- Builds the .NET helper for both architectures
+- Runs all TypeScript tests
+- Uploads `MsalMtlsMsiHelper.exe` as a GitHub Actions artifact
+
+For npm publish, the release CI must run `npm run build:binaries` on a `windows-latest` runner before `npm publish`. The `prepack` script enforces this — publishing will fail if the binaries are absent.
 
 ## See also
 
