@@ -1801,12 +1801,7 @@ export abstract class CacheManager implements ICacheManager {
             return true;
         }
 
-        // Check against username (fallback)
-        if (this.matchUsername(entity.username, loginHint)) {
-            return true;
-        }
-
-        // Also check against UPN from ID token claims
+        // Also check against ID token claims
         try {
             const accountInfo = AccountEntityUtils.getAccountInfo(entity);
             const idToken = this.getIdToken(accountInfo, correlationId);
@@ -1817,7 +1812,10 @@ export abstract class CacheManager implements ICacheManager {
                     this.cryptoImpl.base64Decode
                 );
 
-                if (idTokenClaims.upn === loginHint) {
+                if (
+                    !!idTokenClaims &&
+                    this.matchLoginHintFromTokenClaims(idTokenClaims, loginHint)
+                ) {
                     return true;
                 }
             }
