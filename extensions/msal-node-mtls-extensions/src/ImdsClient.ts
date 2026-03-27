@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
@@ -23,7 +23,7 @@ export interface PlatformMetadata {
 
 const IMDS_BASE_URL = "http://169.254.169.254";
 const PLATFORM_METADATA_PATH =
-    "/metadata/identity/getplatformmetadata?api-version=2024-01-01";
+    "/metadata/identity/getplatformmetadata?cred-api-version=2.0";
 const DEFAULT_TIMEOUT_MS = 5000;
 
 /**

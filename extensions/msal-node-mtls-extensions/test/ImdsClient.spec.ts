@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
@@ -92,6 +92,29 @@ describe("ImdsClient.getPlatformMetadata", () => {
         res.emit("end");
 
         await expect(p).rejects.toThrow("parse");
+    });
+
+    it("uses cred-api-version=2.0 query parameter", async () => {
+        const req = makeRequest();
+        const res = makeResponse(200, JSON.stringify({
+            clientId: "c", tenantId: "t", cuId: "cu",
+        }));
+
+        (http.request as jest.Mock).mockImplementation(
+            (_opts: unknown, cb: (res: http.IncomingMessage) => void) => {
+                cb(res as http.IncomingMessage);
+                return req;
+            }
+        );
+
+        const p = getPlatformMetadata();
+        res.emit("data", Buffer.from(JSON.stringify({ clientId: "c", tenantId: "t", cuId: "cu" })));
+        res.emit("end");
+        await p;
+
+        const opts = (http.request as jest.Mock).mock.calls[0][0] as { path: string };
+        expect(opts.path).toContain("cred-api-version=2.0");
+        expect(opts.path).not.toContain("api-version=2024");
     });
 
     it("rejects on timeout", async () => {
