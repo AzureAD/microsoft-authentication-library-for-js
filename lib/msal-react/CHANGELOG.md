@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-react
 
-<!-- This log was last generated on Wed, 18 Mar 2026 20:47:24 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 27 Mar 2026 17:11:12 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.2.0
+
+Fri, 27 Mar 2026 17:11:12 GMT
+
+### Minor changes
+
+- Extend peer dependency range to support React 16 (16.8+) and React 17 [#8461](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8461) (joarroyo@microsoft.com)
+- Bump @azure/msal-browser to v5.6.2
 
 ## 5.1.0
 
