@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
@@ -137,6 +137,24 @@ describe("MtlsHttpClient", () => {
                     if (event === "error") {
                         cb(new Error("ECONNREFUSED"));
                     }
+                }),
+                write: jest.fn(),
+                end: jest.fn(),
+                destroy: jest.fn(),
+            };
+
+            MockRequest.mockReturnValue(mockReq as unknown as http.ClientRequest);
+
+            const client = new MtlsHttpClient(TEST_CERT, TEST_KEY);
+            await expect(
+                client.sendPostRequestAsync(TEST_URL, {})
+            ).rejects.toThrow();
+        });
+
+        it("rejects on POST request timeout", async () => {
+            const mockReq = {
+                on: jest.fn((event: string, cb: Function) => {
+                    if (event === "timeout") cb();
                 }),
                 write: jest.fn(),
                 end: jest.fn(),
