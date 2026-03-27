@@ -16,6 +16,7 @@
 1. [unable_to_acquire_token_from_native_platform](#unable_to_acquire_token_from_native_platform)
 1. [native_connection_not_established](#native_connection_not_established)
 1. [uninitialized_public_client_application](#uninitialized_public_client_application)
+1. [user_cancelled](#user_cancelled)
 
 **[Other](#other)**
 
@@ -414,6 +415,22 @@ await msalInstance.initialize();
 await msalInstance.handleRedirectPromise(); // This will no longer throw this error since initialize completed before this was invoked
 msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 ```
+
+## user_cancelled
+
+**Error Messages**:
+
+-   User cancelled the flow.
+
+This error is thrown when a `loginPopup` or `acquireTokenPopup` are impacted by `Content-Security-Policy` / `X-Frame-Options` / `Cross-Origin-Opener-Policy` headers.
+
+Your `Content-Security-Policy` will likely need to look similar to the below:
+
+`default-src 'self'; script-src 'self'; connect-src 'self' https://login.microsoftonline.com; frame-ancestors 'self'; img-src 'self' data:; style-src 'self'`
+
+Notice the presence of `https://login.microsoftonline.com`, which allows the token to be passed. 
+
+You may want to consider amending `Cross-Origin-Opener-Policy` to `same-origin-allow-popups` if you use that header.  You may want to consider using `X-Frame-Options` of `SAMEORIGIN` if you use that header.
 
 ## Other
 
