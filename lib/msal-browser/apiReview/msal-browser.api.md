@@ -1505,7 +1505,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "5.6.1";
+export const version = "5.6.2";
 
 // Warning: (ae-incompatible-release-tags) The symbol "waitForBridgeResponse" is marked as @public, but its signature references "BrowserExperimentalOptions" which is marked as @internal
 // Warning: (ae-incompatible-release-tags) The symbol "waitForBridgeResponse" is marked as @public, but its signature references "BrowserExperimentalOptions" which is marked as @internal
