@@ -1112,8 +1112,10 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
 
             // Mock the browser storage to return account A
             const cacheManager = (pca as any).controller.browserStorage;
-            jest.spyOn(cacheManager, "getAccountKeys").mockReturnValue(["account-a-key"]);
-            
+            jest.spyOn(cacheManager, "getAccountKeys").mockReturnValue([
+                "account-a-key",
+            ]);
+
             const accountEntityA = {
                 homeAccountId: cachedAccountA.homeAccountId,
                 localAccountId: cachedAccountA.localAccountId,
@@ -1123,24 +1125,28 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 loginHint: cachedAccountA.loginHint,
                 authorityType: "MSSTS",
                 clientInfo: "",
-                tenantProfiles: []
+                tenantProfiles: [],
             };
-            
-            jest.spyOn(cacheManager, "getAccount").mockReturnValue(accountEntityA);
+
+            jest.spyOn(cacheManager, "getAccount").mockReturnValue(
+                accountEntityA
+            );
 
             // Mock that there are no ID tokens for account A (simulating no idToken or idTokenClaims)
             jest.spyOn(cacheManager, "getTokenKeys").mockReturnValue({
                 idToken: [], // No ID tokens
                 accessToken: [],
                 refreshToken: [],
-                appMetadata: []
+                appMetadata: [],
             });
 
-            jest.spyOn(cacheManager, "getIdTokenCredential").mockReturnValue(null);
+            jest.spyOn(cacheManager, "getIdTokenCredential").mockReturnValue(
+                null
+            );
 
             // Call getAccount with login hint for account B
             const result = pca.getAccount({
-                loginHint: searchLoginHintB
+                loginHint: searchLoginHintB,
             });
 
             // Result should be null since account A doesn't match the login hint for account B
