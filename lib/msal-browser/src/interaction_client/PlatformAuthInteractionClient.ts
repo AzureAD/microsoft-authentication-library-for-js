@@ -4,80 +4,80 @@
  */
 
 import {
-    Logger,
-    ICrypto,
-    AuthToken,
+    AADServerParamKeys,
+    AccessTokenEntity,
     AccountEntity,
+    AccountEntityUtils,
+    AccountInfo,
+    AuthError,
+    AuthToken,
     AuthorityType,
-    ScopeSet,
-    TimeUtils,
-    UrlString,
-    PopTokenGenerator,
-    SignedHttpRequestParameters,
+    CacheHelpers,
+    ClientAuthErrorCodes,
+    CommonSilentFlowRequest,
+    Constants,
+    ICrypto,
     IPerformanceClient,
     IdTokenEntity,
-    AccessTokenEntity,
-    AuthError,
-    CommonSilentFlowRequest,
-    AccountInfo,
-    AADServerParamKeys,
+    InProgressPerformanceEvent,
+    Logger,
+    PerformanceEvents,
+    PopTokenGenerator,
+    ScopeSet,
+    ServerTelemetryManager,
+    SignedHttpRequestParameters,
+    TimeUtils,
     TokenClaims,
+    UrlString,
+    buildAccountToCache,
     createClientAuthError,
-    ClientAuthErrorCodes,
     invokeAsync,
     updateAccountTenantProfileData,
-    CacheHelpers,
-    buildAccountToCache,
-    InProgressPerformanceEvent,
-    ServerTelemetryManager,
-    AccountEntityUtils,
-    Constants,
-    PerformanceEvents,
 } from "@azure/msal-common/browser";
-import {
-    BaseInteractionClient,
-    getDiscoveredAuthority,
-    getRedirectUri,
-    initializeServerTelemetryManager,
-} from "./BaseInteractionClient.js";
-import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
-import { BrowserConfiguration } from "../config/Configuration.js";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
-import { EventHandler } from "../event/EventHandler.js";
-import { PopupRequest } from "../request/PopupRequest.js";
-import { SilentRequest } from "../request/SilentRequest.js";
-import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
-import {
-    ApiId,
-    TemporaryCacheKeys,
-    PlatformAuthConstants,
-    BrowserConstants,
-    CacheLookupPolicy,
-} from "../utils/BrowserConstants.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import {
     MATS,
     PlatformAuthResponse,
 } from "../broker/nativeBroker/PlatformAuthResponse.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { base64Decode } from "../encode/Base64Decode.js";
+import {
+    BrowserAuthErrorCodes,
+    createBrowserAuthError,
+} from "../error/BrowserAuthError.js";
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
     createNativeAuthError,
     isFatalNativeAuthError,
 } from "../error/NativeAuthError.js";
-import { RedirectRequest } from "../request/RedirectRequest.js";
-import { NavigationOptions } from "../navigation/NavigationOptions.js";
+import { EventHandler } from "../event/EventHandler.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
-import {
-    createBrowserAuthError,
-    BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError.js";
-import { SilentCacheClient } from "./SilentCacheClient.js";
-import { AuthenticationResult } from "../response/AuthenticationResult.js";
-import { base64Decode } from "../encode/Base64Decode.js";
+import { NavigationOptions } from "../navigation/NavigationOptions.js";
 import { version } from "../packageMetadata.js";
-import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
+import {
+    ApiId,
+    BrowserConstants,
+    CacheLookupPolicy,
+    PlatformAuthConstants,
+    TemporaryCacheKeys,
+} from "../utils/BrowserConstants.js";
+import {
+    BaseInteractionClient,
+    getDiscoveredAuthority,
+    getRedirectUri,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
+import { SilentCacheClient } from "./SilentCacheClient.js";
 
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -545,7 +545,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             undefined, // environment
             idTokenClaims.tid,
             undefined, // auth code payload
-            response.account.id
+            response.account.id,
+            this.logger,
+            this.performanceClient
         );
 
         // Ensure expires_in is in number format

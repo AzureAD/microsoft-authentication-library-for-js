@@ -312,6 +312,9 @@ export type PerformanceEvent = {
     accountCachedBy?: string;
     acntLoggedOut?: boolean;
 
+    // Number of cached accounts matched by homeAccountId in buildAccountToCache
+    cacheMatchedAccounts?: number;
+
     // Number of tokens in the cache to be reported when cache quota is exceeded
     cacheRtCount?: number;
     cacheIdCount?: number;
@@ -520,6 +523,7 @@ export const IntFields: ReadonlySet<string> = new Set([
     "currRefreshCount",
     "expiredCacheRemovedCount",
     "upgradedCacheCount",
+    "cacheMatchedAccounts",
     "networkRtt",
     "redirectBridgeTimeoutMs",
     "redirectBridgeMessageVersion",

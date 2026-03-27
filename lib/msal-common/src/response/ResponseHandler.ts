@@ -398,7 +398,8 @@ export class ResponseHandler {
                 claimsTenantId,
                 authCodePayload,
                 undefined, // nativeAccountId
-                this.logger
+                this.logger,
+                this.performanceClient
             );
         }
 
@@ -643,17 +644,22 @@ export function buildAccountToCache(
     claimsTenantId?: string | null,
     authCodePayload?: AuthorizationCodePayload,
     nativeAccountId?: string,
-    logger?: Logger
+    logger?: Logger,
+    performanceClient?: IPerformanceClient
 ): AccountEntity {
     logger?.verbose("setCachedAccount called", correlationId);
 
     // Check if base account is already cached
-    const matchingAccounts = cacheStorage.getAccountsFilteredBy(
+    const matchedAccounts = cacheStorage.getAccountsFilteredBy(
         { homeAccountId },
         correlationId
     );
+    performanceClient?.addFields(
+        { cacheMatchedAccounts: matchedAccounts.length },
+        correlationId
+    );
 
-    if (matchingAccounts.length > 1) {
+    if (matchedAccounts.length > 1) {
         /*
          * Base accounts are expected to be unique for a given homeAccountId in normal cache usage.
          * If multiple matches exist, ignore the cache hit rather than arbitrarily choosing one.
