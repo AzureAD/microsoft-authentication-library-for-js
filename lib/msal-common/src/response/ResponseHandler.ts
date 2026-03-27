@@ -652,8 +652,20 @@ export function buildAccountToCache(
         { homeAccountId },
         correlationId
     );
-    const cachedAccount: AccountEntity | null =
-        matchingAccounts.length > 0 ? matchingAccounts[0] : null;
+
+    if (matchingAccounts.length > 1) {
+        /*
+         * Base accounts are expected to be unique for a given homeAccountId in normal cache usage.
+         * If multiple matches exist, ignore the cache hit rather than arbitrarily choosing one.
+         */
+        logger?.warning(
+            "Multiple base accounts matched homeAccountId. Ignoring cached account and creating a new base account.",
+            correlationId
+        );
+    }
+
+    const cachedAccount =
+        matchingAccounts.length === 1 ? matchingAccounts[0] : null;
 
     const baseAccount =
         cachedAccount ||
