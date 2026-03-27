@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "@azure/msal-node-mtls-extensions",
   "version": "1.0.0",
   "description": "msal-node extensions for Managed Identity mTLS Proof-of-Possession token acquisition",

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
@@ -18,7 +18,46 @@ const _require =
 const _dirname = path.dirname(_require.resolve("./index.js"));
 
 /**
- * Options for {@link MtlsMsiClient.acquireToken}.
+ * How many seconds before `expiresOn` to treat a cached token as expired.
+ * Matches msal-dotnet's default proactive refresh window.
+ */
+const EXPIRY_BUFFER_SECONDS = 300; // 5 minutes
+
+/** Per-process in-memory token cache. Module-level singleton. */
+const tokenCache = new Map<string, AuthenticationResult>();
+
+/**
+ * Builds the cache key for a token request.
+ * Includes all fields that would produce a different token.
+ */
+function cacheKey(request: MtlsMsiTokenRequest): string {
+    return [
+        request.resource,
+        request.identityType ?? "SystemAssigned",
+        request.identityId ?? "",
+        String(request.withAttestation ?? false),
+    ].join(":");
+}
+
+/**
+ * Returns true if a cached result is still valid (not within the expiry buffer).
+ */
+function isCacheHit(result: AuthenticationResult): boolean {
+    if (!result.expiresOn) return false;
+    const bufferMs = EXPIRY_BUFFER_SECONDS * 1000;
+    return result.expiresOn.getTime() - Date.now() > bufferMs;
+}
+
+/**
+ * Clears the in-memory token cache.
+ * Useful for testing or when you know the binding certificate has been rotated.
+ */
+export function clearMtlsMsiTokenCache(): void {
+    tokenCache.clear();
+}
+
+/**
+ * Options for {@link acquireMtlsMsiToken}.
  */
 export interface MtlsMsiTokenRequest {
     /** Azure resource URI, e.g. "https://management.azure.com/" */
@@ -41,6 +80,11 @@ export interface MtlsMsiTokenRequest {
     identityId?: string;
     /** Optional correlation ID (GUID) for telemetry. */
     correlationId?: string;
+    /**
+     * When true, bypass the in-memory cache and always acquire a fresh token.
+     * @default false
+     */
+    forceRefresh?: boolean;
 }
 
 /** JSON output written to stdout by MsalMtlsMsiHelper.exe on success. */
@@ -175,14 +219,19 @@ function runHelper(
 /**
  * Acquires an mTLS PoP access token for a Windows Managed Identity.
  *
+ * Results are cached in memory (per process) and reused until 5 minutes
+ * before expiry — matching msal-dotnet's default proactive refresh window.
+ * Pass `forceRefresh: true` to bypass the cache.
+ *
  * This function:
- * 1. Calls IMDS `/metadata/identity/getplatformmetadata` (plain HTTP)
- * 2. Spawns `MsalMtlsMsiHelper.exe` which handles all Windows-specific steps:
+ * 1. Returns a cached token if one exists and is not near expiry.
+ * 2. Calls IMDS `/metadata/identity/getplatformmetadata` (plain HTTP).
+ * 3. Spawns `MsalMtlsMsiHelper.exe` which handles all Windows-specific steps:
  *    - KeyGuard RSA key creation (Windows CNG / VBS)
  *    - CSR generation and IMDS `/issuecredential` call
  *    - Optional MAA attestation (`--with-attestation`)
  *    - mTLS token request to the regional STS endpoint
- * 3. Returns a standard `AuthenticationResult`-shaped object
+ * 4. Caches the result and returns a standard `AuthenticationResult`.
  *
  * @remarks
  * **Windows only.** The KeyGuard RSA key used to authenticate the mTLS TLS
@@ -190,17 +239,27 @@ function runHelper(
  * It cannot be created or used from Node.js directly.
  *
  * The returned `bindingCertificate` is the public X.509 certificate (PEM)
- * that Entra STS bound to the access token.  Include it in mTLS connections
+ * that Entra STS bound to the access token. Include it in mTLS connections
  * to downstream services that validate PoP binding.
  */
 export async function acquireMtlsMsiToken(
     request: MtlsMsiTokenRequest
 ): Promise<AuthenticationResult> {
+    const key = cacheKey(request);
+
+    // Return cached token if valid and forceRefresh not requested
+    if (!request.forceRefresh) {
+        const cached = tokenCache.get(key);
+        if (cached && isCacheHit(cached)) {
+            return { ...cached, fromCache: true };
+        }
+    }
+
     const helperPath = getHelperPath();
 
-    // Fetch IMDS metadata first to get tenantId/clientId for correlation.
+    // Fetch IMDS metadata to get tenantId for the AuthenticationResult.
     // The helper also fetches it internally; this call is for building
-    // AuthenticationResult fields only. It can be skipped if not needed.
+    // AuthenticationResult fields only.
     let tenantId: string | undefined;
     try {
         const metadata = await getPlatformMetadata();
@@ -215,7 +274,7 @@ export async function acquireMtlsMsiToken(
         Date.now() + helperResult.expires_in * 1000
     );
 
-    return {
+    const result: AuthenticationResult = {
         authority: tenantId
             ? `https://login.microsoftonline.com/${tenantId}`
             : "https://login.microsoftonline.com/common",
@@ -233,4 +292,7 @@ export async function acquireMtlsMsiToken(
         extExpiresOn: expiresOn,
         bindingCertificate: helperResult.binding_certificate,
     };
+
+    tokenCache.set(key, result);
+    return result;
 }

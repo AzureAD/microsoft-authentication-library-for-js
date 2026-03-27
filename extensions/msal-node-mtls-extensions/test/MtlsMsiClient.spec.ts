@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
@@ -6,7 +6,7 @@
 import * as child_process from "child_process";
 import * as os from "os";
 import { EventEmitter } from "events";
-import { acquireMtlsMsiToken } from "../src/MtlsMsiClient";
+import { acquireMtlsMsiToken, clearMtlsMsiTokenCache } from "../src/MtlsMsiClient";
 import * as ImdsClient from "../src/ImdsClient";
 
 jest.mock("child_process");
@@ -38,7 +38,6 @@ function makeProcess(
         new EventEmitter();
     (proc as unknown as { stdout: EventEmitter; stderr: EventEmitter }).stderr =
         new EventEmitter();
-    // emit stdout/stderr/close on next tick
     setTimeout(() => {
         (
             proc as unknown as { stdout: EventEmitter; stderr: EventEmitter }
@@ -54,6 +53,7 @@ function makeProcess(
 describe("MtlsMsiClient.acquireMtlsMsiToken", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        clearMtlsMsiTokenCache();
         (os.platform as jest.Mock).mockReturnValue("win32");
         (os.arch as jest.Mock).mockReturnValue("x64");
         (ImdsClient.getPlatformMetadata as jest.Mock).mockResolvedValue(
@@ -61,7 +61,7 @@ describe("MtlsMsiClient.acquireMtlsMsiToken", () => {
         );
     });
 
-    it("returns AuthenticationResult on success", async () => {
+    it("returns AuthenticationResult on success with fromCache: false", async () => {
         (child_process.spawn as jest.Mock).mockReturnValue(
             makeProcess(0, JSON.stringify(mockTokenResponse), "")
         );
@@ -74,6 +74,66 @@ describe("MtlsMsiClient.acquireMtlsMsiToken", () => {
         expect(result.tokenType).toBe("mtls_pop");
         expect(result.bindingCertificate).toBe(mockTokenResponse.binding_certificate);
         expect(result.tenantId).toBe(mockMetadata.tenantId);
+        expect(result.fromCache).toBe(false);
+    });
+
+    it("returns cached token on second call without spawning subprocess again", async () => {
+        (child_process.spawn as jest.Mock).mockReturnValue(
+            makeProcess(0, JSON.stringify(mockTokenResponse), "")
+        );
+
+        const first = await acquireMtlsMsiToken({
+            resource: "https://management.azure.com/",
+        });
+        const second = await acquireMtlsMsiToken({
+            resource: "https://management.azure.com/",
+        });
+
+        expect(child_process.spawn).toHaveBeenCalledTimes(1);
+        expect(first.fromCache).toBe(false);
+        expect(second.fromCache).toBe(true);
+        expect(second.accessToken).toBe(first.accessToken);
+    });
+
+    it("uses separate cache entries for different resources", async () => {
+        (child_process.spawn as jest.Mock).mockImplementation(() =>
+            makeProcess(0, JSON.stringify(mockTokenResponse), "")
+        );
+
+        await acquireMtlsMsiToken({ resource: "https://management.azure.com/" });
+        await acquireMtlsMsiToken({ resource: "https://vault.azure.net/" });
+
+        expect(child_process.spawn).toHaveBeenCalledTimes(2);
+    });
+
+    it("bypasses cache when forceRefresh is true", async () => {
+        (child_process.spawn as jest.Mock).mockImplementation(() =>
+            makeProcess(0, JSON.stringify(mockTokenResponse), "")
+        );
+
+        await acquireMtlsMsiToken({ resource: "https://management.azure.com/" });
+        const result = await acquireMtlsMsiToken({
+            resource: "https://management.azure.com/",
+            forceRefresh: true,
+        });
+
+        expect(child_process.spawn).toHaveBeenCalledTimes(2);
+        expect(result.fromCache).toBe(false);
+    });
+
+    it("clearMtlsMsiTokenCache causes next call to spawn subprocess", async () => {
+        (child_process.spawn as jest.Mock).mockImplementation(() =>
+            makeProcess(0, JSON.stringify(mockTokenResponse), "")
+        );
+
+        await acquireMtlsMsiToken({ resource: "https://management.azure.com/" });
+        clearMtlsMsiTokenCache();
+        const result = await acquireMtlsMsiToken({
+            resource: "https://management.azure.com/",
+        });
+
+        expect(child_process.spawn).toHaveBeenCalledTimes(2);
+        expect(result.fromCache).toBe(false);
     });
 
     it("passes --with-attestation flag when requested", async () => {

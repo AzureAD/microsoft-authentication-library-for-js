@@ -1,13 +1,13 @@
-﻿/*
+/*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
 
+const jestConfig = require("../../shared-configs/jest-config/jest.config.cjs");
+
 module.exports = {
-    verbose: true,
-    moduleFileExtensions: ["ts", "tsx", "js", "json", "jsx", "node"],
-    reporters: ["default", "jest-junit"],
-    testMatch: ["<rootDir>/test/**/*.spec.ts"],
+    ...jestConfig,
+    reporters: ["default"],
     transform: {
         "^.+\\.tsx?$": [
             "ts-jest",
@@ -30,9 +30,6 @@ module.exports = {
             },
         ],
     },
-    moduleNameMapper: {
-        "^(\\.\\.?\\/.+)\\.js$": "$1",
-    },
-    coverageReporters: [["lcov", { projectRoot: "../../" }]],
+    testMatch: ["<rootDir>/test/**/*.spec.ts"],
     testEnvironment: "node",
 };
