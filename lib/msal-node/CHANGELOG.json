@@ -2,6 +2,66 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 18 Mar 2026 20:47:24 GMT",
+      "version": "5.1.1",
+      "tag": "@azure/msal-node_v5.1.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.4.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 13 Mar 2026 22:36:58 GMT",
+      "version": "5.1.0",
+      "tag": "@azure/msal-node_v5.1.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "48cd5e0af83a8da6d32df43996b4c2d9ffe1fa4c",
+            "comment": "Add MCP Support [#8363](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8363)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.3.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 02 Mar 2026 19:25:47 GMT",
       "version": "5.0.6",
       "tag": "@azure/msal-node_v5.0.6",
