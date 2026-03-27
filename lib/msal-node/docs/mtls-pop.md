@@ -1,8 +1,8 @@
-﻿# mTLS Proof-of-Possession (mTLS PoP) — Developer Guide
+# mTLS Proof-of-Possession (mTLS PoP) — Developer Guide
 
 > **Status**: Minimum POC / Experimental. The backend Entra STS feature is currently in public preview.
 >
-> **Related docs**: [certificate-credentials.md](./certificate-credentials.md) · [sni.md](./sni.md) · [regional-authorities.md](./regional-authorities.md)
+> **Related docs**: [certificate-credentials.md](./certificate-credentials.md) · [sni.md](./sni.md) · [regional-authorities.md](./regional-authorities.md) · [mtls-pop-manual-testing.md](./mtls-pop-manual-testing.md)
 
 ---
 
