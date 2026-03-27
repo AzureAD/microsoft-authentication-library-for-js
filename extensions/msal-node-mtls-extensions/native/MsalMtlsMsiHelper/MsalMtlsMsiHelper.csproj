@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>MsalMtlsMsiHelper</AssemblyName>
+    <RootNamespace>MsalMtlsMsiHelper</RootNamespace>
+    <!-- Self-contained publish produces a single .exe with no .NET runtime dependency -->
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Full MSAL.NET stack — handles KeyGuard key, CSR, IMDS, and mTLS token request -->
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.81.0-preview-1" />
+    <!-- Attestation extension: WithAttestationSupport() + AttestationClientLib.dll -->
+    <PackageReference Include="Microsoft.Identity.Client.KeyAttestation" Version="4.81.0-preview-1-preview" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+</Project>
