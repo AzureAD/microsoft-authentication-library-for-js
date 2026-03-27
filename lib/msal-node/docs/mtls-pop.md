@@ -1,4 +1,4 @@
-# mTLS Proof-of-Possession (mTLS PoP) — Developer Guide
+﻿# mTLS Proof-of-Possession (mTLS PoP) — Developer Guide
 
 > **Status**: Minimum POC / Experimental. The backend Entra STS feature is currently in public preview.
 >
@@ -16,9 +16,11 @@ This satisfies [RFC 8705 — OAuth 2.0 Mutual-TLS Client Authentication and Cert
 
 ---
 
-## What is implemented (Confidential Client / SNI Certificate path)
+## What is implemented
 
-This implementation covers the **Confidential Client Application (CCA) SNI certificate path**, where:
+### Path 1 — Confidential Client / SNI Certificate (`@azure/msal-node`)
+
+This package covers the **Confidential Client Application (CCA) SNI certificate path**, where:
 
 1. The app developer provides their own certificate (an SNI certificate registered in Azure AD).
 2. MSAL sends the token request to the **regional `mtlsauth.microsoft.com` endpoint** over a mutual-TLS connection, using the certificate for the TLS handshake (not a `client_assertion` JWT).
@@ -38,6 +40,29 @@ token_type    = mtls_pop       ← triggers PoP token issuance
 ```
 
 > **Important**: `client_assertion` and `client_assertion_type` are NOT sent. The mTLS handshake authenticates the client instead.
+
+### Path 2 — Managed Identity (`@azure/msal-node-mtls-extensions`)
+
+The separate [`@azure/msal-node-mtls-extensions`](../../../extensions/msal-node-mtls-extensions/README.md) package implements the **Managed Identity path**, where:
+
+1. Node.js calls IMDS `/metadata/identity/getplatformmetadata` (plain HTTP, no crypto).
+2. Node.js spawns `MsalMtlsMsiHelper.exe` — a bundled .NET 8 helper that handles all Windows-specific steps:
+   - Creates a KeyGuard RSA key (Windows VBS non-exportable)
+   - Generates a CSR and calls IMDS `/issuecredential` to get the binding certificate
+   - Optionally: MAA attestation via `AttestationClientLib.dll`
+   - Sends the mTLS token request to the regional STS endpoint
+3. Node.js parses the JSON output and returns a standard `AuthenticationResult`.
+
+```typescript
+import { acquireMtlsMsiToken } from "@azure/msal-node-mtls-extensions";
+
+const result = await acquireMtlsMsiToken({
+    resource: "https://management.azure.com/",
+    withAttestation: true, // requires VBS-enabled VM
+});
+// result.tokenType === "mtls_pop"
+// result.bindingCertificate — PEM cert bound to the token
+```
 
 ---
 
@@ -156,29 +181,27 @@ Node.js's built-in global `fetch()` (backed by `undici`) does **not** support pr
 
 ## What is NOT implemented — and why
 
-There are two categories of exclusions:
+The Confidential Client / SNI cert path (this package) is complete. The table below covers features from msal-dotnet that were deliberately excluded from **this package**.
 
-### Group 1 — Required only for the Managed Identity path; not available in Node.js
+### Group 1 — Delegated to `@azure/msal-node-mtls-extensions`
 
-These are Windows/.NET-specific capabilities needed to mint certificates via the IMDS (Managed Identity) path. They are **not required for the Confidential Client / SNI certificate path** implemented here.
+These Windows/.NET-specific capabilities are required for the Managed Identity path. They **are** implemented — but via a .NET subprocess helper bundled in the separate `@azure/msal-node-mtls-extensions` package, because they cannot run in Node.js directly.
 
-| Feature | Why it cannot be implemented |
+| Feature | Why it cannot run in Node.js (and how it is solved) |
 |---|---|
-| **KeyGuard / hardware-backed RSA keys** | Windows-only feature backed by Virtualization-Based Security (VBS). The msal-dotnet `IManagedIdentityKeyProvider` creates keys inside a VBS-protected enclave. No Node.js equivalent exists. Required by IMDS when minting the binding certificate. |
-| **TPM/VBS attestation via MAA** | Requires calling `AttestationClientLib.dll`, a native Windows DLL that collects TPM/VBS evidence and obtains a JWT from Microsoft Azure Attestation. Native DLLs cannot be called from Node.js without a separate FFI package. Required only for the Managed Identity certificate-minting flow. |
-| **Windows certificate store** | Windows provides a built-in OS-level certificate store used for the persistent tier of msal-dotnet's two-tier certificate cache. Node.js has no built-in API to read or write the Windows certificate store. Required only for the Managed Identity cert-lifecycle flow. |
+| **KeyGuard / hardware-backed RSA keys** | Non-exportable key backed by Windows VBS. Created and used inside `MsalMtlsMsiHelper.exe`. |
+| **TPM/VBS attestation via MAA** | Requires `AttestationClientLib.dll` (a native Windows DLL). Called by `MsalMtlsMsiHelper.exe` when `withAttestation: true`. |
+| **IMDS `/issuecredential` + CSR** | Uses the KeyGuard key — must run inside `MsalMtlsMsiHelper.exe`. |
+
+See [`extensions/msal-node-mtls-extensions`](../../../extensions/msal-node-mtls-extensions/README.md) for the Managed Identity implementation.
 
 > **Note on hardware-backed private keys (cert-based auth):** For the Confidential Client path, `MtlsHttpClient` accepts a `KeyObject` (from `node:crypto`) as the private key in addition to a PEM string. This means you can use hardware-backed keys via PKCS#11 native addons (e.g., `pkcs11js`) — MSAL itself has no dependency on those addons. See [hardware key usage](#hardware-backed-private-keys) below.
 
-### Group 2 — Not implemented because they depend on Group 1
+### Group 2 — Deferred (depends on Group 1 being in production)
 
-These flows are otherwise feasible in Node.js but cannot be completed without the Group 1 features:
-
-| Feature | What blocks it |
+| Feature | Notes |
 |---|---|
-| **Managed Identity mTLS PoP (IMDSv2 path)** | The IMDS HTTP calls (`/getplatformmetadata`, `/issuecredential`) are reachable from Node.js. However, IMDS **requires the CSR to use a KeyGuard RSA key** (see Group 1). IMDS rejects CSRs generated with software keys — the entire certificate-minting flow is blocked. |
-| **Two-tier certificate cache (memory + Windows store)** | The in-memory tier is feasible in Node.js. The Windows certificate store tier (Group 1) is not. Since the two-tier architecture in msal-dotnet depends on both tiers for process-restart survival, implementing only half is not useful. The standard MSAL token cache covers the access token for this PoC. |
-| **CSR generation and certificate lifecycle management** | Even with Node.js's `crypto.generateKeyPair()`, software-key CSRs are rejected by IMDS in the Managed Identity flow. |
+| **Two-tier certificate cache (memory + Windows store)** | The in-memory tier (MSAL token cache) is used today. Windows certificate store persistence would require a Windows API call from `MsalMtlsMsiHelper.exe` and is deferred until the MSI path matures. |
 
 ### Group 3 — Technically feasible in Node.js, deferred for simplicity
 
