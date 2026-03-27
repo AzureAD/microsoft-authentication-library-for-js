@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774632753594,
+  "lastUpdate": 1774654553748,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20389,6 +20389,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.87%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4ce6206aa0d3c04fcbbdb2aff89d407a3074be47",
+          "message": "Improve compatibility with `React.StrictMode`  (#8482)\n\n[PR\nContribution](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8481)\nby @h3rmanj\n\nThis pull request improves the compatibility of the `@azure/msal-react`\nlibrary with `React.StrictMode`, ensuring that authentication flows and\nerror handling work correctly when used within strict mode. It also adds\na new test to verify this behavior.\n\n**React.StrictMode compatibility improvements:**\n\n* Ensured that the `mounted` ref is explicitly set to `true` at the\nstart of the `useEffect` in `useMsalAuthentication.ts` to prevent state\nupdates on unmounted components, addressing issues that can arise in\n`React.StrictMode`.\n\n**Testing enhancements:**\n\n* Added a test in `MsalAuthenticationTemplate.spec.tsx` to verify that\nthe provided error component renders correctly when the component is\nused within `React.StrictMode`.\n\n---------\n\nCo-authored-by: Herman Jensen <herman.jensen@intility.no>\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-03-27T16:27:28-07:00",
+          "tree_id": "3d076de45053ca84e3505b99c031a882bbf6ffad",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/4ce6206aa0d3c04fcbbdb2aff89d407a3074be47"
+        },
+        "date": 1774654550388,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 240955,
+            "range": "±1.10%",
+            "unit": "ops/sec",
+            "extra": "210 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 244022,
+            "range": "±0.72%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
