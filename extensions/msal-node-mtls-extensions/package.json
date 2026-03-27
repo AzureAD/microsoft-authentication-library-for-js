@@ -46,13 +46,15 @@
     "clean": "shx rm -rf dist lib",
     "build": "npm run clean && npm run build:js",
     "build:js": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build:binaries": "node ./scripts/buildBinaries.cjs",
     "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=@azure/msal-node-mtls-extensions",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts",
     "lint:fix": "npm run lint -- --fix",
     "format:check": "prettier --ignore-path .gitignore --check src test",
-    "format:fix": "prettier --ignore-path .gitignore --write src test"
+    "format:fix": "prettier --ignore-path .gitignore --write src test",
+    "prepack": "npm run build:all && node ./scripts/checkBinaries.cjs"
   },
   "author": {
     "name": "Microsoft",

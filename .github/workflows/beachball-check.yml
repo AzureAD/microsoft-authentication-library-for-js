@@ -1,4 +1,4 @@
-# This workflow will do a clean install of node dependencies at the root and check that a beachball change file has been committed.
+﻿# This workflow will do a clean install of node dependencies at the root and check that a beachball change file has been committed.
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Beachball Check
@@ -32,6 +32,7 @@ jobs:
                       lib:
                         - 'lib/**/**.!(md)'
                         - 'extensions/msal-node-extensions/**/**.!(md)'
+                        - 'extensions/msal-node-mtls-extensions/**/**.!(md)'
 
             - uses: actions/checkout@v4
               if: ${{ steps.filter.outputs.lib == 'true' }}

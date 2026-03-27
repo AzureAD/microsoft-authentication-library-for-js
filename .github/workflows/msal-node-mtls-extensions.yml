@@ -1,0 +1,91 @@
+﻿# Builds and tests @azure/msal-node-mtls-extensions.
+#
+# On push/PR to dev: builds the .NET helper for win-x64 + win-arm64,
+# runs the TypeScript tests, and uploads the binaries as a workflow artifact
+# for inspection and downstream use.
+#
+# On release: the npm publish job (beachball-bump.yml) should run
+# `npm run build:binaries` on a windows-latest runner before `npm publish`.
+# The `prepack` script in package.json enforces that binaries are present.
+
+name: msal-node-mtls-extensions CI
+
+on:
+    push:
+        branches:
+            - dev
+        paths:
+            - "extensions/msal-node-mtls-extensions/**"
+            - ".github/workflows/msal-node-mtls-extensions.yml"
+    pull_request:
+        branches:
+            - dev
+        paths:
+            - "extensions/msal-node-mtls-extensions/**"
+            - ".github/workflows/msal-node-mtls-extensions.yml"
+
+concurrency:
+    group: mtls-ext-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    build-and-test:
+        runs-on: windows-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Use Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "npm"
+
+            - name: Setup .NET 8 SDK
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: "8.0.x"
+
+            - name: Install npm dependencies
+              run: npm ci --workspaces=false
+              working-directory: .
+
+            - name: Install workspace dependencies
+              run: npm install
+              working-directory: .
+
+            - name: Build msal-common (dependency)
+              run: npm run build
+              working-directory: lib/msal-common
+
+            - name: Build msal-node (dependency)
+              run: npm run build
+              working-directory: lib/msal-node
+
+            - name: Build TypeScript
+              run: npm run build:js
+              working-directory: extensions/msal-node-mtls-extensions
+
+            - name: Build .NET helper (win-x64)
+              run: dotnet publish native/MsalMtlsMsiHelper -r win-x64 --self-contained false /p:PublishSingleFile=true -c Release -o bin/win-x64
+              working-directory: extensions/msal-node-mtls-extensions
+
+            - name: Build .NET helper (win-arm64)
+              run: dotnet publish native/MsalMtlsMsiHelper -r win-arm64 --self-contained false /p:PublishSingleFile=true -c Release -o bin/win-arm64
+              working-directory: extensions/msal-node-mtls-extensions
+
+            - name: Run tests
+              run: npm test
+              working-directory: extensions/msal-node-mtls-extensions
+
+            - name: Upload binaries
+              uses: actions/upload-artifact@v4
+              with:
+                  name: MsalMtlsMsiHelper-binaries
+                  path: |
+                      extensions/msal-node-mtls-extensions/bin/win-x64/MsalMtlsMsiHelper.exe
+                      extensions/msal-node-mtls-extensions/bin/win-arm64/MsalMtlsMsiHelper.exe
+                  retention-days: 30
