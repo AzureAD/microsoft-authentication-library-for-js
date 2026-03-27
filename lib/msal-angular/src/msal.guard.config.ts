@@ -24,4 +24,5 @@ export type MsalGuardConfiguration = {
         state: RouterStateSnapshot
       ) => MsalGuardAuthRequest);
   loginFailedRoute?: string;
+  rbacFailedRoute?: string | ((requiredRoles: string[], claimedRoles: string[]) => string);
 };
