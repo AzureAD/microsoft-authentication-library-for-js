@@ -1602,7 +1602,9 @@ export class StandardController implements IController {
                 loginHint: request.loginHint,
                 sid: request.sid,
             }) ||
-            this.getActiveAccount();
+            (!request.loginHint && !request.sid
+                ? this.getActiveAccount()
+                : null);
 
         return (account && account.nativeAccountId) || "";
     }
