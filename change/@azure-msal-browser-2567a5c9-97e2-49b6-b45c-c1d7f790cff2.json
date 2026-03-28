@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add non-OTP E2E tests",
+  "packageName": "@azure/msal-browser",
+  "email": "ydi.w127@gmail.com",
+  "dependentChangeType": "patch"
+}

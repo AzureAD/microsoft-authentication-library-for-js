@@ -1,0 +1,28 @@
+import base64
+import json
+
+# Input JSON data
+data = {
+    "native_auth": {
+        "email_password_client_id": "456cf138-cb77-48e6-8a82-74f869d77e74",
+        "email_code_client_id": "eb5a6da5-79fc-4d81-8d45-0ee1e8d4bd16",
+        "email_password_attributes_client_id": "dad09d10-2f54-4f88-88ff-768b7485983d",
+        "email_code_attributes_client_id": "6a092e9d-3f70-4ea1-bf38-8a642d004271",
+        "tenant_subdomain": "MSIDLABCIAM6",
+        "tenant_id": "fe362aec-5d43-45d1-b730-9755e60dc3b9",
+        "sign_in_email_password_username": "nativeauthjssigninpwd@comfythings.com",
+        "sign_in_email_code_username": "nativeauthjssigninotp@comfythings.com",
+        "reset_password_username": "nativeauthjssspr@comfythings.com",
+        "password_sign_in_email_code": "y*1Xj6OZnNhA",
+        "password_provider": "Password123!",
+        "keyvault_url": "https://msidlabs.vault.azure.net:443/secrets/MSIDLABCIAM6"
+    }
+}
+
+# Convert the data to a JSON string
+data_string = json.dumps(data)
+
+# Base64 encode the JSON string
+encoded_data = base64.b64encode(data_string.encode('utf-8')).decode('utf-8')
+
+print(encoded_data)
