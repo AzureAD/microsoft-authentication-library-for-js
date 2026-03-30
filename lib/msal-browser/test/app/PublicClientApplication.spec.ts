@@ -6905,12 +6905,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // New Account B login hint (not cached)
             const searchLoginHintB = "userB@contoso.com";
 
+            const idToken1Key = cacheManager.generateCredentialKey(idToken1);
+
             jest.spyOn(cacheManager, "getAccountKeys").mockReturnValue([
                 "account-a-key",
             ]);
 
             jest.spyOn(cacheManager, "getTokenKeys").mockReturnValue({
-                idToken: [],
+                idToken: [idToken1Key],
                 accessToken: [],
                 refreshToken: [],
                 appMetadata: [],
