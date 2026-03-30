@@ -101,6 +101,11 @@ describe("BrowserPerformanceClient.ts", () => {
         });
 
         it("includes network information in performance event result", () => {
+            jest.spyOn(
+                Object.getPrototypeOf(navigator),
+                "onLine",
+                "get"
+            ).mockReturnValue(true);
             const browserPerfClient = new BrowserPerformanceClient(
                 testAppConfig
             );
@@ -125,6 +130,7 @@ describe("BrowserPerformanceClient.ts", () => {
 
             const result = measurement.end();
 
+            expect(result?.startOnlineStatus).toBe(true);
             expect(result?.networkEffectiveType).toBe("4g");
             expect(result?.networkRtt).toBe(50);
         });
