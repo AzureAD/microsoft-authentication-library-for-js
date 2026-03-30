@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Improved account filtering when login hint is provided",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
