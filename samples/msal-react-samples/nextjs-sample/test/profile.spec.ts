@@ -23,7 +23,7 @@ async function verifyTokenStore(
     const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(
         "0845a021-afdf-4126-abdd-099c5e6948e1"
     );
-    expect(telemetryCacheEntry).not.toBeNull;
+    expect(telemetryCacheEntry).not.toBeNull();
     expect(telemetryCacheEntry["cacheHits"]).toBeGreaterThanOrEqual(1);
 }
 
