@@ -671,7 +671,7 @@ export function buildAccountToCache(
     }
 
     const cachedAccount =
-        matchingAccounts.length === 1 ? matchingAccounts[0] : null;
+        matchedAccounts.length === 1 ? matchedAccounts[0] : null;
 
     const baseAccount =
         cachedAccount ||
