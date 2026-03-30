@@ -130,6 +130,10 @@ export class LabClient {
             key = "guest";
         } else if (labApiParams.userType?.toLowerCase() === UserTypes.FEDERATED) {
             key = "federated";
+        } else if (
+            labApiParams.azureEnvironment?.toLowerCase() === "azureppe"
+        ) {
+            key = "ppe";
         } else if (labApiParams.azureEnvironment || labApiParams.appType) {
             // Default cloud user for standard AAD queries
             key = "basic";
