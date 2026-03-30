@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Improved account filtering when login hint is provided",
+  "comment": "Improved account filtering when login hint is provided [#8486](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8486)",
   "packageName": "@azure/msal-browser",
   "email": "lalimasharda@microsoft.com",
   "dependentChangeType": "patch"
