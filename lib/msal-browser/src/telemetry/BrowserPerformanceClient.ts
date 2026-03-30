@@ -94,6 +94,10 @@ export class BrowserPerformanceClient
         return document.visibilityState?.toString() || null;
     }
 
+    private getOnlineStatus(): boolean | null {
+        return typeof navigator !== "undefined" ? navigator.onLine : null;
+    }
+
     private deleteIncompleteSubMeasurements(
         inProgressEvent: InProgressPerformanceEvent
     ): void {
@@ -134,6 +138,7 @@ export class BrowserPerformanceClient
     ): InProgressPerformanceEvent {
         // Capture page visibilityState and then invoke start/end measurement
         const startPageVisibility = this.getPageVisibility();
+        const startOnlineStatus = this.getOnlineStatus();
         const inProgressEvent = super.startMeasurement(
             measureName,
             correlationId
@@ -166,6 +171,7 @@ export class BrowserPerformanceClient
                     {
                         ...event,
                         startPageVisibility,
+                        startOnlineStatus,
                         endPageVisibility: this.getPageVisibility(),
                         durationMs: getPerfDurationMs(startTime),
                         networkEffectiveType: networkInfo.effectiveType,
