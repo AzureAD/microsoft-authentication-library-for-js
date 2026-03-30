@@ -13,7 +13,7 @@ This guide walks through manually testing both mTLS PoP paths end-to-end.
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - An Azure AD **app registration** with an SNI certificate registered
 - A **tenanted authority** — `/common` and `/organizations` are not supported
 - The Azure **region** your workload runs in (e.g. `eastus`)
@@ -79,6 +79,10 @@ async function main() {
     });
     console.log("  fromCache:", cached?.fromCache); // true
 
+    // --- Inspect cnf claim ---
+    const payload = JSON.parse(Buffer.from(result.accessToken.split(".")[1], "base64url").toString());
+    console.log("\n  cnf claim:", JSON.stringify(payload.cnf)); // x5t#S256 proves cert binding
+
     // --- Optional: make a downstream mTLS API call ---
     // The token is bound to CERT_PEM / CERT_KEY.
     // Downstream services that validate PoP binding expect an mTLS connection
@@ -118,6 +122,8 @@ MIIDxTCCAq2gAwIBAgIU...
 
 Acquiring again (should hit cache)...
   fromCache: true
+
+  cnf claim: {"x5t#S256":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
 ```
 
 ### What to check if it fails
@@ -138,176 +144,246 @@ Acquiring again (should hit cache)...
 
 - An Azure VM running **Windows** (`x64` or `arm64`)
 - **Managed Identity enabled** on the VM (System-Assigned or User-Assigned)
-- **.NET 8 runtime** installed (check: `dotnet --version`; pre-installed on most Azure VM images)
-- Node.js 18+ on the VM
-- The `@azure/msal-node-mtls-extensions` package **with the built binary**
+- **.NET 8 runtime** installed — check with `dotnet --version` (pre-installed on most Azure VM images)
+- **Node.js 20+** on the VM — check with `node --version`
+- The `@azure/msal-node-mtls-extensions` package **with the built binary** (see build steps below)
 
 > VBS (Virtualization-Based Security) must be enabled on the VM to use `withAttestation: true`.
 > Standard Azure VMs support KeyGuard key creation. VBS attestation requires a VBS-enabled VM SKU.
 
-### 1. Build the binary (on a Windows dev machine with .NET 8 SDK)
+### Step 0 — Verify the VM is ready
 
-This step produces the `MsalMtlsMsiHelper.exe` binaries. It must be done on Windows.
+Run these on the VM before starting:
 
-```bash
-# From the repo root:
-cd extensions/msal-node-mtls-extensions
-npm run build:binaries
-# Output:
-#   bin/win-x64/MsalMtlsMsiHelper.exe
-#   bin/win-arm64/MsalMtlsMsiHelper.exe
+```powershell
+# Confirm Managed Identity is reachable
+Invoke-RestMethod `
+    -Uri "http://169.254.169.254/metadata/instance?api-version=2021-02-01" `
+    -Headers @{Metadata="true"} | Select-Object -ExpandProperty compute | Select-Object name, location
+
+# Confirm .NET 8 runtime
+dotnet --version   # must print 8.x.x
+
+# Confirm Node.js >= 20
+node --version
+
+# Confirm architecture
+node -e "console.log(process.arch)"   # must be x64 or arm64
 ```
 
-### 2. Copy the package to your VM
+If .NET 8 is missing:
+```powershell
+Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
+.\dotnet-install.ps1 -Channel 8.0 -Runtime dotnet
+```
 
-Copy the entire `extensions/msal-node-mtls-extensions` folder (including `bin/`) to the VM, or `npm pack` it first:
+### Step 1 — Build on your dev machine (Windows, needs .NET 8 SDK)
 
-```bash
+The binary must be built on a Windows machine with the **.NET 8 SDK** installed (not just the runtime).
+
+```powershell
+# From the repo root:
+git clone https://github.com/AzureAD/microsoft-authentication-library-for-js.git
+cd microsoft-authentication-library-for-js
+git checkout rginsburg/mtls_pop
+npm install
+
+# Build msal-common and msal-node (required dependencies)
+npm run build --workspace=@azure/msal-common
+npm run build --workspace=@azure/msal-node
+
+# Build the TypeScript for the extensions package
+npm run build --workspace=@azure/msal-node-mtls-extensions
+
+# Build the .NET helper binaries (win-x64 and win-arm64)
+cd extensions\msal-node-mtls-extensions
+npm run build:binaries
+# Expected output:
+#   Building MsalMtlsMsiHelper for win-x64...
+#   -> bin/win-x64/MsalMtlsMsiHelper.exe
+#   Building MsalMtlsMsiHelper for win-arm64...
+#   -> bin/win-arm64/MsalMtlsMsiHelper.exe
+
+# Verify binary is present
+Test-Path "bin\win-x64\MsalMtlsMsiHelper.exe"   # must print True
+
+# Pack it as a tarball to transfer to the VM
 npm pack
 # Produces: azure-msal-node-mtls-extensions-1.0.0.tgz
-# scp that tarball to the VM
 ```
 
-On the VM:
-```bash
-mkdir mtls-test && cd mtls-test
-npm install ../azure-msal-node-mtls-extensions-1.0.0.tgz
+### Step 2 — Copy the package to your VM
+
+```powershell
+# From your dev machine — copy the tarball to the VM (adjust path as needed):
+scp azure-msal-node-mtls-extensions-1.0.0.tgz yourvm:/C:/mtls-test/
 ```
 
-### 3. Create a test script
+### Step 3 — Install on the VM
 
-```typescript
-// test-msi-mtls.ts
+```powershell
+# On the VM:
+mkdir C:\mtls-test
+cd C:\mtls-test
+npm init -y
+npm install .\azure-msal-node-mtls-extensions-1.0.0.tgz
+
+# Verify the binary unpacked correctly
+Test-Path "node_modules\@azure\msal-node-mtls-extensions\bin\win-x64\MsalMtlsMsiHelper.exe"
+# must print True
+```
+
+### Step 4 — Smoke-test the binary directly
+
+Run `MsalMtlsMsiHelper.exe` directly to confirm the .NET + Managed Identity layer works before involving Node.js:
+
+```powershell
+.\node_modules\@azure\msal-node-mtls-extensions\bin\win-x64\MsalMtlsMsiHelper.exe `
+    --resource https://management.azure.com/ `
+    --identity-type SystemAssigned
+```
+
+**Expected (success):** JSON printed to stdout:
+```json
+{"access_token":"eyJ...","token_type":"mtls_pop","expires_in":3599,"binding_certificate":"-----BEGIN CERTIFICATE-----\n..."}
+```
+
+**On failure:** JSON printed to stderr, non-zero exit code:
+```json
+{"error":"some_code","error_description":"details of what went wrong"}
+```
+
+| Binary output | Cause | Fix |
+|---|---|---|
+| `"You must be running within an Azure VM"` | IMDS not reachable / MI not enabled | Enable System-Assigned MI in Azure Portal → VM → Identity |
+| `"KeyGuard key creation failed"` | VBS not enabled | Use a VBS-enabled VM SKU |
+| No output / exits immediately | .NET 8 runtime missing | Run `dotnet-install.ps1` |
+
+### Step 5 — Create the Node.js test script
+
+```javascript
+// test-mtls.mjs  (ESM — run with: node test-mtls.mjs)
 import { acquireMtlsMsiToken, clearMtlsMsiTokenCache } from "@azure/msal-node-mtls-extensions";
 
 const RESOURCE = "https://management.azure.com/";
 
 async function main() {
-    // --- Test 1: System-Assigned identity, fresh token ---
-    console.log("Test 1: Acquiring mTLS PoP token (System-Assigned)...");
-    const result = await acquireMtlsMsiToken({ resource: RESOURCE });
+    console.log("=== Test 1: Fresh token (System-Assigned) ===");
+    const t1 = await acquireMtlsMsiToken({ resource: RESOURCE });
+    console.log("  tokenType:         ", t1.tokenType);          // mtls_pop
+    console.log("  expiresOn:         ", t1.expiresOn);
+    console.log("  fromCache:         ", t1.fromCache);          // false
+    console.log("  tenantId:          ", t1.tenantId);
+    console.log("  bindingCertificate:", t1.bindingCertificate?.split("\n")[1]?.slice(0, 40) + "...");
 
-    console.log("\n✅ Token acquired");
-    console.log("  tokenType:         ", result.tokenType);          // "mtls_pop"
-    console.log("  expiresOn:         ", result.expiresOn);
-    console.log("  fromCache:         ", result.fromCache);          // false
-    console.log("  tenantId:          ", result.tenantId);
-    console.log("  bindingCertificate:", result.bindingCertificate?.slice(0, 60), "...");
+    console.log("\n=== Test 2: Cache hit ===");
+    const t2 = await acquireMtlsMsiToken({ resource: RESOURCE });
+    console.log("  fromCache:", t2.fromCache);   // true
 
-    // --- Test 2: Cache hit ---
-    console.log("\nTest 2: Second call (should hit cache)...");
-    const cached = await acquireMtlsMsiToken({ resource: RESOURCE });
-    console.log("  fromCache:", cached.fromCache); // true
+    console.log("\n=== Test 3: forceRefresh ===");
+    const t3 = await acquireMtlsMsiToken({ resource: RESOURCE, forceRefresh: true });
+    console.log("  fromCache:", t3.fromCache);   // false
 
-    // --- Test 3: forceRefresh ---
-    console.log("\nTest 3: forceRefresh (should bypass cache)...");
-    const fresh = await acquireMtlsMsiToken({ resource: RESOURCE, forceRefresh: true });
-    console.log("  fromCache:", fresh.fromCache); // false
-
-    // --- Test 4: clearMtlsMsiTokenCache ---
-    console.log("\nTest 4: clearMtlsMsiTokenCache then re-acquire...");
+    console.log("\n=== Test 4: clearMtlsMsiTokenCache ===");
     clearMtlsMsiTokenCache();
-    const afterClear = await acquireMtlsMsiToken({ resource: RESOURCE });
-    console.log("  fromCache:", afterClear.fromCache); // false
+    const t4 = await acquireMtlsMsiToken({ resource: RESOURCE });
+    console.log("  fromCache:", t4.fromCache);   // false
 
-    // --- Test 5: User-Assigned identity (if configured) ---
-    // Uncomment and fill in your user-assigned client ID:
-    //
-    // console.log("\nTest 5: User-Assigned identity...");
+    console.log("\n=== Test 5: Different resource (separate cache entry) ===");
+    const t5 = await acquireMtlsMsiToken({ resource: "https://vault.azure.net/" });
+    console.log("  tokenType:", t5.tokenType);   // mtls_pop
+    console.log("  fromCache:", t5.fromCache);   // false
+
+    console.log("\n=== Test 6: Inspect cnf claim (proves cert binding) ===");
+    const payload = JSON.parse(Buffer.from(t1.accessToken.split(".")[1], "base64url").toString());
+    console.log("  cnf claim:", JSON.stringify(payload.cnf));   // x5t#S256 must be present
+    console.log("  token_type:", payload.token_type ?? payload.tt);
+
+    // --- Optional: User-Assigned identity (uncomment if configured) ---
     // const ua = await acquireMtlsMsiToken({
     //     resource: RESOURCE,
     //     identityType: "UserAssigned",
     //     identityId: "YOUR_USER_ASSIGNED_CLIENT_ID",
     // });
+    // console.log("\n=== Test 7: User-Assigned ===");
     // console.log("  tokenType:", ua.tokenType);
 
-    // --- Test 6: With VBS attestation (requires VBS-enabled VM) ---
-    // console.log("\nTest 6: With attestation...");
-    // const attested = await acquireMtlsMsiToken({
-    //     resource: RESOURCE,
-    //     withAttestation: true,
-    // });
-    // console.log("  tokenType:", attested.tokenType);
+    // --- Optional: VBS attestation (requires VBS-enabled VM SKU) ---
+    // const att = await acquireMtlsMsiToken({ resource: RESOURCE, withAttestation: true });
+    // console.log("\n=== Test 8: With attestation ===");
+    // console.log("  tokenType:", att.tokenType);
 
     console.log("\n✅ All tests passed");
 }
 
-main().catch((err) => {
-    console.error("\n❌ Error:", err.message);
+main().catch(err => {
+    console.error("\n❌ FAILED:", err.message);
     if (err.errorCode) console.error("  errorCode:", err.errorCode);
     process.exit(1);
 });
 ```
 
-### 4. Run on the VM
+### Step 6 — Run on the VM
 
 ```powershell
-npx ts-node test-msi-mtls.ts
+node test-mtls.mjs
 ```
 
 ### Expected output
 
 ```
-Test 1: Acquiring mTLS PoP token (System-Assigned)...
-
-✅ Token acquired
+=== Test 1: Fresh token (System-Assigned) ===
   tokenType:          mtls_pop
-  expiresOn:          2026-03-27T19:00:00.000Z
+  expiresOn:          2026-03-30T22:20:00.000Z
   fromCache:          false
   tenantId:           xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-  bindingCertificate: -----BEGIN CERTIFICATE-----
-MIIDxTCCAq2gAwIBAgIU...
+  bindingCertificate: MIIDxTCCAq2gAwIBAgIUxxxxxxxxxxxxxxxx...
 
-Test 2: Second call (should hit cache)...
+=== Test 2: Cache hit ===
   fromCache: true
 
-Test 3: forceRefresh (should bypass cache)...
+=== Test 3: forceRefresh ===
   fromCache: false
 
-Test 4: clearMtlsMsiTokenCache then re-acquire...
+=== Test 4: clearMtlsMsiTokenCache ===
   fromCache: false
+
+=== Test 5: Different resource (separate cache entry) ===
+  tokenType:  mtls_pop
+  fromCache:  false
+
+=== Test 6: Inspect cnf claim (proves cert binding) ===
+  cnf claim:  {"x5t#S256":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
+  token_type: mtls_pop
 
 ✅ All tests passed
 ```
 
-### What to check if it fails
+### What to check if it fails (Node.js layer)
 
 | Error | Likely cause | Fix |
 |---|---|---|
 | `"only supported on Windows"` | Running on Linux/macOS | Must run on a Windows Azure VM |
 | `"Unsupported architecture"` | Not `x64` or `arm64` | Check `node -e "console.log(process.arch)"` |
-| `"Failed to spawn MsalMtlsMsiHelper"` | Binary missing | Run `npm run build:binaries` and ensure `bin/win-x64/` is present |
-| `"You must be running within an Azure VM"` | IMDS not reachable | Ensure VM has Managed Identity enabled; IMDS is at `169.254.169.254` |
-| `dotnet: command not found` | .NET 8 runtime not installed | Install via [.NET install script](https://dot.net/v1/dotnet-install.ps1) |
-| `MsalException` from the helper | Token acquisition failed | Check the `error_description` — commonly a misconfigured Managed Identity or preview feature not enabled for the subscription |
-
-### Checking the binary manually
-
-You can run `MsalMtlsMsiHelper.exe` directly to isolate issues from Node.js:
-
-```powershell
-.\bin\win-x64\MsalMtlsMsiHelper.exe --resource https://management.azure.com/ --identity-type SystemAssigned
-# On success: prints JSON with access_token, token_type, expires_in, binding_certificate
-# On failure: prints JSON error to stderr and exits non-zero
-```
+| `"Failed to spawn MsalMtlsMsiHelper"` | Binary missing from package | Rebuild + repack on dev machine; verify `bin/win-x64/` is present in the tarball |
+| `MsalException` from the helper | Token acquisition failed | Run the binary smoke-test (Step 4) directly and read the `error_description` |
+| Token has no `cnf` claim | Token is Bearer, not mTLS PoP | Check `token_type` in the binary's JSON output |
 
 ---
 
 ## Verifying the token is actually mTLS PoP (not Bearer)
 
-Decode the access token at [jwt.ms](https://jwt.ms) or with the snippet below and confirm:
+The `cnf` claim with `x5t#S256` is the definitive proof the token is certificate-bound.
+Test 6 above inspects it inline. You can also decode any token at [jwt.ms](https://jwt.ms) and
+look for:
 
-```typescript
-function inspectToken(accessToken: string) {
-    const payload = JSON.parse(
-        Buffer.from(accessToken.split(".")[1], "base64url").toString("utf8")
-    );
-    console.log("cnf claim (cert binding):", payload.cnf);   // should be present
-    console.log("token_type in claims:    ", payload.token_type ?? payload.tt);
+```json
+"cnf": {
+    "x5t#S256": "base64url-encoded-sha256-thumbprint-of-binding-cert"
 }
 ```
 
-An mTLS PoP token will have a `cnf` claim containing the certificate thumbprint (`x5t#S256`), which is what Entra STS uses to verify the binding.
+A plain Bearer token will have no `cnf` claim.
 
 ---
 
@@ -317,3 +393,4 @@ An mTLS PoP token will have a `cnf` claim containing the certificate thumbprint 
 - [certificate-credentials.md](./certificate-credentials.md) — Setting up certificate credentials
 - [sni.md](./sni.md) — SNI certificate setup
 - [extensions/msal-node-mtls-extensions/README.md](../../../extensions/msal-node-mtls-extensions/README.md) — Package docs for the Managed Identity path
+
