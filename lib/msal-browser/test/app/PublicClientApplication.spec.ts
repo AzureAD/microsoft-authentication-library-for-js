@@ -8353,6 +8353,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         afterEach(() => {
             window.sessionStorage.clear();
             window.localStorage.clear();
+            jest.restoreAllMocks();
         });
 
         it("should not return cached account A's nativeAccountId when searching for account B by loginHint with idToken cached", async () => {
@@ -8386,7 +8387,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .spyOn(cacheManager, "getAccount")
                 .mockReturnValue(testAccount1);
 
-            // Mock getActiveAccount to return null
+            // Mock getActiveAccount to return testAccount1
             const getActiveAccountSpy = jest
                 .spyOn(controller, "getActiveAccount")
                 .mockReturnValue(testAccount1);
@@ -8401,10 +8402,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             // Should return empty string since no matching account found for account B's loginHint
             expect(nativeAccountId).toBe("");
-
-            // Cleanup
-            getAccountSpy.mockRestore();
-            getActiveAccountSpy.mockRestore();
         });
 
         it("should not return cached account's nativeAccountId when searching for account B by loginHint without idToken cached", async () => {
@@ -8436,7 +8433,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .spyOn(cacheManager, "getAccount")
                 .mockReturnValue(testAccount1);
 
-            // Mock getActiveAccount to return null
+            // Mock getActiveAccount to return testAccount1
             const getActiveAccountSpy = jest
                 .spyOn(controller, "getActiveAccount")
                 .mockReturnValue(testAccount1);
@@ -8463,10 +8460,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
                 "019d2855-0ed2-7b33-8f4b-ad00a1a5f4be"
             );
-
-            // Cleanup
-            getAccountSpy.mockRestore();
-            getActiveAccountSpy.mockRestore();
         });
 
         it("should return active account's nativeAccountId when no account or login hint is provided", async () => {
@@ -8508,10 +8501,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeAccountId = controller.getNativeAccountId(testRequest);
 
             expect(nativeAccountId).toBe("nativeAccountId1");
-
-            // Cleanup
-            getAccountSpy.mockRestore();
-            getActiveAccountSpy.mockRestore();
         });
     });
 

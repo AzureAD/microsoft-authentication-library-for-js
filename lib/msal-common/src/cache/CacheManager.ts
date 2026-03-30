@@ -1731,6 +1731,7 @@ export abstract class CacheManager implements ICacheManager {
      * helper to match loginHint from account entity
      * @param entity
      * @param loginHint
+     * @param correlationId
      * @returns boolean indicating if the account entity matches the login hint
      */
     private matchLoginHintFromAccountEntity(
