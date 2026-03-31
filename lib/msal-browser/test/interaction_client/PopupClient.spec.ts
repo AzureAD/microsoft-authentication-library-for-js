@@ -1043,6 +1043,9 @@ describe("PopupClient", () => {
             };
             // @ts-ignore
             jest.spyOn(window, "open").mockReturnValue(popupWindow);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
+                new Error("test")
+            );
         });
 
         afterEach(() => {

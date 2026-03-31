@@ -39,6 +39,38 @@ This guide provides framework-specific instructions for setting up the redirect 
 > redirect bridge with your application or serve it from your own
 > infrastructure.
 
+## Logout and the Redirect Bridge
+
+### `logoutPopup()` — redirect bridge is **required**
+
+When using `logoutPopup()`, the `postLogoutRedirectUri` **must** point to a page that implements the redirect bridge (calls `broadcastResponseToMainFrame()`). After ESTS completes the sign-out, it redirects the popup to the `postLogoutRedirectUri`. The redirect bridge on that page broadcasts the response back to the main window and closes the popup. Without the bridge, the popup will remain open after logout because COOP headers prevent the main window from closing it directly.
+
+The simplest configuration is to set `postLogoutRedirectUri` to the same value as `redirectUri`:
+
+```javascript
+const msalConfig = {
+    auth: {
+        clientId: "{your-client-id}",
+        redirectUri: "/redirect",
+        postLogoutRedirectUri: "/redirect", // Must host the redirect bridge
+    },
+};
+```
+
+> [!IMPORTANT]
+> If your `postLogoutRedirectUri` differs from your `redirectUri`, you must
+> ensure both pages implement the redirect bridge **and** both URIs are
+> registered in your [Entra ID app registration](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app#add-a-redirect-uri)
+> as redirect URIs.
+>
+> **Note:** MSA (personal Microsoft accounts) requires the redirect URI to be
+> registered with the "logout" type to allow redirecting back after logout.
+> Check your app registration if you support MSA accounts.
+
+### `logoutRedirect()` — redirect bridge is **optional**
+
+For `logoutRedirect()`, hosting the redirect bridge on the `postLogoutRedirectUri` page is optional. The redirect flow navigates the entire browser window, so there is no popup to close. If the redirect bridge is present on the `postLogoutRedirectUri` page, it will navigate the user back to the origin page. If not, ESTS will redirect the user directly to the `postLogoutRedirectUri` page and the user stays there.
+
 ## Cross-Origin Iframe Limitation
 
 The redirect bridge relies on the [BroadcastChannel API](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel) to send the authentication response from the popup back to the main application window. Starting with **Chromium 115+** (Chrome, Edge, and other Chromium-based browsers), [third-party storage partitioning](https://developers.google.com/privacy-sandbox/cookies/storage-partitioning) is enforced, which means `BroadcastChannel` is **partitioned by top-level site**, not just by origin. Other browsers are expected to adopt similar partitioning in the future.

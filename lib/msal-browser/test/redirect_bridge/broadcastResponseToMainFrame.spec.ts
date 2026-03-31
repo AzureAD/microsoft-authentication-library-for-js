@@ -394,6 +394,76 @@ describe("broadcastResponseToMainFrame", () => {
         });
     });
 
+    describe("Success cases - Signout redirect flow", () => {
+        it("uses ApiId.logout when interaction type is signout", async () => {
+            const testClientId = "test-client-signout";
+            const cachedOriginUrl = "https://localhost:8081/signed-out";
+
+            mockSessionStorage["msal.interaction.status"] = JSON.stringify({
+                clientId: testClientId,
+                type: "signout",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Should navigate with ApiId.logout (961) for signout flow
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
+                cachedOriginUrl,
+                expect.objectContaining({
+                    apiId: 961, // ApiId.logout
+                    noHistory: true,
+                })
+            );
+        });
+
+        it("uses ApiId.handleRedirectPromise when interaction type is signin", async () => {
+            const testClientId = "test-client-signin";
+            const cachedOriginUrl = "https://localhost:8081/home";
+
+            mockSessionStorage["msal.interaction.status"] = JSON.stringify({
+                clientId: testClientId,
+                type: "signin",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Should navigate with ApiId.handleRedirectPromise (865) for signin flow
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
+                cachedOriginUrl,
+                expect.objectContaining({
+                    apiId: 865, // ApiId.handleRedirectPromise
+                    noHistory: true,
+                })
+            );
+        });
+
+        it("broadcasts and closes popup window for signout popup flow", async () => {
+            mockSessionStorage["msal.interaction.status"] = JSON.stringify({
+                clientId: "test-client",
+                type: "signout",
+            });
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
+
+            await broadcastResponseToMainFrame();
+
+            // Popup signout should broadcast + close, same as popup signin
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
+            expect(window.close).toHaveBeenCalled();
+            expect(
+                mockNavigationClient.navigateInternal
+            ).not.toHaveBeenCalled();
+        });
+    });
+
     describe("Hybrid response format (query + hash)", () => {
         it("handles query string only response", async () => {
             window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
