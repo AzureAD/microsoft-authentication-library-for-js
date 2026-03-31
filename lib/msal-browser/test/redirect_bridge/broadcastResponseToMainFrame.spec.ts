@@ -392,6 +392,31 @@ describe("broadcastResponseToMainFrame", () => {
             );
             expect(urlHashCalls).toHaveLength(0);
         });
+
+        it("uses ApiId.handleRedirectPromise when interaction type is signin", async () => {
+            const testClientId = "test-client-signin";
+            const cachedOriginUrl = "https://localhost:8081/home";
+
+            mockSessionStorage["msal.interaction.status"] = JSON.stringify({
+                clientId: testClientId,
+                type: "signin",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Should navigate with ApiId.handleRedirectPromise for signin flow
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
+                cachedOriginUrl,
+                expect.objectContaining({
+                    apiId: ApiId.handleRedirectPromise,
+                    noHistory: true,
+                })
+            );
+        });
     });
 
     describe("Success cases - Signout redirect flow", () => {
@@ -415,31 +440,6 @@ describe("broadcastResponseToMainFrame", () => {
                 cachedOriginUrl,
                 expect.objectContaining({
                     apiId: ApiId.logout,
-                    noHistory: true,
-                })
-            );
-        });
-
-        it("uses ApiId.handleRedirectPromise when interaction type is signin", async () => {
-            const testClientId = "test-client-signin";
-            const cachedOriginUrl = "https://localhost:8081/home";
-
-            mockSessionStorage["msal.interaction.status"] = JSON.stringify({
-                clientId: testClientId,
-                type: "signin",
-            });
-            mockSessionStorage[`msal.${testClientId}.request.origin`] =
-                cachedOriginUrl;
-
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-
-            await broadcastResponseToMainFrame();
-
-            // Should navigate with ApiId.handleRedirectPromise for signin flow
-            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
-                cachedOriginUrl,
-                expect.objectContaining({
-                    apiId: ApiId.handleRedirectPromise,
                     noHistory: true,
                 })
             );
