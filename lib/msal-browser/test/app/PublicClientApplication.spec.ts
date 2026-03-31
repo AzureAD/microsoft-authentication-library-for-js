@@ -1651,6 +1651,34 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.initialize();
         });
 
+        it("records isMcp on InitializeClientApplication telemetry event", (done) => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                },
+            };
+            pca = new PublicClientApplication(config);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                for (const event of events) {
+                    if (
+                        event.name ===
+                        BrowserRootPerformanceEvents.InitializeClientApplication
+                    ) {
+                        expect(event.isMcp).toBe(true);
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    }
+                }
+            });
+
+            pca.initialize();
+        });
+
         it("falls back to web flow if prompt is select_account", async () => {
             const config = {
                 auth: {
@@ -2357,6 +2385,109 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     throw new Error("success path should not be reached");
                 })
                 .catch((e) => {});
+        });
+
+        it("throws an error if isMcp is true and resource is not provided in request", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenRedirect({ scopes: [] })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.resourceParameterRequired
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraQueryParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenRedirect({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraQueryParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenRedirect({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("succeeds when isMcp is true and resource is provided", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            const redirectClientSpy: jest.SpyInstance = jest
+                .spyOn(RedirectClient.prototype, "acquireToken")
+                .mockResolvedValue();
+
+            const response = await pca.acquireTokenRedirect({
+                scopes: [],
+                resource: "testresource.example.com",
+            });
+            expect(response).toEqual(undefined);
+            expect(redirectClientSpy).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -3194,6 +3325,125 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const preGenPkce2: PkceCodes = testPca.controller.pkceCode;
             expect(preGenPkce2).toBeUndefined();
         });
+
+        it("throws an error if isMcp is true and resource is not provided in request", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenPopup({ scopes: [] })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.resourceParameterRequired
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraQueryParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenPopup({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraQueryParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenPopup({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("succeeds when isMcp is true and resource is provided in request", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+            const popupClientSpy: jest.SpyInstance = jest
+                .spyOn(PopupClient.prototype, "acquireToken")
+                .mockResolvedValue(testTokenResponse);
+
+            const response = await pca.acquireTokenPopup({
+                scopes: [],
+                resource: "testresource.example.com",
+            });
+            expect(response?.idToken).not.toBeNull();
+            expect(response).toEqual(testTokenResponse);
+            expect(popupClientSpy).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe("ssoSilent", () => {
@@ -3565,6 +3815,136 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scenarioId: "test-scenario-id",
                 account: testAccount,
             }).catch(() => {});
+        });
+
+        it("throws an error if isMcp is true and resource is not provided in request", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.resourceParameterRequired
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraQueryParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.ssoSilent({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraQueryParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.ssoSilent({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("succeeds when isMcp is true and resource is provided", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+
+            let ssoSilentFired = false;
+            const silentClientSpy: jest.SpyInstance = jest
+                .spyOn(SilentIframeClient.prototype, "acquireToken")
+                .mockResolvedValue(testTokenResponse);
+
+            jest.spyOn(EventHandler.prototype, "emitEvent").mockImplementation(
+                (eventType, _correlationId, interactionType) => {
+                    if (
+                        eventType === EventType.ACQUIRE_TOKEN_START &&
+                        interactionType === InteractionType.Silent
+                    ) {
+                        ssoSilentFired = true;
+                    }
+                }
+            );
+            const response = await pca.ssoSilent({
+                scopes: [],
+                resource: "testresource.example.com",
+            });
+            expect(response?.idToken).not.toBeNull();
+            expect(response).toEqual(testTokenResponse);
+            expect(silentClientSpy).toHaveBeenCalledTimes(1);
+            expect(ssoSilentFired).toBe(true);
         });
     });
 
@@ -5957,6 +6337,139 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     });
                 });
             });
+        });
+
+        it("throws an error if isMcp is true and resource is not provided in request", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenSilent({ scopes: [] })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.resourceParameterRequired
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraQueryParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenSilent({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraQueryParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenSilent({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("succeeds when isMcp is true and resource is provided", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+                state: "test-state",
+            };
+            const silentCacheSpy: jest.SpyInstance = jest
+                .spyOn(SilentCacheClient.prototype, "acquireToken")
+                .mockResolvedValue(testTokenResponse);
+            const silentRefreshSpy = jest.spyOn(
+                SilentRefreshClient.prototype,
+                "acquireToken"
+            );
+            const silentIframeSpy = jest.spyOn(
+                SilentIframeClient.prototype,
+                "acquireToken"
+            );
+
+            const response = await pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
+                resource: "testresource.example.com",
+            });
+            expect(response?.idToken).not.toBeNull();
+            expect(response).toEqual(testTokenResponse);
+            expect(silentCacheSpy).toHaveBeenCalledTimes(1);
+            expect(silentRefreshSpy).toHaveBeenCalledTimes(0);
+            expect(silentIframeSpy).toHaveBeenCalledTimes(0);
         });
     });
 

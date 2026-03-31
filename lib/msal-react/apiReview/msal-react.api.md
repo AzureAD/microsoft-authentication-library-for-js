@@ -30,7 +30,7 @@ export type AccountIdentifiers = Partial<Pick<AccountInfo, "homeAccountId" | "lo
 // Warning: (ae-missing-release-tag) "AuthenticatedTemplate" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export function AuthenticatedTemplate({ username, homeAccountId, localAccountId, children, }: AuthenticatedTemplateProps): React_2.ReactElement | null;
+export function AuthenticatedTemplate(input: AuthenticatedTemplateProps): React_2.ReactElement | null;
 
 // Warning: (ae-missing-release-tag) "AuthenticatedTemplateProps" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -75,7 +75,7 @@ export type MsalAuthenticationResult = {
 // Warning: (ae-missing-release-tag) "MsalAuthenticationTemplate" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export function MsalAuthenticationTemplate({ interactionType, username, homeAccountId, localAccountId, authenticationRequest, loadingComponent: LoadingComponent, errorComponent: ErrorComponent, children, }: MsalAuthenticationProps): React_2.ReactElement | null;
+export function MsalAuthenticationTemplate(input: MsalAuthenticationProps): React_2.ReactElement | null;
 
 // Warning: (ae-missing-release-tag) "MsalConsumer" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -90,7 +90,7 @@ export const MsalContext: React_3.Context<IMsalContext>;
 // Warning: (ae-missing-release-tag) "MsalProvider" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export function MsalProvider({ instance, children, }: MsalProviderProps): React_2.ReactElement;
+export function MsalProvider(input: MsalProviderProps): React_2.ReactElement;
 
 // Warning: (ae-missing-release-tag) "MsalProviderProps" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -118,7 +118,7 @@ export type Subtract<T extends T1, T1 extends object> = Pick<T, SetComplement<ke
 // Warning: (ae-missing-release-tag) "UnauthenticatedTemplate" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export function UnauthenticatedTemplate({ username, homeAccountId, localAccountId, children, }: UnauthenticatedTemplateProps): React_2.ReactElement | null;
+export function UnauthenticatedTemplate(input: UnauthenticatedTemplateProps): React_2.ReactElement | null;
 
 // Warning: (ae-missing-release-tag) "UnauthenticatedTemplateProps" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -153,7 +153,7 @@ export function useMsalAuthentication(interactionType: InteractionType, authenti
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "5.0.6";
+export const version = "5.2.0";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "withMsal" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)

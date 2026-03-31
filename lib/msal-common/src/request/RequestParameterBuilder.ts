@@ -448,6 +448,13 @@ export function addClientInfo(parameters: Map<string, string>): void {
     parameters.set(Constants.CLIENT_INFO, "1");
 }
 
+/**
+ * add clidata=1 to request to indicate client data support
+ */
+export function addCliData(parameters: Map<string, string>): void {
+    parameters.set(AADServerParamKeys.CLI_DATA, "1");
+}
+
 export function addInstanceAware(parameters: Map<string, string>): void {
     if (!parameters.has(AADServerParamKeys.INSTANCE_AWARE)) {
         parameters.set(AADServerParamKeys.INSTANCE_AWARE, "true");
@@ -632,4 +639,13 @@ export function addEARParameters(
     // ear_jwe_crypto will always have value: {"alg":"dir","enc":"A256GCM"} so we can hardcode this
     const jweCryptoB64Encoded = "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0";
     parameters.set(AADServerParamKeys.EAR_JWE_CRYPTO, jweCryptoB64Encoded);
+}
+
+export function addResource(
+    parameters: Map<string, string>,
+    resource?: string
+): void {
+    if (resource) {
+        parameters.set(AADServerParamKeys.RESOURCE, resource);
+    }
 }

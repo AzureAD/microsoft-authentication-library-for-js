@@ -521,6 +521,7 @@ export abstract class ClientApplication {
                 authority: discoveredAuthority,
                 clientCapabilities: this.config.auth.clientCapabilities,
                 redirectUri,
+                isMcp: this.config.auth.isMcp,
             },
             loggerOptions: {
                 logLevel: this.config.system.loggerOptions.logLevel,

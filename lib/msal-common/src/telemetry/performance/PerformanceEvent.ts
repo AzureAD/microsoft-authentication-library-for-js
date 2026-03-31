@@ -105,6 +105,12 @@ export type PerformanceEvent = {
     startPageVisibility?: string | null;
 
     /**
+     * Online status when the event started.
+     * Read from: https://developer.mozilla.org/docs/Web/API/NavigatorOnLine/onLine
+     */
+    startOnlineStatus?: boolean | null;
+
+    /**
      * Unix millisecond timestamp when the event was initiated.
      *
      * @type {number}
@@ -136,6 +142,11 @@ export type PerformanceEvent = {
      * Server error number
      */
     serverErrorNo?: string;
+
+    /**
+     * Server sub error number
+     */
+    serverSubErrorNo?: string;
 
     /**
      * Name of the library used for the operation.
@@ -197,12 +208,26 @@ export type PerformanceEvent = {
     incompleteSubMeasurements?: Map<string, SubMeasurement>;
 
     visibilityChangeCount?: number;
+    onlineStatusChangeCount?: number;
     incompleteSubsCount?: number;
+
+    /**
+     * Network connection info from the Network Information API (Chromium only).
+     * Read from: https://developer.mozilla.org/docs/Web/API/NetworkInformation
+     */
+    networkEffectiveType?: string;
+    networkRtt?: number;
 
     /**
      * CorrelationId of the in progress iframe request that was awaited
      */
     awaitIframeCorrelationId?: string;
+    /**
+     * Monitor_window_timeout debugging telemetry
+     */
+    redirectBridgeTimeoutMs?: number;
+    isRedirectUriCrossOrigin?: boolean;
+    redirectBridgeMessageVersion?: number;
 
     /**
      * Size of the id token
@@ -353,6 +378,9 @@ export type PerformanceEvent = {
 
     // Hashed logs in the format [millis1,hash1;millis2,hash2;...]
     logs?: string;
+
+    // Whether the application is configured for MCP flows
+    isMcp?: boolean;
 
     /**
      * Source of cloud discovery metadata (config, cache, network, hardcoded_values)
@@ -507,4 +535,7 @@ export const IntFields: ReadonlySet<string> = new Set([
     "currRefreshCount",
     "expiredCacheRemovedCount",
     "upgradedCacheCount",
+    "networkRtt",
+    "redirectBridgeTimeoutMs",
+    "redirectBridgeMessageVersion",
 ]);

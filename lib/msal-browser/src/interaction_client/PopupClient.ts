@@ -372,7 +372,8 @@ export class PopupClient extends StandardInteractionClient {
                     this.config.system.popupBridgeTimeout,
                     this.logger,
                     this.browserCrypto,
-                    request
+                    request,
+                    this.performanceClient
                 );
 
                 const serverParams = invoke(
@@ -501,7 +502,8 @@ export class PopupClient extends StandardInteractionClient {
             this.config.system.popupBridgeTimeout,
             this.logger,
             this.browserCrypto,
-            popupRequest
+            popupRequest,
+            this.performanceClient
         );
 
         const serverParams = invoke(
@@ -629,7 +631,8 @@ export class PopupClient extends StandardInteractionClient {
             this.config.system.popupBridgeTimeout,
             this.logger,
             this.browserCrypto,
-            request
+            request,
+            this.performanceClient
         );
 
         const serverParams = invoke(
@@ -783,7 +786,8 @@ export class PopupClient extends StandardInteractionClient {
                 this.config.system.popupBridgeTimeout,
                 this.logger,
                 this.browserCrypto,
-                validRequest
+                validRequest,
+                this.performanceClient
             ).catch(() => {
                 // Swallow any errors related to monitoring the window. Server logout is best effort
             });

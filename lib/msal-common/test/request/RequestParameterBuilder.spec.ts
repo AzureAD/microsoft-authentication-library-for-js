@@ -92,6 +92,10 @@ describe("RequestParameterBuilder unit tests", () => {
             parameters,
             TEST_CONFIG.LOGIN_HINT
         );
+        RequestParameterBuilder.addResource(
+            parameters,
+            "https://graph.microsoft.com"
+        );
 
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
@@ -216,6 +220,13 @@ describe("RequestParameterBuilder unit tests", () => {
             requestQueryString.includes(
                 `${AADServerParamKeys.LOGOUT_HINT}=${encodeURIComponent(
                     TEST_CONFIG.LOGIN_HINT
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.RESOURCE}=${encodeURIComponent(
+                    "https://graph.microsoft.com"
                 )}`
             )
         ).toBe(true);

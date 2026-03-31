@@ -12,6 +12,10 @@ import {
 
 describe("BrowserUtils.ts Function Unit Tests", () => {
     const oldWindow = { ...window };
+    const performanceClient = {
+        addFields: jest.fn(),
+    } as any;
+
     afterEach(() => {
         window = oldWindow;
         jest.restoreAllMocks();
@@ -146,7 +150,8 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
                 5000,
                 logger,
                 browserCrypto,
-                request
+                request,
+                performanceClient
             );
 
             // Cancel it
@@ -189,7 +194,8 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
                 5000,
                 logger,
                 browserCrypto,
-                request
+                request,
+                performanceClient
             );
 
             // Cancel
@@ -228,7 +234,8 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
                 5000,
                 logger,
                 browserCrypto,
-                request
+                request,
+                performanceClient
             );
 
             // Cancel - this should close the BroadcastChannel internally
@@ -271,7 +278,8 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
                 10000,
                 logger,
                 browserCrypto,
-                request
+                request,
+                performanceClient
             );
 
             // Cancel before timeout
@@ -312,7 +320,8 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
                 5000,
                 logger,
                 browserCrypto,
-                request
+                request,
+                performanceClient
             );
 
             // Simulate successful response by posting to the BroadcastChannel
@@ -367,7 +376,8 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
                 1000,
                 logger,
                 browserCrypto,
-                request
+                request,
+                performanceClient
             );
 
             // Advance time to trigger timeout

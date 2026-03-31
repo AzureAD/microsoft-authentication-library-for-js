@@ -343,6 +343,57 @@ describe("StandardInteractionClient", () => {
         );
         expect(authCodeRequest.httpMethod).toEqual(Constants.HttpMethod.GET);
     });
+
+    it("initializeAuthorizationRequest logs warning when redirect URI has different origin", async () => {
+        const request: RedirectRequest = {
+            redirectUri: "https://different-origin.com/auth",
+            scopes: ["scope"],
+        };
+
+        const loggerWarningSpy = jest.spyOn(testClient["logger"], "warning");
+        const performanceAddFieldsSpy = jest.spyOn(
+            testClient["performanceClient"],
+            "addFields"
+        );
+
+        await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Redirect
+        );
+
+        expect(loggerWarningSpy).toHaveBeenCalledWith(
+            "The origin of the redirect URI does not match the origin of the current page. This is likely to cause issues with authentication.",
+            undefined
+        );
+        expect(performanceAddFieldsSpy).toHaveBeenCalledWith(
+            { isRedirectUriCrossOrigin: true },
+            undefined
+        );
+    });
+
+    it("initializeAuthorizationRequest does not log warning when redirect URI has same origin", async () => {
+        const request: RedirectRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+        };
+
+        const loggerWarningSpy = jest.spyOn(testClient["logger"], "warning");
+        const performanceAddFieldsSpy = jest.spyOn(
+            testClient["performanceClient"],
+            "addFields"
+        );
+
+        await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Redirect
+        );
+
+        expect(loggerWarningSpy).not.toHaveBeenCalled();
+        expect(performanceAddFieldsSpy).not.toHaveBeenCalledWith(
+            { isRedirectUriCrossOrigin: true },
+            expect.any(String)
+        );
+    });
 });
 
 describe("StandardInteractionClient OIDCOptions Tests", () => {

@@ -118,3 +118,106 @@ function EventExample() {
     }, []);
 }
 ```
+
+## Reacting to active account changes
+
+The `ACTIVE_ACCOUNT_CHANGED` event is emitted whenever `setActiveAccount()` is called. This includes calls made in the current tab (e.g., after a successful login) as well as changes made in other tabs or windows.
+
+A common scenario where this event is useful is when a component needs to call a protected API using `getActiveAccount()`. After authentication completes, the render triggered by `ACQUIRE_TOKEN_SUCCESS` can run before `setActiveAccount()` has been called, causing `getActiveAccount()` to return `null`. By subscribing to `ACTIVE_ACCOUNT_CHANGED`, your component can retry the API call once the active account is available.
+
+### Function Component
+
+```javascript
+import { useEffect, useState, useCallback } from "react";
+import { useMsal } from "@azure/msal-react";
+import { EventType } from "@azure/msal-browser";
+
+function ProfileContent() {
+    const { instance } = useMsal();
+    const [graphData, setGraphData] = useState(null);
+
+    const fetchProfile = useCallback(() => {
+        if (!instance.getActiveAccount()) {
+            return;
+        }
+        callMsGraph()
+            .then((response) => setGraphData(response))
+            .catch((e) => {
+                // Handle errors
+            });
+    }, [instance]);
+
+    useEffect(() => {
+        // Attempt to fetch immediately
+        fetchProfile();
+
+        // Retry when the active account is set
+        const callbackId = instance.addEventCallback((event) => {
+            if (event.eventType === EventType.ACTIVE_ACCOUNT_CHANGED) {
+                fetchProfile();
+            }
+        });
+
+        return () => {
+            if (callbackId) {
+                instance.removeEventCallback(callbackId);
+            }
+        };
+    }, [instance, fetchProfile]);
+
+    return graphData ? <ProfileData graphData={graphData} /> : null;
+}
+```
+
+### Class Component
+
+```javascript
+import React from "react";
+import { MsalContext } from "@azure/msal-react";
+import { EventType } from "@azure/msal-browser";
+
+class ProfileContent extends React.Component {
+    static contextType = MsalContext;
+
+    constructor(props) {
+        super(props);
+        this.state = { graphData: null };
+        this.callbackId = null;
+    }
+
+    fetchGraphData() {
+        if (this.state.graphData) return;
+        if (!this.context.instance.getActiveAccount()) return;
+
+        callMsGraph()
+            .then((response) => this.setState({ graphData: response }))
+            .catch((e) => {
+                // Handle errors
+            });
+    }
+
+    componentDidMount() {
+        this.fetchGraphData();
+
+        this.callbackId = this.context.instance.addEventCallback((event) => {
+            if (event.eventType === EventType.ACTIVE_ACCOUNT_CHANGED) {
+                this.fetchGraphData();
+            }
+        });
+    }
+
+    componentWillUnmount() {
+        if (this.callbackId) {
+            this.context.instance.removeEventCallback(this.callbackId);
+        }
+    }
+
+    render() {
+        return this.state.graphData ? (
+            <ProfileData graphData={this.state.graphData} />
+        ) : null;
+    }
+}
+```
+
+For working examples, see the [Profile](../../../samples/msal-react-samples/react-router-sample/src/pages/Profile.jsx), [ProfileRawContext](../../../samples/msal-react-samples/react-router-sample/src/pages/ProfileRawContext.jsx), and [WelcomeName](../../../samples/msal-react-samples/react-router-sample/src/ui-components/WelcomeName.jsx) components in the react-router-sample.

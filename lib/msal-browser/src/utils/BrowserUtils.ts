@@ -10,6 +10,7 @@ import {
     UrlUtils,
     RequestParameterBuilder,
     ICrypto,
+    IPerformanceClient,
     Logger,
     CommonAuthorizationUrlRequest,
     CommonEndSessionRequest,
@@ -234,12 +235,22 @@ export async function waitForBridgeResponse(
     timeoutMs: number,
     logger: Logger,
     browserCrypto: ICrypto,
-    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest
+    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+    performanceClient: IPerformanceClient
 ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         logger.verbose(
             "BrowserUtils.waitForBridgeResponse - started",
             request.correlationId
+        );
+
+        const correlationId = request.correlationId;
+
+        performanceClient.addFields(
+            {
+                redirectBridgeTimeoutMs: timeoutMs,
+            },
+            correlationId
         );
 
         const { libraryState } = ProtocolUtils.parseRequestState(
@@ -271,6 +282,18 @@ export async function waitForBridgeResponse(
 
         channel.onmessage = (event) => {
             responseString = event.data.payload;
+
+            const messageVersion =
+                event?.data && typeof event.data.v === "number"
+                    ? event.data.v
+                    : undefined;
+
+            performanceClient.addFields(
+                {
+                    redirectBridgeMessageVersion: messageVersion,
+                },
+                correlationId
+            );
 
             // Clear the active monitor
             activeBridgeMonitor = null;

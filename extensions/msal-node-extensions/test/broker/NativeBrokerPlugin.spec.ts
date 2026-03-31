@@ -726,6 +726,125 @@ if (process.platform === "win32") {
             });
         });
 
+        describe("resource parameter tests", () => {
+            it("Passes resource to msal-runtime as additional parameter", async () => {
+                const testCorrelationId = generateCorrelationId();
+                const testAuthenticationResult =
+                    getTestAuthenticationResult(testCorrelationId);
+                const result = createMockAuthResult(
+                    testAuthenticationResult,
+                    testCorrelationId
+                );
+
+                jest.spyOn(
+                    msalNodeRuntime,
+                    "SignInSilentlyAsync"
+                ).mockImplementation(
+                    (_authParams, _correlationId, callback) => {
+                        callback(result);
+                        return asyncHandle;
+                    }
+                );
+
+                const nativeBrokerPlugin = new NativeBrokerPlugin();
+                const request: NativeRequest = {
+                    clientId: TEST_CLIENT_ID,
+                    scopes: testAuthenticationResult.scopes,
+                    correlationId: testCorrelationId,
+                    authority: testAuthenticationResult.authority,
+                    redirectUri: TEST_REDIRECTURI,
+                    resource: "https://graph.microsoft.com",
+                };
+                await nativeBrokerPlugin.acquireTokenSilent(request);
+
+                // Get the AuthParameters instance created inside generateRequestParameters
+                const authParamsInstance = (
+                    msalNodeRuntime.AuthParameters as jest.Mock
+                ).mock.results[
+                    (msalNodeRuntime.AuthParameters as jest.Mock).mock.results
+                        .length - 1
+                ].value;
+                expect(
+                    authParamsInstance.SetAdditionalParameter
+                ).toHaveBeenCalledWith(
+                    "resource",
+                    "https://graph.microsoft.com"
+                );
+            });
+
+            it("Includes resource in AuthenticationResult when provided", async () => {
+                const testCorrelationId = generateCorrelationId();
+                const testAuthenticationResult = {
+                    ...getTestAuthenticationResult(testCorrelationId),
+                    resource: "https://graph.microsoft.com",
+                };
+                const result = createMockAuthResult(
+                    testAuthenticationResult,
+                    testCorrelationId
+                );
+
+                jest.spyOn(
+                    msalNodeRuntime,
+                    "SignInSilentlyAsync"
+                ).mockImplementation(
+                    (_authParams, _correlationId, callback) => {
+                        callback(result);
+                        return asyncHandle;
+                    }
+                );
+
+                const nativeBrokerPlugin = new NativeBrokerPlugin();
+                const request: NativeRequest = {
+                    clientId: TEST_CLIENT_ID,
+                    scopes: testAuthenticationResult.scopes,
+                    correlationId: testCorrelationId,
+                    authority: testAuthenticationResult.authority,
+                    redirectUri: TEST_REDIRECTURI,
+                    resource: "https://graph.microsoft.com",
+                };
+                const response = await nativeBrokerPlugin.acquireTokenSilent(
+                    request
+                );
+                expect(response.resource).toBe("https://graph.microsoft.com");
+            });
+
+            it("Does not include resource in AuthenticationResult when not provided", async () => {
+                const testCorrelationId = generateCorrelationId();
+                const testAuthenticationResult =
+                    getTestAuthenticationResult(testCorrelationId);
+                const result = createMockAuthResult(
+                    testAuthenticationResult,
+                    testCorrelationId
+                );
+
+                jest.spyOn(
+                    msalNodeRuntime,
+                    "SignInSilentlyAsync"
+                ).mockImplementation(
+                    (_authParams, _correlationId, callback) => {
+                        callback(result);
+                        return asyncHandle;
+                    }
+                );
+
+                const nativeBrokerPlugin = new NativeBrokerPlugin();
+                const request: NativeRequest = {
+                    clientId: TEST_CLIENT_ID,
+                    scopes: testAuthenticationResult.scopes,
+                    correlationId: testCorrelationId,
+                    authority: testAuthenticationResult.authority,
+                    redirectUri: TEST_REDIRECTURI,
+                };
+                const response = await nativeBrokerPlugin.acquireTokenSilent(
+                    request
+                );
+                expect(response).toStrictEqual<AuthenticationResult>(
+                    testAuthenticationResult
+                );
+                expect(response.resource).toBeUndefined();
+            });
+        });
+
         describe("acquireTokenInteractive tests", () => {
             it("Calls SignInAsync and returns successful response if user is not already signed in", async () => {
                 const testCorrelationId = generateCorrelationId();

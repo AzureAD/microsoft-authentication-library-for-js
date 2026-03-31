@@ -10,9 +10,11 @@
 
 `@azure/msal-react` is built on the [React context API](https://reactjs.org/docs/context.html) and all parts of your app that require authentication must be wrapped in the `MsalProvider` component. You will first need to [initialize](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md) an instance of `PublicClientApplication` then pass this to `MsalProvider` as a prop.
 
+> **React version support:** `@azure/msal-react` v5 supports React 16 (16.8+), 17, 18, and 19 (19.2.1+). React 19.0.0–19.2.0 are excluded due to [CVE-2025-55182](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2025-55182). All React hooks are required (available since React 16.8). Choose the rendering API that matches your React version.
+
 ```javascript
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 
 import { MsalProvider } from "@azure/msal-react";
 import { Configuration,  PublicClientApplication } from "@azure/msal-browser";
@@ -34,6 +36,17 @@ const AppProvider = () => (
         <App />
     </MsalProvider>
 );
+
+// React 18+ rendering
+const root = createRoot(document.getElementById("root"));
+root.render(<AppProvider />);
+```
+
+For React 16 or 17, use `ReactDOM.render` instead:
+
+```javascript
+import React from "react";
+import ReactDOM from "react-dom";
 
 ReactDOM.render(<AppProvider />, document.getElementById("root"));
 ```

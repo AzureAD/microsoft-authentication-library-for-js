@@ -18,6 +18,7 @@ import { name, version } from "../packageMetadata.js";
 import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import { BROWSER_PERF_ENABLED_KEY } from "../cache/CacheKeys.js";
+import { getNetworkInfo } from "../utils/MsalFrameStatsUtils.js";
 
 /**
  * Returns browser performance measurement module if session flag is enabled. Returns undefined otherwise.
@@ -93,6 +94,10 @@ export class BrowserPerformanceClient
         return document.visibilityState?.toString() || null;
     }
 
+    private getOnlineStatus(): boolean | null {
+        return typeof navigator !== "undefined" ? navigator.onLine : null;
+    }
+
     private deleteIncompleteSubMeasurements(
         inProgressEvent: InProgressPerformanceEvent
     ): void {
@@ -133,6 +138,7 @@ export class BrowserPerformanceClient
     ): InProgressPerformanceEvent {
         // Capture page visibilityState and then invoke start/end measurement
         const startPageVisibility = this.getPageVisibility();
+        const startOnlineStatus = this.getOnlineStatus();
         const inProgressEvent = super.startMeasurement(
             measureName,
             correlationId
@@ -160,12 +166,16 @@ export class BrowserPerformanceClient
                 error?: unknown,
                 account?: AccountInfo
             ): PerformanceEvent | null => {
+                const networkInfo = getNetworkInfo();
                 const res = inProgressEvent.end(
                     {
                         ...event,
                         startPageVisibility,
+                        startOnlineStatus,
                         endPageVisibility: this.getPageVisibility(),
                         durationMs: getPerfDurationMs(startTime),
+                        networkEffectiveType: networkInfo.effectiveType,
+                        networkRtt: networkInfo.rtt,
                     },
                     error,
                     account

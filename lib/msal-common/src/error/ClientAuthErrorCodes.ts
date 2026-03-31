@@ -43,3 +43,5 @@ export const userCanceled = "user_canceled";
 export const methodNotImplemented = "method_not_implemented";
 export const nestedAppAuthBridgeDisabled = "nested_app_auth_bridge_disabled";
 export const platformBrokerError = "platform_broker_error";
+export const resourceParameterRequired = "resource_parameter_required";
+export const misplacedResourceParam = "misplaced_resource_parameter";

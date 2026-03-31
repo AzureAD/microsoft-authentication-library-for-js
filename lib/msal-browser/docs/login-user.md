@@ -183,7 +183,7 @@ Your `redirectUri` must point to a dedicated page that loads the redirect bridge
 3. **Not include routing logic** - Avoid router libraries that might interfere with hash handling
 4. **Be registered in your App Registration** - The URI must match exactly what's registered in Azure portal
 
-**Example redirect page:**
+**Example redirect page (when using a bundler such as Vite or Webpack):**
 
 ```html
 <!DOCTYPE html>
@@ -193,13 +193,17 @@ Your `redirectUri` must point to a dedicated page that loads the redirect bridge
 </head>
 <body>
     <p>Processing authentication...</p>
-    <script src="path/to/msal-redirect-bridge.js"></script>
-    <script>
-        msalRedirectBridge.sendRedirectPayloadToMainFrame();
+    <script type="module">
+        import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
+
+        broadcastResponseToMainFrame();
     </script>
 </body>
 </html>
 ```
+
+> [!NOTE]
+> The `@azure/msal-browser/redirect-bridge` specifier must be resolved by a bundler (Vite, Webpack, etc.) — it is not a URL that browsers can fetch directly. For framework-specific instructions, see the [Redirect Bridge setup guide](./redirect-bridge.md).
 
 ### Configuration
 
@@ -236,10 +240,10 @@ For more information and complete sample implementations, see:
 
 For popup flows, you can use the `overrideInteractionInProgress` flag to cancel a pending interaction and start a new one. This is useful for recovery scenarios where the user cancelled a popup or an interaction failed.
 
-> [!NOTE] 
+> [!NOTE]
 > This feature is **only available for popup flows** and is **not supported for redirect flows**. With the COOP (Cross-Origin-Opener-Policy) header, the traditional `window.opener` connection is severed, allowing popup windows to communicate with the main frame only via BroadcastChannel.
 
-> [!CAUTION] 
+> [!CAUTION]
 > Setting this to `true` will forcefully cancel any pending popup authentication request but **will not** close any open popups.
 
 **When set to `true`:**

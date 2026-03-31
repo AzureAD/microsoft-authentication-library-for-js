@@ -2,6 +2,87 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Fri, 27 Mar 2026 16:35:28 GMT",
+      "version": "5.2.0",
+      "tag": "@azure/msal-react_v5.2.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "37a2a06ebe722298cd53d124911973286dddd90b",
+            "comment": "Extend peer dependency range to support React 16 (16.8+) and React 17 [#8461](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8461)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v5.6.2",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 18 Mar 2026 20:47:24 GMT",
+      "version": "5.1.0",
+      "tag": "@azure/msal-react_v5.1.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "3de432579bc9a74398e98151bbc28cc41ce1d9b2",
+            "comment": "Add React 18 support for MSAL React [#8437](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8437)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v5.6.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 13 Mar 2026 22:36:58 GMT",
+      "version": "5.0.7",
+      "tag": "@azure/msal-react_v5.0.7",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v5.5.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 02 Mar 2026 19:25:47 GMT",
       "version": "5.0.6",
       "tag": "@azure/msal-react_v5.0.6",

@@ -84,6 +84,7 @@ export class NestedAppAuthAdapter {
             platformBrokerId: request.account?.homeAccountId,
             clientId: this.clientId,
             authority: request.authority,
+            resource: request.resource,
             scope: scopes.join(" "),
             correlationId,
             claims: !StringUtils.isEmptyObj(claims) ? claims : undefined,

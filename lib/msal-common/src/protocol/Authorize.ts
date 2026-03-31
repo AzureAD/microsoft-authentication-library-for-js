@@ -64,6 +64,8 @@ export function getStandardAuthorizeRequestParameters(
         authOptions.authority.options.OIDCOptions?.defaultScopes
     );
 
+    RequestParameterBuilder.addResource(parameters, request.resource);
+
     RequestParameterBuilder.addRedirectUri(parameters, request.redirectUri);
 
     RequestParameterBuilder.addCorrelationId(parameters, correlationId);
@@ -73,6 +75,9 @@ export function getStandardAuthorizeRequestParameters(
 
     // add client_info=1
     RequestParameterBuilder.addClientInfo(parameters);
+
+    // add clidata=1
+    RequestParameterBuilder.addCliData(parameters);
 
     if (request.prompt) {
         RequestParameterBuilder.addPrompt(parameters, request.prompt);

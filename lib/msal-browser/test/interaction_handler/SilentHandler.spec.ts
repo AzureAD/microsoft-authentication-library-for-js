@@ -121,7 +121,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
                 browserCrypto,
-                request
+                request,
+                performanceClient
             );
 
             expect(response).toEqual("code=testCode&state=testState");
@@ -156,7 +157,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
                 browserCrypto,
-                request
+                request,
+                performanceClient
             );
 
             expect(response).toEqual("code=authCode&state=testState456");
@@ -195,7 +197,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                     100,
                     browserRequestLogger,
                     browserCrypto,
-                    request
+                    request,
+                    performanceClient
                 )
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.timedOut,
@@ -251,14 +254,16 @@ describe("SilentHandler.ts Unit Tests", () => {
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
                 browserCrypto,
-                request1
+                request1,
+                performanceClient
             );
 
             const promise2 = BrowserUtils.waitForBridgeResponse(
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
                 browserCrypto,
-                request2
+                request2,
+                performanceClient
             );
 
             const [response1, response2] = await Promise.all([
@@ -267,6 +272,36 @@ describe("SilentHandler.ts Unit Tests", () => {
             ]);
             expect(response1).toEqual("code=code1&state=state1");
             expect(response2).toEqual("code=code2&state=state2");
+        });
+    });
+
+    describe("removeHiddenIframe", () => {
+        it("removes iframe from the DOM", () => {
+            const iframe = document.createElement("iframe");
+            document.body.appendChild(iframe);
+            expect(document.body.contains(iframe)).toBe(true);
+
+            SilentHandler.removeHiddenIframe(iframe);
+            expect(document.body.contains(iframe)).toBe(false);
+        });
+
+        it("does nothing when iframe is not in the DOM", () => {
+            const iframe = document.createElement("iframe");
+            expect(() =>
+                SilentHandler.removeHiddenIframe(iframe)
+            ).not.toThrow();
+        });
+
+        it("does nothing when iframe has a different parent", () => {
+            const container = document.createElement("div");
+            document.body.appendChild(container);
+            const iframe = document.createElement("iframe");
+            container.appendChild(iframe);
+
+            SilentHandler.removeHiddenIframe(iframe);
+            expect(container.contains(iframe)).toBe(true);
+
+            document.body.removeChild(container);
         });
     });
 });

@@ -49,6 +49,10 @@ export type NodeAuthOptions = {
     authorityMetadata?: string;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
+    /**
+     * Flag on whether a resource parameter is required for token requests. Used for MCP flows.
+     */
+    isMcp?: boolean;
 };
 
 /**
@@ -143,6 +147,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
         azureCloudInstance: AzureCloudInstance.None,
         tenant: "",
     },
+    isMcp: false,
 };
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
