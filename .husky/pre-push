@@ -1,3 +1,9 @@
+npm run format:all || {
+  echo ""
+  echo "Format check failed. Run 'npm run format:fix' in the affected package directory, then push again."
+  echo ""
+  exit 1
+}
 npm run lint:all
 npm run apiExtractor:check || {
   echo ""
