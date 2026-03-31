@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add apiExtractor:local script and husky + lint-staged hooks [#8493](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8493)",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none"
+}
