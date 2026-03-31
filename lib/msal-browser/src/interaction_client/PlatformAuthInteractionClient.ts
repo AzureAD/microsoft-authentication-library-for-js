@@ -166,7 +166,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // start the perf measurement
         const nativeATMeasurement = this.performanceClient.startMeasurement(
             BrowserPerformanceEvents.NativeInteractionClientAcquireToken,
-            request.correlationId
+            this.correlationId
         );
         const reqTimestamp = TimeUtils.nowSeconds();
 
@@ -200,6 +200,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                         "MSAL internal Cache does not contain tokens, return error as per cache policy",
                         this.correlationId
                     );
+                    nativeATMeasurement.end({
+                        success: false,
+                        brokerErrorCode: "cache_request_failed",
+                    });
                     throw e;
                 }
                 // continue with a native call for any and all errors
@@ -231,7 +235,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                         success: false,
                         errorCode: error.errorCode,
                         subErrorCode: error.subError,
-                        isNativeBroker: true,
                     });
                     throw error;
                 });
@@ -239,6 +242,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             if (e instanceof NativeAuthError) {
                 serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
             }
+            nativeATMeasurement.end({
+                success: false,
+            });
             throw e;
         }
     }
@@ -284,7 +290,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             {
                 nativeAccountId,
             },
-            request.correlationId
+            this.correlationId
         );
 
         if (!account) {
@@ -454,6 +460,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.logger
             );
             serverTelemetryManager.clearNativeBrokerErrorCode();
+            if (performanceClient && this.correlationId) {
+                this.performanceClient.addFields(
+                    { isNativeBroker: true },
+                    this.correlationId
+                );
+            }
             return authResult;
         } catch (e) {
             throw e;
@@ -1147,7 +1159,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 embeddedClientId: child_client_id,
                 embeddedRedirectUri: child_redirect_uri,
             },
-            request.correlationId
+            this.correlationId
         );
     }
 }
