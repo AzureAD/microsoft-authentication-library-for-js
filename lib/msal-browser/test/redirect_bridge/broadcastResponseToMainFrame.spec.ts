@@ -11,7 +11,7 @@ import {
     TEST_STATE_VALUES,
     RANDOM_TEST_GUID,
 } from "../utils/StringConstants.js";
-import { TemporaryCacheKeys } from "../../src/utils/BrowserConstants.js";
+import { ApiId, TemporaryCacheKeys } from "../../src/utils/BrowserConstants.js";
 
 jest.mock("../../src/navigation/NavigationClient.js");
 
@@ -410,11 +410,11 @@ describe("broadcastResponseToMainFrame", () => {
 
             await broadcastResponseToMainFrame();
 
-            // Should navigate with ApiId.logout (961) for signout flow
+            // Should navigate with ApiId.logout for signout flow
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
                 cachedOriginUrl,
                 expect.objectContaining({
-                    apiId: 961, // ApiId.logout
+                    apiId: ApiId.logout,
                     noHistory: true,
                 })
             );
@@ -435,11 +435,11 @@ describe("broadcastResponseToMainFrame", () => {
 
             await broadcastResponseToMainFrame();
 
-            // Should navigate with ApiId.handleRedirectPromise (865) for signin flow
+            // Should navigate with ApiId.handleRedirectPromise for signin flow
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
                 cachedOriginUrl,
                 expect.objectContaining({
-                    apiId: 865, // ApiId.handleRedirectPromise
+                    apiId: ApiId.handleRedirectPromise,
                     noHistory: true,
                 })
             );
