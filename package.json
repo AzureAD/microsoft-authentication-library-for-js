@@ -19,6 +19,7 @@
         "gh-pages": "^5.0.0",
         "husky": "^9.1.0",
         "jest-junit": "^16.0.0",
+        "lint-staged": "^16.4.0",
         "npm-run-all": "^4.1.5",
         "prettier": "2.8.7",
         "rimraf": "^3.0.0",
@@ -31,6 +32,12 @@
     "repository": {
         "type": "git",
         "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+    },
+    "lint-staged": {
+        "lib/**/*.ts": [
+            "prettier --check",
+            "eslint"
+        ]
     },
     "scripts": {
         "prepare": "husky",

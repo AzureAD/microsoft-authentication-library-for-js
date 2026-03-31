@@ -1,5 +1,5 @@
-npm run format:all || {
+npx lint-staged --allow-empty || {
   echo ""
-  echo "Warning: Format issues detected. Run 'npm run format:fix' in the affected package directory before pushing."
+  echo "Warning: Lint/format issues detected. Run 'npm run format:fix' in the affected package directory before pushing."
   echo ""
 }
