@@ -63,9 +63,12 @@ const msalConfig = {
 > registered in your [Entra ID app registration](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app#add-a-redirect-uri)
 > as redirect URIs.
 >
-> **Note:** MSA (personal Microsoft accounts) requires the redirect URI to be
-> registered with the "logout" type to allow redirecting back after logout.
-> Check your app registration if you support MSA accounts.
+> **Note:** For applications that support personal Microsoft accounts (MSA),
+> the `postLogoutRedirectUri` **must** be registered as a redirect URI in your
+> app registration. If it is not registered, MSA will not redirect back after
+> sign-out and the user will see a generic "close this tab" page instead. See
+> [Send a sign-out request](https://learn.microsoft.com/entra/identity-platform/v2-protocols-oidc#send-a-sign-out-request)
+> for details.
 
 ### `logoutRedirect()` — redirect bridge is **optional**
 
