@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Implement redirect bridge for logout flows and update postLogoutRedirectUri in samples (#8489)[https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8489]",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
