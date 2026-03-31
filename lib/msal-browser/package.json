@@ -93,7 +93,8 @@
     "prepack": "npm run build:all",
     "format:check": "prettier --ignore-path .gitignore --check src test",
     "format:fix": "prettier --ignore-path .gitignore --write src test",
-    "apiExtractor": "api-extractor run"
+    "apiExtractor": "api-extractor run",
+    "apiExtractor:local": "npm run build:all && api-extractor run --local"
   },
   "devDependencies": {
     "@azure/storage-blob": "^12.2.1",

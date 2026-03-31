@@ -1,0 +1,8 @@
+npm run lint:all
+npm run apiExtractor:check || {
+  echo ""
+  echo "API review files are out of date."
+  echo "Run 'npm run apiExtractor:all' to regenerate, then commit and push again."
+  echo ""
+  exit 1
+}

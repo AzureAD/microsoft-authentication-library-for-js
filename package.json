@@ -17,6 +17,7 @@
         "eslint": "^7.8.1",
         "eslint-import-resolver-typescript": "^3.7.0",
         "gh-pages": "^5.0.0",
+        "husky": "^9.1.0",
         "jest-junit": "^16.0.0",
         "npm-run-all": "^4.1.5",
         "prettier": "2.8.7",
@@ -32,8 +33,13 @@
         "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
     },
     "scripts": {
+        "prepare": "husky",
         "audit": "npm audit --workspace=lib/** --workspace=extensions/** --include-workspace-root",
         "clean:nodeModules": "npx npkill -y",
+        "lint:all": "npm run lint --workspace=lib/msal-common --workspace=lib/msal-browser --workspace=lib/msal-node --workspace=lib/msal-react",
+        "format:all": "npm run format:check --workspace=lib/msal-common --workspace=lib/msal-browser --workspace=lib/msal-node --workspace=lib/msal-react",
+        "apiExtractor:all": "npm run apiExtractor:local --workspace=lib/msal-browser && npm run apiExtractor:local --workspace=lib/msal-node && npm run apiExtractor:local --workspace=lib/msal-react && npm run apiExtractor:local --workspace=lib/msal-common",
+        "apiExtractor:check": "npm run build --workspace=@azure/msal-common && npm run build --workspace=@azure/msal-browser && npm run apiExtractor --workspace=lib/msal-browser && npm run build --workspace=@azure/msal-node && npm run apiExtractor --workspace=lib/msal-node && npm run build --workspace=@azure/msal-react && npm run apiExtractor --workspace=lib/msal-react && npm run build --workspace=@azure/msal-common && npm run apiExtractor --workspace=lib/msal-common",
         "doc": "npm run doc:generate && npm run doc:deploy",
         "doc:generate": "rimraf ./ref/* && typedoc",
         "doc:deploy": "gh-pages -d ref -a -e ref",
