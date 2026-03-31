@@ -460,10 +460,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.logger
             );
             serverTelemetryManager.clearNativeBrokerErrorCode();
-            if (performanceClient && this.correlationId) {
-                this.performanceClient.addFields(
+            if (performanceClient && correlationId) {
+                performanceClient?.addFields(
                     { isNativeBroker: true },
-                    this.correlationId
+                    correlationId
                 );
             }
             return authResult;
