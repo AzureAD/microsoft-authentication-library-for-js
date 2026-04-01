@@ -142,7 +142,7 @@ Acquiring again (should hit cache)...
 
 ### Prerequisites
 
-- An Azure VM running **Windows** (`x64` or `arm64`)
+- An Azure VM running **Windows** (`x64` only — arm64 is not supported; see [README](../../../extensions/msal-node-mtls-extensions/README.md#requirements))
 - **Managed Identity enabled** on the VM (System-Assigned or User-Assigned)
 - **.NET 8 runtime** installed — check with `dotnet --version` (pre-installed on most Azure VM images)
 - **Node.js 20+** on the VM — check with `node --version`
@@ -195,7 +195,7 @@ npm run build --workspace=@azure/msal-node
 # Build the TypeScript for the extensions package
 npm run build --workspace=@azure/msal-node-mtls-extensions
 
-# Build the .NET helper binaries (win-x64 and win-arm64)
+# Build the .NET helper binary (win-x64 only)
 # Also copies AttestationClientLib.dll to bin/win-x64/ for VBS attestation support
 cd extensions\msal-node-mtls-extensions
 npm run build:binaries
@@ -203,8 +203,6 @@ npm run build:binaries
 #   Building MsalMtlsMsiHelper for win-x64...
 #   -> bin/win-x64/MsalMtlsMsiHelper.exe
 #   Copying AttestationClientLib.dll to bin/win-x64/
-#   Building MsalMtlsMsiHelper for win-arm64...
-#   -> bin/win-arm64/MsalMtlsMsiHelper.exe
 
 # Verify binaries are present
 Test-Path "bin\win-x64\MsalMtlsMsiHelper.exe"      # must print True
@@ -384,12 +382,106 @@ node test-mtls.mjs
 ✅ All tests passed
 ```
 
+---
+
+### Step 7 — Test downstream mTLS calls with `makeMtlsMsiRequest`
+
+The `bindingCertificate` private key is non-exportable from Windows CNG, so Node.js cannot open the downstream mTLS connection directly. `makeMtlsMsiRequest` routes the call through `MsalMtlsMsiHelper.exe` instead.
+
+```javascript
+// test-mtls-downstream.mjs
+import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-mtls-extensions";
+
+const RESOURCE         = "https://graph.microsoft.com/";
+const WITH_ATTESTATION = false; // set true if Step 4 required --with-attestation
+
+async function main() {
+    console.log("=== Acquire mTLS PoP token ===");
+    const tokenResult = await acquireMtlsMsiToken({
+        resource: RESOURCE,
+        withAttestation: WITH_ATTESTATION,
+    });
+    console.log("  tokenType:", tokenResult.tokenType); // mtls_pop
+    console.log("  fromCache:", tokenResult.fromCache);
+
+    console.log("\n=== Test 1: GET /v1.0/me via makeMtlsMsiRequest ===");
+    const meResponse = await makeMtlsMsiRequest({
+        url: "https://graph.microsoft.com/v1.0/me",
+        token: tokenResult.accessToken,
+    });
+    console.log("  status:", meResponse.status); // 200
+    const me = JSON.parse(meResponse.body);
+    console.log("  displayName:", me.displayName);
+    console.log("  id:         ", me.id);
+
+    console.log("\n=== Test 2: GET with extra header ===");
+    const r2 = await makeMtlsMsiRequest({
+        url: "https://graph.microsoft.com/v1.0/me",
+        token: tokenResult.accessToken,
+        headers: ["x-test-header: hello-from-node"],
+    });
+    console.log("  status:", r2.status); // 200
+
+    // --- Optional: User-Assigned identity (uncomment if configured) ---
+    // const uaToken = await acquireMtlsMsiToken({
+    //     resource: RESOURCE,
+    //     identityType: "UserAssigned",
+    //     identityId: "YOUR_USER_ASSIGNED_CLIENT_ID",
+    // });
+    // const r3 = await makeMtlsMsiRequest({
+    //     url: "https://graph.microsoft.com/v1.0/me",
+    //     token: uaToken.accessToken,
+    //     identityType: "UserAssigned",
+    //     identityId: "YOUR_USER_ASSIGNED_CLIENT_ID",
+    // });
+    // console.log("\n=== Test 3: User-Assigned downstream ===");
+    // console.log("  status:", r3.status);
+
+    console.log("\n✅ Downstream mTLS call tests passed");
+}
+
+main().catch(err => {
+    console.error("\n❌ FAILED:", err.message);
+    process.exit(1);
+});
+```
+
+```powershell
+node test-mtls-downstream.mjs
+```
+
+**Expected output:**
+
+```
+=== Acquire mTLS PoP token ===
+  tokenType: mtls_pop
+  fromCache: false
+
+=== Test 1: GET /v1.0/me via makeMtlsMsiRequest ===
+  status: 200
+  displayName: Your Name
+  id: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+=== Test 2: GET with extra header ===
+  status: 200
+
+✅ Downstream mTLS call tests passed
+```
+
+**Troubleshooting downstream calls:**
+
+| Error | Likely cause | Fix |
+|---|---|---|
+| `"downstream_request_failed"` / `"SSL handshake failed"` | Wrong token or cert lookup failed | Ensure `token` is from `acquireMtlsMsiToken` (type `mtls_pop`) and matches the `resource` |
+| HTTP 401 from Graph | Token not accepted | Verify the Managed Identity has the required Graph API permissions in Azure Portal |
+| `"only supported on Windows"` | Not on a Windows VM | `makeMtlsMsiRequest` requires Windows + the .NET helper |
+
 ### What to check if it fails (Node.js layer)
 
 | Error | Likely cause | Fix |
 |---|---|---|
 | `"only supported on Windows"` | Running on Linux/macOS | Must run on a Windows Azure VM |
-| `"Unsupported architecture"` | Not `x64` or `arm64` | Check `node -e "console.log(process.arch)"` |
+| `"Unsupported architecture"` | Not `x64` | Check `node -e "console.log(process.arch)"` — only x64 is supported |
 | `"Failed to spawn MsalMtlsMsiHelper"` | Binary missing from package | Rebuild + repack on dev machine; verify `bin/win-x64/` is present in the tarball |
 | `MsalException` from the helper | Token acquisition failed | Run the binary smoke-test (Step 4) directly and read the `error_description` |
 | Token has no `cnf` claim | Token is Bearer, not mTLS PoP | Check `token_type` in the binary's JSON output |
