@@ -1875,10 +1875,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             // Spy on performanceClient.addFields since handleRedirectPromise uses it directly
             const addFieldsSpy = jest.spyOn(perfClient, "addFields");
 
-            await platformAuthInteractionClient.handleRedirectPromise(
-                perfClient,
-                RANDOM_TEST_GUID
-            );
+            await platformAuthInteractionClient.handleRedirectPromise();
 
             // Verify that addFields was called with isNativeBroker: true
             expect(addFieldsSpy).toHaveBeenCalledWith(

@@ -512,7 +512,7 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     rootMeasurement.event.correlationId
-                )(this.performanceClient, rootMeasurement.event.correlationId);
+                )();
             } else {
                 const [standardRequest, codeVerifier] =
                     this.browserStorage.getCachedRequest("");

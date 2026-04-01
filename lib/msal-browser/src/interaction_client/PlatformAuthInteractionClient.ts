@@ -391,10 +391,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @param performanceClient {IPerformanceClient?}
      * @param correlationId {string?} correlation identifier
      */
-    async handleRedirectPromise(
-        performanceClient?: IPerformanceClient,
-        correlationId?: string
-    ): Promise<AuthenticationResult | null> {
+    async handleRedirectPromise(): Promise<AuthenticationResult | null> {
         this.logger.trace(
             "NativeInteractionClient - handleRedirectPromise called.",
             this.correlationId
@@ -414,12 +411,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 "NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null.",
                 this.correlationId
             );
-            if (performanceClient && correlationId) {
-                performanceClient?.addFields(
-                    { errorCode: "no_cached_request" },
-                    correlationId
-                );
-            }
+            this.performanceClient?.addFields(
+                { errorCode: "no_cached_request" },
+                this.correlationId
+            );
             return null;
         }
 
@@ -460,12 +455,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.logger
             );
             serverTelemetryManager.clearNativeBrokerErrorCode();
-            if (performanceClient && correlationId) {
-                performanceClient?.addFields(
-                    { isNativeBroker: true },
-                    correlationId
-                );
-            }
+            this.performanceClient?.addFields(
+                { isNativeBroker: true },
+                this.correlationId
+            );
             return authResult;
         } catch (e) {
             throw e;
