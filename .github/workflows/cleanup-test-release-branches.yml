@@ -34,6 +34,9 @@ name: Cleanup Test Release Branches
 on:
     schedule:
         - cron: "0 6 * * *" # Daily at 6am UTC
+    pull_request:
+        paths:
+            - ".github/workflows/cleanup-test-release-branches.yml"
     workflow_dispatch:
         inputs:
             dry_run:
@@ -63,7 +66,8 @@ env:
     TEST_BRANCH_PREFIXES: ${{ vars.TEST_BRANCH_PREFIXES || 'test-release-staging-' }}
 
     STALE_DAYS: ${{ inputs.stale_days || 7 }}
-    DRY_RUN: ${{ inputs.dry_run || 'false' }}
+    # Always dry-run on pull_request to safely validate without deleting anything
+    DRY_RUN: ${{ github.event_name == 'pull_request' && 'true' || inputs.dry_run || 'false' }}
     GH_TOKEN: ${{ github.token }}
 
 jobs:
