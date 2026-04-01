@@ -161,9 +161,24 @@ Token caching behaves identically to other client credential flows — cache hit
 
 ### Downstream mTLS resource calls (MSI path)
 
-For the **Managed Identity path**, the `bindingCertificate` in `AuthenticationResult` is the public X.509 certificate (PEM) that Entra STS bound to the access token. It is provided for **informational purposes**.
+For the **Managed Identity path**, the `bindingCertificate` in `AuthenticationResult` is the public X.509 certificate (PEM) that Entra STS bound to the access token.
 
-**Node.js cannot use this certificate to make downstream mTLS resource calls.** The corresponding KeyGuard private key is non-exportable from Windows CNG, so `https.Agent({ cert, key })` cannot be constructed. Any downstream mTLS connections using the same key material would also need to go through the .NET layer. This is tracked as future work.
+**Node.js cannot directly use this certificate to make downstream mTLS resource calls.** The corresponding KeyGuard private key is non-exportable from Windows CNG, so `https.Agent({ cert, key })` cannot be constructed from Node.js.
+
+Use `makeMtlsMsiRequest()` from `@azure/msal-node-mtls-extensions` to make downstream calls. It routes the HTTP request through `MsalMtlsMsiHelper.exe`, where .NET's `HttpClient` can use the non-exportable key for the TLS client handshake:
+
+```typescript
+import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-mtls-extensions";
+
+const tokenResult = await acquireMtlsMsiToken({ resource: "https://graph.microsoft.com/" });
+
+const response = await makeMtlsMsiRequest({
+    url: "https://graph.microsoft.com/v1.0/me",
+    token: tokenResult.accessToken,
+});
+
+console.log(response.status); // 200
+```
 
 For the **Confidential Client / SNI cert path**, you hold the private key directly (via `clientCertificate.privateKey`), so `https.Agent({ cert: result.bindingCertificate, key })` works as expected.
 

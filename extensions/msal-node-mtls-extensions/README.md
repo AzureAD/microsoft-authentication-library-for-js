@@ -33,18 +33,35 @@ npm install @azure/msal-node-mtls-extensions
 
 ## Usage
 
-### System-Assigned Managed Identity
+### Step 1 — Acquire the mTLS PoP token
 
 ```typescript
-import { acquireMtlsMsiToken } from "@azure/msal-node-mtls-extensions";
+import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-mtls-extensions";
 
-const result = await acquireMtlsMsiToken({
+const tokenResult = await acquireMtlsMsiToken({
     resource: "https://graph.microsoft.com/",
 });
 
-console.log(result.accessToken);    // mTLS PoP access token
-console.log(result.tokenType);      // "mtls_pop"
-console.log(result.bindingCertificate); // PEM cert bound to the token
+console.log(tokenResult.accessToken);       // mTLS PoP access token
+console.log(tokenResult.tokenType);         // "mtls_pop"
+console.log(tokenResult.bindingCertificate); // PEM cert bound to the token
+```
+
+### Step 2 — Call the downstream resource over mTLS
+
+Because the KeyGuard private key cannot leave Windows CNG, Node.js cannot open an
+mTLS connection with it directly. Use `makeMtlsMsiRequest` to route the downstream
+call through the .NET helper, which holds the key and makes the mTLS connection using
+.NET's `HttpClient`:
+
+```typescript
+const response = await makeMtlsMsiRequest({
+    url: "https://graph.microsoft.com/v1.0/me",
+    token: tokenResult.accessToken,
+});
+
+console.log(response.status); // 200
+console.log(JSON.parse(response.body)); // { id: "...", displayName: "..." }
 ```
 
 > **Supported resources:** Not all Azure resources accept `mtls_pop` tokens.
@@ -54,17 +71,36 @@ console.log(result.bindingCertificate); // PEM cert bound to the token
 ### User-Assigned Managed Identity
 
 ```typescript
-const result = await acquireMtlsMsiToken({
+const tokenResult = await acquireMtlsMsiToken({
     resource: "https://graph.microsoft.com/",
     identityType: "UserAssigned",
     identityId: "your-client-id-or-resource-id",
+});
+
+const response = await makeMtlsMsiRequest({
+    url: "https://graph.microsoft.com/v1.0/me",
+    token: tokenResult.accessToken,
+    identityType: "UserAssigned",
+    identityId: "your-client-id-or-resource-id",
+});
+```
+
+### POST request with a body
+
+```typescript
+const response = await makeMtlsMsiRequest({
+    url: "https://graph.microsoft.com/v1.0/me/sendMail",
+    token: tokenResult.accessToken,
+    method: "POST",
+    body: JSON.stringify({ message: { subject: "Hello", ... } }),
+    contentType: "application/json",
 });
 ```
 
 ### With KeyGuard Attestation (VBS attestation via MAA)
 
 ```typescript
-const result = await acquireMtlsMsiToken({
+const tokenResult = await acquireMtlsMsiToken({
     resource: "https://graph.microsoft.com/",
     withAttestation: true, // includes MAA JWT proving key is hardware-backed
 });
@@ -91,6 +127,34 @@ Acquires an mTLS PoP access token for a Managed Identity.
 | `withAttestation` | `boolean` | `false` | Include MAA attestation (required on some VMs) |
 | `correlationId` | `string` | — | Optional GUID for telemetry |
 | `forceRefresh` | `boolean` | `false` | Bypass in-memory token cache |
+
+### `makeMtlsMsiRequest(options: MtlsMsiRequestOptions): Promise<MtlsMsiResponse>`
+
+Makes a downstream HTTP call over mTLS using the KeyGuard-bound certificate.
+Routes the request through `MsalMtlsMsiHelper.exe` so the non-exportable private
+key can be used for the TLS client handshake.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `url` | `string` | required | Full URL to call |
+| `token` | `string` | required | `mtls_pop` access token from `acquireMtlsMsiToken` |
+| `method` | `string` | `"GET"` | HTTP method |
+| `headers` | `string[]` | — | Extra headers as `"Name: Value"` strings |
+| `body` | `string` | — | Request body |
+| `contentType` | `string` | `"application/json"` | Content-Type header |
+| `resource` | `string` | — | Azure resource URI for cert lookup (defaults to URL origin) |
+| `identityType` | `"SystemAssigned" \| "UserAssigned"` | `"SystemAssigned"` | Identity type |
+| `identityId` | `string` | — | Client/resource ID for UserAssigned |
+| `withAttestation` | `boolean` | `false` | Use attestation when retrieving the binding cert |
+| `correlationId` | `string` | — | Optional GUID for telemetry |
+
+**Returns** `MtlsMsiResponse`:
+
+| Field | Type | Description |
+|---|---|---|
+| `status` | `number` | HTTP status code |
+| `headers` | `Record<string, string>` | Response headers |
+| `body` | `string` | Response body as a string |
 
 ### `getPlatformMetadata(): Promise<PlatformMetadata>`
 
@@ -195,11 +259,12 @@ The KeyGuard RSA key used for the mTLS handshake is managed by Windows CNG (Cryp
 
 ### Downstream mTLS resource calls
 
-The `bindingCertificate` returned in `AuthenticationResult` is the public X.509 certificate (PEM) that Entra STS bound to the access token. It is provided for **informational purposes** — for example, to inspect or log which certificate was used.
+The `bindingCertificate` returned in `AuthenticationResult` is the public X.509 certificate (PEM) that Entra STS bound to the access token.
 
-**Node.js cannot use this certificate to make downstream mTLS resource calls.** The corresponding KeyGuard private key is non-exportable from Windows CNG, so `https.Agent({ cert, key })` cannot be constructed. Any downstream mTLS connections using the same key material would also need to go through the .NET layer.
+**Node.js cannot directly use this certificate to make downstream mTLS resource calls.**
+The corresponding KeyGuard private key is non-exportable from Windows CNG — `https.Agent({ cert, key })` cannot be constructed from Node.js.
 
-This is tracked as future work.
+Use `makeMtlsMsiRequest()` instead, which routes the downstream HTTP call through `MsalMtlsMsiHelper.exe` so .NET's `HttpClient` can use the non-exportable key for the TLS client handshake.
 
 ## Support and servicing
 

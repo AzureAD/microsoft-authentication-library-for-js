@@ -294,3 +294,185 @@ export async function acquireMtlsMsiToken(
     tokenCache.set(key, result);
     return result;
 }
+
+/**
+ * Options for {@link makeMtlsMsiRequest}.
+ */
+export interface MtlsMsiRequestOptions {
+    /** Full URL to call (e.g. "https://graph.microsoft.com/v1.0/me"). */
+    url: string;
+    /** HTTP method. @default "GET" */
+    method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+    /**
+     * The `mtls_pop` access token to send as the `Authorization: mtls_pop <token>` header.
+     * Obtain this from {@link acquireMtlsMsiToken}.
+     */
+    token: string;
+    /**
+     * Additional HTTP headers to include in the request.
+     * Each entry is a `"Name: Value"` string.
+     */
+    headers?: string[];
+    /** Request body (for POST/PUT/PATCH). */
+    body?: string;
+    /** Content-Type header. @default "application/json" */
+    contentType?: string;
+    /**
+     * The Azure resource URI that scopes the KeyGuard certificate lookup.
+     * Defaults to the origin of `url` if not provided.
+     */
+    resource?: string;
+    /** Identity type for the managed identity. @default "SystemAssigned" */
+    identityType?: "SystemAssigned" | "UserAssigned";
+    /** Client ID or resource ID for user-assigned managed identities. */
+    identityId?: string;
+    /** Include KeyGuard attestation when re-retrieving the binding cert. @default false */
+    withAttestation?: boolean;
+    /** Optional correlation ID (GUID) for telemetry. */
+    correlationId?: string;
+}
+
+/**
+ * The HTTP response returned by {@link makeMtlsMsiRequest}.
+ */
+export interface MtlsMsiResponse {
+    /** HTTP status code (e.g. 200, 403). */
+    status: number;
+    /** Response headers as a flat key-value map. */
+    headers: Record<string, string>;
+    /** Response body as a string. */
+    body: string;
+}
+
+/** JSON output written to stdout by MsalMtlsMsiHelper.exe in http-request mode. */
+interface HelperHttpResponse {
+    status: number;
+    headers: Record<string, string>;
+    body: string;
+}
+
+/**
+ * Spawns `MsalMtlsMsiHelper.exe --mode http-request` to make a downstream
+ * HTTP call over mTLS using the KeyGuard-bound certificate.
+ */
+function runHelperHttpRequest(
+    helperPath: string,
+    options: MtlsMsiRequestOptions
+): Promise<HelperHttpResponse> {
+    return new Promise((resolve, reject) => {
+        const args: string[] = [
+            "--mode", "http-request",
+            "--url", options.url,
+            "--method", options.method ?? "GET",
+            "--token", options.token,
+            "--identity-type", options.identityType ?? "SystemAssigned",
+        ];
+
+        if (options.resource) {
+            args.push("--resource", options.resource);
+        }
+
+        if (options.identityType === "UserAssigned" && options.identityId) {
+            args.push("--identity-id", options.identityId);
+        }
+
+        if (options.body) {
+            args.push("--body", options.body);
+        }
+
+        if (options.contentType) {
+            args.push("--content-type", options.contentType);
+        }
+
+        for (const header of options.headers ?? []) {
+            args.push("--header", header);
+        }
+
+        if (options.withAttestation) {
+            args.push("--with-attestation");
+        }
+
+        if (options.correlationId) {
+            args.push("--correlation-id", options.correlationId);
+        }
+
+        const proc = child_process.spawn(helperPath, args, {
+            stdio: ["ignore", "pipe", "pipe"],
+            windowsHide: true,
+        });
+
+        const stdoutChunks: Buffer[] = [];
+        const stderrChunks: Buffer[] = [];
+
+        proc.stdout.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
+        proc.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
+
+        proc.on("error", (err) => {
+            reject(
+                new Error(
+                    `Failed to spawn MsalMtlsMsiHelper: ${err.message}. ` +
+                        `Ensure the binary exists at: ${helperPath}`
+                )
+            );
+        });
+
+        proc.on("close", (code) => {
+            if (code === 0) {
+                const stdout = Buffer.concat(stdoutChunks).toString("utf8").trim();
+                try {
+                    resolve(JSON.parse(stdout) as HelperHttpResponse);
+                } catch {
+                    reject(new Error(`MsalMtlsMsiHelper produced invalid JSON: ${stdout}`));
+                }
+            } else {
+                const stderr = Buffer.concat(stderrChunks).toString("utf8").trim();
+                let errorCode = "mtls_msi_helper_error";
+                let errorDescription = `MsalMtlsMsiHelper exited with code ${code}: ${stderr}`;
+                try {
+                    const parsed = JSON.parse(stderr) as HelperErrorResponse;
+                    errorCode = parsed.error;
+                    errorDescription = parsed.error_description;
+                } catch {
+                    // stderr was not JSON; use raw text
+                }
+                reject(Object.assign(new Error(errorDescription), { errorCode }));
+            }
+        });
+    });
+}
+
+/**
+ * Makes a downstream HTTP call over mTLS using the KeyGuard-bound certificate.
+ *
+ * Because the KeyGuard private key is non-exportable from Windows CNG,
+ * Node.js cannot open a mutual-TLS connection with it directly. This function
+ * delegates the HTTP call to `MsalMtlsMsiHelper.exe`, which re-retrieves the
+ * KeyGuard certificate and makes the request using .NET's `HttpClient` with
+ * `SslClientCertificates` — the same approach msal-dotnet uses internally.
+ *
+ * The token must have been previously acquired via {@link acquireMtlsMsiToken}.
+ *
+ * @example
+ * ```typescript
+ * const tokenResult = await acquireMtlsMsiToken({ resource: "https://graph.microsoft.com/" });
+ *
+ * const response = await makeMtlsMsiRequest({
+ *     url: "https://graph.microsoft.com/v1.0/me",
+ *     token: tokenResult.accessToken,
+ * });
+ *
+ * console.log(response.status); // 200
+ * console.log(JSON.parse(response.body));
+ * ```
+ *
+ * @remarks
+ * **Windows only.** Requires the same VM and Managed Identity configuration
+ * as {@link acquireMtlsMsiToken}.
+ */
+export async function makeMtlsMsiRequest(
+    options: MtlsMsiRequestOptions
+): Promise<MtlsMsiResponse> {
+    const helperPath = getHelperPath();
+    return runHelperHttpRequest(helperPath, options);
+}
+

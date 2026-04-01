@@ -6,7 +6,7 @@
 import * as child_process from "child_process";
 import * as os from "os";
 import { EventEmitter } from "events";
-import { acquireMtlsMsiToken, clearMtlsMsiTokenCache } from "../src/MtlsMsiClient";
+import { acquireMtlsMsiToken, clearMtlsMsiTokenCache, makeMtlsMsiRequest } from "../src/MtlsMsiClient";
 
 jest.mock("child_process");
 jest.mock("os");
@@ -216,3 +216,120 @@ describe("MtlsMsiClient.acquireMtlsMsiToken", () => {
     });
 });
 
+describe("MtlsMsiClient.makeMtlsMsiRequest", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        (os.platform as jest.Mock).mockReturnValue("win32");
+        (os.arch as jest.Mock).mockReturnValue("x64");
+    });
+
+    const mockHttpResponse = {
+        status: 200,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id: "user-id", displayName: "Test User" }),
+    };
+
+    it("makes a GET request and returns status, headers, body", async () => {
+        (child_process.spawn as jest.Mock).mockReturnValue(
+            makeProcess(0, JSON.stringify(mockHttpResponse), "")
+        );
+
+        const result = await makeMtlsMsiRequest({
+            url: "https://graph.microsoft.com/v1.0/me",
+            token: "test-mtls-pop-token",
+        });
+
+        expect(result.status).toBe(200);
+        expect(result.headers["content-type"]).toBe("application/json");
+        expect(JSON.parse(result.body).displayName).toBe("Test User");
+    });
+
+    it("passes --mode http-request as the first args to the helper", async () => {
+        (child_process.spawn as jest.Mock).mockReturnValue(
+            makeProcess(0, JSON.stringify(mockHttpResponse), "")
+        );
+
+        await makeMtlsMsiRequest({
+            url: "https://graph.microsoft.com/v1.0/me",
+            token: "test-token",
+        });
+
+        const spawnArgs = (child_process.spawn as jest.Mock).mock.calls[0][1] as string[];
+        expect(spawnArgs[0]).toBe("--mode");
+        expect(spawnArgs[1]).toBe("http-request");
+        expect(spawnArgs).toContain("--url");
+        expect(spawnArgs).toContain("https://graph.microsoft.com/v1.0/me");
+        expect(spawnArgs).toContain("--token");
+        expect(spawnArgs).toContain("test-token");
+    });
+
+    it("passes --method, --body, --content-type when provided", async () => {
+        (child_process.spawn as jest.Mock).mockReturnValue(
+            makeProcess(0, JSON.stringify({ ...mockHttpResponse, status: 201 }), "")
+        );
+
+        await makeMtlsMsiRequest({
+            url: "https://graph.microsoft.com/v1.0/me/messages",
+            token: "test-token",
+            method: "POST",
+            body: JSON.stringify({ subject: "Hello" }),
+            contentType: "application/json",
+        });
+
+        const spawnArgs = (child_process.spawn as jest.Mock).mock.calls[0][1] as string[];
+        expect(spawnArgs).toContain("--method");
+        expect(spawnArgs).toContain("POST");
+        expect(spawnArgs).toContain("--body");
+        expect(spawnArgs).toContain("--content-type");
+        expect(spawnArgs).toContain("application/json");
+    });
+
+    it("passes --header for each extra header", async () => {
+        (child_process.spawn as jest.Mock).mockReturnValue(
+            makeProcess(0, JSON.stringify(mockHttpResponse), "")
+        );
+
+        await makeMtlsMsiRequest({
+            url: "https://graph.microsoft.com/v1.0/me",
+            token: "test-token",
+            headers: ["x-custom-header: value1", "x-other: value2"],
+        });
+
+        const spawnArgs = (child_process.spawn as jest.Mock).mock.calls[0][1] as string[];
+        const headerIndices = spawnArgs.reduce<number[]>((acc, v, i) => {
+            if (v === "--header") acc.push(i);
+            return acc;
+        }, []);
+        expect(headerIndices).toHaveLength(2);
+        expect(spawnArgs[headerIndices[0] + 1]).toBe("x-custom-header: value1");
+        expect(spawnArgs[headerIndices[1] + 1]).toBe("x-other: value2");
+    });
+
+    it("rejects with parsed error when helper exits non-zero", async () => {
+        const errorJson = JSON.stringify({
+            error: "downstream_request_failed",
+            error_description: "SSL handshake failed",
+        });
+        (child_process.spawn as jest.Mock).mockReturnValue(
+            makeProcess(1, "", errorJson)
+        );
+
+        await expect(
+            makeMtlsMsiRequest({
+                url: "https://graph.microsoft.com/v1.0/me",
+                token: "bad-token",
+            })
+        ).rejects.toThrow("SSL handshake failed");
+    });
+
+    it("rejects when not on Windows", async () => {
+        (os.platform as jest.Mock).mockReturnValue("linux");
+
+        await expect(
+            makeMtlsMsiRequest({
+                url: "https://graph.microsoft.com/v1.0/me",
+                token: "test-token",
+            })
+        ).rejects.toThrow("Windows");
+    });
+});
