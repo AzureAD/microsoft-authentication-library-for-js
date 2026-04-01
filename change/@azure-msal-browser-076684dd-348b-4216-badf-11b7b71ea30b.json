@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Experimental iframe timeout debugging telemetry [#8470](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8470)",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

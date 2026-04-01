@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Fri, 27 Mar 2026 16:35:28 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 01 Apr 2026 20:08:59 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.6.3
+
+Wed, 01 Apr 2026 20:08:59 GMT
+
+### Patches
+
+- Track online/offline status change [#8411](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8411) (thomas.norling@microsoft.com)
+- Experimental iframe timeout debugging telemetry [#8470](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8470) (thomas.norling@microsoft.com)
+- Thread performanceClient through buildAccountToCache callers for telemetry [#8471](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8471) (ruijungao@microsoft.com)
+- Bump @azure/msal-common to v16.4.1
 
 ## 5.6.2
 
