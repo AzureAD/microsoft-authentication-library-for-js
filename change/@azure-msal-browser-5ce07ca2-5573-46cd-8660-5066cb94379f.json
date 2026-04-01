@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Verify if an app is SSO Capable with 24h TTL cached profileTelemetryId. Add SsoCapable performance event.",
+    "packageName": "@azure/msal-browser",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "patch"
+}

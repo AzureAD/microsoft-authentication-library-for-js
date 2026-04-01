@@ -29,6 +29,7 @@ import {
     Constants,
     AuthToken,
     enforceResourceParameter,
+    PerformanceEvents,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -36,6 +37,7 @@ import {
     BrowserCacheManager,
     DEFAULT_BROWSER_CACHE_MANAGER,
 } from "../cache/BrowserCacheManager.js";
+import * as CacheKeys from "../cache/CacheKeys.js";
 import * as AccountManager from "../cache/AccountManager.js";
 import { BrowserConfiguration, CacheOptions } from "../config/Configuration.js";
 import {
@@ -581,6 +583,12 @@ export class StandardController implements IController {
                         undefined,
                         result.account
                     );
+
+                    // Fire-and-forget SSO capability verification in background
+                    this.verifySsoCapability(
+                        result.account,
+                        InteractionType.Redirect
+                    );
                 } else {
                     /*
                      * Instrument an event only if an error code is set. Otherwise, discard it when the redirect response
@@ -889,6 +897,10 @@ export class StandardController implements IController {
                     undefined,
                     result.account
                 );
+
+                // SSO capability verification in background
+                this.verifySsoCapability(result.account, InteractionType.Popup);
+
                 return result;
             })
             .catch((e: Error) => {
@@ -964,6 +976,122 @@ export class StandardController implements IController {
         window.removeEventListener("online", listener);
         window.removeEventListener("offline", listener);
     }
+
+    /**
+     * SSO capability verification in the background.
+     * This method makes an iframe request to /authorize to verify SSO capability without calling /token.
+     * This method does not block the caller and tracks telemetry for success/failure.
+     * This method only executes if verifySSO is set to true in the auth configuration.
+     * The result is cached in localStorage with a 24-hour TTL; the SSO verification call
+     * is only attempted when the cached value is absent or expired.
+     * @param account - The account to use for the SSO verification
+     * @param interactionType - The interactionType of the AT operation for logging purposes
+     */
+    private verifySsoCapability(
+        account: AccountInfo,
+        interactionType: InteractionType
+    ): void {
+        // Check if SSO capability verification is enabled
+        if (!this.config.auth.verifySSO) {
+            return;
+        }
+
+        // Check TTL: derive ssoCapable state from localStorage and skip if not expired
+        const ssoCacheKey = CacheKeys.SSO_CAPABLE;
+        const SSO_CAPABLE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+        try {
+            const cachedValue = window.localStorage.getItem(ssoCacheKey);
+            if (cachedValue) {
+                const parsed = JSON.parse(cachedValue);
+                if (
+                    parsed &&
+                    parsed.expiresOn &&
+                    Date.now() < parsed.expiresOn
+                ) {
+                    this.logger.verbose(
+                        `SSO capability verification skipped - cached value has not expired (interactionType: '${interactionType}')`,
+                        ""
+                    );
+                    return;
+                }
+            }
+        } catch {
+            // If parsing fails, proceed with the SSO verification
+        }
+
+        const correlationId = createNewGuid();
+        const ssoCapableMeasurement = this.performanceClient.startMeasurement(
+            BrowserRootPerformanceEvents.SsoCapable,
+            correlationId
+        );
+        ssoCapableMeasurement.add({
+            "ext.interactionType": interactionType,
+        });
+
+        this.logger.verbose(
+            `SSO capability verification initiated after '${interactionType}'`,
+            correlationId
+        );
+
+        /*
+         * Use setTimeout to ensure this runs in a separate macrotask after the current call stack completes
+         * This ensures the result is returned to the caller before the SSO verification starts and doesn't affect performance
+         */
+        setTimeout(() => {
+            const ssoVerificationRequest: SsoSilentRequest = {
+                account: account,
+                correlationId: correlationId,
+            };
+
+            const silentIframeClient =
+                this.createSilentIframeClient(correlationId);
+            silentIframeClient
+                .verifySso(ssoVerificationRequest)
+                .then((success: boolean) => {
+                    this.logger.verbose(
+                        `SSO capability verification completed after '${interactionType}', success: '${success}'`,
+                        correlationId
+                    );
+
+                    // TBD to add profileTelemetry later in localStorage with 24h TTL
+                    try {
+                        const cacheEntry = JSON.stringify({
+                            ssoCapable: success,
+                            expiresOn: Date.now() + SSO_CAPABLE_TTL_MS,
+                        });
+                        window.localStorage.setItem(ssoCacheKey, cacheEntry);
+                    } catch {
+                        // Swallow storage errors
+                    }
+
+                    ssoCapableMeasurement.end(
+                        {
+                            fromCache: false,
+                            success: success,
+                        },
+                        undefined,
+                        account
+                    );
+                })
+                .catch((error: Error) => {
+                    this.logger.warning(
+                        `SSO capability verification failed after '${interactionType}': '${error.message}'`,
+                        correlationId
+                    );
+                    // reset the cache
+                    window.localStorage.removeItem(ssoCacheKey);
+                    ssoCapableMeasurement.end(
+                        {
+                            fromCache: false,
+                            success: false,
+                        },
+                        error,
+                        account
+                    );
+                });
+        }, 0);
+    }
+
     // #endregion
 
     // #region Silent Flow

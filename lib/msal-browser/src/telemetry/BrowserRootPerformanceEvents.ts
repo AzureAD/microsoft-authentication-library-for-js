@@ -41,3 +41,8 @@ export const InitializeClientApplication = "initializeClientApplication";
 export const LocalStorageUpdated = "localStorageUpdated";
 // Load external tokens
 export const LoadExternalTokens = "loadExternalTokens";
+/**
+ * SSO capability verification call (msal-browser).
+ * Fire-and-forget SSO verification call made after interactive authentication completes.
+ */
+export const SsoCapable = "ssoCapable";

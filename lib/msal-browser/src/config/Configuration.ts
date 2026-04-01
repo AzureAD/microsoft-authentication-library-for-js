@@ -90,6 +90,13 @@ export type BrowserAuthOptions = {
      * Flag on whether a resource parameter is required for token requests. Used for MCP flows.
      */
     isMcp?: boolean;
+    /**
+     * If set to true, MSAL will make a background SSO verification call after successful interactive authentication.
+     * COGS intensive, recommendation is to *NOT* set this flag to true unless your application has a specific need for it.
+     * This will trigger additional network calls after interactive authentication flows (acquireTokenPopup, handleRedirectPromise) calls.
+     * This is a boolean flag and defaults to false if not specified.
+     */
+    verifySSO?: boolean;
 };
 
 /** @internal */
@@ -251,6 +258,7 @@ export function buildConfiguration(
         },
         instanceAware: false,
         isMcp: false,
+        verifySSO: false,
     };
 
     // Default cache options for browser
