@@ -649,9 +649,15 @@ export function buildAccountToCache(
 ): AccountEntity {
     logger?.verbose("setCachedAccount called", correlationId);
 
-    // Check if base account is already cached
+    /*
+     * Check if base account is already cached. Filter by homeAccountId (identifies
+     * the user's home identity) and environment (identifies the cloud) — the two
+     * tenant-agnostic properties that uniquely locate a base AccountEntity.
+     */
+    const accountEnvironment =
+        environment || authority.getPreferredCache();
     const matchedAccounts = cacheStorage.getAccountsFilteredBy(
-        { homeAccountId },
+        { homeAccountId, environment: accountEnvironment },
         correlationId
     );
     performanceClient?.addFields(

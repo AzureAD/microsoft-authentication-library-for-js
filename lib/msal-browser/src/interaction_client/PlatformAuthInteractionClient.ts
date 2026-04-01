@@ -542,7 +542,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.correlationId,
             idTokenClaims,
             response.client_info,
-            undefined, // environment
+            authority.getPreferredCache(), // environment
             idTokenClaims.tid,
             undefined, // auth code payload
             response.account.id,
