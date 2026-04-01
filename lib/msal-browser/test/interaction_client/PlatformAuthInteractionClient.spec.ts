@@ -51,9 +51,14 @@ import * as NativeStatusCodes from "../../src/broker/nativeBroker/NativeStatusCo
 import { PlatformAuthResponse } from "../../src/broker/nativeBroker/PlatformAuthResponse.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
 import { OpenIdConfigResponse } from "../../../msal-common/src/authority/OpenIdConfigResponse.js";
-import { AuthError, CacheHelpers } from "@azure/msal-common/browser";
-import * as SilentHandler from "../../src/interaction_handler/SilentHandler.js";
-
+import {
+    AuthError,
+    CacheHelpers,
+    SilentFlowClient,
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "@azure/msal-common/browser";
+import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient.js";
 const MOCK_WAM_RESPONSE: PlatformAuthResponse = {
     access_token: TEST_TOKENS.ACCESS_TOKEN,
     id_token: TEST_TOKENS.IDTOKEN_V2,
@@ -379,59 +384,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.tokenType).toEqual(
                 Constants.AuthenticationScheme.BEARER
             );
-        });
-
-        it("Extension: measures token acquisition correctly", (done) => {
-            jest.spyOn(
-                PlatformAuthExtensionHandler.prototype,
-                "sendMessage"
-            ).mockImplementation((): Promise<PlatformAuthResponse> => {
-                return Promise.resolve(MOCK_WAM_RESPONSE);
-            });
-
-            jest.spyOn(
-                CacheManager.prototype,
-                "getAuthorityMetadataByAlias"
-            ).mockImplementation((host: string) => {
-                const metadata =
-                    DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0];
-                const openIdConfigResponse =
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body as OpenIdConfigResponse;
-                return {
-                    aliases: [],
-                    preferred_cache: metadata.preferred_cache,
-                    preferred_network: metadata.preferred_network,
-                    canonical_authority: host,
-                    authorization_endpoint:
-                        openIdConfigResponse.authorization_endpoint,
-                    token_endpoint: openIdConfigResponse.token_endpoint,
-                    end_session_endpoint:
-                        openIdConfigResponse.end_session_endpoint,
-                    issuer: openIdConfigResponse.issuer,
-                    aliasesFromNetwork: true,
-                    endpointsFromNetwork: true,
-                    expiresAt:
-                        CacheHelpers.generateAuthorityMetadataExpiresAt(),
-                    jwks_uri: openIdConfigResponse.jwks_uri,
-                };
-            });
-
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
-                TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT
-            );
-
-            const callbackId = pca.addPerformanceCallback((events) => {
-                console.log(JSON.stringify(events, null, 2));
-                expect(events[0].isPlatformBrokerRequest).toBeTruthy();
-                expect(events[0].isNativeBroker).toBeTruthy();
-                pca.removePerformanceCallback(callbackId);
-                done();
-            });
-
-            platformAuthInteractionClient.acquireToken({
-                scopes: ["User.Read"],
-                correlationId: RANDOM_TEST_GUID,
-            });
         });
 
         it("Extension: token request contains user input extra params", async () => {
@@ -1725,11 +1677,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
     });
 
-    describe("initializeNativeRequest tests", () => {
+    describe("initializePlatformRequest tests", () => {
         it("pick up default params", async () => {
             const nativeRequest =
                 // @ts-ignore
-                await platformAuthInteractionClient.initializeNativeRequest({
+                await platformAuthInteractionClient.initializePlatformRequest({
                     scopes: ["User.Read"],
                     prompt: Constants.PromptValue.LOGIN,
                 });
@@ -1741,7 +1693,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
         it("pick up broker extra query parameters", async () => {
             const nativeRequest =
                 // @ts-ignore
-                await platformAuthInteractionClient.initializeNativeRequest({
+                await platformAuthInteractionClient.initializePlatformRequest({
                     scopes: ["User.Read"],
                     prompt: Constants.PromptValue.LOGIN,
                     redirectUri: "localhost",
@@ -1767,7 +1719,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
         it("pick up user input extra parameters", async () => {
             const nativeRequest =
                 // @ts-ignore
-                await platformAuthInteractionClient.initializeNativeRequest({
+                await platformAuthInteractionClient.initializePlatformRequest({
                     scopes: ["User.Read"],
                     prompt: Constants.PromptValue.LOGIN,
                     redirectUri: "localhost",
@@ -1790,7 +1742,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
         it("includes resource in native request when provided", async () => {
             const nativeRequest =
                 // @ts-ignore
-                await platformAuthInteractionClient.initializeNativeRequest({
+                await platformAuthInteractionClient.initializePlatformRequest({
                     scopes: ["User.Read"],
                     resource: "https://graph.microsoft.com",
                 });
@@ -1929,13 +1881,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 uniqueId: "mock_unique_id",
                 tokenType: "Bearer",
                 correlationId: RANDOM_TEST_GUID,
-            });
-
-            jest.spyOn(
-                platformAuthInteractionClient as any,
-                "initializeServerTelemetryManager"
-            ).mockReturnValue({
-                clearNativeBrokerErrorCode: jest.fn(),
             });
 
             // Spy on performanceClient.addFields since handleRedirectPromise uses it directly

@@ -2809,23 +2809,21 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             const popupSpy: jest.SpyInstance = jest
                 .spyOn(PopupClient.prototype, "acquireToken")
-                .mockImplementation(
-                    function (
-                        this: PopupClient,
-                        request: PopupRequest
-                    ): Promise<AuthenticationResult> {
-                        const eventMap = (this.performanceClient as any)
-                            .eventsByCorrelationId;
-                        const existingEvent = eventMap.get(
-                            request.correlationId || RANDOM_TEST_GUID
-                        );
-                        if (existingEvent) {
-                            existingEvent.isPlatformAuthorizeRequest = true;
-                        }
-
-                        return Promise.resolve(testTokenResponse);
+                .mockImplementation(function (
+                    this: PopupClient,
+                    request: PopupRequest
+                ): Promise<AuthenticationResult> {
+                    const eventMap = (this.performanceClient as any)
+                        .eventsByCorrelationId;
+                    const existingEvent = eventMap.get(
+                        request.correlationId || RANDOM_TEST_GUID
+                    );
+                    if (existingEvent) {
+                        existingEvent.isPlatformAuthorizeRequest = true;
                     }
-                );
+
+                    return Promise.resolve(testTokenResponse);
+                });
 
             // Add performance callback
             const callbackId = pca.addPerformanceCallback((events) => {
