@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774654553748,
+  "lastUpdate": 1775079460173,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20427,6 +20427,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.72%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "152663010+msal-js-release-automation[bot]@users.noreply.github.com",
+            "name": "msal-js-release-automation[bot]",
+            "username": "msal-js-release-automation[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f1d31a0d95d8e00a7274b11edeefaa1beed0e23e",
+          "message": "Post-release PR (#8502)\n\nThis PR contains the changelogs and version bumps for the MSAL.js 3P\nreleases.\n\nCo-authored-by: MSAL.js Release Automation <msaljsbuilds@microsoft.com>",
+          "timestamp": "2026-04-01T21:31:40Z",
+          "tree_id": "5683bd234bce56b98ffa8285bdfd03aba7aa83ca",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f1d31a0d95d8e00a7274b11edeefaa1beed0e23e"
+        },
+        "date": 1775079455195,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 219718,
+            "range": "±1.21%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 211408,
+            "range": "±1.30%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
