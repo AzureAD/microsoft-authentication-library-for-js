@@ -83,7 +83,7 @@
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "@azure/msal-common": "16.2.0",
+    "@azure/msal-common": "16.2.1",
     "jsonwebtoken": "^9.0.0",
     "uuid": "^8.3.0"
   },

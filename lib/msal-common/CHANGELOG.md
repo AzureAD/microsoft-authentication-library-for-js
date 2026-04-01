@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Mon, 02 Mar 2026 19:25:47 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 01 Apr 2026 21:23:34 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.2.1
+
+Wed, 01 Apr 2026 21:23:34 GMT
+
+### Patches
+
+- Fix tenant profile loss in cross-tenant B2B scenarios by replacing broken startsWith cache key lookup with entity-level matching via getAccountsFilteredBy [#8471](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8471) (ruijungao@microsoft.com)
 
 ## 16.2.0
 

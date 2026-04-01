@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Mon, 02 Mar 2026 19:25:47 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 01 Apr 2026 21:23:34 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.4.1
+
+Wed, 01 Apr 2026 21:23:34 GMT
+
+### Patches
+
+- Thread performanceClient through buildAccountToCache callers for telemetry [#8471](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8471) (ruijungao@microsoft.com)
+- Bump @azure/msal-common to v16.2.1
 
 ## 5.4.0
 

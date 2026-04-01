@@ -2,6 +2,27 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 01 Apr 2026 21:23:34 GMT",
+      "version": "5.4.1",
+      "tag": "@azure/msal-browser_v5.4.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "ruijungao@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "91856e3328bbc11a8f0c0941cb06b25e4caf27d0",
+            "comment": "Thread performanceClient through buildAccountToCache callers for telemetry [#8471](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8471)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.2.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 02 Mar 2026 19:25:47 GMT",
       "version": "5.4.0",
       "tag": "@azure/msal-browser_v5.4.0",
