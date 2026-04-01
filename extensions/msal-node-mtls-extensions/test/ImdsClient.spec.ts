@@ -117,6 +117,55 @@ describe("ImdsClient.getPlatformMetadata", () => {
         expect(opts.path).not.toContain("api-version=2024");
     });
 
+    it("sends Metadata: true and x-ms-client-request-id headers", async () => {
+        const req = makeRequest();
+        const res = makeResponse(200, JSON.stringify({ clientId: "c", tenantId: "t", cuId: "cu" }));
+
+        (http.request as jest.Mock).mockImplementation(
+            (_opts: unknown, cb: (res: http.IncomingMessage) => void) => {
+                cb(res as http.IncomingMessage);
+                return req;
+            }
+        );
+
+        const correlationId = "test-correlation-id-1234";
+        const p = getPlatformMetadata(5000, correlationId);
+        res.emit("data", Buffer.from(JSON.stringify({ clientId: "c", tenantId: "t", cuId: "cu" })));
+        res.emit("end");
+        await p;
+
+        const opts = (http.request as jest.Mock).mock.calls[0][0] as {
+            headers: Record<string, string>;
+        };
+        expect(opts.headers["Metadata"]).toBe("true");
+        expect(opts.headers["x-ms-client-request-id"]).toBe(correlationId);
+    });
+
+    it("generates a new correlationId when none is provided", async () => {
+        const req = makeRequest();
+        const body = JSON.stringify({ clientId: "c", tenantId: "t", cuId: "cu" });
+        const res = makeResponse(200, body);
+
+        (http.request as jest.Mock).mockImplementation(
+            (_opts: unknown, cb: (res: http.IncomingMessage) => void) => {
+                cb(res as http.IncomingMessage);
+                return req;
+            }
+        );
+
+        const p = getPlatformMetadata();
+        res.emit("data", Buffer.from(body));
+        res.emit("end");
+        await p;
+
+        const opts = (http.request as jest.Mock).mock.calls[0][0] as {
+            headers: Record<string, string>;
+        };
+        expect(opts.headers["x-ms-client-request-id"]).toMatch(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        );
+    });
+
     it("rejects on timeout", async () => {
         const req = makeRequest();
 

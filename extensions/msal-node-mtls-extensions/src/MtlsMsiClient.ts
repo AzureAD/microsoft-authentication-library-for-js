@@ -15,7 +15,14 @@ import { getPlatformMetadata } from "./ImdsClient.js";
 // In CJS environments require is defined; in ESM we need import.meta.url.
 const _require =
     typeof require !== "undefined" ? require : createRequire(import.meta.url);
-const _dirname = path.dirname(_require.resolve("./index.js"));
+// The ESM build produces index.mjs; the CJS bundle produces index.js.
+// Try both so the same code works in both module systems.
+let _dirname: string;
+try {
+    _dirname = path.dirname(_require.resolve("./index.mjs"));
+} catch {
+    _dirname = path.dirname(_require.resolve("./index.js"));
+}
 
 /**
  * How many seconds before `expiresOn` to treat a cached token as expired.

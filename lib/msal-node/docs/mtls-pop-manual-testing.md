@@ -196,16 +196,19 @@ npm run build --workspace=@azure/msal-node
 npm run build --workspace=@azure/msal-node-mtls-extensions
 
 # Build the .NET helper binaries (win-x64 and win-arm64)
+# Also copies AttestationClientLib.dll to bin/win-x64/ for VBS attestation support
 cd extensions\msal-node-mtls-extensions
 npm run build:binaries
 # Expected output:
 #   Building MsalMtlsMsiHelper for win-x64...
 #   -> bin/win-x64/MsalMtlsMsiHelper.exe
+#   Copying AttestationClientLib.dll to bin/win-x64/
 #   Building MsalMtlsMsiHelper for win-arm64...
 #   -> bin/win-arm64/MsalMtlsMsiHelper.exe
 
-# Verify binary is present
-Test-Path "bin\win-x64\MsalMtlsMsiHelper.exe"   # must print True
+# Verify binaries are present
+Test-Path "bin\win-x64\MsalMtlsMsiHelper.exe"      # must print True
+Test-Path "bin\win-x64\AttestationClientLib.dll"    # must print True (required for --with-attestation)
 
 # Pack it as a tarball to transfer to the VM
 npm pack
@@ -235,12 +238,28 @@ Test-Path "node_modules\@azure\msal-node-mtls-extensions\bin\win-x64\MsalMtlsMsi
 
 ### Step 4 — Smoke-test the binary directly
 
-Run `MsalMtlsMsiHelper.exe` directly to confirm the .NET + Managed Identity layer works before involving Node.js:
+Run `MsalMtlsMsiHelper.exe` directly to confirm the .NET + Managed Identity layer works before involving Node.js.
+
+> **Note:** Not all Azure resources support `mtls_pop` tokens. Use `https://graph.microsoft.com/`
+> or `https://vault.azure.net/` for testing — both are confirmed to accept certificate-bound tokens.
+> `management.azure.com` returns `AADSTS392196` in many subscriptions.
+
+First, try without attestation:
 
 ```powershell
 .\node_modules\@azure\msal-node-mtls-extensions\bin\win-x64\MsalMtlsMsiHelper.exe `
-    --resource https://management.azure.com/ `
+    --resource https://graph.microsoft.com/ `
     --identity-type SystemAssigned
+```
+
+If that returns `"Attestation Token is missing / empty in the issue credential request"`,
+the VM requires VBS attestation. Re-run with `--with-attestation`:
+
+```powershell
+.\node_modules\@azure\msal-node-mtls-extensions\bin\win-x64\MsalMtlsMsiHelper.exe `
+    --resource https://graph.microsoft.com/ `
+    --identity-type SystemAssigned `
+    --with-attestation
 ```
 
 **Expected (success):** JSON printed to stdout:
@@ -257,7 +276,9 @@ Run `MsalMtlsMsiHelper.exe` directly to confirm the .NET + Managed Identity laye
 |---|---|---|
 | `"You must be running within an Azure VM"` | IMDS not reachable / MI not enabled | Enable System-Assigned MI in Azure Portal → VM → Identity |
 | `"KeyGuard key creation failed"` | VBS not enabled | Use a VBS-enabled VM SKU |
+| `"Attestation Token is missing / empty"` | VM requires VBS attestation | Re-run with `--with-attestation` |
 | No output / exits immediately | .NET 8 runtime missing | Run `dotnet-install.ps1` |
+| `managed_identity_unreachable_network` without `AttestationClientLib.dll` | Native attestation DLL missing | Verify `AttestationClientLib.dll` is in the same directory as `MsalMtlsMsiHelper.exe`; rebuild with `npm run build:binaries` |
 
 ### Step 5 — Create the Node.js test script
 
@@ -265,11 +286,18 @@ Run `MsalMtlsMsiHelper.exe` directly to confirm the .NET + Managed Identity laye
 // test-mtls.mjs  (ESM — run with: node test-mtls.mjs)
 import { acquireMtlsMsiToken, clearMtlsMsiTokenCache } from "@azure/msal-node-mtls-extensions";
 
-const RESOURCE = "https://management.azure.com/";
+// Resources confirmed to support mtls_pop tokens:
+//   https://graph.microsoft.com/   ✅
+//   https://vault.azure.net/       ✅
+// Note: management.azure.com does NOT support mtls_pop in all subscriptions (AADSTS392196)
+const RESOURCE = "https://graph.microsoft.com/";
+
+// Set to true if the smoke test in Step 4 required --with-attestation
+const WITH_ATTESTATION = false;
 
 async function main() {
     console.log("=== Test 1: Fresh token (System-Assigned) ===");
-    const t1 = await acquireMtlsMsiToken({ resource: RESOURCE });
+    const t1 = await acquireMtlsMsiToken({ resource: RESOURCE, withAttestation: WITH_ATTESTATION });
     console.log("  tokenType:         ", t1.tokenType);          // mtls_pop
     console.log("  expiresOn:         ", t1.expiresOn);
     console.log("  fromCache:         ", t1.fromCache);          // false
@@ -277,20 +305,20 @@ async function main() {
     console.log("  bindingCertificate:", t1.bindingCertificate?.split("\n")[1]?.slice(0, 40) + "...");
 
     console.log("\n=== Test 2: Cache hit ===");
-    const t2 = await acquireMtlsMsiToken({ resource: RESOURCE });
+    const t2 = await acquireMtlsMsiToken({ resource: RESOURCE, withAttestation: WITH_ATTESTATION });
     console.log("  fromCache:", t2.fromCache);   // true
 
     console.log("\n=== Test 3: forceRefresh ===");
-    const t3 = await acquireMtlsMsiToken({ resource: RESOURCE, forceRefresh: true });
+    const t3 = await acquireMtlsMsiToken({ resource: RESOURCE, withAttestation: WITH_ATTESTATION, forceRefresh: true });
     console.log("  fromCache:", t3.fromCache);   // false
 
     console.log("\n=== Test 4: clearMtlsMsiTokenCache ===");
     clearMtlsMsiTokenCache();
-    const t4 = await acquireMtlsMsiToken({ resource: RESOURCE });
+    const t4 = await acquireMtlsMsiToken({ resource: RESOURCE, withAttestation: WITH_ATTESTATION });
     console.log("  fromCache:", t4.fromCache);   // false
 
-    console.log("\n=== Test 5: Different resource (separate cache entry) ===");
-    const t5 = await acquireMtlsMsiToken({ resource: "https://vault.azure.net/" });
+    console.log("\n=== Test 5: Different resource (vault.azure.net) ===");
+    const t5 = await acquireMtlsMsiToken({ resource: "https://vault.azure.net/", withAttestation: WITH_ATTESTATION });
     console.log("  tokenType:", t5.tokenType);   // mtls_pop
     console.log("  fromCache:", t5.fromCache);   // false
 
@@ -298,20 +326,17 @@ async function main() {
     const payload = JSON.parse(Buffer.from(t1.accessToken.split(".")[1], "base64url").toString());
     console.log("  cnf claim:", JSON.stringify(payload.cnf));   // x5t#S256 must be present
     console.log("  token_type:", payload.token_type ?? payload.tt);
+    if (!payload.cnf?.["x5t#S256"]) throw new Error("cnf / x5t#S256 claim missing!");
 
     // --- Optional: User-Assigned identity (uncomment if configured) ---
     // const ua = await acquireMtlsMsiToken({
     //     resource: RESOURCE,
     //     identityType: "UserAssigned",
     //     identityId: "YOUR_USER_ASSIGNED_CLIENT_ID",
+    //     withAttestation: WITH_ATTESTATION,
     // });
     // console.log("\n=== Test 7: User-Assigned ===");
     // console.log("  tokenType:", ua.tokenType);
-
-    // --- Optional: VBS attestation (requires VBS-enabled VM SKU) ---
-    // const att = await acquireMtlsMsiToken({ resource: RESOURCE, withAttestation: true });
-    // console.log("\n=== Test 8: With attestation ===");
-    // console.log("  tokenType:", att.tokenType);
 
     console.log("\n✅ All tests passed");
 }
@@ -368,6 +393,7 @@ node test-mtls.mjs
 | `"Failed to spawn MsalMtlsMsiHelper"` | Binary missing from package | Rebuild + repack on dev machine; verify `bin/win-x64/` is present in the tarball |
 | `MsalException` from the helper | Token acquisition failed | Run the binary smoke-test (Step 4) directly and read the `error_description` |
 | Token has no `cnf` claim | Token is Bearer, not mTLS PoP | Check `token_type` in the binary's JSON output |
+| `AADSTS392196: The resource application does not support certificate-bound token` | Resource not configured for mTLS PoP | Not all Azure first-party resources support `mtls_pop` tokens. Use `https://graph.microsoft.com/` or `https://vault.azure.net/` as the resource instead — both are confirmed to work. `management.azure.com` does not support mTLS PoP in all subscriptions. |
 
 ---
 

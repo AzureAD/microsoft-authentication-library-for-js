@@ -22,6 +22,8 @@ subprocess, parsing the token response, and returning a standard `Authentication
 - `x64` or `arm64` architecture
 - Azure VM with a Managed Identity configured
 - **.NET 8 runtime** installed on the VM (check with `dotnet --version`; pre-installed on most Azure VM images)
+- **VBS (Virtualization-Based Security)** enabled on the VM for KeyGuard key creation
+- For `withAttestation: true`: some VM configurations require VBS attestation (see [Attestation](#attestation) below)
 
 ## Installation
 
@@ -37,7 +39,7 @@ npm install @azure/msal-node-mtls-extensions
 import { acquireMtlsMsiToken } from "@azure/msal-node-mtls-extensions";
 
 const result = await acquireMtlsMsiToken({
-    resource: "https://management.azure.com/",
+    resource: "https://graph.microsoft.com/",
 });
 
 console.log(result.accessToken);    // mTLS PoP access token
@@ -45,11 +47,15 @@ console.log(result.tokenType);      // "mtls_pop"
 console.log(result.bindingCertificate); // PEM cert bound to the token
 ```
 
+> **Supported resources:** Not all Azure resources accept `mtls_pop` tokens.
+> `https://graph.microsoft.com/` and `https://vault.azure.net/` are confirmed to work.
+> `management.azure.com` returns `AADSTS392196` in many subscriptions.
+
 ### User-Assigned Managed Identity
 
 ```typescript
 const result = await acquireMtlsMsiToken({
-    resource: "https://management.azure.com/",
+    resource: "https://graph.microsoft.com/",
     identityType: "UserAssigned",
     identityId: "your-client-id-or-resource-id",
 });
@@ -59,10 +65,17 @@ const result = await acquireMtlsMsiToken({
 
 ```typescript
 const result = await acquireMtlsMsiToken({
-    resource: "https://management.azure.com/",
+    resource: "https://graph.microsoft.com/",
     withAttestation: true, // includes MAA JWT proving key is hardware-backed
 });
 ```
+
+Some VMs (particularly newer VM SKUs or regions where the IMDS `issuecredential`
+endpoint requires it) return the error `"Attestation Token is missing / empty in the
+issue credential request"` unless `withAttestation: true` is passed. This option
+requires `AttestationClientLib.dll` to be present alongside `MsalMtlsMsiHelper.exe`
+in the `bin/win-x64/` directory — it is included automatically when you run
+`npm run build:binaries` or install the published npm package.
 
 ## API
 
@@ -75,8 +88,9 @@ Acquires an mTLS PoP access token for a Managed Identity.
 | `resource` | `string` | required | Azure resource URI |
 | `identityType` | `"SystemAssigned" \| "UserAssigned"` | `"SystemAssigned"` | Identity type |
 | `identityId` | `string` | — | Client/resource ID for UserAssigned |
-| `withAttestation` | `boolean` | `false` | Include MAA attestation |
+| `withAttestation` | `boolean` | `false` | Include MAA attestation (required on some VMs) |
 | `correlationId` | `string` | — | Optional GUID for telemetry |
+| `forceRefresh` | `boolean` | `false` | Bypass in-memory token cache |
 
 ### `getPlatformMetadata(): Promise<PlatformMetadata>`
 
@@ -109,10 +123,34 @@ Node.js
 
 > If .NET 8 is not available on your VM, it can be installed via the [Azure VM .NET extension](https://learn.microsoft.com/en-us/dotnet/core/install/linux-scripted-manual).
 
+## Attestation
+
+Some Azure VM configurations require VBS attestation to be included in the
+`issuecredential` request to IMDS. This is indicated when the call fails with:
+
+```
+"Attestation Token is missing / empty in the issue credential request"
+```
+
+Pass `withAttestation: true` to resolve this. When attestation is enabled, the
+subprocess calls `AttestationClientLib.dll` (a native component from the
+`Microsoft.Azure.Security.KeyGuardAttestation` NuGet package) to obtain a
+hardware-backed attestation JWT from the VM's regional MAA endpoint, then
+includes that JWT in the `issuecredential` call.
+
+`AttestationClientLib.dll` is included automatically in `bin/win-x64/` when you
+run `npm run build:binaries`. It is **not committed to git** (like the `.exe`).
+
+> **Note:** VBS attestation requires a VM with Virtualization-Based Security enabled.
+> Standard Azure VM SKUs support KeyGuard key creation. Attestation requires a
+> VBS-capable SKU.
+
 ## The `MsalMtlsMsiHelper.exe` binary
 
 `MsalMtlsMsiHelper.exe` is a **framework-dependent** .NET 8 application published to
-`bin/win-{arch}/MsalMtlsMsiHelper.exe` at build time. It is **not committed to git**.
+`bin/win-{arch}/MsalMtlsMsiHelper.exe` at build time. For `x64`, `AttestationClientLib.dll`
+(from `Microsoft.Azure.Security.KeyGuardAttestation`) is also copied to the same directory.
+Neither file is committed to git.
 
 It wraps [`Microsoft.Identity.Client`](https://learn.microsoft.com/en-us/azure/active-directory/develop/msal-net-migration)
 with [`Microsoft.Identity.Client.KeyAttestation`](https://www.nuget.org/packages/Microsoft.Identity.Client.KeyAttestation),
