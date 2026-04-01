@@ -23,6 +23,7 @@ export {
     BrowserAuthOptions,
     CacheOptions,
     BrowserSystemOptions,
+    BrowserExperimentalOptions,
     BrowserTelemetryOptions,
     BrowserConfiguration,
     DEFAULT_IFRAME_TIMEOUT_MS,

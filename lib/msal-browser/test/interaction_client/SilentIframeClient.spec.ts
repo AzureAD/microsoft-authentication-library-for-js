@@ -1550,6 +1550,62 @@ describe("SilentIframeClient", () => {
         });
     });
 
+    describe("iframe timeout telemetry", () => {
+        beforeEach(() => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(
+                InteractionHandler.prototype,
+                "handleCodeResponse"
+            ).mockResolvedValue(getTestAuthenticationResult());
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+        });
+
+        it("passes experimental config when iframeTimeoutTelemetry is enabled", async () => {
+            const waitForBridgeResponseSpy = jest
+                .spyOn(BrowserUtils, "waitForBridgeResponse")
+                .mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
+            (clientProperties as any).config.experimental = {
+                iframeTimeoutTelemetry: true,
+            };
+
+            await silentIframeClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint",
+            });
+
+            expect(waitForBridgeResponseSpy.mock.calls[0][5]).toEqual({
+                iframeTimeoutTelemetry: true,
+            });
+        });
+
+        it("passes experimental config when iframeTimeoutTelemetry is disabled", async () => {
+            const waitForBridgeResponseSpy = jest
+                .spyOn(BrowserUtils, "waitForBridgeResponse")
+                .mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
+            (clientProperties as any).config.experimental = {
+                iframeTimeoutTelemetry: false,
+            };
+
+            await silentIframeClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint",
+            });
+
+            expect(waitForBridgeResponseSpy.mock.calls[0][5]).toEqual({
+                iframeTimeoutTelemetry: false,
+            });
+        });
+    });
+
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentIframeClient.logout).rejects.toMatchObject(

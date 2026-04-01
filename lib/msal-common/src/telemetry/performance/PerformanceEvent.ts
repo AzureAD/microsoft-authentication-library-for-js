@@ -228,6 +228,7 @@ export type PerformanceEvent = {
     redirectBridgeTimeoutMs?: number;
     isRedirectUriCrossOrigin?: boolean;
     redirectBridgeMessageVersion?: number;
+    lateResponseExperimentEnabled?: boolean;
 
     /**
      * Size of the id token
