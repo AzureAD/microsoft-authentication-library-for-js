@@ -13,17 +13,10 @@ physically cannot be exported or transferred between processes, the entire flow 
 generation, IMDS credential issuance, and the mTLS token request) runs in a .NET subprocess
 (`MsalMtlsMsiHelper.exe`) bundled with this package.
 
-Node.js handles everything else: the initial IMDS `/getplatformmetadata` call, spawning the
-subprocess, parsing the token response, and returning a standard `AuthenticationResult`.
+Node.js handles everything else: spawning the subprocess, parsing the token response, and returning
+a standard `AuthenticationResult`.
 
-## Requirements
-
-- **Windows only** — the KeyGuard key requires Windows VBS
-- `x64` architecture (`arm64` is not yet supported — see [Requirements](#requirements-full-list))
-- Azure VM with a Managed Identity configured
-- **.NET 8 runtime** installed on the VM (check with `dotnet --version`; pre-installed on most Azure VM images)
-- **VBS (Virtualization-Based Security)** enabled on the VM for KeyGuard key creation
-- For `withAttestation: true`: some VM configurations require VBS attestation (see [Attestation](#attestation) below)
+See [Requirements](#requirements-full-list) for the full list of prerequisites.
 
 ## Installation
 
@@ -102,16 +95,11 @@ const response = await makeMtlsMsiRequest({
 ```typescript
 const tokenResult = await acquireMtlsMsiToken({
     resource: "https://graph.microsoft.com/",
-    withAttestation: true, // includes MAA JWT proving key is hardware-backed
+    withAttestation: true,
 });
 ```
 
-Some VMs (particularly newer VM SKUs or regions where the IMDS `issuecredential`
-endpoint requires it) return the error `"Attestation Token is missing / empty in the
-issue credential request"` unless `withAttestation: true` is passed. This option
-requires `AttestationClientLib.dll` to be present alongside `MsalMtlsMsiHelper.exe`
-in the `bin/win-x64/` directory — it is included automatically when you run
-`npm run build:binaries` or install the published npm package.
+Some VM configurations require VBS attestation — pass `withAttestation: true` when the IMDS call fails with `"Attestation Token is missing / empty in the issue credential request"`. See [Attestation](#attestation) for details.
 
 ## API
 
@@ -227,17 +215,17 @@ The binary is built automatically when you run `npm run build:binaries` or `npm 
 **Requirements:** .NET 8 SDK and `windows-latest` GitHub Actions runner (or any Windows machine with .NET 8 SDK).
 
 ```bash
-# Build TypeScript + .NET helper for both win-x64 and win-arm64
+# Build TypeScript + .NET helper (win-x64)
 npm run build:binaries
 ```
 
-This calls `dotnet publish -r win-{arch} --self-contained false /p:PublishSingleFile=true` for each architecture.
+This calls `dotnet publish -r win-x64 --self-contained false /p:PublishSingleFile=true`.
 
 ### CI / release
 
 The `.github/workflows/msal-node-mtls-extensions.yml` workflow:
 - Triggers on push/PR to `dev` touching this package
-- Builds the .NET helper for both architectures
+- Builds the .NET helper for win-x64
 - Runs all TypeScript tests
 - Uploads `MsalMtlsMsiHelper.exe` as a GitHub Actions artifact
 

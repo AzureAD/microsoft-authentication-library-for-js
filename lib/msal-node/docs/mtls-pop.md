@@ -237,13 +237,13 @@ This is not a gap that can be bridged with a polyfill or a different API. The en
 
 ### Group 1 — Delegated to `@azure/msal-node-mtls-extensions`
 
-These Windows/.NET-specific capabilities are required for the Managed Identity path. They **are** implemented — but via a .NET subprocess helper bundled in the separate `@azure/msal-node-mtls-extensions` package, because they cannot run in Node.js directly.
+These Windows/.NET-specific capabilities are required for the Managed Identity path. They **are** implemented — via `MsalMtlsMsiHelper.exe` in the separate `@azure/msal-node-mtls-extensions` package. See the table above for why each one cannot run in Node.js directly.
 
-| Feature | Why it cannot run in Node.js (and how it is solved) |
+| Feature | Handled by |
 |---|---|
-| **KeyGuard / hardware-backed RSA keys** | Non-exportable key backed by Windows VBS. Created and used inside `MsalMtlsMsiHelper.exe`. |
-| **TPM/VBS attestation via MAA** | Requires `AttestationClientLib.dll` (a native Windows DLL). Called by `MsalMtlsMsiHelper.exe` when `withAttestation: true`. |
-| **IMDS `/issuecredential` + CSR** | Uses the KeyGuard key — must run inside `MsalMtlsMsiHelper.exe`. |
+| **KeyGuard / hardware-backed RSA keys** | `MsalMtlsMsiHelper.exe` (Windows CNG / VBS) |
+| **TPM/VBS attestation via MAA** | `MsalMtlsMsiHelper.exe` + `AttestationClientLib.dll` when `withAttestation: true` |
+| **IMDS `/issuecredential` + CSR** | `MsalMtlsMsiHelper.exe` (must run in same process as KeyGuard key) |
 
 See [`extensions/msal-node-mtls-extensions`](../../../extensions/msal-node-mtls-extensions/README.md) for the Managed Identity implementation.
 
