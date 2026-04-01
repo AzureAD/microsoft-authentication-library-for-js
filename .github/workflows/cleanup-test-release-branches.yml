@@ -1,0 +1,142 @@
+# Closes and deletes stale test release PRs and branches created by the MSAL.js release
+# pipeline running in test mode.
+#
+# Background
+# ----------
+# When the release pipeline runs in test mode it creates:
+#   - A staging branch named  <TEST_BRANCH_PREFIX><BuildId>  in this repo
+#   - A PR targeting dev-copy (main pipeline) or v4-lts-copy (v4-lts pipeline)
+#
+# These are temporary artifacts that should not persist. This workflow closes any
+# open PR whose head branch matches a test staging branch prefix and has been open
+# longer than STALE_DAYS, then immediately deletes that branch. It also cleans up
+# orphaned staging branches (no associated open PR) whose last commit falls outside
+# the same window.
+#
+# PRs are matched exclusively by head branch name — never by title — so that any
+# manually opened PR is unaffected regardless of what it's called.
+#
+# Naming conventions
+# ------------------
+# Both the main release pipeline and the v4-lts release pipeline produce staging
+# branches with the same prefix (test-release-staging-) because the BuildId suffix
+# makes each branch unique across runs. One prefix covers both pipelines.
+# Update the TEST_BRANCH_PREFIXES repository variable if naming conventions change,
+# or add additional space-separated prefixes for new release tracks — no code change needed.
+#
+# Permissions required
+# --------------------
+# contents: write       — delete branches
+# pull-requests: write  — close PRs
+
+name: Cleanup Test Release Branches
+
+on:
+    schedule:
+        - cron: "0 6 * * *" # Daily at 6am UTC
+    workflow_dispatch:
+        inputs:
+            dry_run:
+                description: "Dry run — log actions without modifying anything"
+                type: boolean
+                default: false
+            stale_days:
+                description: "Days before a test PR/branch is considered stale (default: 7)"
+                type: number
+                default: 7
+
+permissions:
+    contents: write
+    pull-requests: write
+
+env:
+    # Repository variables (Settings → Secrets and variables → Actions → Variables).
+    # Set these in the GitHub UI to change behaviour without pushing a code change.
+    #
+    # TEST_BRANCH_PREFIXES — space-separated list of head branch prefixes that identify
+    #   test staging branches. Both the main and v4-lts release pipelines share the same
+    #   prefix, so the default covers both. Add new prefixes if additional release tracks
+    #   are introduced.
+    #
+    # PRs are matched by head branch name rather than title so that manually opened PRs
+    # are never affected, regardless of their title.
+    TEST_BRANCH_PREFIXES: ${{ vars.TEST_BRANCH_PREFIXES || 'test-release-staging-' }}
+
+    STALE_DAYS: ${{ inputs.stale_days || 7 }}
+    DRY_RUN: ${{ inputs.dry_run || 'false' }}
+    GH_TOKEN: ${{ github.token }}
+
+jobs:
+    cleanup:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Close stale test release PRs and delete their branches
+              run: |
+                  CUTOFF=$(date -u -d "${STALE_DAYS} days ago" +"%Y-%m-%dT%H:%M:%SZ")
+                  echo "Stale threshold: ${STALE_DAYS} days (before ${CUTOFF})"
+                  echo "Dry run: ${DRY_RUN}"
+
+                  for PREFIX in $TEST_BRANCH_PREFIXES; do
+                      echo ""
+                      echo "=== Checking PRs with head branch prefix: ${PREFIX} ==="
+
+                      gh pr list \
+                          --repo "${{ github.repository }}" \
+                          --state open \
+                          --limit 500 \
+                          --json number,title,headRefName,createdAt \
+                          --jq '.[] | select(.headRefName | startswith("'"$PREFIX"'")) | select(.createdAt < "'"$CUTOFF"'") | [.number, .headRefName, .title] | @tsv' \
+                      | while IFS=$'\t' read -r number branch title; do
+                          echo "Stale PR #${number}: \"${title}\" (branch: ${branch})"
+                          if [[ "$DRY_RUN" == "true" ]]; then
+                              echo "  [DRY RUN] Would close PR #${number} and delete branch: ${branch}"
+                          else
+                              gh pr close "$number" --repo "${{ github.repository }}" --delete-branch
+                              echo "  Closed PR #${number} and deleted branch: ${branch}"
+                          fi
+                      done
+                  done
+
+            - name: Delete orphaned test staging branches
+              run: |
+                  CUTOFF=$(date -u -d "${STALE_DAYS} days ago" +"%Y-%m-%dT%H:%M:%SZ")
+
+                  # Collect branches that still have an open PR so we don't double-process them
+                  OPEN_PR_BRANCHES=$(
+                      for PREFIX in $TEST_BRANCH_PREFIXES; do
+                          gh pr list \
+                              --repo "${{ github.repository }}" \
+                              --state open \
+                              --limit 500 \
+                              --json headRefName \
+                              --jq '[.[].headRefName | select(startswith("'"$PREFIX"'"))] | .[]'
+                      done
+                  )
+
+                  for PREFIX in $TEST_BRANCH_PREFIXES; do
+                      echo ""
+                      echo "=== Checking orphaned branches with prefix: ${PREFIX} ==="
+
+                      gh api "repos/${{ github.repository }}/branches?per_page=100" --paginate \
+                          --jq '.[].name | select(startswith("'"$PREFIX"'"))' \
+                      | while read -r branch; do
+                          # Skip if this branch still has an open PR (handled in the previous step)
+                          if echo "$OPEN_PR_BRANCHES" | grep -qx "$branch"; then
+                              continue
+                          fi
+
+                          # Use latest commit date as a proxy for branch age
+                          BRANCH_DATE=$(gh api "repos/${{ github.repository }}/branches/$branch" \
+                              --jq '.commit.commit.author.date')
+
+                          if [[ "$BRANCH_DATE" < "$CUTOFF" ]]; then
+                              echo "Orphaned stale branch: ${branch} (last commit: ${BRANCH_DATE})"
+                              if [[ "$DRY_RUN" == "true" ]]; then
+                                  echo "  [DRY RUN] Would delete branch: ${branch}"
+                              else
+                                  gh api --method DELETE "repos/${{ github.repository }}/git/refs/heads/$branch"
+                                  echo "  Deleted branch: ${branch}"
+                              fi
+                          fi
+                      done
+                  done
