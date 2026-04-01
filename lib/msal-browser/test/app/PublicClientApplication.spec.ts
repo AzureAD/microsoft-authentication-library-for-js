@@ -4816,6 +4816,32 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentIframeSpy).toHaveBeenCalledTimes(1);
         });
 
+        it("throws InteractionRequiredAuthError when silent iframe times out (issue #8434)", async () => {
+            // When both the refresh token and the AAD session cookie are gone the
+            // silent iframe times out. MSAL must re-surface that as
+            // InteractionRequiredAuthError so callers can trigger interactive login.
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            jest.spyOn(SilentCacheClient.prototype, "acquireToken").mockRejectedValue(
+                new Error("Cache miss")
+            );
+            jest.spyOn(SilentRefreshClient.prototype, "acquireToken").mockRejectedValue(
+                createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                )
+            );
+            jest.spyOn(SilentIframeClient.prototype, "acquireToken").mockRejectedValue(
+                createBrowserAuthError(BrowserAuthErrorCodes.timedOut, "redirect_bridge_timeout")
+            );
+
+            await expect(
+                pca.acquireTokenSilent({
+                    scopes: ["openid"],
+                    account: testAccount,
+                    correlationId: RANDOM_TEST_GUID,
+                })
+            ).rejects.toBeInstanceOf(InteractionRequiredAuthError);
+        });
+
         it("makes one network request with multiple parallel silent requests with same request", async () => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,

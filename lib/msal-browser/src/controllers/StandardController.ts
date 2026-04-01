@@ -24,6 +24,7 @@ import {
     AccountFilter,
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
+    createInteractionRequiredAuthError,
     PkceCodes,
     AccountEntityUtils,
     Constants,
@@ -73,6 +74,7 @@ import { SilentCacheClient } from "../interaction_client/SilentCacheClient.js";
 import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient.js";
 import {
     createBrowserAuthError,
+    BrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
@@ -2138,6 +2140,19 @@ export class StandardController implements IController {
                         })
                         .catch((e) => {
                             _resolve(false);
+                            // If the silent iframe timed out it means the AAD session is gone.
+                            // Convert to InteractionRequiredAuthError so callers can handle it
+                            // with the standard pattern (loginRedirect/loginPopup).
+                            // See: https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/8434
+                            if (
+                                e instanceof BrowserAuthError &&
+                                (e as AuthError).errorCode ===
+                                    BrowserAuthErrorCodes.timedOut
+                            ) {
+                                throw createInteractionRequiredAuthError(
+                                    InteractionRequiredAuthErrorCodes.loginRequired
+                                );
+                            }
                             throw e;
                         })
                         .finally(() => {
