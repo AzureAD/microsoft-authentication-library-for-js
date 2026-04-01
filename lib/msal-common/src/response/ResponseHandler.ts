@@ -654,8 +654,7 @@ export function buildAccountToCache(
      * the user's home identity) and environment (identifies the cloud) — the two
      * tenant-agnostic properties that uniquely locate a base AccountEntity.
      */
-    const accountEnvironment =
-        environment || authority.getPreferredCache();
+    const accountEnvironment = environment || authority.getPreferredCache();
     const matchedAccounts = cacheStorage.getAccountsFilteredBy(
         { homeAccountId, environment: accountEnvironment },
         correlationId
