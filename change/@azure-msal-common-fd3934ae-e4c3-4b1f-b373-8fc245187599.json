@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Fix tenant profile loss in cross-tenant B2B scenarios by replacing broken startsWith cache key lookup with entity-level matching via getAccountsFilteredBy [#8471](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8471)",
+    "packageName": "@azure/msal-common",
+    "email": "ruijungao@microsoft.com",
+    "dependentChangeType": "patch"
+}
