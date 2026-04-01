@@ -118,7 +118,8 @@ const testCacheManager = new MockStorageClass(
     TEST_CONFIG.MSAL_CLIENT_ID,
     cryptoInterface,
     logger,
-    new StubPerformanceClient()
+    new StubPerformanceClient(),
+    { canonicalAuthority: TEST_CONFIG.validAuthority }
 );
 
 const testAuthority = new Authority(
@@ -1314,6 +1315,186 @@ describe("ResponseHandler.ts", () => {
             expect(result.homeAccountId).toEqual(homeAccountId);
             expect(result.tenantProfiles).toHaveLength(1);
             expect(result.tenantProfiles?.[0].tenantId).toEqual(tenantId);
+        });
+
+        it("does not add duplicate tenant profile if tenant already exists in cache", () => {
+            const homeAccountId =
+                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
+            const tenantId = testIdTokenClaims.tid || "";
+            const environment = "login.windows.net";
+
+            const existingAccount = AccountEntityUtils.createAccountEntity(
+                {
+                    homeAccountId,
+                    idTokenClaims: {
+                        ...testIdTokenClaims,
+                        tid: tenantId,
+                    },
+                    environment,
+                },
+                testAuthority,
+                mockCrypto.base64Decode
+            );
+            existingAccount.tenantProfiles = [
+                {
+                    tenantId,
+                    localAccountId: existingAccount.localAccountId,
+                    isHomeTenant: true,
+                    username: testIdTokenClaims.preferred_username || "",
+                },
+            ];
+
+            jest.spyOn(
+                testCacheManager,
+                "getAccountsFilteredBy"
+            ).mockReturnValue([existingAccount]);
+
+            const result = buildAccountToCache(
+                testCacheManager,
+                testAuthority,
+                homeAccountId,
+                mockCrypto.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                testIdTokenClaims,
+                undefined,
+                environment,
+                tenantId
+            );
+
+            expect(result.tenantProfiles).toHaveLength(1);
+            expect(result.tenantProfiles?.[0].tenantId).toEqual(tenantId);
+        });
+
+        it("falls back to new account and logs warning when multiple accounts match homeAccountId", () => {
+            const homeAccountId =
+                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
+            const environment = "login.windows.net";
+
+            const account1 = AccountEntityUtils.createAccountEntity(
+                {
+                    homeAccountId,
+                    idTokenClaims: testIdTokenClaims,
+                    environment,
+                },
+                testAuthority,
+                mockCrypto.base64Decode
+            );
+            const account2 = AccountEntityUtils.createAccountEntity(
+                {
+                    homeAccountId,
+                    idTokenClaims: testIdTokenClaims,
+                    environment,
+                },
+                testAuthority,
+                mockCrypto.base64Decode
+            );
+
+            jest.spyOn(
+                testCacheManager,
+                "getAccountsFilteredBy"
+            ).mockReturnValue([account1, account2]);
+
+            const warningSpy = jest.spyOn(Logger.prototype, "warning");
+
+            const tenantId = testIdTokenClaims.tid || "";
+            const result = buildAccountToCache(
+                testCacheManager,
+                testAuthority,
+                homeAccountId,
+                mockCrypto.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                testIdTokenClaims,
+                undefined,
+                environment,
+                tenantId,
+                undefined,
+                undefined,
+                logger
+            );
+
+            expect(result.tenantProfiles).toHaveLength(1);
+            expect(warningSpy).toHaveBeenCalledWith(
+                expect.stringContaining("Multiple base accounts"),
+                expect.any(String)
+            );
+        });
+
+        it("uses account matching authority environment when multiple environments present in cache", () => {
+            const homeAccountId =
+                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
+
+            const accountWindows = AccountEntityUtils.createAccountEntity(
+                {
+                    homeAccountId,
+                    idTokenClaims: testIdTokenClaims,
+                    environment: "login.windows.net",
+                },
+                testAuthority,
+                mockCrypto.base64Decode
+            );
+            accountWindows.tenantProfiles = [
+                {
+                    tenantId: testIdTokenClaims.tid || "",
+                    localAccountId: accountWindows.localAccountId,
+                    isHomeTenant: true,
+                    username: testIdTokenClaims.preferred_username || "",
+                },
+            ];
+
+            const accountOther = AccountEntityUtils.createAccountEntity(
+                {
+                    homeAccountId,
+                    idTokenClaims: testIdTokenClaims,
+                    environment: "login.other-cloud.example",
+                },
+                testAuthority,
+                mockCrypto.base64Decode
+            );
+
+            const keyWindows = `${homeAccountId}-login.windows.net-${testIdTokenClaims.tid}`;
+            const keyOther = `${homeAccountId}-login.other-cloud.example-${testIdTokenClaims.tid}`;
+
+            jest.spyOn(testCacheManager, "getAccountKeys").mockReturnValue([
+                keyWindows,
+                keyOther,
+            ]);
+            jest.spyOn(testCacheManager, "getAccount").mockImplementation(
+                (key: string) => {
+                    if (key === keyWindows) return accountWindows;
+                    if (key === keyOther) return accountOther;
+                    return null;
+                }
+            );
+
+            const guestTenantId = "guest-tenant-id";
+            const result = buildAccountToCache(
+                testCacheManager,
+                testAuthority,
+                homeAccountId,
+                mockCrypto.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                {
+                    ...testIdTokenClaims,
+                    tid: guestTenantId,
+                },
+                undefined,
+                undefined, // no explicit environment; uses getPreferredCache() = "login.microsoftonline.com"
+                guestTenantId
+            );
+
+            // accountWindows should be matched via alias; accountOther should not match
+            expect(result.environment).toEqual("login.windows.net");
+            expect(result.tenantProfiles).toHaveLength(2);
+            expect(
+                result.tenantProfiles?.find(
+                    (tp) => tp.tenantId === testIdTokenClaims.tid
+                )
+            ).toBeDefined();
+            expect(
+                result.tenantProfiles?.find(
+                    (tp) => tp.tenantId === guestTenantId
+                )
+            ).toBeDefined();
         });
     });
 });
