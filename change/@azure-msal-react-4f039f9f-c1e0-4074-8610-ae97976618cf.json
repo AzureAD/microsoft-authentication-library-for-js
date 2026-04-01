@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Improve compatibility with `React.StrictMode` [#8383](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8383)",
-  "packageName": "@azure/msal-react",
-  "email": "herman.jensen@intility.no",
-  "dependentChangeType": "patch"
-}
