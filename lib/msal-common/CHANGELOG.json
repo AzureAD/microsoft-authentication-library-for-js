@@ -2,6 +2,33 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 01 Apr 2026 20:09:00 GMT",
+      "version": "16.4.1",
+      "tag": "@azure/msal-common_v16.4.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "9bde6b8cdb52d3716067590f6cce486f3614e808",
+            "comment": "Experimental iframe timeout debugging telemetry [#8470](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8470)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "9bde6b8cdb52d3716067590f6cce486f3614e808",
+            "comment": "Track online/offline status change [#8411](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8411)"
+          },
+          {
+            "author": "ruijungao@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "9bde6b8cdb52d3716067590f6cce486f3614e808",
+            "comment": "Fix tenant profile loss in cross-tenant B2B scenarios by replacing broken startsWith cache key lookup with entity-level matching via getAccountsFilteredBy [#8471](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8471)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 18 Mar 2026 20:47:24 GMT",
       "version": "16.4.0",
       "tag": "@azure/msal-common_v16.4.0",

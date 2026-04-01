@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-react
 
-<!-- This log was last generated on Fri, 27 Mar 2026 16:35:28 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 01 Apr 2026 20:09:00 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.2.1
+
+Wed, 01 Apr 2026 20:09:00 GMT
+
+### Patches
+
+- Improve compatibility with `React.StrictMode` [#8383](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8383) (herman.jensen@intility.no)
+- Bump @azure/msal-browser to v5.6.3
 
 ## 5.2.0
 
