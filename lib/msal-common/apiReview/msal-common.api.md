@@ -3465,6 +3465,7 @@ export type PerformanceEvent = {
     redirectBridgeTimeoutMs?: number;
     isRedirectUriCrossOrigin?: boolean;
     redirectBridgeMessageVersion?: number;
+    lateResponseExperimentEnabled?: boolean;
     idTokenSize?: number;
     accessTokenSize?: number;
     refreshTokenSize?: number | undefined;
@@ -4947,26 +4948,26 @@ const X_MS_LIB_CAPABILITY_VALUE: string;
 // src/telemetry/performance/PerformanceEvent.ts:193:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
 // src/telemetry/performance/PerformanceEvent.ts:193:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/telemetry/performance/PerformanceEvent.ts:193:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
-// src/telemetry/performance/PerformanceEvent.ts:227:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceEvent.ts:227:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/telemetry/performance/PerformanceEvent.ts:227:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
-// src/telemetry/performance/PerformanceEvent.ts:235:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceEvent.ts:235:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/telemetry/performance/PerformanceEvent.ts:235:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
-// src/telemetry/performance/PerformanceEvent.ts:244:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceEvent.ts:244:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/telemetry/performance/PerformanceEvent.ts:244:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
-// src/telemetry/performance/PerformanceEvent.ts:252:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceEvent.ts:252:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/telemetry/performance/PerformanceEvent.ts:252:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
-// src/telemetry/performance/PerformanceEvent.ts:259:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceEvent.ts:259:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/telemetry/performance/PerformanceEvent.ts:259:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
-// src/telemetry/performance/PerformanceEvent.ts:338:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceEvent.ts:338:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/telemetry/performance/PerformanceEvent.ts:338:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
-// src/telemetry/performance/PerformanceEvent.ts:409:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceEvent.ts:409:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/telemetry/performance/PerformanceEvent.ts:409:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:228:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:228:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:228:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:236:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:236:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:236:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:245:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:245:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:245:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:253:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:253:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:253:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:260:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:260:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:260:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:336:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:336:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:336:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:407:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:407:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:407:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
 
 ```
