@@ -1,5 +1,41 @@
+import { TestTimeUtils } from "msal-test-utils";
+import { AccountInfo } from "../../src/account/AccountInfo.js";
+import * as AuthToken from "../../src/account/AuthToken.js";
+import { TokenClaims } from "../../src/account/TokenClaims.js";
+import { Authority } from "../../src/authority/Authority.js";
+import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
+import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
+import { CacheManager } from "../../src/cache/CacheManager.js";
+import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
+import { ICrypto } from "../../src/crypto/ICrypto.js";
+import {
+    AuthError,
+    getDefaultErrorMessage,
+} from "../../src/error/AuthError.js";
+import { CacheError, CacheErrorCodes } from "../../src/error/CacheError.js";
+import { cacheQuotaExceeded } from "../../src/error/CacheErrorCodes.js";
+import {
+    ClientAuthError,
+    ClientAuthErrorCodes,
+} from "../../src/error/ClientAuthError.js";
+import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError.js";
+import { ServerError } from "../../src/error/ServerError.js";
+import { Logger, LogLevel } from "../../src/logger/Logger.js";
+import {
+    INetworkModule,
+    NetworkRequestOptions,
+} from "../../src/network/INetworkModule.js";
+import { BaseAuthRequest } from "../../src/request/BaseAuthRequest.js";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
+import {
+    buildAccountToCache,
+    ResponseHandler,
+} from "../../src/response/ResponseHandler.js";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse.js";
-import { ResponseHandler } from "../../src/response/ResponseHandler.js";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
+import { AuthenticationScheme } from "../../src/utils/Constants.js";
+import * as TimeUtils from "../../src/utils/TimeUtils.js";
+import { mockCrypto, MockStorageClass } from "../client/ClientTestUtils.js";
 import {
     AUTHENTICATION_RESULT,
     ID_TOKEN_CLAIMS,
@@ -11,39 +47,6 @@ import {
     TEST_TOKENS,
     TEST_URIS,
 } from "../test_kit/StringConstants.js";
-import { Authority } from "../../src/authority/Authority.js";
-import {
-    INetworkModule,
-    NetworkRequestOptions,
-} from "../../src/network/INetworkModule.js";
-import { ICrypto } from "../../src/crypto/ICrypto.js";
-import { mockCrypto, MockStorageClass } from "../client/ClientTestUtils.js";
-import { TokenClaims } from "../../src/account/TokenClaims.js";
-import { AccountInfo } from "../../src/account/AccountInfo.js";
-import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
-import { AuthenticationScheme } from "../../src/utils/Constants.js";
-import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
-import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
-import { Logger, LogLevel } from "../../src/logger/Logger.js";
-import * as AuthToken from "../../src/account/AuthToken.js";
-import { BaseAuthRequest } from "../../src/request/BaseAuthRequest.js";
-import * as TimeUtils from "../../src/utils/TimeUtils.js";
-import {
-    AuthError,
-    getDefaultErrorMessage,
-} from "../../src/error/AuthError.js";
-import {
-    ClientAuthError,
-    ClientAuthErrorCodes,
-} from "../../src/error/ClientAuthError.js";
-import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError.js";
-import { ServerError } from "../../src/error/ServerError.js";
-import { CacheError, CacheErrorCodes } from "../../src/error/CacheError.js";
-import { CacheManager } from "../../src/cache/CacheManager.js";
-import { cacheQuotaExceeded } from "../../src/error/CacheErrorCodes.js";
-import { TestTimeUtils } from "msal-test-utils";
-import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
-import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -115,7 +118,8 @@ const testCacheManager = new MockStorageClass(
     TEST_CONFIG.MSAL_CLIENT_ID,
     cryptoInterface,
     logger,
-    new StubPerformanceClient()
+    new StubPerformanceClient(),
+    { canonicalAuthority: TEST_CONFIG.validAuthority }
 );
 
 const testAuthority = new Authority(
@@ -1211,6 +1215,286 @@ describe("ResponseHandler.ts", () => {
                     getDefaultErrorMessage(CacheErrorCodes.cacheErrorUnknown)
                 );
             }
+        });
+    });
+
+    describe("buildAccountToCache", () => {
+        it("reuses cached account when cache keys have a prefix not starting with homeAccountId", () => {
+            const homeAccountId =
+                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
+            const homeTenantId = homeAccountId.split(".")[1];
+            const environment = "login.windows.net";
+
+            // Create an AccountEntity already in cache with a home tenant profile
+            const existingAccount = AccountEntityUtils.createAccountEntity(
+                {
+                    homeAccountId,
+                    idTokenClaims: {
+                        ...testIdTokenClaims,
+                        tid: homeTenantId,
+                    },
+                    environment,
+                },
+                testAuthority,
+                mockCrypto.base64Decode
+            );
+            existingAccount.tenantProfiles = [
+                {
+                    tenantId: homeTenantId,
+                    localAccountId: existingAccount.localAccountId,
+                    isHomeTenant: true,
+                    username: testIdTokenClaims.preferred_username || "",
+                },
+            ];
+
+            // Simulate a cache key with a prefix (like msal-browser's "msal.2|" prefix)
+            const prefixedKey = `msal.2|${homeAccountId}|${environment}|${homeTenantId}`;
+
+            // Override getAccountKeys and getAccount to use prefixed keys
+            jest.spyOn(testCacheManager, "getAccountKeys").mockReturnValue([
+                prefixedKey,
+            ]);
+            jest.spyOn(testCacheManager, "getAccount").mockImplementation(
+                (key: string) => {
+                    if (key === prefixedKey) {
+                        return existingAccount;
+                    }
+                    return null;
+                }
+            );
+
+            const guestTenantId = "guest-tenant-id";
+            const result = buildAccountToCache(
+                testCacheManager,
+                testAuthority,
+                homeAccountId,
+                mockCrypto.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                {
+                    ...testIdTokenClaims,
+                    tid: guestTenantId,
+                },
+                undefined, // clientInfo
+                environment,
+                guestTenantId
+            );
+
+            // Should preserve the existing home tenant profile and add guest
+            expect(result.tenantProfiles).toHaveLength(2);
+            expect(
+                result.tenantProfiles?.find(
+                    (tp) => tp.tenantId === homeTenantId
+                )
+            ).toBeDefined();
+            expect(
+                result.tenantProfiles?.find(
+                    (tp) => tp.tenantId === guestTenantId
+                )
+            ).toBeDefined();
+        });
+
+        it("creates new account when no cached account matches homeAccountId", () => {
+            jest.spyOn(testCacheManager, "getAccountKeys").mockReturnValue([]);
+
+            const homeAccountId =
+                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
+            const tenantId = testIdTokenClaims.tid || "";
+
+            const result = buildAccountToCache(
+                testCacheManager,
+                testAuthority,
+                homeAccountId,
+                mockCrypto.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                testIdTokenClaims,
+                undefined,
+                "login.windows.net",
+                tenantId
+            );
+
+            expect(result.homeAccountId).toEqual(homeAccountId);
+            expect(result.tenantProfiles).toHaveLength(1);
+            expect(result.tenantProfiles?.[0].tenantId).toEqual(tenantId);
+        });
+
+        it("does not add duplicate tenant profile if tenant already exists in cache", () => {
+            const homeAccountId =
+                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
+            const tenantId = testIdTokenClaims.tid || "";
+            const environment = "login.windows.net";
+
+            const existingAccount = AccountEntityUtils.createAccountEntity(
+                {
+                    homeAccountId,
+                    idTokenClaims: {
+                        ...testIdTokenClaims,
+                        tid: tenantId,
+                    },
+                    environment,
+                },
+                testAuthority,
+                mockCrypto.base64Decode
+            );
+            existingAccount.tenantProfiles = [
+                {
+                    tenantId,
+                    localAccountId: existingAccount.localAccountId,
+                    isHomeTenant: true,
+                    username: testIdTokenClaims.preferred_username || "",
+                },
+            ];
+
+            jest.spyOn(
+                testCacheManager,
+                "getAccountsFilteredBy"
+            ).mockReturnValue([existingAccount]);
+
+            const result = buildAccountToCache(
+                testCacheManager,
+                testAuthority,
+                homeAccountId,
+                mockCrypto.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                testIdTokenClaims,
+                undefined,
+                environment,
+                tenantId
+            );
+
+            expect(result.tenantProfiles).toHaveLength(1);
+            expect(result.tenantProfiles?.[0].tenantId).toEqual(tenantId);
+        });
+
+        it("falls back to new account and logs warning when multiple accounts match homeAccountId", () => {
+            const homeAccountId =
+                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
+            const environment = "login.windows.net";
+
+            const account1 = AccountEntityUtils.createAccountEntity(
+                {
+                    homeAccountId,
+                    idTokenClaims: testIdTokenClaims,
+                    environment,
+                },
+                testAuthority,
+                mockCrypto.base64Decode
+            );
+            const account2 = AccountEntityUtils.createAccountEntity(
+                {
+                    homeAccountId,
+                    idTokenClaims: testIdTokenClaims,
+                    environment,
+                },
+                testAuthority,
+                mockCrypto.base64Decode
+            );
+
+            jest.spyOn(
+                testCacheManager,
+                "getAccountsFilteredBy"
+            ).mockReturnValue([account1, account2]);
+
+            const warningSpy = jest.spyOn(Logger.prototype, "warning");
+
+            const tenantId = testIdTokenClaims.tid || "";
+            const result = buildAccountToCache(
+                testCacheManager,
+                testAuthority,
+                homeAccountId,
+                mockCrypto.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                testIdTokenClaims,
+                undefined,
+                environment,
+                tenantId,
+                undefined,
+                undefined,
+                logger
+            );
+
+            expect(result.tenantProfiles).toHaveLength(1);
+            expect(warningSpy).toHaveBeenCalledWith(
+                expect.stringContaining("Multiple base accounts"),
+                expect.any(String)
+            );
+        });
+
+        it("uses account matching authority environment when multiple environments present in cache", () => {
+            const homeAccountId =
+                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
+
+            const accountWindows = AccountEntityUtils.createAccountEntity(
+                {
+                    homeAccountId,
+                    idTokenClaims: testIdTokenClaims,
+                    environment: "login.windows.net",
+                },
+                testAuthority,
+                mockCrypto.base64Decode
+            );
+            accountWindows.tenantProfiles = [
+                {
+                    tenantId: testIdTokenClaims.tid || "",
+                    localAccountId: accountWindows.localAccountId,
+                    isHomeTenant: true,
+                    username: testIdTokenClaims.preferred_username || "",
+                },
+            ];
+
+            const accountOther = AccountEntityUtils.createAccountEntity(
+                {
+                    homeAccountId,
+                    idTokenClaims: testIdTokenClaims,
+                    environment: "login.other-cloud.example",
+                },
+                testAuthority,
+                mockCrypto.base64Decode
+            );
+
+            const keyWindows = `${homeAccountId}-login.windows.net-${testIdTokenClaims.tid}`;
+            const keyOther = `${homeAccountId}-login.other-cloud.example-${testIdTokenClaims.tid}`;
+
+            jest.spyOn(testCacheManager, "getAccountKeys").mockReturnValue([
+                keyWindows,
+                keyOther,
+            ]);
+            jest.spyOn(testCacheManager, "getAccount").mockImplementation(
+                (key: string) => {
+                    if (key === keyWindows) return accountWindows;
+                    if (key === keyOther) return accountOther;
+                    return null;
+                }
+            );
+
+            const guestTenantId = "guest-tenant-id";
+            const result = buildAccountToCache(
+                testCacheManager,
+                testAuthority,
+                homeAccountId,
+                mockCrypto.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                {
+                    ...testIdTokenClaims,
+                    tid: guestTenantId,
+                },
+                undefined,
+                undefined, // no explicit environment; uses getPreferredCache() = "login.microsoftonline.com"
+                guestTenantId
+            );
+
+            // accountWindows should be matched via alias; accountOther should not match
+            expect(result.environment).toEqual("login.windows.net");
+            expect(result.tenantProfiles).toHaveLength(2);
+            expect(
+                result.tenantProfiles?.find(
+                    (tp) => tp.tenantId === testIdTokenClaims.tid
+                )
+            ).toBeDefined();
+            expect(
+                result.tenantProfiles?.find(
+                    (tp) => tp.tenantId === guestTenantId
+                )
+            ).toBeDefined();
         });
     });
 });
