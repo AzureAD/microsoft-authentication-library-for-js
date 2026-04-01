@@ -3,36 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
-import { ICrypto } from "../crypto/ICrypto.js";
 import {
-    ClientAuthErrorCodes,
-    createClientAuthError,
-} from "../error/ClientAuthError.js";
-import { Logger } from "../logger/Logger.js";
-import { ServerError } from "../error/ServerError.js";
-import { ScopeSet } from "../request/ScopeSet.js";
-import { AuthenticationResult } from "./AuthenticationResult.js";
-import { AccountEntity } from "../cache/entities/AccountEntity.js";
-import { Authority } from "../authority/Authority.js";
-import { IdTokenEntity } from "../cache/entities/IdTokenEntity.js";
-import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity.js";
-import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity.js";
-import {
-    InteractionRequiredAuthError,
-    isInteractionRequiredError,
-} from "../error/InteractionRequiredAuthError.js";
-import { CacheRecord } from "../cache/entities/CacheRecord.js";
-import { CacheManager } from "../cache/CacheManager.js";
-import * as ProtocolUtils from "../utils/ProtocolUtils.js";
-import * as Constants from "../utils/Constants.js";
-import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
-import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity.js";
-import { ICachePlugin } from "../cache/interface/ICachePlugin.js";
-import { TokenCacheContext } from "../cache/persistence/TokenCacheContext.js";
-import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache.js";
-import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
-import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
+    AccountInfo,
+    buildTenantProfile,
+    updateAccountTenantProfileData,
+} from "../account/AccountInfo.js";
 import {
     checkMaxAge,
     extractTokenClaims,
@@ -42,16 +17,41 @@ import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,
 } from "../account/TokenClaims.js";
-import {
-    AccountInfo,
-    buildTenantProfile,
-    updateAccountTenantProfileData,
-} from "../account/AccountInfo.js";
-import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
-import * as TimeUtils from "../utils/TimeUtils.js";
+import { Authority } from "../authority/Authority.js";
+import { CacheManager } from "../cache/CacheManager.js";
+import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity.js";
+import { AccountEntity } from "../cache/entities/AccountEntity.js";
+import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity.js";
+import { CacheRecord } from "../cache/entities/CacheRecord.js";
+import { IdTokenEntity } from "../cache/entities/IdTokenEntity.js";
+import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity.js";
+import { ICachePlugin } from "../cache/interface/ICachePlugin.js";
+import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache.js";
+import { TokenCacheContext } from "../cache/persistence/TokenCacheContext.js";
 import * as AccountEntityUtils from "../cache/utils/AccountEntityUtils.js";
+import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
+import { ICrypto } from "../crypto/ICrypto.js";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError.js";
+import {
+    InteractionRequiredAuthError,
+    isInteractionRequiredError,
+} from "../error/InteractionRequiredAuthError.js";
+import { ServerError } from "../error/ServerError.js";
+import { Logger } from "../logger/Logger.js";
+import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
+import { ScopeSet } from "../request/ScopeSet.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import * as Constants from "../utils/Constants.js";
+import * as ProtocolUtils from "../utils/ProtocolUtils.js";
 import { RequestStateObject } from "../utils/StateTypes.js";
+import * as TimeUtils from "../utils/TimeUtils.js";
+import { AuthenticationResult } from "./AuthenticationResult.js";
+import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
+import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
 
 /**
  * Class that handles response parsing.
@@ -398,7 +398,8 @@ export class ResponseHandler {
                 claimsTenantId,
                 authCodePayload,
                 undefined, // nativeAccountId
-                this.logger
+                this.logger,
+                this.performanceClient
             );
         }
 
@@ -643,20 +644,39 @@ export function buildAccountToCache(
     claimsTenantId?: string | null,
     authCodePayload?: AuthorizationCodePayload,
     nativeAccountId?: string,
-    logger?: Logger
+    logger?: Logger,
+    performanceClient?: IPerformanceClient
 ): AccountEntity {
     logger?.verbose("setCachedAccount called", correlationId);
 
-    // Check if base account is already cached
-    const accountKeys = cacheStorage.getAccountKeys();
-    const baseAccountKey = accountKeys.find((accountKey: string) => {
-        return accountKey.startsWith(homeAccountId);
-    });
+    /*
+     * Check if base account is already cached. Filter by homeAccountId (identifies
+     * the user's home identity) and environment (identifies the cloud) — the two
+     * tenant-agnostic properties that uniquely locate a base AccountEntity.
+     */
+    const accountEnvironment = environment || authority.getPreferredCache();
+    const matchedAccounts = cacheStorage.getAccountsFilteredBy(
+        { homeAccountId, environment: accountEnvironment },
+        correlationId
+    );
+    performanceClient?.addFields(
+        { cacheMatchedAccounts: matchedAccounts.length },
+        correlationId
+    );
 
-    let cachedAccount: AccountEntity | null = null;
-    if (baseAccountKey) {
-        cachedAccount = cacheStorage.getAccount(baseAccountKey, correlationId);
+    if (matchedAccounts.length > 1) {
+        /*
+         * Base accounts are expected to be unique for a given homeAccountId in normal cache usage.
+         * If multiple matches exist, ignore the cache hit rather than arbitrarily choosing one.
+         */
+        logger?.warning(
+            "Multiple base accounts matched homeAccountId. Ignoring cached account and creating a new base account.",
+            correlationId
+        );
     }
+
+    const cachedAccount =
+        matchedAccounts.length === 1 ? matchedAccounts[0] : null;
 
     const baseAccount =
         cachedAccount ||

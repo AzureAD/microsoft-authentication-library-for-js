@@ -2,6 +2,39 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 01 Apr 2026 20:08:59 GMT",
+      "version": "5.6.3",
+      "tag": "@azure/msal-browser_v5.6.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9bde6b8cdb52d3716067590f6cce486f3614e808",
+            "comment": "Track online/offline status change [#8411](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8411)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9bde6b8cdb52d3716067590f6cce486f3614e808",
+            "comment": "Experimental iframe timeout debugging telemetry [#8470](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8470)"
+          },
+          {
+            "author": "ruijungao@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9bde6b8cdb52d3716067590f6cce486f3614e808",
+            "comment": "Thread performanceClient through buildAccountToCache callers for telemetry [#8471](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8471)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.4.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 27 Mar 2026 16:35:28 GMT",
       "version": "5.6.2",
       "tag": "@azure/msal-browser_v5.6.2",
