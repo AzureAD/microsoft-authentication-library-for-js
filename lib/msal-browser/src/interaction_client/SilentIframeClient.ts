@@ -305,7 +305,8 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.logger,
                 this.browserCrypto,
                 request,
-                this.performanceClient
+                this.performanceClient,
+                this.config.experimental
             );
         } finally {
             invoke(
@@ -483,7 +484,8 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.logger,
                 this.browserCrypto,
                 request,
-                this.performanceClient
+                this.performanceClient,
+                this.config.experimental
             );
         } finally {
             invoke(
