@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Wed, 18 Mar 2026 20:47:24 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 01 Apr 2026 17:36:16 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.4.1
+
+Wed, 01 Apr 2026 17:36:16 GMT
+
+### Patches
+
+- Experimental iframe timeout debugging telemetry [#8470](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8470) (thomas.norling@microsoft.com)
+- Track online/offline status change [#8411](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8411) (thomas.norling@microsoft.com)
 
 ## 16.4.0
 
