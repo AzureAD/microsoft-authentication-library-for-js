@@ -91,7 +91,7 @@ const cca = new ConfidentialClientApplication({
 
 const result = await cca.acquireTokenByClientCredential({
     scopes: ["https://graph.microsoft.com/.default"],
-    azureRegion: "eastus",                              // ← required for SNI certificates and mTLS PoP
+    azureRegion: "eastus",                              // optional: use regional mTLS endpoint
     authenticationScheme: AuthenticationScheme.MTLS_POP,
 });
 
@@ -133,7 +133,7 @@ https.request(
 | Requirement | Details |
 |---|---|
 | **Authority must be tenanted** | Use `https://login.microsoftonline.com/{tenantId}`. `/common` and `/organizations` are not supported and will throw an error. |
-| **`azureRegion` is required** | The mTLS endpoint is regional: `https://{region}.mtlsauth.microsoft.com/{tenantId}/...`. No auto-discovery — you must provide the region explicitly. |
+| **`azureRegion` is optional** | If provided, uses the regional mTLS endpoint: `https://{region}.mtlsauth.microsoft.com/{tenantId}/...`. If omitted, uses the non-regional endpoint (`https://mtlsauth.microsoft.com/{tenantId}/...`) — the STS infers the region from the SNI certificate. |
 | **`clientCertificate.x5c` is required** | The public certificate PEM. This is what MSAL uses for the TLS handshake. |
 | **`clientCertificate.privateKey` is required** | The private key corresponding to the certificate. Accepts a PEM string (`string`) or a `KeyObject` from `node:crypto` (for hardware-backed keys — see [Hardware-backed private keys](#hardware-backed-private-keys)). |
 | **SNI certificate (for production)** | In production the certificate must be issued by a Microsoft-trusted CA (OneCert / MSFT PKI) and registered with your Azure AD app registration. See [SNI documentation](./sni.md). |
@@ -143,7 +143,7 @@ https.request(
 | Requirement | Details |
 |---|---|
 | **Windows only** | KeyGuard RSA keys require Windows VBS (Virtualization-Based Security). |
-| **`x64` or `arm64`** | Other architectures not supported. |
+| **`x64` only** | arm64 is not yet validated (`AttestationClientLib.dll` does not ship for arm64). |
 | **Azure VM with Managed Identity configured** | System-assigned or user-assigned. |
 | **.NET 8 runtime on the VM** | `MsalMtlsMsiHelper.exe` is a framework-dependent binary. Check with `dotnet --version`. Pre-installed on most Azure VM images. |
 
@@ -154,6 +154,18 @@ https.request(
 mTLS PoP tokens are cached separately from Bearer tokens for the same scope. The `authenticationScheme` is part of the cache key, so calling `acquireTokenByClientCredential` with `authenticationScheme: AuthenticationScheme.MTLS_POP` will never return a cached Bearer token (and vice versa).
 
 Token caching behaves identically to other client credential flows — cache hits return the existing token, background refresh occurs when `refreshOn` is exceeded, and `skipCache: true` forces a fresh token.
+
+---
+
+## Limitations
+
+### Downstream mTLS resource calls (MSI path)
+
+For the **Managed Identity path**, the `bindingCertificate` in `AuthenticationResult` is the public X.509 certificate (PEM) that Entra STS bound to the access token. It is provided for **informational purposes**.
+
+**Node.js cannot use this certificate to make downstream mTLS resource calls.** The corresponding KeyGuard private key is non-exportable from Windows CNG, so `https.Agent({ cert, key })` cannot be constructed. Any downstream mTLS connections using the same key material would also need to go through the .NET layer. This is tracked as future work.
+
+For the **Confidential Client / SNI cert path**, you hold the private key directly (via `clientCertificate.privateKey`), so `https.Agent({ cert: result.bindingCertificate, key })` works as expected.
 
 ---
 

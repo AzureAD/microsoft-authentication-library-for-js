@@ -19,7 +19,7 @@ subprocess, parsing the token response, and returning a standard `Authentication
 ## Requirements
 
 - **Windows only** — the KeyGuard key requires Windows VBS
-- `x64` or `arm64` architecture
+- `x64` architecture (`arm64` is not yet supported — see [Requirements](#requirements-full-list))
 - Azure VM with a Managed Identity configured
 - **.NET 8 runtime** installed on the VM (check with `dotnet --version`; pre-installed on most Azure VM images)
 - **VBS (Virtualization-Based Security)** enabled on the VM for KeyGuard key creation
@@ -101,15 +101,15 @@ VM's managed identity metadata independently.
 
 ```
 Node.js
-  ├─[1] GET /metadata/identity/getplatformmetadata  (plain HTTP to IMDS)
-  ├─[2] spawn MsalMtlsMsiHelper.exe
+  ├─[1] spawn MsalMtlsMsiHelper.exe
+  │       ├─ GET /metadata/identity/getplatformmetadata  (IMDS, plain HTTP)
   │       ├─ Get/create KeyGuard RSA key (Windows CNG / VBS)
   │       ├─ Generate CSR (embedded clientId/tenantId/cuId)
   │       ├─ [optional] MAA attestation via AttestationClientLib.dll
   │       ├─ POST /metadata/identity/issuecredential → X.509 binding cert
   │       └─ POST {mtlsEndpoint}/{tenantId}/oauth2/v2.0/token (mTLS)
-  │             → { access_token, token_type, expires_in }
-  └─[3] Return AuthenticationResult
+  │             → { access_token, token_type, expires_in, tenant_id, client_id }
+  └─[2] Return AuthenticationResult
 ```
 
 ## Requirements (full list)
@@ -117,7 +117,7 @@ Node.js
 | Requirement | Notes |
 |---|---|
 | **Windows only** | KeyGuard RSA keys require Windows VBS |
-| `x64` or `arm64` | Other architectures not supported |
+| `x64` | Only x64 is supported. arm64 is not yet validated (`AttestationClientLib.dll` does not ship for arm64 in the current NuGet package). |
 | **Azure VM with Managed Identity** | System-assigned or user-assigned |
 | **.NET 8 runtime** | `MsalMtlsMsiHelper.exe` is a framework-dependent binary. .NET 8 is pre-installed on most Azure VM images. Check with `dotnet --version`. |
 
@@ -179,7 +179,38 @@ The `.github/workflows/msal-node-mtls-extensions.yml` workflow:
 
 For npm publish, the release CI must run `npm run build:binaries` on a `windows-latest` runner before `npm publish`. The `prepack` script enforces this — publishing will fail if the binaries are absent.
 
-## See also
+## Why a subprocess instead of a native Node.js addon?
+
+The KeyGuard RSA key used for the mTLS handshake is managed by Windows CNG (Cryptography Next Generation) and is physically non-exportable. Implementing this in a native Node.js addon (NAPI/node-gyp) was evaluated and rejected for the following reasons:
+
+1. **No built-in CNG API in Node.js.** Creating and using a KeyGuard key requires `NCryptOpenKey` / `NCryptCreatePersistedKey` — Windows CNG APIs that Node.js does not expose.
+
+2. **Native addon complexity.** A NAPI addon could call CNG in theory, but it would need to be compiled and distributed as a `.node` binary for every combination of Node.js version, OS version, and architecture. This requires a separate build/publish pipeline and ongoing N-API ABI compatibility maintenance.
+
+3. **Node `tls` module limitation.** Even if the key were exposed as a `CryptoKey` object, Node.js's `tls` module requires in-process exportable key material for the TLS handshake — a CNG-backed key handle cannot be passed to `https.Agent`.
+
+4. **The subprocess is the intended architecture.** The .NET subprocess gives us the full msal-dotnet MSI mTLS stack (KeyGuard, IMDS, MAA, mTLS token request) with minimal code — the same approach msal-dotnet itself uses internally. This is not a temporary bootstrap.
+
+## Limitations
+
+### Downstream mTLS resource calls
+
+The `bindingCertificate` returned in `AuthenticationResult` is the public X.509 certificate (PEM) that Entra STS bound to the access token. It is provided for **informational purposes** — for example, to inspect or log which certificate was used.
+
+**Node.js cannot use this certificate to make downstream mTLS resource calls.** The corresponding KeyGuard private key is non-exportable from Windows CNG, so `https.Agent({ cert, key })` cannot be constructed. Any downstream mTLS connections using the same key material would also need to go through the .NET layer.
+
+This is tracked as future work.
+
+## Support and servicing
+
+`MsalMtlsMsiHelper.exe` is versioned and published as part of this npm package, following the same semver cadence as the rest of msal-js:
+
+- **NuGet version pinning:** The exact versions of `Microsoft.Identity.Client` and `Microsoft.Identity.Client.KeyAttestation` used are pinned in `native/MsalMtlsMsiHelper/MsalMtlsMsiHelper.csproj`.
+- **Security updates:** When msal-dotnet releases a security fix affecting the MSI mTLS flow, the helper source must be updated, the binary rebuilt (`npm run build:binaries`), and the npm package republished. This typically results in a **patch version bump**.
+- **Breaking API changes:** If msal-dotnet makes breaking changes to `AcquireTokenForManagedIdentity().WithMtlsProofOfPossession()`, the helper must be updated. This would result at minimum in a **minor version bump** of this package.
+- **Runtime dependency:** Consumers need the `.NET 8 runtime` installed on the VM (not the SDK). The runtime version requirement will only change if msal-dotnet requires a newer runtime in a future update.
+
+
 
 - [`lib/msal-node/docs/mtls-pop.md`](../../lib/msal-node/docs/mtls-pop.md) — full design docs
   for mTLS PoP in msal-node (covers both the CCA/SNI cert path and this Managed Identity path)

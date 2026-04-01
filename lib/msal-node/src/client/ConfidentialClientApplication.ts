@@ -206,10 +206,6 @@ export class ConfidentialClientApplication
             if (!hasCert) {
                 throw NodeAuthError.createMtlsPopCertificateRequiredError();
             }
-
-            if (!validRequest.azureRegion) {
-                throw NodeAuthError.createMtlsPopRegionRequiredError();
-            }
         }
 
         /*

@@ -2,10 +2,12 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  *
- * Builds MsalMtlsMsiHelper.exe for win-x64 and win-arm64 via `dotnet publish`.
+ * Builds MsalMtlsMsiHelper.exe for win-x64 via `dotnet publish`.
  * Runs as `npm run build:binaries` and is called by `prepack`.
  *
  * Requirements: .NET 8 SDK installed and on PATH.
+ * Note: Only win-x64 is supported. arm64 is not yet validated (AttestationClientLib.dll
+ * does not ship for arm64 in the NuGet package).
  */
 
 const { platform } = require("process");
@@ -20,7 +22,7 @@ if (platform !== "win32") {
     process.exit(0);
 }
 
-const architectures = ["x64", "arm64"];
+const architectures = ["x64"];
 const projectDir = path.join(
     __dirname,
     "..",
@@ -36,7 +38,6 @@ if (!fs.existsSync(binDir)) {
 // Map arch to NuGet RID and MSBuild PlatformTarget
 const archMeta = {
     x64: { platformTarget: "x64" },
-    arm64: { platformTarget: "arm64" },
 };
 
 // Architectures that include AttestationClientLib.dll in the NuGet package.

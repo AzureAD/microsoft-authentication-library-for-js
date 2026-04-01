@@ -7,7 +7,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>MsalMtlsMsiHelper</AssemblyName>
     <RootNamespace>MsalMtlsMsiHelper</RootNamespace>
-    <!-- Self-contained publish produces a single .exe with no .NET runtime dependency -->
+    <!-- Framework-dependent publish: the .NET 8 runtime must be installed on the target machine
+         (pre-installed on most Azure VM images). SelfContained=false is intentional — a
+         self-contained publish would bundle the full .NET 8 runtime (~65 MB) into the npm package,
+         which is impractical for distribution. -->
     <SelfContained>false</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>

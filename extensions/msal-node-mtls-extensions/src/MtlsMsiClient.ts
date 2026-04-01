@@ -9,7 +9,6 @@ import * as os from "os";
 import { createRequire } from "module";
 import { AuthenticationScheme } from "@azure/msal-node";
 import type { AuthenticationResult } from "@azure/msal-node";
-import { getPlatformMetadata } from "./ImdsClient.js";
 
 // Resolve __dirname for both CJS (test/jest) and ESM (runtime) contexts.
 // In CJS environments require is defined; in ESM we need import.meta.url.
@@ -100,6 +99,8 @@ interface HelperTokenResponse {
     token_type: string;
     expires_in: number;
     binding_certificate?: string;
+    tenant_id?: string;
+    client_id?: string;
 }
 
 /** JSON written to stderr by MsalMtlsMsiHelper.exe on failure. */
@@ -124,12 +125,12 @@ function getHelperPath(): string {
         );
     }
 
-    const arch = os.arch(); // "x64" or "arm64"
-    const supportedArches = ["x64", "arm64"];
+    const arch = os.arch();
+    const supportedArches = ["x64"];
     if (!supportedArches.includes(arch)) {
         throw new Error(
             `Unsupported architecture "${arch}" for Managed Identity mTLS PoP. ` +
-                `Supported: ${supportedArches.join(", ")}.`
+                `Only x64 is currently supported (arm64 is not yet validated).`
         );
     }
 
@@ -232,13 +233,13 @@ function runHelper(
  *
  * This function:
  * 1. Returns a cached token if one exists and is not near expiry.
- * 2. Calls IMDS `/metadata/identity/getplatformmetadata` (plain HTTP).
- * 3. Spawns `MsalMtlsMsiHelper.exe` which handles all Windows-specific steps:
+ * 2. Spawns `MsalMtlsMsiHelper.exe` which handles all Windows-specific steps:
  *    - KeyGuard RSA key creation (Windows CNG / VBS)
  *    - CSR generation and IMDS `/issuecredential` call
  *    - Optional MAA attestation (`--with-attestation`)
  *    - mTLS token request to the regional STS endpoint
- * 4. Caches the result and returns a standard `AuthenticationResult`.
+ *    - Returns `tenant_id` and `client_id` in the JSON response
+ * 3. Caches the result and returns a standard `AuthenticationResult`.
  *
  * @remarks
  * **Windows only.** The KeyGuard RSA key used to authenticate the mTLS TLS
@@ -264,19 +265,9 @@ export async function acquireMtlsMsiToken(
 
     const helperPath = getHelperPath();
 
-    // Fetch IMDS metadata to get tenantId for the AuthenticationResult.
-    // The helper also fetches it internally; this call is for building
-    // AuthenticationResult fields only.
-    let tenantId: string | undefined;
-    try {
-        const metadata = await getPlatformMetadata();
-        tenantId = metadata.tenantId;
-    } catch {
-        // Non-fatal — helper will fetch it independently
-    }
-
     const helperResult = await runHelper(helperPath, request);
 
+    const tenantId = helperResult.tenant_id;
     const expiresOn = new Date(
         Date.now() + helperResult.expires_in * 1000
     );

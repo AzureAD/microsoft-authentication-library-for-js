@@ -362,15 +362,17 @@ export class ClientCredentialClient extends BaseClient {
     /**
      * Performs the mTLS Proof-of-Possession token request.
      * The mTLS handshake authenticates the client, so no client_assertion is sent.
-     * The token request is sent to the regional mtlsauth.microsoft.com endpoint.
+     * The token request is sent to the mtlsauth.microsoft.com endpoint.
+     * If azureRegion is provided, uses the regional endpoint; otherwise uses the non-regional endpoint.
+     * The STS can infer the region from the SNI certificate, so providing a region is optional.
      */
     private async executeMtlsTokenRequest(
         request: CommonClientCredentialRequest,
         authority: Authority
     ): Promise<ServerAuthorizationTokenResponse> {
-        const region = request.azureRegion as string;
+        const region = request.azureRegion as string | undefined;
         const tenantId = authority.tenant;
-        const mtlsEndpoint = buildMtlsTokenEndpoint(region, tenantId);
+        const mtlsEndpoint = buildMtlsTokenEndpoint(tenantId, region);
 
         const requestBody = await this.createTokenRequestBody(request);
         const headers: Record<string, string> =

@@ -648,29 +648,6 @@ describe("ConfidentialClientApplication – mTLS PoP", () => {
         jest.restoreAllMocks();
     });
 
-    it("throws NodeAuthError when azureRegion is missing for mTLS PoP", async () => {
-        const cca = new ConfidentialClientApplication(buildMtlsConfig());
-
-        await expect(
-            cca.acquireTokenByClientCredential({
-                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-                authenticationScheme:
-                    CommonConstants.AuthenticationScheme.MTLS_POP,
-                // azureRegion intentionally omitted
-            })
-        ).rejects.toBeInstanceOf(NodeAuthError);
-
-        await expect(
-            cca.acquireTokenByClientCredential({
-                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-                authenticationScheme:
-                    CommonConstants.AuthenticationScheme.MTLS_POP,
-            })
-        ).rejects.toMatchObject({
-            errorCode: "mtls_pop_region_required",
-        });
-    });
-
     it("throws NodeAuthError when x5c is missing for mTLS PoP", async () => {
         const cca = new ConfidentialClientApplication(
             buildMtlsConfig({
@@ -687,7 +664,6 @@ describe("ConfidentialClientApplication – mTLS PoP", () => {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 authenticationScheme:
                     CommonConstants.AuthenticationScheme.MTLS_POP,
-                azureRegion: "eastus",
             })
         ).rejects.toMatchObject({
             errorCode: "mtls_pop_certificate_required",
@@ -707,7 +683,6 @@ describe("ConfidentialClientApplication – mTLS PoP", () => {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 authenticationScheme:
                     CommonConstants.AuthenticationScheme.MTLS_POP,
-                azureRegion: "eastus",
             })
         ).rejects.toMatchObject({
             errorCode: "mtls_pop_certificate_required",

@@ -49,10 +49,6 @@ export const NodeAuthErrorMessage = {
         code: "mtls_pop_certificate_required",
         desc: "mTLS Proof-of-Possession requires a client certificate with both a private key and a public certificate (x5c). Please ensure clientCertificate.privateKey and clientCertificate.x5c are set in the application configuration.",
     },
-    mtlsPopRegionRequired: {
-        code: "mtls_pop_region_required",
-        desc: "mTLS Proof-of-Possession requires an Azure region to construct the mTLS endpoint. Please set azureRegion on the token request.",
-    },
 };
 
 export class NodeAuthError extends AuthError {
@@ -159,16 +155,6 @@ export class NodeAuthError extends AuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.mtlsPopCertificateRequired.code,
             NodeAuthErrorMessage.mtlsPopCertificateRequired.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when mTLS PoP is requested but azureRegion is not set on the request.
-     */
-    static createMtlsPopRegionRequiredError(): NodeAuthError {
-        return new NodeAuthError(
-            NodeAuthErrorMessage.mtlsPopRegionRequired.code,
-            NodeAuthErrorMessage.mtlsPopRegionRequired.desc
         );
     }
 }

@@ -5,27 +5,35 @@
 
 /**
  * Public cloud mTLS authentication base host.
- * The token endpoint is: https://{region}.mtlsauth.microsoft.com/{tenantId}/oauth2/v2.0/token
+ * Regional endpoint: https://{region}.mtlsauth.microsoft.com/{tenantId}/oauth2/v2.0/token
+ * Non-regional endpoint: https://mtlsauth.microsoft.com/{tenantId}/oauth2/v2.0/token
  */
 const MTLS_PUBLIC_CLOUD_HOST = "mtlsauth.microsoft.com";
 
 /**
- * Constructs the regional mTLS token endpoint URL for the public cloud.
+ * Constructs the mTLS token endpoint URL for the public cloud.
+ *
+ * If a region is provided, uses the regional endpoint (e.g. `eastus.mtlsauth.microsoft.com`).
+ * If no region is provided, uses the non-regional endpoint (`mtlsauth.microsoft.com`).
+ * The STS can infer the region from the SNI certificate, so providing a region is optional.
  *
  * Sovereign cloud support is deferred. Developers targeting sovereign clouds
  * should provide the authority URL manually and note that the mTLS host differs
  * (e.g., `mtlsauth.microsoftonline.us` for Azure Government).
  *
- * @param region - Azure region name (e.g. "eastus", "westeurope")
  * @param tenantId - Azure AD tenant ID (GUID or domain)
+ * @param region - Optional Azure region name (e.g. "eastus", "westeurope")
  * @returns Full mTLS token endpoint URL
  * @public
  */
 export function buildMtlsTokenEndpoint(
-    region: string,
-    tenantId: string
+    tenantId: string,
+    region?: string
 ): string {
-    return `https://${region}.${MTLS_PUBLIC_CLOUD_HOST}/${tenantId}/oauth2/v2.0/token`;
+    const host = region
+        ? `${region}.${MTLS_PUBLIC_CLOUD_HOST}`
+        : MTLS_PUBLIC_CLOUD_HOST;
+    return `https://${host}/${tenantId}/oauth2/v2.0/token`;
 }
 
 /**

@@ -17,7 +17,9 @@
  *     "access_token":         "<string>",
  *     "token_type":           "mtls_pop",
  *     "expires_in":           <number>,       // seconds from now
- *     "binding_certificate":  "<PEM string>"  // public cert bound to the token
+ *     "binding_certificate":  "<PEM string>", // public cert bound to the token
+ *     "tenant_id":            "<string>",     // tenant ID from the managed identity
+ *     "client_id":            "<string>"      // client ID of the managed identity
  *   }
  *
  * Error (JSON on stderr, non-zero exit code):
@@ -73,6 +75,8 @@ try
         TokenType = result.TokenType,
         ExpiresIn = Math.Max(0, expiresIn),
         BindingCertificate = bindingCertPem,
+        TenantId = result.TenantId,
+        ClientId = result.Account?.HomeAccountId?.ObjectId ?? string.Empty,
     };
 
     Console.WriteLine(JsonSerializer.Serialize(output, JsonContext.Default.TokenResponse));
@@ -174,6 +178,12 @@ internal sealed class TokenResponse
 
     [JsonPropertyName("binding_certificate")]
     public string? BindingCertificate { get; set; }
+
+    [JsonPropertyName("tenant_id")]
+    public string? TenantId { get; set; }
+
+    [JsonPropertyName("client_id")]
+    public string? ClientId { get; set; }
 }
 
 internal sealed class ErrorResponse
