@@ -18,6 +18,9 @@ if (platform !== "win32") {
 }
 
 const architectures = ["x64", "arm64"];
+// AttestationClientLib.dll is required for VBS attestation.
+// Microsoft.Azure.Security.KeyGuardAttestation currently ships x64 only.
+const attestationDllArchitectures = ["x64"];
 let allPresent = true;
 
 architectures.forEach((arch) => {
@@ -36,6 +39,26 @@ architectures.forEach((arch) => {
         allPresent = false;
     } else {
         console.log(`  [ok] bin/win-${arch}/MsalMtlsMsiHelper.exe`);
+    }
+
+    // AttestationClientLib.dll is required alongside the binary for withAttestation support.
+    if (attestationDllArchitectures.includes(arch)) {
+        const attestDll = path.join(
+            __dirname,
+            "..",
+            "bin",
+            `win-${arch}`,
+            "AttestationClientLib.dll"
+        );
+        if (!fs.existsSync(attestDll)) {
+            console.error(
+                `Missing AttestationClientLib.dll for win-${arch}: ${attestDll}\n` +
+                    `  Run "npm run build:binaries" to build and copy it.`
+            );
+            allPresent = false;
+        } else {
+            console.log(`  [ok] bin/win-${arch}/AttestationClientLib.dll`);
+        }
     }
 });
 

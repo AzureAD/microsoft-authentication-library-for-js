@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import * as crypto from "crypto";
 import * as http from "http";
 
 /**
@@ -31,9 +32,13 @@ const DEFAULT_TIMEOUT_MS = 5000;
  * Returns the metadata needed to build the mTLS PoP request.
  *
  * This call is always a plain HTTP GET with `Metadata: true` — no client certificate needed.
+ *
+ * IMDS requires the `x-ms-client-request-id` header; without it the endpoint returns HTTP 400.
+ * A new correlation ID is generated per call to match MSAL.NET behavior.
  */
 export async function getPlatformMetadata(
-    timeoutMs: number = DEFAULT_TIMEOUT_MS
+    timeoutMs: number = DEFAULT_TIMEOUT_MS,
+    correlationId: string = crypto.randomUUID()
 ): Promise<PlatformMetadata> {
     return new Promise<PlatformMetadata>((resolve, reject) => {
         const url = new URL(PLATFORM_METADATA_PATH, IMDS_BASE_URL);
@@ -42,7 +47,10 @@ export async function getPlatformMetadata(
             port: url.port || 80,
             path: url.pathname + url.search,
             method: "GET",
-            headers: { Metadata: "true" },
+            headers: {
+                Metadata: "true",
+                "x-ms-client-request-id": correlationId,
+            },
             timeout: timeoutMs,
         };
 
