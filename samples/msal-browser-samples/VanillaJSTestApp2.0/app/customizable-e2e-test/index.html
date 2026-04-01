@@ -25,6 +25,8 @@
       <div class="dropdown-menu">
         <button class="dropdown-item" id="popup" onclick="signIn(this.id)">Sign in using Popup</button>
         <button class="dropdown-item" id="redirect" onclick="signIn(this.id)">Sign in using Redirect</button>
+        <button class="dropdown-item" id="popupGuest" onclick="signIn(this.id)">Sign in with Guest Tenant (Popup)</button>
+        <button class="dropdown-item" id="redirectGuest" onclick="signIn(this.id)">Sign in with Guest Tenant (Redirect)</button>
       </div>
     </div>
   </nav>
@@ -58,7 +60,11 @@
             <br>
             <br>
             <button class="btn btn-primary" id="acquireGuestToken"
-            onclick="getGuestTokenSilently()">acquireGuestToken</button>
+            onclick="getTokenSilently('guest')">acquireGuestToken</button>
+            <br>
+            <br>
+            <button class="btn btn-primary" id="acquireHomeToken"
+            onclick="getTokenSilently('home')">acquireHomeToken</button>
         </div>
       </div>
     </div>

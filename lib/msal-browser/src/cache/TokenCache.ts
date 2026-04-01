@@ -5,44 +5,44 @@
 
 import {
     AccessTokenEntity,
-    ICrypto,
-    IdTokenEntity,
-    Logger,
-    ScopeSet,
+    AccountEntity,
+    AccountEntityUtils,
     Authority,
     AuthorityFactory,
     AuthorityOptions,
-    ExternalTokenResponse,
-    AccountEntity,
     AuthToken,
-    RefreshTokenEntity,
-    CacheRecord,
-    TokenClaims,
-    CacheHelpers,
     buildAccountToCache,
-    TimeUtils,
-    AccountEntityUtils,
     buildStaticAuthorityOptions,
+    CacheHelpers,
+    CacheRecord,
+    ExternalTokenResponse,
+    ICrypto,
+    IdTokenEntity,
     invokeAsync,
     IPerformanceClient,
+    Logger,
+    RefreshTokenEntity,
+    ScopeSet,
     StubPerformanceClient,
+    TimeUtils,
+    TokenClaims,
 } from "@azure/msal-common/browser";
 import { buildConfiguration, Configuration } from "../config/Configuration.js";
-import type { SilentRequest } from "../request/SilentRequest.js";
-import { BrowserCacheManager } from "./BrowserCacheManager.js";
-import {
-    createBrowserAuthError,
-    BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError.js";
-import type { AuthenticationResult } from "../response/AuthenticationResult.js";
-import { base64Decode } from "../encode/Base64Decode.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
+import { base64Decode } from "../encode/Base64Decode.js";
+import {
+    BrowserAuthErrorCodes,
+    createBrowserAuthError,
+} from "../error/BrowserAuthError.js";
 import { EventHandler } from "../event/EventHandler.js";
-import * as BrowserUtils from "../utils/BrowserUtils.js";
-import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
+import type { SilentRequest } from "../request/SilentRequest.js";
+import type { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
+import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { ApiId } from "../utils/BrowserConstants.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { BrowserCacheManager } from "./BrowserCacheManager.js";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -132,7 +132,8 @@ export async function loadExternalTokens(
             logger,
             cryptoOps,
             authority,
-            idTokenClaims
+            idTokenClaims,
+            performanceClient
         );
 
         const idToken = await invokeAsync(
@@ -231,7 +232,8 @@ async function loadAccount(
     logger: Logger,
     cryptoObj: ICrypto,
     authority: Authority,
-    idTokenClaims?: TokenClaims
+    idTokenClaims?: TokenClaims,
+    performanceClient?: IPerformanceClient
 ): Promise<AccountEntity> {
     logger.verbose("TokenCache - loading account", correlationId);
 
@@ -278,7 +280,8 @@ async function loadAccount(
         claimsTenantId,
         undefined, // authCodePayload
         undefined, // nativeAccountId
-        logger
+        logger,
+        performanceClient
     );
 
     await storage.setAccount(
