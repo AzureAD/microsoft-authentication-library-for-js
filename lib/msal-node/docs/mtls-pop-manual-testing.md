@@ -131,7 +131,6 @@ Acquiring again (should hit cache)...
 | Error | Likely cause | Fix |
 |---|---|---|
 | `mtls_pop_certificate_required` | `x5c` or `privateKey` not set | Verify both are populated in `clientCertificate` |
-| `mtls_pop_region_required` | `azureRegion` missing from the request | Add `azureRegion: "eastus"` |
 | `missing_tenant_id_error` | Using `/common` authority | Use `https://login.microsoftonline.com/{tenantId}` |
 | `ECONNREFUSED` / `CERT_INVALID` | Certificate not trusted by Entra | Certificate must be an SNI cert issued by a Microsoft-trusted CA |
 | HTTP 401 from downstream service | `Authorization` header format wrong | Use `mtls_pop <token>`, not `Bearer <token>` |

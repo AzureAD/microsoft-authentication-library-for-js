@@ -221,6 +221,20 @@ Node.js's built-in global `fetch()` (backed by `undici`) does **not** support pr
 
 The Confidential Client / SNI cert path (this package) is complete. The table below covers features from msal-dotnet that were deliberately excluded from **this package**.
 
+### Why msal-dotnet's Managed Identity implementation cannot be ported to Node.js
+
+msal-dotnet's MSI mTLS PoP stack relies on **Windows-specific APIs that have no equivalent in Node.js**:
+
+| msal-dotnet relies on | Why it cannot be done in Node.js |
+|---|---|
+| `CngKey.Create(CngAlgorithm.Rsa, ...)` with `CngKeyCreationOptions.MachineKey` | Windows CNG API (`NCryptCreatePersistedKey`). Node.js exposes no CNG bindings. |
+| Non-exportable KeyGuard RSA key (`NCRYPT_ALLOW_EXPORT_NONE`) | The key never leaves Windows VBS hardware. Node.js's `tls` module requires in-process exportable key material — it cannot accept a CNG key handle. |
+| `AttestationClientLib.dll` for MAA attestation | A native Windows DLL from `Microsoft.Azure.Security.KeyGuardAttestation`. No Node.js equivalent. |
+| `X509Certificate2.CreateFromCng(cngKey)` — CSR signed by KeyGuard key | The CSR must be signed by the same CNG key. This must happen in the process that owns the key. |
+| `HttpClient` + `SslClientCertificates` with the non-exportable key | .NET's `HttpClient` can drive a TLS handshake using a CNG key handle. Node.js's `https` module cannot. |
+
+This is not a gap that can be bridged with a polyfill or a different API. The entire KeyGuard/CNG stack is Windows-in-process-only. The solution is to delegate all of it to a .NET subprocess (`MsalMtlsMsiHelper.exe`) that runs msal-dotnet natively — which is exactly what `@azure/msal-node-mtls-extensions` does.
+
 ### Group 1 — Delegated to `@azure/msal-node-mtls-extensions`
 
 These Windows/.NET-specific capabilities are required for the Managed Identity path. They **are** implemented — but via a .NET subprocess helper bundled in the separate `@azure/msal-node-mtls-extensions` package, because they cannot run in Node.js directly.
@@ -303,7 +317,6 @@ const result = await cca.acquireTokenByClientCredential({
 | Error code | Meaning | Fix |
 |---|---|---|
 | `mtls_pop_certificate_required` | `authenticationScheme: MTLS_POP` was requested but `clientCertificate.x5c` and/or `clientCertificate.privateKey` are not configured. | Ensure both `x5c` (PEM cert) and `privateKey` are set in `clientCertificate` in the application configuration. |
-| `mtls_pop_region_required` | `authenticationScheme: MTLS_POP` was requested but `azureRegion` was not set on the token request. | Add `azureRegion: "eastus"` (or whichever region your workload runs in) to `acquireTokenByClientCredential`. |
 | `missing_tenant_id_error` | The authority uses `/common` or `/organizations` instead of a specific tenant ID. | Update `authority` to `https://login.microsoftonline.com/{your-tenant-id}`. |
 
 ---
