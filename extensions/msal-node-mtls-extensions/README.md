@@ -241,15 +241,17 @@ For npm publish, the release CI must run `npm run build:binaries` on a `windows-
 
 ## Why a subprocess instead of a native Node.js addon?
 
-The KeyGuard RSA key used for the mTLS handshake is managed by Windows CNG (Cryptography Next Generation) and is physically non-exportable. Implementing this in a native Node.js addon (NAPI/node-gyp) was evaluated and rejected for the following reasons:
+The root cause is a single hardware-enforced constraint:
 
-1. **No built-in CNG API in Node.js.** Creating and using a KeyGuard key requires `NCryptOpenKey` / `NCryptCreatePersistedKey` — Windows CNG APIs that Node.js does not expose.
+> **The KeyGuard RSA private key is flagged `NCRYPT_ALLOW_EXPORT_NONE` by Windows VBS. The raw key bytes can never leave the hardware.**
 
-2. **Native addon complexity.** A NAPI addon could call CNG in theory, but it would need to be compiled and distributed as a `.node` binary for every combination of Node.js version, OS version, and architecture. This requires a separate build/publish pipeline and ongoing N-API ABI compatibility maintenance.
+This cascades into every other limitation:
 
-3. **Node `tls` module limitation.** Even if the key were exposed as a `CryptoKey` object, Node.js's `tls` module requires in-process exportable key material for the TLS handshake — a CNG-backed key handle cannot be passed to `https.Agent`.
+1. **Node.js TLS (OpenSSL) requires in-process exportable key bytes.** OpenSSL has no concept of an opaque hardware key handle. Even if you called CNG from a NAPI addon, you'd need a custom OpenSSL ENGINE to hook the signing operation into the TLS handshake — an enormous undertaking with ongoing maintenance.
 
-4. **The subprocess is the intended architecture.** The .NET subprocess gives us the full msal-dotnet MSI mTLS stack (KeyGuard, IMDS, MAA, mTLS token request) with minimal code — the same approach msal-dotnet itself uses internally. This is not a temporary bootstrap.
+2. **No built-in CNG API in Node.js.** Creating and using a KeyGuard key requires `NCryptCreatePersistedKey` / `NCryptSignHash` — Windows CNG APIs that Node.js does not expose natively.
+
+3. **The subprocess is the intended architecture.** The .NET subprocess gives us the full msal-dotnet MSI mTLS stack (KeyGuard, IMDS, MAA, mTLS token request) with minimal code. .NET's `HttpClient` natively supports CNG key handles via `SslClientCertificates`. This is not a temporary bootstrap.
 
 ## Limitations
 
