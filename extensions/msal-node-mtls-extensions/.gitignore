@@ -8,6 +8,10 @@ lib
 bin/*/MsalMtlsMsiHelper.exe
 bin/*/MsalMtlsMsiHelper.pdb
 
+# Test server self-signed certificates (generated locally, not committed)
+test-server/server.key
+test-server/server.crt
+
 # Logs
 *.log
 npm-debug.log*

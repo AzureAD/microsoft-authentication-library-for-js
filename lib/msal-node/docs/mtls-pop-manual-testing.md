@@ -389,6 +389,15 @@ The `bindingCertificate` private key is non-exportable from Windows CNG, so Node
 
 > **Requirement:** The downstream resource server **must** use mutual TLS at the TLS layer (i.e., it must send a TLS `CertificateRequest` during the handshake). Most public Azure services (Graph API, Key Vault) use *optional* mutual TLS and will return `MtlsMissingClientCertificate` because the TLS handshake does not include the client certificate when the server doesn't request one. `makeMtlsMsiRequest` is intended for custom services or Azure-internal services that use required mutual TLS.
 
+This step has two parts:
+
+- **Step 7a** — Infrastructure smoke test against Graph (confirms plumbing works; 401 expected)
+- **Step 7b** — Full end-to-end test against a local required-mTLS server (confirms `200` with cert binding validated)
+
+---
+
+#### Step 7a — Infrastructure smoke test (optional mTLS, 401 expected)
+
 ```javascript
 // test-mtls-downstream.mjs
 import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-mtls-extensions";
@@ -410,14 +419,13 @@ async function main() {
     // makeMtlsMsiRequest successfully spawned the binary, re-acquired the binding cert,
     // and made the HTTP request. The 401 is Graph rejecting an optional-mTLS connection
     // where no TLS client cert was sent — not a bug in makeMtlsMsiRequest.
-    // For a complete end-to-end test, use a server with required mutual TLS.
     const response = await makeMtlsMsiRequest({
         url: "https://graph.microsoft.com/v1.0/organization",
         token: tokenResult.accessToken,
         resource: RESOURCE,
         withAttestation: WITH_ATTESTATION,
     });
-    console.log("  status:", response.status); // 200 (required mTLS) or 401 (optional mTLS)
+    console.log("  status:", response.status); // 401 from Graph (expected)
     console.log("  body (first 100):", response.body.slice(0, 100));
 
     console.log("\n✅ makeMtlsMsiRequest infrastructure test passed");
@@ -433,7 +441,7 @@ main().catch(err => {
 node test-mtls-downstream.mjs
 ```
 
-**Expected output (Graph, optional mTLS):**
+**Expected output:**
 
 ```
 === Acquire mTLS PoP token ===
@@ -447,7 +455,84 @@ node test-mtls-downstream.mjs
 ✅ makeMtlsMsiRequest infrastructure test passed
 ```
 
-A status of `401` with `MtlsMissingClientCertificate` from Graph confirms the flow works end-to-end (binary spawned, cert re-acquired, HTTP request made). To get a `200`, run against a server with required mutual TLS.
+A status of `401` with `MtlsMissingClientCertificate` from Graph confirms the flow works end-to-end (binary spawned, cert re-acquired, HTTP request made).
+
+---
+
+#### Step 7b — Full end-to-end test with local required-mTLS server (200 expected)
+
+A local Node.js HTTPS server (`test-server/mtls-test-server.mjs`) is included in the `@azure/msal-node-mtls-extensions` package. It uses `requestCert: true` to require a client certificate during the TLS handshake, then validates that the certificate's SHA-256 thumbprint matches the `cnf.x5t#S256` claim in the `mtls_pop` token — exactly as a real required-mTLS resource would.
+
+**In one terminal, start the test server:**
+
+```powershell
+cd extensions/msal-node-mtls-extensions
+node test-server/mtls-test-server.mjs
+# ✅ Required-mTLS test server listening on https://127.0.0.1:8443
+```
+
+**In another terminal, run the test:**
+
+```javascript
+// test-mtls-e2e.mjs
+import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-mtls-extensions";
+
+const RESOURCE         = "https://graph.microsoft.com/"; // resource scope for token
+const WITH_ATTESTATION = false; // set true if Step 4 required --with-attestation
+
+async function main() {
+    console.log("=== Acquire mTLS PoP token ===");
+    const tokenResult = await acquireMtlsMsiToken({
+        resource: RESOURCE,
+        withAttestation: WITH_ATTESTATION,
+    });
+    console.log("  tokenType:", tokenResult.tokenType); // mtls_pop
+
+    console.log("\n=== Full E2E: makeMtlsMsiRequest → required-mTLS local server ===");
+    const response = await makeMtlsMsiRequest({
+        url: "https://127.0.0.1:8443/",
+        token: tokenResult.accessToken,
+        resource: RESOURCE,
+        withAttestation: WITH_ATTESTATION,
+        allowInsecureTls: true,  // needed for self-signed server cert in local testing only
+    });
+    console.log("  status:", response.status); // 200
+    const body = JSON.parse(response.body);
+    console.log("  message:", body.message);
+    console.log("  clientCertThumbprint:", body.clientCertThumbprint);
+
+    if (response.status !== 200) throw new Error(`Expected 200, got ${response.status}: ${response.body}`);
+    console.log("\n✅ Full end-to-end mTLS PoP test passed — cert binding validated");
+}
+
+main().catch(err => {
+    console.error("\n❌ FAILED:", err.message);
+    process.exit(1);
+});
+```
+
+```powershell
+node test-mtls-e2e.mjs
+```
+
+**Expected output:**
+
+```
+=== Acquire mTLS PoP token ===
+  tokenType: mtls_pop
+
+=== Full E2E: makeMtlsMsiRequest → required-mTLS local server ===
+  status: 200
+  message: mTLS PoP validation successful
+  clientCertThumbprint: xIj8ilFroFCO68G6TPi4JR1l4Etvjo1Rg0gisoIA6mE
+
+✅ Full end-to-end mTLS PoP test passed — cert binding validated
+```
+
+The `200` response with `clientCertThumbprint` confirms the complete mTLS PoP flow:
+1. Token acquired with `cnf.x5t#S256` bound to the KeyGuard certificate
+2. Binary re-acquired the same KeyGuard cert, attached it to the TLS connection
+3. Server received the client cert, validated the thumbprint matches the token, and returned `200`
 
 **Troubleshooting downstream calls:**
 
@@ -455,6 +540,7 @@ A status of `401` with `MtlsMissingClientCertificate` from Graph confirms the fl
 |---|---|---|
 | `"downstream_request_failed"` / process exits non-zero | Binary failed to spawn or crashed | Check binary presence; run the binary smoke-test (Step 4) |
 | HTTP 401 `MtlsMissingClientCertificate` from Graph/Key Vault | Server uses optional mTLS — client cert not sent | Expected for public Azure services. Use a required-mTLS server for a real end-to-end test. |
+| HTTP 401 `MtlsCertificateMismatch` from local test server | Token `cnf.x5t#S256` doesn't match presented cert | Token and cert were acquired in different sessions — clear cache and re-run |
 | HTTP 401 `InvalidAuthenticationToken` other message | Token not accepted | Verify `token` is from `acquireMtlsMsiToken` with correct `resource` |
 | `"only supported on Windows"` | Not on a Windows VM | `makeMtlsMsiRequest` requires Windows + the .NET helper |
 

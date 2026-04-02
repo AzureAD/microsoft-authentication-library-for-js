@@ -42,6 +42,7 @@
  *     --identity-id    <string>   Client ID / resource ID (UserAssigned only)
  *     --with-attestation           Use attestation when re-acquiring the binding cert
  *     --correlation-id <string>   Optional GUID for telemetry
+ *     --allow-insecure-tls         Skip server TLS certificate validation (self-signed certs in local testing only)
  *   Output (JSON on stdout, exit code 0):
  *     {
  *       "status":   <number>,
@@ -195,6 +196,12 @@ static async Task<HttpResponse> RunHttpRequest(HttpRequestArgs args)
     var handler = new HttpClientHandler();
     handler.ClientCertificates.Add(bindingCert);
 
+    // --allow-insecure-tls skips server certificate validation.
+    // Use this ONLY for local testing against self-signed server certificates.
+    if (args.AllowInsecureTls)
+        handler.ServerCertificateCustomValidationCallback =
+            HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+
     using var client = new HttpClient(handler);
 
     // Build the request
@@ -311,6 +318,12 @@ internal sealed record HttpRequestArgs
     public string? IdentityId { get; init; }
     public bool WithAttestation { get; init; }
     public string? CorrelationId { get; init; }
+    /// <summary>
+    /// When true, skips server TLS certificate validation.
+    /// Use ONLY for local testing against self-signed server certificates
+    /// (e.g. the mtls-test-server.mjs in test-server/).
+    /// </summary>
+    public bool AllowInsecureTls { get; init; }
 
     public static HttpRequestArgs Parse(string[] argv)
     {
@@ -325,6 +338,7 @@ internal sealed record HttpRequestArgs
         string? identityId = null;
         bool withAttestation = false;
         string? correlationId = null;
+        bool allowInsecureTls = false;
 
         for (int i = 0; i < argv.Length; i++)
         {
@@ -341,6 +355,7 @@ internal sealed record HttpRequestArgs
                 case "--identity-id":    identityId = argv[++i];    break;
                 case "--with-attestation": withAttestation = true;  break;
                 case "--correlation-id": correlationId = argv[++i]; break;
+                case "--allow-insecure-tls": allowInsecureTls = true; break;
                 default: break;
             }
         }
@@ -363,6 +378,7 @@ internal sealed record HttpRequestArgs
             IdentityId = identityId,
             WithAttestation = withAttestation,
             CorrelationId = correlationId,
+            AllowInsecureTls = allowInsecureTls,
         };
     }
 }

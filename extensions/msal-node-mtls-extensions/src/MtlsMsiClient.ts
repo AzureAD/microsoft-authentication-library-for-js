@@ -330,6 +330,13 @@ export interface MtlsMsiRequestOptions {
     withAttestation?: boolean;
     /** Optional correlation ID (GUID) for telemetry. */
     correlationId?: string;
+    /**
+     * Skip server TLS certificate validation.
+     * **Use only for local testing against self-signed certificates** (e.g. `mtls-test-server.mjs`).
+     * Never set this in production.
+     * @default false
+     */
+    allowInsecureTls?: boolean;
 }
 
 /**
@@ -394,6 +401,10 @@ function runHelperHttpRequest(
 
         if (options.correlationId) {
             args.push("--correlation-id", options.correlationId);
+        }
+
+        if (options.allowInsecureTls) {
+            args.push("--allow-insecure-tls");
         }
 
         const proc = child_process.spawn(helperPath, args, {
