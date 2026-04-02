@@ -45,24 +45,14 @@ token_type    = mtls_pop       ← triggers PoP token issuance
 
 The separate [`@azure/msal-node-mtls-extensions`](../../../extensions/msal-node-mtls-extensions/README.md) package implements the **Managed Identity path**, where:
 
-1. Node.js calls IMDS `/metadata/identity/getplatformmetadata` (plain HTTP, no crypto).
-2. Node.js spawns `MsalMtlsMsiHelper.exe` — a bundled .NET 8 helper that handles all Windows-specific steps:
+1. Node.js spawns `MsalMtlsMsiHelper.exe` — a bundled .NET 8 helper that handles all Windows-specific steps:
    - Creates a KeyGuard RSA key (Windows VBS non-exportable)
    - Generates a CSR and calls IMDS `/issuecredential` to get the binding certificate
    - Optionally: MAA attestation via `AttestationClientLib.dll`
    - Sends the mTLS token request to the regional STS endpoint
-3. Node.js parses the JSON output and returns a standard `AuthenticationResult`.
+2. Node.js parses the JSON output and returns a standard `AuthenticationResult`.
 
-```typescript
-import { acquireMtlsMsiToken } from "@azure/msal-node-mtls-extensions";
-
-const result = await acquireMtlsMsiToken({
-    resource: "https://management.azure.com/",
-    withAttestation: true, // requires VBS-enabled VM
-});
-// result.tokenType === "mtls_pop"
-// result.bindingCertificate — PEM cert bound to the token
-```
+See the [quick-start example](#quick-start-example) below for usage.
 
 ---
 
