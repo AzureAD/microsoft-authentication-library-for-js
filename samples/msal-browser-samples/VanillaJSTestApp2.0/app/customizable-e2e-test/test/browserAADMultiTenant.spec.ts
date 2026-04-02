@@ -126,7 +126,7 @@ describe("AAD-Prod Tests", () => {
                 page
                     .url()
                     .startsWith(
-                        "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca/"
+                        "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133/"
                     )
             ).toBeTruthy();
             expect(page.url()).toContain("logout");
@@ -146,7 +146,7 @@ describe("AAD-Prod Tests", () => {
                 popupWindow
                     .url()
                     .startsWith(
-                        "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca/"
+                        "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133/"
                     )
             ).toBeTruthy();
             expect(popupWindow.url()).toContain("logout");
@@ -303,6 +303,73 @@ describe("AAD-Prod Tests", () => {
             });
         });
 
+        it("tenantProfiles accumulate across home and guest tenant authentication", async () => {
+            testName = "tenantProfilesAccumulate";
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+
+            // The previous test already acquired the guest token via RT; both home and guest
+            // tokens are now in cache. Just inspect the resulting account state.
+            await screenshot.takeScreenshot(page, "tenantProfilesAccumulate-checkState");
+
+            // Evaluate getAllAccounts() inside the page to avoid cache encryption concerns.
+            // Use forEach instead of spread to avoid tslib helpers that are unavailable
+            // in the puppeteer browser execution context.
+            const accountData = await page.evaluate(() => {
+                return (window as any).msalApp.getAllAccounts().map((a: any) => {
+                    const keys: string[] = [];
+                    if (a.tenantProfiles) {
+                        a.tenantProfiles.forEach((_: any, k: string) => { keys.push(k); });
+                    }
+                    return {
+                        homeAccountId: a.homeAccountId,
+                        tenantId: a.tenantId,
+                        tenantProfilesSize: a.tenantProfiles ? a.tenantProfiles.size : 0,
+                        tenantProfileKeys: keys,
+                    };
+                });
+            });
+
+            // Should have 2 AccountInfo objects - one per tenant
+            expect(accountData).toHaveLength(2);
+
+            // Both should share the same homeAccountId
+            expect(accountData[0].homeAccountId).toEqual(accountData[1].homeAccountId);
+
+            // Each AccountInfo should carry both tenant profiles
+            for (const account of accountData) {
+                expect(account.tenantProfilesSize).toEqual(2);
+                expect(account.tenantProfileKeys).toContain(aadTenants.home.tenantId);
+                expect(account.tenantProfileKeys).toContain(aadTenants.guest.tenantId);
+            }
+        });
+
+        it("getActiveAccount returns non-null after cross-tenant token acquisition", async () => {
+            testName = "getActiveAccountAfterCrossTenant";
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+
+            const activeAccountData = await page.evaluate(() => {
+                const account = (window as any).msalApp.getActiveAccount();
+                if (!account) return null;
+                return {
+                    homeAccountId: account.homeAccountId,
+                    tenantId: account.tenantId,
+                    username: account.username,
+                };
+            });
+
+            await screenshot.takeScreenshot(page, "getActiveAccount-result");
+
+            expect(activeAccountData).not.toBeNull();
+            expect(activeAccountData!.homeAccountId).toBeTruthy();
+            // The last token acquired before this test was the guest tenant token (via RT),
+            // so handleResponse set the active account to the guest-tenant AccountInfo.
+            expect(activeAccountData!.tenantId).toEqual(aadTenants.guest.tenantId);
+        });
+
         it("acquireTokenSilent from cache (guest tenant token)", async () => {
             testName = "acquireTokenSilentCacheGuest";
             screenshot = new Screenshot(
@@ -331,6 +398,108 @@ describe("AAD-Prod Tests", () => {
                 scopes: aadTokenRequest.scopes,
                 numberOfTenants: 2,
             });
+        });
+    });
+
+    describe("acquireToken Tests (guest-first direction)", () => {
+        let testName: string;
+        let screenshot: Screenshot;
+
+        beforeAll(async () => {
+            context = await browser.createBrowserContext();
+            page = await context.newPage();
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            BrowserCache = new BrowserCacheUtils(
+                page,
+                aadMsalConfig.cache.cacheLocation
+            );
+            await page.goto(sampleHomeUrl);
+
+            testName = "acquireTokenGuestFirstBaseCase";
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+
+            // Log in with guest tenant authority first — establishes AccountEntity
+            // with guest profile, giving us the reverse of the normal home-first flow.
+            await screenshot.takeScreenshot(page, "samplePageInit");
+            await page.click("#SignIn");
+            await screenshot.takeScreenshot(page, "signInClicked");
+            const newPopupWindowPromise = new Promise<puppeteer.Page | null>(resolve =>
+                page.once("popup", resolve)
+            );
+            await page.click("#popupGuest");
+            const popupPage = await newPopupWindowPromise;
+            const popupWindowClosed = new Promise<void>(resolve =>
+                popupPage!.once("close", resolve)
+            );
+            await enterCredentials(popupPage!, screenshot, username, accountPwd);
+            await waitForReturnToApp(screenshot, page, popupPage!, popupWindowClosed);
+        });
+
+        beforeEach(async () => {
+            await page.reload();
+            await page.waitForSelector("#WelcomeMessage");
+            await pcaInitializedPoller(page, 5000);
+        });
+
+        afterAll(async () => {
+            await page.evaluate(() =>
+                Object.assign({}, window.sessionStorage.clear())
+            );
+            await page.evaluate(() =>
+                Object.assign({}, window.localStorage.clear())
+            );
+            await page.close();
+        });
+
+        it("acquireTokenSilent via RefreshToken (home tenant token, after guest login)", async () => {
+            testName = "acquireTokenSilentRTHomeAfterGuestLogin";
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+
+            // No home AccountInfo exists yet after guest-only login, so getHomeTokenSilently
+            // takes the RT path with explicit home authority, calling setCachedAccount
+            // and merging the home profile into the AccountEntity.
+            await page.click("#acquireHomeToken");
+            await page.waitForSelector("#scopes-acquired");
+            await screenshot.takeScreenshot(page, "guestFirst-gotHomeToken");
+
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+                numberOfTenants: 2,
+            });
+        });
+
+        it("tenantProfiles accumulate when guest login precedes silent home token acquisition", async () => {
+            testName = "tenantProfilesGuestLoginFirst";
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+
+            const accountData = await page.evaluate(() => {
+                const accounts = (window as any).msalApp.getAllAccounts();
+                return accounts.map((a: any) => {
+                    const keys: string[] = [];
+                    if (a.tenantProfiles) {
+                        a.tenantProfiles.forEach((_: any, k: string) => { keys.push(k); });
+                    }
+                    return {
+                        tenantProfilesSize: a.tenantProfiles ? a.tenantProfiles.size : 0,
+                        tenantProfileKeys: keys,
+                    };
+                });
+            });
+
+            await screenshot.takeScreenshot(page, "guestFirst-tenantProfiles");
+
+            expect(accountData).toHaveLength(2);
+            for (const account of accountData) {
+                expect(account.tenantProfilesSize).toEqual(2);
+                expect(account.tenantProfileKeys).toContain(aadTenants.home.tenantId);
+                expect(account.tenantProfileKeys).toContain(aadTenants.guest.tenantId);
+            }
         });
     });
 });
