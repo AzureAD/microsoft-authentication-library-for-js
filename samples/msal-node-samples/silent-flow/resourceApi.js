@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-const axios = require('axios');
 
 module.exports = function(resourceApiConfig) {
     // Get authority type specific Resource API Config
@@ -19,8 +18,9 @@ module.exports = function(resourceApiConfig) {
             console.log('request made to Resource API at: ' + new Date().toString());
             
             try {
-                axios.default.get(endpoint, options)
-                    .then(response => callback(response.data, endpoint));
+                fetch(endpoint, options)
+                    .then(response => response.json())
+                    .then(data => callback(data, endpoint));
             } catch (error) {
                 throw error;
             }
