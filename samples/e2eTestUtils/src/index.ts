@@ -42,12 +42,20 @@ export {
     FederationProviders,
     UserTypes,
     B2cProviders,
+    ENV_VARIABLES,
+    LAB_KEY_VAULT_URL,
+    LAB_CERT_NAME,
+    MOBILE_BUILD_VAULT_URL,
+    MSAL_TEAM_KEY_VAULT_URL,
+    UPN_JSON_SECRET_NAME,
+    AppConfigSecrets,
 } from "./Constants";
 export { BrowserCacheUtils } from "./BrowserCacheTestUtils";
 export { Browser, Page, BrowserContext } from "puppeteer";
 export { NodeCacheTestUtils } from "./NodeCacheTestUtils";
 export { storagePoller } from "./TestUtils";
 export { getKeyVaultSecretClient, getCredentials } from "./KeyVaultUtils";
+export { getCertificateInfo } from "./CertificateUtils";
 export {
     Screenshot as ScreenShotElectron,
     enterCredentials as enterCredentialsElectron,
