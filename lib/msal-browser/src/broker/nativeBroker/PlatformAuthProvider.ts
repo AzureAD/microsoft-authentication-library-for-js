@@ -113,7 +113,7 @@ export function isDomEnabledForPlatformAuth(): boolean {
 }
 
 /**
- * Returns boolean indicating whether or not the request should attempt to use native broker
+ * Returns boolean indicating whether or not the request should attempt to use platform broker
  * @param logger
  * @param config
  * @param correlationId
