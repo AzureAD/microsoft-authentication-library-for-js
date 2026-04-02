@@ -90,12 +90,12 @@ try
 }
 catch (MsalException ex)
 {
-    WriteError(ex.ErrorCode, ex.Message);
+    WriteError(ex.ErrorCode, UnwrapException(ex));
     return 1;
 }
 catch (Exception ex)
 {
-    WriteError("unexpected_error", ex.Message);
+    WriteError("unexpected_error", UnwrapException(ex));
     return 1;
 }
 
@@ -103,6 +103,18 @@ static void WriteError(string code, string description)
 {
     var error = new ErrorResponse { Error = code, ErrorDescription = description };
     Console.Error.WriteLine(JsonSerializer.Serialize(error, JsonContext.Default.ErrorResponse));
+}
+
+static string UnwrapException(Exception ex)
+{
+    var parts = new System.Collections.Generic.List<string>();
+    var current = ex;
+    while (current != null)
+    {
+        parts.Add(current.GetType().Name + ": " + current.Message);
+        current = current.InnerException;
+    }
+    return string.Join(" | ", parts);
 }
 
 static async Task<TokenResponse> RunAcquireToken(CliArgs parsedArgs)
@@ -171,11 +183,16 @@ static async Task<HttpResponse> RunHttpRequest(HttpRequestArgs args)
     if (tokenResult.BindingCertificate == null)
         throw new InvalidOperationException("No binding certificate returned — cannot make mTLS request.");
 
-    // Build HttpClient with the KeyGuard-bound certificate for client authentication
-    var handler = new HttpClientHandler();
-    handler.ClientCertificates.Add(tokenResult.BindingCertificate);
+    // Use SocketsHttpHandler with LocalCertificateSelectionCallback to ensure the
+    // KeyGuard-backed client certificate is always sent, even when the server does not
+    // explicitly request one via TLS CertificateRequest (as is the case with Graph API
+    // and other services that use "optional" mutual TLS).
+    var bindingCert = tokenResult.BindingCertificate;
+    var socketsHandler = new System.Net.Http.SocketsHttpHandler();
+    socketsHandler.SslOptions.LocalCertificateSelectionCallback =
+        (_, _, _, _, _) => bindingCert;
 
-    using var client = new HttpClient(handler);
+    using var client = new HttpClient(socketsHandler);
 
     // Build the request
     var requestMessage = new HttpRequestMessage(

@@ -20,9 +20,11 @@
  * machine that has access to the registered SNI certificate.
  */
 
-import { ConfidentialClientApplication } from "../../src/app/ConfidentialClientApplication.js";
-import { AuthenticationScheme } from "@azure/msal-common/node";
+import { ConfidentialClientApplication } from "../../src/client/ConfidentialClientApplication.js";
+import { Constants } from "@azure/msal-common/node";
 import { MtlsHttpClient } from "../../src/network/MtlsHttpClient.js";
+
+const { AuthenticationScheme } = Constants;
 
 const REQUIRED_ENV_VARS = [
     "MTLS_POP_TENANT_ID",
@@ -40,11 +42,6 @@ const describeOrSkip = skipAll ? describe.skip : describe;
 describeOrSkip(
     "ConfidentialClientApplication – mTLS PoP integration",
     () => {
-        if (skipAll) {
-            // This branch is never reached when skipping, but keeps TypeScript happy.
-            return;
-        }
-
         const tenantId = process.env["MTLS_POP_TENANT_ID"]!;
         const clientId = process.env["MTLS_POP_CLIENT_ID"]!;
         const privateKey = process.env["MTLS_POP_CERT_PRIVATE_KEY"]!;

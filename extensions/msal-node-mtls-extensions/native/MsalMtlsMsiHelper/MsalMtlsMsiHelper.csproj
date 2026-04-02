@@ -17,9 +17,9 @@
 
   <ItemGroup>
     <!-- Full MSAL.NET stack — handles KeyGuard key, CSR, IMDS, and mTLS token request -->
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.81.0-preview-1" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.83.3" />
     <!-- Attestation extension: WithAttestationSupport() + AttestationClientLib.dll -->
-    <PackageReference Include="Microsoft.Identity.Client.KeyAttestation" Version="4.81.0-preview-1-preview" />
+    <PackageReference Include="Microsoft.Identity.Client.KeyAttestation" Version="4.83.3-preview" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 
