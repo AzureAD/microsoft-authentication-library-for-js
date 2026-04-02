@@ -26,8 +26,11 @@
  *     }
  *
  * --mode http-request
- *   Makes a downstream HTTP call over mTLS using the KeyGuard-bound certificate.
- *   The token must have been previously acquired via acquire-token mode.
+ *   Makes a downstream HTTP call over mutual TLS using the KeyGuard-bound certificate.
+ *   The downstream server MUST be configured for required mutual TLS — it must send
+ *   a TLS CertificateRequest during the handshake. Public Azure APIs (e.g. Graph,
+ *   Key Vault) use optional mTLS and will NOT trigger client cert presentation; use
+ *   this mode only with servers explicitly configured to require a client certificate.
  *   Input  (command-line arguments):
  *     --url            <string>   Full URL to call
  *     --method         <string>   HTTP method (GET, POST, PUT, PATCH, DELETE)
@@ -183,16 +186,16 @@ static async Task<HttpResponse> RunHttpRequest(HttpRequestArgs args)
     if (tokenResult.BindingCertificate == null)
         throw new InvalidOperationException("No binding certificate returned — cannot make mTLS request.");
 
-    // Use SocketsHttpHandler with LocalCertificateSelectionCallback to ensure the
-    // KeyGuard-backed client certificate is always sent, even when the server does not
-    // explicitly request one via TLS CertificateRequest (as is the case with Graph API
-    // and other services that use "optional" mutual TLS).
     var bindingCert = tokenResult.BindingCertificate;
-    var socketsHandler = new System.Net.Http.SocketsHttpHandler();
-    socketsHandler.SslOptions.LocalCertificateSelectionCallback =
-        (_, _, _, _, _) => bindingCert;
 
-    using var client = new HttpClient(socketsHandler);
+    // Configure an HttpClientHandler with the KeyGuard-bound certificate.
+    // The downstream server must be configured to require mutual TLS so that it
+    // sends a TLS CertificateRequest during the handshake — only then will the
+    // client certificate be presented and the cnf.x5t#S256 claim validated.
+    var handler = new HttpClientHandler();
+    handler.ClientCertificates.Add(bindingCert);
+
+    using var client = new HttpClient(handler);
 
     // Build the request
     var requestMessage = new HttpRequestMessage(
