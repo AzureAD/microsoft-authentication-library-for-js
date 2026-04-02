@@ -312,7 +312,7 @@ describe("AAD-Prod Tests", () => {
                 page
                     .url()
                     .startsWith(
-                        "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca/"
+                        "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133/"
                     )
             ).toBeTruthy();
             expect(page.url()).toContain("logout");
@@ -332,7 +332,7 @@ describe("AAD-Prod Tests", () => {
                 popupWindow
                     .url()
                     .startsWith(
-                        "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca/"
+                        "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133/"
                     )
             ).toBeTruthy();
             expect(popupWindow.url()).toContain("logout");
