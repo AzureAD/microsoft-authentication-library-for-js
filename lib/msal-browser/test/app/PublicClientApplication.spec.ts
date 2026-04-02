@@ -2727,15 +2727,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 RANDOM_TEST_GUID
             );
 
-            const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
-                .mockImplementation(async (request) => {
-                    expect(request.correlationId).toBe(RANDOM_TEST_GUID);
-                    return testTokenResponse;
-                });
             const popupSpy: jest.SpyInstance = jest
                 .spyOn(PopupClient.prototype, "acquireToken")
                 .mockResolvedValue(testTokenResponse);
+
+            const nativeAcquireTokenSpy: jest.SpyInstance = jest
+                .spyOn(StandardController.prototype, "acquireTokenNative")
+                .mockImplementation(async (request) => {
+                    return Promise.resolve(testTokenResponse);
+                });
 
             // Add performance callback
             const callbackId = pca.addPerformanceCallback((events) => {
@@ -2748,6 +2748,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenPopup({
                 scopes: ["User.Read"],
                 account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
             });
 
             expect(response).toEqual(testTokenResponse);

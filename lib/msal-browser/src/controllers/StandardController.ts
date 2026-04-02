@@ -705,32 +705,36 @@ export class StandardController implements IController {
                     this.nativeInternalStorage,
                     correlationId
                 );
-                result = nativeClient
-                    .acquireTokenRedirect(request, atrMeasurement)
-                    .catch((e: AuthError) => {
-                        atrMeasurement.add({
-                            brokerErrorName: e.name,
-                            brokerErrorCode: e.errorCode,
-                        });
-                        if (
-                            e instanceof NativeAuthError &&
-                            isFatalNativeAuthError(e)
-                        ) {
-                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt platform broker calls
-                            const redirectClient =
-                                this.createRedirectClient(correlationId);
-                            return redirectClient.acquireToken(request);
-                        } else if (e instanceof InteractionRequiredAuthError) {
-                            this.logger.verbose(
-                                "acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow",
-                                correlationId
-                            );
-                            const redirectClient =
-                                this.createRedirectClient(correlationId);
-                            return redirectClient.acquireToken(request);
-                        }
-                        throw e;
+                result = invokeAsync(
+                    nativeClient.acquireTokenRedirect.bind(nativeClient),
+                    BrowserPerformanceEvents.NativeInteractionClientAcquireTokenRedirect,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(request, atrMeasurement).catch((e: AuthError) => {
+                    atrMeasurement.add({
+                        brokerErrorName: e.name,
+                        brokerErrorCode: e.errorCode,
                     });
+                    if (
+                        e instanceof NativeAuthError &&
+                        isFatalNativeAuthError(e)
+                    ) {
+                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt platform broker calls
+                        const redirectClient =
+                            this.createRedirectClient(correlationId);
+                        return redirectClient.acquireToken(request);
+                    } else if (e instanceof InteractionRequiredAuthError) {
+                        this.logger.verbose(
+                            "acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow",
+                            correlationId
+                        );
+                        const redirectClient =
+                            this.createRedirectClient(correlationId);
+                        return redirectClient.acquireToken(request);
+                    }
+                    throw e;
+                });
             } else {
                 const redirectClient = this.createRedirectClient(correlationId);
                 result = redirectClient.acquireToken(request);
@@ -1596,7 +1600,13 @@ export class StandardController implements IController {
             correlationId
         );
 
-        return nativeClient.acquireToken(request, cacheLookupPolicy);
+        return invokeAsync(
+            nativeClient.acquireToken.bind(nativeClient),
+            BrowserPerformanceEvents.NativeInteractionClientAcquireToken,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(request, cacheLookupPolicy);
     }
 
     /**
