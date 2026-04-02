@@ -68,6 +68,8 @@ const result = await acquireMtlsMsiToken({
 
 ## Quick-start example
 
+### Path 1 — Confidential Client / SNI Certificate
+
 ```typescript
 import * as https from "https";
 import { ConfidentialClientApplication, AuthenticationScheme } from "@azure/msal-node";
@@ -98,13 +100,9 @@ const result = await cca.acquireTokenByClientCredential({
 if (!result) throw new Error("No token returned");
 
 console.log("Token type:", result.tokenType);           // "mtls_pop"
-console.log("Binding cert:", result.bindingCertificate);
 
-// Use the bound token for downstream calls over mTLS
-const agent = new https.Agent({
-    cert: result.bindingCertificate,
-    key,
-});
+// Downstream mTLS call — private key is in-process, so https.Agent works directly
+const agent = new https.Agent({ cert: result.bindingCertificate, key });
 
 // Note: Node.js's global fetch() does not support mTLS client certificates.
 // Use https.request() or a library that accepts a custom https.Agent.
@@ -113,15 +111,39 @@ https.request(
         hostname: "graph.microsoft.com",
         path: "/v1.0/me",
         method: "GET",
-        headers: {
-            Authorization: `mtls_pop ${result.accessToken}`,
-        },
+        headers: { Authorization: `mtls_pop ${result.accessToken}` },
         agent,
     },
-    (res) => {
-        // handle response
-    }
+    (res) => { /* handle response */ }
 ).end();
+```
+
+### Path 2 — Managed Identity (Windows Azure VM, x64)
+
+```typescript
+import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-mtls-extensions";
+
+// Step 1: acquire the mTLS PoP token
+// The KeyGuard private key never leaves Windows CNG — Node.js only receives the token
+const tokenResult = await acquireMtlsMsiToken({
+    resource: "https://graph.microsoft.com/",
+    // withAttestation: true,  // add if VM requires VBS attestation
+});
+
+console.log("Token type:", tokenResult.tokenType);      // "mtls_pop"
+console.log("From cache:", tokenResult.fromCache);      // false on first call
+
+// Step 2: call the downstream resource over mTLS
+// Because the private key is non-exportable, https.Agent cannot be used from Node.js.
+// makeMtlsMsiRequest proxies the call through MsalMtlsMsiHelper.exe, which holds the
+// key and performs the mTLS handshake using .NET's HttpClient + Schannel.
+const response = await makeMtlsMsiRequest({
+    url: "https://graph.microsoft.com/v1.0/me",
+    token: tokenResult.accessToken,
+});
+
+console.log("Status:", response.status);                // 200
+console.log(JSON.parse(response.body));                 // { id, displayName, ... }
 ```
 
 ---
