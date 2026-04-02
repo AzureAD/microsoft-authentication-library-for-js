@@ -23,23 +23,10 @@ This satisfies [RFC 8705 — OAuth 2.0 Mutual-TLS Client Authentication and Cert
 This package covers the **Confidential Client Application (CCA) SNI certificate path**, where:
 
 1. The app developer provides their own certificate (an SNI certificate registered in Azure AD).
-2. MSAL sends the token request to the **regional `mtlsauth.microsoft.com` endpoint** over a mutual-TLS connection, using the certificate for the TLS handshake (not a `client_assertion` JWT).
+2. MSAL sends the token request to the **`mtlsauth.microsoft.com` endpoint** over a mutual-TLS connection, using the certificate for the TLS handshake (not a `client_assertion` JWT).
 3. Entra STS validates the TLS certificate and **binds the issued token to that certificate**.
 4. The response contains an access token with `token_type=mtls_pop`.
 5. MSAL returns the token plus the `bindingCertificate` (the public certificate PEM from `clientCertificate.x5c`) so the app can configure downstream mTLS calls. The private key reference is **not** included in the result — you already have it.
-
-### Token request body
-
-For mTLS PoP the request body contains:
-
-```
-client_id     = <your app's client ID>
-grant_type    = client_credentials
-scope         = <your scope>
-token_type    = mtls_pop       ← triggers PoP token issuance
-```
-
-> **Important**: `client_assertion` and `client_assertion_type` are NOT sent. The mTLS handshake authenticates the client instead.
 
 ### Path 2 — Managed Identity (`@azure/msal-node-mtls-extensions`)
 
@@ -92,10 +79,8 @@ if (!result) throw new Error("No token returned");
 console.log("Token type:", result.tokenType);           // "mtls_pop"
 
 // Downstream mTLS call — private key is in-process, so https.Agent works directly
+// Note: Node.js's global fetch() does not support mTLS — use https.request() instead.
 const agent = new https.Agent({ cert: result.bindingCertificate, key });
-
-// Note: Node.js's global fetch() does not support mTLS client certificates.
-// Use https.request() or a library that accepts a custom https.Agent.
 https.request(
     {
         hostname: "graph.microsoft.com",
@@ -147,8 +132,36 @@ console.log(JSON.parse(response.body));                 // { id, displayName, ..
 | **Authority must be tenanted** | Use `https://login.microsoftonline.com/{tenantId}`. `/common` and `/organizations` are not supported and will throw an error. |
 | **`azureRegion` is optional** | If provided, uses the regional mTLS endpoint: `https://{region}.mtlsauth.microsoft.com/{tenantId}/...`. If omitted, uses the non-regional endpoint (`https://mtlsauth.microsoft.com/{tenantId}/...`) — the STS infers the region from the SNI certificate. |
 | **`clientCertificate.x5c` is required** | The public certificate PEM. This is what MSAL uses for the TLS handshake. |
-| **`clientCertificate.privateKey` is required** | The private key corresponding to the certificate. Accepts a PEM string (`string`) or a `KeyObject` from `node:crypto` (for hardware-backed keys — see [Hardware-backed private keys](#hardware-backed-private-keys)). |
+| **`clientCertificate.privateKey` is required** | The private key corresponding to the certificate. Accepts a PEM string (`string`) or a `KeyObject` from `node:crypto` — see [Hardware-backed private keys](#hardware-backed-private-keys) below. |
 | **SNI certificate (for production)** | In production the certificate must be issued by a Microsoft-trusted CA (OneCert / MSFT PKI) and registered with your Azure AD app registration. See [SNI documentation](./sni.md). |
+
+#### Hardware-backed private keys (Path 1)
+
+`clientCertificate.privateKey` accepts a `KeyObject` (from Node.js's built-in `crypto` module) in addition to a PEM string. This lets you use non-exportable hardware-backed keys via a PKCS#11 native addon (e.g. an HSM or smart card) — MSAL has no dependency on those addons; it simply passes the `KeyObject` to Node.js's `https.Agent`.
+
+> **Important**: `KeyObject` is only supported with `authenticationScheme: AuthenticationScheme.MTLS_POP`. Standard certificate-based flows use JWT signing, which requires a PEM string. Do not use the same `ConfidentialClientApplication` instance for both mTLS and non-mTLS flows when passing a `KeyObject`.
+
+```typescript
+// --- Hardware key via a PKCS#11 addon (example with pkcs11js) ---
+// msal-node has NO dependency on pkcs11js or any HSM addon.
+// You produce the KeyObject using your chosen addon, then pass it to MSAL.
+//
+// import pkcs11js from "pkcs11js";
+// const keyObject = myPkcs11Addon.getPrivateKeyObject(slotId, keyId);
+//   ↑ returns a node:crypto KeyObject backed by the hardware key
+
+const cca = new ConfidentialClientApplication({
+    auth: {
+        clientId: "your-client-id",
+        authority: "https://login.microsoftonline.com/your-tenant-id",
+        clientCertificate: {
+            thumbprintSha256: "your-cert-sha256-thumbprint",
+            privateKey: keyObject,   // ← KeyObject accepted here
+            x5c: cert,
+        },
+    },
+});
+```
 
 ### Managed Identity path (`@azure/msal-node-mtls-extensions`)
 
@@ -169,9 +182,9 @@ Token caching behaves identically to other client credential flows — cache hit
 
 ---
 
-## Limitations
+## Known limitations and gotchas
 
-### Downstream mTLS resource calls (MSI path)
+### Downstream mTLS calls (MSI path)
 
 For the **Managed Identity path**, the `bindingCertificate` in `AuthenticationResult` is the public X.509 certificate (PEM) that Entra STS bound to the access token.
 
@@ -181,13 +194,21 @@ Use `makeMtlsMsiRequest()` from `@azure/msal-node-mtls-extensions` — see the [
 
 > **Requirement:** The downstream server **must** use required mutual TLS — it must send a TLS `CertificateRequest` during the handshake. Public Azure services (Graph, Key Vault) use *optional* mTLS and will return `MtlsMissingClientCertificate`. See [`mtls-pop-manual-testing.md` Step 7](./mtls-pop-manual-testing.md#step-7--test-downstream-mtls-calls-with-makemtlsmsirequest) for a full end-to-end test with a local required-mTLS server.
 
-For the **Confidential Client / SNI cert path**, you hold the private key directly (via `clientCertificate.privateKey`), so `https.Agent({ cert: result.bindingCertificate, key })` works as expected.
+For the **Confidential Client / SNI cert path**, you hold the private key directly, so `https.Agent({ cert: result.bindingCertificate, key })` works as expected.
+
+### `global fetch()` does not support mTLS
+
+Node.js's built-in `fetch()` (backed by `undici`) does not support providing a client certificate. MSAL's `MtlsHttpClient` uses `node:https` directly for the token request to `mtlsauth.microsoft.com`. For downstream calls in Path 1, use `https.request()` with an `https.Agent` as shown in the quick-start.
+
+### One `MtlsHttpClient` instance per certificate
+
+`MtlsHttpClient` creates a single `https.Agent` bound to one certificate at construction time. This is appropriate for the Confidential Client path where the certificate is stable for the lifetime of the application. For the Managed Identity path, certificate rotation is handled inside `MsalMtlsMsiHelper.exe` — Node.js never holds the certificate at all, so rotation is transparent.
 
 ---
 
 ## Production readiness
 
-The **code** is designed to be production-quality. Whether it successfully obtains tokens depends on the following backend prerequisites:
+The code is designed to be production-quality. Whether it successfully obtains tokens depends on the following backend prerequisites:
 
 ### SNI certificate
 
@@ -209,12 +230,6 @@ const result = await cca.acquireTokenByClientCredential({
     },
 });
 ```
-
-> **Design note — one client per certificate:** `MtlsHttpClient` creates a single `https.Agent` bound to one certificate at construction time. This is appropriate for the Confidential Client path where the certificate is stable for the lifetime of the application. For the Managed Identity path, certificate rotation is handled inside `MsalMtlsMsiHelper.exe` — Node.js never holds the certificate at all, so rotation is transparent.
-
-### Note on global `fetch()`
-
-Node.js's built-in global `fetch()` (backed by `undici`) does **not** support providing a client certificate via standard options. MSAL's `MtlsHttpClient` uses the Node.js `https` module directly for the token request to `mtlsauth.microsoft.com`. For downstream API calls after token acquisition, use `https.request()` with an `https.Agent` configured with `cert` and `key` (as shown in the quick-start example above).
 
 ---
 
@@ -258,8 +273,6 @@ These Windows/.NET-specific capabilities are required for the Managed Identity p
 
 See [`extensions/msal-node-mtls-extensions`](../../../extensions/msal-node-mtls-extensions/README.md) for the Managed Identity implementation.
 
-> **Note on hardware-backed private keys (cert-based auth):** For the Confidential Client path, `MtlsHttpClient` accepts a `KeyObject` (from `node:crypto`) as the private key in addition to a PEM string. This means you can use hardware-backed keys via PKCS#11 native addons (e.g., `pkcs11js`) — MSAL itself has no dependency on those addons. See [hardware key usage](#hardware-backed-private-keys) below.
-
 ### Deferred until MSI path matures
 
 | Feature | Notes |
@@ -272,54 +285,6 @@ See [`extensions/msal-node-mtls-extensions`](../../../extensions/msal-node-mtls-
 |---|---|
 | **Auto-region discovery from IMDS** | Node.js can make an HTTP GET to `http://169.254.169.254/metadata/instance/compute/location` to discover the Azure region automatically. Excluded for simplicity; provide `azureRegion` explicitly in the request. |
 | **Full sovereign cloud endpoint mapping** | The mTLS endpoint formula for sovereign clouds (e.g., `mtlsauth.microsoftonline.us` for Azure Government, `mtlsauth.partner.microsoftonline.cn` for Azure China) is pure string logic and fully feasible. Deferred so the POC stays focused on the public cloud happy path. For sovereign clouds, use `extraQueryParameters` or raise an issue for this feature. |
-
----
-
-## Hardware-backed private keys
-
-`clientCertificate.privateKey` accepts a `KeyObject` (from Node.js's built-in `crypto` module) in addition to a PEM string. This means you can use non-exportable hardware-backed keys via a PKCS#11 native addon — MSAL has no dependency on those addons; it simply passes the `KeyObject` to Node.js's `https.Agent`.
-
-> **Important**: `KeyObject` is only supported with `authenticationScheme: AuthenticationScheme.MTLS_POP`. Standard certificate-based flows use JWT signing, which requires a PEM string. If a `KeyObject` is provided as `privateKey`, do not use the same `ConfidentialClientApplication` instance for non-mTLS flows.
-
-```typescript
-import * as fs from "fs";
-import { createPrivateKey } from "crypto";
-import { ConfidentialClientApplication, AuthenticationScheme } from "@azure/msal-node";
-
-// --- Software key (PEM file) ---
-const keyObject = createPrivateKey({
-    key: fs.readFileSync("path/to/private-key.pem"),
-    format: "pem",
-});
-
-// --- Hardware key via a PKCS#11 addon (example with pkcs11js) ---
-// msal-node has NO dependency on pkcs11js or any HSM addon.
-// You produce the KeyObject using your chosen addon, then pass it to MSAL.
-//
-// import pkcs11js from "pkcs11js";
-// const keyObject = myPkcs11Addon.getPrivateKeyObject(slotId, keyId);
-//   ↑ returns a node:crypto KeyObject backed by the hardware key
-
-const cert = fs.readFileSync("path/to/cert.pem", "utf8");
-
-const cca = new ConfidentialClientApplication({
-    auth: {
-        clientId: "your-client-id",
-        authority: "https://login.microsoftonline.com/your-tenant-id",
-        clientCertificate: {
-            thumbprintSha256: "your-cert-sha256-thumbprint",
-            privateKey: keyObject,   // ← KeyObject accepted here
-            x5c: cert,
-        },
-    },
-});
-
-const result = await cca.acquireTokenByClientCredential({
-    scopes: ["https://graph.microsoft.com/.default"],
-    azureRegion: "eastus",
-    authenticationScheme: AuthenticationScheme.MTLS_POP,
-});
-```
 
 ---
 
