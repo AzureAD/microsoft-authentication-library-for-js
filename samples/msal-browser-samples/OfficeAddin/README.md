@@ -76,8 +76,7 @@ This Office Add-in sample shows how to:
 
 1. Sideload the add-in in Office:
     - Open the target Office application (Word, Excel, etc.)
-    - Go to **Insert** > **My Add-ins** (or **Get Add-ins** > **My Add-ins**)
-    - Click **Upload My Add-in**
+    - Navigate to **Upload My Add-in**
     - Browse to and select the `manifest.xml` file from this sample directory
     - The add-in will load from the dev server at `https://localhost:3000`
 
