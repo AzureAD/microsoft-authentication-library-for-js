@@ -165,19 +165,21 @@ For the **Managed Identity path**, the `bindingCertificate` in `AuthenticationRe
 
 **Node.js cannot directly use this certificate to make downstream mTLS resource calls.** The corresponding KeyGuard private key is non-exportable from Windows CNG, so `https.Agent({ cert, key })` cannot be constructed from Node.js.
 
-Use `makeMtlsMsiRequest()` from `@azure/msal-node-mtls-extensions` to make downstream calls. It routes the HTTP request through `MsalMtlsMsiHelper.exe`, where .NET's `HttpClient` can use the non-exportable key for the TLS client handshake:
+Use `makeMtlsMsiRequest()` from `@azure/msal-node-mtls-extensions` to make downstream calls. It routes the HTTP request through `MsalMtlsMsiHelper.exe`, where .NET's `HttpClient` can use the non-exportable key for the TLS client handshake.
+
+> **Requirement:** The downstream server **must** use required mutual TLS — it must send a TLS `CertificateRequest` during the handshake. Public Azure services (Graph, Key Vault) use *optional* mTLS and will return `MtlsMissingClientCertificate`. See [`mtls-pop-manual-testing.md` Step 7](./mtls-pop-manual-testing.md#step-7--test-downstream-mtls-calls-with-makemtlsmsirequest) for a full end-to-end test with a local required-mTLS server.
 
 ```typescript
 import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-mtls-extensions";
 
-const tokenResult = await acquireMtlsMsiToken({ resource: "https://graph.microsoft.com/" });
+const tokenResult = await acquireMtlsMsiToken({ resource: "https://your-resource.example.com/" });
 
 const response = await makeMtlsMsiRequest({
-    url: "https://graph.microsoft.com/v1.0/me",
+    url: "https://your-resource.example.com/api/data",
     token: tokenResult.accessToken,
 });
 
-console.log(response.status); // 200
+console.log(response.status); // 200 (on a server that requires mutual TLS)
 ```
 
 For the **Confidential Client / SNI cert path**, you hold the private key directly (via `clientCertificate.privateKey`), so `https.Agent({ cert: result.bindingCertificate, key })` works as expected.

@@ -47,19 +47,26 @@ mTLS connection with it directly. Use `makeMtlsMsiRequest` to route the downstre
 call through the .NET helper, which holds the key and makes the mTLS connection using
 .NET's `HttpClient`:
 
+> **Requirement:** The downstream server **must** use required mutual TLS — it must send
+> a TLS `CertificateRequest` during the handshake. Public Azure services such as Graph API
+> and Key Vault use *optional* mTLS and will return `MtlsMissingClientCertificate`.
+> `makeMtlsMsiRequest` is intended for custom or Azure-internal services that require a
+> client certificate. See [`mtls-pop-manual-testing.md` Step 7b](../../lib/msal-node/docs/mtls-pop-manual-testing.md) for a full end-to-end test using a local required-mTLS server.
+
 ```typescript
 const response = await makeMtlsMsiRequest({
-    url: "https://graph.microsoft.com/v1.0/me",
+    url: "https://your-resource.example.com/api/data",
     token: tokenResult.accessToken,
 });
 
-console.log(response.status); // 200
-console.log(JSON.parse(response.body)); // { id: "...", displayName: "..." }
+console.log(response.status); // 200 (on a server that requires mutual TLS)
 ```
 
-> **Supported resources:** Not all Azure resources accept `mtls_pop` tokens.
-> `https://graph.microsoft.com/` and `https://vault.azure.net/` are confirmed to work.
-> `management.azure.com` returns `AADSTS392196` in many subscriptions.
+> **Confirmed token acquisition resources:** `https://graph.microsoft.com/` and
+> `https://vault.azure.net/` accept `mtls_pop` tokens. `management.azure.com` returns
+> `AADSTS392196` in many subscriptions. Note that token acceptance is separate from
+> required-mTLS support — Graph accepts the token type but uses optional mTLS at the
+> connection layer.
 
 ### User-Assigned Managed Identity
 
@@ -135,6 +142,7 @@ key can be used for the TLS client handshake.
 | `identityId` | `string` | — | Client/resource ID for UserAssigned |
 | `withAttestation` | `boolean` | `false` | Use attestation when retrieving the binding cert |
 | `correlationId` | `string` | — | Optional GUID for telemetry |
+| `allowInsecureTls` | `boolean` | `false` | Skip server TLS certificate validation — **testing only** (e.g. self-signed local server cert) |
 
 **Returns** `MtlsMsiResponse`:
 
@@ -253,6 +261,8 @@ The `bindingCertificate` returned in `AuthenticationResult` is the public X.509 
 The corresponding KeyGuard private key is non-exportable from Windows CNG — `https.Agent({ cert, key })` cannot be constructed from Node.js.
 
 Use `makeMtlsMsiRequest()` instead, which routes the downstream HTTP call through `MsalMtlsMsiHelper.exe` so .NET's `HttpClient` can use the non-exportable key for the TLS client handshake.
+
+> **Important:** `makeMtlsMsiRequest()` only works with servers that **require** mutual TLS at the TLS layer (i.e., send a TLS `CertificateRequest` during the handshake). Public Azure services (Graph API, Key Vault) use *optional* mTLS and will not transmit a client certificate, resulting in `MtlsMissingClientCertificate`. For local end-to-end testing with actual certificate binding validation, use the included `test-server/mtls-test-server.mjs` (see `mtls-pop-manual-testing.md` Step 7b).
 
 ## Support and servicing
 
