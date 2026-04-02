@@ -466,10 +466,7 @@ export class StandardController implements IController {
         const loggedInAccounts = this.getAllAccounts();
         const platformBrokerRequest: PlatformAuthRequest | null =
             this.browserStorage.getCachedNativeRequest();
-        const useNative =
-            platformBrokerRequest &&
-            this.platformAuthProvider &&
-            !options?.hash;
+        const useNative = platformBrokerRequest && !options?.hash;
 
         let rootMeasurement: InProgressPerformanceEvent;
 
@@ -491,6 +488,9 @@ export class StandardController implements IController {
                     "handleRedirectPromise - acquiring token from native platform",
                     correlationId
                 );
+                rootMeasurement.add({
+                    isPlatformBrokerRequest: true,
+                });
                 const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -512,7 +512,7 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     rootMeasurement.event.correlationId
-                )(this.performanceClient, rootMeasurement.event.correlationId);
+                )();
             } else {
                 const [standardRequest, codeVerifier] =
                     this.browserStorage.getCachedRequest("");
@@ -705,28 +705,36 @@ export class StandardController implements IController {
                     this.nativeInternalStorage,
                     correlationId
                 );
-                result = nativeClient
-                    .acquireTokenRedirect(request, atrMeasurement)
-                    .catch((e: AuthError) => {
-                        if (
-                            e instanceof NativeAuthError &&
-                            isFatalNativeAuthError(e)
-                        ) {
-                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
-                            const redirectClient =
-                                this.createRedirectClient(correlationId);
-                            return redirectClient.acquireToken(request);
-                        } else if (e instanceof InteractionRequiredAuthError) {
-                            this.logger.verbose(
-                                "acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow",
-                                correlationId
-                            );
-                            const redirectClient =
-                                this.createRedirectClient(correlationId);
-                            return redirectClient.acquireToken(request);
-                        }
-                        throw e;
+                result = invokeAsync(
+                    nativeClient.acquireTokenRedirect.bind(nativeClient),
+                    BrowserPerformanceEvents.NativeInteractionClientAcquireTokenRedirect,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(request, atrMeasurement).catch((e: AuthError) => {
+                    atrMeasurement.add({
+                        brokerErrorName: e.name,
+                        brokerErrorCode: e.errorCode,
                     });
+                    if (
+                        e instanceof NativeAuthError &&
+                        isFatalNativeAuthError(e)
+                    ) {
+                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt platform broker calls
+                        const redirectClient =
+                            this.createRedirectClient(correlationId);
+                        return redirectClient.acquireToken(request);
+                    } else if (e instanceof InteractionRequiredAuthError) {
+                        this.logger.verbose(
+                            "acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow",
+                            correlationId
+                        );
+                        const redirectClient =
+                            this.createRedirectClient(correlationId);
+                        return redirectClient.acquireToken(request);
+                    }
+                    throw e;
+                });
             } else {
                 const redirectClient = this.createRedirectClient(correlationId);
                 result = redirectClient.acquireToken(request);
@@ -815,6 +823,9 @@ export class StandardController implements IController {
         const pkce = this.getPreGeneratedPkceCodes(correlationId);
 
         if (this.canUsePlatformBroker(request)) {
+            atPopupMeasurement.add({
+                isPlatformBrokerRequest: true,
+            });
             result = this.acquireTokenNative(
                 {
                     ...request,
@@ -834,11 +845,15 @@ export class StandardController implements IController {
                     return response;
                 })
                 .catch((e: AuthError) => {
+                    atPopupMeasurement.add({
+                        brokerErrorName: e.name,
+                        brokerErrorCode: e.errorCode,
+                    });
                     if (
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
                     ) {
-                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt platform broker calls
                         const popupClient =
                             this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request, pkce);
@@ -1023,13 +1038,20 @@ export class StandardController implements IController {
         let result: Promise<AuthenticationResult>;
 
         if (this.canUsePlatformBroker(validRequest)) {
+            this.ssoSilentMeasurement?.add({
+                isPlatformBrokerRequest: true,
+            });
             result = this.acquireTokenNative(
                 validRequest,
                 ApiId.ssoSilent
             ).catch((e: AuthError) => {
+                this.ssoSilentMeasurement?.add({
+                    brokerErrorName: e.name,
+                    brokerErrorCode: e.errorCode,
+                });
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
-                    this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                    this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt platform broker calls
                     const silentIframeClient = this.createSilentIframeClient(
                         validRequest.correlationId
                     );
@@ -1155,7 +1177,6 @@ export class StandardController implements IController {
                             atbcMeasurement.end(
                                 {
                                     success: true,
-                                    isNativeBroker: result.fromPlatformBroker,
                                     accessTokenSize: result.accessToken.length,
                                     idTokenSize: result.idToken.length,
                                 },
@@ -1194,6 +1215,9 @@ export class StandardController implements IController {
                 if (
                     this.canUsePlatformBroker(request, request.nativeAccountId)
                 ) {
+                    atbcMeasurement.add({
+                        isPlatformBrokerRequest: true,
+                    });
                     const result = await this.acquireTokenNative(
                         {
                             ...request,
@@ -1202,6 +1226,10 @@ export class StandardController implements IController {
                         ApiId.acquireTokenByCode,
                         request.nativeAccountId
                     ).catch((e: AuthError) => {
+                        atbcMeasurement.add({
+                            brokerErrorName: e.name,
+                            brokerErrorCode: e.errorCode,
+                        });
                         // If native token acquisition fails for availability reasons fallback to standard flow
                         if (
                             e instanceof NativeAuthError &&
@@ -1275,7 +1303,6 @@ export class StandardController implements IController {
                 this.acquireTokenByCodeAsyncMeasurement?.end({
                     success: true,
                     fromCache: response.fromCache,
-                    isNativeBroker: response.fromPlatformBroker,
                 });
                 return response;
             })
@@ -1573,7 +1600,13 @@ export class StandardController implements IController {
             correlationId
         );
 
-        return nativeClient.acquireToken(request, cacheLookupPolicy);
+        return invokeAsync(
+            nativeClient.acquireToken.bind(nativeClient),
+            BrowserPerformanceEvents.NativeInteractionClientAcquireToken,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(request, cacheLookupPolicy);
     }
 
     /**
@@ -1604,7 +1637,7 @@ export class StandardController implements IController {
             )
         ) {
             this.logger.trace(
-                "canUsePlatformBroker: isBrokerAvailable returned false, returning false",
+                "canUsePlatformBroker: isPlatformAuthAllowed returned false, returning false",
                 correlationId
             );
             return false;
@@ -1963,7 +1996,6 @@ export class StandardController implements IController {
                     {
                         success: true,
                         fromCache: result.fromCache,
-                        isNativeBroker: result.fromPlatformBroker,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
                     },
@@ -2261,12 +2293,26 @@ export class StandardController implements IController {
                 "acquireTokenSilent - attempting to acquire token from native platform",
                 silentRequest.correlationId
             );
+
+            this.performanceClient.addFields(
+                { isPlatformBrokerRequest: true },
+                silentRequest.correlationId
+            );
+
             return this.acquireTokenNative(
                 silentRequest,
                 ApiId.acquireTokenSilent_silentFlow,
                 silentRequest.account.nativeAccountId,
                 cacheLookupPolicy
             ).catch(async (e: AuthError) => {
+                this.performanceClient.addFields(
+                    {
+                        brokerErrorName: e.name,
+                        brokerErrorCode: e.errorCode,
+                    },
+                    silentRequest.correlationId
+                );
+
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                     this.logger.verbose(
