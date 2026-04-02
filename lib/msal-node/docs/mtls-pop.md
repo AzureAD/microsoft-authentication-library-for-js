@@ -229,13 +229,20 @@ The root cause is a single hardware-enforced constraint that cascades into every
 
 > **The KeyGuard RSA private key is flagged `NCRYPT_ALLOW_EXPORT_NONE` by Windows VBS. The raw key bytes can never leave the hardware — not into memory, not to disk, not to another process.**
 
-This single fact is why every downstream step must stay inside the .NET process:
+**Why .NET can work with this key but Node.js cannot** comes down to their TLS stacks:
+
+- **.NET on Windows uses Schannel** — a Windows-native TLS provider that understands CNG key handles natively. `HttpClient` + `SslClientCertificates` can perform a full mTLS handshake using a key that never leaves CNG, because Schannel delegates signing to CNG directly.
+- **Node.js uses OpenSSL** everywhere, including on Windows. OpenSSL is a cross-platform library that manages its own key material as raw in-process bytes. It has no concept of a CNG key handle and no built-in path to delegate signing to Windows CNG.
+
+This means the entire chain — key creation, CSR signing, mTLS handshake — must stay inside a process whose TLS stack speaks CNG. That process is .NET.
+
+The remaining consequences follow from this:
 
 | Consequence | Why |
 |---|---|
-| **Node.js TLS cannot use the key** | Node.js's TLS stack is OpenSSL. OpenSSL requires in-process exportable key bytes for the handshake — it has no concept of an opaque hardware key handle. Even with a NAPI C++ addon calling CNG, you'd need a custom OpenSSL ENGINE to hook signing into the TLS handshake. |
-| **No CNG bindings in Node.js** | Creating and using a KeyGuard key requires `NCryptCreatePersistedKey` / `NCryptSignHash` — Windows CNG APIs that Node.js does not expose. There is no built-in path to call them. |
-| **CSR and `/issuecredential` must stay in the same process** | The CSR is signed by the KeyGuard key. Because the key never leaves Windows CNG, the entire CSR generation + IMDS credential issuance must happen in the process that owns the key handle. |
+| **Node.js TLS cannot use the key** | OpenSSL needs exportable key bytes. Even with a NAPI C++ addon calling CNG, you'd need a custom OpenSSL ENGINE to hook signing into the TLS handshake — a substantial undertaking with ongoing maintenance. |
+| **No CNG bindings in Node.js** | Creating and using a KeyGuard key requires `NCryptCreatePersistedKey` / `NCryptSignHash` — Windows CNG APIs that Node.js does not expose. |
+| **CSR and `/issuecredential` must stay in the same process** | The CSR is signed by the KeyGuard key. The entire CSR generation + IMDS credential issuance must happen in the process that owns the key handle. |
 | **`AttestationClientLib.dll` is a native Windows DLL** | MAA attestation uses `Microsoft.Azure.Security.KeyGuardAttestation` — a native DLL with no Node.js equivalent. |
 
 This is not a gap that can be bridged with a polyfill or a different Node.js API. The solution is to delegate the entire flow to a .NET subprocess (`MsalMtlsMsiHelper.exe`) that runs msal-dotnet natively — which is exactly what `@azure/msal-node-mtls-extensions` does.

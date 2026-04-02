@@ -245,9 +245,14 @@ The root cause is a single hardware-enforced constraint:
 
 > **The KeyGuard RSA private key is flagged `NCRYPT_ALLOW_EXPORT_NONE` by Windows VBS. The raw key bytes can never leave the hardware.**
 
+**Why .NET can work with this key but Node.js cannot** comes down to their TLS stacks:
+
+- **.NET on Windows uses Schannel** — a Windows-native TLS provider that understands CNG key handles natively. `HttpClient` + `SslClientCertificates` can perform a full mTLS handshake using a key that never leaves CNG, because Schannel delegates signing to CNG directly.
+- **Node.js uses OpenSSL** everywhere, including on Windows. OpenSSL is a cross-platform library that manages its own key material as raw in-process bytes. It has no concept of a CNG key handle and no built-in path to delegate signing to Windows CNG.
+
 This cascades into every other limitation:
 
-1. **Node.js TLS (OpenSSL) requires in-process exportable key bytes.** OpenSSL has no concept of an opaque hardware key handle. Even if you called CNG from a NAPI addon, you'd need a custom OpenSSL ENGINE to hook the signing operation into the TLS handshake — an enormous undertaking with ongoing maintenance.
+1. **Node.js TLS (OpenSSL) requires in-process exportable key bytes.** Even if you called CNG from a NAPI addon, you'd need a custom OpenSSL ENGINE to hook the signing operation into the TLS handshake — a substantial undertaking with ongoing maintenance.
 
 2. **No built-in CNG API in Node.js.** Creating and using a KeyGuard key requires `NCryptCreatePersistedKey` / `NCryptSignHash` — Windows CNG APIs that Node.js does not expose natively.
 
