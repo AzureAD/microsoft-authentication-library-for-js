@@ -246,7 +246,7 @@ The remaining consequences follow from this:
 
 This is not a gap that can be bridged with a polyfill or a different Node.js API. The solution is to delegate the entire flow to a .NET subprocess (`MsalMtlsMsiHelper.exe`) that runs msal-dotnet natively — which is exactly what `@azure/msal-node-mtls-extensions` does.
 
-### Group 1 — Delegated to `@azure/msal-node-mtls-extensions`
+### Implemented in `@azure/msal-node-mtls-extensions` (not this package)
 
 These Windows/.NET-specific capabilities are required for the Managed Identity path. They **are** implemented — via `MsalMtlsMsiHelper.exe` in the separate `@azure/msal-node-mtls-extensions` package. See the table above for why each one cannot run in Node.js directly.
 
@@ -260,13 +260,13 @@ See [`extensions/msal-node-mtls-extensions`](../../../extensions/msal-node-mtls-
 
 > **Note on hardware-backed private keys (cert-based auth):** For the Confidential Client path, `MtlsHttpClient` accepts a `KeyObject` (from `node:crypto`) as the private key in addition to a PEM string. This means you can use hardware-backed keys via PKCS#11 native addons (e.g., `pkcs11js`) — MSAL itself has no dependency on those addons. See [hardware key usage](#hardware-backed-private-keys) below.
 
-### Group 2 — Deferred (depends on Group 1 being in production)
+### Deferred until MSI path matures
 
 | Feature | Notes |
 |---|---|
 | **Two-tier certificate cache (memory + Windows store)** | The in-memory tier (MSAL token cache) is used today. Windows certificate store persistence would require a Windows API call from `MsalMtlsMsiHelper.exe` and is deferred until the MSI path matures. |
 
-### Group 3 — Technically feasible in Node.js, deferred for simplicity
+### Feasible in Node.js, deferred for simplicity
 
 | Feature | Notes |
 |---|---|
