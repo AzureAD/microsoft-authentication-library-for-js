@@ -238,18 +238,6 @@ export function getStandardAuthorizeRequestParameters(
         RequestParameterBuilder.addState(parameters, request.state);
     }
 
-    if (
-        request.claims ||
-        (authOptions.clientCapabilities &&
-            authOptions.clientCapabilities.length > 0)
-    ) {
-        RequestParameterBuilder.addClaims(
-            parameters,
-            request.claims,
-            authOptions.clientCapabilities
-        );
-    }
-
     if (request.embeddedClientId) {
         RequestParameterBuilder.addBrokerParameters(
             parameters,
@@ -257,6 +245,13 @@ export function getStandardAuthorizeRequestParameters(
             authOptions.redirectUri
         );
     }
+
+    RequestParameterBuilder.addClaims(
+        parameters,
+        request.claims,
+        authOptions.clientCapabilities,
+        request.skipBrokerClaims
+    );
 
     // If extraQueryParameters includes instance_aware its value will be added when extraQueryParameters are added
     if (
