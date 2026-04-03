@@ -41,3 +41,5 @@ export const InitializeClientApplication = "initializeClientApplication";
 export const LocalStorageUpdated = "localStorageUpdated";
 // Load external tokens
 export const LoadExternalTokens = "loadExternalTokens";
+// Wait for late response from broker
+export const WaitForBridgeLateResponse = "waitForBridgeLateResponse";

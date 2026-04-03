@@ -388,7 +388,8 @@ declare namespace BrowserRootPerformanceEvents {
         SsoSilent,
         InitializeClientApplication,
         LocalStorageUpdated,
-        LoadExternalTokens
+        LoadExternalTokens,
+        WaitForBridgeLateResponse
     }
 }
 
@@ -1506,6 +1507,11 @@ const userCancelled = "user_cancelled";
 //
 // @public (undocumented)
 export const version = "5.6.3";
+
+// Warning: (ae-missing-release-tag) "WaitForBridgeLateResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const WaitForBridgeLateResponse = "waitForBridgeLateResponse";
 
 // Warning: (ae-incompatible-release-tags) The symbol "waitForBridgeResponse" is marked as @public, but its signature references "BrowserExperimentalOptions" which is marked as @internal
 // Warning: (ae-incompatible-release-tags) The symbol "waitForBridgeResponse" is marked as @public, but its signature references "BrowserExperimentalOptions" which is marked as @internal
