@@ -41,5 +41,5 @@ export const InitializeClientApplication = "initializeClientApplication";
 export const LocalStorageUpdated = "localStorageUpdated";
 // Load external tokens
 export const LoadExternalTokens = "loadExternalTokens";
-// Wait for late response from broker
+// Wait for late response from bridge after timeout has already occurred
 export const WaitForBridgeLateResponse = "waitForBridgeLateResponse";
