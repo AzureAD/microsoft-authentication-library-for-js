@@ -9,6 +9,22 @@ export const LAB_SCOPE = "https://request.msidlab.com/.default";
 export const LAB_KEY_VAULT_URL = "https://msidlabs.vault.azure.net";
 export const LAB_CERT_NAME = "LabAuth";
 
+export const MOBILE_BUILD_VAULT_URL = "https://mobilebuildvault.vault.azure.net";
+export const MSAL_TEAM_KEY_VAULT_URL = "https://id4skeyvault.vault.azure.net";
+export const UPN_JSON_SECRET_NAME = "JS-ID4SLab2-User-Identifiers";
+export const KEY_VAULT_SCOPE = "https://vault.azure.net/.default";
+
+/**
+ * Key Vault secret names for app configuration (stored in MsalTeam KV).
+ * Each secret contains a JSON object with an "app" property holding the AppConfig.
+ */
+export const AppConfigSecrets = {
+    S2S: "App-S2S-Config",
+    PCAClient: "App-PCAClient-Config",
+    WebApi: "App-WebApi-Config",
+    WebApp: "App-WebApp-Config",
+} as const;
+
 export const ParamKeys = {
     AZURE_ENVIRONMENT: "azureenvironment",
     USER_TYPE: "usertype",

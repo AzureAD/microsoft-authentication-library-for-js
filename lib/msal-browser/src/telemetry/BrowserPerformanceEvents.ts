@@ -75,6 +75,9 @@ export const FetchAccountIdWithNativeBroker = "fetchAccountIdWithNativeBroker";
 export const NativeInteractionClientAcquireToken =
     "nativeInteractionClientAcquireToken";
 
+export const NativeInteractionClientAcquireTokenRedirect =
+    "nativeInteractionClientAcquireToken";
+
 /**
  * Time spent creating default headers for requests to token endpoint
  */
