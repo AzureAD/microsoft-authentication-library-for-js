@@ -13,8 +13,9 @@
 # orphaned staging branches (no associated open PR) whose last commit falls outside
 # the same window.
 #
-# PRs are matched exclusively by head branch name — never by title — so that any
-# manually opened PR is unaffected regardless of what it's called.
+# PRs are matched by head branch name AND by PR author (must be the release automation
+# account) AND by head repository (must equal this repo, ruling out forks). This ensures
+# manually opened PRs are never affected regardless of their branch name.
 #
 # Naming conventions
 # ------------------
@@ -58,9 +59,13 @@ env:
     #   prefix, so the default covers both. Add new prefixes if additional release tracks
     #   are introduced.
     #
-    # PRs are matched by head branch name rather than title so that manually opened PRs
-    # are never affected, regardless of their title.
+    # TEST_PR_AUTHOR — GitHub login of the automation account that opens test release PRs.
+    #   PRs are only closed when the head branch matches a configured prefix, the PR was
+    #   opened by this account, AND the head repository matches this repo (preventing
+    #   accidental closure of fork PRs or manually opened PRs). Update if the automation
+    #   account changes.
     TEST_BRANCH_PREFIXES: ${{ vars.TEST_BRANCH_PREFIXES || 'test-release-staging-' }}
+    TEST_PR_AUTHOR: ${{ vars.TEST_PR_AUTHOR || 'msal-js-release-automation' }}
 
     STALE_DAYS: ${{ inputs.stale_days || 7 }}
     DRY_RUN: ${{ inputs.dry_run || 'false' }}
@@ -72,7 +77,9 @@ jobs:
         steps:
             - name: Close stale test release PRs and delete their branches
               run: |
+                  set -euo pipefail
                   CUTOFF=$(date -u -d "${STALE_DAYS} days ago" +"%Y-%m-%dT%H:%M:%SZ")
+                  REPO="${{ github.repository }}"
                   echo "Stale threshold: ${STALE_DAYS} days (before ${CUTOFF})"
                   echo "Dry run: ${DRY_RUN}"
 
@@ -81,17 +88,17 @@ jobs:
                       echo "=== Checking PRs with head branch prefix: ${PREFIX} ==="
 
                       gh pr list \
-                          --repo "${{ github.repository }}" \
+                          --repo "$REPO" \
                           --state open \
                           --limit 500 \
-                          --json number,title,headRefName,createdAt \
-                          --jq '.[] | select(.headRefName | startswith("'"$PREFIX"'")) | select(.createdAt < "'"$CUTOFF"'") | [.number, .headRefName, .title] | @tsv' \
+                          --json number,title,headRefName,createdAt,author,headRepository \
+                          --jq '.[] | select(.headRefName | startswith("'"$PREFIX"'")) | select(.createdAt < "'"$CUTOFF"'") | select(.author.login == "'"$TEST_PR_AUTHOR"'") | select(.headRepository.nameWithOwner == "'"$REPO"'") | [.number, .headRefName, .title] | @tsv' \
                       | while IFS=$'\t' read -r number branch title; do
                           echo "Stale PR #${number}: \"${title}\" (branch: ${branch})"
                           if [[ "$DRY_RUN" == "true" ]]; then
                               echo "  [DRY RUN] Would close PR #${number} and delete branch: ${branch}"
                           else
-                              gh pr close "$number" --repo "${{ github.repository }}" --delete-branch
+                              gh pr close "$number" --repo "$REPO" --delete-branch
                               echo "  Closed PR #${number} and deleted branch: ${branch}"
                           fi
                       done
@@ -99,13 +106,15 @@ jobs:
 
             - name: Delete orphaned test staging branches
               run: |
+                  set -euo pipefail
                   CUTOFF=$(date -u -d "${STALE_DAYS} days ago" +"%Y-%m-%dT%H:%M:%SZ")
+                  REPO="${{ github.repository }}"
 
                   # Collect branches that still have an open PR so we don't double-process them
                   OPEN_PR_BRANCHES=$(
                       for PREFIX in $TEST_BRANCH_PREFIXES; do
                           gh pr list \
-                              --repo "${{ github.repository }}" \
+                              --repo "$REPO" \
                               --state open \
                               --limit 500 \
                               --json headRefName \
@@ -117,7 +126,7 @@ jobs:
                       echo ""
                       echo "=== Checking orphaned branches with prefix: ${PREFIX} ==="
 
-                      gh api "repos/${{ github.repository }}/branches?per_page=100" --paginate \
+                      gh api "repos/$REPO/branches?per_page=100" --paginate \
                           --jq '.[].name | select(startswith("'"$PREFIX"'"))' \
                       | while read -r branch; do
                           # Skip if this branch still has an open PR (handled in the previous step)
@@ -125,16 +134,19 @@ jobs:
                               continue
                           fi
 
-                          # Use latest commit date as a proxy for branch age
-                          BRANCH_DATE=$(gh api "repos/${{ github.repository }}/branches/$branch" \
-                              --jq '.commit.commit.author.date')
+                          # URL-encode the branch name for safe interpolation into API paths
+                          ENCODED_BRANCH="${branch//\//%2F}"
+
+                          # Use latest commit committer date as a proxy for branch age
+                          BRANCH_DATE=$(gh api "repos/$REPO/branches/$ENCODED_BRANCH" \
+                              --jq '.commit.commit.committer.date')
 
                           if [[ "$BRANCH_DATE" < "$CUTOFF" ]]; then
                               echo "Orphaned stale branch: ${branch} (last commit: ${BRANCH_DATE})"
                               if [[ "$DRY_RUN" == "true" ]]; then
                                   echo "  [DRY RUN] Would delete branch: ${branch}"
                               else
-                                  gh api --method DELETE "repos/${{ github.repository }}/git/refs/heads/$branch"
+                                  gh api --method DELETE "repos/$REPO/git/refs/heads/$ENCODED_BRANCH"
                                   echo "  Deleted branch: ${branch}"
                               fi
                           fi
