@@ -7214,6 +7214,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         return Promise.resolve(true);
                     }
                 );
+                jest.spyOn(
+                    BrowserUtils,
+                    "waitForBridgeResponse"
+                ).mockRejectedValue(new Error("test"));
                 const popupWindow = { ...window };
                 jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                     popupWindow
