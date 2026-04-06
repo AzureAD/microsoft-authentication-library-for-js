@@ -157,7 +157,8 @@ describe("AAD-Prod Tests", () => {
                     request: relativeRedirectUriRequest,
                 })
             );
-            page.reload();
+            await page.reload();
+            await pcaInitializedPoller(page, 5000);
 
             const testName = "redirectBaseCase";
             const screenshot = new Screenshot(
@@ -185,7 +186,8 @@ describe("AAD-Prod Tests", () => {
                     request: relativeRedirectUriRequest,
                 })
             );
-            page.reload();
+            await page.reload();
+            await pcaInitializedPoller(page, 5000);
 
             const testName = "redirectBaseCase";
             const screenshot = new Screenshot(
@@ -310,7 +312,7 @@ describe("AAD-Prod Tests", () => {
                 page
                     .url()
                     .startsWith(
-                        "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca/"
+                        "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133/"
                     )
             ).toBeTruthy();
             expect(page.url()).toContain("logout");
@@ -330,7 +332,7 @@ describe("AAD-Prod Tests", () => {
                 popupWindow
                     .url()
                     .startsWith(
-                        "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca/"
+                        "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133/"
                     )
             ).toBeTruthy();
             expect(popupWindow.url()).toContain("logout");
@@ -339,6 +341,10 @@ describe("AAD-Prod Tests", () => {
             expect(tokenStore.idTokens.length).toEqual(0);
             expect(tokenStore.accessTokens.length).toEqual(0);
             expect(tokenStore.refreshTokens.length).toEqual(0);
+
+            // Verify the popup window is closed after logout completes
+            await popupWindowClosed;
+            expect(popupWindow.isClosed()).toBeTruthy();
         });
     });
 

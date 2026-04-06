@@ -176,6 +176,14 @@ async function getStandardParameters(
         // signal ests that this is a WAM call
         RequestParameterBuilder.addNativeBroker(parameters);
 
+        // instrument JS-platform bridge specific fields
+        performanceClient.addFields(
+            {
+                isPlatformAuthorizeRequest: true,
+            },
+            request.correlationId
+        );
+
         // pass the req_cnf for POP
         if (
             request.authenticationScheme === Constants.AuthenticationScheme.POP

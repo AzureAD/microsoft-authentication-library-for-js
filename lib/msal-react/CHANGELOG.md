@@ -1,8 +1,37 @@
 # Change Log - @azure/msal-react
 
-<!-- This log was last generated on Fri, 13 Mar 2026 22:36:58 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 01 Apr 2026 20:09:00 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.2.1
+
+Wed, 01 Apr 2026 20:09:00 GMT
+
+### Patches
+
+- Improve compatibility with `React.StrictMode` [#8383](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8383) (herman.jensen@intility.no)
+- Bump @azure/msal-browser to v5.6.3
+
+## 5.2.0
+
+Fri, 27 Mar 2026 16:35:28 GMT
+
+### Minor changes
+
+- Extend peer dependency range to support React 16 (16.8+) and React 17 [#8461](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8461) (joarroyo@microsoft.com)
+- Bump @azure/msal-browser to v5.6.2
+
+## 5.1.0
+
+Wed, 18 Mar 2026 20:47:24 GMT
+
+### Minor changes
+
+- Add React 18 support for MSAL React [#8437](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8437) (joarroyo@microsoft.com)
+- Bump @azure/msal-browser to v5.6.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
 
 ## 5.0.7
 

@@ -60,6 +60,7 @@ export function useMsalAuthentication(
     // Used to prevent state updates after unmount
     const mounted = useRef(true);
     useEffect(() => {
+        mounted.current = true;
         return () => {
             mounted.current = false;
         };

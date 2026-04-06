@@ -31,6 +31,7 @@ describe("createNestablePublicClientApplication tests", () => {
     let testConfig: Configuration;
     let createNewGuidSpy: jest.SpyInstance;
     let createStandardSpy: jest.SpyInstance;
+    let mockPCAinitializeSpy: jest.SpyInstance;
 
     beforeEach(() => {
         testConfig = {
@@ -61,10 +62,9 @@ describe("createNestablePublicClientApplication tests", () => {
         ).mockImplementation(() => mockNestedAppAuthController);
 
         // Mock PublicClientApplication
-        jest.spyOn(
-            PublicClientApplication.prototype,
-            "initialize"
-        ).mockResolvedValue(undefined);
+        mockPCAinitializeSpy = jest
+            .spyOn(PublicClientApplication.prototype, "initialize")
+            .mockResolvedValue(undefined);
 
         // Mock createNewGuid
         createNewGuidSpy = jest
@@ -101,7 +101,7 @@ describe("createNestablePublicClientApplication tests", () => {
                 // Verify initialize was called with generated correlation ID
                 expect(
                     mockNestedAppOperatingContext.initialize
-                ).toHaveBeenCalledWith(RANDOM_TEST_GUID);
+                ).toHaveBeenCalled();
 
                 // Verify isAvailable was called
                 expect(
@@ -117,9 +117,7 @@ describe("createNestablePublicClientApplication tests", () => {
                 expect(result).toBeInstanceOf(PublicClientApplication);
 
                 // Verify initialize was called on the PCA instance
-                expect(result.initialize).toHaveBeenCalledWith({
-                    correlationId: RANDOM_TEST_GUID,
-                });
+                expect(result.initialize).toHaveBeenCalled();
             });
 
             it("should use provided correlation ID when specified", async () => {
@@ -155,9 +153,9 @@ describe("createNestablePublicClientApplication tests", () => {
                 expect(createNewGuidSpy).toHaveBeenCalled();
 
                 // Verify initialize was called with generated ID
-                expect(
-                    mockNestedAppOperatingContext.initialize
-                ).toHaveBeenCalledWith(RANDOM_TEST_GUID);
+                expect(mockPCAinitializeSpy).toHaveBeenCalledWith({
+                    correlationId: RANDOM_TEST_GUID,
+                });
             });
         });
 
@@ -293,9 +291,7 @@ describe("createNestablePublicClientApplication tests", () => {
             );
 
             // Should have initialized NestedAppOperatingContext first
-            expect(
-                mockNestedAppOperatingContext.initialize
-            ).toHaveBeenCalledWith(RANDOM_TEST_GUID);
+            expect(mockNestedAppOperatingContext.initialize).toHaveBeenCalled();
             expect(
                 mockNestedAppOperatingContext.isAvailable
             ).toHaveBeenCalled();

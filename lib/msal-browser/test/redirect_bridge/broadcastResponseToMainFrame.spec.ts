@@ -11,6 +11,7 @@ import {
     TEST_STATE_VALUES,
     RANDOM_TEST_GUID,
 } from "../utils/StringConstants.js";
+import { ApiId, TemporaryCacheKeys } from "../../src/utils/BrowserConstants.js";
 
 jest.mock("../../src/navigation/NavigationClient.js");
 
@@ -181,23 +182,18 @@ describe("broadcastResponseToMainFrame", () => {
     });
 
     describe("Success cases - Redirect flow", () => {
-        it("navigates to homepage for redirect flow and does NOT broadcast", async () => {
+        it("navigates to homepage without auth params when no interaction status is set", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
             await broadcastResponseToMainFrame();
 
-            // Verify navigation was called with homepage + hash
+            // With no clientId, navigates to homepage; handleRedirectPromise will return null
             expect(NavigationClient).toHaveBeenCalled();
-            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
-                expect.stringContaining(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                ),
-                expect.objectContaining({
-                    apiId: expect.any(Number),
-                    noHistory: true,
-                    timeout: expect.any(Number),
-                })
-            );
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
+            const navigatedUrl = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0];
+            expect(navigatedUrl).not.toContain("code=");
 
             // URL should NOT be cleared for redirect flow (we're navigating away)
             expect(mockHistoryReplaceState).not.toHaveBeenCalled();
@@ -206,14 +202,14 @@ describe("broadcastResponseToMainFrame", () => {
             expect(window.close).not.toHaveBeenCalled();
         });
 
-        it("uses sessionStorage URL when client_id is present in interaction status", async () => {
+        it("caches payload in sessionStorage and navigates to origin URL when client_id is present", async () => {
             const testClientId = "test-client-id-123";
             const cachedOriginUrl = "https://localhost:8081/custom-page.html";
 
             // Set up sessionStorage with interaction status containing clientId and type
             mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
                 clientId: testClientId,
-                type: "redirect",
+                type: "signin",
             });
 
             // Set up sessionStorage with cached origin URL
@@ -224,9 +220,87 @@ describe("broadcastResponseToMainFrame", () => {
 
             await broadcastResponseToMainFrame();
 
-            // Verify navigation was called with cached URL from sessionStorage
+            // Verify payload was cached in sessionStorage under URL_HASH key
+            expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
+                `msal.${testClientId}.${TemporaryCacheKeys.URL_HASH}`,
+                expect.stringContaining("code=thisIsATestCode")
+            );
+
+            // Verify navigation was called with the origin URL (not modified with auth hash)
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
-                expect.stringContaining(cachedOriginUrl),
+                cachedOriginUrl,
+                expect.any(Object)
+            );
+        });
+
+        it("navigates to hash-routed origin URL without appending auth response", async () => {
+            const testClientId = "test-client-id-456";
+            const hashRoutedOriginUrl = "https://localhost:8081/#/dashboard";
+
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "signin",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                hashRoutedOriginUrl;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Verify payload was cached
+            expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
+                `msal.${testClientId}.${TemporaryCacheKeys.URL_HASH}`,
+                expect.stringContaining("code=thisIsATestCode")
+            );
+
+            // Verify navigation goes to the hash-routed URL directly (no double-hash)
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
+                hashRoutedOriginUrl,
+                expect.any(Object)
+            );
+        });
+
+        it("strips bare trailing '?' from origin URL before navigating", async () => {
+            const testClientId = "test-client-bare-query";
+            const originUrlWithBareQuery = "https://localhost:8081/?";
+
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "signin",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                originUrlWithBareQuery;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Verify navigation strips the bare "?" to match canonical URL form
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
+                "https://localhost:8081/",
+                expect.any(Object)
+            );
+        });
+
+        it("preserves non-empty query string in origin URL when navigating", async () => {
+            const testClientId = "test-client-query";
+            const originUrlWithQuery = "https://localhost:8081/?test=value";
+
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "signin",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                originUrlWithQuery;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Verify non-empty query string is preserved
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
+                originUrlWithQuery,
                 expect.any(Object)
             );
         });
@@ -247,7 +321,7 @@ describe("broadcastResponseToMainFrame", () => {
             ).not.toHaveBeenCalled();
         });
 
-        it("falls back to homepage when sessionStorage access fails", async () => {
+        it("navigates to homepage when sessionStorage.getItem fails", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
             // Make sessionStorage.getItem throw
@@ -259,24 +333,134 @@ describe("broadcastResponseToMainFrame", () => {
 
             await broadcastResponseToMainFrame();
 
-            // Should still navigate successfully using homepage fallback
+            // Should navigate to homepage without auth params
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
-            expect(mockHistoryReplaceState).not.toHaveBeenCalled();
+            const navigatedUrl = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0];
+            expect(navigatedUrl).not.toContain("code=");
         });
 
-        it("falls back to homepage when client_id is not in interaction status", async () => {
+        it("navigates to origin URL when sessionStorage.setItem fails", async () => {
+            const testClientId = "setitem-fail-client";
+            const cachedOriginUrl = "https://localhost:8081/app";
+
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
+                clientId: testClientId,
+                type: "signin",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            // Make sessionStorage.setItem throw
+            (window.sessionStorage.setItem as jest.Mock).mockImplementation(
+                () => {
+                    throw new Error("QuotaExceeded");
+                }
+            );
+
+            await broadcastResponseToMainFrame();
+
+            // Should navigate to origin URL without auth params
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
+            const navigatedUrl = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0];
+            expect(navigatedUrl).toBe(cachedOriginUrl);
+            expect(navigatedUrl).not.toContain("code=");
+        });
+
+        it("does not cache URL_HASH when client_id is not available", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
             await broadcastResponseToMainFrame();
 
-            // Should navigate using homepage since no clientId in session storage means no cached origin URL lookup
+            // Should navigate without auth params
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
-            const callArgs = (
+            const navigatedUrl = (
                 mockNavigationClient.navigateInternal as jest.Mock
             ).mock.calls[0][0];
-            expect(callArgs).toContain(
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            expect(navigatedUrl).not.toContain("code=");
+
+            // sessionStorage.setItem should not be called with a urlHash key
+            const setItemCalls = (window.sessionStorage.setItem as jest.Mock)
+                .mock.calls;
+            const urlHashCalls = setItemCalls.filter(([key]: [string]) =>
+                key.includes(`${TemporaryCacheKeys.URL_HASH}`)
             );
+            expect(urlHashCalls).toHaveLength(0);
+        });
+
+        it("uses ApiId.handleRedirectPromise when interaction type is signin", async () => {
+            const testClientId = "test-client-signin";
+            const cachedOriginUrl = "https://localhost:8081/home";
+
+            mockSessionStorage["msal.interaction.status"] = JSON.stringify({
+                clientId: testClientId,
+                type: "signin",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Should navigate with ApiId.handleRedirectPromise for signin flow
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
+                cachedOriginUrl,
+                expect.objectContaining({
+                    apiId: ApiId.handleRedirectPromise,
+                    noHistory: true,
+                })
+            );
+        });
+    });
+
+    describe("Success cases - Signout redirect flow", () => {
+        it("uses ApiId.logout when interaction type is signout", async () => {
+            const testClientId = "test-client-signout";
+            const cachedOriginUrl = "https://localhost:8081/signed-out";
+
+            mockSessionStorage["msal.interaction.status"] = JSON.stringify({
+                clientId: testClientId,
+                type: "signout",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Should navigate with ApiId.logout for signout flow
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
+                cachedOriginUrl,
+                expect.objectContaining({
+                    apiId: ApiId.logout,
+                    noHistory: true,
+                })
+            );
+        });
+
+        it("broadcasts and closes popup window for signout popup flow", async () => {
+            mockSessionStorage["msal.interaction.status"] = JSON.stringify({
+                clientId: "test-client",
+                type: "signout",
+            });
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
+
+            await broadcastResponseToMainFrame();
+
+            // Popup signout should broadcast + close, same as popup signin
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
+            expect(window.close).toHaveBeenCalled();
+            expect(
+                mockNavigationClient.navigateInternal
+            ).not.toHaveBeenCalled();
         });
     });
 
@@ -291,13 +475,13 @@ describe("broadcastResponseToMainFrame", () => {
             expect(window.close).toHaveBeenCalled();
         });
 
-        it("handles hybrid query + hash response", async () => {
+        it("caches query-string auth response when hash contains non-auth fragment (redirect flow)", async () => {
             const testClientId = "hybrid-client-id";
 
             // Set up sessionStorage with interaction status containing clientId and type
             mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
                 clientId: testClientId,
-                type: "redirect",
+                type: "signin",
             });
 
             window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&code=test_code`;
@@ -305,13 +489,18 @@ describe("broadcastResponseToMainFrame", () => {
 
             await broadcastResponseToMainFrame();
 
-            // For redirect flow, should navigate with full query + hash
+            // For redirect flow, payload should be cached in sessionStorage
+            expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
+                `msal.${testClientId}.${TemporaryCacheKeys.URL_HASH}`,
+                expect.stringContaining("code=test_code")
+            );
+
+            // Navigation URL should not contain the auth response
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
-            const callArgs = (
+            const navigatedUrl = (
                 mockNavigationClient.navigateInternal as jest.Mock
             ).mock.calls[0][0];
-            expect(callArgs).toContain("?state=");
-            expect(callArgs).toContain("&code=test_code");
+            expect(navigatedUrl).not.toContain("code=test_code");
         });
 
         it("strips leading ? from query string", async () => {

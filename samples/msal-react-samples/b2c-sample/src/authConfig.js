@@ -39,7 +39,7 @@ export const msalConfig = {
         authority: b2cPolicies.authorities.signUpSignIn.authority,
         knownAuthorities: [b2cPolicies.authorityDomain],
         redirectUri: "/redirect",
-        postLogoutRedirectUri: "/",
+        postLogoutRedirectUri: "/redirect",
         onRedirectNavigate: () => !BrowserUtils.isInIframe()
     },
     cache: {

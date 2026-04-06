@@ -101,7 +101,7 @@ describe("B2C user-flow tests (local account)", () => {
                 tokenStoreBeforeEdit.accessTokens,
                 ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"]
             )
-        ).toBeTruthy;
+        ).toBeTruthy();
 
         // initiate edit profile flow
         const editProfileButton = await page.waitForSelector(
@@ -148,6 +148,6 @@ describe("B2C user-flow tests (local account)", () => {
                 tokenStoreAfterEdit.accessTokens,
                 ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"]
             )
-        ).toBeTruthy;
+        ).toBeTruthy();
     });
 });

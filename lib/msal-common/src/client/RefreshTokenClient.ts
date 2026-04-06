@@ -19,7 +19,6 @@ import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
-import { StringUtils } from "../utils/StringUtils.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import {
@@ -504,18 +503,6 @@ export class RefreshTokenClient {
         }
 
         if (
-            !StringUtils.isEmptyObj(request.claims) ||
-            (this.config.authOptions.clientCapabilities &&
-                this.config.authOptions.clientCapabilities.length > 0)
-        ) {
-            RequestParameterBuilder.addClaims(
-                parameters,
-                request.claims,
-                this.config.authOptions.clientCapabilities
-            );
-        }
-
-        if (
             this.config.systemOptions.preventCorsPreflight &&
             request.ccsCredential
         ) {
@@ -564,6 +551,14 @@ export class RefreshTokenClient {
             request.correlationId,
             this.performanceClient
         );
+
+        RequestParameterBuilder.addClaims(
+            parameters,
+            request.claims,
+            this.config.authOptions.clientCapabilities,
+            request.skipBrokerClaims
+        );
+
         return UrlUtils.mapToQueryString(parameters);
     }
 }

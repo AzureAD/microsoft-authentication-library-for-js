@@ -1,0 +1,50 @@
+{
+    "name": "react17-sample",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "dependencies": {
+        "@azure/msal-browser": "^5.0.0",
+        "@azure/msal-react": "^5.0.0",
+        "@emotion/react": "^11.10.5",
+        "@emotion/styled": "^11.10.5",
+        "@mui/icons-material": "^5.10.16",
+        "@mui/material": "^5.10.17",
+        "react": "^17.0.0",
+        "react-dom": "^17.0.0",
+        "react-router-dom": "^6.7.0"
+    },
+    "scripts": {
+        "start": "vite",
+        "test:e2e": "jest",
+        "build": "vite build",
+        "build:package": "cd ../../../ && npm run build:all --workspace=lib/msal-react"
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "devDependencies": {
+        "@types/jest": "^29.5.0",
+        "@vitejs/plugin-react": "^4.3.3",
+        "e2e-test-utils": "file:../../e2eTestUtils",
+        "env-cmd": "^10.1.0",
+        "jest": "^29.5.0",
+        "jest-junit": "^16.0.0",
+        "ts-jest": "^29.1.0",
+        "vite": "^5.4.21"
+    },
+    "jest-junit": {
+        "suiteNameTemplate": "React 17 Compat Tests",
+        "outputDirectory": ".",
+        "outputName": "test-results.xml"
+    }
+}

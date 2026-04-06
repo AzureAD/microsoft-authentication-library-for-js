@@ -39,6 +39,120 @@ This guide provides framework-specific instructions for setting up the redirect 
 > redirect bridge with your application or serve it from your own
 > infrastructure.
 
+## Logout and the Redirect Bridge
+
+### `logoutPopup()` — redirect bridge is **required**
+
+When using `logoutPopup()`, the `postLogoutRedirectUri` **must** point to a page that implements the redirect bridge (calls `broadcastResponseToMainFrame()`). After ESTS completes the sign-out, it redirects the popup to the `postLogoutRedirectUri`. The redirect bridge on that page broadcasts the response back to the main window and closes the popup. Without the bridge, the popup will remain open after logout because COOP headers prevent the main window from closing it directly.
+
+The simplest configuration is to set `postLogoutRedirectUri` to the same value as `redirectUri`:
+
+```javascript
+const msalConfig = {
+    auth: {
+        clientId: "{your-client-id}",
+        redirectUri: "/redirect",
+        postLogoutRedirectUri: "/redirect", // Must host the redirect bridge
+    },
+};
+```
+
+> [!IMPORTANT]
+> If your `postLogoutRedirectUri` differs from your `redirectUri`, you must
+> ensure both pages implement the redirect bridge **and** both URIs are
+> registered in your [Entra ID app registration](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app#add-a-redirect-uri)
+> as redirect URIs.
+>
+> **Note:** For applications that support personal Microsoft accounts (MSA),
+> the `postLogoutRedirectUri` **must** be registered as a redirect URI in your
+> app registration. If it is not registered, MSA will not redirect back after
+> sign-out and the user will see a generic "close this tab" page instead. See
+> [Send a sign-out request](https://learn.microsoft.com/entra/identity-platform/v2-protocols-oidc#send-a-sign-out-request)
+> for details.
+
+### `logoutRedirect()` — redirect bridge is **optional**
+
+For `logoutRedirect()`, hosting the redirect bridge on the `postLogoutRedirectUri` page is optional. The redirect flow navigates the entire browser window, so there is no popup to close. If the redirect bridge is present on the `postLogoutRedirectUri` page, it will navigate the user back to the origin page. If not, ESTS will redirect the user directly to the `postLogoutRedirectUri` page and the user stays there.
+
+## Cross-Origin Iframe Limitation
+
+The redirect bridge relies on the [BroadcastChannel API](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel) to send the authentication response from the popup back to the main application window. Starting with **Chromium 115+** (Chrome, Edge, and other Chromium-based browsers), [third-party storage partitioning](https://developers.google.com/privacy-sandbox/cookies/storage-partitioning) is enforced, which means `BroadcastChannel` is **partitioned by top-level site**, not just by origin. Other browsers are expected to adopt similar partitioning in the future.
+
+This causes **popup-based flows** to fail when your application runs inside a **cross-origin iframe**:
+
+| Context | Top-level site | BroadcastChannel partition |
+|---|---|---|
+| Your app in the iframe | `hostplatform.com` | `hostplatform.com` |
+| Popup opened by the iframe | `yourapp.com` (popup is its own top-level context) | `yourapp.com` |
+
+Although both the iframe and the popup share the same **origin** (`yourapp.com`), the popup is in a **different storage partition**. The redirect bridge sends the response on a `BroadcastChannel` in the popup's partition, but the iframe is listening on a channel in the host platform's partition — the message never arrives, and the authentication flow times out.
+
+> [!IMPORTANT]
+> This is a browser-level constraint — not a bug in MSAL. There is no secure
+> client-side workaround that avoids this partitioning while preserving the
+> security guarantees of the redirect bridge.
+
+### Recommended alternatives for cross-origin iframe scenarios
+
+#### Option 1: Nested App Authentication (recommended)
+
+If the host platform supports it, use [Nested App Authentication (NAA)](./initialization.md#nested-app-configuration).
+With NAA, the iframe delegates authentication entirely to the host application
+via `createNestablePublicClientApplication`. The host authenticates the user at
+the top level (where there are no partitioning issues) and provides tokens to
+the nested app through the NAA bridge. This avoids popup and silent flows from
+within the iframe altogether.
+
+```javascript
+import { createNestablePublicClientApplication } from "@azure/msal-browser";
+
+const pca = await createNestablePublicClientApplication({
+    auth: {
+        clientId: "your-client-id",
+        authority: "https://login.microsoftonline.com/your-tenant-id",
+    },
+});
+```
+
+NAA is supported out of the box by Microsoft host platforms such as **Teams**,
+**Outlook**, and **Microsoft 365**. For custom host platforms, the host must
+implement the [NAA bridge protocol](./initialization.md#nested-app-configuration).
+If the NAA bridge is not available, `createNestablePublicClientApplication`
+automatically falls back to a standard `PublicClientApplication`.
+
+#### Option 2: Redirect flow within the iframe (fallback)
+
+If NAA is not available, use `loginRedirect()` / `acquireTokenRedirect()`
+instead of popup APIs. The redirect flow happens entirely within the iframe's
+browsing context and does not use `BroadcastChannel`, so the redirect bridge
+partition mismatch does not apply. You will need to set
+`system.allowRedirectInIframe: true`:
+
+```javascript
+const msalConfig = {
+    auth: {
+        clientId: "your-client-id",
+        authority: "https://login.microsoftonline.com/your-tenant-id",
+        redirectUri: "/redirect",
+    },
+    system: {
+        allowRedirectInIframe: true,
+    },
+};
+```
+
+> [!NOTE]
+> Redirect flows in iframes require the identity provider to allow rendering in
+> an iframe. **Azure AD / Microsoft Entra ID** will refuse to render interactive
+> prompts (credential entry, consent, etc.) inside an iframe and will return an
+> `X-FRAME-OPTIONS: DENY` error. This means redirect flows in iframes are
+> primarily supported for **Azure AD B2C** with the
+> [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login),
+> or for non-interactive redirect-in-iframe scenarios where no user interaction is required. This is distinct from MSAL's silent token renewal APIs (`ssoSilent` / `acquireTokenSilent`), which use a hidden iframe with `prompt=none` and are subject to third-party cookie and tracking-prevention restrictions.
+
+For more information on running MSAL in iframes, see
+[Using MSAL in iframed apps](./iframe-usage.md).
+
 ## Angular
 
 1. **Create the redirect bridge component** (`src/app/redirect/redirect.component.ts`):

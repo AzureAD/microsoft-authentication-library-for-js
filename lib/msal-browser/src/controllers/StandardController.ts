@@ -260,11 +260,11 @@ export class StandardController implements IController {
         this.activeSilentTokenRequests = new Map();
 
         // Register listener functions
-        this.trackPageVisibility = this.trackPageVisibility.bind(this);
+        this.trackStateChange = this.trackStateChange.bind(this);
 
         // Register listener functions
-        this.trackPageVisibilityWithMeasurement =
-            this.trackPageVisibilityWithMeasurement.bind(this);
+        this.trackStateChangeWithMeasurement =
+            this.trackStateChangeWithMeasurement.bind(this);
     }
 
     static async createController(
@@ -276,15 +276,39 @@ export class StandardController implements IController {
         return controller;
     }
 
-    private trackPageVisibility(correlationId?: string): void {
+    private trackStateChange(
+        correlationId: string | undefined,
+        event: Event
+    ): void {
         if (!correlationId) {
             return;
         }
-        this.logger.info("Perf: Visibility change detected", correlationId);
-        this.performanceClient.incrementFields(
-            { visibilityChangeCount: 1 },
-            correlationId
-        );
+
+        if (event.type === "visibilitychange") {
+            this.logger.info("Perf: Visibility change detected", correlationId);
+            this.performanceClient.incrementFields(
+                { visibilityChangeCount: 1 },
+                correlationId
+            );
+        } else if (event.type === "online") {
+            this.logger.info(
+                "Perf: Online status change detected",
+                correlationId
+            );
+            this.performanceClient.incrementFields(
+                { onlineStatusChangeCount: 1 },
+                correlationId
+            );
+        } else if (event.type === "offline") {
+            this.logger.info(
+                "Perf: Offline status change detected",
+                correlationId
+            );
+            this.performanceClient.incrementFields(
+                { onlineStatusChangeCount: 1 },
+                correlationId
+            );
+        }
     }
 
     /**
@@ -442,10 +466,7 @@ export class StandardController implements IController {
         const loggedInAccounts = this.getAllAccounts();
         const platformBrokerRequest: PlatformAuthRequest | null =
             this.browserStorage.getCachedNativeRequest();
-        const useNative =
-            platformBrokerRequest &&
-            this.platformAuthProvider &&
-            !options?.hash;
+        const useNative = platformBrokerRequest && !options?.hash;
 
         let rootMeasurement: InProgressPerformanceEvent;
 
@@ -467,6 +488,9 @@ export class StandardController implements IController {
                     "handleRedirectPromise - acquiring token from native platform",
                     correlationId
                 );
+                rootMeasurement.add({
+                    isPlatformBrokerRequest: true,
+                });
                 const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -488,7 +512,7 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     rootMeasurement.event.correlationId
-                )(this.performanceClient, rootMeasurement.event.correlationId);
+                )();
             } else {
                 const [standardRequest, codeVerifier] =
                     this.browserStorage.getCachedRequest("");
@@ -681,28 +705,36 @@ export class StandardController implements IController {
                     this.nativeInternalStorage,
                     correlationId
                 );
-                result = nativeClient
-                    .acquireTokenRedirect(request, atrMeasurement)
-                    .catch((e: AuthError) => {
-                        if (
-                            e instanceof NativeAuthError &&
-                            isFatalNativeAuthError(e)
-                        ) {
-                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
-                            const redirectClient =
-                                this.createRedirectClient(correlationId);
-                            return redirectClient.acquireToken(request);
-                        } else if (e instanceof InteractionRequiredAuthError) {
-                            this.logger.verbose(
-                                "acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow",
-                                correlationId
-                            );
-                            const redirectClient =
-                                this.createRedirectClient(correlationId);
-                            return redirectClient.acquireToken(request);
-                        }
-                        throw e;
+                result = invokeAsync(
+                    nativeClient.acquireTokenRedirect.bind(nativeClient),
+                    BrowserPerformanceEvents.NativeInteractionClientAcquireTokenRedirect,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(request, atrMeasurement).catch((e: AuthError) => {
+                    atrMeasurement.add({
+                        brokerErrorName: e.name,
+                        brokerErrorCode: e.errorCode,
                     });
+                    if (
+                        e instanceof NativeAuthError &&
+                        isFatalNativeAuthError(e)
+                    ) {
+                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt platform broker calls
+                        const redirectClient =
+                            this.createRedirectClient(correlationId);
+                        return redirectClient.acquireToken(request);
+                    } else if (e instanceof InteractionRequiredAuthError) {
+                        this.logger.verbose(
+                            "acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow",
+                            correlationId
+                        );
+                        const redirectClient =
+                            this.createRedirectClient(correlationId);
+                        return redirectClient.acquireToken(request);
+                    }
+                    throw e;
+                });
             } else {
                 const redirectClient = this.createRedirectClient(correlationId);
                 result = redirectClient.acquireToken(request);
@@ -791,6 +823,9 @@ export class StandardController implements IController {
         const pkce = this.getPreGeneratedPkceCodes(correlationId);
 
         if (this.canUsePlatformBroker(request)) {
+            atPopupMeasurement.add({
+                isPlatformBrokerRequest: true,
+            });
             result = this.acquireTokenNative(
                 {
                     ...request,
@@ -810,11 +845,15 @@ export class StandardController implements IController {
                     return response;
                 })
                 .catch((e: AuthError) => {
+                    atPopupMeasurement.add({
+                        brokerErrorName: e.name,
+                        brokerErrorCode: e.errorCode,
+                    });
                     if (
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
                     ) {
-                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt platform broker calls
                         const popupClient =
                             this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request, pkce);
@@ -894,7 +933,7 @@ export class StandardController implements IController {
             });
     }
 
-    private trackPageVisibilityWithMeasurement(): void {
+    private trackStateChangeWithMeasurement(event: Event): void {
         const measurement =
             this.ssoSilentMeasurement ||
             this.acquireTokenByCodeAsyncMeasurement;
@@ -902,9 +941,43 @@ export class StandardController implements IController {
             return;
         }
 
-        measurement.increment({
-            visibilityChangeCount: 1,
-        });
+        if (event.type === "visibilitychange") {
+            this.logger.info(
+                `Perf: Visibility change detected in '${measurement.event.name}'`,
+                measurement.event.correlationId
+            );
+            measurement.increment({
+                visibilityChangeCount: 1,
+            });
+        } else if (event.type === "online") {
+            this.logger.info(
+                `Perf: Online status change detected in '${measurement.event.name}'`,
+                measurement.event.correlationId
+            );
+            measurement.increment({
+                onlineStatusChangeCount: 1,
+            });
+        } else if (event.type === "offline") {
+            this.logger.info(
+                `Perf: Offline status change detected in '${measurement.event.name}'`,
+                measurement.event.correlationId
+            );
+            measurement.increment({
+                onlineStatusChangeCount: 1,
+            });
+        }
+    }
+
+    private addStateChangeListeners(listener: (event: Event) => void): void {
+        document.addEventListener("visibilitychange", listener);
+        window.addEventListener("online", listener);
+        window.addEventListener("offline", listener);
+    }
+
+    private removeStateChangeListeners(listener: (event: Event) => void): void {
+        document.removeEventListener("visibilitychange", listener);
+        window.removeEventListener("online", listener);
+        window.removeEventListener("offline", listener);
     }
     // #endregion
 
@@ -948,12 +1021,10 @@ export class StandardController implements IController {
         );
         this.ssoSilentMeasurement?.increment({
             visibilityChangeCount: 0,
+            onlineStatusChangeCount: 0,
         });
 
-        document.addEventListener(
-            "visibilitychange",
-            this.trackPageVisibilityWithMeasurement
-        );
+        this.addStateChangeListeners(this.trackStateChangeWithMeasurement);
 
         const loggedInAccounts = this.getAllAccounts();
         this.logger.verbose("ssoSilent called", correlationId);
@@ -967,13 +1038,20 @@ export class StandardController implements IController {
         let result: Promise<AuthenticationResult>;
 
         if (this.canUsePlatformBroker(validRequest)) {
+            this.ssoSilentMeasurement?.add({
+                isPlatformBrokerRequest: true,
+            });
             result = this.acquireTokenNative(
                 validRequest,
                 ApiId.ssoSilent
             ).catch((e: AuthError) => {
+                this.ssoSilentMeasurement?.add({
+                    brokerErrorName: e.name,
+                    brokerErrorCode: e.errorCode,
+                });
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
-                    this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                    this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt platform broker calls
                     const silentIframeClient = this.createSilentIframeClient(
                         validRequest.correlationId
                     );
@@ -1036,9 +1114,8 @@ export class StandardController implements IController {
                 throw e;
             })
             .finally(() => {
-                document.removeEventListener(
-                    "visibilitychange",
-                    this.trackPageVisibilityWithMeasurement
+                this.removeStateChangeListeners(
+                    this.trackStateChangeWithMeasurement
                 );
             });
     }
@@ -1100,7 +1177,6 @@ export class StandardController implements IController {
                             atbcMeasurement.end(
                                 {
                                     success: true,
-                                    isNativeBroker: result.fromPlatformBroker,
                                     accessTokenSize: result.accessToken.length,
                                     idTokenSize: result.idToken.length,
                                 },
@@ -1139,6 +1215,9 @@ export class StandardController implements IController {
                 if (
                     this.canUsePlatformBroker(request, request.nativeAccountId)
                 ) {
+                    atbcMeasurement.add({
+                        isPlatformBrokerRequest: true,
+                    });
                     const result = await this.acquireTokenNative(
                         {
                             ...request,
@@ -1147,6 +1226,10 @@ export class StandardController implements IController {
                         ApiId.acquireTokenByCode,
                         request.nativeAccountId
                     ).catch((e: AuthError) => {
+                        atbcMeasurement.add({
+                            brokerErrorName: e.name,
+                            brokerErrorCode: e.errorCode,
+                        });
                         // If native token acquisition fails for availability reasons fallback to standard flow
                         if (
                             e instanceof NativeAuthError &&
@@ -1209,11 +1292,9 @@ export class StandardController implements IController {
             );
         this.acquireTokenByCodeAsyncMeasurement?.increment({
             visibilityChangeCount: 0,
+            onlineStatusChangeCount: 0,
         });
-        document.addEventListener(
-            "visibilitychange",
-            this.trackPageVisibilityWithMeasurement
-        );
+        this.addStateChangeListeners(this.trackStateChangeWithMeasurement);
         const silentAuthCodeClient =
             this.createSilentAuthCodeClient(correlationId);
         const silentTokenResult = await silentAuthCodeClient
@@ -1222,7 +1303,6 @@ export class StandardController implements IController {
                 this.acquireTokenByCodeAsyncMeasurement?.end({
                     success: true,
                     fromCache: response.fromCache,
-                    isNativeBroker: response.fromPlatformBroker,
                 });
                 return response;
             })
@@ -1236,9 +1316,8 @@ export class StandardController implements IController {
                 throw tokenRenewalError;
             })
             .finally(() => {
-                document.removeEventListener(
-                    "visibilitychange",
-                    this.trackPageVisibilityWithMeasurement
+                this.removeStateChangeListeners(
+                    this.trackStateChangeWithMeasurement
                 );
             });
         return silentTokenResult;
@@ -1521,7 +1600,13 @@ export class StandardController implements IController {
             correlationId
         );
 
-        return nativeClient.acquireToken(request, cacheLookupPolicy);
+        return invokeAsync(
+            nativeClient.acquireToken.bind(nativeClient),
+            BrowserPerformanceEvents.NativeInteractionClientAcquireToken,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(request, cacheLookupPolicy);
     }
 
     /**
@@ -1552,7 +1637,7 @@ export class StandardController implements IController {
             )
         ) {
             this.logger.trace(
-                "canUsePlatformBroker: isBrokerAvailable returned false, returning false",
+                "canUsePlatformBroker: isPlatformAuthAllowed returned false, returning false",
                 correlationId
             );
             return false;
@@ -1911,7 +1996,6 @@ export class StandardController implements IController {
                     {
                         success: true,
                         fromCache: result.fromCache,
-                        isNativeBroker: result.fromPlatformBroker,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
                     },
@@ -2012,8 +2096,8 @@ export class StandardController implements IController {
         request: SilentRequest & { correlationId: string },
         account: AccountInfo
     ): Promise<AuthenticationResult> {
-        const trackPageVisibility = () =>
-            this.trackPageVisibility(request.correlationId);
+        const trackStateChange = (event: Event) =>
+            this.trackStateChange(request.correlationId, event);
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
             request.correlationId,
@@ -2023,12 +2107,12 @@ export class StandardController implements IController {
 
         if (request.correlationId) {
             this.performanceClient.incrementFields(
-                { visibilityChangeCount: 0 },
+                { visibilityChangeCount: 0, onlineStatusChangeCount: 0 },
                 request.correlationId
             );
         }
 
-        document.addEventListener("visibilitychange", trackPageVisibility);
+        this.addStateChangeListeners(trackStateChange);
 
         const silentRequest = await invokeAsync(
             initializeSilentRequest,
@@ -2180,10 +2264,7 @@ export class StandardController implements IController {
                 throw tokenRenewalError;
             })
             .finally(() => {
-                document.removeEventListener(
-                    "visibilitychange",
-                    trackPageVisibility
-                );
+                this.removeStateChangeListeners(trackStateChange);
             });
     }
 
@@ -2212,12 +2293,26 @@ export class StandardController implements IController {
                 "acquireTokenSilent - attempting to acquire token from native platform",
                 silentRequest.correlationId
             );
+
+            this.performanceClient.addFields(
+                { isPlatformBrokerRequest: true },
+                silentRequest.correlationId
+            );
+
             return this.acquireTokenNative(
                 silentRequest,
                 ApiId.acquireTokenSilent_silentFlow,
                 silentRequest.account.nativeAccountId,
                 cacheLookupPolicy
             ).catch(async (e: AuthError) => {
+                this.performanceClient.addFields(
+                    {
+                        brokerErrorName: e.name,
+                        brokerErrorCode: e.errorCode,
+                    },
+                    silentRequest.correlationId
+                );
+
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                     this.logger.verbose(

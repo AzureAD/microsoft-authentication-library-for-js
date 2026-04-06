@@ -1,8 +1,55 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Fri, 13 Mar 2026 22:36:58 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 01 Apr 2026 20:08:59 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.6.3
+
+Wed, 01 Apr 2026 20:08:59 GMT
+
+### Patches
+
+- Track online/offline status change [#8411](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8411) (thomas.norling@microsoft.com)
+- Experimental iframe timeout debugging telemetry [#8470](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8470) (thomas.norling@microsoft.com)
+- Thread performanceClient through buildAccountToCache callers for telemetry [#8471](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8471) (ruijungao@microsoft.com)
+- Bump @azure/msal-common to v16.4.1
+
+## 5.6.2
+
+Fri, 27 Mar 2026 16:35:28 GMT
+
+### Patches
+
+- Remove hidden iframe after receiving response from the redirect bridge [#8459](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8459) (kshabelko@microsoft.com)
+- Cache auth response in sessionStorage and navigate to origin URL without appending auth parameters [#8467](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8467) (kshabelko@microsoft.com)
+
+## 5.6.1
+
+Thu, 19 Mar 2026 23:46:44 GMT
+
+### Patches
+
+- Set correlation ID after initialization for NAA [#8447](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8447) (shylasummers@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 5.6.0
+
+Wed, 18 Mar 2026 20:47:24 GMT
+
+### Minor changes
+
+- Add support for client data telemetry with CLI_DATA parameter [#8378](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8378) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.4.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- getNativeAccountId() bugfix for v5 [#8105](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8105) (lalimasharda@microsoft.com)
 
 ## 5.5.0
 

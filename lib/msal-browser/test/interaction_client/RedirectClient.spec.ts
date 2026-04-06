@@ -2330,8 +2330,13 @@ describe("RedirectClient", () => {
                     options: NavigationOptions
                 ): Promise<boolean> => {
                     expect(logoutUriSpy).toHaveBeenCalledWith(
-                        validatedLogoutRequest
+                        expect.objectContaining({
+                            correlationId: RANDOM_TEST_GUID,
+                            postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
+                        })
                     );
+                    // State is now always set for logout flows
+                    expect(logoutUriSpy.mock.calls[0][0].state).toBeTruthy();
                     expect(urlNavigate).toEqual(testLogoutUrl);
                     expect(options.noHistory).toBeFalsy();
                     done();
@@ -2339,10 +2344,6 @@ describe("RedirectClient", () => {
                 }
             );
             redirectClient.logout();
-            const validatedLogoutRequest: CommonEndSessionRequest = {
-                correlationId: RANDOM_TEST_GUID,
-                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
-            };
         });
 
         it("includes postLogoutRedirectUri if one is passed", (done) => {

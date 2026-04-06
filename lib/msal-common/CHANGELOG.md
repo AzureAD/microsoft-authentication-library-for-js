@@ -1,8 +1,33 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Fri, 13 Mar 2026 22:36:58 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 01 Apr 2026 20:09:00 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.4.1
+
+Wed, 01 Apr 2026 20:09:00 GMT
+
+### Patches
+
+- Experimental iframe timeout debugging telemetry [#8470](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8470) (thomas.norling@microsoft.com)
+- Track online/offline status change [#8411](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8411) (thomas.norling@microsoft.com)
+- Fix tenant profile loss in cross-tenant B2B scenarios by replacing broken startsWith cache key lookup with entity-level matching via getAccountsFilteredBy [#8471](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8471) (ruijungao@microsoft.com)
+
+## 16.4.0
+
+Wed, 18 Mar 2026 20:47:24 GMT
+
+### Minor changes
+
+- Add support for client data telemetry with CLI_DATA parameter [#8378](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8378) (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- bugfix - added filter validity check in getAccountInfoFilteredBy() [#8105](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8105) (lalimasharda@microsoft.com)
 
 ## 16.3.0
 

@@ -105,6 +105,12 @@ export type PerformanceEvent = {
     startPageVisibility?: string | null;
 
     /**
+     * Online status when the event started.
+     * Read from: https://developer.mozilla.org/docs/Web/API/NavigatorOnLine/onLine
+     */
+    startOnlineStatus?: boolean | null;
+
+    /**
      * Unix millisecond timestamp when the event was initiated.
      *
      * @type {number}
@@ -169,6 +175,14 @@ export type PerformanceEvent = {
     isNativeBroker?: boolean;
 
     /**
+     * Platform-specific fields, when calling STS and/or broker for token requests
+     */
+    isPlatformAuthorizeRequest?: boolean;
+    isPlatformBrokerRequest?: boolean;
+    brokerErrorName?: string;
+    brokerErrorCode?: string;
+
+    /**
      * Request ID returned from the response
      *
      * @type {?string}
@@ -194,6 +208,7 @@ export type PerformanceEvent = {
     incompleteSubMeasurements?: Map<string, SubMeasurement>;
 
     visibilityChangeCount?: number;
+    onlineStatusChangeCount?: number;
     incompleteSubsCount?: number;
 
     /**
@@ -213,6 +228,7 @@ export type PerformanceEvent = {
     redirectBridgeTimeoutMs?: number;
     isRedirectUriCrossOrigin?: boolean;
     redirectBridgeMessageVersion?: number;
+    lateResponseExperimentEnabled?: boolean;
 
     /**
      * Size of the id token
@@ -311,6 +327,9 @@ export type PerformanceEvent = {
     cacheRetentionDays?: number;
     accountCachedBy?: string;
     acntLoggedOut?: boolean;
+
+    // Number of cached accounts matched by homeAccountId in buildAccountToCache
+    cacheMatchedAccounts?: number;
 
     // Number of tokens in the cache to be reported when cache quota is exceeded
     cacheRtCount?: number;
@@ -520,6 +539,7 @@ export const IntFields: ReadonlySet<string> = new Set([
     "currRefreshCount",
     "expiredCacheRemovedCount",
     "upgradedCacheCount",
+    "cacheMatchedAccounts",
     "networkRtt",
     "redirectBridgeTimeoutMs",
     "redirectBridgeMessageVersion",

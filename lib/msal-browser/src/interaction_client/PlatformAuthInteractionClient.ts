@@ -4,81 +4,80 @@
  */
 
 import {
-    Logger,
-    ICrypto,
-    AuthToken,
+    AADServerParamKeys,
+    AccessTokenEntity,
     AccountEntity,
+    AccountEntityUtils,
+    AccountInfo,
+    AuthError,
+    AuthToken,
     AuthorityType,
-    ScopeSet,
-    TimeUtils,
-    UrlString,
-    PopTokenGenerator,
-    SignedHttpRequestParameters,
+    CacheHelpers,
+    ClientAuthErrorCodes,
+    CommonSilentFlowRequest,
+    Constants,
+    ICrypto,
     IPerformanceClient,
     IdTokenEntity,
-    AccessTokenEntity,
-    AuthError,
-    CommonSilentFlowRequest,
-    AccountInfo,
-    AADServerParamKeys,
+    InProgressPerformanceEvent,
+    Logger,
+    PerformanceEvents,
+    PopTokenGenerator,
+    ScopeSet,
+    ServerTelemetryManager,
+    SignedHttpRequestParameters,
+    TimeUtils,
     TokenClaims,
+    UrlString,
+    buildAccountToCache,
     createClientAuthError,
-    ClientAuthErrorCodes,
     invokeAsync,
     updateAccountTenantProfileData,
-    CacheHelpers,
-    buildAccountToCache,
-    InProgressPerformanceEvent,
-    ServerTelemetryManager,
-    AccountEntityUtils,
-    Constants,
-    PerformanceEvents,
-    RequestParameterBuilder,
 } from "@azure/msal-common/browser";
-import {
-    BaseInteractionClient,
-    getDiscoveredAuthority,
-    getRedirectUri,
-    initializeServerTelemetryManager,
-} from "./BaseInteractionClient.js";
-import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
-import { BrowserConfiguration } from "../config/Configuration.js";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
-import { EventHandler } from "../event/EventHandler.js";
-import { PopupRequest } from "../request/PopupRequest.js";
-import { SilentRequest } from "../request/SilentRequest.js";
-import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
-import {
-    ApiId,
-    TemporaryCacheKeys,
-    PlatformAuthConstants,
-    BrowserConstants,
-    CacheLookupPolicy,
-} from "../utils/BrowserConstants.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import {
     MATS,
     PlatformAuthResponse,
 } from "../broker/nativeBroker/PlatformAuthResponse.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { base64Decode } from "../encode/Base64Decode.js";
+import {
+    BrowserAuthErrorCodes,
+    createBrowserAuthError,
+} from "../error/BrowserAuthError.js";
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
     createNativeAuthError,
     isFatalNativeAuthError,
 } from "../error/NativeAuthError.js";
-import { RedirectRequest } from "../request/RedirectRequest.js";
-import { NavigationOptions } from "../navigation/NavigationOptions.js";
+import { EventHandler } from "../event/EventHandler.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
-import {
-    createBrowserAuthError,
-    BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError.js";
-import { SilentCacheClient } from "./SilentCacheClient.js";
-import { AuthenticationResult } from "../response/AuthenticationResult.js";
-import { base64Decode } from "../encode/Base64Decode.js";
+import { NavigationOptions } from "../navigation/NavigationOptions.js";
 import { version } from "../packageMetadata.js";
-import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
+import {
+    ApiId,
+    BrowserConstants,
+    CacheLookupPolicy,
+    PlatformAuthConstants,
+    TemporaryCacheKeys,
+} from "../utils/BrowserConstants.js";
+import {
+    BaseInteractionClient,
+    getDiscoveredAuthority,
+    getRedirectUri,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
+import { SilentCacheClient } from "./SilentCacheClient.js";
 
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -167,7 +166,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // start the perf measurement
         const nativeATMeasurement = this.performanceClient.startMeasurement(
             BrowserPerformanceEvents.NativeInteractionClientAcquireToken,
-            request.correlationId
+            this.correlationId
         );
         const reqTimestamp = TimeUtils.nowSeconds();
 
@@ -181,7 +180,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         try {
             // initialize native request
-            const nativeRequest = await this.initializeNativeRequest(request);
+            const nativeRequest = await this.initializePlatformRequest(request);
 
             // check if the tokens can be retrieved from internal cache
             try {
@@ -201,6 +200,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                         "MSAL internal Cache does not contain tokens, return error as per cache policy",
                         this.correlationId
                     );
+                    nativeATMeasurement.end({
+                        success: false,
+                        brokerErrorCode: "cache_request_failed",
+                    });
                     throw e;
                 }
                 // continue with a native call for any and all errors
@@ -232,7 +235,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                         success: false,
                         errorCode: error.errorCode,
                         subErrorCode: error.subError,
-                        isNativeBroker: true,
                     });
                     throw error;
                 });
@@ -240,6 +242,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             if (e instanceof NativeAuthError) {
                 serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
             }
+            nativeATMeasurement.end({
+                success: false,
+            });
             throw e;
         }
     }
@@ -285,7 +290,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             {
                 nativeAccountId,
             },
-            request.correlationId
+            this.correlationId
         );
 
         if (!account) {
@@ -333,7 +338,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.correlationId
         );
 
-        const nativeRequest = await this.initializeNativeRequest(request);
+        const nativeRequest = await this.initializePlatformRequest(request);
         const navigateToLoginRequestUrl =
             options?.navigateToLoginRequestUrl ?? true;
 
@@ -386,10 +391,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @param performanceClient {IPerformanceClient?}
      * @param correlationId {string?} correlation identifier
      */
-    async handleRedirectPromise(
-        performanceClient?: IPerformanceClient,
-        correlationId?: string
-    ): Promise<AuthenticationResult | null> {
+    async handleRedirectPromise(): Promise<AuthenticationResult | null> {
         this.logger.trace(
             "NativeInteractionClient - handleRedirectPromise called.",
             this.correlationId
@@ -409,12 +411,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 "NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null.",
                 this.correlationId
             );
-            if (performanceClient && correlationId) {
-                performanceClient?.addFields(
-                    { errorCode: "no_cached_request" },
-                    correlationId
-                );
-            }
+            this.performanceClient?.addFields(
+                { errorCode: "no_cached_request" },
+                this.correlationId
+            );
             return null;
         }
 
@@ -455,6 +455,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.logger
             );
             serverTelemetryManager.clearNativeBrokerErrorCode();
+            this.performanceClient?.addFields(
+                { isNativeBroker: true },
+                this.correlationId
+            );
             return authResult;
         } catch (e) {
             throw e;
@@ -543,10 +547,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.correlationId,
             idTokenClaims,
             response.client_info,
-            undefined, // environment
+            authority.getPreferredCache(), // environment
             idTokenClaims.tid,
             undefined, // auth code payload
-            response.account.id
+            response.account.id,
+            this.logger,
+            this.performanceClient
         );
 
         // Ensure expires_in is in number format
@@ -935,11 +941,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * Translates developer provided request object into NativeRequest object
      * @param request
      */
-    protected async initializeNativeRequest(
+    protected async initializePlatformRequest(
         request: PopupRequest | SsoSilentRequest
     ): Promise<PlatformAuthRequest> {
         this.logger.trace(
-            "NativeInteractionClient - initializeNativeRequest called",
+            "NativeInteractionClient - initializePlatformRequest called",
             this.correlationId
         );
 
@@ -1080,7 +1086,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             case ApiId.ssoSilent:
             case ApiId.acquireTokenSilent_silentFlow:
                 this.logger.trace(
-                    "initializeNativeRequest: silent request sets prompt to none",
+                    "initializePlatformRequest: silent request sets prompt to none",
                     this.correlationId
                 );
                 return Constants.PromptValue.NONE;
@@ -1091,7 +1097,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // Prompt not provided, request may proceed and native broker decides if it needs to prompt
         if (!prompt) {
             this.logger.trace(
-                "initializeNativeRequest: prompt was not provided",
+                "initializePlatformRequest: prompt was not provided",
                 this.correlationId
             );
             return undefined;
@@ -1103,13 +1109,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             case Constants.PromptValue.CONSENT:
             case Constants.PromptValue.LOGIN:
                 this.logger.trace(
-                    "initializeNativeRequest: prompt is compatible with native flow",
+                    "initializePlatformRequest: prompt is compatible with native flow",
                     this.correlationId
                 );
                 return prompt;
             default:
                 this.logger.trace(
-                    `initializeNativeRequest: prompt = '${prompt}' is not compatible with native flow`,
+                    `initializePlatformRequest: prompt = '${prompt}' is not compatible with native flow`,
                     this.correlationId
                 );
                 throw createBrowserAuthError(
@@ -1163,7 +1169,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 embeddedClientId: child_client_id,
                 embeddedRedirectUri: child_redirect_uri,
             },
-            request.correlationId
+            this.correlationId
         );
     }
 }

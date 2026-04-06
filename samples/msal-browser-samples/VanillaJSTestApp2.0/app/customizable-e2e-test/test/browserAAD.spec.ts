@@ -157,7 +157,8 @@ describe("AAD-Prod Tests", () => {
                     request: relativeRedirectUriRequest,
                 })
             );
-            page.reload();
+            await page.reload();
+            await pcaInitializedPoller(page, 5000);
 
             const testName = "redirectBaseCase";
             const screenshot = new Screenshot(
@@ -185,7 +186,8 @@ describe("AAD-Prod Tests", () => {
                     request: relativeRedirectUriRequest,
                 })
             );
-            page.reload();
+            await page.reload();
+            await pcaInitializedPoller(page, 5000);
 
             const testName = "redirectBaseCase";
             const screenshot = new Screenshot(
@@ -335,6 +337,10 @@ describe("AAD-Prod Tests", () => {
             expect(tokenStore.idTokens.length).toEqual(0);
             expect(tokenStore.accessTokens.length).toEqual(0);
             expect(tokenStore.refreshTokens.length).toEqual(0);
+
+            // Verify the popup window is closed after logout completes
+            await popupWindowClosed;
+            expect(popupWindow.isClosed()).toBeTruthy();
         });
     });
 
