@@ -23,6 +23,7 @@ import {
     Logger,
     PerformanceEvents,
     PopTokenGenerator,
+    RequestParameterBuilder,
     ScopeSet,
     ServerTelemetryManager,
     SignedHttpRequestParameters,

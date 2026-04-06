@@ -2025,7 +2025,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(parsedClaims.access_token).toBeUndefined();
         });
 
-         it("excludes broker's client capabilities when skipBrokerClaims=true and embeddedClientId is present", async () => {
+        it("excludes broker's client capabilities when skipBrokerClaims=true and embeddedClientId is present", async () => {
             const pcaWithClientCapabilities = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
