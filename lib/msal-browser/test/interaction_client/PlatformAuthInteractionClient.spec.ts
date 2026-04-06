@@ -1781,7 +1781,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
             const nativeRequest =
                 // @ts-ignore
-                await platformAuthClientWithCapabilities.initializeNativeRequest(
+                await platformAuthClientWithCapabilities.initializePlatformRequest(
                     {
                         scopes: ["User.Read"],
                     }
@@ -1844,7 +1844,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
             const nativeRequest =
                 // @ts-ignore
-                await platformAuthClientWithCapabilities.initializeNativeRequest(
+                await platformAuthClientWithCapabilities.initializePlatformRequest(
                     {
                         scopes: ["User.Read"],
                         claims: existingClaims,
@@ -1916,7 +1916,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
             const nativeRequest =
                 // @ts-ignore
-                await platformAuthClientWithCapabilities.initializeNativeRequest(
+                await platformAuthClientWithCapabilities.initializePlatformRequest(
                     {
                         scopes: ["User.Read"],
                         claims: existingClaims,
@@ -1949,7 +1949,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
             const nativeRequest =
                 // @ts-ignore
-                await platformAuthInteractionClient.initializeNativeRequest({
+                await platformAuthInteractionClient.initializePlatformRequest({
                     scopes: ["User.Read"],
                     claims: existingClaims,
                 });
@@ -1962,7 +1962,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
         it("returns empty claims JSON when no claims or client capabilities are provided", async () => {
             const nativeRequest =
                 // @ts-ignore
-                await platformAuthInteractionClient.initializeNativeRequest({
+                await platformAuthInteractionClient.initializePlatformRequest({
                     scopes: ["User.Read"],
                 });
 
@@ -2013,7 +2013,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
             const nativeRequest =
                 // @ts-ignore
-                await platformAuthClientWithEmptyCapabilities.initializeNativeRequest(
+                await platformAuthClientWithEmptyCapabilities.initializePlatformRequest(
                     {
                         scopes: ["User.Read"],
                         claims: existingClaims,
@@ -2071,7 +2071,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
             const nativeRequest =
                 // @ts-ignore
-                await platformAuthClientWithCapabilities.initializeNativeRequest(
+                await platformAuthClientWithCapabilities.initializePlatformRequest(
                     {
                         scopes: ["User.Read"],
                         claims: existingClaims,
@@ -2137,7 +2137,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
             const nativeRequest =
                 // @ts-ignore
-                await platformAuthClientWithCapabilities.initializeNativeRequest(
+                await platformAuthClientWithCapabilities.initializePlatformRequest(
                     {
                         scopes: ["User.Read"],
                         claims: existingClaims,
@@ -2211,7 +2211,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
             const nativeRequest =
                 // @ts-ignore
-                await platformAuthClientWithCapabilities.initializeNativeRequest(
+                await platformAuthClientWithCapabilities.initializePlatformRequest(
                     {
                         scopes: ["User.Read"],
                         claims: existingClaims,
