@@ -187,6 +187,6 @@ The MSAL [redirect bridge](./redirect-bridge.md) uses `BroadcastChannel` to send
 ### Recommended solutions
 
 1. **Nested App Authentication (NAA)** — The preferred approach for apps embedded in a host platform that supports the NAA bridge (e.g., Teams, Outlook, Microsoft 365). See [Nested App Configuration](./initialization.md#nested-app-configuration).
-2. **Redirect flow (Azure AD B2C only)** — Use `loginRedirect()` with `allowRedirectInIframe: true`. This option is only viable when the identity provider allows rendering in an iframe. Currently, only **Azure AD B2C** supports this via the [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login). **Azure AD / Microsoft Entra ID** will refuse to render interactive prompts in an iframe (`X-FRAME-OPTIONS: DENY`), so this option is **not available** for Entra ID tenants.
+2. **Redirect flow (Azure AD B2C only)** — Use `loginRedirect()` with `allowRedirectInIframe: true`. This option is only viable when the identity provider allows rendering in an iframe. Currently, only **Azure AD B2C** supports this via the [embedded sign-in experience](https://learn.microsoft.com/azure/active-directory-b2c/embedded-login). **Azure AD / Microsoft Entra ID** will refuse to render interactive prompts in an iframe (`X-FRAME-OPTIONS: DENY`), so this option is **not available** for Entra ID tenants.
 
 For the full technical explanation and code examples, see the [Redirect Bridge — Cross-Origin Iframe Limitation](./redirect-bridge.md#cross-origin-iframe-limitation).
