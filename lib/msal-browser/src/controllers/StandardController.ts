@@ -29,7 +29,6 @@ import {
     Constants,
     AuthToken,
     enforceResourceParameter,
-    PerformanceEvents,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
