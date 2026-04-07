@@ -26,7 +26,7 @@
 > allow interactive prompts in iframes (`X-FRAME-OPTIONS: DENY`), so this
 > fallback is **not available** for Entra ID tenants.
 
-By default, MSAL prevents full-frame redirects to **Azure AD** authentication endpoint when an app is rendered inside an iframe, which means you cannot use [redirect APIs](./initialization.md#redirect-apis) for user interaction with the IdP:
+By default, MSAL prevents full-frame redirects to the **Microsoft Entra ID (Azure AD)** authentication endpoint when an app is rendered inside an iframe, which means you cannot use [redirect APIs](./initialization.md#redirect-apis) for user interaction with the IdP:
 
 - This restriction is imposed since **Azure AD** will refuse to render any prompt requiring user interaction (e.g. **credential entry**, **consent**, **logout** etc.) in an iframe by throwing the `X-FRAME OPTIONS SET TO DENY` [error](https://html.spec.whatwg.org/multipage/browsing-the-web.html#the-x-frame-options-header), a measure taken to prevent [clickjacking attacks](https://owasp.org/www-community/attacks/Clickjacking).
 - Instead, you'll have to rely on MSAL's [popup APIs](./initialization.md#popup-apis) if user interaction is required, and/or silent APIs (`ssoSilent()`, `acquireTokenSilent()`) if user interaction can be avoided.
