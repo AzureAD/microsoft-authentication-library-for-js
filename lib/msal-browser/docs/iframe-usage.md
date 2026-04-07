@@ -21,10 +21,10 @@
 > entirely. NAA is supported by Microsoft hosts such as **Teams**, **Outlook**,
 > and **Microsoft 365**. For **Azure AD B2C** apps using the
 > [embedded sign-in experience](https://learn.microsoft.com/azure/active-directory-b2c/embedded-login),
-> you can use `loginRedirect()` with `system.allowRedirectInIframe: true` as a
-> fallback. Note that **Azure AD / Microsoft Entra ID** does **not** allow
-> interactive prompts in iframes (`X-FRAME-OPTIONS: DENY`), so this fallback
-> is **not available** for Entra ID tenants.
+> you can use `loginRedirect()` with `system.allowRedirectInIframe` set to
+> `true` as a fallback. Note that **Azure AD / Microsoft Entra ID** does **not**
+> allow interactive prompts in iframes (`X-FRAME-OPTIONS: DENY`), so this
+> fallback is **not available** for Entra ID tenants.
 
 By default, MSAL prevents full-frame redirects to **Azure AD** authentication endpoint when an app is rendered inside an iframe, which means you cannot use [redirect APIs](./initialization.md#redirect-apis) for user interaction with the IdP:
 
