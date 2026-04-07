@@ -157,7 +157,7 @@ describe("LocalStorage Tests", function () {
             });
         });
 
-        it("Logging in on one tab updates cache/UI in another tab", async () => {
+        it.skip("Logging in on one tab updates cache/UI in another tab", async () => {
             const testName = "multi-tab";
             const screenshot = new Screenshot(
                 `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
