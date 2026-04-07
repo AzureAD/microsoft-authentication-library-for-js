@@ -1062,27 +1062,30 @@ export class StandardController implements IController {
                 this.createSilentIframeClient(correlationId);
             silentIframeClient
                 .verifySso(ssoVerificationRequest)
-                .then((success: boolean) => {
+                .then((result: boolean) => {
                     this.logger.verbose(
-                        `SSO capability verification completed after '${interactionType}', success: '${success}'`,
+                        `SSO capability verification completed after '${interactionType}', result: '${result}'`,
                         correlationId
                     );
 
                     // TBD to add profileTelemetry later in localStorage with 24h TTL
                     try {
                         const cacheEntry = JSON.stringify({
-                            ssoCapable: success,
+                            ssoCapable: result,
                             expiresOn: Date.now() + SSO_CAPABLE_TTL_MS,
                         });
                         window.localStorage.setItem(ssoCacheKey, cacheEntry);
                     } catch {
-                        // Swallow storage errors
+                        this.logger.warning(
+                            `Failed to cache SSO capability verification result (interactionType: '${interactionType}')`,
+                            correlationId
+                        );
                     }
 
                     ssoCapableMeasurement.end(
                         {
                             fromCache: false,
-                            success: success,
+                            success: result, // could be true or false, but verification succeeded in either case
                         },
                         undefined,
                         account
