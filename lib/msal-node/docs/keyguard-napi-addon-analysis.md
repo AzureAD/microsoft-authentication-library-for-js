@@ -151,6 +151,7 @@ The one real operational cost: `.node` binaries are ABI-bound to Node.js major v
 | ❌ External `.exe` must be deployed and trusted alongside the npm package | |
 | ❌ IPC between Node.js and subprocess is an additional failure surface | |
 | ❌ Two codebases to maintain (.NET + TypeScript) | |
+| ❌ Monolithic subprocess prevents package separation — both MSAL .NET and MSAL Python split the native attestation dependency into an optional second package (`Microsoft.Identity.Client.KeyAttestation` / `msal-key-attestation`) so that Azure SDK consumers can use MSAL core without taking a native binary dependency. Because the subprocess handles key creation, attestation, and TLS atomically, the same separation cannot be applied here — all consumers of `msal-node-mtls-extensions` must take the full package including the .NET binary, even if they don't need KeyGuard attestation. | |
 
 ### Native N-API Addon
 
