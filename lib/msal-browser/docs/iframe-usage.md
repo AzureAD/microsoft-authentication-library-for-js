@@ -41,7 +41,7 @@ By default, MSAL prevents full-frame redirects to **Azure AD** authentication en
 > If your app is embedded in a cross-origin iframe, see the callout above for
 > recommended alternatives.
 
-**Azure AD B2C** offers an [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login), which allows rendering a custom login UI in an iframe. Since MSAL prevents redirect in iframes by default, you'll need to set the [system.allowRedirectInIframe](./configuration.md#system-config-options) configuration option to **true** in order to make use of this feature. Note that enabling this option for apps on **Azure AD** is not recommended, due to the above restriction.
+**Azure AD B2C** offers an [embedded sign-in experience](https://learn.microsoft.com/azure/active-directory-b2c/embedded-login), which allows rendering a custom login UI in an iframe. Since MSAL prevents redirect in iframes by default, you'll need to set the [system.allowRedirectInIframe](./configuration.md#system-config-options) configuration option to **true** in order to make use of this feature. Note that enabling this option for apps on **Azure AD** is not recommended, due to the above restriction.
 
 ## Browser restrictions
 
