@@ -92,8 +92,8 @@ export type BrowserAuthOptions = {
     isMcp?: boolean;
     /**
      * If set to true, MSAL will make a background SSO verification call after successful interactive authentication.
-     * COGS intensive, recommendation is to *NOT* set this flag to true unless your application has a specific need for it.
-     * This will trigger additional network calls after interactive authentication flows (acquireTokenPopup, handleRedirectPromise) calls.
+     * This adds an extra network call, so it is recommended to leave this set to false unless your application has a specific need for it.
+     * Additional network calls may occur after interactive authentication flows such as acquireTokenPopup and handleRedirectPromise.
      * This is a boolean flag and defaults to false if not specified.
      */
     verifySSO?: boolean;
