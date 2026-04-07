@@ -20,7 +20,7 @@
 > the host application at the top level, avoiding cross-window communication
 > entirely. NAA is supported by Microsoft hosts such as **Teams**, **Outlook**,
 > and **Microsoft 365**. For **Azure AD B2C** apps using the
-> [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login),
+> [embedded sign-in experience](https://learn.microsoft.com/azure/active-directory-b2c/embedded-login),
 > you can use `loginRedirect()` with `system.allowRedirectInIframe: true` as a
 > fallback. Note that **Azure AD / Microsoft Entra ID** does **not** allow
 > interactive prompts in iframes (`X-FRAME-OPTIONS: DENY`), so this fallback
