@@ -1,4 +1,6 @@
-# KeyGuard N-API Addon: Feasibility Analysis
+# KeyGuard N-API Addon: Node.js-Only Alternative — Feasibility Analysis
+
+> **Context:** This document analyzes an alternative architecture where a native Node.js N-API addon replaces the `.exe` subprocess entirely, keeping the mTLS PoP Managed Identity flow within a single Node.js process with no .NET dependency.
 
 ## ⛔ Fundamental Blocker — Read This First
 
