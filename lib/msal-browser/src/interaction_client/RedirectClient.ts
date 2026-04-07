@@ -19,6 +19,7 @@ import {
     UrlUtils,
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
+    ProtocolUtils,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
@@ -869,6 +870,15 @@ export class RedirectClient extends StandardInteractionClient {
                     }
                 }
             }
+
+            // Redirect bridge requires "state" param to work properly
+            validLogoutRequest.state = ProtocolUtils.setRequestState(
+                this.browserCrypto,
+                validLogoutRequest.state || "",
+                {
+                    interactionType: InteractionType.Redirect,
+                }
+            );
 
             // Create logout string and navigate user window to logout.
             const logoutUri: string =

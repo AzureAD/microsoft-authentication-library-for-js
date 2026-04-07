@@ -11,7 +11,7 @@ import {
     TEST_STATE_VALUES,
     RANDOM_TEST_GUID,
 } from "../utils/StringConstants.js";
-import { TemporaryCacheKeys } from "../../src/utils/BrowserConstants.js";
+import { ApiId, TemporaryCacheKeys } from "../../src/utils/BrowserConstants.js";
 
 jest.mock("../../src/navigation/NavigationClient.js");
 
@@ -391,6 +391,76 @@ describe("broadcastResponseToMainFrame", () => {
                 key.includes(`${TemporaryCacheKeys.URL_HASH}`)
             );
             expect(urlHashCalls).toHaveLength(0);
+        });
+
+        it("uses ApiId.handleRedirectPromise when interaction type is signin", async () => {
+            const testClientId = "test-client-signin";
+            const cachedOriginUrl = "https://localhost:8081/home";
+
+            mockSessionStorage["msal.interaction.status"] = JSON.stringify({
+                clientId: testClientId,
+                type: "signin",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Should navigate with ApiId.handleRedirectPromise for signin flow
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
+                cachedOriginUrl,
+                expect.objectContaining({
+                    apiId: ApiId.handleRedirectPromise,
+                    noHistory: true,
+                })
+            );
+        });
+    });
+
+    describe("Success cases - Signout redirect flow", () => {
+        it("uses ApiId.logout when interaction type is signout", async () => {
+            const testClientId = "test-client-signout";
+            const cachedOriginUrl = "https://localhost:8081/signed-out";
+
+            mockSessionStorage["msal.interaction.status"] = JSON.stringify({
+                clientId: testClientId,
+                type: "signout",
+            });
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Should navigate with ApiId.logout for signout flow
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
+                cachedOriginUrl,
+                expect.objectContaining({
+                    apiId: ApiId.logout,
+                    noHistory: true,
+                })
+            );
+        });
+
+        it("broadcasts and closes popup window for signout popup flow", async () => {
+            mockSessionStorage["msal.interaction.status"] = JSON.stringify({
+                clientId: "test-client",
+                type: "signout",
+            });
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
+
+            await broadcastResponseToMainFrame();
+
+            // Popup signout should broadcast + close, same as popup signin
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
+            expect(window.close).toHaveBeenCalled();
+            expect(
+                mockNavigationClient.navigateInternal
+            ).not.toHaveBeenCalled();
         });
     });
 

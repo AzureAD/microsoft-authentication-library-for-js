@@ -18,6 +18,7 @@ import {
     invoke,
     PkceCodes,
     CommonAuthorizationUrlRequest,
+    ProtocolUtils,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
@@ -761,6 +762,15 @@ export class PopupClient extends StandardInteractionClient {
                     return;
                 }
             }
+
+            // Redirect bridge requires "state" param to work properly
+            validRequest.state = ProtocolUtils.setRequestState(
+                this.browserCrypto,
+                validRequest.state || "",
+                {
+                    interactionType: InteractionType.Popup,
+                }
+            );
 
             // Create logout string and navigate user window to logout.
             const logoutUri: string = authClient.getLogoutUri(validRequest);

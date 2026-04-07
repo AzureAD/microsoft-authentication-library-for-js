@@ -46,3 +46,5 @@ export const LoadExternalTokens = "loadExternalTokens";
  * Fire-and-forget SSO verification call made after interactive authentication completes.
  */
 export const SsoCapable = "ssoCapable";
+// Wait for late response from bridge after timeout has already occurred
+export const WaitForBridgeLateResponse = "waitForBridgeLateResponse";

@@ -6,7 +6,7 @@ export const msalConfig: Configuration = {
         clientId: "0845a021-afdf-4126-abdd-099c5e6948e1",
         authority: "https://login.microsoftonline.com/common",
         redirectUri: "/redirect",
-        postLogoutRedirectUri: "/",
+        postLogoutRedirectUri: "/redirect",
     },
     system: {
         allowPlatformBroker: false, // Disables WAM Broker
