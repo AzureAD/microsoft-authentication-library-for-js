@@ -19,9 +19,12 @@
 > via `createNestablePublicClientApplication`. NAA delegates authentication to
 > the host application at the top level, avoiding cross-window communication
 > entirely. NAA is supported by Microsoft hosts such as **Teams**, **Outlook**,
-> and **Microsoft 365**. For other hosts, use `loginRedirect()` with
-> `system.allowRedirectInIframe: true` as a fallback (subject to IdP iframe
-> restrictions — see below).
+> and **Microsoft 365**. For **Azure AD B2C** apps using the
+> [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login),
+> you can use `loginRedirect()` with `system.allowRedirectInIframe: true` as a
+> fallback. Note that **Azure AD / Microsoft Entra ID** does **not** allow
+> interactive prompts in iframes (`X-FRAME-OPTIONS: DENY`), so this fallback
+> is **not available** for Entra ID tenants.
 
 By default, MSAL prevents full-frame redirects to **Azure AD** authentication endpoint when an app is rendered inside an iframe, which means you cannot use [redirect APIs](./initialization.md#redirect-apis) for user interaction with the IdP:
 
@@ -184,6 +187,6 @@ The MSAL [redirect bridge](./redirect-bridge.md) uses `BroadcastChannel` to send
 ### Recommended solutions
 
 1. **Nested App Authentication (NAA)** — The preferred approach for apps embedded in a host platform that supports the NAA bridge (e.g., Teams, Outlook, Microsoft 365). See [Nested App Configuration](./initialization.md#nested-app-configuration).
-2. **Redirect flow** — Use `loginRedirect()` with `allowRedirectInIframe: true` if the IdP allows rendering in an iframe (for example, Azure AD B2C with embedded sign-in).
+2. **Redirect flow (Azure AD B2C only)** — Use `loginRedirect()` with `allowRedirectInIframe: true`. This option is only viable when the identity provider allows rendering in an iframe. Currently, only **Azure AD B2C** supports this via the [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login). **Azure AD / Microsoft Entra ID** will refuse to render interactive prompts in an iframe (`X-FRAME-OPTIONS: DENY`), so this option is **not available** for Entra ID tenants.
 
 For the full technical explanation and code examples, see the [Redirect Bridge — Cross-Origin Iframe Limitation](./redirect-bridge.md#cross-origin-iframe-limitation).
