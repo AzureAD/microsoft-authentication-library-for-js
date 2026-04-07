@@ -1096,7 +1096,14 @@ export class StandardController implements IController {
                         correlationId
                     );
                     // reset the cache
-                    window.localStorage.removeItem(ssoCacheKey);
+                    try {
+                        window.localStorage.removeItem(ssoCacheKey);
+                    } catch {
+                        this.logger.warning(
+                            `Failed to reset cached SSO capability verification result (interactionType: '${interactionType}')`,
+                            correlationId
+                        );
+                    }
                     ssoCapableMeasurement.end(
                         {
                             fromCache: false,
