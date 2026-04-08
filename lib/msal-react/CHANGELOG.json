@@ -2,6 +2,27 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Wed, 01 Apr 2026 20:09:00 GMT",
+      "version": "5.2.1",
+      "tag": "@azure/msal-react_v5.2.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "herman.jensen@intility.no",
+            "package": "@azure/msal-react",
+            "commit": "9bde6b8cdb52d3716067590f6cce486f3614e808",
+            "comment": "Improve compatibility with `React.StrictMode` [#8383](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8383)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v5.6.3",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 27 Mar 2026 16:35:28 GMT",
       "version": "5.2.0",
       "tag": "@azure/msal-react_v5.2.0",

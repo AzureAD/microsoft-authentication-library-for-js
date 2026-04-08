@@ -607,8 +607,6 @@ describe("PlatformAuthDOMHandler tests", () => {
                 problemParam: circularObj,
             };
 
-            console.log("Testing circular object:", testExtraParameters);
-
             const loggerErrorSpy = jest.spyOn(logger, "error");
             const loggerErrorPiiSpy = jest.spyOn(logger, "errorPii");
 
