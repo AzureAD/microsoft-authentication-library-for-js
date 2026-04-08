@@ -688,7 +688,8 @@ export abstract class CacheManager implements ICacheManager {
     ): AccountEntity[] {
         const allAccountKeys = this.getAccountKeys();
         const matchingAccounts: AccountEntity[] = [];
-        allAccountKeys.forEach((cacheKey) => {
+        for (let i = 0; i < allAccountKeys.length; i++) {
+            const cacheKey = allAccountKeys[i];
             const entity: AccountEntity | null = this.getAccount(
                 cacheKey,
                 correlationId
@@ -697,21 +698,21 @@ export abstract class CacheManager implements ICacheManager {
             // Match base account fields
 
             if (!entity) {
-                return;
+                continue;
             }
 
             if (
                 !!accountFilter.homeAccountId &&
                 !this.matchHomeAccountId(entity, accountFilter.homeAccountId)
             ) {
-                return;
+                continue;
             }
 
             if (
                 !!accountFilter.username &&
                 !this.matchUsername(entity.username, accountFilter.username)
             ) {
-                return;
+                continue;
             }
 
             if (
@@ -722,14 +723,14 @@ export abstract class CacheManager implements ICacheManager {
                     correlationId
                 )
             ) {
-                return;
+                continue;
             }
 
             if (
                 !!accountFilter.realm &&
                 !this.matchRealm(entity, accountFilter.realm)
             ) {
-                return;
+                continue;
             }
 
             if (
@@ -739,25 +740,28 @@ export abstract class CacheManager implements ICacheManager {
                     accountFilter.nativeAccountId
                 )
             ) {
-                return;
+                continue;
             }
 
             if (
                 !!accountFilter.authorityType &&
                 !this.matchAuthorityType(entity, accountFilter.authorityType)
             ) {
-                return;
+                continue;
             }
 
-            if (
-                !!accountFilter.loginHint &&
-                !this.matchLoginHintFromAccountEntity(
-                    entity,
-                    accountFilter.loginHint,
-                    correlationId
-                )
-            ) {
-                return;
+            if (!!accountFilter.loginHint) {
+                if (
+                    this.matchLoginHintFromAccountEntity(
+                        entity,
+                        accountFilter.loginHint,
+                        correlationId
+                    )
+                ) {
+                    return [entity];
+                } else {
+                    continue;
+                }
             }
 
             // If at least one tenant profile matches the tenant profile filter, add the account to the list of matching accounts
@@ -777,11 +781,11 @@ export abstract class CacheManager implements ICacheManager {
 
             if (matchingTenantProfiles && matchingTenantProfiles.length === 0) {
                 // No tenant profile for this account matches filter, don't add to list of matching accounts
-                return;
+                continue;
             }
 
             matchingAccounts.push(entity);
-        });
+        }
 
         return matchingAccounts;
     }
