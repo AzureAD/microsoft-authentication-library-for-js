@@ -1084,7 +1084,7 @@ export class StandardController implements IController {
                     ssoCapableMeasurement.end(
                         {
                             fromCache: false,
-                            success: result, // could be true or false, but verification succeeded in either case
+                            success: result,
                         },
                         undefined,
                         account
