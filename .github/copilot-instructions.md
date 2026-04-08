@@ -42,3 +42,4 @@ When reviewing pull requests, GitHub Copilot should provide comprehensive feedba
 1. Suggest adding test coverage (if not included) for new functions, properties, error and edge cases. Complex features should include E2E tests. 
 1. Suggest adding telemetry for any changes that may impact performance or reliability and for any areas that may be useful for debugging or monitoring.
 1. Changefiles should be included for all changes to the source code for core libraries (lib/) or extensions (extensions/) and should adhere to the guidelines specified in `.github/instructions/changefiles.instructions.md`
+1. Validate that all internal links in markdown files are correct. When files, directories, or samples are added, removed, renamed, or moved, scan all `.md` files for stale references (relative paths and GitHub URLs) and flag broken links. See `.github/instructions/doc_links.instructions.md` for the full link validation checklist.
