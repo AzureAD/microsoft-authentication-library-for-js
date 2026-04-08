@@ -1136,13 +1136,13 @@ export abstract class CacheManager implements ICacheManager {
                         "CacheManager:getIdToken - Multiple ID tokens found for account but none match account entity tenant id, returning first result",
                         correlationId
                     );
-                    return idTokenMap.values().next().value;
+                    return idTokenMap.values().next().value ?? null;
                 } else if (numHomeIdTokens === 1) {
                     this.commonLogger.info(
                         "CacheManager:getIdToken - Multiple ID tokens found for account, defaulting to home tenant profile",
                         correlationId
                     );
-                    return homeIdTokenMap.values().next().value;
+                    return homeIdTokenMap.values().next().value ?? null;
                 } else {
                     // Multiple ID tokens for home tenant profile, remove all and return null
                     tokensToBeRemoved = homeIdTokenMap;
@@ -1167,7 +1167,7 @@ export abstract class CacheManager implements ICacheManager {
             "CacheManager:getIdToken - Returning ID token",
             correlationId
         );
-        return idTokenMap.values().next().value;
+        return idTokenMap.values().next().value ?? null;
     }
 
     /**
@@ -1181,7 +1181,8 @@ export abstract class CacheManager implements ICacheManager {
         tokenKeys?: TokenKeys
     ): Map<string, IdTokenEntity> {
         const idTokenKeys =
-            (tokenKeys && tokenKeys.idToken) || this.getTokenKeys().idToken;
+            (tokenKeys && tokenKeys.idToken?.length > 0 && tokenKeys.idToken) ||
+            this.getTokenKeys()?.idToken;
 
         const idTokens: Map<string, IdTokenEntity> = new Map<
             string,

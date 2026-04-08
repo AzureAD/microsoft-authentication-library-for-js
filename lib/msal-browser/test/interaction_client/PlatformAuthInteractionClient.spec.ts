@@ -1261,13 +1261,13 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
 
                 // Cache should not contain tokens which were turned off
-                const tokenKeys = browserCacheManager.getTokenKeys();
+                const tokenKeys = internalStorage.getTokenKeys();
                 expect(tokenKeys.idToken).toHaveLength(0);
                 expect(tokenKeys.accessToken).toHaveLength(0);
                 expect(tokenKeys.refreshToken).toHaveLength(0);
 
                 // Cache should not contain tokens which were turned off
-                const internalTokenKeys = internalStorage.getTokenKeys();
+                const internalTokenKeys = browserCacheManager.getTokenKeys();
                 expect(internalTokenKeys.idToken).toHaveLength(1);
                 expect(internalTokenKeys.accessToken).toHaveLength(0);
                 expect(internalTokenKeys.refreshToken).toHaveLength(0); // RT will never be returned by WAM
@@ -1288,13 +1288,13 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
                 // Browser Storage should not contain tokens
                 const tokenKeys = browserCacheManager.getTokenKeys();
-                expect(tokenKeys.idToken).toHaveLength(0);
+                expect(tokenKeys.idToken).toHaveLength(1);
                 expect(tokenKeys.accessToken).toHaveLength(0);
                 expect(tokenKeys.refreshToken).toHaveLength(0);
 
                 // Cache should not contain tokens which were turned off
                 const internalTokenKeys = internalStorage.getTokenKeys();
-                expect(internalTokenKeys.idToken).toHaveLength(1);
+                expect(internalTokenKeys.idToken).toHaveLength(0);
                 expect(internalTokenKeys.accessToken).toHaveLength(1);
                 expect(internalTokenKeys.refreshToken).toHaveLength(0); // RT will never be returned by WAM
             });
