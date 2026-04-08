@@ -8746,6 +8746,66 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(parsed.expiresOn).toBeGreaterThan(Date.now());
         });
 
+        it("caches SSO capability result with ssoCapable=false when verifySso returns false", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    verifySSO: true,
+                },
+            });
+            await pca.initialize();
+            pca = (pca as any).controller;
+
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
+
+            jest.spyOn(pca, "getAllAccounts").mockReturnValue([testAccount]);
+            jest.spyOn(
+                RedirectClient.prototype,
+                "handleRedirectPromise"
+            ).mockResolvedValue(testTokenResponse);
+
+            jest.spyOn(
+                SilentIframeClient.prototype,
+                "verifySso"
+            ).mockResolvedValue(false);
+
+            await pca.handleRedirectPromise();
+
+            // Wait for setTimeout and promise resolution
+            await new Promise((resolve) => setTimeout(resolve, 50));
+
+            const cachedValue = window.localStorage.getItem(
+                CacheKeys.SSO_CAPABLE
+            );
+            expect(cachedValue).not.toBeNull();
+
+            const parsed = JSON.parse(cachedValue!);
+            expect(parsed.ssoCapable).toBe(false);
+            expect(parsed.expiresOn).toBeGreaterThan(Date.now());
+        });
+
         it("removes cached SSO capability result from localStorage on verification failure", async () => {
             pca = new PublicClientApplication({
                 auth: {
