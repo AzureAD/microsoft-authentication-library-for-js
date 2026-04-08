@@ -30,14 +30,21 @@ This guide provides framework-specific instructions for setting up the redirect 
 > also fail if the bridge page is missing or not implemented correctly.
 
 > [!CAUTION]
-> **Do NOT load the redirect bridge page from a CDN** (e.g., jsdelivr, unpkg,
-> cdnjs). The redirect bridge receives the raw authentication response —
-> including authorization codes and tokens — directly from the identity
-> provider. Loading this page from a third-party CDN creates a **supply-chain
-> and token-theft risk**: a compromised CDN asset could intercept the
-> authentication response before it reaches your application. Always bundle the
-> redirect bridge with your application or serve it from your own
-> infrastructure.
+> **Do NOT load the redirect bridge page from a CDN.** The redirect bridge
+> receives the raw authentication response — including authorization codes and
+> tokens — directly from the identity provider. Loading the bridge script from
+> a third-party CDN creates a **supply-chain and token-theft risk**: a
+> compromised CDN asset could intercept the authentication response before it
+> reaches your application. Always bundle the redirect bridge with your
+> application or serve it from your own infrastructure.
+>
+> **Note:** Safari Private Browsing blocks network loads to domains on known
+> tracker lists and may silently prevent CDN-hosted scripts from executing.
+> While major CDN domains are not on these lists today, the lists are
+> maintained by third parties and could expand at
+> any time — causing authentication failures for users in Private Browsing
+> with no actionable error message. Bundling the redirect bridge with your
+> application eliminates this risk entirely.
 
 ## Logout and the Redirect Bridge
 
