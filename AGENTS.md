@@ -40,3 +40,13 @@ Some samples located in the `samples/` directory contain a `test/` folder. End t
 
 1. **Always run `npm install` at repository root** to bootstrap the monorepo
 1. Repository uses npm workspaces - dependencies are shared and managed at root level
+
+### Documentation Hygiene
+
+When a commit deletes, renames, or moves files and directories (especially samples), scan `.md` files for references **to the affected paths only** — do not audit unrelated links. Look for:
+
+- Relative links (`./path/to/file`)
+- GitHub URLs (`github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/...`)
+- Anchor references (`#heading-name`) if headings were changed
+
+Update or remove stale links introduced or exposed by the current change before merging. For a full repo-wide audit, use the `/doc-audit` prompt (`.github/prompts/doc-audit.prompt.md`). Follow guidelines listed at `.github/instructions/doc_links.instructions.md`.
