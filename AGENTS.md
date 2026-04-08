@@ -49,4 +49,4 @@ When deleting, renaming, or moving files and directories (especially samples), a
 - GitHub URLs (`github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/...`)
 - Anchor references (`#heading-name`)
 
-Update or remove broken links before merging. Use the `/doc-audit` prompt (`.github/prompts/doc-audit.prompt.md`) for a comprehensive check. See `.github/instructions/doc_links.instructions.md` for full guidelines.
+Update or remove broken links before merging. Use the `/doc-audit` prompt (`.github/prompts/doc-audit.prompt.md`) for a comprehensive check. Follow guidelines listed at  `.github/instructions/doc_links.instructions.md`.
