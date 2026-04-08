@@ -401,20 +401,16 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
     });
 
-    it("throws error if claims is not stringified JSON object", () => {
-        const claims = "not-a-valid-JSON-object";
-        jest.spyOn(
-            RequestParameterBuilder,
-            "addClientCapabilitiesToClaims"
-        ).mockReturnValue(claims);
+    it("addClaims sets claims parameter with merged claims when valid claims and capabilities are provided", () => {
         const parameters = new Map<string, string>();
-        expect(() =>
-            RequestParameterBuilder.addClaims(parameters, claims, [])
-        ).toThrow(
-            new ClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaims
-            )
-        );
+        const claims = JSON.stringify({ userinfo: { given_name: null } });
+        RequestParameterBuilder.addClaims(parameters, claims, ["CP1"]);
+
+        const claimsParam = parameters.get(AADServerParamKeys.CLAIMS);
+        expect(claimsParam).toBeDefined();
+        const parsed = JSON.parse(claimsParam!);
+        expect(parsed.userinfo.given_name).toBeNull();
+        expect(parsed.access_token?.xms_cc?.values).toEqual(["CP1"]);
     });
 
     it("adds clientAssertion (string) and assertionType if they are provided by the developer", async () => {
@@ -817,6 +813,126 @@ describe("RequestParameterBuilder unit tests", () => {
             });
 
             measurement.end({ success: true });
+        });
+    });
+
+    describe("addClaims with skipBrokerClaims tests", () => {
+        it("includes clientCapabilities when BROKER_CLIENT_ID is present but skipBrokerClaims is not set", () => {
+            const parameters = new Map<string, string>();
+            // Add broker params first
+            RequestParameterBuilder.addBrokerParameters(
+                parameters,
+                "broker-client-id",
+                "broker-redirect-uri"
+            );
+
+            RequestParameterBuilder.addClaims(
+                parameters,
+                JSON.stringify({ userinfo: { given_name: null } }),
+                ["CP1", "CP2"],
+                false
+            );
+
+            const claimsParam = parameters.get(AADServerParamKeys.CLAIMS);
+            expect(claimsParam).toBeDefined();
+            const parsedClaims = JSON.parse(claimsParam!);
+            expect(parsedClaims.userinfo).toBeDefined();
+            expect(parsedClaims.access_token?.xms_cc?.values).toEqual([
+                "CP1",
+                "CP2",
+            ]);
+        });
+
+        it("includes clientCapabilities when BROKER_CLIENT_ID is NOT present", () => {
+            const parameters = new Map<string, string>();
+
+            RequestParameterBuilder.addClaims(
+                parameters,
+                JSON.stringify({ userinfo: { given_name: null } }),
+                ["CP1", "CP2"],
+                false
+            );
+
+            const claimsParam = parameters.get(AADServerParamKeys.CLAIMS);
+            expect(claimsParam).toBeDefined();
+            const parsedClaims = JSON.parse(claimsParam!);
+            expect(parsedClaims.userinfo).toBeDefined();
+            expect(parsedClaims.access_token?.xms_cc?.values).toEqual([
+                "CP1",
+                "CP2",
+            ]);
+        });
+
+        it("includes clientCapabilities when skipBrokerClaims is true but BROKER_CLIENT_ID is NOT present", () => {
+            const parameters = new Map<string, string>();
+
+            RequestParameterBuilder.addClaims(
+                parameters,
+                JSON.stringify({ userinfo: { given_name: null } }),
+                ["CP1", "CP2"],
+                true
+            );
+
+            const claimsParam = parameters.get(AADServerParamKeys.CLAIMS);
+            expect(claimsParam).toBeDefined();
+            const parsedClaims = JSON.parse(claimsParam!);
+            expect(parsedClaims.userinfo).toBeDefined();
+            expect(parsedClaims.access_token?.xms_cc?.values).toEqual([
+                "CP1",
+                "CP2",
+            ]);
+        });
+
+        it("ignores clientCapabilities when both skipBrokerClaims is true and BROKER_CLIENT_ID is present", () => {
+            const parameters = new Map<string, string>();
+            // Add broker params first
+            RequestParameterBuilder.addBrokerParameters(
+                parameters,
+                "broker-client-id",
+                "broker-redirect-uri"
+            );
+
+            RequestParameterBuilder.addClaims(
+                parameters,
+                JSON.stringify({ userinfo: { given_name: null } }),
+                ["CP1", "CP2"],
+                true
+            );
+
+            const claimsParam = parameters.get(AADServerParamKeys.CLAIMS);
+            expect(claimsParam).toBeDefined();
+            const parsedClaims = JSON.parse(claimsParam!);
+            expect(parsedClaims.userinfo).toBeDefined();
+            expect(parsedClaims.access_token?.xms_cc).toBeUndefined();
+        });
+
+        it("does not add claims parameter when claims and clientCapabilities are both empty", () => {
+            const parameters = new Map<string, string>();
+
+            RequestParameterBuilder.addClaims(
+                parameters,
+                undefined,
+                undefined,
+                false
+            );
+
+            expect(parameters.has(AADServerParamKeys.CLAIMS)).toBe(false);
+        });
+
+        it("adds claims when only clientCapabilities are provided", () => {
+            const parameters = new Map<string, string>();
+
+            RequestParameterBuilder.addClaims(
+                parameters,
+                undefined,
+                ["CP1"],
+                false
+            );
+
+            const claimsParam = parameters.get(AADServerParamKeys.CLAIMS);
+            expect(claimsParam).toBeDefined();
+            const parsedClaims = JSON.parse(claimsParam!);
+            expect(parsedClaims.access_token?.xms_cc?.values).toEqual(["CP1"]);
         });
     });
 });

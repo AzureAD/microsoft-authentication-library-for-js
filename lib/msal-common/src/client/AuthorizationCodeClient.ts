@@ -19,7 +19,6 @@ import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizatio
 import { NetworkResponse } from "../network/NetworkResponse.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
-import { StringUtils } from "../utils/StringUtils.js";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
@@ -437,18 +436,6 @@ export class AuthorizationCodeClient {
             }
         }
 
-        if (
-            !StringUtils.isEmptyObj(request.claims) ||
-            (this.config.authOptions.clientCapabilities &&
-                this.config.authOptions.clientCapabilities.length > 0)
-        ) {
-            RequestParameterBuilder.addClaims(
-                parameters,
-                request.claims,
-                this.config.authOptions.clientCapabilities
-            );
-        }
-
         let ccsCred: CcsCredential | undefined = undefined;
         if (request.clientInfo) {
             try {
@@ -529,6 +516,14 @@ export class AuthorizationCodeClient {
             request.correlationId,
             this.performanceClient
         );
+
+        RequestParameterBuilder.addClaims(
+            parameters,
+            request.claims,
+            this.config.authOptions.clientCapabilities,
+            request.skipBrokerClaims
+        );
+
         return UrlUtils.mapToQueryString(parameters);
     }
 
