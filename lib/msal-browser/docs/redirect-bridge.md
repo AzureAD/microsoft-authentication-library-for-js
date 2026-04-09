@@ -30,18 +30,20 @@ This guide provides framework-specific instructions for setting up the redirect 
 > also fail if the bridge page is missing or not implemented correctly.
 
 > [!CAUTION]
-> **Do NOT load the redirect bridge page from a CDN.** The redirect bridge
-> receives the raw authentication response — including authorization codes and
-> tokens — directly from the identity provider. Loading the bridge script from
-> a third-party CDN creates a **supply-chain and token-theft risk**: a
-> compromised CDN asset could intercept the authentication response before it
-> reaches your application. Always bundle the redirect bridge with your
-> application or serve it from your own infrastructure.
+> **Do NOT host the redirect bridge page or any of its assets (including the
+> bridge JavaScript module) on a third-party CDN or other third-party
+> origin.** The redirect bridge receives the raw authentication response —
+> including authorization codes and tokens — directly from the identity
+> provider. Hosting any part of the bridge on a third-party origin creates a
+> **supply-chain and token-theft risk**: a compromised bridge asset could
+> intercept the authentication response before it reaches your application.
+> Always bundle the redirect bridge with your application or serve the page
+> and its assets from your own infrastructure.
 >
 > **Note:** Safari Private Browsing blocks network loads to domains on known
-> tracker lists and may silently prevent CDN-hosted scripts from executing.
-> While major CDN domains are not on these lists today, the lists are
-> maintained by third parties and could expand at
+> tracker lists and may silently prevent bridge assets hosted on CDN or other
+> third-party domains from executing. While major CDN domains are not on these
+> lists today, the lists are maintained by third parties and could expand at
 > any time — causing authentication failures for users in Private Browsing
 > with no actionable error message. Bundling the redirect bridge with your
 > application eliminates this risk entirely.
