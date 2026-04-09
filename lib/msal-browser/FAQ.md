@@ -89,7 +89,7 @@ MSAL.js also supports the following environments:
 
 -   WebViews
 -   Office Add-ins (see the [sample](https://github.com/OfficeDev/PnP-OfficeAddins/tree/main/Samples/auth/Office-Add-in-Microsoft-Graph-React))
--   Chromium Extensions (see the [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/ChromiumExtensionSample))
+-   Chromium Extensions
 -   Teams Applications (see the [sample](https://github.com/pnp/teams-dev-samples/tree/main/samples/tab-sso/src/nodejs))
 
 ### Known Issues with Certain Browsers
