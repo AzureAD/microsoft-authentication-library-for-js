@@ -141,7 +141,7 @@ Acquiring again (should hit cache)...
 
 ### Prerequisites
 
-- An Azure VM running **Windows** (`x64` only — arm64 is not supported; see [README](../../../extensions/msal-node-mtls-extensions/README.md#requirements))
+- An Azure VM running **Windows** (`x64` only; see [README](../../../extensions/msal-node-mtls-extensions/README.md#requirements))
 - **Managed Identity enabled** on the VM (System-Assigned or User-Assigned)
 - **.NET 8 runtime** installed — check with `dotnet --version` (pre-installed on most Azure VM images)
 - **Node.js 20+** on the VM — check with `node --version`
@@ -167,7 +167,7 @@ dotnet --version   # must print 8.x.x
 node --version
 
 # Confirm architecture
-node -e "console.log(process.arch)"   # must be x64 or arm64
+node -e "console.log(process.arch)"   # must be x64
 ```
 
 If .NET 8 is missing:
