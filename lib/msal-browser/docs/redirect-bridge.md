@@ -40,13 +40,12 @@ This guide provides framework-specific instructions for setting up the redirect 
 > Always bundle the redirect bridge with your application or serve the page
 > and its assets from your own infrastructure.
 >
-> **Note:** Safari Private Browsing blocks network loads to domains on known
-> tracker lists and may silently prevent bridge assets hosted on CDN or other
-> third-party domains from executing. While major CDN domains are not on these
-> lists today, the lists are maintained by third parties and could expand at
-> any time — causing authentication failures for users in Private Browsing
-> with no actionable error message. Bundling the redirect bridge with your
-> application eliminates this risk entirely.
+> **Note:** In Safari Private Browsing, privacy protections or content-blocking
+> features may restrict requests to some third-party domains and can interfere
+> with CDN-hosted scripts. If the redirect bridge is hosted on a CDN, this can
+> lead to authentication failures that may be difficult to diagnose. Bundling
+> the redirect bridge with your application or serving it from your own
+> infrastructure helps avoid this class of issue.
 
 ## Logout and the Redirect Bridge
 
