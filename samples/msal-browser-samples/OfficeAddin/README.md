@@ -71,14 +71,18 @@ This Office Add-in sample shows how to:
 1. Start the development server:
 
     ```bash
-    npm start
+    npm run dev-server
     ```
 
 1. Sideload the add-in in Office:
-    - Open the target Office application (Word, Excel, etc.)
-    - Navigate to **Upload My Add-in**
-    - Browse to and select the `manifest.xml` file from this sample directory
-    - The add-in will load from the dev server at `https://localhost:3000`
+
+    ```bash
+    # For desktop Office applications
+    npm run start:desktop
+
+    # For Office on the web
+    npm run start:web
+    ```
 
 ## MSAL Usage in Office Add-ins
 
