@@ -40,7 +40,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/ADFS.json");
 
-describe.skip("Silent Flow ADFS 2019 Tests", () => {
+describe("Silent Flow ADFS 2019 Tests", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(ONE_SECOND_IN_MS * 45);
     let browser: puppeteer.Browser;

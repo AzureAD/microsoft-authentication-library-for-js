@@ -1,11 +1,11 @@
 ---
-description: "Audit documentation against recent code changes. Scans source diffs and identifies docs that are outdated, missing, or inconsistent."
+description: "Audit documentation against recent code changes. Scans source diffs and identifies docs that are outdated, missing, or inconsistent. Also validates that all internal links in markdown files point to valid targets."
 agent: "agent"
 ---
 
 # Documentation Audit
 
-Review all recent code changes and compare them against the existing documentation to identify gaps, inconsistencies, or missing updates.
+Review all recent code changes and compare them against the existing documentation to identify gaps, inconsistencies, broken links, or missing updates.
 
 ## Steps
 
@@ -17,6 +17,7 @@ Review all recent code changes and compare them against the existing documentati
    - New or changed configuration options
    - New browser/platform constraints or workarounds
    - Breaking changes or deprecations
+   - Deleted or renamed files, directories, or samples
 
 3. **Map changes to docs**: For each library with source changes, scan the corresponding `docs/` directory:
    - `lib/msal-browser/docs/` for msal-browser changes
@@ -32,10 +33,23 @@ Review all recent code changes and compare them against the existing documentati
    - Known limitations sections reflect current browser/platform constraints
    - Configuration docs list all current options with correct defaults
 
-5. **Report findings**: Produce a table of findings:
+5. **Validate links**: Scan all `.md` files in affected libraries for broken links:
+   - **Deleted/renamed files**: Search all `.md` files for relative paths and GitHub URLs referencing removed or renamed paths
+   - **Relative links**: Verify `[text](./path)` targets exist at the resolved path
+   - **GitHub URLs**: Verify links containing `github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/` or `/blob/dev/` reference paths that exist in the repo
+   - **Anchor links**: Verify `#heading-anchor` references match actual headings in the target file
+   - **Sample links**: Confirm links to `samples/` directories point to samples that still exist
+
+6. **Report findings**: Produce a table of findings:
 
    | Source Change | Affected Doc(s) | Status | Suggested Update |
    |---------------|-----------------|--------|------------------|
    | ... | ... | Missing / Outdated / OK | ... |
 
-6. **Suggest fixes**: For each gap, suggest the specific documentation update needed — including the file path, section, and proposed content.
+   And a separate table for link issues:
+
+   | File | Broken Link | Reason | Suggested Fix |
+   |------|-------------|--------|---------------|
+   | ... | ... | Target deleted / Renamed / Anchor missing | ... |
+
+7. **Suggest fixes**: For each gap, suggest the specific documentation update needed — including the file path, section, and proposed content.
