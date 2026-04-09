@@ -2,7 +2,7 @@
 
 > **Status**: Minimum POC / Experimental. The backend Entra STS feature is currently in public preview.
 >
-> **Related docs**: [certificate-credentials.md](./certificate-credentials.md) · [sni.md](./sni.md) · [regional-authorities.md](./regional-authorities.md) · [mtls-pop-manual-testing.md](./mtls-pop-manual-testing.md)
+> **Related docs**: [certificate-credentials.md](./certificate-credentials.md) · [sni.md](./sni.md) · [regional-authorities.md](./regional-authorities.md) · [mtls-pop-manual-testing.md](./mtls-pop-manual-testing.md) · [mtls-pop-architecture.md](./mtls-pop-architecture.md)
 
 ---
 
@@ -40,6 +40,58 @@ The separate [`@azure/msal-node-mtls-extensions`](../../../extensions/msal-node-
 2. Node.js parses the JSON output and returns a standard `AuthenticationResult`.
 
 See the [quick-start example](#quick-start-example) below for usage.
+
+---
+
+## Flow Diagrams
+
+### Path 1 — Confidential Client / SNI Certificate
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant MSAL as msal-node (MtlsHttpClient)
+    participant mtlsauth as {region}.mtlsauth.microsoft.com
+
+    App->>MSAL: acquireTokenByClientCredential({authenticationScheme: MTLS_POP})
+    MSAL->>MSAL: Resolve region → build mTLS endpoint URL
+    MSAL->>mtlsauth: POST /{tenant}/oauth2/v2.0/token<br/>(TLS handshake with clientCertificate — no client_assertion JWT)
+    mtlsauth-->>MSAL: token_type=mtls_pop, access_token
+    MSAL-->>App: AuthenticationResult{accessToken, tokenType, bindingCertificate}
+    Note over App: Subsequent calls → fromCache=true
+```
+
+### Path 2 — Managed Identity (MsalMtlsMsiHelper.exe subprocess)
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant Node as msal-node-mtls-extensions
+    participant EXE as MsalMtlsMsiHelper.exe (.NET)
+    participant IMDS as IMDS (169.254.169.254)
+    participant CNG as Windows CNG (VBS KeyGuard)
+    participant Attest as AttestationClientLib.dll → MAA
+    participant Token as mTLS Token Endpoint
+
+    App->>Node: acquireMtlsMsiToken({resource, withAttestation})
+    Node->>EXE: spawn with --resource --identity-type [--with-attestation]
+    EXE->>IMDS: GET /metadata/identity/getplatformmetadata
+    IMDS-->>EXE: clientId, tenantId, cuId, attestationEndpoint
+    EXE->>CNG: Get/create MSALMtlsKey_{cuId} (KeyGuard RSA-2048)
+    Note over CNG: Key is VBS-protected — never exported
+    EXE->>EXE: Generate PKCS#10 CSR (signed by KeyGuard key)
+    opt withAttestation=true
+        EXE->>Attest: AttestKeyGuardImportKey(endpoint, keyHandle)
+        Attest-->>EXE: MAA JWT (proves VBS KeyGuard protection)
+    end
+    EXE->>IMDS: POST /metadata/identity/issuecredential {csr, attestation_token?}
+    IMDS-->>EXE: X.509 binding certificate
+    EXE->>Token: POST /{tenant}/oauth2/v2.0/token<br/>(TLS handshake with binding cert via .NET HttpClient/Schannel)
+    Token-->>EXE: token_type=mtls_pop, access_token
+    EXE-->>Node: JSON to stdout {access_token, token_type, binding_certificate, ...}
+    Node-->>App: AuthenticationResult{accessToken, tokenType, bindingCertificate}
+    Note over App: Subsequent calls → fromCache=true (in-memory token cache)
+```
 
 ---
 
@@ -290,10 +342,22 @@ See [`extensions/msal-node-mtls-extensions`](../../../extensions/msal-node-mtls-
 
 ## Error reference
 
-| Error code | Meaning | Fix |
+| Error | Meaning | Fix |
 |---|---|---|
 | `mtls_pop_certificate_required` | `authenticationScheme: MTLS_POP` was requested but `clientCertificate.x5c` and/or `clientCertificate.privateKey` are not configured. | Ensure both `x5c` (PEM cert) and `privateKey` are set in `clientCertificate` in the application configuration. |
 | `missing_tenant_id_error` | The authority uses `/common` or `/organizations` instead of a specific tenant ID. | Update `authority` to `https://login.microsoftonline.com/{your-tenant-id}`. |
+| `ECONNREFUSED` / `CERT_INVALID` | Certificate not trusted by Entra STS. | Path 1: certificate must be an SNI cert issued by a Microsoft-trusted CA and registered with the app registration. Self-signed certs will be rejected. |
+| `only supported on Windows` (Path 2) | `acquireMtlsMsiToken` or `makeMtlsMsiRequest` was called on Linux/macOS. | Path 2 requires a Windows Azure VM. |
+| `Unsupported architecture` (Path 2) | VM is not x64. | Path 2 only supports `x64` — verify with `node -e "console.log(process.arch)"`. |
+| `Failed to spawn MsalMtlsMsiHelper` | `MsalMtlsMsiHelper.exe` is missing from the package. | Rebuild with `npm run build:binaries` and repack. Verify `bin/win-x64/` is present in the tarball. |
+| `"You must be running within an Azure VM"` | IMDS is not reachable — Managed Identity not enabled on the VM. | Enable System-Assigned Managed Identity in Azure Portal → VM → Identity. |
+| `"KeyGuard key creation failed"` | VBS is not enabled on the VM. | Use a VBS-enabled VM SKU (e.g., Ddsv5-series with nested virtualization). |
+| `"Attestation Token is missing / empty in the issue credential request"` | The VM requires VBS attestation but `withAttestation` was `false`. | Re-run with `withAttestation: true`. Requires `AttestationClientLib.dll` in the same directory as `MsalMtlsMsiHelper.exe`. |
+| `AADSTS392196: resource does not support certificate-bound token` | Target resource is not enrolled for mTLS PoP on this tenant. | Use `https://graph.microsoft.com/` or `https://vault.azure.net/` instead. `management.azure.com` is not supported in all subscriptions. |
+| `MtlsMissingClientCertificate` from Graph/Key Vault (`makeMtlsMsiRequest`) | Downstream resource uses *optional* mTLS — the TLS layer did not request a client cert. | This is expected for most public Azure services. `makeMtlsMsiRequest` is for servers that use *required* mutual TLS. Use the local test server (see `mtls-pop-manual-testing.md` Step 7b) to validate the full flow. |
+| `managed_identity_unreachable_network` | Outdated `MsalMtlsMsiHelper.exe` binary. | Rebuild with `Microsoft.Identity.Client` ≥ 4.83.3 and `Microsoft.Identity.Client.KeyAttestation` ≥ 4.83.3-preview. |
+
+> **Note:** The `apps/errors` package defines short error code constants (e.g. `mtls_pop_certificate_required`) for use in programmatic checks. Path 2 errors are returned as JSON from `MsalMtlsMsiHelper.exe` via stderr and surface as thrown errors in Node.js with an `errorCode` property.
 
 ---
 
@@ -302,5 +366,7 @@ See [`extensions/msal-node-mtls-extensions`](../../../extensions/msal-node-mtls-
 - [RFC 8705 — OAuth 2.0 Mutual-TLS Client Authentication](https://datatracker.ietf.org/doc/html/rfc8705)
 - [msal-dotnet SNI mTLS PoP design doc](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/blob/main/docs/sni_mtls_pop_token_design.md)
 - [msal-dotnet mTLS PoP managed identity guide](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/blob/main/docs/mtlspop_managed_identity.md)
+- [mtls-pop-architecture.md](./mtls-pop-architecture.md) — Deep dive: MtlsHttpClient internals, subprocess IPC protocol, TLS stack analysis, msal-dotnet parity
+- [keyguard-napi-addon-analysis.md](./keyguard-napi-addon-analysis.md) — Feasibility analysis for N-API addon alternative (explains why the subprocess is architecturally necessary)
 - [SNI certificate setup in msal-node](./sni.md)
 - [Certificate credentials guide](./certificate-credentials.md)

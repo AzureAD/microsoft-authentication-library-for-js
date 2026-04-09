@@ -159,17 +159,32 @@ VM's managed identity metadata independently.
 
 ## How it works
 
-```
-Node.js
-  ├─[1] spawn MsalMtlsMsiHelper.exe
-  │       ├─ GET /metadata/identity/getplatformmetadata  (IMDS, plain HTTP)
-  │       ├─ Get/create KeyGuard RSA key (Windows CNG / VBS)
-  │       ├─ Generate CSR (embedded clientId/tenantId/cuId)
-  │       ├─ [optional] MAA attestation via AttestationClientLib.dll
-  │       ├─ POST /metadata/identity/issuecredential → X.509 binding cert
-  │       └─ POST {mtlsEndpoint}/{tenantId}/oauth2/v2.0/token (mTLS)
-  │             → { access_token, token_type, expires_in, tenant_id, client_id }
-  └─[2] Return AuthenticationResult
+```mermaid
+sequenceDiagram
+    participant App
+    participant Node as Node.js (msal-node-mtls-extensions)
+    participant EXE as MsalMtlsMsiHelper.exe (.NET)
+    participant IMDS as IMDS (169.254.169.254)
+    participant CNG as Windows CNG (VBS KeyGuard)
+    participant Attest as AttestationClientLib.dll → MAA
+    participant Token as mTLS Token Endpoint
+
+    App->>Node: acquireMtlsMsiToken({resource, withAttestation?})
+    Node->>EXE: spawn with --resource [--with-attestation]
+    EXE->>IMDS: GET /metadata/identity/getplatformmetadata
+    IMDS-->>EXE: clientId, tenantId, cuId, attestationEndpoint
+    EXE->>CNG: Get/create KeyGuard RSA key (non-exportable, VBS-protected)
+    EXE->>EXE: Generate CSR (clientId, tenantId, cuId embedded)
+    opt withAttestation=true
+        EXE->>Attest: AttestKeyGuardImportKey(endpoint, keyHandle)
+        Attest-->>EXE: MAA JWT
+    end
+    EXE->>IMDS: POST /metadata/identity/issuecredential {csr, attestation_token?}
+    IMDS-->>EXE: X.509 binding certificate
+    EXE->>Token: POST /{tenantId}/oauth2/v2.0/token (mTLS via .NET HttpClient/Schannel)
+    Token-->>EXE: access_token, token_type=mtls_pop
+    EXE-->>Node: JSON to stdout {access_token, token_type, expires_in, binding_certificate, ...}
+    Node-->>App: AuthenticationResult
 ```
 
 ## Requirements (full list)
