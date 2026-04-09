@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Fix unstable sort in getAccountInfoFilteredBy by replacing incorrect 1-arg comparator with proper 2-arg comparator [#8477](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8477)",
+    "comment": "Fix unstable sort in getAccountInfoFilteredBy by replacing incorrect 1-arg comparator with proper 2-arg comparator [#8522](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8522)",
     "packageName": "@azure/msal-common",
     "email": "ruijungao@microsoft.com",
     "dependentChangeType": "patch"
