@@ -1005,8 +1005,6 @@ export class StandardController implements IController {
         const correlationId = this.getRequestCorrelationId(request);
         const validRequest = {
             ...request,
-            // will be PromptValue.NONE or PromptValue.NO_SESSION
-            prompt: request.prompt,
             correlationId: correlationId,
         };
         this.ssoSilentMeasurement = this.performanceClient.startMeasurement(
