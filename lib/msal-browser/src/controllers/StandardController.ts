@@ -1558,7 +1558,7 @@ export class StandardController implements IController {
 
         if (result.fromPlatformBroker) {
             this.logger.verbose(
-                "Response was from native broker, storing idToken in browser storage and accessToken in-memory",
+                "Response was from native broker, storing ID Token in browser storage and Access Token in-memory",
                 result.correlationId
             );
 
