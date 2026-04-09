@@ -37,15 +37,21 @@ This guide provides framework-specific instructions for setting up the redirect 
 > provider. Hosting any part of the bridge on a third-party origin creates a
 > **supply-chain and token-theft risk**: a compromised bridge asset could
 > intercept the authentication response before it reaches your application.
-> Always bundle the redirect bridge with your application or serve the page
-> and its assets from your own infrastructure.
+> Always bundle the redirect bridge with your application and serve the page
+> and its assets **from the same origin** as your application.
+>
+> Because the bridge page carries sensitive authentication material in the URL,
+> it **must not be cached** by any intermediary. Serve the redirect bridge page
+> with `Cache-Control: no-store` to prevent CDNs, reverse proxies, and browser
+> disk caches from retaining the page — and the authorization codes or tokens
+> in its URL — after the response has been processed.
 >
 > **Note:** In Safari Private Browsing, privacy protections or content-blocking
 > features may restrict requests to some third-party domains and can interfere
 > with CDN-hosted scripts. If the redirect bridge is hosted on a CDN, this can
 > lead to authentication failures that may be difficult to diagnose. Bundling
-> the redirect bridge with your application or serving it from your own
-> infrastructure helps avoid this class of issue.
+> the redirect bridge with your application and serving it from the same origin
+> helps avoid this class of issue.
 
 ## Logout and the Redirect Bridge
 
