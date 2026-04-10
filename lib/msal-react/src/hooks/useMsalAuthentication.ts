@@ -129,7 +129,9 @@ export function useMsalAuthentication(
                             callbackRequest?.correlationId || ""
                         );
                         return instance.ssoSilent(
-                            loginRequest as SsoSilentRequest
+                            !!loginRequest
+                                ? (loginRequest as SsoSilentRequest)
+                                : {}
                         );
 
                     default:

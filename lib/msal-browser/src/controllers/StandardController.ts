@@ -1005,8 +1005,6 @@ export class StandardController implements IController {
         const correlationId = this.getRequestCorrelationId(request);
         const validRequest = {
             ...request,
-            // will be PromptValue.NONE or PromptValue.NO_SESSION
-            prompt: request.prompt,
             correlationId: correlationId,
         };
         this.ssoSilentMeasurement = this.performanceClient.startMeasurement(
@@ -1558,7 +1556,7 @@ export class StandardController implements IController {
 
         if (result.fromPlatformBroker) {
             this.logger.verbose(
-                "Response was from native broker, storing idToken in browser storage and accessToken in-memory",
+                "Response was from native broker, storing ID Token in browser storage and Access Token in-memory",
                 result.correlationId
             );
 

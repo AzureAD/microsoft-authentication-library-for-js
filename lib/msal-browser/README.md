@@ -107,7 +107,6 @@ We also provide samples for addin/plugin scenarios:
 
 -   [Office Addin-in using MSAL.js](https://github.com/OfficeDev/PnP-OfficeAddins/blob/main/Samples/auth/Office-Add-in-Microsoft-Graph-React/)
 -   [Teams Tab using MSAL.js](https://github.com/pnp/teams-dev-samples/tree/main/samples/tab-sso/src/nodejs)
--   [Chromium Extension using MSAL.js](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/ChromiumExtensionSample)
 
 ## Build and Test
 
