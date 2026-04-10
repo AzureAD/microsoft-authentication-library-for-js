@@ -190,6 +190,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             "test-measurement",
             "test-correlation-id"
         );
+        // Freeze Date.now() so timestamp comparisons in toEqual don't fail
+        // when a 1-second boundary is crossed during async acquireToken calls.
+        jest.spyOn(Date, "now").mockReturnValue(Date.now());
     });
 
     afterEach(() => {
