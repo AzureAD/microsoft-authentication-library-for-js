@@ -89,6 +89,9 @@ If you would like to update your UI when a user logs in or out of your app or ch
 - For `LOGOUT_SUCCESS`, the payload will be the logout request (`EndSessionRequest | EndSessionPopupRequest`).
 - For `ACTIVE_ACCOUNT_CHANGED`, the payload will be `null`.
 
+> [!IMPORTANT]
+> For redirect logout flows, `LOGOUT_SUCCESS` is only broadcast to other tabs/windows when the logout request includes an `account`. If you call `logoutRedirect()` without an `account` (for example, to clear all accounts), other tabs/windows may not receive `LOGOUT_SUCCESS`. If you need reliable cross-tab logout syncing, prefer `logoutRedirect({ account })`.
+
 ```javascript
 import { useEffect } from "react";
 import { useMsal } from "@azure/msal-react";
@@ -103,7 +106,7 @@ function EventExample() {
             if (message.eventType === EventType.LOGIN_SUCCESS) {
                 // Update UI with new account
             } else if (message.eventType === EventType.LOGOUT_SUCCESS) {
-                // Update UI with account logged out
+                // Update UI with account from the logout request
             } else if (message.eventType === EventType.ACTIVE_ACCOUNT_CHANGED) {
                 const accountInfo = instance.getActiveAccount();
                 // Update UI with new active account info
