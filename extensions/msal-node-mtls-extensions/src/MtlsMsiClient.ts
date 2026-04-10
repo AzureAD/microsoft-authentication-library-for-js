@@ -91,6 +91,19 @@ export interface MtlsMsiTokenRequest {
      * @default false
      */
     forceRefresh?: boolean;
+    /**
+     * Explicit path to the `MsalMtlsMsiHelper.exe` binary.
+     *
+     * When omitted, the path is resolved automatically:
+     * 1. `MSAL_MTLS_HELPER_PATH` environment variable
+     * 2. `@azure/msal-node-key-attestation` package (if installed)
+     * 3. Legacy `bin/` directory inside `@azure/msal-node-mtls-extensions`
+     *
+     * **Recommended**: install `@azure/msal-node-key-attestation` and import
+     * from there — the binary path is then resolved automatically without
+     * setting this option.
+     */
+    helperPath?: string;
 }
 
 /** JSON output written to stdout by MsalMtlsMsiHelper.exe on success. */
@@ -110,18 +123,62 @@ interface HelperErrorResponse {
 }
 
 /**
- * Returns the absolute path to the pre-built MsalMtlsMsiHelper binary
- * for the current OS architecture.
- *
- * Binaries are bundled under `bin/{arch}/MsalMtlsMsiHelper.exe`
- * (relative to this package root) following the same pattern used by
- * `@azure/msal-node-extensions` for its WAM broker binaries.
+ * Attempts to resolve the helper path from the
+ * `@azure/msal-node-key-attestation` package if it is installed.
+ * Returns the path string on success, or `undefined` if the package
+ * is not installed or does not export `getHelperPath`.
  */
-function getHelperPath(): string {
+function tryAutoDiscoverKeyAttestation(): string | undefined {
+    try {
+        // Dynamic require — avoids a hard compile-time dependency on the
+        // optional key-attestation package.
+        const ka = _require("@azure/msal-node-key-attestation") as {
+            getHelperPath?: () => string;
+        };
+        if (typeof ka.getHelperPath === "function") {
+            return ka.getHelperPath();
+        }
+    } catch {
+        // Package not installed — this is expected when using core only.
+    }
+    return undefined;
+}
+
+/**
+ * Returns the absolute path to the `MsalMtlsMsiHelper.exe` binary.
+ *
+ * Resolution order:
+ * 1. `explicitPath` argument (from `helperPath` in the request options)
+ * 2. `MSAL_MTLS_HELPER_PATH` environment variable
+ * 3. Auto-discovery from `@azure/msal-node-key-attestation` (if installed)
+ * 4. Legacy fallback: `bin/win-{arch}/MsalMtlsMsiHelper.exe` relative to
+ *    this package (for backward compatibility when the binary was bundled
+ *    directly in `@azure/msal-node-mtls-extensions` before the package
+ *    split). This path will fail at spawn-time if the binary is absent —
+ *    the error message in `runHelper` directs the user to install
+ *    `@azure/msal-node-key-attestation`.
+ */
+function getHelperPath(explicitPath?: string): string {
+    if (explicitPath) {
+        return explicitPath;
+    }
+
+    if (process.env.MSAL_MTLS_HELPER_PATH) {
+        return process.env.MSAL_MTLS_HELPER_PATH;
+    }
+
+    const discovered = tryAutoDiscoverKeyAttestation();
+    if (discovered) {
+        return discovered;
+    }
+
+    // Legacy fallback — preserves backward compatibility with older installs
+    // that bundled the binary inside @azure/msal-node-mtls-extensions.
     if (os.platform() !== "win32") {
         throw new Error(
             "Managed Identity mTLS PoP is only supported on Windows. " +
-                "The MsalMtlsMsiHelper requires Windows VBS/KeyGuard for hardware-backed key creation."
+                "The MsalMtlsMsiHelper requires Windows VBS/KeyGuard for hardware-backed key creation.\n" +
+                "Install @azure/msal-node-key-attestation to get the pre-built MsalMtlsMsiHelper binary."
         );
     }
 
@@ -130,7 +187,8 @@ function getHelperPath(): string {
     if (!supportedArches.includes(arch)) {
         throw new Error(
             `Unsupported architecture "${arch}" for Managed Identity mTLS PoP. ` +
-                `Only x64 is currently supported (arm64 is not yet validated).`
+                `Only x64 is currently supported (arm64 is not yet validated).\n` +
+                `Install @azure/msal-node-key-attestation to get the pre-built MsalMtlsMsiHelper binary.`
         );
     }
 
@@ -263,7 +321,7 @@ export async function acquireMtlsMsiToken(
         }
     }
 
-    const helperPath = getHelperPath();
+    const helperPath = getHelperPath(request.helperPath);
 
     const helperResult = await runHelper(helperPath, request);
 
@@ -337,6 +395,17 @@ export interface MtlsMsiRequestOptions {
      * @default false
      */
     allowInsecureTls?: boolean;
+    /**
+     * Explicit path to the `MsalMtlsMsiHelper.exe` binary.
+     *
+     * When omitted, the path is resolved automatically (same order as
+     * `MtlsMsiTokenRequest.helperPath`).
+     *
+     * **Recommended**: install `@azure/msal-node-key-attestation` and import
+     * from there — the binary path is then resolved automatically without
+     * setting this option.
+     */
+    helperPath?: string;
 }
 
 /**
@@ -483,7 +552,7 @@ function runHelperHttpRequest(
 export async function makeMtlsMsiRequest(
     options: MtlsMsiRequestOptions
 ): Promise<MtlsMsiResponse> {
-    const helperPath = getHelperPath();
+    const helperPath = getHelperPath(options.helperPath);
     return runHelperHttpRequest(helperPath, options);
 }
 

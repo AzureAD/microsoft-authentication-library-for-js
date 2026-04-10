@@ -4,32 +4,52 @@ Managed Identity mTLS Proof-of-Possession (mTLS PoP) token acquisition for `@azu
 
 ## Overview
 
-This package provides `acquireMtlsMsiToken` — a function that acquires an mTLS PoP access token
-from the Azure Managed Identity endpoint on a Windows VM.
+This is the **core package** for the mTLS PoP Managed Identity flow. It contains all the
+TypeScript logic (subprocess spawning, token caching, IMDS client) but does **not** include
+the `MsalMtlsMsiHelper.exe` binary.
 
-The Managed Identity mTLS PoP flow requires creating a **KeyGuard RSA key** — a hardware-backed
-non-exportable private key backed by Windows Virtualization-Based Security (VBS). Because this key
-physically cannot be exported or transferred between processes, the entire flow (key creation, CSR
-generation, IMDS credential issuance, and the mTLS token request) runs in a .NET subprocess
-(`MsalMtlsMsiHelper.exe`) bundled with this package.
+To use this package on a Windows VM you need the pre-built binary. The recommended way to get
+it is to install the companion package:
 
-Node.js handles everything else: spawning the subprocess, parsing the token response, and returning
-a standard `AuthenticationResult`.
+```bash
+npm install @azure/msal-node-key-attestation
+```
 
-See [Requirements](#requirements-full-list) for the full list of prerequisites.
+`@azure/msal-node-key-attestation` ships `MsalMtlsMsiHelper.exe` and `AttestationClientLib.dll`,
+and re-exports all functions from this package with the binary path pre-configured. Most users
+should **import from `@azure/msal-node-key-attestation`** rather than this package directly.
+
+This split mirrors the pattern used by msal-dotnet (`Microsoft.Identity.Client.KeyAttestation`)
+and msal-python (`msal-key-attestation`):
+
+| SDK | Core package | Binary / attestation package |
+|-----|--------------|-------------------------------|
+| msal-node | `@azure/msal-node-mtls-extensions` (this package) | `@azure/msal-node-key-attestation` |
+| msal-dotnet | `Microsoft.Identity.Client` | `Microsoft.Identity.Client.KeyAttestation` |
+| msal-python | `msal` | `msal-key-attestation` |
+
+### When to import from this package directly
+
+- You are providing your own `MsalMtlsMsiHelper.exe` binary (pass `helperPath` in the request options)
+- You have set the `MSAL_MTLS_HELPER_PATH` environment variable
+- You only need `ImdsClient.ts` / `getPlatformMetadata()` (no binary required)
 
 ## Installation
 
 ```bash
+# Recommended: includes the pre-built binary
+npm install @azure/msal-node-key-attestation
+
+# Core only (no binary): use when providing helperPath manually
 npm install @azure/msal-node-mtls-extensions
 ```
 
 ## Usage
 
-### Step 1 — Acquire the mTLS PoP token
+### Using the companion binary package (recommended)
 
 ```typescript
-import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-mtls-extensions";
+import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-key-attestation";
 
 const tokenResult = await acquireMtlsMsiToken({
     resource: "https://graph.microsoft.com/",
@@ -40,33 +60,23 @@ console.log(tokenResult.tokenType);         // "mtls_pop"
 console.log(tokenResult.bindingCertificate); // PEM cert bound to the token
 ```
 
-### Step 2 — Call the downstream resource over mTLS
-
-Because the KeyGuard private key cannot leave Windows CNG, Node.js cannot open an
-mTLS connection with it directly. Use `makeMtlsMsiRequest` to route the downstream
-call through the .NET helper, which holds the key and makes the mTLS connection using
-.NET's `HttpClient`:
-
-> **Requirement:** The downstream server **must** use required mutual TLS — it must send
-> a TLS `CertificateRequest` during the handshake. Public Azure services such as Graph API
-> and Key Vault use *optional* mTLS and will return `MtlsMissingClientCertificate`.
-> `makeMtlsMsiRequest` is intended for custom or Azure-internal services that require a
-> client certificate. See [`mtls-pop-manual-testing.md` Step 7b](../../lib/msal-node/docs/mtls-pop-manual-testing.md) for a full end-to-end test using a local required-mTLS server.
+### Providing a custom helper path
 
 ```typescript
-const response = await makeMtlsMsiRequest({
-    url: "https://your-resource.example.com/api/data",
-    token: tokenResult.accessToken,
-});
+import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-mtls-extensions";
 
-console.log(response.status); // 200 (on a server that requires mutual TLS)
+const tokenResult = await acquireMtlsMsiToken({
+    resource: "https://graph.microsoft.com/",
+    helperPath: "/path/to/your/MsalMtlsMsiHelper.exe",
+});
 ```
 
-> **Confirmed token acquisition resources:** `https://graph.microsoft.com/` and
-> `https://vault.azure.net/` accept `mtls_pop` tokens. `management.azure.com` returns
-> `AADSTS392196` in many subscriptions. Note that token acceptance is separate from
-> required-mTLS support — Graph accepts the token type but uses optional mTLS at the
-> connection layer.
+### Via environment variable
+
+```bash
+# Set once at process startup; all calls resolve the binary automatically
+MSAL_MTLS_HELPER_PATH=/path/to/MsalMtlsMsiHelper.exe node your-app.js
+```
 
 ### User-Assigned Managed Identity
 
@@ -122,6 +132,7 @@ Acquires an mTLS PoP access token for a Managed Identity.
 | `withAttestation` | `boolean` | `false` | Include MAA attestation (required on some VMs) |
 | `correlationId` | `string` | — | Optional GUID for telemetry |
 | `forceRefresh` | `boolean` | `false` | Bypass in-memory token cache |
+| `helperPath` | `string` | — | Explicit path to `MsalMtlsMsiHelper.exe`; auto-resolved if omitted (see [Installation](#installation)) |
 
 ### `makeMtlsMsiRequest(options: MtlsMsiRequestOptions): Promise<MtlsMsiResponse>`
 
@@ -143,6 +154,7 @@ key can be used for the TLS client handshake.
 | `withAttestation` | `boolean` | `false` | Use attestation when retrieving the binding cert |
 | `correlationId` | `string` | — | Optional GUID for telemetry |
 | `allowInsecureTls` | `boolean` | `false` | Skip server TLS certificate validation — **testing only** (e.g. self-signed local server cert) |
+| `helperPath` | `string` | — | Explicit path to `MsalMtlsMsiHelper.exe`; auto-resolved if omitted |
 
 **Returns** `MtlsMsiResponse`:
 
@@ -213,8 +225,8 @@ subprocess calls `AttestationClientLib.dll` (a native component from the
 hardware-backed attestation JWT from the VM's regional MAA endpoint, then
 includes that JWT in the `issuecredential` call.
 
-`AttestationClientLib.dll` is included automatically in `bin/win-x64/` when you
-run `npm run build:binaries`. It is **not committed to git** (like the `.exe`).
+`AttestationClientLib.dll` is bundled in `@azure/msal-node-key-attestation` under `bin/win-x64/`.
+It is **not committed to git** and is built via `npm run build:binaries` in that package.
 
 > **Note:** VBS attestation requires a VM with Virtualization-Based Security enabled.
 > Standard Azure VM SKUs support KeyGuard key creation. Attestation requires a
@@ -222,37 +234,36 @@ run `npm run build:binaries`. It is **not committed to git** (like the `.exe`).
 
 ## The `MsalMtlsMsiHelper.exe` binary
 
-`MsalMtlsMsiHelper.exe` is a **framework-dependent** .NET 8 application published to
-`bin/win-{arch}/MsalMtlsMsiHelper.exe` at build time. For `x64`, `AttestationClientLib.dll`
-(from `Microsoft.Azure.Security.KeyGuardAttestation`) is also copied to the same directory.
-Neither file is committed to git.
+`MsalMtlsMsiHelper.exe` is a **framework-dependent** .NET 8 application. For `x64`,
+`AttestationClientLib.dll` (from `Microsoft.Azure.Security.KeyGuardAttestation`) is also
+bundled alongside it. Neither file is committed to git.
 
-It wraps [`Microsoft.Identity.Client`](https://learn.microsoft.com/en-us/azure/active-directory/develop/msal-net-migration)
+> **These files are shipped by `@azure/msal-node-key-attestation`**, not this package.
+> Run `npm run build:binaries` in that package (or `npm pack`/`npm publish` via its `prepack` script)
+> to build and bundle them.
+
+The helper wraps [`Microsoft.Identity.Client`](https://learn.microsoft.com/en-us/azure/active-directory/develop/msal-net-migration)
 with [`Microsoft.Identity.Client.KeyAttestation`](https://www.nuget.org/packages/Microsoft.Identity.Client.KeyAttestation),
 which provides hardware-backed KeyGuard key management and MAA attestation support.
 
 ### Building the binary
 
-The binary is built automatically when you run `npm run build:binaries` or `npm pack`/`npm publish` (via `prepack`).
-
-**Requirements:** .NET 8 SDK and `windows-latest` GitHub Actions runner (or any Windows machine with .NET 8 SDK).
-
 ```bash
-# Build TypeScript + .NET helper (win-x64)
+cd extensions/msal-node-key-attestation
+# Requires .NET 8 SDK on PATH
 npm run build:binaries
 ```
-
-This calls `dotnet publish -r win-x64 --self-contained false /p:PublishSingleFile=true`.
 
 ### CI / release
 
 The `.github/workflows/msal-node-mtls-extensions.yml` workflow:
-- Triggers on push/PR to `dev` touching this package
+- Triggers on push/PR to `dev` touching these packages
 - Builds the .NET helper for win-x64
 - Runs all TypeScript tests
 - Uploads `MsalMtlsMsiHelper.exe` as a GitHub Actions artifact
 
-For npm publish, the release CI must run `npm run build:binaries` on a `windows-latest` runner before `npm publish`. The `prepack` script enforces this — publishing will fail if the binaries are absent.
+For npm publish, the release CI must run `npm run build:binaries` in `@azure/msal-node-key-attestation`
+on a `windows-latest` runner before `npm publish`. The `prepack` script enforces this.
 
 ## Why a subprocess instead of a native Node.js addon?
 
@@ -288,11 +299,12 @@ Use `makeMtlsMsiRequest()` instead, which routes the downstream HTTP call throug
 
 ## Support and servicing
 
-`MsalMtlsMsiHelper.exe` is versioned and published as part of this npm package, following the same semver cadence as the rest of msal-js:
+`MsalMtlsMsiHelper.exe` is versioned and published as part of `@azure/msal-node-key-attestation`,
+following the same semver cadence as the rest of msal-js:
 
 - **NuGet version pinning:** The exact versions of `Microsoft.Identity.Client` and `Microsoft.Identity.Client.KeyAttestation` used are pinned in `native/MsalMtlsMsiHelper/MsalMtlsMsiHelper.csproj`.
-- **Security updates:** When msal-dotnet releases a security fix affecting the MSI mTLS flow, the helper source must be updated, the binary rebuilt (`npm run build:binaries`), and the npm package republished. This typically results in a **patch version bump**.
-- **Breaking API changes:** If msal-dotnet makes breaking changes to `AcquireTokenForManagedIdentity().WithMtlsProofOfPossession()`, the helper must be updated. This would result at minimum in a **minor version bump** of this package.
+- **Security updates:** When msal-dotnet releases a security fix affecting the MSI mTLS flow, the helper source must be updated, the binary rebuilt (`npm run build:binaries` in `@azure/msal-node-key-attestation`), and the npm package republished. This typically results in a **patch version bump** of both packages.
+- **Breaking API changes:** If msal-dotnet makes breaking changes to `AcquireTokenForManagedIdentity().WithMtlsProofOfPossession()`, the helper must be updated. This would result at minimum in a **minor version bump**.
 - **Runtime dependency:** Consumers need the `.NET 8 runtime` installed on the VM (not the SDK). The runtime version requirement will only change if msal-dotnet requires a newer runtime in a future update.
 
 

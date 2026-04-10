@@ -1,7 +1,7 @@
 {
-  "name": "@azure/msal-node-mtls-extensions",
+  "name": "@azure/msal-node-key-attestation",
   "version": "1.0.0",
-  "description": "msal-node extensions for Managed Identity mTLS Proof-of-Possession token acquisition",
+  "description": "Pre-built MsalMtlsMsiHelper binaries for @azure/msal-node-mtls-extensions — KeyGuard attestation support for Managed Identity mTLS PoP",
   "repository": {
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
@@ -10,7 +10,7 @@
   "type": "module",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
-  "main": "lib/msal-node-mtls-extensions.cjs",
+  "main": "lib/msal-node-key-attestation.cjs",
   "exports": {
     ".": {
       "import": {
@@ -19,7 +19,7 @@
       },
       "require": {
         "types": "./lib/types/index.d.ts",
-        "default": "./lib/msal-node-mtls-extensions.cjs"
+        "default": "./lib/msal-node-key-attestation.cjs"
       }
     },
     "./package.json": "./package.json"
@@ -32,10 +32,13 @@
     "msal",
     "mtls",
     "pop",
-    "managed-identity"
+    "managed-identity",
+    "keyguard",
+    "attestation"
   ],
   "files": [
     "dist",
+    "bin",
     "lib"
   ],
   "engines": {
@@ -45,14 +48,15 @@
     "clean": "shx rm -rf dist lib",
     "build": "npm run clean && npm run build:js",
     "build:js": "rollup -c --strictDeprecations --bundleConfigAsCjs",
-    "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=@azure/msal-node-mtls-extensions",
+    "build:binaries": "node ./scripts/buildBinaries.cjs",
+    "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=@azure/msal-node-mtls-extensions --workspace=@azure/msal-node-key-attestation",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts",
     "lint:fix": "npm run lint -- --fix",
     "format:check": "prettier --ignore-path .gitignore --check src test",
     "format:fix": "prettier --ignore-path .gitignore --write src test",
-    "prepack": "npm run build:all"
+    "prepack": "npm run build:all && node ./scripts/checkBinaries.cjs"
   },
   "author": {
     "name": "Microsoft",
@@ -65,8 +69,10 @@
     ]
   },
   "dependencies": {
-    "@azure/msal-common": "16.4.0",
-    "@azure/msal-node": "5.1.1"
+    "@azure/msal-node-mtls-extensions": "^1.0.0"
+  },
+  "peerDependencies": {
+    "@azure/msal-node": ">=5.1.1"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.2",
