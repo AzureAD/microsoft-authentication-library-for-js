@@ -84,7 +84,7 @@ class EventExample extends React.Component {
 If you would like to update your UI when a user logs in or out of your app or changes the active account in a different tab or window you can subscribe to the `LOGIN_SUCCESS`, `LOGOUT_SUCCESS`, and `ACTIVE_ACCOUNT_CHANGED` events.
 
 - For `LOGIN_SUCCESS`, the payload will be the logged in `AccountInfo` object (`result.account`).
-- For `LOGOUT_SUCCESS`, the payload will be the logout request (`EndSessionRequest`).
+- For `LOGOUT_SUCCESS`, the payload will be the logout request (`EndSessionRequest | EndSessionPopupRequest`).
 - For `ACTIVE_ACCOUNT_CHANGED`, the payload will be `null`.
 
 ```javascript
