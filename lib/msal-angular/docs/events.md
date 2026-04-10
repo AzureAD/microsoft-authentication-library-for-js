@@ -109,8 +109,9 @@ If you would like to update your UI when a user logs in or out of your app or ch
 
 > Note: Cross-tab/window event syncing in `@azure/msal-browser` is only enabled when `cache.cacheLocation` is set to `localStorage`. If you are using the default `sessionStorage` cache location, these events will not be received from other tabs or windows.
 
-- For account additions and removals, the payload will be the `AccountInfo` object that was added or removed.
-- For active account updates, there will be no payload
+- `LOGIN_SUCCESS` payloads contain the `AccountInfo` object for the account that signed in.
+- `LOGOUT_SUCCESS` payloads contain the logout request (`EndSessionRequest` or `EndSessionPopupRequest`).
+- `ACTIVE_ACCOUNT_CHANGED` does not include a payload (`null`).
 
 ```javascript
 import { MsalService, MsalBroadcastService } from '@azure/msal-angular';
