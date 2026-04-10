@@ -3,7 +3,7 @@
 This guide walks through manually testing both mTLS PoP paths end-to-end.
 
 - **Path 1** — Confidential Client Application (CCA) with an SNI certificate (`@azure/msal-node`)
-- **Path 2** — Managed Identity on a Windows Azure VM (`@azure/msal-node-mtls-extensions`)
+- **Path 2** — Managed Identity on a Windows Azure VM (`@azure/msal-node-key-attestation`)
 
 > **Note:** Path 2 requires an Azure VM with Managed Identity. Path 1 requires an Azure AD app registration with an SNI certificate.
 
@@ -141,11 +141,11 @@ Acquiring again (should hit cache)...
 
 ### Prerequisites
 
-- An Azure VM running **Windows** (`x64` only; see [README](../../../extensions/msal-node-mtls-extensions/README.md#requirements))
+- An Azure VM running **Windows** (`x64` only; see [README](../../../extensions/msal-node-key-attestation/README.md#requirements))
 - **Managed Identity enabled** on the VM (System-Assigned or User-Assigned)
 - **.NET 8 runtime** installed — check with `dotnet --version` (pre-installed on most Azure VM images)
 - **Node.js 20+** on the VM — check with `node --version`
-- The `@azure/msal-node-mtls-extensions` package **with the built binary** (see build steps below)
+- The `@azure/msal-node-key-attestation` package **with the built binary** (see build steps below)
 
 > VBS (Virtualization-Based Security) must be enabled on the VM to use `withAttestation: true`.
 > Standard Azure VMs support KeyGuard key creation. VBS attestation requires a VBS-enabled VM SKU.
@@ -191,17 +191,18 @@ npm install
 npm run build --workspace=@azure/msal-common
 npm run build --workspace=@azure/msal-node
 
-# Build the TypeScript for the extensions package
+# Build the TypeScript for both packages
 npm run build --workspace=@azure/msal-node-mtls-extensions
+npm run build --workspace=@azure/msal-node-key-attestation
 
-# Build the .NET helper binary (win-x64 only)
-# Also copies AttestationClientLib.dll to bin/win-x64/ for VBS attestation support
-cd extensions\msal-node-mtls-extensions
+# Build the .NET helper binary (win-x64 only) and copy AttestationClientLib.dll
+# Output goes to extensions/msal-node-key-attestation/bin/win-x64/
+cd extensions\msal-node-key-attestation
 npm run build:binaries
 # Expected output:
 #   Building MsalMtlsMsiHelper for win-x64...
 #   -> bin/win-x64/MsalMtlsMsiHelper.exe
-#   Copying AttestationClientLib.dll to bin/win-x64/
+#   -> bin/win-x64/AttestationClientLib.dll
 
 # Verify binaries are present
 Test-Path "bin\win-x64\MsalMtlsMsiHelper.exe"      # must print True
@@ -209,14 +210,14 @@ Test-Path "bin\win-x64\AttestationClientLib.dll"    # must print True (required 
 
 # Pack it as a tarball to transfer to the VM
 npm pack
-# Produces: azure-msal-node-mtls-extensions-1.0.0.tgz
+# Produces: azure-msal-node-key-attestation-1.0.0.tgz
 ```
 
 ### Step 2 — Copy the package to your VM
 
 ```powershell
 # From your dev machine — copy the tarball to the VM (adjust path as needed):
-scp azure-msal-node-mtls-extensions-1.0.0.tgz yourvm:/C:/mtls-test/
+scp azure-msal-node-key-attestation-1.0.0.tgz yourvm:/C:/mtls-test/
 ```
 
 ### Step 3 — Install on the VM
@@ -226,10 +227,10 @@ scp azure-msal-node-mtls-extensions-1.0.0.tgz yourvm:/C:/mtls-test/
 mkdir C:\mtls-test
 cd C:\mtls-test
 npm init -y
-npm install .\azure-msal-node-mtls-extensions-1.0.0.tgz
+npm install .\azure-msal-node-key-attestation-1.0.0.tgz
 
 # Verify the binary unpacked correctly
-Test-Path "node_modules\@azure\msal-node-mtls-extensions\bin\win-x64\MsalMtlsMsiHelper.exe"
+Test-Path "node_modules\@azure\msal-node-key-attestation\bin\win-x64\MsalMtlsMsiHelper.exe"
 # must print True
 ```
 
@@ -244,7 +245,7 @@ Run `MsalMtlsMsiHelper.exe` directly to confirm the .NET + Managed Identity laye
 First, try without attestation:
 
 ```powershell
-.\node_modules\@azure\msal-node-mtls-extensions\bin\win-x64\MsalMtlsMsiHelper.exe `
+.\node_modules\@azure\msal-node-key-attestation\bin\win-x64\MsalMtlsMsiHelper.exe `
     --resource https://graph.microsoft.com/ `
     --identity-type SystemAssigned
 ```
@@ -253,7 +254,7 @@ If that returns `"Attestation Token is missing / empty in the issue credential r
 the VM requires VBS attestation. Re-run with `--with-attestation`:
 
 ```powershell
-.\node_modules\@azure\msal-node-mtls-extensions\bin\win-x64\MsalMtlsMsiHelper.exe `
+.\node_modules\@azure\msal-node-key-attestation\bin\win-x64\MsalMtlsMsiHelper.exe `
     --resource https://graph.microsoft.com/ `
     --identity-type SystemAssigned `
     --with-attestation
@@ -275,13 +276,13 @@ the VM requires VBS attestation. Re-run with `--with-attestation`:
 | `"KeyGuard key creation failed"` | VBS not enabled | Use a VBS-enabled VM SKU |
 | `"Attestation Token is missing / empty"` | VM requires VBS attestation | Re-run with `--with-attestation` |
 | No output / exits immediately | .NET 8 runtime missing | Run `dotnet-install.ps1` |
-| `managed_identity_unreachable_network` without `AttestationClientLib.dll` | Native attestation DLL missing | Verify `AttestationClientLib.dll` is in the same directory as `MsalMtlsMsiHelper.exe`; rebuild with `npm run build:binaries` |
+| `managed_identity_unreachable_network` without `AttestationClientLib.dll` | Native attestation DLL missing | Verify `AttestationClientLib.dll` is in the same directory as `MsalMtlsMsiHelper.exe`; rebuild with `npm run build:binaries` in `extensions/msal-node-key-attestation` |
 
 ### Step 5 — Create the Node.js test script
 
 ```javascript
 // test-mtls.mjs  (ESM — run with: node test-mtls.mjs)
-import { acquireMtlsMsiToken, clearMtlsMsiTokenCache } from "@azure/msal-node-mtls-extensions";
+import { acquireMtlsMsiToken, clearMtlsMsiTokenCache } from "@azure/msal-node-key-attestation";
 
 // Resources confirmed to support mtls_pop tokens:
 //   https://graph.microsoft.com/   ✅
@@ -400,7 +401,7 @@ This step has two parts:
 
 ```javascript
 // test-mtls-downstream.mjs
-import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-mtls-extensions";
+import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-key-attestation";
 
 const RESOURCE         = "https://graph.microsoft.com/";
 const WITH_ATTESTATION = false; // set true if Step 4 required --with-attestation
@@ -475,7 +476,7 @@ node test-server/mtls-test-server.mjs
 
 ```javascript
 // test-mtls-e2e.mjs
-import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-mtls-extensions";
+import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-key-attestation";
 
 const RESOURCE         = "https://graph.microsoft.com/"; // resource scope for token
 const WITH_ATTESTATION = false; // set true if Step 4 required --with-attestation
@@ -550,7 +551,7 @@ The `200` response with `clientCertThumbprint` confirms the complete mTLS PoP fl
 |---|---|---|
 | `"only supported on Windows"` | Running on Linux/macOS | Must run on a Windows Azure VM |
 | `"Unsupported architecture"` | Not `x64` | Check `node -e "console.log(process.arch)"` — only x64 is supported |
-| `"Failed to spawn MsalMtlsMsiHelper"` | Binary missing from package | Rebuild + repack on dev machine; verify `bin/win-x64/` is present in the tarball |
+| `"Failed to spawn MsalMtlsMsiHelper"` | Binary missing from package | Rebuild + repack on dev machine; verify `bin/win-x64/` is present in `@azure/msal-node-key-attestation` tarball |
 | `MsalException` from the helper | Token acquisition failed | Run the binary smoke-test (Step 4) directly and read the `error_description` |
 | Token has no `cnf` claim | Token is Bearer, not mTLS PoP | Check `token_type` in the binary's JSON output |
 | `AADSTS392196: The resource application does not support certificate-bound token` | Resource not configured for mTLS PoP | Not all Azure first-party resources support `mtls_pop` tokens. Use `https://graph.microsoft.com/` or `https://vault.azure.net/` as the resource instead — both are confirmed to work. `management.azure.com` does not support mTLS PoP in all subscriptions. |
@@ -579,5 +580,6 @@ A plain Bearer token will have no `cnf` claim.
 - [mtls-pop.md](./mtls-pop.md) — Full design guide and API reference
 - [certificate-credentials.md](./certificate-credentials.md) — Setting up certificate credentials
 - [sni.md](./sni.md) — SNI certificate setup
-- [extensions/msal-node-mtls-extensions/README.md](../../../extensions/msal-node-mtls-extensions/README.md) — Package docs for the Managed Identity path
+- [extensions/msal-node-key-attestation/README.md](../../../extensions/msal-node-key-attestation/README.md) — Package docs for the binary/attestation package
+- [extensions/msal-node-mtls-extensions/README.md](../../../extensions/msal-node-mtls-extensions/README.md) — Package docs for the core Managed Identity TypeScript package
 

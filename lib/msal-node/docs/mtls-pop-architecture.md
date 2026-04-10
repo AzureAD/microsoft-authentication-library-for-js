@@ -173,6 +173,8 @@ The subprocess approach achieves full functional parity with msal-dotnet's Manag
 
 The DLL ships inside the `Microsoft.Azure.Security.KeyGuardAttestation` NuGet package at `runtimes/win-x64/native/AttestationClientLib.dll`. MSBuild automatically copies it to the output directory — .NET consumers never think about it.
 
-For msal-node-mtls-extensions, the build script (`npm run build:binaries`) extracts the DLL from the NuGet cache and places it in `bin/win-x64/` alongside `MsalMtlsMsiHelper.exe`. Both are included when the npm package is packed. End users of the npm package receive both files automatically.
+For `@azure/msal-node-key-attestation`, the build script (`npm run build:binaries`) extracts the DLL from the NuGet cache and places it in `bin/win-x64/` alongside `MsalMtlsMsiHelper.exe`. Both are included when the `@azure/msal-node-key-attestation` npm package is packed. End users who install this optional package receive both files automatically.
+
+The core package (`@azure/msal-node-mtls-extensions`) ships with no binaries. This mirrors the pattern used by msal-dotnet (`Microsoft.Identity.Client` / `Microsoft.Identity.Client.KeyAttestation`) and msal-python (`msal` / `msal-key-attestation`): consumers who don't need KeyGuard attestation take no native dependency.
 
 This is different from msal-go, which cannot bundle the DLL (Go modules are source-only; there is no native asset mechanism equivalent to NuGet's `runtimes/` folder). msal-go users must obtain and place the DLL manually.
