@@ -18,6 +18,7 @@ import {
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
 import { ClientInfo } from "../account/ClientInfo.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { StringUtils } from "../utils/StringUtils.js";
 
 export function instrumentBrokerParams(
     parameters: Map<string, string>,
@@ -201,26 +202,42 @@ export function addSid(parameters: Map<string, string>, sid: string): void {
 }
 
 /**
- * add claims
- * @param claims
+ * Adds claims to request parameters, conditionally excluding clientCapabilities
+ * when skipBrokerClaims is true and a brokered flow is in effect.
+ * @param parameters - The request parameters map
+ * @param claims - The claims string from the request
+ * @param clientCapabilities - The client capabilities from configuration
+ * @param skipBrokerClaims - When true and BROKER_CLIENT_ID is present, excludes clientCapabilities from claims
  */
 export function addClaims(
     parameters: Map<string, string>,
     claims?: string,
-    clientCapabilities?: Array<string>
+    clientCapabilities?: Array<string>,
+    skipBrokerClaims?: boolean
 ): void {
-    const mergedClaims = addClientCapabilitiesToClaims(
-        claims,
-        clientCapabilities
-    );
-    try {
-        JSON.parse(mergedClaims);
-    } catch (e) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidClaims
+    // Skip clientCapabilities if skipBrokerClaims is set to true and this is a brokered authentication flow
+    const configClaims =
+        skipBrokerClaims && parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)
+            ? undefined
+            : clientCapabilities;
+
+    if (
+        !StringUtils.isEmptyObj(claims) ||
+        (configClaims && configClaims.length > 0)
+    ) {
+        const mergedClaims = addClientCapabilitiesToClaims(
+            claims,
+            configClaims
         );
+        try {
+            JSON.parse(mergedClaims);
+        } catch (e) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidClaims
+            );
+        }
+        parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
     }
-    parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
 }
 
 /**

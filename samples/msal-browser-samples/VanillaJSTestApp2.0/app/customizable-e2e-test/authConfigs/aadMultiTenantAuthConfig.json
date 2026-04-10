@@ -1,9 +1,10 @@
 {
     "msalConfig": {
         "auth": {
-            "clientId": "b5c2e510-4a17-4feb-b219-e55aa5b74144",
-            "authority": "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca",
-            "redirectUri": "/redirect"
+            "clientId": "0845a021-afdf-4126-abdd-099c5e6948e1",
+            "authority": "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133",
+            "redirectUri": "/redirect",
+            "postLogoutRedirectUri": "/redirect"
         },
         "cache": {
             "cacheLocation": "sessionStorage"
@@ -19,12 +20,12 @@
     },
     "tenants": {
         "home": {
-            "tenantId": "f645ad92-e38d-4d1a-b510-d1b09a74a8ca",
-            "authority": "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca"
+            "tenantId": "c7cef333-42af-492c-afb0-21f74a661133",
+            "authority": "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133"
         },
         "guest": {
-            "tenantId": "8e44f19d-bbab-4a82-b76b-4cd0a6fbc97a",
-            "authority": "https://login.microsoftonline.com/8e44f19d-bbab-4a82-b76b-4cd0a6fbc97a"
+            "tenantId": "10c419d4-4a50-45b2-aa4e-919fb84df24f",
+            "authority": "https://login.microsoftonline.com/10c419d4-4a50-45b2-aa4e-919fb84df24f"
         }
     }
 }

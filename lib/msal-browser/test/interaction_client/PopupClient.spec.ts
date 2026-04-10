@@ -1043,6 +1043,9 @@ describe("PopupClient", () => {
             };
             // @ts-ignore
             jest.spyOn(window, "open").mockReturnValue(popupWindow);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
+                new Error("test")
+            );
         });
 
         afterEach(() => {
@@ -1059,6 +1062,21 @@ describe("PopupClient", () => {
                 await popupClient.logout();
             } catch (e) {}
             expect(popupSpy.mock.calls[0]).toHaveLength(2);
+        });
+
+        it("calls getLogoutUri with a truthy state for redirect bridge support", async () => {
+            const logoutUriSpy = jest
+                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                .mockReturnValue(TEST_URIS.TEST_END_SESSION_ENDPOINT);
+
+            jest.spyOn(PopupClient.prototype, "openSizedPopup").mockReturnValue(
+                null
+            );
+
+            await popupClient.logout().catch(() => {});
+
+            expect(logoutUriSpy).toHaveBeenCalledTimes(1);
+            expect(logoutUriSpy.mock.calls[0][0].state).toBeTruthy();
         });
 
         it("opens popups when making network request if configured", async () => {

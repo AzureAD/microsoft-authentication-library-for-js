@@ -17,7 +17,7 @@ export const msalConfig = {
         clientId: import.meta.env.VITE_CLIENT_ID,
         authority: import.meta.env.VITE_AUTHORITY,
         redirectUri: import.meta.env.VITE_REDIRECT_URI,
-        postLogoutRedirectUri: "/",
+        postLogoutRedirectUri: import.meta.env.VITE_REDIRECT_URI,
         onRedirectNavigate: () => !BrowserUtils.isInIframe()
     },
     cache: {
