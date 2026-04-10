@@ -105,7 +105,10 @@ An example of error handling can also be found on our [MSAL Angular B2C Sample](
 
 ## Syncing logged in state across tabs and windows
 
-If you would like to update your UI when a user logs in or out of your app in a different tab or window you can subscribe to the `ACCOUNT_ADDED` and `ACCOUNT_REMOVED` events. The payload will be the `AccountInfo` object that was added or removed.
+If you would like to update your UI when a user logs in or out of your app or changes the active account in a different tab or window you can subscribe to the `LOGIN_SUCCESS`, `LOGOUT_SUCCESS`, and `ACTIVE_ACCOUNT_CHANGED` events.
+
+- For account additions and removals, the payload will be the `AccountInfo` object that was added or removed.
+- For active account updates, there will be no payload
 
 ```javascript
 import { MsalService, MsalBroadcastService } from '@azure/msal-angular';
@@ -121,19 +124,17 @@ export class AppComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.authService.instance.enableAccountStorageEvents(); // Register the storage listener that will be emitting the events
     this.msalBroadcastService.msalSubject$
       .pipe(
-        // Optional filtering of events
-        filter((msg: EventMessage) => msg.eventType === EventType.ACCOUNT_ADDED || msg.eventType === EventType.ACCOUNT_REMOVED), 
+        filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS || msg.eventType === EventType.LOGOUT_SUCCESS || msg.eventType === EventType.ACTIVE_ACCOUNT_CHANGED), 
         takeUntil(this._destroying$)
       )
       .subscribe((result: EventMessage) => {
-        if (this.authService.msalInstance.getAllAccounts().length === 0) {
+        if (this.authService.instance.getAllAccounts().length === 0) {
           // Account logged out in a different tab, redirect to homepage
           window.location.pathname = "/";
         } else {
-          // Update UI to show user is signed in. result.payload contains the account that was logged in
+          // Update UI to show user is signed in
         }
       });
   }

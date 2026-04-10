@@ -81,9 +81,10 @@ class EventExample extends React.Component {
 
 ## Syncing logged in state across tabs and windows
 
-If you would like to update your UI when a user logs in or out of your app in a different tab or window you can subscribe to the `ACCOUNT_ADDED` and `ACCOUNT_REMOVED` events. The payload will be the `AccountInfo` object that was added or removed.
+If you would like to update your UI when a user logs in or out of your app or changes the active account in a different tab or window you can subscribe to the `LOGIN_SUCCESS`, `LOGOUT_SUCCESS`, and `ACTIVE_ACCOUNT_CHANGED` events.
 
-These events will not be emitted by default. In order to enable these events you must call the `enableAccountStorageEvents` API before registering your event callbacks:
+- For account additions and removals, the payload will be the `AccountInfo` object that was added or removed.
+- For active account updates, there will be no payload
 
 ```javascript
 import { useEffect } from "react";
@@ -95,21 +96,19 @@ function EventExample() {
 
     useEffect(() => {
         // This will be run on component mount
-        instance.enableAccountStorageEvents();
         const callbackId = instance.addEventCallback((message) => {
-            // This will be run every time an event is emitted after registering this callback
-            if (message.eventType === EventType.ACCOUNT_ADDED) {
-                const account = message.payload;    
-                // Update UI
-            } else if (message.eventType === EventType.ACCOUNT_REMOVED) {
-                const account = message.payload;
-                // Update UI
+            if (message.eventType === EventType.LOGIN_SUCCESS) {
+                // Update UI with new account
+            } else if (message.eventType === EventType.LOGOUT_SUCCESS) {
+                // Update UI with account logged out
+            } else if (message.eventType === EventType.ACTIVE_ACCOUNT_CHANGED) {
+                const accountInfo = instance.getActiveAccount();
+                // Update UI with new active account info
             }
         });
 
         return () => {
             // This will be run on component unmount
-            instance.disableAccountStorageEvents();
             if (callbackId) {
                 instance.removeEventCallback(callbackId);
             }
