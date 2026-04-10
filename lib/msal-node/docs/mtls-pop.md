@@ -43,6 +43,19 @@ See the [quick-start example](#quick-start-example) below for usage.
 
 ---
 
+## Cross-SDK Implementation Comparison
+
+| Library | TLS Stack | CNG Support | Approach |
+|---------|-----------|-------------|----------|
+| **msal-go** | `crypto/tls` (pure Go) | ✅ Via `crypto.Signer` | In-process |
+| **msal-dotnet** | Schannel (.NET) | ✅ Native | In-process |
+| **msal-java** | JSSE + custom `SSLSocketFactory` (Path 1); JNA → `ncrypt.dll` (Path 2) | ✅ Via JNA | In-process |
+| **msal-node** | OpenSSL (Node.js) | ❌ None | .NET subprocess (`MsalMtlsMsiHelper.exe`) |
+
+msal-go, msal-dotnet, and msal-java all perform the full KeyGuard key creation, CSR signing, and mTLS handshake in-process. Node.js uses OpenSSL on all platforms, which cannot accept a non-exportable CNG key handle — so msal-node delegates the entire Managed Identity flow to a .NET subprocess. See [What is NOT implemented — and why](#what-is-not-implemented--and-why) for details.
+
+---
+
 ## Flow Diagrams
 
 ### Path 1 — Confidential Client / SNI Certificate
