@@ -55,13 +55,33 @@
         "lib/msal-angular",
         "lib/msal-react",
         "extensions/msal-node-extensions",
-        "extensions/samples/*",
         "shared-test-utils",
         "samples/e2eTestUtils",
         "samples/msal-browser-samples/*",
         "samples/msal-angular-samples/*",
         "samples/msal-react-samples/*",
-        "samples/msal-node-samples/*",
+        "samples/msal-node-samples/auth-code",
+        "samples/msal-node-samples/auth-code-cli-app",
+        "samples/msal-node-samples/auth-code-cli-brokered-app",
+        "samples/msal-node-samples/auth-code-distributed-cache",
+        "samples/msal-node-samples/auth-code-key-vault",
+        "samples/msal-node-samples/auth-code-with-certs",
+        "samples/msal-node-samples/b2c-user-flows",
+        "samples/msal-node-samples/client-credentials",
+        "samples/msal-node-samples/client-credentials-distributed-cache",
+        "samples/msal-node-samples/client-credentials-with-cert-from-key-vault",
+        "samples/msal-node-samples/custom-INetworkModule-and-network-tracing",
+        "samples/msal-node-samples/device-code",
+        "samples/msal-node-samples/Managed-Identity",
+        "samples/msal-node-samples/mcp-flows",
+        "samples/msal-node-samples/on-behalf-of",
+        "samples/msal-node-samples/on-behalf-of-distributed-cache",
+        "samples/msal-node-samples/silent-flow",
+        "samples/msal-node-samples/username-password",
+        "samples/msal-node-samples/username-password-cca",
         "regression-tests/msal-node/client-credential"
-    ]
+    ],
+    "overrides": {
+        "tar": "^7.5.3"
+    }
 }
