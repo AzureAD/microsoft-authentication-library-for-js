@@ -108,6 +108,8 @@ An example of error handling can also be found on our [MSAL Angular B2C Sample](
 If you would like to update your UI when a user logs in or out of your app or changes the active account in a different tab or window you can subscribe to the `LOGIN_SUCCESS`, `LOGOUT_SUCCESS`, and `ACTIVE_ACCOUNT_CHANGED` events.
 
 > Note: Cross-tab/window event syncing in `@azure/msal-browser` is only enabled when `cache.cacheLocation` is set to `localStorage`. If you are using the default `sessionStorage` cache location, these events will not be received from other tabs or windows.
+>
+> Note: For `logoutRedirect()`, `LOGOUT_SUCCESS` is only emitted/broadcast when the logout request includes an `account`. If your app relies on `LOGOUT_SUCCESS` to sync logout state across tabs or windows, pass the account you are logging out, for example `logoutRedirect({ account })`.
 
 - `LOGIN_SUCCESS` payloads contain the `AccountInfo` object for the account that signed in.
 - `LOGOUT_SUCCESS` payloads contain the logout request (`EndSessionRequest` or `EndSessionPopupRequest`).
