@@ -1185,7 +1185,7 @@ export abstract class CacheManager implements ICacheManager {
         tokenKeys?: TokenKeys
     ): Map<string, IdTokenEntity> {
         const idTokenKeys =
-            (tokenKeys && tokenKeys.idToken?.length > 0 && tokenKeys.idToken) ||
+            (tokenKeys && tokenKeys.idToken && tokenKeys.idToken.length > 0) ? tokenKeys.idToken :
             this.getTokenKeys()?.idToken;
 
         const idTokens: Map<string, IdTokenEntity> = new Map<
