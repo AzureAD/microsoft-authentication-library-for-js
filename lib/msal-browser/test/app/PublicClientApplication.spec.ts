@@ -4125,6 +4125,360 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentClientSpy).toHaveBeenCalledTimes(1);
             expect(ssoSilentFired).toBe(true);
         });
+
+        it("includes cached ssoCapable=true in telemetry when cached value exists", (done) => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+
+            // Set cached ssoCapable value
+            const cacheEntry = JSON.stringify({
+                ssoCapable: true,
+                expiresOn: Date.now() + 24 * 60 * 60 * 1000,
+            });
+            window.localStorage.setItem(CacheKeys.SSO_CAPABLE, cacheEntry);
+
+            jest.spyOn(
+                SilentIframeClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBe(true);
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.ssoSilent({
+                scopes: ["openid"],
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("includes cached ssoCapable=false in telemetry when cached value is false", (done) => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+
+            // Set cached ssoCapable value to false
+            const cacheEntry = JSON.stringify({
+                ssoCapable: false,
+                expiresOn: Date.now() + 24 * 60 * 60 * 1000,
+            });
+            window.localStorage.setItem(CacheKeys.SSO_CAPABLE, cacheEntry);
+
+            jest.spyOn(
+                SilentIframeClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBe(false);
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.ssoSilent({
+                scopes: ["openid"],
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("does not include ssoCapable in telemetry when no cached value exists", (done) => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+
+            // Ensure no cached value
+            window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+
+            jest.spyOn(
+                SilentIframeClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBeUndefined();
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            pca.ssoSilent({
+                scopes: ["openid"],
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("does not include ssoCapable in telemetry when cached value has expired", (done) => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+
+            // Set expired cached value
+            const cacheEntry = JSON.stringify({
+                ssoCapable: true,
+                expiresOn: Date.now() - 1000,
+            });
+            window.localStorage.setItem(CacheKeys.SSO_CAPABLE, cacheEntry);
+
+            jest.spyOn(
+                SilentIframeClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBeUndefined();
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.ssoSilent({
+                scopes: ["openid"],
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("does not include ssoCapable in telemetry when cached value is malformed JSON", (done) => {
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: BASIC_TEST_ACCOUNT_INFO.localAccountId,
+                tenantId: BASIC_TEST_ACCOUNT_INFO.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: BASIC_TEST_ACCOUNT_INFO,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+
+            window.localStorage.setItem(
+                CacheKeys.SSO_CAPABLE,
+                "not-valid-json"
+            );
+
+            jest.spyOn(
+                SilentIframeClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBeUndefined();
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.ssoSilent({
+                scopes: ["openid"],
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("does not include ssoCapable in telemetry when cached entry is missing ssoCapable field", (done) => {
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: BASIC_TEST_ACCOUNT_INFO.localAccountId,
+                tenantId: BASIC_TEST_ACCOUNT_INFO.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: BASIC_TEST_ACCOUNT_INFO,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+
+            const cacheEntry = JSON.stringify({
+                expiresOn: Date.now() + 24 * 60 * 60 * 1000,
+            });
+            window.localStorage.setItem(CacheKeys.SSO_CAPABLE, cacheEntry);
+
+            jest.spyOn(
+                SilentIframeClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBeUndefined();
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.ssoSilent({
+                scopes: ["openid"],
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("does not include ssoCapable in telemetry when cached entry is missing expiresOn field", (done) => {
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: BASIC_TEST_ACCOUNT_INFO.localAccountId,
+                tenantId: BASIC_TEST_ACCOUNT_INFO.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: BASIC_TEST_ACCOUNT_INFO,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+
+            const cacheEntry = JSON.stringify({
+                ssoCapable: true,
+            });
+            window.localStorage.setItem(CacheKeys.SSO_CAPABLE, cacheEntry);
+
+            jest.spyOn(
+                SilentIframeClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBeUndefined();
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.ssoSilent({
+                scopes: ["openid"],
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("does not include ssoCapable in telemetry when cached ssoCapable is non-boolean", (done) => {
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: BASIC_TEST_ACCOUNT_INFO.localAccountId,
+                tenantId: BASIC_TEST_ACCOUNT_INFO.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: BASIC_TEST_ACCOUNT_INFO,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+
+            const cacheEntry = JSON.stringify({
+                ssoCapable: "true",
+                expiresOn: Date.now() + 24 * 60 * 60 * 1000,
+            });
+            window.localStorage.setItem(CacheKeys.SSO_CAPABLE, cacheEntry);
+
+            jest.spyOn(
+                SilentIframeClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBeUndefined();
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.ssoSilent({
+                scopes: ["openid"],
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("includes ssoCapable in telemetry on ssoSilent failure", (done) => {
+            const cacheEntry = JSON.stringify({
+                ssoCapable: true,
+                expiresOn: Date.now() + 24 * 60 * 60 * 1000,
+            });
+            window.localStorage.setItem(CacheKeys.SSO_CAPABLE, cacheEntry);
+
+            jest.spyOn(
+                SilentIframeClient.prototype,
+                "acquireToken"
+            ).mockRejectedValue(new AuthError("abc", "error message", "defg"));
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(false);
+                expect(events[0].ssoCapable).toBe(true);
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.ssoSilent({
+                scopes: ["openid"],
+                correlationId: RANDOM_TEST_GUID,
+            }).catch(() => {});
+        });
     });
 
     describe("acquireTokenByCode", () => {
@@ -6647,6 +7001,393 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentCacheSpy).toHaveBeenCalledTimes(1);
             expect(silentRefreshSpy).toHaveBeenCalledTimes(0);
             expect(silentIframeSpy).toHaveBeenCalledTimes(0);
+        });
+
+        it("includes cached ssoCapable=true in telemetry when cached value exists", (done) => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: true,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+                state: "test-state",
+            };
+
+            // Set cached ssoCapable value
+            const cacheEntry = JSON.stringify({
+                ssoCapable: true,
+                expiresOn: Date.now() + 24 * 60 * 60 * 1000,
+            });
+            window.localStorage.setItem(CacheKeys.SSO_CAPABLE, cacheEntry);
+
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBe(true);
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("includes cached ssoCapable=false in telemetry when cached value is false", (done) => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: true,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+                state: "test-state",
+            };
+
+            // Set cached ssoCapable value to false
+            const cacheEntry = JSON.stringify({
+                ssoCapable: false,
+                expiresOn: Date.now() + 24 * 60 * 60 * 1000,
+            });
+            window.localStorage.setItem(CacheKeys.SSO_CAPABLE, cacheEntry);
+
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBe(false);
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("does not include ssoCapable in telemetry when no cached value exists", (done) => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: true,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+                state: "test-state",
+            };
+
+            // Ensure no cached value
+            window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBeUndefined();
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("does not include ssoCapable in telemetry when cached value has expired", (done) => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: true,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+                state: "test-state",
+            };
+
+            // Set expired cached value
+            const cacheEntry = JSON.stringify({
+                ssoCapable: true,
+                expiresOn: Date.now() - 1000,
+            });
+            window.localStorage.setItem(CacheKeys.SSO_CAPABLE, cacheEntry);
+
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBeUndefined();
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("does not include ssoCapable in telemetry when cached value is malformed JSON", (done) => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: true,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+                state: "test-state",
+            };
+
+            window.localStorage.setItem(
+                CacheKeys.SSO_CAPABLE,
+                "not-valid-json"
+            );
+
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBeUndefined();
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("does not include ssoCapable in telemetry when cached entry is missing ssoCapable field", (done) => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: true,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+                state: "test-state",
+            };
+
+            const cacheEntry = JSON.stringify({
+                expiresOn: Date.now() + 24 * 60 * 60 * 1000,
+            });
+            window.localStorage.setItem(CacheKeys.SSO_CAPABLE, cacheEntry);
+
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBeUndefined();
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("does not include ssoCapable in telemetry when cached entry is missing expiresOn field", (done) => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: true,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+                state: "test-state",
+            };
+
+            const cacheEntry = JSON.stringify({
+                ssoCapable: true,
+            });
+            window.localStorage.setItem(CacheKeys.SSO_CAPABLE, cacheEntry);
+
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBeUndefined();
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("does not include ssoCapable in telemetry when cached ssoCapable is non-boolean", (done) => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: true,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+                state: "test-state",
+            };
+
+            const cacheEntry = JSON.stringify({
+                ssoCapable: "true",
+                expiresOn: Date.now() + 24 * 60 * 60 * 1000,
+            });
+            window.localStorage.setItem(CacheKeys.SSO_CAPABLE, cacheEntry);
+
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].ssoCapable).toBeUndefined();
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("includes ssoCapable in telemetry on acquireTokenSilent failure", (done) => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+
+            const cacheEntry = JSON.stringify({
+                ssoCapable: true,
+                expiresOn: Date.now() + 24 * 60 * 60 * 1000,
+            });
+            window.localStorage.setItem(CacheKeys.SSO_CAPABLE, cacheEntry);
+
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockRejectedValue(new AuthError("abc", "error message", "defg"));
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(false);
+                expect(events[0].ssoCapable).toBe(true);
+                pca.removePerformanceCallback(callbackId);
+                window.localStorage.removeItem(CacheKeys.SSO_CAPABLE);
+                done();
+            });
+
+            pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
+                cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+            }).catch(() => {});
         });
     });
 
