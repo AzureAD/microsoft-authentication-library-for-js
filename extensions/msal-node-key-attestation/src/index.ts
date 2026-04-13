@@ -7,9 +7,5 @@
 // import entry point.
 export * from "@azure/msal-node-mtls-extensions";
 
-// Override acquireMtlsMsiToken and makeMtlsMsiRequest with versions that
-// automatically inject the path to the bundled MsalMtlsMsiHelper.exe binary.
-export { acquireMtlsMsiToken, makeMtlsMsiRequest } from "./KeyAttestationClient.js";
-
 // Expose getHelperPath so advanced callers can resolve the binary path directly.
 export { getHelperPath } from "./KeyAttestationPaths.js";

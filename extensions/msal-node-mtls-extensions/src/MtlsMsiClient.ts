@@ -10,17 +10,18 @@ import { createRequire } from "module";
 import { AuthenticationScheme } from "@azure/msal-node";
 import type { AuthenticationResult } from "@azure/msal-node";
 
-// Resolve __dirname for both CJS (test/jest) and ESM (runtime) contexts.
-// In CJS environments require is defined; in ESM we need import.meta.url.
-const _require =
-    typeof require !== "undefined" ? require : createRequire(import.meta.url);
-// The ESM build produces index.mjs; the CJS bundle produces index.js.
-// Try both so the same code works in both module systems.
-let _dirname: string;
-try {
-    _dirname = path.dirname(_require.resolve("./index.mjs"));
-} catch {
-    _dirname = path.dirname(_require.resolve("./index.js"));
+/** Lazily resolved package root (parent of lib/ or dist/). Cached after first call. */
+let _pkgRoot: string | undefined;
+
+function getPkgRoot(): string {
+    if (_pkgRoot) return _pkgRoot;
+    const _req =
+        typeof require !== "undefined" ? require : createRequire(import.meta.url);
+    _pkgRoot = path.resolve(
+        path.dirname(_req.resolve("./package.json")),
+        ".."
+    );
+    return _pkgRoot;
 }
 
 /**
@@ -132,7 +133,9 @@ function tryAutoDiscoverKeyAttestation(): string | undefined {
     try {
         // Dynamic require — avoids a hard compile-time dependency on the
         // optional key-attestation package.
-        const ka = _require("@azure/msal-node-key-attestation") as {
+        const _req =
+            typeof require !== "undefined" ? require : createRequire(import.meta.url);
+        const ka = _req("@azure/msal-node-key-attestation") as {
             getHelperPath?: () => string;
         };
         if (typeof ka.getHelperPath === "function") {
@@ -193,14 +196,7 @@ function getHelperPath(explicitPath?: string): string {
     }
 
     // The binary is at <package root>/bin/win-{arch}/MsalMtlsMsiHelper.exe
-    // __dirname resolves to the `dist/` folder at runtime; go up one level.
-    return path.join(
-        _dirname,
-        "..",
-        "bin",
-        `win-${arch}`,
-        "MsalMtlsMsiHelper.exe"
-    );
+    return path.join(getPkgRoot(), "bin", `win-${arch}`, "MsalMtlsMsiHelper.exe");
 }
 
 /**

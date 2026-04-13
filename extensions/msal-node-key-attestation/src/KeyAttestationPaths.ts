@@ -7,14 +7,18 @@ import * as path from "path";
 import * as os from "os";
 import { createRequire } from "module";
 
-// Resolve __dirname for both CJS (test/jest) and ESM (runtime) contexts.
-const _require =
-    typeof require !== "undefined" ? require : createRequire(import.meta.url);
-let _dirname: string;
-try {
-    _dirname = path.dirname(_require.resolve("./index.mjs"));
-} catch {
-    _dirname = path.dirname(_require.resolve("./index.js"));
+/** Lazily resolved package root (parent of lib/ or dist/). Cached after first call. */
+let _pkgRoot: string | undefined;
+
+function getPkgRoot(): string {
+    if (_pkgRoot) return _pkgRoot;
+    const _req =
+        typeof require !== "undefined" ? require : createRequire(import.meta.url);
+    _pkgRoot = path.resolve(
+        path.dirname(_req.resolve("./package.json")),
+        ".."
+    );
+    return _pkgRoot;
 }
 
 /**
@@ -46,5 +50,5 @@ export function getHelperPath(): string {
         );
     }
 
-    return path.join(_dirname, "..", "bin", `win-${arch}`, "MsalMtlsMsiHelper.exe");
+    return path.join(getPkgRoot(), "bin", `win-${arch}`, "MsalMtlsMsiHelper.exe");
 }
