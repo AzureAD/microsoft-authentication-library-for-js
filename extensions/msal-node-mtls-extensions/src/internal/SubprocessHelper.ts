@@ -68,6 +68,13 @@ export interface SubprocessHttpRequest {
     headers?: Record<string, string>;
     body?: string;
     contentType?: string;
+    /**
+     * The Azure resource URI the token was issued for (e.g. "https://graph.microsoft.com/").
+     * The subprocess uses this to look up the matching KeyGuard-bound certificate.
+     * When omitted, the subprocess falls back to deriving it from the URL's origin,
+     * which is almost always wrong for downstream calls to non-Azure endpoints.
+     */
+    resource?: string;
     identityType?: "SystemAssigned" | "UserAssigned";
     identityId?: string;
     withAttestation?: boolean;
@@ -177,6 +184,7 @@ export function runHelperHttpRequest(
             "--token", request.token,
             "--identity-type", request.identityType ?? "SystemAssigned",
         ];
+        if (request.resource) args.push("--resource", request.resource);
         if (request.identityType === "UserAssigned" && request.identityId) {
             args.push("--identity-id", request.identityId);
         }
@@ -187,7 +195,9 @@ export function runHelperHttpRequest(
         }
         if (request.withAttestation) args.push("--with-attestation");
         if (request.correlationId) args.push("--correlation-id", request.correlationId);
-        if (request.allowInsecureTls) args.push("--allow-insecure-tls");
+        if (request.allowInsecureTls || process.env.MSAL_MTLS_ALLOW_INSECURE_TLS === "1") {
+            args.push("--allow-insecure-tls");
+        }
 
         const proc = child_process.spawn(helperPath, args, {
             stdio: ["ignore", "pipe", "pipe"],

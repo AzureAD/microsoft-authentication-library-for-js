@@ -41,12 +41,15 @@ const { MtlsManagedIdentityApplication } = _require(
 const useReal = process.argv.includes("--real");
 const WITH_ATTESTATION = process.argv.includes("--with-attestation");
 
-// For real Azure, use a real resource.
-// The downstream call still uses the local test server (to test mTLS cert binding).
-const RESOURCE = "https://management.azure.com/";
+// Microsoft Graph supports certificate-bound tokens (mTLS PoP) on this tenant.
+// management.azure.com returns AADSTS392196 (resource not configured for cert-bound tokens).
+const RESOURCE = "https://graph.microsoft.com/";
 
-// Token acquisition uses real Entra endpoint; downstream uses local test server.
-const DOWNSTREAM_URL = "https://localhost:8443/test";
+// Token acquisition uses real Entra endpoint; downstream call also uses Graph.
+// The local test server cannot be used for mTLS downstream calls because
+// WinHTTP validates the server cert — self-signed certs are rejected without
+// --allow-insecure-tls. Instead, call a real Graph endpoint to test end-to-end.
+const DOWNSTREAM_URL = process.env.MSAL_MTLS_DOWNSTREAM_URL ?? "https://graph.microsoft.com/v1.0/$metadata";
 
 let pass = 0;
 let fail = 0;

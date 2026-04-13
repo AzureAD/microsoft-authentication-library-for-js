@@ -101,12 +101,13 @@ function resolveConfig(
 }
 
 function cacheKey(cfg: ResolvedConfig, resource: string): string {
+    // Use | as separator — never appears in Azure resource URIs (unlike : in https://).
     return [
         resource,
         cfg.identityType,
         cfg.identityId ?? "",
         String(cfg.withAttestation),
-    ].join(":");
+    ].join("|");
 }
 
 function isCacheHit(result: AuthenticationResult): boolean {
@@ -253,7 +254,7 @@ export class MtlsManagedIdentityApplication {
         url: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
-        const token = this._extractOrFindToken(url, options?.headers);
+        const { token, resource } = this._extractOrFindToken(url, options?.headers);
 
         // Build a headers map without the Authorization entry — the subprocess
         // always sends "Authorization: mtls_pop <token>" itself.
@@ -268,6 +269,7 @@ export class MtlsManagedIdentityApplication {
             url,
             method,
             token,
+            resource,
             headers: forwardHeaders,
             body: options?.body,
             identityType: this._cfg.identityType,
@@ -283,27 +285,48 @@ export class MtlsManagedIdentityApplication {
     }
 
     /**
-     * Returns the access token to use for a downstream call.
+     * Returns the access token (and the Azure resource it was issued for) to
+     * use for a downstream call.
      *
      * Priority:
      * 1. Token extracted from an `Authorization: mtls_pop <token>` header
-     *    provided by the caller (the caller's explicitly chosen token).
+     *    provided by the caller. The resource is recovered from the cache if the
+     *    token matches a cached entry; otherwise `undefined` (subprocess uses URL origin).
      * 2. The most recently cached token from `acquireToken()` whose resource
      *    matches the URL's origin.
-     * 3. Error — the caller must call `acquireToken()` first or supply the
+     * 3. Any non-expired cached token (catches the common case where the
+     *    downstream URL differs from the Azure resource used in acquireToken).
+     * 4. Error — the caller must call `acquireToken()` first or supply the
      *    token in `Authorization` header.
      */
     private _extractOrFindToken(
         url: string,
         headers?: Record<string, string>
-    ): string {
+    ): { token: string; resource: string | undefined } {
         // 1. Try explicit Authorization header
         const authHeader = Object.entries(headers ?? {}).find(
             ([k]) => k.toLowerCase() === "authorization"
         )?.[1];
         if (authHeader) {
             const match = /^mtls_pop\s+(.+)$/i.exec(authHeader.trim());
-            if (match) return match[1];
+            if (match) {
+                const token = match[1];
+                // 1a. Try to recover the resource from a matching cache entry
+                for (const [key, entry] of this._tokenCache.entries()) {
+                    if (entry.accessToken === token && isCacheHit(entry)) {
+                        return { token, resource: key.split("|")[0] };
+                    }
+                }
+                // 1b. Token not in cache (e.g. forceRefresh replaced it) —
+                //     use any valid cached resource so the subprocess can look
+                //     up the right KeyGuard certificate.
+                for (const [key, entry] of this._tokenCache.entries()) {
+                    if (isCacheHit(entry)) {
+                        return { token, resource: key.split("|")[0] };
+                    }
+                }
+                return { token, resource: undefined };
+            }
         }
 
         // 2. Find any cached token for the URL's origin
@@ -311,16 +334,18 @@ export class MtlsManagedIdentityApplication {
         const resource = origin.endsWith("/") ? origin : origin + "/";
         const key = cacheKey(this._cfg, resource);
         const cached = this._tokenCache.get(key);
-        if (cached && isCacheHit(cached)) return cached.accessToken;
+        if (cached && isCacheHit(cached)) return { token: cached.accessToken, resource };
 
         // Try without trailing slash as well
         const keyAlt = cacheKey(this._cfg, origin);
         const cachedAlt = this._tokenCache.get(keyAlt);
-        if (cachedAlt && isCacheHit(cachedAlt)) return cachedAlt.accessToken;
+        if (cachedAlt && isCacheHit(cachedAlt)) return { token: cachedAlt.accessToken, resource: origin };
 
-        // 3. Any cached, non-expired token (e.g. caller used a different resource string)
-        for (const entry of this._tokenCache.values()) {
-            if (isCacheHit(entry)) return entry.accessToken;
+        // 3. Any cached, non-expired token (e.g. caller acquired Graph token but downstream URL is custom)
+        for (const [key, entry] of this._tokenCache.entries()) {
+            if (isCacheHit(entry)) {
+                return { token: entry.accessToken, resource: key.split("|")[0] };
+            }
         }
 
         throw new Error(
