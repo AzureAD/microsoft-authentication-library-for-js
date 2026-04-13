@@ -18,6 +18,7 @@ import {
 } from "../../utils/Constants.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 import { ImdsRetryPolicy } from "../../retry/ImdsRetryPolicy.js";
+import { name as packageName, version as packageVersion } from "../../packageMetadata.js";
 
 // Documentation for IMDS is available at https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http
 
@@ -167,6 +168,10 @@ export class Imds extends BaseManagedIdentitySource {
             );
 
         request.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] = "true";
+        request.headers["x-client-SKU"] = packageName;
+        request.headers["x-client-Ver"] = packageVersion;
+        request.headers["x-ms-client-request-id"] =
+            this.cryptoProvider.createNewGuid();
 
         request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             IMDS_API_VERSION;

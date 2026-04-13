@@ -63,6 +63,10 @@ import { CacheKVStore } from "../../../src/cache/serializer/SerializerTypes.js";
 import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
 import { ImdsRetryPolicy } from "../../../src/retry/ImdsRetryPolicy.js";
 
+const EXPECTED_SKU = "@azure/msal-node";
+const UUID_REGEX =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     // IMDS doesn't need environment variables because there is a default IMDS endpoint
 
@@ -115,6 +119,12 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
                 )
             ).toBe(false);
+
+            const headers =
+                sendGetRequestAsyncSpy.mock.lastCall[1].headers;
+            expect(headers["x-client-SKU"]).toBe(EXPECTED_SKU);
+            expect(headers["x-client-Ver"]).toBeDefined();
+            expect(headers["x-ms-client-request-id"]).toMatch(UUID_REGEX);
         });
 
         test("acquires a User Assigned Object Id token", async () => {
@@ -169,6 +179,12 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 )
             ).toEqual(MANAGED_IDENTITY_RESOURCE_ID);
 
+            const headers =
+                sendGetRequestAsyncSpy.mock.lastCall[1].headers;
+            expect(headers["x-client-SKU"]).toBe(EXPECTED_SKU);
+            expect(headers["x-client-Ver"]).toBeDefined();
+            expect(headers["x-ms-client-request-id"]).toMatch(UUID_REGEX);
+
             jest.restoreAllMocks();
         });
     });
@@ -185,6 +201,11 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
 
         test("acquires a token", async () => {
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
@@ -194,6 +215,12 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
+
+            const headers =
+                sendGetRequestAsyncSpy.mock.lastCall[1].headers;
+            expect(headers["x-client-SKU"]).toBe(EXPECTED_SKU);
+            expect(headers["x-client-Ver"]).toBeDefined();
+            expect(headers["x-ms-client-request-id"]).toMatch(UUID_REGEX);
         });
 
         test("returns an already acquired token from the cache", async () => {

@@ -64,7 +64,7 @@ export abstract class BaseManagedIdentitySource {
     protected logger: Logger;
     private nodeStorage: NodeStorage;
     private networkClient: INetworkModule;
-    private cryptoProvider: CryptoProvider;
+    protected cryptoProvider: CryptoProvider;
     private disableInternalRetries: boolean;
 
     /**
