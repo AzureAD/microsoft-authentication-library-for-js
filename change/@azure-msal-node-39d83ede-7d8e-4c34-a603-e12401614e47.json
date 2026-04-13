@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add MSAL client metadata headers (x-client-SKU, x-client-Ver, x-ms-client-request-id) to IMDS managed identity requests <a href=\"https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8529\">#8529</a>",
+  "packageName": "@azure/msal-node",
+  "email": "nicagra@microsoft.com",
+  "dependentChangeType": "patch"
+}
