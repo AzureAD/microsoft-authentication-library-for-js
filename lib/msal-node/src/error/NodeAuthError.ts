@@ -45,11 +45,16 @@ export const NodeAuthErrorMessage = {
         code: "redirect_uri_not_supported",
         desc: "RedirectUri is not supported in this scenario. Please remove redirectUri from the request.",
     },
+    mtlsPopCertificateRequired: {
+        code: "mtls_pop_certificate_required",
+        desc: "mTLS Proof-of-Possession requires a client certificate with both a private key and a public certificate (x5c). Please ensure clientCertificate.privateKey and clientCertificate.x5c are set in the application configuration.",
+    },
 };
 
 export class NodeAuthError extends AuthError {
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
+        Object.setPrototypeOf(this, NodeAuthError.prototype);
         this.name = "NodeAuthError";
     }
 
@@ -140,6 +145,16 @@ export class NodeAuthError extends AuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.redirectUriNotSupported.code,
             NodeAuthErrorMessage.redirectUriNotSupported.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when mTLS PoP is requested but no client certificate with x5c is configured.
+     */
+    static createMtlsPopCertificateRequiredError(): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.mtlsPopCertificateRequired.code,
+            NodeAuthErrorMessage.mtlsPopCertificateRequired.desc
         );
     }
 }

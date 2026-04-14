@@ -605,3 +605,121 @@ describe("ConfidentialClientApplication", () => {
         expect(acquireTokenByUsernamePasswordSpy).toHaveBeenCalledTimes(1);
     });
 });
+
+describe("ConfidentialClientApplication – mTLS PoP", () => {
+    const TEST_CERT =
+        "-----BEGIN CERTIFICATE-----\nMIIBmzCC...\n-----END CERTIFICATE-----";
+    const TEST_KEY =
+        "-----BEGIN PRIVATE KEY-----\nMIIEvgIB...\n-----END PRIVATE KEY-----";
+
+    const MTLS_POP_TOKEN_RESULT = {
+        status: 200,
+        body: {
+            token_type: CommonConstants.AuthenticationScheme.MTLS_POP,
+            expires_in: 3600,
+            ext_expires_in: 3600,
+            access_token: "thisIs.an.mtlspop.accessT0ken",
+        },
+    };
+
+    function buildMtlsConfig(overrides?: Partial<Configuration["auth"]>): Configuration {
+        return {
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                authority: TEST_CONSTANTS.AUTHORITY,
+                clientCertificate: {
+                    thumbprintSha256: "abc123",
+                    privateKey: TEST_KEY,
+                    x5c: TEST_CERT,
+                },
+                knownAuthorities: [TEST_CONSTANTS.AUTHORITY],
+                ...overrides,
+            },
+            system: {
+                networkClient: mockNetworkClient(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                    MTLS_POP_TOKEN_RESULT
+                ),
+            },
+        };
+    }
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it("throws NodeAuthError when x5c is missing for mTLS PoP", async () => {
+        const cca = new ConfidentialClientApplication(
+            buildMtlsConfig({
+                clientCertificate: {
+                    thumbprintSha256: "abc123",
+                    privateKey: TEST_KEY,
+                    // x5c intentionally omitted
+                },
+            })
+        );
+
+        await expect(
+            cca.acquireTokenByClientCredential({
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                authenticationScheme:
+                    CommonConstants.AuthenticationScheme.MTLS_POP,
+            })
+        ).rejects.toMatchObject({
+            errorCode: "mtls_pop_certificate_required",
+        });
+    });
+
+    it("throws NodeAuthError when clientCertificate is not configured at all for mTLS PoP", async () => {
+        const cca = new ConfidentialClientApplication(
+            buildMtlsConfig({
+                clientCertificate: undefined,
+                clientSecret: "a-secret",
+            })
+        );
+
+        await expect(
+            cca.acquireTokenByClientCredential({
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                authenticationScheme:
+                    CommonConstants.AuthenticationScheme.MTLS_POP,
+            })
+        ).rejects.toMatchObject({
+            errorCode: "mtls_pop_certificate_required",
+        });
+    });
+
+    it("sets bindingCertificate on the result equal to the configured x5c", async () => {
+        jest.spyOn(
+            ClientCredentialClient.prototype,
+            "acquireToken"
+        ).mockResolvedValue({
+            authority: TEST_CONSTANTS.AUTHORITY,
+            uniqueId: "uid",
+            tenantId: "TenantId",
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            account: null,
+            idToken: "",
+            idTokenClaims: {},
+            accessToken: "thisIs.an.mtlspop.accessT0ken",
+            fromCache: false,
+            expiresOn: new Date(),
+            tokenType: CommonConstants.AuthenticationScheme.MTLS_POP,
+            correlationId: "corr-id",
+        } as AuthenticationResult);
+
+        const cca = new ConfidentialClientApplication(buildMtlsConfig());
+        const result = await cca.acquireTokenByClientCredential({
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            authenticationScheme:
+                CommonConstants.AuthenticationScheme.MTLS_POP,
+            azureRegion: "eastus",
+        });
+
+        expect(result).not.toBeNull();
+        expect(result!.bindingCertificate).toBe(TEST_CERT);
+        expect(result!.tokenType).toBe(
+            CommonConstants.AuthenticationScheme.MTLS_POP
+        );
+    });
+});

@@ -42,6 +42,7 @@ import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernameP
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
 import { BaseClient } from "../../src/client/BaseClient.js";
 import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient.js";
+import { MtlsHttpClient } from "../../src/network/MtlsHttpClient.js";
 
 describe("ClientCredentialClient unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
@@ -994,5 +995,146 @@ describe("ClientCredentialClient unit tests", () => {
 
         expect(authResult2.scopes).toEqual(expectedScopes);
         expect(authResult2.accessToken).toEqual(accessToken);
+    });
+});
+
+describe("ClientCredentialClient – mTLS PoP", () => {
+    const TEST_CERT =
+        "-----BEGIN CERTIFICATE-----\nMIIBmzCC...\n-----END CERTIFICATE-----";
+    const TEST_KEY =
+        "-----BEGIN PRIVATE KEY-----\nMIIEvgIB...\n-----END PRIVATE KEY-----";
+
+    const MTLS_POP_TOKEN_RESULT = {
+        status: 200,
+        body: {
+            token_type: Constants.AuthenticationScheme.MTLS_POP,
+            expires_in: 3600,
+            ext_expires_in: 3600,
+            access_token: "thisIs.an.mtlspop.accessT0ken",
+        },
+    };
+
+    let config: ClientConfiguration;
+    let createTokenRequestBodySpy: jest.SpyInstance;
+    let mtlsPostSpy: jest.SpyInstance;
+
+    beforeEach(async () => {
+        createTokenRequestBodySpy = jest.spyOn(
+            ClientCredentialClient.prototype,
+            <any>"createTokenRequestBody"
+        );
+
+        config = await ClientTestUtils.createTestClientConfiguration(
+            undefined,
+            mockNetworkClient(
+                DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
+            )
+        );
+
+        // Stub MtlsHttpClient.sendPostRequestAsync so no real TLS connection is made
+        mtlsPostSpy = jest
+            .spyOn(MtlsHttpClient.prototype, "sendPostRequestAsync")
+            .mockResolvedValue(MTLS_POP_TOKEN_RESULT as any);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    function buildMtlsClient(): ClientCredentialClient {
+        return new ClientCredentialClient(config, undefined, {
+            cert: TEST_CERT,
+            key: TEST_KEY,
+        });
+    }
+
+    it("does not include client_assertion or client_assertion_type in request body for mTLS PoP", async () => {
+        const client = buildMtlsClient();
+        const request: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            authenticationScheme: Constants.AuthenticationScheme.MTLS_POP,
+            azureRegion: "eastus",
+        };
+
+        await client.acquireToken(request);
+
+        const requestBody: string =
+            await createTokenRequestBodySpy.mock.results[0].value;
+        expect(requestBody).not.toContain("client_assertion=");
+        expect(requestBody).not.toContain("client_assertion_type=");
+    });
+
+    it("includes token_type=mtls_pop in request body", async () => {
+        const client = buildMtlsClient();
+        const request: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            authenticationScheme: Constants.AuthenticationScheme.MTLS_POP,
+            azureRegion: "eastus",
+        };
+
+        await client.acquireToken(request);
+
+        const requestBody: string =
+            await createTokenRequestBodySpy.mock.results[0].value;
+        expect(requestBody).toContain("token_type=mtls_pop");
+    });
+
+    it("uses MtlsHttpClient for the token POST (not the standard network client)", async () => {
+        const client = buildMtlsClient();
+        const request: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            authenticationScheme: Constants.AuthenticationScheme.MTLS_POP,
+            azureRegion: "eastus",
+        };
+
+        await client.acquireToken(request);
+
+        expect(mtlsPostSpy).toHaveBeenCalledTimes(1);
+        const [calledUrl] = mtlsPostSpy.mock.calls[0];
+        expect(calledUrl).toContain("eastus.mtlsauth.microsoft.com");
+    });
+
+    it("sends the mTLS PoP request to the regional mtlsauth endpoint", async () => {
+        const client = buildMtlsClient();
+        const request: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            authenticationScheme: Constants.AuthenticationScheme.MTLS_POP,
+            azureRegion: "westeurope",
+        };
+
+        await client.acquireToken(request);
+
+        const [calledUrl] = mtlsPostSpy.mock.calls[0];
+        expect(calledUrl).toContain("westeurope.mtlsauth.microsoft.com");
+        expect(calledUrl).toContain("/oauth2/v2.0/token");
+    });
+
+    it("returns an AuthenticationResult with tokenType=mtls_pop", async () => {
+        const client = buildMtlsClient();
+        const request: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            authenticationScheme: Constants.AuthenticationScheme.MTLS_POP,
+            azureRegion: "eastus",
+        };
+
+        const result = (await client.acquireToken(
+            request
+        )) as AuthenticationResult;
+
+        expect(result.tokenType).toBe(Constants.AuthenticationScheme.MTLS_POP);
+        expect(result.accessToken).toBe(
+            MTLS_POP_TOKEN_RESULT.body.access_token
+        );
     });
 });

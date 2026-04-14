@@ -1,0 +1,32 @@
+{
+    "include": [
+        "src",
+        "test"
+    ],
+    "exclude": [
+        "node_modules"
+    ],
+    "compilerOptions": {
+        "module": "nodenext",
+        "target": "es2020",
+        "moduleResolution": "nodenext",
+        "lib": [
+            "dom",
+            "esnext"
+        ],
+        "importHelpers": true,
+        "composite": false,
+        "declaration": true,
+        "sourceMap": true,
+        "rootDir": "./",
+        "outDir": "./dist",
+        "noUnusedLocals": true,
+        "baseUrl": "./",
+        "esModuleInterop": true,
+        "strict": true,
+        "types": [
+            "node",
+            "jest"
+        ]
+    }
+}

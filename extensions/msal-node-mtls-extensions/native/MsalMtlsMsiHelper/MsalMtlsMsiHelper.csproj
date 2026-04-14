@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>MsalMtlsMsiHelper</AssemblyName>
+    <RootNamespace>MsalMtlsMsiHelper</RootNamespace>
+    <!-- Framework-dependent publish: the .NET 8 runtime must be installed on the target machine
+         (pre-installed on most Azure VM images). SelfContained=false is intentional — a
+         self-contained publish would bundle the full .NET 8 runtime (~65 MB) into the npm package,
+         which is impractical for distribution. -->
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Full MSAL.NET stack — handles KeyGuard key, CSR, IMDS, and mTLS token request -->
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.83.3" />
+    <!-- Attestation extension: WithAttestationSupport() + AttestationClientLib.dll -->
+    <PackageReference Include="Microsoft.Identity.Client.KeyAttestation" Version="4.83.3-preview" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+</Project>

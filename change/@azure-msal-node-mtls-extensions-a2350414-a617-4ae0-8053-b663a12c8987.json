@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Replace .NET subprocess with in-process C++ N-API addon for mTLS PoP managed identity: eliminates MsalMtlsMsiHelper.exe dependency, adds VBS KeyGuard key management, PKCS#10 CSR construction, IMDS /issuecredential integration, WinHTTP mTLS transport, and token_type=mtls_pop support for certificate-bound token issuance [#XXXX](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/XXXX)",
+  "packageName": "@azure/msal-node-mtls-extensions",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}

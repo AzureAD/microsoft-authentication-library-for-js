@@ -1,0 +1,5 @@
+dist/
+lib/
+node_modules/
+bin/win-x64/
+bin/win-arm64/

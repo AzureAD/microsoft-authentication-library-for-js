@@ -55,6 +55,8 @@
         "lib/msal-angular",
         "lib/msal-react",
         "extensions/msal-node-extensions",
+        "extensions/msal-node-mtls-extensions",
+        "extensions/msal-node-key-attestation",
         "extensions/samples/*",
         "shared-test-utils",
         "samples/e2eTestUtils",

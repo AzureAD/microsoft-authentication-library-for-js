@@ -1,0 +1,94 @@
+{
+  "name": "@azure/msal-node-key-attestation",
+  "version": "1.0.0",
+  "description": "Pre-built MsalMtlsMsiHelper binaries for @azure/msal-node-mtls-extensions — KeyGuard attestation support for Managed Identity mTLS PoP",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "main": "lib/msal-node-key-attestation.cjs",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./lib/types/index.d.ts",
+        "default": "./lib/msal-node-key-attestation.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "keywords": [
+    "js",
+    "ts",
+    "node",
+    "AAD",
+    "msal",
+    "mtls",
+    "pop",
+    "managed-identity",
+    "keyguard",
+    "attestation"
+  ],
+  "files": [
+    "dist",
+    "bin",
+    "lib"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "clean": "shx rm -rf dist lib",
+    "build": "npm run clean && npm run build:js",
+    "build:js": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build:binaries": "node ./scripts/buildBinaries.cjs",
+    "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=@azure/msal-node-mtls-extensions --workspace=@azure/msal-node-key-attestation",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
+    "format:check": "prettier --ignore-path .gitignore --check src test",
+    "format:fix": "prettier --ignore-path .gitignore --write src test",
+    "prepack": "npm run build:all && node ./scripts/checkBinaries.cjs"
+  },
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
+  },
+  "beachball": {
+    "disallowedChangeTypes": [
+      "major"
+    ]
+  },
+  "dependencies": {
+    "@azure/msal-node-mtls-extensions": "^1.0.0"
+  },
+  "peerDependencies": {
+    "@azure/msal-node": ">=5.1.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.0.2",
+    "@rollup/plugin-typescript": "^11.1.0",
+    "@types/jest": "^29.5.1",
+    "@types/node": "^20.3.1",
+    "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
+    "jest": "^29.5.0",
+    "jest-junit": "^16.0.0",
+    "msal-test-utils": "file:../../shared-test-utils",
+    "rollup": "^4.22.4",
+    "rollup-msal": "file:../../shared-configs/rollup-msal",
+    "shx": "^0.3.4",
+    "ts-jest": "^29.1.0",
+    "ts-jest-mock-import-meta": "^1.1.0",
+    "tslib": "^2.0.0",
+    "typescript": "^4.9.5"
+  }
+}

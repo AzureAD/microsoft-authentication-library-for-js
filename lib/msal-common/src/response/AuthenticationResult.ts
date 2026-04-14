@@ -45,4 +45,10 @@ export type AuthenticationResult = {
     code?: string;
     fromPlatformBroker?: boolean;
     resource?: string;
+    /**
+     * PEM-encoded X.509 certificate used to bind this token via mTLS Proof-of-Possession.
+     * Only populated when tokenType is "mtls_pop". The downstream resource server must be
+     * called over mTLS using this same certificate.
+     */
+    bindingCertificate?: string;
 };

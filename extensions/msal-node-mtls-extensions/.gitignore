@@ -1,0 +1,27 @@
+﻿# Generated files
+build
+dist
+lib
+
+# Pre-built binaries (built from source via `npm run build:binaries`)
+# DO NOT commit these — they are rebuilt during `npm publish` (prepack)
+bin/*/MsalMtlsMsiHelper.exe
+bin/*/MsalMtlsMsiHelper.pdb
+
+# Test server self-signed certificates (generated locally, not committed)
+test-server/server.key
+test-server/server.crt
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+node_modules/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Coverage
+coverage
+*.lcov

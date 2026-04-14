@@ -1,0 +1,92 @@
+{
+  "name": "@azure/msal-node-mtls-extensions",
+  "version": "1.0.0",
+  "description": "msal-node extensions for Managed Identity mTLS Proof-of-Possession token acquisition",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "main": "lib/msal-node-mtls-extensions.cjs",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./lib/types/index.d.ts",
+        "default": "./lib/msal-node-mtls-extensions.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "keywords": [
+    "js",
+    "ts",
+    "node",
+    "AAD",
+    "msal",
+    "mtls",
+    "pop",
+    "managed-identity"
+  ],
+  "files": [
+    "dist",
+    "lib",
+    "bin"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "clean": "shx rm -rf dist lib",
+    "build": "npm run clean && npm run build:js",
+    "build:js": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build:native": "node scripts/buildNative.cjs",
+    "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=@azure/msal-node-mtls-extensions",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
+    "format:check": "prettier --ignore-path .gitignore --check src test",
+    "format:fix": "prettier --ignore-path .gitignore --write src test",
+    "prepack": "npm run build:all && npm run build:native"
+  },
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
+  },
+  "beachball": {
+    "disallowedChangeTypes": [
+      "major"
+    ]
+  },
+  "dependencies": {
+    "@azure/msal-common": "16.4.0",
+    "@azure/msal-node": "5.1.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.0.2",
+    "@rollup/plugin-typescript": "^11.1.0",
+    "@types/jest": "^29.5.1",
+    "@types/node": "^20.3.1",
+    "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
+    "jest": "^29.5.0",
+    "jest-junit": "^16.0.0",
+    "msal-test-utils": "file:../../shared-test-utils",
+    "node-addon-api": "^6.1.0",
+    "node-gyp": "^11.2.0",
+    "rollup": "^4.22.4",
+    "rollup-msal": "file:../../shared-configs/rollup-msal",
+    "shx": "^0.3.4",
+    "ts-jest": "^29.1.0",
+    "ts-jest-mock-import-meta": "^1.1.0",
+    "tslib": "^2.0.0",
+    "typescript": "^4.9.5"
+  }
+}
