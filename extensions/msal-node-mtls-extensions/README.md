@@ -230,15 +230,13 @@ The package ships a prebuilt C++ N-API addon at `bin/win-x64/msal_mtls_win.node`
 To rebuild the addon from C++ source (requires MSVC and node-gyp):
 
 ```powershell
-cd extensions/msal-node-mtls-extensions/native/addon
-npm install -g node-gyp
+cd extensions/msal-node-mtls-extensions
 
-# In a Developer Command Prompt / after running vcvarsall.bat x64:
-node-gyp rebuild
-
-# Copy output
-Copy-Item build\Release\msal_mtls_win.node ..\..\bin\win-x64\msal_mtls_win.node
+# Builds the C++ addon and copies the binary to bin/win-x64/
+npm run build:native
 ```
+
+This runs `scripts/buildNative.cjs`, which locates `vcvarsall.bat` automatically. The script is a no-op on non-Windows platforms.
 
 ## References
 
