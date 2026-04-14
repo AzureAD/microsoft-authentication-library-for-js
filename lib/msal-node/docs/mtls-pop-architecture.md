@@ -120,12 +120,12 @@ The key handle and binding certificate are cached in `NativeHelper.ts` (module-l
 
 ## 3. TLS Stack Comparison
 
-| | msal-node (Path 1) | msal-node (Path 2) | msal-dotnet | msal-go |
-|---|---|---|---|---|
-| TLS stack | OpenSSL via `node:https` | WinHTTP (Schannel) via C++ N-API addon | Schannel via `HttpClient` | Go `crypto/tls` (pure Go) |
-| CNG key handle | ❌ Not possible | ✅ via WinHTTP + Schannel | ✅ Native P/Invoke | ✅ via `syscall.NewLazyDLL` |
-| Non-exportable key in TLS | ❌ (OpenSSL needs bytes) | ✅ Schannel+CNG in addon | ✅ | ✅ via `crypto.Signer` |
-| Subprocess needed? | No | No | No | No |
+| | msal-node (Path 1) | msal-node (Path 2) | msal-dotnet | msal-go | msal-java |
+|---|---|---|---|---|---|
+| TLS stack | OpenSSL via `node:https` | WinHTTP (Schannel) via C++ N-API addon | Schannel via `HttpClient` | Go `crypto/tls` (pure Go) | JSSE + custom `SSLSocketFactory` (Path 1); JNA → `ncrypt.dll` (Path 2) |
+| CNG key handle | ❌ Not possible | ✅ via WinHTTP + Schannel | ✅ Native P/Invoke | ✅ via `syscall.NewLazyDLL` | ✅ via JNA → `ncrypt.dll` |
+| Non-exportable key in TLS | ❌ (OpenSSL needs bytes) | ✅ Schannel+CNG in addon | ✅ | ✅ via `crypto.Signer` | ✅ via JNA |
+| Subprocess needed? | No | No | No | No | No |
 
 The key insight: by using WinHTTP (not OpenSSL) in the C++ addon, msal-node achieves the same in-process capability as msal-dotnet and msal-go. The CNG key handle is held by the addon; WinHTTP/Schannel uses it directly for TLS client authentication without ever exporting the key bytes.
 
