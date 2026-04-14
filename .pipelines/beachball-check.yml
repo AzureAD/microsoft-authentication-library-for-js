@@ -39,12 +39,10 @@ extends:
                         ob_git_persistCredentials: true
 
                     steps:
-                        - template: .pipelines/templates/node-install-wrapper.yml@1P
-
-                        # Mirror the GitHub Actions dorny/paths-filter: skip beachball check if
-                        # no non-ignored source files in lib/ or extensions/ were changed.
+                        # Mirror the GitHub Actions dorny/paths-filter: skip remaining steps entirely
+                        # if no non-ignored source files in lib/ or extensions/ were changed.
                         # beachball's ignorePatterns still applies for changefile requirements,
-                        # but this avoids running the check entirely for docs-only PRs.
+                        # but this avoids Node install + beachball check for docs-only PRs.
                         - bash: |
                               changed=$(git diff --name-only origin/dev...HEAD -- 'lib/' 'extensions/msal-node-extensions/' \
                                   | grep -v '\.md$' \
@@ -60,6 +58,9 @@ extends:
                                   echo "##vso[task.setvariable variable=hasLibChanges]false"
                               fi
                           displayName: "Check for relevant source changes"
+
+                        - template: .pipelines/templates/node-install-wrapper.yml@1P
+                          condition: eq(variables['hasLibChanges'], 'true')
 
                         # Install only root package to get beachball (mirrors `npm ci --workspaces=false`)
                         - script: npm ci --workspaces=false
