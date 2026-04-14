@@ -175,7 +175,8 @@ export class MsalService implements IMsalService {
   }
 
   /**
-   * Sets the logger for msal-angular and applies the same logger to msal-browser.
+    * Sets the logger for msal-angular by cloning the provided logger with
+    * msal-angular metadata, and applies the original logger to msal-browser.
    *
    * @param logger - Logger instance to use.
    */
