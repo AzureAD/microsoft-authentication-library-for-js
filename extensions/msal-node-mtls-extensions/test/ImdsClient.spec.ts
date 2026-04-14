@@ -34,6 +34,7 @@ describe("ImdsClient.getPlatformMetadata", () => {
             clientId: "client-id",
             tenantId: "tenant-id",
             cuId: "cu-id",
+            vmssId: "",
             attestationEndpoint: "https://attest.azure.net",
             mtlsAuthEndpoint: "https://eastus.mtlsauth.microsoft.com",
         };

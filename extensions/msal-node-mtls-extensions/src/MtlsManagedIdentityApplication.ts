@@ -13,10 +13,9 @@ import type {
 } from "@azure/msal-node";
 import type { LoggerOptions } from "@azure/msal-common/node";
 import {
-    getHelperPath,
     runHelper,
     runHelperHttpRequest,
-} from "./internal/SubprocessHelper.js";
+} from "./internal/NativeHelper.js";
 
 /** How many seconds before `expiresOn` to treat a cached token as stale. */
 const EXPIRY_BUFFER_SECONDS = 300;
@@ -61,15 +60,7 @@ export type MtlsManagedIdentityConfiguration = {
      * @default false
      */
     withAttestation?: boolean;
-    /**
-     * Explicit path to the `MsalMtlsMsiHelper.exe` binary.
-     *
-     * When omitted, the path is resolved automatically:
-     * 1. `MSAL_MTLS_HELPER_PATH` environment variable
-     * 2. `@azure/msal-node-key-attestation` package (if installed)
-     * 3. `bin/win-x64/MsalMtlsMsiHelper.exe` inside this package (legacy)
-     */
-    helperPath?: string;
+
 };
 
 /** Resolved, normalised internal config. */
@@ -77,7 +68,6 @@ interface ResolvedConfig {
     identityType: "SystemAssigned" | "UserAssigned";
     identityId?: string;
     withAttestation: boolean;
-    helperPath: string;
 }
 
 function resolveConfig(
@@ -96,7 +86,6 @@ function resolveConfig(
         identityType,
         identityId,
         withAttestation: config?.withAttestation ?? false,
-        helperPath: getHelperPath(config?.helperPath),
     };
 }
 
@@ -119,10 +108,11 @@ function isCacheHit(result: AuthenticationResult): boolean {
  * Managed Identity application for Windows mTLS Proof-of-Possession.
  *
  * Provides a single object for both token acquisition and downstream mTLS
- * calls — no separate network client configuration required.  Internally uses
- * `MsalMtlsMsiHelper.exe` (from `@azure/msal-node-key-attestation`) for all
- * Windows-specific operations (KeyGuard CNG key, IMDS credential issuance,
- * WinHTTP mTLS).
+ * calls — no separate network client configuration required. Internally uses
+ * an N-API native addon (`msal_mtls_win.node`) for all Windows-specific
+ * operations (KeyGuard CNG key, IMDS credential issuance, WinHTTP mTLS
+ * transport). All other operations (IMDS metadata, token caching) go through
+ * the standard MSAL Node pipeline.
  *
  * @example
  * ```typescript
@@ -147,9 +137,9 @@ function isCacheHit(result: AuthenticationResult): boolean {
  * ```
  *
  * @remarks
- * **Windows only.** Requires `@azure/msal-node-key-attestation` to provide the
- * `MsalMtlsMsiHelper.exe` binary, or a path set via `helperPath` /
- * `MSAL_MTLS_HELPER_PATH`.
+ * **Windows only.** Requires the `msal_mtls_win.node` native addon (shipped
+ * with this package under `bin/win-x64/`) and Windows VBS/KeyGuard for
+ * hardware-backed key creation.
  * @public
  */
 export class MtlsManagedIdentityApplication {
@@ -178,7 +168,7 @@ export class MtlsManagedIdentityApplication {
             }
         }
 
-        const helperResult = await runHelper(this._cfg.helperPath, {
+        const helperResult = await runHelper({
             resource: request.resource,
             identityType: this._cfg.identityType,
             identityId: this._cfg.identityId,
@@ -256,8 +246,8 @@ export class MtlsManagedIdentityApplication {
     ): Promise<NetworkResponse<T>> {
         const { token, resource } = this._extractOrFindToken(url, options?.headers);
 
-        // Build a headers map without the Authorization entry — the subprocess
-        // always sends "Authorization: mtls_pop <token>" itself.
+        // Build a headers map without the Authorization entry — the native
+        // addon injects "Authorization: mtls_pop <token>" itself.
         const forwardHeaders: Record<string, string> = {};
         for (const [k, v] of Object.entries(options?.headers ?? {})) {
             if (k.toLowerCase() !== "authorization") {
@@ -265,7 +255,7 @@ export class MtlsManagedIdentityApplication {
             }
         }
 
-        const helperResp = await runHelperHttpRequest(this._cfg.helperPath, {
+        const helperResp = await runHelperHttpRequest({
             url,
             method,
             token,

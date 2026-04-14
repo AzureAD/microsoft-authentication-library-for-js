@@ -1,0 +1,7 @@
+{
+  "email": "copilot@github.com",
+  "comment": "Remove subprocess-based MtlsMsiClient and SubprocessHelper; clean up stale helperPath config and subprocess references from MtlsManagedIdentityApplication [#MTLS-PHASE3]",
+  "dependentChangeType": "patch",
+  "type": "patch",
+  "packageName": "@azure/msal-node-mtls-extensions"
+}

@@ -30,6 +30,13 @@ module.exports = {
             },
         ],
     },
+    moduleNameMapper: {
+        // Map ./package.json lookups in NativeHelper.ts (src/internal/) to lib/package.json
+        // so getAddonPath() can resolve the package root correctly during tests.
+        "^\\./package\\.json$": "<rootDir>/lib/package.json",
+        // Redirect the C++ native addon to a JS mock so tests don't require a built .node file.
+        ".*msal_mtls_win\\.node$": "<rootDir>/test/__mocks__/native-addon.js",
+    },
     testMatch: ["<rootDir>/test/**/*.spec.ts"],
     testEnvironment: "node",
 };

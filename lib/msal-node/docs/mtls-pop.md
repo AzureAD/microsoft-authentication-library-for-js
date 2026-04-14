@@ -28,20 +28,14 @@ This package covers the **Confidential Client Application (CCA) SNI certificate 
 4. The response contains an access token with `token_type=mtls_pop`.
 5. MSAL returns the token plus the `bindingCertificate` (the public certificate PEM from `clientCertificate.x5c`) so the app can configure downstream mTLS calls. The private key reference is **not** included in the result — you already have it.
 
-### Path 2 — Managed Identity (`@azure/msal-node-key-attestation`)
+### Path 2 — Managed Identity (`@azure/msal-node-mtls-extensions`)
 
-The [`@azure/msal-node-key-attestation`](../../../extensions/msal-node-key-attestation/README.md) package implements the **Managed Identity path**. It includes the pre-built `MsalMtlsMsiHelper.exe` binary and re-exports all functions from the core [`@azure/msal-node-mtls-extensions`](../../../extensions/msal-node-mtls-extensions/README.md) package:
+The [`@azure/msal-node-mtls-extensions`](../../../extensions/msal-node-mtls-extensions/README.md) package implements the **Managed Identity path** using a C++ N-API native addon (`msal_mtls_win.node`) that runs entirely in-process — no subprocess or .NET runtime required:
 
-1. Node.js spawns `MsalMtlsMsiHelper.exe` — a bundled .NET 8 helper that handles all Windows-specific steps:
-   - Creates a KeyGuard RSA key (Windows VBS non-exportable)
-   - Generates a CSR and calls IMDS `/issuecredential` to get the binding certificate
-   - Optionally: MAA attestation via `AttestationClientLib.dll`
-   - Sends the mTLS token request to the regional STS endpoint
-2. Node.js parses the JSON output and returns a standard `AuthenticationResult`.
-
-> **Package split:** `@azure/msal-node-mtls-extensions` is the core TypeScript-only package (no binaries).
-> `@azure/msal-node-key-attestation` ships the binaries and is what most users should install.
-> This mirrors `Microsoft.Identity.Client` / `Microsoft.Identity.Client.KeyAttestation` in msal-dotnet.
+1. Node.js calls the native addon (`msal_mtls_win.node`) which creates/opens a VBS KeyGuard RSA key via Windows CNG (`ncrypt.dll`)
+2. TypeScript builds the PKCS#10 CSR and calls IMDS `/issuecredential` to get the binding certificate
+3. Optionally: MAA attestation via `AttestationClientLib.dll` (when `withAttestation: true`)
+4. The addon makes the mTLS token request using **WinHTTP** — WinHTTP uses Schannel, which natively supports CNG key handles for client certificate presentation
 
 See the [quick-start example](#quick-start-example) below for usage.
 
@@ -54,9 +48,9 @@ See the [quick-start example](#quick-start-example) below for usage.
 | **msal-go** | `crypto/tls` (pure Go) | ✅ Via `crypto.Signer` | In-process |
 | **msal-dotnet** | Schannel (.NET) | ✅ Native | In-process |
 | **msal-java** | JSSE + custom `SSLSocketFactory` (Path 1); JNA → `ncrypt.dll` (Path 2) | ✅ Via JNA | In-process |
-| **msal-node** | OpenSSL (Node.js) | ❌ None | .NET subprocess (`MsalMtlsMsiHelper.exe`) |
+| **msal-node** | OpenSSL (Path 1) / WinHTTP via N-API addon (Path 2) | ✅ Via N-API C++ addon (WinHTTP+Schannel) | In-process |
 
-msal-go, msal-dotnet, and msal-java all perform the full KeyGuard key creation, CSR signing, and mTLS handshake in-process. Node.js uses OpenSSL on all platforms, which cannot accept a non-exportable CNG key handle — so msal-node delegates the entire Managed Identity flow to a .NET subprocess. See [What is NOT implemented — and why](#what-is-not-implemented--and-why) for details.
+msal-go, msal-dotnet, msal-java, and now msal-node all perform the full KeyGuard key creation, CSR signing, and mTLS handshake in-process. msal-node's N-API addon uses **WinHTTP** (which uses Schannel) for HTTP requests that require the client certificate — WinHTTP natively supports CNG key handles, unlike Node.js's OpenSSL-based `https` module. See [mtls-pop-architecture.md](./mtls-pop-architecture.md) for the technical details.
 
 ---
 
@@ -78,35 +72,38 @@ sequenceDiagram
     Note over App: Subsequent calls → fromCache=true
 ```
 
-### Path 2 — Managed Identity (MsalMtlsMsiHelper.exe subprocess)
+### Path 2 — Managed Identity (N-API native addon)
 
 ```mermaid
 sequenceDiagram
     participant App
-    participant Node as msal-node-mtls-extensions
-    participant EXE as MsalMtlsMsiHelper.exe (.NET)
+    participant TS as msal-node-mtls-extensions (TypeScript)
+    participant Addon as msal_mtls_win.node (C++ N-API)
     participant IMDS as IMDS (169.254.169.254)
     participant CNG as Windows CNG (VBS KeyGuard)
     participant Attest as AttestationClientLib.dll → MAA
-    participant Token as mTLS Token Endpoint
+    participant Token as mTLS Token Endpoint (WinHTTP)
 
-    App->>Node: acquireMtlsMsiToken({resource, withAttestation})
-    Node->>EXE: spawn with --resource --identity-type [--with-attestation]
-    EXE->>IMDS: GET /metadata/identity/getplatformmetadata
-    IMDS-->>EXE: clientId, tenantId, cuId, attestationEndpoint
-    EXE->>CNG: Get/create MSALMtlsKey_{cuId} (KeyGuard RSA-2048)
-    Note over CNG: Key is VBS-protected — never exported
-    EXE->>EXE: Generate PKCS#10 CSR (signed by KeyGuard key)
+    App->>TS: app.acquireToken({resource, withAttestation?})
+    TS->>IMDS: GET /metadata/identity/getplatformmetadata
+    IMDS-->>TS: clientId, tenantId, cuId, attestationEndpoint
+    TS->>Addon: createOrOpenKey(cuId)
+    Addon->>CNG: NCryptCreatePersistedKey / NCryptOpenKey (MSALMtlsKey_{cuId})
+    CNG-->>Addon: hKey (non-exportable VBS KeyGuard handle)
+    TS->>Addon: getPublicKeyDer(hKey)
+    TS->>TS: Build PKCS#10 CSR (CsrBuilder.ts)
     opt withAttestation=true
-        EXE->>Attest: AttestKeyGuardImportKey(endpoint, keyHandle)
-        Attest-->>EXE: MAA JWT (proves VBS KeyGuard protection)
+        TS->>Addon: getAttestationToken(endpoint, hKey)
+        Addon->>Attest: AttestKeyGuardImportKey(endpoint, hKey)
+        Attest-->>Addon: MAA JWT
     end
-    EXE->>IMDS: POST /metadata/identity/issuecredential {csr, attestation_token?}
-    IMDS-->>EXE: X.509 binding certificate
-    EXE->>Token: POST /{tenant}/oauth2/v2.0/token<br/>(TLS handshake with binding cert via .NET HttpClient/Schannel)
-    Token-->>EXE: token_type=mtls_pop, access_token
-    EXE-->>Node: JSON to stdout {access_token, token_type, binding_certificate, ...}
-    Node-->>App: AuthenticationResult{accessToken, tokenType, bindingCertificate}
+    TS->>IMDS: POST /metadata/identity/issuecredential {csr, attestation_token?}
+    IMDS-->>TS: X.509 binding certificate
+    TS->>Addon: makeMtlsRequest(tokenEndpoint, body, certPem, hKey)
+    Addon->>Token: POST /{tenant}/oauth2/v2.0/token (WinHTTP + Schannel, client cert = KeyGuard cert)
+    Token-->>Addon: token_type=mtls_pop, access_token
+    Addon-->>TS: {access_token, expires_in, binding_certificate}
+    TS-->>App: AuthenticationResult{accessToken, tokenType="mtls_pop", bindingCertificate}
     Note over App: Subsequent calls → fromCache=true (in-memory token cache)
 ```
 
@@ -165,29 +162,34 @@ https.request(
 ### Path 2 — Managed Identity (Windows Azure VM, x64)
 
 ```typescript
-import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-key-attestation";
+import { MtlsManagedIdentityApplication } from "@azure/msal-node-mtls-extensions";
 
-// Step 1: acquire the mTLS PoP token
-// The KeyGuard private key never leaves Windows CNG — Node.js only receives the token
-const tokenResult = await acquireMtlsMsiToken({
-    resource: "https://graph.microsoft.com/",
+const app = new MtlsManagedIdentityApplication({
     // withAttestation: true,  // add if VM requires VBS attestation
 });
 
-console.log("Token type:", tokenResult.tokenType);      // "mtls_pop"
-console.log("From cache:", tokenResult.fromCache);      // false on first call
-
-// Step 2: call the downstream resource over mTLS
-// Because the private key is non-exportable, https.Agent cannot be used from Node.js.
-// makeMtlsMsiRequest proxies the call through MsalMtlsMsiHelper.exe, which holds the
-// key and performs the mTLS handshake using .NET's HttpClient + Schannel.
-const response = await makeMtlsMsiRequest({
-    url: "https://graph.microsoft.com/v1.0/me",
-    token: tokenResult.accessToken,
+// Step 1: acquire the mTLS PoP token
+// The KeyGuard private key never leaves Windows CNG
+const tokenResult = await app.acquireToken({
+    resource: "https://graph.microsoft.com/",
 });
 
-console.log("Status:", response.status);                // 200
-console.log(JSON.parse(response.body));                 // { id, displayName, ... }
+console.log("Token type:", tokenResult.tokenType);  // "mtls_pop"
+console.log("From cache:", tokenResult.fromCache);  // false on first call
+
+// Step 2: call the downstream resource over mTLS
+// The native addon (WinHTTP + Schannel) presents the client cert using the
+// non-exportable KeyGuard key — no https.Agent needed from Node.js
+const response = await app.sendGetRequestAsync(
+    "https://mtlstb.graph.microsoft.com/v1.0/applications?$top=5",
+    {
+        headers: {
+            Authorization: `mtls_pop ${tokenResult.accessToken}`,
+        },
+    }
+);
+
+console.log("Status:", response.status);  // 200 or 403 (auth succeeded, permissions expected)
 ```
 
 ---
@@ -232,14 +234,17 @@ const cca = new ConfidentialClientApplication({
 });
 ```
 
-### Managed Identity path (`@azure/msal-node-key-attestation`)
+### Managed Identity path (`@azure/msal-node-mtls-extensions`)
 
 | Requirement | Details |
 |---|---|
-| **Windows only** | KeyGuard RSA keys require Windows VBS (Virtualization-Based Security). |
-| **`x64` only** | arm64 is not yet validated (`AttestationClientLib.dll` does not ship for arm64). |
+| **Windows only** | KeyGuard RSA keys and WinHTTP require Windows. |
+| **`x64` only** | The prebuilt addon is compiled for `win-x64`. arm64 is not yet validated. |
 | **Azure VM with Managed Identity configured** | System-assigned or user-assigned. |
-| **.NET 8 runtime on the VM** | `MsalMtlsMsiHelper.exe` is a framework-dependent binary. Check with `dotnet --version`. Pre-installed on most Azure VM images. |
+| **Node.js 20+** | The N-API addon requires N-API version 8 (Node.js 18+ recommended). |
+| **`AttestationClientLib.dll`** | Required only when `withAttestation: true`. Place in `bin/win-x64/` alongside `msal_mtls_win.node`. |
+
+> No .NET runtime is required. `msal_mtls_win.node` is a compiled C++ binary loaded directly by Node.js.
 
 ---
 
@@ -257,11 +262,11 @@ Token caching behaves identically to other client credential flows — cache hit
 
 For the **Managed Identity path**, the `bindingCertificate` in `AuthenticationResult` is the public X.509 certificate (PEM) that Entra STS bound to the access token.
 
-**Node.js cannot directly use this certificate to make downstream mTLS resource calls.** The corresponding KeyGuard private key is non-exportable from Windows CNG, so `https.Agent({ cert, key })` cannot be constructed from Node.js.
+**Node.js's `https.Agent` cannot directly use this certificate for downstream mTLS.** The KeyGuard private key is non-exportable from Windows CNG — raw key bytes are never available in-process.
 
-Use `makeMtlsMsiRequest()` from `@azure/msal-node-key-attestation` — see the [quick-start example](#quick-start-example) above.
+Instead, use `app.sendGetRequestAsync()` / `app.sendPostRequestAsync()` — these route the call through the native addon (WinHTTP + Schannel), which can use the non-exportable key for the TLS client handshake.
 
-> **Requirement:** The downstream server **must** use required mutual TLS — it must send a TLS `CertificateRequest` during the handshake. Public Azure services (Graph, Key Vault) use *optional* mTLS and will return `MtlsMissingClientCertificate`. See [`mtls-pop-manual-testing.md` Step 7](./mtls-pop-manual-testing.md#step-7--test-downstream-mtls-calls-with-makemtlsmsirequest) for a full end-to-end test with a local required-mTLS server.
+> **Requirement:** The downstream server **must** use required mutual TLS — it must send a TLS `CertificateRequest` during the handshake. Most standard Azure services (`graph.microsoft.com`, Key Vault) use *optional* mTLS and will not trigger client certificate presentation. `mtlstb.graph.microsoft.com` is Microsoft Graph's dedicated required-mTLS test endpoint.
 
 For the **Confidential Client / SNI cert path**, you hold the private key directly, so `https.Agent({ cert: result.bindingCertificate, key })` works as expected.
 
@@ -306,55 +311,31 @@ const result = await cca.acquireTokenByClientCredential({
 
 The Confidential Client / SNI cert path (this package) is complete. The table below covers features from msal-dotnet that were deliberately excluded from **this package**.
 
-### Why msal-dotnet's Managed Identity implementation cannot be ported to Node.js
+### Why Node.js's `https` module cannot use the KeyGuard key
 
-The root cause is a single hardware-enforced constraint that cascades into everything else:
+The KeyGuard RSA private key is flagged `NCRYPT_ALLOW_EXPORT_NONE` by Windows VBS — raw key bytes can never leave the hardware. Node.js's `https` module uses **OpenSSL** on all platforms, which requires in-process exportable key bytes. There is no bridge between OpenSSL and CNG key handles.
 
-> **The KeyGuard RSA private key is flagged `NCRYPT_ALLOW_EXPORT_NONE` by Windows VBS. The raw key bytes can never leave the hardware — not into memory, not to disk, not to another process.**
+The solution in `@azure/msal-node-mtls-extensions` is to bypass Node.js's `https` module entirely for HTTP calls that require the client certificate: the C++ N-API addon uses **WinHTTP** instead. WinHTTP uses **Schannel** (the Windows-native TLS provider), which natively understands CNG key handles and can perform the mTLS handshake without ever exporting the key.
 
-**Why .NET can work with this key but Node.js cannot** comes down to their TLS stacks:
+This means:
+- **Token acquisition** (POST to `mtlsauth.microsoft.com`): done via addon's `makeMtlsRequest()` → WinHTTP
+- **Downstream calls** (`sendGetRequestAsync`/`sendPostRequestAsync`): done via addon's `makeMtlsRequest()` → WinHTTP
+- **IMDS calls** (metadata, issuecredential): done via Node.js `https` — these don't need the client cert
 
-- **.NET on Windows uses Schannel** — a Windows-native TLS provider that understands CNG key handles natively. `HttpClient` + `SslClientCertificates` can perform a full mTLS handshake using a key that never leaves CNG, because Schannel delegates signing to CNG directly.
-- **Node.js uses OpenSSL** everywhere, including on Windows. OpenSSL is a cross-platform library that manages its own key material as raw in-process bytes. It has no concept of a CNG key handle and no built-in path to delegate signing to Windows CNG.
-
-This means the entire chain — key creation, CSR signing, mTLS handshake — must stay inside a process whose TLS stack speaks CNG. That process is .NET.
-
-The remaining consequences follow from this:
-
-| Consequence | Why |
-|---|---|
-| **Node.js TLS cannot use the key** | OpenSSL needs exportable key bytes. Even with a NAPI C++ addon calling CNG, you'd need a custom OpenSSL ENGINE to hook signing into the TLS handshake — a substantial undertaking with ongoing maintenance. |
-| **No CNG bindings in Node.js** | Creating and using a KeyGuard key requires `NCryptCreatePersistedKey` / `NCryptSignHash` — Windows CNG APIs that Node.js does not expose. |
-| **CSR and `/issuecredential` must stay in the same process** | The CSR is signed by the KeyGuard key. The entire CSR generation + IMDS credential issuance must happen in the process that owns the key handle. |
-| **`AttestationClientLib.dll` is a native Windows DLL** | MAA attestation uses `Microsoft.Azure.Security.KeyGuardAttestation` — a native DLL with no Node.js equivalent. |
-
-This is not a gap that can be bridged with a polyfill or a different Node.js API. The solution is to delegate the entire flow to a .NET subprocess (`MsalMtlsMsiHelper.exe`) that runs msal-dotnet natively — which is exactly what `@azure/msal-node-key-attestation` does.
-
-### Implemented in `@azure/msal-node-key-attestation` (not this package)
-
-These Windows/.NET-specific capabilities are required for the Managed Identity path. They **are** implemented — via `MsalMtlsMsiHelper.exe` in `@azure/msal-node-key-attestation`. See the table above for why each one cannot run in Node.js directly.
-
-| Feature | Handled by |
-|---|---|
-| **KeyGuard / hardware-backed RSA keys** | `MsalMtlsMsiHelper.exe` (Windows CNG / VBS) |
-| **TPM/VBS attestation via MAA** | `MsalMtlsMsiHelper.exe` + `AttestationClientLib.dll` when `withAttestation: true` |
-| **IMDS `/issuecredential` + CSR** | `MsalMtlsMsiHelper.exe` (must run in same process as KeyGuard key) |
-
-See [`extensions/msal-node-key-attestation`](../../../extensions/msal-node-key-attestation/README.md) for the binary package,
-and [`extensions/msal-node-mtls-extensions`](../../../extensions/msal-node-mtls-extensions/README.md) for the core TypeScript package.
+**`https.Agent({ cert, key })` from Node.js still cannot be used** — `key` would need to be in-process bytes. This limitation remains for any caller who wants to use Node.js's built-in TLS stack directly with the KeyGuard key.
 
 ### Deferred until MSI path matures
 
 | Feature | Notes |
 |---|---|
-| **Two-tier certificate cache (memory + Windows store)** | The in-memory tier (MSAL token cache) is used today. Windows certificate store persistence would require a Windows API call from `MsalMtlsMsiHelper.exe` and is deferred until the MSI path matures. |
+| **Two-tier certificate cache (memory + Windows store)** | The in-memory tier is used today. Windows certificate store persistence would require additional CNG calls from the addon and is deferred until the MSI path matures. |
 
 ### Feasible in Node.js, deferred for simplicity
 
 | Feature | Notes |
 |---|---|
 | **Auto-region discovery from IMDS** | Node.js can make an HTTP GET to `http://169.254.169.254/metadata/instance/compute/location` to discover the Azure region automatically. Excluded for simplicity; provide `azureRegion` explicitly in the request. |
-| **Full sovereign cloud endpoint mapping** | The mTLS endpoint formula for sovereign clouds (e.g., `mtlsauth.microsoftonline.us` for Azure Government, `mtlsauth.partner.microsoftonline.cn` for Azure China) is pure string logic and fully feasible. Deferred so the POC stays focused on the public cloud happy path. For sovereign clouds, use `extraQueryParameters` or raise an issue for this feature. |
+| **Full sovereign cloud endpoint mapping** | The mTLS endpoint formula for sovereign clouds (e.g., `mtlsauth.microsoftonline.us` for Azure Government, `mtlsauth.partner.microsoftonline.cn` for Azure China) is pure string logic and fully feasible. Deferred so the POC stays focused on the public cloud happy path. |
 
 ---
 
@@ -365,15 +346,15 @@ and [`extensions/msal-node-mtls-extensions`](../../../extensions/msal-node-mtls-
 | `mtls_pop_certificate_required` | `authenticationScheme: MTLS_POP` was requested but `clientCertificate.x5c` and/or `clientCertificate.privateKey` are not configured. | Ensure both `x5c` (PEM cert) and `privateKey` are set in `clientCertificate` in the application configuration. |
 | `missing_tenant_id_error` | The authority uses `/common` or `/organizations` instead of a specific tenant ID. | Update `authority` to `https://login.microsoftonline.com/{your-tenant-id}`. |
 | `ECONNREFUSED` / `CERT_INVALID` | Certificate not trusted by Entra STS. | Path 1: certificate must be an SNI cert issued by a Microsoft-trusted CA and registered with the app registration. Self-signed certs will be rejected. |
-| `only supported on Windows` (Path 2) | `acquireMtlsMsiToken` or `makeMtlsMsiRequest` was called on Linux/macOS. | Path 2 requires a Windows Azure VM. |
+| `only supported on Windows` (Path 2) | `MtlsManagedIdentityApplication` was used on Linux/macOS. | Path 2 requires a Windows Azure VM. |
 | `Unsupported architecture` (Path 2) | VM is not x64. | Path 2 only supports `x64` — verify with `node -e "console.log(process.arch)"`. |
-| `Failed to spawn MsalMtlsMsiHelper` | `MsalMtlsMsiHelper.exe` is missing from the package. | Rebuild with `npm run build:binaries` and repack. Verify `bin/win-x64/` is present in the tarball. |
+| `Cannot find module 'msal_mtls_win.node'` | Native addon missing from package. | Verify `bin/win-x64/msal_mtls_win.node` is present. Rebuild if needed (see README). |
 | `"You must be running within an Azure VM"` | IMDS is not reachable — Managed Identity not enabled on the VM. | Enable System-Assigned Managed Identity in Azure Portal → VM → Identity. |
 | `"KeyGuard key creation failed"` | VBS is not enabled on the VM. | Use a VBS-enabled VM SKU (e.g., Ddsv5-series with nested virtualization). |
-| `"Attestation Token is missing / empty in the issue credential request"` | The VM requires VBS attestation but `withAttestation` was `false`. | Re-run with `withAttestation: true`. Requires `AttestationClientLib.dll` in the same directory as `MsalMtlsMsiHelper.exe`. |
+| `"Attestation Token is missing / empty in the issue credential request"` | The VM requires VBS attestation but `withAttestation` was `false`. | Re-run with `withAttestation: true`. Requires `AttestationClientLib.dll` in `bin/win-x64/`. |
 | `AADSTS392196: resource does not support certificate-bound token` | Target resource is not enrolled for mTLS PoP on this tenant. | Use `https://graph.microsoft.com/` or `https://vault.azure.net/` instead. `management.azure.com` is not supported in all subscriptions. |
-| `MtlsMissingClientCertificate` from Graph/Key Vault (`makeMtlsMsiRequest`) | Downstream resource uses *optional* mTLS — the TLS layer did not request a client cert. | This is expected for most public Azure services. `makeMtlsMsiRequest` is for servers that use *required* mutual TLS. Use the local test server (see `mtls-pop-manual-testing.md` Step 7b) to validate the full flow. |
-| `managed_identity_unreachable_network` | Outdated `MsalMtlsMsiHelper.exe` binary. | Rebuild with `Microsoft.Identity.Client` ≥ 4.83.3 and `Microsoft.Identity.Client.KeyAttestation` ≥ 4.83.3-preview. |
+| `MtlsMissingClientCertificate` from Graph/Key Vault (`sendGetRequestAsync`) | Downstream resource uses *optional* mTLS — the TLS layer did not request a client cert. | Expected for `graph.microsoft.com`. Use `mtlstb.graph.microsoft.com` (the required-mTLS Graph endpoint) or another required-mTLS server for real end-to-end testing. |
+| `managed_identity_unreachable_network` | IMDS endpoint unreachable. | Verify Managed Identity is configured and IMDS is accessible from the VM. |
 
 > **Note:** The `apps/errors` package defines short error code constants (e.g. `mtls_pop_certificate_required`) for use in programmatic checks. Path 2 errors are returned as JSON from `MsalMtlsMsiHelper.exe` via stderr and surface as thrown errors in Node.js with an `errorCode` property.
 
@@ -384,7 +365,6 @@ and [`extensions/msal-node-mtls-extensions`](../../../extensions/msal-node-mtls-
 - [RFC 8705 — OAuth 2.0 Mutual-TLS Client Authentication](https://datatracker.ietf.org/doc/html/rfc8705)
 - [msal-dotnet SNI mTLS PoP design doc](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/blob/main/docs/sni_mtls_pop_token_design.md)
 - [msal-dotnet mTLS PoP managed identity guide](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/blob/main/docs/mtlspop_managed_identity.md)
-- [mtls-pop-architecture.md](./mtls-pop-architecture.md) — Deep dive: MtlsHttpClient internals, subprocess IPC protocol, TLS stack analysis, msal-dotnet parity
-- [keyguard-napi-addon-analysis.md](./keyguard-napi-addon-analysis.md) — Feasibility analysis for N-API addon alternative (explains why the subprocess is architecturally necessary)
+- [mtls-pop-architecture.md](./mtls-pop-architecture.md) — Deep dive: MtlsHttpClient internals, N-API addon architecture, TLS stack analysis, msal-dotnet parity
 - [SNI certificate setup in msal-node](./sni.md)
 - [Certificate credentials guide](./certificate-credentials.md)

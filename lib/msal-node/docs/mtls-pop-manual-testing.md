@@ -141,14 +141,15 @@ Acquiring again (should hit cache)...
 
 ### Prerequisites
 
-- An Azure VM running **Windows** (`x64` only; see [README](../../../extensions/msal-node-key-attestation/README.md#requirements))
+- An Azure VM running **Windows** (`x64` only)
 - **Managed Identity enabled** on the VM (System-Assigned or User-Assigned)
-- **.NET 8 runtime** installed — check with `dotnet --version` (pre-installed on most Azure VM images)
-- **Node.js 20+** on the VM — check with `node --version`
-- The `@azure/msal-node-key-attestation` package **with the built binary** (see build steps below)
+- **Node.js 20+** on the VM
+- The `@azure/msal-node-mtls-extensions` package installed (see steps below)
 
-> VBS (Virtualization-Based Security) must be enabled on the VM to use `withAttestation: true`.
+> VBS (Virtualization-Based Security) must be enabled on the VM for `withAttestation: true`.
 > Standard Azure VMs support KeyGuard key creation. VBS attestation requires a VBS-enabled VM SKU.
+
+> **No .NET runtime required.** The package uses a C++ N-API addon (`msal_mtls_win.node`) loaded directly by Node.js.
 
 ### Step 0 — Verify the VM is ready
 
@@ -160,9 +161,6 @@ Invoke-RestMethod `
     -Uri "http://169.254.169.254/metadata/instance?api-version=2021-02-01" `
     -Headers @{Metadata="true"} | Select-Object -ExpandProperty compute | Select-Object name, location
 
-# Confirm .NET 8 runtime
-dotnet --version   # must print 8.x.x
-
 # Confirm Node.js >= 20
 node --version
 
@@ -170,119 +168,26 @@ node --version
 node -e "console.log(process.arch)"   # must be x64
 ```
 
-If .NET 8 is missing:
-```powershell
-Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
-.\dotnet-install.ps1 -Channel 8.0 -Runtime dotnet
-```
-
-### Step 1 — Build on your dev machine (Windows, needs .NET 8 SDK)
-
-The binary must be built on a Windows machine with the **.NET 8 SDK** installed (not just the runtime).
+### Step 1 — Install the package on the VM
 
 ```powershell
-# From the repo root:
-git clone https://github.com/AzureAD/microsoft-authentication-library-for-js.git
-cd microsoft-authentication-library-for-js
-git checkout rginsburg/mtls_pop
-npm install
-
-# Build msal-common and msal-node (required dependencies)
-npm run build --workspace=@azure/msal-common
-npm run build --workspace=@azure/msal-node
-
-# Build the TypeScript for both packages
-npm run build --workspace=@azure/msal-node-mtls-extensions
-npm run build --workspace=@azure/msal-node-key-attestation
-
-# Build the .NET helper binary (win-x64 only) and copy AttestationClientLib.dll
-# Output goes to extensions/msal-node-key-attestation/bin/win-x64/
-cd extensions\msal-node-key-attestation
-npm run build:binaries
-# Expected output:
-#   Building MsalMtlsMsiHelper for win-x64...
-#   -> bin/win-x64/MsalMtlsMsiHelper.exe
-#   -> bin/win-x64/AttestationClientLib.dll
-
-# Verify binaries are present
-Test-Path "bin\win-x64\MsalMtlsMsiHelper.exe"      # must print True
-Test-Path "bin\win-x64\AttestationClientLib.dll"    # must print True (required for --with-attestation)
-
-# Pack it as a tarball to transfer to the VM
-npm pack
-# Produces: azure-msal-node-key-attestation-1.0.0.tgz
-```
-
-### Step 2 — Copy the package to your VM
-
-```powershell
-# From your dev machine — copy the tarball to the VM (adjust path as needed):
-scp azure-msal-node-key-attestation-1.0.0.tgz yourvm:/C:/mtls-test/
-```
-
-### Step 3 — Install on the VM
-
-```powershell
-# On the VM:
 mkdir C:\mtls-test
 cd C:\mtls-test
 npm init -y
-npm install .\azure-msal-node-key-attestation-1.0.0.tgz
+npm install @azure/msal-node-mtls-extensions
 
-# Verify the binary unpacked correctly
-Test-Path "node_modules\@azure\msal-node-key-attestation\bin\win-x64\MsalMtlsMsiHelper.exe"
+# Verify the native addon is present
+Test-Path "node_modules\@azure\msal-node-mtls-extensions\bin\win-x64\msal_mtls_win.node"
 # must print True
 ```
 
-### Step 4 — Smoke-test the binary directly
+> If `withAttestation: true` is needed, also place `AttestationClientLib.dll` in the same `bin/win-x64/` directory. Obtain it from the `Microsoft.Azure.Security.KeyGuardAttestation` NuGet package at `runtimes/win-x64/native/AttestationClientLib.dll`.
 
-Run `MsalMtlsMsiHelper.exe` directly to confirm the .NET + Managed Identity layer works before involving Node.js.
-
-> **Note:** Not all Azure resources support `mtls_pop` tokens. Use `https://graph.microsoft.com/`
-> or `https://vault.azure.net/` for testing — both are confirmed to accept certificate-bound tokens.
-> `management.azure.com` returns `AADSTS392196` in many subscriptions.
-
-First, try without attestation:
-
-```powershell
-.\node_modules\@azure\msal-node-key-attestation\bin\win-x64\MsalMtlsMsiHelper.exe `
-    --resource https://graph.microsoft.com/ `
-    --identity-type SystemAssigned
-```
-
-If that returns `"Attestation Token is missing / empty in the issue credential request"`,
-the VM requires VBS attestation. Re-run with `--with-attestation`:
-
-```powershell
-.\node_modules\@azure\msal-node-key-attestation\bin\win-x64\MsalMtlsMsiHelper.exe `
-    --resource https://graph.microsoft.com/ `
-    --identity-type SystemAssigned `
-    --with-attestation
-```
-
-**Expected (success):** JSON printed to stdout:
-```json
-{"access_token":"eyJ...","token_type":"mtls_pop","expires_in":3599,"binding_certificate":"-----BEGIN CERTIFICATE-----\n..."}
-```
-
-**On failure:** JSON printed to stderr, non-zero exit code:
-```json
-{"error":"some_code","error_description":"details of what went wrong"}
-```
-
-| Binary output | Cause | Fix |
-|---|---|---|
-| `"You must be running within an Azure VM"` | IMDS not reachable / MI not enabled | Enable System-Assigned MI in Azure Portal → VM → Identity |
-| `"KeyGuard key creation failed"` | VBS not enabled | Use a VBS-enabled VM SKU |
-| `"Attestation Token is missing / empty"` | VM requires VBS attestation | Re-run with `--with-attestation` |
-| No output / exits immediately | .NET 8 runtime missing | Run `dotnet-install.ps1` |
-| `managed_identity_unreachable_network` without `AttestationClientLib.dll` | Native attestation DLL missing | Verify `AttestationClientLib.dll` is in the same directory as `MsalMtlsMsiHelper.exe`; rebuild with `npm run build:binaries` in `extensions/msal-node-key-attestation` |
-
-### Step 5 — Create the Node.js test script
+### Step 2 — Create the Node.js test script
 
 ```javascript
 // test-mtls.mjs  (ESM — run with: node test-mtls.mjs)
-import { acquireMtlsMsiToken, clearMtlsMsiTokenCache } from "@azure/msal-node-key-attestation";
+import { MtlsManagedIdentityApplication } from "@azure/msal-node-mtls-extensions";
 
 // Resources confirmed to support mtls_pop tokens:
 //   https://graph.microsoft.com/   ✅
@@ -290,12 +195,14 @@ import { acquireMtlsMsiToken, clearMtlsMsiTokenCache } from "@azure/msal-node-ke
 // Note: management.azure.com does NOT support mtls_pop in all subscriptions (AADSTS392196)
 const RESOURCE = "https://graph.microsoft.com/";
 
-// Set to true if the smoke test in Step 4 required --with-attestation
+// Set to true if IMDS returns "Attestation Token is missing / empty"
 const WITH_ATTESTATION = false;
+
+const app = new MtlsManagedIdentityApplication({ withAttestation: WITH_ATTESTATION });
 
 async function main() {
     console.log("=== Test 1: Fresh token (System-Assigned) ===");
-    const t1 = await acquireMtlsMsiToken({ resource: RESOURCE, withAttestation: WITH_ATTESTATION });
+    const t1 = await app.acquireToken({ resource: RESOURCE });
     console.log("  tokenType:         ", t1.tokenType);          // mtls_pop
     console.log("  expiresOn:         ", t1.expiresOn);
     console.log("  fromCache:         ", t1.fromCache);          // false
@@ -303,50 +210,38 @@ async function main() {
     console.log("  bindingCertificate:", t1.bindingCertificate?.split("\n")[1]?.slice(0, 40) + "...");
 
     console.log("\n=== Test 2: Cache hit ===");
-    const t2 = await acquireMtlsMsiToken({ resource: RESOURCE, withAttestation: WITH_ATTESTATION });
+    const t2 = await app.acquireToken({ resource: RESOURCE });
     console.log("  fromCache:", t2.fromCache);   // true
 
     console.log("\n=== Test 3: forceRefresh ===");
-    const t3 = await acquireMtlsMsiToken({ resource: RESOURCE, withAttestation: WITH_ATTESTATION, forceRefresh: true });
+    const t3 = await app.acquireToken({ resource: RESOURCE, forceRefresh: true });
     console.log("  fromCache:", t3.fromCache);   // false
 
-    console.log("\n=== Test 4: clearMtlsMsiTokenCache ===");
-    clearMtlsMsiTokenCache();
-    const t4 = await acquireMtlsMsiToken({ resource: RESOURCE, withAttestation: WITH_ATTESTATION });
+    console.log("\n=== Test 4: clearTokenCache ===");
+    app.clearTokenCache();
+    const t4 = await app.acquireToken({ resource: RESOURCE });
     console.log("  fromCache:", t4.fromCache);   // false
 
     console.log("\n=== Test 5: Different resource (vault.azure.net) ===");
-    const t5 = await acquireMtlsMsiToken({ resource: "https://vault.azure.net/", withAttestation: WITH_ATTESTATION });
+    const t5 = await app.acquireToken({ resource: "https://vault.azure.net/" });
     console.log("  tokenType:", t5.tokenType);   // mtls_pop
     console.log("  fromCache:", t5.fromCache);   // false
 
     console.log("\n=== Test 6: Inspect cnf claim (proves cert binding) ===");
     const payload = JSON.parse(Buffer.from(t1.accessToken.split(".")[1], "base64url").toString());
     console.log("  cnf claim:", JSON.stringify(payload.cnf));   // x5t#S256 must be present
-    console.log("  token_type:", payload.token_type ?? payload.tt);
     if (!payload.cnf?.["x5t#S256"]) throw new Error("cnf / x5t#S256 claim missing!");
-
-    // --- Optional: User-Assigned identity (uncomment if configured) ---
-    // const ua = await acquireMtlsMsiToken({
-    //     resource: RESOURCE,
-    //     identityType: "UserAssigned",
-    //     identityId: "YOUR_USER_ASSIGNED_CLIENT_ID",
-    //     withAttestation: WITH_ATTESTATION,
-    // });
-    // console.log("\n=== Test 7: User-Assigned ===");
-    // console.log("  tokenType:", ua.tokenType);
 
     console.log("\n✅ All tests passed");
 }
 
 main().catch(err => {
     console.error("\n❌ FAILED:", err.message);
-    if (err.errorCode) console.error("  errorCode:", err.errorCode);
     process.exit(1);
 });
 ```
 
-### Step 6 — Run on the VM
+### Step 3 — Run on the VM
 
 ```powershell
 node test-mtls.mjs
@@ -368,7 +263,7 @@ node test-mtls.mjs
 === Test 3: forceRefresh ===
   fromCache: false
 
-=== Test 4: clearMtlsMsiTokenCache ===
+=== Test 4: clearTokenCache ===
   fromCache: false
 
 === Test 5: Different resource (separate cache entry) ===
@@ -377,59 +272,48 @@ node test-mtls.mjs
 
 === Test 6: Inspect cnf claim (proves cert binding) ===
   cnf claim:  {"x5t#S256":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
-  token_type: mtls_pop
 
 ✅ All tests passed
 ```
 
 ---
 
-### Step 7 — Test downstream mTLS calls with `makeMtlsMsiRequest`
+### Step 4 — Test downstream mTLS calls with `sendGetRequestAsync`
 
-The `bindingCertificate` private key is non-exportable from Windows CNG, so Node.js cannot open the downstream mTLS connection directly. `makeMtlsMsiRequest` routes the call through `MsalMtlsMsiHelper.exe` instead.
+The native addon uses WinHTTP (which uses Schannel) to present the client certificate over mTLS. This works for servers that use **required mutual TLS** — they must send a TLS `CertificateRequest` during the handshake.
 
-> **Requirement:** The downstream resource server **must** use mutual TLS at the TLS layer (i.e., it must send a TLS `CertificateRequest` during the handshake). Most public Azure services (Graph API, Key Vault) use *optional* mutual TLS and will return `MtlsMissingClientCertificate` because the TLS handshake does not include the client certificate when the server doesn't request one. `makeMtlsMsiRequest` is intended for custom services or Azure-internal services that use required mutual TLS.
-
-This step has two parts:
-
-- **Step 7a** — Infrastructure smoke test against Graph (confirms plumbing works; 401 expected)
-- **Step 7b** — Full end-to-end test against a local required-mTLS server (confirms `200` with cert binding validated)
-
----
-
-#### Step 7a — Infrastructure smoke test (optional mTLS, 401 expected)
+> `mtlstb.graph.microsoft.com` is the dedicated required-mTLS Microsoft Graph endpoint. Standard `graph.microsoft.com` uses optional mTLS and will NOT send a `CertificateRequest`, so no client cert is presented.
 
 ```javascript
 // test-mtls-downstream.mjs
-import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-key-attestation";
+import { MtlsManagedIdentityApplication } from "@azure/msal-node-mtls-extensions";
 
 const RESOURCE         = "https://graph.microsoft.com/";
-const WITH_ATTESTATION = false; // set true if Step 4 required --with-attestation
+const DOWNSTREAM_URL   = "https://mtlstb.graph.microsoft.com/v1.0/applications?$top=5";
+const WITH_ATTESTATION = false;
+
+const app = new MtlsManagedIdentityApplication({ withAttestation: WITH_ATTESTATION });
 
 async function main() {
     console.log("=== Acquire mTLS PoP token ===");
-    const tokenResult = await acquireMtlsMsiToken({
-        resource: RESOURCE,
-        withAttestation: WITH_ATTESTATION,
-    });
+    const tokenResult = await app.acquireToken({ resource: RESOURCE });
     console.log("  tokenType:", tokenResult.tokenType); // mtls_pop
     console.log("  fromCache:", tokenResult.fromCache);
 
-    console.log("\n=== Test: makeMtlsMsiRequest flow (infrastructure test) ===");
-    // NOTE: The 401 / MtlsMissingClientCertificate response from Graph confirms that
-    // makeMtlsMsiRequest successfully spawned the binary, re-acquired the binding cert,
-    // and made the HTTP request. The 401 is Graph rejecting an optional-mTLS connection
-    // where no TLS client cert was sent — not a bug in makeMtlsMsiRequest.
-    const response = await makeMtlsMsiRequest({
-        url: "https://graph.microsoft.com/v1.0/organization",
-        token: tokenResult.accessToken,
-        resource: RESOURCE,
-        withAttestation: WITH_ATTESTATION,
+    console.log("\n=== Test: sendGetRequestAsync (required-mTLS endpoint) ===");
+    const response = await app.sendGetRequestAsync(DOWNSTREAM_URL, {
+        headers: {
+            Authorization: `mtls_pop ${tokenResult.accessToken}`,
+        },
     });
-    console.log("  status:", response.status); // 401 from Graph (expected)
-    console.log("  body (first 100):", response.body.slice(0, 100));
+    console.log("  status:", response.status);
+    // 200: success; 403: auth succeeded but MI lacks permissions (expected)
+    if (response.status !== 200 && response.status !== 403) {
+        throw new Error(`Unexpected status ${response.status}: ${JSON.stringify(response.body)}`);
+    }
+    console.log("  body (first 200):", JSON.stringify(response.body).slice(0, 200));
 
-    console.log("\n✅ makeMtlsMsiRequest infrastructure test passed");
+    console.log("\n✅ Downstream mTLS test passed (auth succeeded)");
 }
 
 main().catch(err => {
@@ -449,113 +333,25 @@ node test-mtls-downstream.mjs
   tokenType: mtls_pop
   fromCache: false
 
-=== Test: makeMtlsMsiRequest flow (infrastructure test) ===
-  status: 401
-  body (first 100): {"error":{"code":"InvalidAuthenticationToken","message":"MtlsMissingClientCertificate"...
+=== Test: sendGetRequestAsync (required-mTLS endpoint) ===
+  status: 403
+  body (first 200): {"error":{"code":"Authorization_RequestDenied","message":"Insufficient privileges...
 
-✅ makeMtlsMsiRequest infrastructure test passed
+✅ Downstream mTLS test passed (auth succeeded)
 ```
 
-A status of `401` with `MtlsMissingClientCertificate` from Graph confirms the flow works end-to-end (binary spawned, cert re-acquired, HTTP request made).
+A `403` response confirms the mTLS authentication succeeded — the client certificate was presented and accepted; the managed identity simply lacks Graph permissions. A `200` would also be a pass.
 
----
-
-#### Step 7b — Full end-to-end test with local required-mTLS server (200 expected)
-
-A local Node.js HTTPS server (`test-server/mtls-test-server.mjs`) is included in the `@azure/msal-node-mtls-extensions` package. It uses `requestCert: true` to require a client certificate during the TLS handshake, then validates that the certificate's SHA-256 thumbprint matches the `cnf.x5t#S256` claim in the `mtls_pop` token — exactly as a real required-mTLS resource would.
-
-**In one terminal, start the test server:**
-
-```powershell
-cd extensions/msal-node-mtls-extensions
-node test-server/mtls-test-server.mjs
-# ✅ Required-mTLS test server listening on https://127.0.0.1:8443
-```
-
-**In another terminal, run the test:**
-
-```javascript
-// test-mtls-e2e.mjs
-import { acquireMtlsMsiToken, makeMtlsMsiRequest } from "@azure/msal-node-key-attestation";
-
-const RESOURCE         = "https://graph.microsoft.com/"; // resource scope for token
-const WITH_ATTESTATION = false; // set true if Step 4 required --with-attestation
-
-async function main() {
-    console.log("=== Acquire mTLS PoP token ===");
-    const tokenResult = await acquireMtlsMsiToken({
-        resource: RESOURCE,
-        withAttestation: WITH_ATTESTATION,
-    });
-    console.log("  tokenType:", tokenResult.tokenType); // mtls_pop
-
-    console.log("\n=== Full E2E: makeMtlsMsiRequest → required-mTLS local server ===");
-    const response = await makeMtlsMsiRequest({
-        url: "https://127.0.0.1:8443/",
-        token: tokenResult.accessToken,
-        resource: RESOURCE,
-        withAttestation: WITH_ATTESTATION,
-        allowInsecureTls: true,  // needed for self-signed server cert in local testing only
-    });
-    console.log("  status:", response.status); // 200
-    const body = JSON.parse(response.body);
-    console.log("  message:", body.message);
-    console.log("  clientCertThumbprint:", body.clientCertThumbprint);
-
-    if (response.status !== 200) throw new Error(`Expected 200, got ${response.status}: ${response.body}`);
-    console.log("\n✅ Full end-to-end mTLS PoP test passed — cert binding validated");
-}
-
-main().catch(err => {
-    console.error("\n❌ FAILED:", err.message);
-    process.exit(1);
-});
-```
-
-```powershell
-node test-mtls-e2e.mjs
-```
-
-**Expected output:**
-
-```
-=== Acquire mTLS PoP token ===
-  tokenType: mtls_pop
-
-=== Full E2E: makeMtlsMsiRequest → required-mTLS local server ===
-  status: 200
-  message: mTLS PoP validation successful
-  clientCertThumbprint: xIj8ilFroFCO68G6TPi4JR1l4Etvjo1Rg0gisoIA6mE
-
-✅ Full end-to-end mTLS PoP test passed — cert binding validated
-```
-
-The `200` response with `clientCertThumbprint` confirms the complete mTLS PoP flow:
-1. Token acquired with `cnf.x5t#S256` bound to the KeyGuard certificate
-2. Binary re-acquired the same KeyGuard cert, attached it to the TLS connection
-3. Server received the client cert, validated the thumbprint matches the token, and returned `200`
-
-**Troubleshooting downstream calls:**
+### What to check if it fails
 
 | Error | Likely cause | Fix |
 |---|---|---|
-| `"downstream_request_failed"` / process exits non-zero | Binary failed to spawn or crashed | Check binary presence; run the binary smoke-test (Step 4) |
-| HTTP 401 `MtlsMissingClientCertificate` from Graph/Key Vault | Server uses optional mTLS — client cert not sent | Expected for public Azure services. Use a required-mTLS server for a real end-to-end test. |
-| HTTP 401 `MtlsCertificateMismatch` from local test server | Token `cnf.x5t#S256` doesn't match presented cert | Token and cert were acquired in different sessions — clear cache and re-run |
-| HTTP 401 `InvalidAuthenticationToken` other message | Token not accepted | Verify `token` is from `acquireMtlsMsiToken` with correct `resource` |
-| `"only supported on Windows"` | Not on a Windows VM | `makeMtlsMsiRequest` requires Windows + the .NET helper |
-
-### What to check if it fails (Node.js layer)
-
-| Error | Likely cause | Fix |
-|---|---|---|
-| `"only supported on Windows"` | Running on Linux/macOS | Must run on a Windows Azure VM |
-| `"Unsupported architecture"` | Not `x64` | Check `node -e "console.log(process.arch)"` — only x64 is supported |
-| `"Failed to spawn MsalMtlsMsiHelper"` | Binary missing from package | Rebuild + repack on dev machine; verify `bin/win-x64/` is present in `@azure/msal-node-key-attestation` tarball |
-| `MsalException` from the helper | Token acquisition failed | Run the binary smoke-test (Step 4) directly and read the `error_description` |
-| Token has no `cnf` claim | Token is Bearer, not mTLS PoP | Check `token_type` in the binary's JSON output |
-| `AADSTS392196: The resource application does not support certificate-bound token` | Resource not configured for mTLS PoP | Not all Azure first-party resources support `mtls_pop` tokens. Use `https://graph.microsoft.com/` or `https://vault.azure.net/` as the resource instead — both are confirmed to work. `management.azure.com` does not support mTLS PoP in all subscriptions. |
-| `managed_identity_unreachable_network` / `SocketException: An existing connection was forcibly closed` | Outdated MSAL.NET packages | The `.NET` helper was built with an older `Microsoft.Identity.Client` version. Rebuild with `Microsoft.Identity.Client` ≥ 4.83.3 and `Microsoft.Identity.Client.KeyAttestation` ≥ 4.83.3-preview. |
+| `Cannot find module 'msal_mtls_win.node'` | Native addon missing | Verify `bin/win-x64/msal_mtls_win.node` is present in the package |
+| `"You must be running within an Azure VM"` | IMDS not reachable / MI not enabled | Enable System-Assigned MI in Azure Portal → VM → Identity |
+| `"KeyGuard key creation failed"` | VBS not enabled | Use a VBS-enabled VM SKU |
+| `"Attestation Token is missing / empty"` | VM requires VBS attestation | Set `withAttestation: true` |
+| HTTP 401 `MtlsMissingClientCertificate` | Server uses optional mTLS — no `CertificateRequest` sent | Switch to `mtlstb.graph.microsoft.com` or another required-mTLS endpoint |
+| `AADSTS392196` | Resource not configured for mTLS PoP | Use `https://graph.microsoft.com/` or `https://vault.azure.net/` |
 
 ---
 

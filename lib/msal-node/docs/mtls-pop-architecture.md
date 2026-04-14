@@ -57,86 +57,64 @@ The `mtlsEndpoint` is built by `buildMtlsTokenEndpoint(tenantId, region)` → `h
 
 ---
 
-## 2. Path 2 (Managed Identity): Subprocess Architecture
+## 2. Path 2 (Managed Identity): N-API Addon Architecture
 
-### Why a Subprocess?
+### The Core Constraint
 
-The Managed Identity mTLS PoP flow requires a **VBS KeyGuard RSA key** — a non-exportable private key protected by Windows Virtualization-Based Security. This cascades into a fundamental incompatibility:
+The Managed Identity mTLS PoP flow requires a **VBS KeyGuard RSA key** — a non-exportable private key protected by Windows Virtualization-Based Security. This creates a fundamental incompatibility with Node.js's TLS stack:
 
 ```
-OpenSSL (Node.js TLS):  EVP_PKEY → requires exportable key bytes in-process
-CNG/KeyGuard:           NCRYPT_KEY_HANDLE → delegates signing to VBS enclave; bytes never leave
+OpenSSL (Node.js https):  EVP_PKEY → requires exportable key bytes in-process
+CNG/KeyGuard:             NCRYPT_KEY_HANDLE → delegates signing to VBS enclave; bytes never leave
 ```
 
-Node.js uses OpenSSL on all platforms, including Windows. OpenSSL has no concept of a CNG key handle. There is no bridge — not even a NAPI C++ addon can solve this, because the TLS handshake itself (step 5 in the flow) must use the non-exportable key.
+**The solution:** The C++ N-API addon uses **WinHTTP** instead of Node.js's `https` module for all HTTP requests that must present the client certificate. WinHTTP uses **Schannel** (the Windows-native TLS provider), which natively understands CNG key handles — the same capability that makes .NET's `HttpClient` work with KeyGuard keys.
 
-**The only viable architecture: delegate the entire flow to a .NET subprocess.**
+IMDS calls (metadata, issuecredential) do NOT require the client certificate and are made from TypeScript using Node.js's standard `https` module.
 
-.NET on Windows uses **Schannel** as its TLS provider. Schannel natively understands CNG key handles and can perform the mTLS handshake using a key that never leaves the VBS enclave. `MsalMtlsMsiHelper.exe` runs msal-dotnet natively to handle all five steps.
+### N-API Addon (`msal_mtls_win.node`)
 
-For the full feasibility analysis of a NAPI C++ addon alternative, see [keyguard-napi-addon-analysis.md](keyguard-napi-addon-analysis.md).
+The addon is a C++ DLL loaded in-process via `require()`. It exposes these functions to JavaScript:
 
-### Subprocess IPC Protocol
-
-`MsalMtlsMsiHelper.exe` communicates with Node.js via stdio:
-
-| Channel | Purpose |
+| Function | Description |
 |---|---|
-| **stdout** | JSON success payload |
-| **stderr** | JSON error payload |
-| **exit code 0** | Success — parse stdout |
-| **exit code ≠ 0** | Failure — parse stderr |
+| `createOrOpenKey(cuId, level)` | Creates or opens `MSALMtlsKey_{cuId}` in Windows KSP using KeyGuard, Software, or InMemory level |
+| `getPublicKeyDer(handleId)` | Returns SubjectPublicKeyInfo DER bytes for the key |
+| `getAttestationToken(endpoint, handleId)` | Calls `AttestationClientLib.dll` → returns MAA JWT |
+| `makeMtlsRequest(url, method, body, headers, certDer, handleId)` | Makes HTTPS request via WinHTTP with client certificate |
+| `signHashPss(handleId, hashBytes)` | Signs a SHA-256 hash using RSASSA-PSS with the CNG key |
 
-**Success stdout:**
-```json
-{
-    "access_token": "eyJ...",
-    "token_type": "mtls_pop",
-    "expires_in": 3599,
-    "tenant_id": "xxxxxxxx-...",
-    "client_id": "xxxxxxxx-...",
-    "binding_certificate": "-----BEGIN CERTIFICATE-----\n..."
-}
-```
+The addon manages a handle table (integer → NCRYPT_KEY_HANDLE) so handles can be passed between JavaScript and C++.
 
-**Error stderr:**
-```json
-{
-    "error": "managed_identity_failed",
-    "error_description": "Human-readable description of what went wrong"
-}
-```
+### Key Management: 3-Level Fallback
 
-**CLI arguments:**
+Mirrors `WindowsManagedIdentityKeyProvider` in msal-dotnet:
 
-| Argument | Type | Notes |
-|---|---|---|
-| `--resource` | string | Azure resource URI (e.g. `https://graph.microsoft.com/`) |
-| `--identity-type` | `SystemAssigned` \| `UserAssigned` | |
-| `--identity-id` | string | Client/resource ID for UserAssigned |
-| `--with-attestation` | flag | Include MAA attestation in the IMDS credential request |
-| `--correlation-id` | string | Optional GUID for telemetry |
-| `--force-refresh` | flag | Bypass the helper's token cache |
+| Level | KSP | Flags | Key Name | Security |
+|---|---|---|---|---|
+| KeyGuard | Microsoft Software KSP | `NCRYPT_USE_VIRTUAL_ISOLATION_FLAG \| NCRYPT_USE_PER_BOOT_KEY_FLAG` | `MSALMtlsKey_{cuId}` | VBS-protected — strongest |
+| Software | Microsoft Software KSP | None | `MSALMtlsKey_{cuId}_sw` | Software-backed persisted key |
+| InMemory | — | — | n/a | `rsa.GenerateKey()` — ephemeral |
 
-### What Runs Inside the Subprocess
+All keys use `NCRYPT_ALLOW_EXPORT_NONE` — they are never exported as bytes.
 
-`MsalMtlsMsiHelper.exe` wraps `Microsoft.Identity.Client` + `Microsoft.Identity.Client.KeyAttestation` and calls `AcquireTokenForManagedIdentity().WithMtlsProofOfPossession()`:
+### WinHTTP Client Certificate Presentation
 
-1. `GET /metadata/identity/getplatformmetadata` → `clientId`, `tenantId`, `cuId`, `attestationEndpoint`
-2. `NCryptCreatePersistedKey` in Microsoft Software KSP — `MSALMtlsKey_{cuId}`, KeyGuard flags, RSA-2048
-3. Generate PKCS#10 CSR signed with the KeyGuard key
-4. *(if `--with-attestation`)* `AttestKeyGuardImportKey()` via `AttestationClientLib.dll` → MAA JWT
-5. `POST /metadata/identity/issuecredential {csr, attestation_token?}` → X.509 binding cert
-6. `POST {mtlsEndpoint}/{tenantId}/oauth2/v2.0/token` via .NET `HttpClient` with the binding cert
+A critical detail: WinHTTP only presents the client certificate if the server sends a TLS `CertificateRequest`. This means:
 
-### Token Cache (Two Layers)
+- **Entra mTLS endpoint** (`centraluseuap.mtlsauth.microsoft.com`): sends `CertificateRequest` → cert is presented ✅
+- **`mtlstb.graph.microsoft.com`**: sends `CertificateRequest` → cert is presented ✅
+- **`graph.microsoft.com`**: optional mTLS — no `CertificateRequest` → cert is NOT presented ❌
+
+This is the same behavior as .NET's `HttpClient` with `SslClientCertificates`.
+
+### Token Cache (Single Layer)
 
 | Layer | Where | What | Keyed by |
 |---|---|---|---|
-| **Node.js in-memory** | `msal-node-mtls-extensions` process | `AuthenticationResult` objects | resource + identityType/Id |
-| **Helper internal** | Inside `MsalMtlsMsiHelper.exe` | msal-dotnet token cache (also caches binding cert) | Same cache key as msal-dotnet MSI |
+| **In-memory** | `MtlsManagedIdentityApplication` instance | `AuthenticationResult` objects | resource + identityType/Id + withAttestation |
 
-`acquireMtlsMsiToken()` checks the Node.js cache first. On a cache miss, it spawns the helper; the helper checks its own cache (msal-dotnet's MSI cache handles token + cert lifetime). `forceRefresh: true` bypasses both.
+The key handle and binding certificate are cached in `NativeHelper.ts` (module-level, process-global). `forceRefresh: true` bypasses the token cache but reuses the cached key handle and binding cert if they are still valid.
 
 ---
 
@@ -144,12 +122,12 @@ For the full feasibility analysis of a NAPI C++ addon alternative, see [keyguard
 
 | | msal-node (Path 1) | msal-node (Path 2) | msal-dotnet | msal-go |
 |---|---|---|---|---|
-| TLS stack | OpenSSL via `node:https` | Schannel via .NET subprocess | Schannel | Go `crypto/tls` (pure Go) |
-| CNG key handle | ❌ Not possible | ✅ via subprocess | ✅ Native P/Invoke | ✅ via `syscall.NewLazyDLL` |
-| Non-exportable key in TLS | ❌ (OpenSSL needs bytes) | ✅ Schannel+CNG in helper | ✅ | ✅ via `crypto.Signer` |
-| Subprocess needed? | No | Yes | No | No |
+| TLS stack | OpenSSL via `node:https` | WinHTTP (Schannel) via C++ N-API addon | Schannel via `HttpClient` | Go `crypto/tls` (pure Go) |
+| CNG key handle | ❌ Not possible | ✅ via WinHTTP + Schannel | ✅ Native P/Invoke | ✅ via `syscall.NewLazyDLL` |
+| Non-exportable key in TLS | ❌ (OpenSSL needs bytes) | ✅ Schannel+CNG in addon | ✅ | ✅ via `crypto.Signer` |
+| Subprocess needed? | No | No | No | No |
 
-msal-go avoids the subprocess entirely because Go's `crypto/tls` stack accepts any `crypto.Signer` implementation, and `cngSigner` wraps the CNG key handle as a `crypto.Signer`. OpenSSL has no equivalent interface.
+The key insight: by using WinHTTP (not OpenSSL) in the C++ addon, msal-node achieves the same in-process capability as msal-dotnet and msal-go. The CNG key handle is held by the addon; WinHTTP/Schannel uses it directly for TLS client authentication without ever exporting the key bytes.
 
 ---
 
@@ -158,23 +136,25 @@ msal-go avoids the subprocess entirely because Go's `crypto/tls` stack accepts a
 | Component | msal-dotnet | msal-node |
 |---|---|---|
 | Path 1 token request | `HttpClient` + `X509Certificate2` via Schannel | `MtlsHttpClient` + `https.Agent` via OpenSSL |
-| Path 2 key management | `WindowsManagedIdentityKeyProvider` (in-process) | `MsalMtlsMsiHelper.exe` (subprocess) |
-| Path 2 attestation | `AttestationClientLib.dll` (direct call) | `AttestationClientLib.dll` via subprocess |
-| Path 2 TLS handshake | `HttpClient` + Schannel (in-process) | `HttpClient` + Schannel (in subprocess) |
-| Non-exportable key in TLS | ✅ Native | ✅ Via subprocess |
-| Token caching | msal-dotnet cache | Node in-memory + helper's msal-dotnet cache |
-| Binding cert caching | msal-dotnet cert cache | Helper's msal-dotnet cache |
+| Path 2 key management | `WindowsManagedIdentityKeyProvider` (in-process) | `msal_mtls_win.node` addon (in-process, `cng_key.cpp`) |
+| Path 2 attestation | `AttestationClientLib.dll` (direct call) | `AttestationClientLib.dll` via addon (`winhttp_mtls.cpp`) |
+| Path 2 TLS handshake | `HttpClient` + Schannel (in-process) | WinHTTP + Schannel via addon (in-process) |
+| Non-exportable key in TLS | ✅ Native | ✅ Via WinHTTP in addon |
+| Token caching | msal-dotnet cache | Node in-memory (`MtlsManagedIdentityApplication`) |
+| Binding cert caching | msal-dotnet cert cache | Module-level cache in `NativeHelper.ts` |
 
-The subprocess approach achieves full functional parity with msal-dotnet's Managed Identity path because it literally runs msal-dotnet — the same `AcquireTokenForManagedIdentity().WithMtlsProofOfPossession()` call.
+Both implementations achieve the same result: the KeyGuard key handle is used directly for the TLS handshake without the key bytes ever being exported. msal-dotnet uses Schannel via `HttpClient`; msal-node uses Schannel via WinHTTP in the C++ addon.
 
 ---
 
 ## 5. `AttestationClientLib.dll` — Distribution
 
-The DLL ships inside the `Microsoft.Azure.Security.KeyGuardAttestation` NuGet package at `runtimes/win-x64/native/AttestationClientLib.dll`. MSBuild automatically copies it to the output directory — .NET consumers never think about it.
+The DLL ships inside the `Microsoft.Azure.Security.KeyGuardAttestation` NuGet package at `runtimes/win-x64/native/AttestationClientLib.dll`.
 
-For `@azure/msal-node-key-attestation`, the build script (`npm run build:binaries`) extracts the DLL from the NuGet cache and places it in `bin/win-x64/` alongside `MsalMtlsMsiHelper.exe`. Both are included when the `@azure/msal-node-key-attestation` npm package is packed. End users who install this optional package receive both files automatically.
+For `@azure/msal-node-mtls-extensions`, the DLL must be placed in `bin/win-x64/` alongside `msal_mtls_win.node`. It is **not committed to git** — obtain it from the NuGet package and place it manually. It is loaded dynamically by the addon at runtime only when `withAttestation: true`.
 
-The core package (`@azure/msal-node-mtls-extensions`) ships with no binaries. This mirrors the pattern used by msal-dotnet (`Microsoft.Identity.Client` / `Microsoft.Identity.Client.KeyAttestation`) and msal-python (`msal` / `msal-key-attestation`): consumers who don't need KeyGuard attestation take no native dependency.
+This differs from msal-dotnet where MSBuild automatically copies the DLL to the output directory. For Node.js, the placement is a manual step (or scripted in a build pipeline).
 
-This is different from msal-go, which cannot bundle the DLL (Go modules are source-only; there is no native asset mechanism equivalent to NuGet's `runtimes/` folder). msal-go users must obtain and place the DLL manually.
+> **Note:** If `AttestationClientLib.dll` is absent and `withAttestation: true` is passed, the addon will log a warning and proceed without attestation. The IMDS call may then fail if the VM requires attestation — in that case a hard error is thrown.
+
+For msal-go, the DLL cannot be bundled (Go modules are source-only; there is no native asset mechanism equivalent to NuGet's `runtimes/` folder). msal-go users must obtain and place the DLL manually — the same situation as msal-node.
