@@ -94,7 +94,6 @@ import {
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
-import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
 
 function preflightCheck(
     initialized: boolean,
