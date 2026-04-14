@@ -151,10 +151,6 @@ Same as `sendGetRequestAsync` but with HTTP POST.
 
 Clears the in-memory token cache. Call this if the binding certificate has been rotated or you receive an unexpected 401.
 
-### `getPlatformMetadata(): Promise<PlatformMetadata>`
-
-Calls the IMDS `/metadata/identity/getplatformmetadata` endpoint directly. Use this to inspect VM identity metadata independently.
-
 ## How it works
 
 ```mermaid

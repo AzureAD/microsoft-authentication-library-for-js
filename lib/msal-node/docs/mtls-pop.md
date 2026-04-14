@@ -276,7 +276,7 @@ Node.js's built-in `fetch()` (backed by `undici`) does not support providing a c
 
 ### One `MtlsHttpClient` instance per certificate
 
-`MtlsHttpClient` creates a single `https.Agent` bound to one certificate at construction time. This is appropriate for the Confidential Client path where the certificate is stable for the lifetime of the application. For the Managed Identity path, certificate rotation is handled inside `MsalMtlsMsiHelper.exe` — Node.js never holds the certificate at all, so rotation is transparent.
+`MtlsHttpClient` creates a single `https.Agent` bound to one certificate at construction time. This is appropriate for the Confidential Client path where the certificate is stable for the lifetime of the application. For the Managed Identity path, certificate rotation is handled inside the C++ N-API addon (`msal_mtls_win.node`) — the addon re-opens the KeyGuard cert context on every WinHTTP call, so Node.js never holds the certificate and rotation is transparent.
 
 ---
 
