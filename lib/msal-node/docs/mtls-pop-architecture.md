@@ -127,7 +127,7 @@ The key handle and binding certificate are cached in `NativeHelper.ts` (module-l
 | Non-exportable key in TLS | ❌ (OpenSSL needs bytes) | ✅ Schannel+CNG in addon | ✅ | ✅ via `crypto.Signer` | ✅ via JNA |
 | Subprocess needed? | No | No | No | No | No |
 
-The key insight: by using WinHTTP (not OpenSSL) in the C++ addon, msal-node achieves the same in-process capability as msal-dotnet and msal-go. The CNG key handle is held by the addon; WinHTTP/Schannel uses it directly for TLS client authentication without ever exporting the key bytes.
+The key insight: by using WinHTTP (not OpenSSL) in the C++ addon, msal-node achieves the same in-process capability as msal-dotnet, msal-go, and msal-java. The CNG key handle is held by the addon; WinHTTP/Schannel uses it directly for TLS client authentication without ever exporting the key bytes. msal-java reaches the same result via JNA calling `ncrypt.dll` directly from the JVM.
 
 ---
 
