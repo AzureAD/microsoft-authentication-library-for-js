@@ -63,7 +63,7 @@ import { CacheKVStore } from "../../../src/cache/serializer/SerializerTypes.js";
 import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
 import { ImdsRetryPolicy } from "../../../src/retry/ImdsRetryPolicy.js";
 
-const EXPECTED_SKU = "@azure/msal-node";
+const EXPECTED_SKU = "msal.js.node";
 const UUID_REGEX =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -123,7 +123,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             const headers =
                 sendGetRequestAsyncSpy.mock.lastCall[1].headers;
             expect(headers["x-client-SKU"]).toBe(EXPECTED_SKU);
-            expect(headers["x-client-Ver"]).toBeDefined();
+            expect(headers["x-client-VER"]).toBeDefined();
             expect(headers["x-ms-client-request-id"]).toMatch(UUID_REGEX);
         });
 
@@ -182,7 +182,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             const headers =
                 sendGetRequestAsyncSpy.mock.lastCall[1].headers;
             expect(headers["x-client-SKU"]).toBe(EXPECTED_SKU);
-            expect(headers["x-client-Ver"]).toBeDefined();
+            expect(headers["x-client-VER"]).toBeDefined();
             expect(headers["x-ms-client-request-id"]).toMatch(UUID_REGEX);
 
             jest.restoreAllMocks();
@@ -219,7 +219,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             const headers =
                 sendGetRequestAsyncSpy.mock.lastCall[1].headers;
             expect(headers["x-client-SKU"]).toBe(EXPECTED_SKU);
-            expect(headers["x-client-Ver"]).toBeDefined();
+            expect(headers["x-client-VER"]).toBeDefined();
             expect(headers["x-ms-client-request-id"]).toMatch(UUID_REGEX);
         });
 
