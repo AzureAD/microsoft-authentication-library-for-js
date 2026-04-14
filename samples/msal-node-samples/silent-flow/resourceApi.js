@@ -8,7 +8,7 @@ module.exports = function(resourceApiConfig) {
     const endpoint = resourceApiConfig.endpoint;
     
     return {
-        call: function(accessToken, callback) {
+        call: async function(accessToken, callback) {
             const options = {
                 headers: {
                     Authorization: `Bearer ${accessToken}`
@@ -17,13 +17,12 @@ module.exports = function(resourceApiConfig) {
 
             console.log('request made to Resource API at: ' + new Date().toString());
             
-            try {
-                fetch(endpoint, options)
-                    .then(response => response.json())
-                    .then(data => callback(data, endpoint));
-            } catch (error) {
-                throw error;
+            const response = await fetch(endpoint, options);
+            if (!response.ok) {
+                throw new Error(`Resource API request failed with status ${response.status}`);
             }
+            const data = await response.json();
+            callback(data, endpoint);
         }
     }
 };
