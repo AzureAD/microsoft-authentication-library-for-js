@@ -128,8 +128,8 @@ export const PasswordInputSelectors = {
 
 export const HtmlSelectors = {
     AAD_TITLE: "#aadTile, input[name='aadTile']",
-    B2C_AAD_MSIDLAB4_SIGNIN_PAGE:
-        "#MSIDLAB4_AzureAD, input[name='MSIDLAB4_AzureAD']",
+    B2C_AAD_ID4SLAB2_SIGNIN_PAGE:
+        "#ID4SLab2_AzureAD, input[name='ID4SLab2_AzureAD']",
     B2C_MSA_SIGNIN_PAGE:
         "#MicrosoftAccountExchange, input[name='MicrosoftAccountExchange']",
     KMSI_PAGE: "#kmsiTitle, input[name='kmsiTitle']",
