@@ -1,0 +1,51 @@
+variables:
+    CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
+    LinuxContainerImage: "mcr.microsoft.com/onebranch/azurelinux/build:3.0" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
+    DEBIAN_FRONTEND: noninteractive
+
+resources:
+    repositories:
+        - repository: templates
+          type: git
+          name: OneBranch.Pipelines/GovernedTemplates
+          ref: refs/heads/main
+        - repository: 1P
+          type: git
+          name: IDDP/msal-javascript-1p
+          ref: dev
+
+extends:
+    template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
+    parameters:
+        globalSdl:
+            policheck:
+                break: true
+        featureFlags:
+            WindowsHostVersion:
+                Version: 2022
+        stages:
+            - stage: beachball_check
+              displayName: "Beachball Check"
+              jobs:
+                  - job: beachball_check
+                    displayName: "Run Beachball Check"
+                    # Don't run for PBCS PRs (e.g. post-release or release-staging PRs)
+                    condition: and(not(contains(variables['System.PullRequest.SourceBranch'], 'release-staging')), not(contains(variables['System.PullRequest.SourceBranch'], 'post-release')))
+                    pool:
+                        type: linux
+                    variables:
+                        ob_outputDirectory: $(Build.SourcesDirectory)
+                        ob_git_fetchDepth: -1 # full history required for beachball to compare against target branch
+                        ob_git_persistCredentials: true
+
+                    steps:
+                        - template: .pipelines/templates/node-install-wrapper.yml@1P
+                          parameters:
+                              nodeVersion: "18"
+
+                        # Install only root package to get beachball (mirrors `npm ci --workspaces=false`)
+                        - script: npm ci --workspaces=false
+                          displayName: "Install root dependencies"
+
+                        - script: npm run beachball:check
+                          displayName: "Beachball Check"
