@@ -36,7 +36,8 @@
   ],
   "files": [
     "dist",
-    "lib"
+    "lib",
+    "bin"
   ],
   "engines": {
     "node": ">=20"
@@ -45,6 +46,7 @@
     "clean": "shx rm -rf dist lib",
     "build": "npm run clean && npm run build:js",
     "build:js": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build:native": "node scripts/buildNative.cjs",
     "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=@azure/msal-node-mtls-extensions",
     "test": "jest",
     "test:coverage": "jest --coverage",
@@ -52,7 +54,7 @@
     "lint:fix": "npm run lint -- --fix",
     "format:check": "prettier --ignore-path .gitignore --check src test",
     "format:fix": "prettier --ignore-path .gitignore --write src test",
-    "prepack": "npm run build:all"
+    "prepack": "npm run build:all && npm run build:native"
   },
   "author": {
     "name": "Microsoft",
