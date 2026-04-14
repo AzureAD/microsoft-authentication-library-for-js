@@ -196,10 +196,10 @@ export async function b2cAadPpeAccountEnterCredentials(
     username: string,
     accountPwd: string
 ): Promise<void> {
-    await page.waitForSelector(HtmlSelectors.B2C_AAD_MSIDLAB4_SIGNIN_PAGE);
+    await page.waitForSelector(HtmlSelectors.B2C_AAD_ID4SLAB2_SIGNIN_PAGE);
     await screenshot.takeScreenshot(page, "b2cSignInPage");
     // Select Lab Provider
-    await page.click(HtmlSelectors.B2C_AAD_MSIDLAB4_SIGNIN_PAGE);
+    await page.click(HtmlSelectors.B2C_AAD_ID4SLAB2_SIGNIN_PAGE);
     // Enter credentials
     await enterCredentials(page, screenshot, username, accountPwd);
 }
