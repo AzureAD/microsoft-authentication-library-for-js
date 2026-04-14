@@ -60,7 +60,6 @@ extends:
                           displayName: "Check for relevant source changes"
 
                         - template: .pipelines/templates/node-install-wrapper.yml@1P
-                          condition: eq(variables['hasLibChanges'], 'true')
 
                         # Install only root package to get beachball (mirrors `npm ci --workspaces=false`)
                         - script: npm ci --workspaces=false
