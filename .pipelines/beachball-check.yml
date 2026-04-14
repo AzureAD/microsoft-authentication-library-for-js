@@ -62,9 +62,9 @@ extends:
                         - template: .pipelines/templates/node-install-wrapper.yml@1P
 
                         # Install only root package to get beachball (mirrors `npm ci --workspaces=false`)
-                        - script: npm ci --workspaces=false
-                          displayName: "Install root dependencies"
-                          condition: eq(variables['hasLibChanges'], 'true')
+                        - template: .pipelines/templates/npm-install.yml@1P
+                          parameters:
+                              paramList: "--workspaces=false"
 
                         - script: npm run beachball:check
                           displayName: "Beachball Check"
