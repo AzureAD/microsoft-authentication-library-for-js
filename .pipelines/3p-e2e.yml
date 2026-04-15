@@ -54,7 +54,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: fix/puppeteer-e2e-cold-agent
+          ref: fix/e2e-test-improvements
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
     parameters:
@@ -77,11 +77,16 @@ extends:
                         sourceBranch: ${{ variables.sourceBranch }}
                         workspace: "samples/msal-browser-samples"
                         samples:
-                            - "client-capabilities"
-                            - "onPageLoad"
-                            - "pop"
-                            - "customizable-e2e-test"
-                            - "ExpressSample"
+                            - name: "client-capabilities"
+                            - name: "onPageLoad"
+                            - name: "pop"
+                            - name: "customizable-e2e-test-aad"
+                              dir: "customizable-e2e-test"
+                              testFilter: "browserAAD|localStorage|browserMem"
+                            - name: "customizable-e2e-test-b2c"
+                              dir: "customizable-e2e-test"
+                              testFilter: "browserB2C|browserMCP"
+                            - name: "ExpressSample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}
@@ -97,14 +102,14 @@ extends:
                         workspace: "samples/msal-node-samples"
                         nodeVersions: [20, 22, 24]
                         samples:
-                            - "auth-code"
-                            - "auth-code-cli-app"
-                            - "client-credentials"
-                            - "client-credentials-with-cert-from-key-vault"
-                            - "device-code"
-                            - "silent-flow"
-                            - "b2c-user-flows"
-                            # - "on-behalf-of"
+                            - name: "auth-code"
+                            - name: "auth-code-cli-app"
+                            - name: "client-credentials"
+                            - name: "client-credentials-with-cert-from-key-vault"
+                            - name: "device-code"
+                            - name: "silent-flow"
+                            - name: "b2c-user-flows"
+                            # - name: "on-behalf-of"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}
@@ -119,13 +124,13 @@ extends:
                         sourceBranch: ${{ variables.sourceBranch }}
                         workspace: "samples/msal-react-samples"
                         samples:
-                            - "nextjs-sample"
-                            - "react-router-sample"
-                            - "typescript-sample"
-                            - "b2c-sample"
-                            - "react16-sample"
-                            - "react17-sample"
-                            - "react18-sample"
+                            - name: "nextjs-sample"
+                            - name: "react-router-sample"
+                            - name: "typescript-sample"
+                            - name: "b2c-sample"
+                            - name: "react16-sample"
+                            - name: "react17-sample"
+                            - name: "react18-sample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}
@@ -140,9 +145,9 @@ extends:
                         sourceBranch: ${{ variables.sourceBranch }}
                         workspace: "samples/msal-angular-samples"
                         samples:
-                            - "angular-b2c-sample"
-                            - "angular-modules-sample"
-                            - "angular-standalone-sample"
+                            - name: "angular-b2c-sample"
+                            - name: "angular-modules-sample"
+                            - name: "angular-standalone-sample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}

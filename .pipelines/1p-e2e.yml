@@ -37,7 +37,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: fix/puppeteer-e2e-cold-agent
+          ref: fix/e2e-test-improvements
 
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
@@ -61,10 +61,10 @@ extends:
                         sourceBranch: ${{ variables.sourceBranch }}
                         workspace: "samples/"
                         samples:
-                            - "Broker_WAMTestApp"
-                            - "PerformanceTelemetrySample"
-                            - "BrokerTestApp-React"
-                            - "BrokerSingleFrameTestApp"
+                            - name: "Broker_WAMTestApp"
+                            - name: "PerformanceTelemetrySample"
+                            - name: "BrokerTestApp-React"
+                            - name: "BrokerSingleFrameTestApp"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}

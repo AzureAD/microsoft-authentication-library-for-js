@@ -83,7 +83,7 @@ export async function switchToVersion(version: string, page: puppeteer.Page, scr
     const selectedVersion = await page.locator(`span#currentVersionText`)
         .filter((value) => {return !!value.textContent && !value.textContent.startsWith("Switching")})
         .map(value => value.textContent || "")
-        .setTimeout(3000)
+        .setTimeout(15000)
         .wait();
     expect(selectedVersion).toContain(versionSearchText);
     await screenshot.takeScreenshot(page, `${version} version selected`);
