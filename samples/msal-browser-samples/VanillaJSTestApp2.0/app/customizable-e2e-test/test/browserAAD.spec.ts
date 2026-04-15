@@ -31,6 +31,9 @@ const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screensh
 let sampleHomeUrl = "";
 
 describe("AAD-Prod Tests", () => {
+    // logout Tests beforeEach does a full popup login per test (new context,
+    // page.goto, enterCredentials, waitForReturnToApp). On cold agents this
+    // can exceed Jest's 30s default hook timeout.
     jest.setTimeout(90000);
 
     let browser: puppeteer.Browser;

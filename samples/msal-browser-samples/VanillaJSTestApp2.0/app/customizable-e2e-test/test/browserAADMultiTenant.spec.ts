@@ -32,6 +32,9 @@ const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screensh
 let sampleHomeUrl = "";
 
 describe("AAD-Prod Tests", () => {
+    // logout Tests beforeEach does a full popup login per test (new context,
+    // page.goto, enterCredentials, waitForReturnToApp). On cold agents this
+    // can exceed Jest's 30s default hook timeout.
     jest.setTimeout(90000);
 
     let browser: puppeteer.Browser;
@@ -92,6 +95,8 @@ describe("AAD-Prod Tests", () => {
                 aadMsalConfig.cache.cacheLocation
             );
             await page.goto(sampleHomeUrl);
+            // Each logout test starts from a fresh page; allow extra time for MSAL init
+            // before the login step that every test requires.
             await pcaInitializedPoller(page, 10000);
 
             testName = "logoutBaseCase";
@@ -109,6 +114,7 @@ describe("AAD-Prod Tests", () => {
                 popupPage,
                 popupWindowClosed
             );
+            // Allow MSAL to finish processing the login response before the test begins.
             await pcaInitializedPoller(page, 10000);
         });
 

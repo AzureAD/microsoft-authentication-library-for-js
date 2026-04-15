@@ -154,6 +154,8 @@ describe("B2C Tests", () => {
             beforeAll(async () => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
+                // B2C cache parsing is heavier than AAD; acquireToken tests share a single
+                // page and reload between each test, so MSAL re-init from cache needs more time.
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 15);
                 BrowserCache = new BrowserCacheUtils(
                     page,
@@ -187,6 +189,7 @@ describe("B2C Tests", () => {
             beforeEach(async () => {
                 await page.reload();
                 await page.waitForSelector("#WelcomeMessage");
+                // B2C cache re-init after page.reload() can exceed 5s on cold agents.
                 await pcaInitializedPoller(page, 10000);
             });
 
@@ -388,6 +391,8 @@ describe("B2C Tests", () => {
             beforeAll(async () => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
+                // B2C cache parsing is heavier than AAD; acquireToken tests share a single
+                // page and reload between each test, so MSAL re-init from cache needs more time.
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 15);
                 BrowserCache = new BrowserCacheUtils(
                     page,
@@ -421,6 +426,7 @@ describe("B2C Tests", () => {
             beforeEach(async () => {
                 await page.reload();
                 await page.waitForSelector("#WelcomeMessage");
+                // B2C cache re-init after page.reload() can exceed 5s on cold agents.
                 await pcaInitializedPoller(page, 10000);
             });
 
