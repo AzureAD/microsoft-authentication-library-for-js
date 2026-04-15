@@ -83,6 +83,8 @@ The answer depends on the SDK:
 
 **What this means for Azure SDK:** For msal-node, msal-java, and msal-python, Azure SDK cannot use its own HTTP pipeline for the downstream mTLS resource call. The call must go through MSAL's transport. This is a hard constraint of the current KeyGuard architecture — not a gap that can be bridged at the Azure SDK layer. **Custom network clients (axios, node-fetch, requests, HttpPipeline, etc.) are not supported for downstream mTLS calls on these SDKs.**
 
+This also applies to MSAL-level network customization. For example, msal-node's standard `ManagedIdentityApplication` accepts a custom `INetworkModule` via `system.networkClient`. `MtlsManagedIdentityApplication` intentionally omits this option — WinHTTP is mandatory because the KeyGuard private key is non-exportable and cannot be presented to Node.js's OpenSSL-based TLS stack. The same constraint applies to msal-java and msal-python.
+
 ### Path forward: software key pivot
 
 The software key pivot (direction indicated by Dragos, the mTLS PoP architect) resolves this constraint universally. With software/exportable keys:
