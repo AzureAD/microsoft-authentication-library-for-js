@@ -1824,7 +1824,7 @@ export abstract class CacheManager implements ICacheManager {
             return true;
         }
 
-        //check login hint against list of emails in token claims
+        // check login hint against list of emails in token claims
         if (tokenClaims.emails && tokenClaims.emails.includes(loginHint)) {
             return true;
         }
