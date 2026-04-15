@@ -81,7 +81,7 @@ The answer depends on the SDK:
 | **msal-java** | ❌ No | Same KeyGuard constraint; private key held internally as `CngRsaPrivateKey`; must use `MtlsMsiClient.httpRequest()` |
 | **msal-python** | ❌ No | Same KeyGuard constraint; no downstream helper exposed yet |
 
-**What this means for Azure SDK:** For msal-node, msal-java, and msal-python, Azure SDK cannot use its own HTTP pipeline for the downstream mTLS resource call. The call must go through MSAL's transport. This is a hard constraint of the current KeyGuard architecture — not a gap that can be bridged at the Azure SDK layer.
+**What this means for Azure SDK:** For msal-node, msal-java, and msal-python, Azure SDK cannot use its own HTTP pipeline for the downstream mTLS resource call. The call must go through MSAL's transport. This is a hard constraint of the current KeyGuard architecture — not a gap that can be bridged at the Azure SDK layer. **Custom network clients (axios, node-fetch, requests, HttpPipeline, etc.) are not supported for downstream mTLS calls on these SDKs.**
 
 ### Path forward: software key pivot
 
