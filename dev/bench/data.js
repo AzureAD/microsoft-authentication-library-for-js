@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775079460173,
+  "lastUpdate": 1776220634654,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20465,6 +20465,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.30%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6dc8e18c6ac8e74ac7b85822dd0f351754aba7c3",
+          "message": "Remove axios as a dependency (#8506)\n\nThis PR removes axios as a dependency in the MSAL JS repo and replaces\nit with fetch, which is built into Node",
+          "timestamp": "2026-04-15T01:10:46Z",
+          "tree_id": "c4fc3d7877ab230ec7157a9dcbef4b3bd41b76c5",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/6dc8e18c6ac8e74ac7b85822dd0f351754aba7c3"
+        },
+        "date": 1776220631478,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 243724,
+            "range": "±1.11%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 239592,
+            "range": "±0.78%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
           }
         ]
       }
