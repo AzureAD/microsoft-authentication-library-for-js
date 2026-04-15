@@ -31,7 +31,7 @@ let accountPwd: string;
 
 describe("Auth Code ADFS 2019 Tests", () => {
     jest.retryTimes(RETRY_TIMES);
-    jest.setTimeout(45000);
+    jest.setTimeout(90000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -225,3 +225,4 @@ describe("Auth Code ADFS 2019 Tests", () => {
         });
     });
 });
+

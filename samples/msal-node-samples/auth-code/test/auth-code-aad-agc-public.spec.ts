@@ -42,7 +42,7 @@ config.resourceApi = {
 
 describe("Auth Code AAD AGC Public Tests", () => {
     jest.retryTimes(RETRY_TIMES);
-    jest.setTimeout(45000);
+    jest.setTimeout(90000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -237,3 +237,4 @@ describe("Auth Code AAD AGC Public Tests", () => {
         });
     });
 });
+

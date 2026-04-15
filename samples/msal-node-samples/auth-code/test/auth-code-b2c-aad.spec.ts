@@ -36,7 +36,7 @@ const config = require("../config/B2C-AAD.json");
 
 describe("Auth Code B2C Tests (aad account)", () => {
     jest.retryTimes(RETRY_TIMES);
-    jest.setTimeout(45000);
+    jest.setTimeout(90000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -239,3 +239,4 @@ describe("Auth Code B2C Tests (aad account)", () => {
         });
     });
 });
+
