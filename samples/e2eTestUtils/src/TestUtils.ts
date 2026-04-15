@@ -9,7 +9,7 @@ export const RETRY_TIMES = 5;
 
 const WAIT_FOR_NAVIGATION_CONFIG: WaitForOptions = {
     waitUntil: ["load", "domcontentloaded", "networkidle0"],
-    timeout: 2000
+    timeout: 30000
 };
 
 export class Screenshot {
