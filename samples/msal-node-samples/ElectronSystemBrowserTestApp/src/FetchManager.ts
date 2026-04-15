@@ -4,7 +4,6 @@
  */
 
 import { UserInfo, MailInfo } from "./GraphReponseTypes";
-import axios from "axios";
 
 /**
  * Class that handles Bearer requests for data using Fetch.
@@ -26,8 +25,8 @@ export class FetchManager {
         };
         console.log(`Request made at: ${new Date().toString()}`);
         try {
-            const response = await axios.get(endpoint, options);
-            return (await response.data) as UserInfo | MailInfo;
+            const response = await fetch(endpoint, options);
+            return (await response.json()) as UserInfo | MailInfo;
         } catch (error) {
             throw error;
         }
