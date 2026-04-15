@@ -10,7 +10,7 @@ These APIs are required for core authentication flows. If any of these are unava
 
 ### Storage
 
-All browsers enforce a **5 MiB** quota for `sessionStorage` and **5 MiB** for `localStorage` per origin (10 MiB total for Web Storage per origin). Exceeding the quota throws `QuotaExceededError`. Accessing storage when the user has disabled it (or from an opaque origin like `file:` or `data:`) throws `SecurityError`. MDN notes: "if the user blocks cookies, browsers will probably interpret this as an instruction to prevent the page from persisting data."
+Browsers commonly enforce a quota of about **5 MiB** for `sessionStorage` and about **5 MiB** for `localStorage` per origin (often about 10 MiB total for Web Storage per origin), but exact limits vary by browser, version, device, and storage pressure. Exceeding the quota throws `QuotaExceededError`. Accessing storage when the user has disabled it (or from an opaque origin like `file:` or `data:`) throws `SecurityError`. MDN notes: "if the user blocks cookies, browsers will probably interpret this as an instruction to prevent the page from persisting data."
 
 | API | Used For | Fallback | Key Restrictions |
 |-----|----------|----------|------------------|
