@@ -29,7 +29,7 @@ let sampleHomeUrl = "";
 
 describe("MCP Tests", () => {
     // setupPageAndLogin (used in acquireToken* beforeEach) does a full popup
-    // login per test, including real AAD network round-trips, which can exceed
+    // login per test, including real AAD network round-trips, which can exceed the default Jest test timeout.
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
