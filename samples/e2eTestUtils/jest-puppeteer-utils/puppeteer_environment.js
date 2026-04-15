@@ -12,13 +12,13 @@ class PuppeteerEnvironment extends NodeEnvironment {
 		// connect to puppeteer
 		this.global.__BROWSER__ = await puppeteer.launch({
 			headless: true,
-			ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"]
+			timeout: 60000
 		});
 	}
 
 	async teardown() {
 		await super.teardown();
-		this.global.__BROWSER__.close();
+		await this.global.__BROWSER__?.close();
 	}
 
 	runScript(script) {
