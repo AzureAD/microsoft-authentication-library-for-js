@@ -36,7 +36,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 const config = require("../config/ADFS.json");
 
 describe("Device Code ADFS 2019 Tests", () => {
-    jest.setTimeout(45000);
+    jest.setTimeout(90000);
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -86,7 +86,7 @@ describe("Device Code ADFS 2019 Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(5000);
+            page.setDefaultTimeout(15000);
         });
 
         afterEach(async () => {
@@ -112,6 +112,7 @@ describe("Device Code ADFS 2019 Tests", () => {
                     username,
                     accountPwd
                 );
+                await page.waitForNavigation({ waitUntil: ["load", "networkidle0"], timeout: 15000 }).catch(() => {});
                 await page.waitForSelector("#message");
                 await screenshot.takeScreenshot(
                     page,

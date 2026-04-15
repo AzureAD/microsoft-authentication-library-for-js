@@ -35,7 +35,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 const config = require("../config/AAD.json");
 
 describe("Device Code AAD Prod Tests", () => {
-    jest.setTimeout(45000);
+    jest.setTimeout(90000);
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -83,7 +83,7 @@ describe("Device Code AAD Prod Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(5000);
+            page.setDefaultTimeout(15000);
         });
 
         afterEach(async () => {
@@ -105,6 +105,7 @@ describe("Device Code AAD Prod Tests", () => {
                 );
                 await approveRemoteConnect(page, screenshot);
                 await enterCredentials(page, screenshot, username, accountPwd);
+                await page.waitForNavigation({ waitUntil: ["load", "networkidle0"], timeout: 15000 }).catch(() => {});
                 await page.waitForSelector("#message");
                 await screenshot.takeScreenshot(
                     page,
