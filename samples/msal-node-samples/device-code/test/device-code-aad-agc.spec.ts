@@ -100,8 +100,17 @@ describe("Device Code AAD AGC Tests", () => {
                 );
                 await approveRemoteConnect(page, screenshot);
                 await enterCredentials(page, screenshot, username, password);
-                await page.waitForNavigation({ waitUntil: ["load", "networkidle0"], timeout: 15000 }).catch(() => {});
-                await page.waitForSelector("#message");
+                // The AAD redirect chain can briefly detach the current frame between
+                // navigations. Retry until the success page settles.
+                for (let i = 0; i < 5; i++) {
+                    try {
+                        await page.waitForSelector("#message", { timeout: 15000 });
+                        break;
+                    } catch (e) {
+                        if (i >= 4 || !String(e).includes("detached")) throw e;
+                        await new Promise((r) => setTimeout(r, 1000));
+                    }
+                }
                 await screenshot.takeScreenshot(
                     page,
                     "SuccessfulDeviceCodeMessage"

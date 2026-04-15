@@ -112,8 +112,18 @@ describe("Device Code ADFS 2019 Tests", () => {
                     username,
                     accountPwd
                 );
-                await page.waitForNavigation({ waitUntil: ["load", "networkidle0"], timeout: 15000 }).catch(() => {});
-                await page.waitForSelector("#message");
+                // ADFS chains multiple redirects (ADFS → AAD → device auth success)
+                // which can briefly detach the current frame between navigations.
+                // Retry until the success page settles.
+                for (let i = 0; i < 5; i++) {
+                    try {
+                        await page.waitForSelector("#message", { timeout: 15000 });
+                        break;
+                    } catch (e) {
+                        if (i >= 4 || !String(e).includes("detached")) throw e;
+                        await new Promise((r) => setTimeout(r, 1000));
+                    }
+                }
                 await screenshot.takeScreenshot(
                     page,
                     "SuccessfulDeviceCodeMessage"
