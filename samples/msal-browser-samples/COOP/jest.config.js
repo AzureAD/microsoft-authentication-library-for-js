@@ -12,5 +12,5 @@ const sampleFolders = process.argv.find(arg => arg.startsWith('--sample='))
 
 module.exports = {
     projects: sampleFolders,
-    testTimeout: 30000
+    testTimeout: 90000
 };

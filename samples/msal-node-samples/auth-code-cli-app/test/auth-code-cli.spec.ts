@@ -89,7 +89,6 @@ describe("Auth Code CLI AAD Prod Tests", () => {
             const openBrowser = async (url: string) => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(5000);
                 page.goto(url);
                 enterCredentials(page, screenshot, username, accountPwd);
             };

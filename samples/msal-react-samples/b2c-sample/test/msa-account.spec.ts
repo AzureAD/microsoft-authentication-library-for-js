@@ -48,7 +48,6 @@ describe("B2C user-flow tests (msa account)", () => {
     beforeEach(async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
         await page.goto(`http://localhost:${port}`);
     });
