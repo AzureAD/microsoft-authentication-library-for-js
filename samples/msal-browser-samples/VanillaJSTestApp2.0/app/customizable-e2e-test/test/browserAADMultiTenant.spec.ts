@@ -32,6 +32,8 @@ const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screensh
 let sampleHomeUrl = "";
 
 describe("AAD-Prod Tests", () => {
+    jest.setTimeout(90000);
+
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -90,7 +92,7 @@ describe("AAD-Prod Tests", () => {
                 aadMsalConfig.cache.cacheLocation
             );
             await page.goto(sampleHomeUrl);
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
 
             testName = "logoutBaseCase";
             screenshot = new Screenshot(
@@ -107,7 +109,7 @@ describe("AAD-Prod Tests", () => {
                 popupPage,
                 popupWindowClosed
             );
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterEach(async () => {

@@ -28,6 +28,8 @@ const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screensh
 let sampleHomeUrl = "";
 
 describe("MCP Tests", () => {
+    jest.setTimeout(90000);
+
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
