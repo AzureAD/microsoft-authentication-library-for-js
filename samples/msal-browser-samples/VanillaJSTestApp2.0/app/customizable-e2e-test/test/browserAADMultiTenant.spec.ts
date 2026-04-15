@@ -177,7 +177,10 @@ describe("AAD-Prod Tests", () => {
         beforeAll(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            // After acquireTokenRedirect, MSAL processes the redirect response on
+            // page.reload() (token exchange + cache write) before PCA is interactive.
+            // Under pipeline load this exceeds the 5s default.
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 15);
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation
@@ -204,7 +207,7 @@ describe("AAD-Prod Tests", () => {
         beforeEach(async () => {
             await page.reload();
             await page.waitForSelector("#WelcomeMessage");
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterAll(async () => {
@@ -420,7 +423,10 @@ describe("AAD-Prod Tests", () => {
         beforeAll(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            // After acquireTokenRedirect, MSAL processes the redirect response on
+            // page.reload() (token exchange + cache write) before PCA is interactive.
+            // Under pipeline load this exceeds the 5s default.
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 15);
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation
@@ -452,7 +458,7 @@ describe("AAD-Prod Tests", () => {
         beforeEach(async () => {
             await page.reload();
             await page.waitForSelector("#WelcomeMessage");
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterAll(async () => {
