@@ -2,10 +2,10 @@ import * as msal from "@azure/msal-node";
 // import { INetworkModule, } from "@azure/msal-node";
 import express from "express";
 /**
- * After "npx tsc" is executed via the "npm run start" script, app.ts and HttpClientAxios.ts are compiled to .js and stored in the /dist folder
- * The app is run via "node dist/app.js", hence the .js import of the HttpClientAxios
+ * After "npx tsc" is executed via the "npm run start" script, app.ts and HttpClientFetch.ts are compiled to .js and stored in the /dist folder
+ * The app is run via "node dist/app.js", hence the .js import of the HttpClientFetch
  */
-import { HttpClientAxios } from "./HttpClientAxios.js";
+import { HttpClientFetch } from "./HttpClientFetch.js";
 
 const SERVER_PORT = 3000;
 
@@ -16,7 +16,7 @@ const clientConfig: msal.Configuration = {
         clientSecret: "<ENTER_CLIENT_SECRET>",
     },
     system: {
-        networkClient: new HttpClientAxios(),
+        networkClient: new HttpClientFetch(),
         /**
          * This is the same functionality as the networkClient line above. Instead of importing a custom INetworkModule, one can be implemented here.
          * Uncomment the INetworkModule import statement to implement the custom INetworkModule below
