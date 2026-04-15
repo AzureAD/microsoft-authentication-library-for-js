@@ -14,7 +14,7 @@ export function buildAccountFromIdTokenClaims(
     guestIdTokenClaimsList?: TokenClaims[],
     options?: Partial<AccountInfo>
 ): AccountEntity {
-    const { oid, tid, preferred_username, emails, name, login_hint } =
+    const { oid, tid, preferred_username, emails, name, login_hint, upn } =
         idTokenClaims;
     const tenantId = tid || "";
     const email = emails ? emails[0] : null;
@@ -23,7 +23,7 @@ export function buildAccountFromIdTokenClaims(
 
     const accountInfo: AccountInfo = {
         homeAccountId: homeAccountId || "",
-        username: preferred_username || email || "",
+        username: preferred_username || upn || email || "",
         localAccountId: oid || "",
         tenantId: tenantId,
         environment: "login.windows.net",

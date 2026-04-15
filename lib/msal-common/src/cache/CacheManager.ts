@@ -495,6 +495,33 @@ export abstract class CacheManager implements ICacheManager {
             return false;
         }
 
+        if (
+            !!tenantProfileFilter.username &&
+            !(
+                this.matchUsername(
+                    tenantProfile.username,
+                    tenantProfileFilter.username
+                ) ||
+                !this.matchUsername(
+                    tenantProfile.upn,
+                    tenantProfileFilter.username
+                )
+            )
+        ) {
+            return false;
+        }
+
+        if (
+            !!tenantProfileFilter.loginHint &&
+            !(
+                tenantProfile.loginHint === tenantProfileFilter.loginHint ||
+                tenantProfile.username === tenantProfileFilter.loginHint ||
+                tenantProfile.upn === tenantProfileFilter.loginHint
+            )
+        ) {
+            return false;
+        }
+
         return true;
     }
 
@@ -528,6 +555,10 @@ export abstract class CacheManager implements ICacheManager {
                 !!tenantProfileFilter.username &&
                 !this.matchUsername(
                     idTokenClaims.preferred_username,
+                    tenantProfileFilter.username
+                ) &&
+                !this.matchUsername(
+                    idTokenClaims.upn,
                     tenantProfileFilter.username
                 )
             ) {
@@ -709,13 +740,6 @@ export abstract class CacheManager implements ICacheManager {
             }
 
             if (
-                !!accountFilter.username &&
-                !this.matchUsername(entity.username, accountFilter.username)
-            ) {
-                continue;
-            }
-
-            if (
                 !!accountFilter.environment &&
                 !this.matchEnvironment(
                     entity,
@@ -750,24 +774,11 @@ export abstract class CacheManager implements ICacheManager {
                 continue;
             }
 
-            if (!!accountFilter.loginHint) {
-                if (
-                    this.matchLoginHintFromAccountEntity(
-                        entity,
-                        accountFilter.loginHint,
-                        correlationId
-                    )
-                ) {
-                    return [entity];
-                } else {
-                    continue;
-                }
-            }
-
             // If at least one tenant profile matches the tenant profile filter, add the account to the list of matching accounts
             const tenantProfileFilter: TenantProfileFilter = {
                 localAccountId: accountFilter?.localAccountId,
                 name: accountFilter?.name,
+                username: accountFilter?.username,
             };
 
             const matchingTenantProfiles = entity.tenantProfiles?.filter(
@@ -1185,8 +1196,9 @@ export abstract class CacheManager implements ICacheManager {
         tokenKeys?: TokenKeys
     ): Map<string, IdTokenEntity> {
         const idTokenKeys =
-            (tokenKeys && tokenKeys.idToken && tokenKeys.idToken.length > 0) ? tokenKeys.idToken :
-            this.getTokenKeys()?.idToken;
+            tokenKeys && tokenKeys.idToken && tokenKeys.idToken.length > 0
+                ? tokenKeys.idToken
+                : this.getTokenKeys()?.idToken;
 
         const idTokens: Map<string, IdTokenEntity> = new Map<
             string,
@@ -1791,49 +1803,6 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * helper to match loginHint from account entity
-     * @param entity
-     * @param loginHint
-     * @returns boolean indicating if the account entity matches the login hint
-     */
-    private matchLoginHintFromAccountEntity(
-        entity: AccountEntity,
-        loginHint: string,
-        correlationId: string
-    ): boolean {
-        // Check against the entity's loginHint property directly
-        if (entity.loginHint === loginHint) {
-            return true;
-        }
-
-        // Also check against ID token claims
-        try {
-            const accountInfo = AccountEntityUtils.getAccountInfo(entity);
-            const idToken = this.getIdToken(accountInfo, correlationId);
-
-            if (idToken) {
-                const idTokenClaims = extractTokenClaims(
-                    idToken.secret,
-                    this.cryptoImpl.base64Decode
-                );
-
-                if (
-                    !!idTokenClaims &&
-                    this.matchLoginHintFromTokenClaims(idTokenClaims, loginHint)
-                ) {
-                    return true;
-                }
-            }
-        } catch (e) {
-            /*
-             * Silently fall through if ID token retrieval fails
-             */
-        }
-
-        return false;
-    }
-
-    /**
      * helper to match loginHint which can be either:
      * 1. login_hint ID token claim
      * 2. username in cached account object
@@ -1855,6 +1824,11 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         if (tokenClaims.upn === loginHint) {
+            return true;
+        }
+
+        //check login hint against list of emails in token claims
+        if (tokenClaims.emails && tokenClaims.emails.includes(loginHint)) {
             return true;
         }
 

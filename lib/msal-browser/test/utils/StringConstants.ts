@@ -538,6 +538,7 @@ testTenantProfilesMap.set(ID_TOKEN_CLAIMS.tid, {
     loginHint: ID_TOKEN_CLAIMS.login_hint,
     name: ID_TOKEN_CLAIMS.name,
     tenantId: ID_TOKEN_CLAIMS.tid,
+    upn: ID_TOKEN_CLAIMS.upn
 });
 
 export const TEST_ACCOUNT_INFO: AccountInfo = {

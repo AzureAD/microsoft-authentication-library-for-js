@@ -742,6 +742,7 @@ describe("SilentIframeClient", () => {
                             loginHint: ID_TOKEN_CLAIMS.login_hint,
                             name: ID_TOKEN_CLAIMS.name,
                             tenantId: ID_TOKEN_CLAIMS.tid,
+                            upn: ID_TOKEN_CLAIMS.upn,
                         },
                     ],
                 ]),

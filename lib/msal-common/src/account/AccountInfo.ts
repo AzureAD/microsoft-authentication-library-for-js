@@ -56,6 +56,7 @@ export type TenantProfile = Pick<
      * - isHomeTenant           - True if this is the home tenant profile of the account, false if it's a guest tenant profile
      */
     isHomeTenant?: boolean;
+    upn?: string;
 };
 
 export type ActiveAccountFilters = {
@@ -123,6 +124,7 @@ export function buildTenantProfile(
             username: preferred_username || upn || "",
             loginHint: login_hint,
             isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),
+            upn: upn,
         };
     } else {
         return {
@@ -150,7 +152,7 @@ export function updateAccountTenantProfileData(
     // Tenant Profile overrides passed in account info
     if (tenantProfile) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { isHomeTenant, ...tenantProfileOverride } = tenantProfile;
+        const { isHomeTenant, upn, ...tenantProfileOverride } = tenantProfile;
         updatedAccountInfo = { ...baseAccountInfo, ...tenantProfileOverride };
     }
 
@@ -158,7 +160,7 @@ export function updateAccountTenantProfileData(
     if (idTokenClaims) {
         // Ignore isHomeTenant, loginHint, and sid which are part of tenant profile but not base account info
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { isHomeTenant, ...claimsSourcedTenantProfile } =
+        const { isHomeTenant, upn, ...claimsSourcedTenantProfile } =
             buildTenantProfile(
                 baseAccountInfo.homeAccountId,
                 baseAccountInfo.localAccountId,
