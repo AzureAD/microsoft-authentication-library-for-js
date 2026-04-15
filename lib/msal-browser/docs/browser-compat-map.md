@@ -146,10 +146,10 @@ Quick reference: which MSAL flows depend on which APIs.
 | `fetch()` | ✅ | ✅ | ✅ | ✅ | | ✅ |
 | `postMessage` | | | | | ✅ | ✅ |
 | Form submit (POST) | ○ | ○ | ○ | | | |
-| Cookies | ○ | ○ | ③ | ③ | | |
+| Cookies | ○ | ○ | ³ | ³ | | |
 
 - ✅ = required
 - ○ = optional / configurable
 - ¹ = only when redirect bridge page communicates back to popup/iframe (not for direct redirect flow)
 - ² = when refresh token is expired and MSAL falls back to hidden iframe
-- ③ = IdP session cookie required in iframe; MSAL's own cookie used only for localStorage encryption
+- ³ = IdP session cookie required in iframe; MSAL's own cookie used only for localStorage encryption
