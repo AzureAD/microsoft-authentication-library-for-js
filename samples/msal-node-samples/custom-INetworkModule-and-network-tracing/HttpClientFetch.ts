@@ -8,11 +8,6 @@ import {
     NetworkRequestOptions,
     NetworkResponse,
 } from "@azure/msal-node";
-import axios, {
-    // AxiosProxyConfig,
-    AxiosRequestConfig,
-    AxiosResponse,
-} from "axios";
 
 enum HttpMethod {
     GET = "GET",
@@ -33,7 +28,7 @@ enum HttpMethod {
 /**
  * This class implements the API for network requests.
  */
-export class HttpClientAxios implements INetworkModule {
+export class HttpClientFetch implements INetworkModule {
     /**
      * Http Get request
      * @param url
@@ -44,19 +39,26 @@ export class HttpClientAxios implements INetworkModule {
         options?: NetworkRequestOptions,
         timeout?: number
     ): Promise<NetworkResponse<T>> {
-        const request: AxiosRequestConfig = {
-            method: HttpMethod.GET,
-            url: url,
-            timeout: timeout,
-            headers: options && options.headers,
-            validateStatus: () => true,
-            // proxy: proxy,
-        };
+        const controller = new AbortController();
+        if (timeout) {
+            setTimeout(() => controller.abort(), timeout);
+        }
 
-        const response: AxiosResponse = await axios(request);
+        const response = await fetch(url, {
+            method: HttpMethod.GET,
+            headers: options && options.headers,
+            signal: controller.signal,
+        });
+
+        const body = await response.json();
+        const headers: Record<string, string> = {};
+        response.headers.forEach((value, key) => {
+            headers[key] = value;
+        });
+
         return {
-            headers: response.headers as Record<string, string>,
-            body: response.data as T,
+            headers,
+            body: body as T,
             status: response.status,
         };
     }
@@ -70,19 +72,21 @@ export class HttpClientAxios implements INetworkModule {
         url: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
-        const request: AxiosRequestConfig = {
+        const response = await fetch(url, {
             method: HttpMethod.POST,
-            url: url,
-            data: (options && options.body) || "",
+            body: (options && options.body) || "",
             headers: options && options.headers,
-            validateStatus: () => true,
-            // proxy: proxy,
-        };
+        });
 
-        const response: AxiosResponse = await axios(request);
+        const responseBody = await response.json();
+        const headers: Record<string, string> = {};
+        response.headers.forEach((value, key) => {
+            headers[key] = value;
+        });
+
         return {
-            headers: response.headers as Record<string, string>,
-            body: response.data as T,
+            headers,
+            body: responseBody as T,
             status: response.status,
         };
     }
