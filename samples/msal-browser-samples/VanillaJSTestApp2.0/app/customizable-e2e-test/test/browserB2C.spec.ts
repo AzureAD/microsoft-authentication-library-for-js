@@ -154,8 +154,10 @@ describe("B2C Tests", () => {
             beforeAll(async () => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
-                // B2C cache parsing is heavier than AAD; acquireToken tests share a single
-                // page and reload between each test, so MSAL re-init from cache needs more time.
+                // acquireToken tests share a single page and reload between each test.
+                // After acquireTokenRedirect, MSAL processes the redirect response and
+                // re-populates the cache on reload before the PCA is interactive.
+                // On cold agents this can exceed 5s, especially when running first in the job.
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 15);
                 BrowserCache = new BrowserCacheUtils(
                     page,
@@ -391,8 +393,10 @@ describe("B2C Tests", () => {
             beforeAll(async () => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
-                // B2C cache parsing is heavier than AAD; acquireToken tests share a single
-                // page and reload between each test, so MSAL re-init from cache needs more time.
+                // acquireToken tests share a single page and reload between each test.
+                // After acquireTokenRedirect, MSAL processes the redirect response and
+                // re-populates the cache on reload before the PCA is interactive.
+                // On cold agents this can exceed 5s, especially when running first in the job.
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 15);
                 BrowserCache = new BrowserCacheUtils(
                     page,
