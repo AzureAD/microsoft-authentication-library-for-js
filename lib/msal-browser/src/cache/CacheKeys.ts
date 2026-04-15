@@ -16,6 +16,7 @@ export const PLATFORM_AUTH_DOM_SUPPORT = `${PREFIX}.${BROWSER_PREFIX}.platform.a
 export const VERSION_CACHE_KEY = `${PREFIX}.version`;
 export const ACCOUNT_KEYS = "account.keys";
 export const TOKEN_KEYS = "token.keys";
+export const SSO_CAPABLE = `${PREFIX}.${BROWSER_PREFIX}.sso.capable`;
 
 export function getAccountKeysCacheKey(
     schema: number = ACCOUNT_SCHEMA_VERSION

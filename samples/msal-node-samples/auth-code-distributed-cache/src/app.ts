@@ -19,7 +19,7 @@ import { AccountInfo, AuthorizationCodeRequest } from "@azure/msal-node";
 
 import { AppConfig, AuthProvider } from "./AuthProvider";
 import { auth } from "./middleware";
-import AxiosHelper from "./AxiosHelper";
+import FetchHelper from "./FetchHelper";
 
 declare module "express-session" {
     interface SessionData {
@@ -122,7 +122,7 @@ async function main() {
         "/call-graph-direct",
         async (req: Request, res: Response, next: NextFunction) => {
             try {
-                const graphResponse = await AxiosHelper.callDownstreamApi(
+                const graphResponse = await FetchHelper.callDownstreamApi(
                     "https://graph.microsoft.com/v1.0/me",
                     req.session.protectedResources
                         ? req.session.protectedResources[
@@ -142,7 +142,7 @@ async function main() {
         "/call-graph-on-behalf",
         async (req: Request, res: Response, next: NextFunction) => {
             try {
-                const graphResponse = await AxiosHelper.callDownstreamApi(
+                const graphResponse = await FetchHelper.callDownstreamApi(
                     "http://localhost:5000/obo",
                     req.session.protectedResources
                         ? req.session.protectedResources[
