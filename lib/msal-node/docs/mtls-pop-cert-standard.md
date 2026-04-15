@@ -53,35 +53,46 @@ After acquiring the token, the developer must make resource calls over mTLS usin
 
 ---
 
-## Part 4 — Proposed Standard Developer Experience
+## Part 4 — Recommendation to Azure SDK
 
-### Ideal: BYO HTTP client
+### Use the MSAL mTLS-specific application type
 
-The cleanest experience is for MSAL to return both the certificate **and** the private key as exportable PEM material in the auth result, so developers can configure any native HTTP client themselves — no MSAL involvement in the request layer:
+For Managed Identity mTLS PoP, each MSAL exposes a dedicated application class. Azure SDK should use this app type — not a general `ManagedIdentityApplication` — for both token acquisition and downstream resource calls:
 
-```
-result = app.acquireToken(...)
-# Both available as PEM:
-# result.bindingCertificate  →  the public certificate
-# result.bindingKey          →  the private key
+| SDK | App type | Token acquisition | Downstream transport |
+|---|---|---|---|
+| **msal-dotnet** | `ManagedIdentityApplication` + `WithMtlsProofOfPossession()` | `AcquireTokenForManagedIdentity()` | `HttpClientHandler.ClientCertificates.Add(result.BindingCertificate)` |
+| **msal-go** | `MtlsClient` | `AcquireTokenByManagedIdentity()` | `tls.Config{Certificates: []tls.Certificate{*result.BindingTLSCertificate}}` |
+| **msal-java** | `MtlsMsiClient` | `acquireToken()` | `client.httpRequest(url, method, token, ...)` |
+| **msal-node** | `MtlsManagedIdentityApplication` | `acquireToken()` | `app.sendGetRequestAsync()` / `app.sendPostRequestAsync()` |
+| **msal-python** | `obtain_token()` (module-level) | `obtain_token(http_client, identity, resource)` | No helper yet — in progress |
 
-# Developer configures their own client (example is Node.js):
-const agent = new https.Agent({ cert: result.bindingCertificate, key: result.bindingKey });
-```
+### Downstream calls and custom HTTP clients
 
-**msal-dotnet and msal-go** already make this possible today. All other MSALs (msal-node, msal-java, msal-python) are currently blocked by the same root cause: Managed Identity mTLS PoP uses Windows CNG KeyGuard keys, which are hardware-backed and non-exportable by design. This is not a per-SDK limitation — it is an architectural constraint shared across all implementations that rely on KeyGuard.
+This is the critical DevEx question for Azure SDK: **can you use your own HTTP client (HttpPipeline, axios, requests, etc.) for the downstream mTLS resource call?**
 
-This constraint resolves completely if/when MSAL pivots to **software/exportable keys** (the direction indicated by Dragos, the mTLS PoP architect). With a Software KSP key, MSAL can extract the PEM bytes from CNG and include them in the result, giving developers full HTTP client freedom on every SDK.
+The answer depends on the SDK:
 
-### Fallback: Standardized MSAL transport helper
+| SDK | BYO HTTP client for downstream? | Why |
+|---|---|---|
+| **msal-dotnet** | ✅ Yes | Binding cert is in Windows Certificate Store; `GetRSAPrivateKey()` works; add to `HttpClientHandler.ClientCertificates` |
+| **msal-go** | ✅ Yes | `result.BindingTLSCertificate` contains a `crypto.Signer` backed by CNG — use directly in `tls.Config` on any `http.Client` |
+| **msal-node** | ❌ No | Private key is non-exportable from KeyGuard CNG; Node.js/OpenSSL cannot use it; must use `MtlsManagedIdentityApplication`'s transport |
+| **msal-java** | ❌ No | Same KeyGuard constraint; private key held internally as `CngRsaPrivateKey`; must use `MtlsMsiClient.httpRequest()` |
+| **msal-python** | ❌ No | Same KeyGuard constraint; no downstream helper exposed yet |
 
-For cases where the private key cannot be handed out (current KeyGuard implementations), each MSAL's application class should expose a `sendRequest` method that handles mTLS transport internally. The method signature should be consistent across SDKs:
+**What this means for Azure SDK:** For msal-node, msal-java, and msal-python, Azure SDK cannot use its own HTTP pipeline for the downstream mTLS resource call. The call must go through MSAL's transport. This is a hard constraint of the current KeyGuard architecture — not a gap that can be bridged at the Azure SDK layer.
 
-```
-app.sendRequest(url, method, accessToken, options?) → HttpResponse
-```
+### Path forward: software key pivot
 
-msal-node already implements this as `sendGetRequestAsync()` / `sendPostRequestAsync()`. The pattern should be standardized and adopted by all SDKs.
+The software key pivot (direction indicated by Dragos, the mTLS PoP architect) resolves this constraint universally. With software/exportable keys:
+
+- MSAL extracts the PEM bytes from CNG and returns them in the auth result alongside the binding certificate
+- Azure SDK configures its own HTTP client with `{ cert: result.bindingCertificate, key: result.bindingKey }` — the same pattern on every SDK
+- MSAL's built-in transport helpers become optional convenience wrappers rather than mandatory requirements
+- `AttestationClientLib.dll` and equivalent native attestation dependencies can be removed entirely
+
+Until that pivot lands, **the recommendation is to use MSAL's app-specific transport for downstream calls on msal-node, msal-java, and msal-python**, and BYO HTTP client on msal-dotnet and msal-go.
 
 ### Certificate input standard
 
@@ -94,28 +105,3 @@ To reduce integration friction for Azure SDK, all MSALs should accept:
 | Thumbprint (SHA-256) | For cert store lookup where applicable; SHA-256 as primary (SHA-1 deprecated) |
 | Language-native cert objects (`X509Certificate2`, `x509.Certificate`, etc.) | Ergonomic aliases — optional but encouraged |
 
----
-
-## Part 5 — Per-SDK Gaps
-
-| SDK | Gap | Action needed |
-|---|---|---|
-| **msal-dotnet** | None for current KeyGuard path | ✅ No changes needed |
-| **msal-go** | `BindingTLSCertificate` already returned; `NewMtlsHTTPClient()` already exists | ✅ No changes needed |
-| **msal-java** | `MtlsMsiClient.httpRequest()` exists but is not public API | Promote to public API; standardize method signature |
-| **msal-node** | `sendGetRequestAsync` / `sendPostRequestAsync` exist; no `bindingKey` in result | Add `bindingKey` to result when software key pivot lands |
-| **msal-python** | No downstream transport exposed to developer at all; WinHTTP/Schannel used only internally for the token request | Add `sendRequest()` helper using same WinHTTP ctypes transport; add `bindingKey` to result when software key pivot lands |
-
----
-
-## Open Question — Software Key Pivot
-
-The biggest outstanding decision is whether Managed Identity mTLS pivots from **Windows CNG KeyGuard keys** (persistent, hardware-backed, non-exportable) to **software/exportable keys** (in-memory or Software KSP, no attestation).
-
-If this pivot happens:
-- The "BYO HTTP client" path becomes achievable on **every SDK** — MSAL extracts the PEM bytes and includes them in the auth result
-- The native transport helpers (`sendGetRequestAsync`, `MtlsMsiClient.httpRequest()`, etc.) become optional convenience wrappers rather than mandatory requirements
-- msal-python's downstream gap closes without needing a native DLL transport
-- The `AttestationClientLib.dll` dependency in msal-node (and its equivalents in other SDKs) can be removed entirely
-
-This is the same decision that unblocks msal-node, msal-java, and msal-python simultaneously. The recommendation to the Entra architect (Dragos) is to prioritize this pivot to maximize developer experience and cross-platform adoption.
