@@ -229,7 +229,7 @@ export async function fillPassword(page: Page, screenshot: Screenshot, password:
     try {
         await page.locator('span ::-p-text(Use your password)').setTimeout(1000).click().catch(() => {});
         await screenshot.takeScreenshot(page, "passwordPage");
-        await page.locator(`${Object.values(PasswordInputSelectors).join(", ")}`).setTimeout(5000).fill(password);
+        await page.locator(`${Object.values(PasswordInputSelectors).join(", ")}`).setTimeout(30000).fill(password);
         await screenshot.takeScreenshot(page, "loginPagePasswordFilled");
     } catch (e) {
         await screenshot.takeScreenshot(page, "failedToFillPassword").catch(() => {});
@@ -240,7 +240,7 @@ export async function fillPassword(page: Page, screenshot: Screenshot, password:
 export async function fillUsername(page: Page, screenshot: Screenshot, username: string): Promise<void> {
     try {
         await screenshot.takeScreenshot(page, "loginPage");
-        await page.locator(`${Object.values(UsernameSelectors).join(", ")}`).setTimeout(5000).fill(username);
+        await page.locator(`${Object.values(UsernameSelectors).join(", ")}`).setTimeout(30000).fill(username);
         await screenshot.takeScreenshot(page, "loginPageUsernameFilled");
     } catch (e) {
         await screenshot.takeScreenshot(page, "failedToFillUsername").catch(() => {});
@@ -252,7 +252,7 @@ export async function clickSubmitButton(page: Page, screenshot: Screenshot): Pro
     try {
         await Promise.all([
             page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {}),
-            page.locator(`${Object.values(SubmitButtonSelectors).join(", ")}`).setTimeout(5000).click(),
+            page.locator(`${Object.values(SubmitButtonSelectors).join(", ")}`).setTimeout(30000).click(),
         ]);
     } catch (e) {
         await screenshot.takeScreenshot(page, "errorClickingSubmit").catch(() => {});
