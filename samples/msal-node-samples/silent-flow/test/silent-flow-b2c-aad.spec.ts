@@ -137,6 +137,30 @@ describe("Silent Flow B2C Tests (aad account)", () => {
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
 
+        it("Performs acquire token silent when tokens are only present in persistent cache", async () => {
+            const screenshot = new Screenshot(
+                `${screenshotFolder}/AcquireTokenSilentFromPersistent`
+            );
+            await clickSignIn(page, screenshot);
+            await b2cAadPpeAccountEnterCredentials(
+                page,
+                screenshot,
+                username,
+                accountPwd
+            );
+            await page.waitForSelector("#acquireTokenSilent");
+            await publicClientApplication.clearCache();
+            await screenshot.takeScreenshot(page, "ATS");
+            await page.click("#acquireTokenSilent");
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                ONE_SECOND_IN_MS * 2
+            );
+            expect(cachedTokens.accessTokens.length).toBe(1);
+            expect(cachedTokens.idTokens.length).toBe(1);
+            expect(cachedTokens.refreshTokens.length).toBe(1);
+        });
+
         it("Performs acquire token silent", async () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/AcquireTokenSilent`
