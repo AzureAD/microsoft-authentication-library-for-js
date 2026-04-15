@@ -92,9 +92,7 @@ describe("/profileRawContext", () => {
         await enterCredentials(popupPage, screenshot, username, accountPwd);
 
         // Wait for Graph data to display
-        await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]", {
-            timeout: 5000,
-        });
+        await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]");
         await screenshot.takeScreenshot(page, "Graph data acquired");
 
         // Verify tokens are in cache

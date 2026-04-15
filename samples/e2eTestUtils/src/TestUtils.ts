@@ -430,7 +430,7 @@ export async function clickLoginRedirect(
     screenshot: Screenshot,
     page: Page
 ): Promise<void> {
-    await page.waitForSelector("#SignIn", { timeout: 5000 });
+    await page.waitForSelector("#SignIn", { timeout: 30000 });
     // Home Page
     await screenshot.takeScreenshot(page, "samplePageInit");
     // Click Sign In

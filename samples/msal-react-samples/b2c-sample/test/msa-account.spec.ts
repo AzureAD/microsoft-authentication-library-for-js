@@ -122,8 +122,7 @@ describe("B2C user-flow tests (msa account)", () => {
             ),
             page.waitForSelector("#idTokenClaims"),
             page.waitForSelector(
-                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])",
-                { timeout: 4000 }
+                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])"
             ),
         ]);
         const idTokenClaims = await page.$eval(

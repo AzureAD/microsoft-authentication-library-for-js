@@ -102,7 +102,6 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
         });
 

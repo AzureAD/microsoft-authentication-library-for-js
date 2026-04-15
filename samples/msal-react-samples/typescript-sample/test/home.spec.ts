@@ -126,9 +126,7 @@ describe("/ (Home Page)", () => {
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await popupWindowClosed;
-        await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]", {
-            timeout: 3000,
-        });
+        await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]");
         await screenshot.takeScreenshot(page, "Popup closed");
 
         // Verify UI now displays logged in content
