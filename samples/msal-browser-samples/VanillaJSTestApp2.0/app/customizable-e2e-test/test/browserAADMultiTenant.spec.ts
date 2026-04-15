@@ -32,11 +32,6 @@ const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screensh
 let sampleHomeUrl = "";
 
 describe("AAD-Prod Tests", () => {
-    // logout Tests beforeEach does a full popup login per test (new context,
-    // page.goto, enterCredentials, waitForReturnToApp), including real AAD
-    // network round-trips, which can exceed Jest's 30s default hook timeout.
-    jest.setTimeout(90000);
-
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -89,7 +84,7 @@ describe("AAD-Prod Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation
@@ -177,10 +172,6 @@ describe("AAD-Prod Tests", () => {
         beforeAll(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            // After acquireTokenRedirect, MSAL processes the redirect response on
-            // page.reload() (token exchange + cache write) before PCA is interactive.
-            // Under pipeline load this exceeds the 5s default.
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 15);
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation
@@ -423,10 +414,6 @@ describe("AAD-Prod Tests", () => {
         beforeAll(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            // After acquireTokenRedirect, MSAL processes the redirect response on
-            // page.reload() (token exchange + cache write) before PCA is interactive.
-            // Under pipeline load this exceeds the 5s default.
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 15);
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation
@@ -521,3 +508,4 @@ describe("AAD-Prod Tests", () => {
         });
     });
 });
+

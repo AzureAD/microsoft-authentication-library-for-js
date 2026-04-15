@@ -30,9 +30,6 @@ let sampleHomeUrl = "";
 describe("MCP Tests", () => {
     // setupPageAndLogin (used in acquireToken* beforeEach) does a full popup
     // login per test, including real AAD network round-trips, which can exceed
-    // Jest's 30s default hook timeout.
-    jest.setTimeout(90000);
-
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -72,7 +69,7 @@ describe("MCP Tests", () => {
     const setupPage = async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+
         BrowserCache = new BrowserCacheUtils(page, mcpMsalConfig.cache.cacheLocation);
         await page.goto(sampleHomeUrl);
         await pcaInitializedPoller(page, 5000);
@@ -81,7 +78,7 @@ describe("MCP Tests", () => {
     const setupPageAndLogin = async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+
         BrowserCache = new BrowserCacheUtils(page, mcpMsalConfig.cache.cacheLocation);
         await page.goto(sampleHomeUrl);
 
@@ -228,3 +225,4 @@ describe("MCP Tests", () => {
         });
     });
 });
+

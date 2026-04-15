@@ -79,7 +79,7 @@ describe("B2C Tests", () => {
             beforeEach(async () => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+
                 BrowserCache = new BrowserCacheUtils(
                     page,
                     b2cMsalConfig.cache.cacheLocation
@@ -154,11 +154,6 @@ describe("B2C Tests", () => {
             beforeAll(async () => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
-                // acquireToken tests share a single page and reload between each test.
-                // After acquireTokenRedirect, MSAL processes the redirect response and
-                // re-populates the cache on reload before the PCA is interactive.
-                // This involves real network calls and can exceed 5s under load.
-                page.setDefaultTimeout(ONE_SECOND_IN_MS * 15);
                 BrowserCache = new BrowserCacheUtils(
                     page,
                     b2cMsalConfig.cache.cacheLocation
@@ -318,7 +313,7 @@ describe("B2C Tests", () => {
             beforeEach(async () => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+
                 BrowserCache = new BrowserCacheUtils(
                     page,
                     b2cMsalConfig.cache.cacheLocation
@@ -393,11 +388,6 @@ describe("B2C Tests", () => {
             beforeAll(async () => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
-                // acquireToken tests share a single page and reload between each test.
-                // After acquireTokenRedirect, MSAL processes the redirect response and
-                // re-populates the cache on reload before the PCA is interactive.
-                // This involves real network calls and can exceed 5s under load.
-                page.setDefaultTimeout(ONE_SECOND_IN_MS * 15);
                 BrowserCache = new BrowserCacheUtils(
                     page,
                     b2cMsalConfig.cache.cacheLocation
