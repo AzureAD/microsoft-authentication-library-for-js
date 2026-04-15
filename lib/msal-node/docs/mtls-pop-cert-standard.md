@@ -45,8 +45,8 @@ After acquiring the token, the developer must make resource calls over mTLS usin
 |---|---|---|---|
 | **msal-dotnet** | Schannel (.NET) | ✅ Yes — `new HttpClientHandler(); handler.ClientCertificates.Add(result.BindingCertificate)` | None needed |
 | **msal-go** | `crypto/tls` (Go stdlib) | ✅ Yes — `tls.Config{Certificates: []tls.Certificate{*result.BindingTLSCertificate}}` on any `http.Client`; also provides `comm.NewMtlsHTTPClient(cert)` helper | ✅ `NewMtlsHTTPClient()` |
-| **msal-java** | JSSE + JNA → `ncrypt.dll` | ❌ No — private key stays in CNG; developer must use MSAL's wrapper | ✅ `MtlsMsiClient.httpRequest()` (not yet public API) |
-| **msal-node** | WinHTTP + Schannel (N-API addon) | ❌ No — Node.js uses OpenSSL which needs raw key bytes; KeyGuard key is non-exportable | ✅ `app.sendGetRequestAsync()` / `app.sendPostRequestAsync()` |
+| **msal-java** | JSSE + JNA → `ncrypt.dll` | ❌ No — private key stays in CNG; developer must use MSAL's wrapper | ✅ `MtlsMsiClient.httpRequest()` |
+| **msal-node** | WinHTTP + Schannel (N-API addon) | ❌ No — Node.js uses OpenSSL which needs raw key bytes; KeyGuard key is non-exportable | ✅ `app.sendGetRequestAsync()` / `app.sendPostRequestAsync()` where `app` is a `MtlsManagedIdentityApplication` |
 | **msal-python** | WinHTTP + Schannel (ctypes) — token acquisition only; `requests` for IMDS calls | ❌ No — private key stays in CNG; no downstream transport exposed | ❌ None — no downstream helper implemented |
 
 **Authorization header:** All SDKs use `Authorization: mtls_pop <access_token>` for downstream resource calls. msal-dotnet provides a `result.CreateAuthorizationHeader()` convenience method; other SDKs require manual construction.
@@ -69,9 +69,9 @@ result = app.acquireToken(...)
 const agent = new https.Agent({ cert: result.bindingCertificate, key: result.bindingKey });
 ```
 
-**msal-dotnet and msal-go** already make this possible today. **msal-node, msal-java, and msal-python** are currently blocked because their Managed Identity implementations use Windows CNG KeyGuard keys, which are hardware-backed and non-exportable by design.
+**msal-dotnet and msal-go** already make this possible today. All other MSALs (msal-node, msal-java, msal-python) are currently blocked by the same root cause: Managed Identity mTLS PoP uses Windows CNG KeyGuard keys, which are hardware-backed and non-exportable by design. This is not a per-SDK limitation — it is an architectural constraint shared across all implementations that rely on KeyGuard.
 
-This constraint resolves completely if/when MSAL pivots to **software/exportable keys** (the direction indicated by the Entra mTLS PoP architect). With a Software KSP key, MSAL can extract the PEM bytes from CNG and include them in the result, giving developers full HTTP client freedom on every SDK.
+This constraint resolves completely if/when MSAL pivots to **software/exportable keys** (the direction indicated by Dragos, the mTLS PoP architect). With a Software KSP key, MSAL can extract the PEM bytes from CNG and include them in the result, giving developers full HTTP client freedom on every SDK.
 
 ### Fallback: Standardized MSAL transport helper
 
@@ -118,4 +118,4 @@ If this pivot happens:
 - msal-python's downstream gap closes without needing a native DLL transport
 - The `AttestationClientLib.dll` dependency in msal-node (and its equivalents in other SDKs) can be removed entirely
 
-This is the same decision that unblocks msal-node, msal-java, and msal-python simultaneously. The recommendation to the Entra architect (Dragos Avadanei) is to prioritize this pivot to maximize developer experience and cross-platform adoption.
+This is the same decision that unblocks msal-node, msal-java, and msal-python simultaneously. The recommendation to the Entra architect (Dragos) is to prioritize this pivot to maximize developer experience and cross-platform adoption.
