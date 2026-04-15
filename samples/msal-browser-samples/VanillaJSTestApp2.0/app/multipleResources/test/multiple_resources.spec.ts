@@ -51,7 +51,7 @@ describe("Browser tests", function () {
         page = await context.newPage();
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
         await page.goto(sampleHomeUrl);
-        await pcaInitializedPoller(page, 5000);
+        await pcaInitializedPoller(page, 10000);
     });
 
     afterEach(async () => {

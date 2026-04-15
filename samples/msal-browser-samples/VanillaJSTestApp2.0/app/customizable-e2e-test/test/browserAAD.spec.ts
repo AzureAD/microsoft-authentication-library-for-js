@@ -82,7 +82,7 @@ describe("AAD-Prod Tests", () => {
                 aadMsalConfig.cache.cacheLocation
             );
             await page.goto(sampleHomeUrl);
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterEach(async () => {
@@ -158,7 +158,7 @@ describe("AAD-Prod Tests", () => {
                 })
             );
             await page.reload();
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
 
             const testName = "redirectBaseCase";
             const screenshot = new Screenshot(
@@ -187,7 +187,7 @@ describe("AAD-Prod Tests", () => {
                 })
             );
             await page.reload();
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
 
             const testName = "redirectBaseCase";
             const screenshot = new Screenshot(
@@ -217,7 +217,7 @@ describe("AAD-Prod Tests", () => {
                 })
             );
             await page.reload();
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
 
             const testName = "redirectBridgeCacheKeys";
             const screenshot = new Screenshot(
@@ -276,7 +276,7 @@ describe("AAD-Prod Tests", () => {
                 aadMsalConfig.cache.cacheLocation
             );
             await page.goto(sampleHomeUrl);
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
 
             testName = "logoutBaseCase";
             screenshot = new Screenshot(
@@ -293,7 +293,7 @@ describe("AAD-Prod Tests", () => {
                 popupPage,
                 popupWindowClosed
             );
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterEach(async () => {
@@ -382,7 +382,7 @@ describe("AAD-Prod Tests", () => {
                 aadMsalConfig.cache.cacheLocation
             );
             await page.goto(sampleHomeUrl);
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterEach(async () => {
@@ -463,7 +463,7 @@ describe("AAD-Prod Tests", () => {
         beforeEach(async () => {
             await page.reload();
             await page.waitForSelector("#WelcomeMessage");
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterAll(async () => {

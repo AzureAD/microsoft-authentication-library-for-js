@@ -85,7 +85,7 @@ describe("B2C Tests", () => {
                     b2cMsalConfig.cache.cacheLocation
                 );
                 await page.goto(sampleHomeUrl);
-                await pcaInitializedPoller(page, 5000);
+                await pcaInitializedPoller(page, 10000);
             });
 
             afterEach(async () => {
@@ -319,7 +319,7 @@ describe("B2C Tests", () => {
                     b2cMsalConfig.cache.cacheLocation
                 );
                 await page.goto(sampleHomeUrl);
-                await pcaInitializedPoller(page, 5000);
+                await pcaInitializedPoller(page, 10000);
             });
 
             afterEach(async () => {

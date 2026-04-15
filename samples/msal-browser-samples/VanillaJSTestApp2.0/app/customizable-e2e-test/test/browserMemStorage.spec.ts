@@ -92,7 +92,7 @@ describe("In Memory Storage Tests", function () {
                 memStorageConfig.cache.cacheLocation
             );
             await page.goto(sampleHomeUrl);
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterEach(async () => {

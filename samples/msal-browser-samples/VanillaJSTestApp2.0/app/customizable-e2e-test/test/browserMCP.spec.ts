@@ -72,7 +72,7 @@ describe("MCP Tests", () => {
 
         BrowserCache = new BrowserCacheUtils(page, mcpMsalConfig.cache.cacheLocation);
         await page.goto(sampleHomeUrl);
-        await pcaInitializedPoller(page, 5000);
+        await pcaInitializedPoller(page, 10000);
     };
 
     const setupPageAndLogin = async () => {
@@ -88,7 +88,7 @@ describe("MCP Tests", () => {
         await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
         await page.reload();
         await page.waitForSelector("#WelcomeMessage");
-        await pcaInitializedPoller(page, 5000);
+        await pcaInitializedPoller(page, 10000);
     };
 
 
@@ -166,7 +166,7 @@ describe("MCP Tests", () => {
 
             await page.reload();
             await page.waitForSelector("#WelcomeMessage");
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
 
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");

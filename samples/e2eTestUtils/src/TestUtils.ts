@@ -86,17 +86,24 @@ export async function pcaInitializedPoller(
     timeoutMs: number
 ): Promise<void> {
     await poller(
-        () => {
-            return new Promise(async (resolve, reject) => {
-                await page.waitForSelector("#pca-initialized");
-                const initializedText = await page.$eval(
-                    "#pca-initialized",
-                    (el) => el.textContent
-                );
-                if (initializedText === "true") {
-                    resolve();
-                }
-            });
+        async () => {
+            // Short per-attempt wait so the poller can retry if the element
+            // hasn't appeared yet or the page is mid-navigation.
+            const el = await page
+                .waitForSelector("#pca-initialized", { timeout: 1000 })
+                .catch(() => null);
+            if (!el) {
+                throw new Error("PCA not yet initialized");
+            }
+            // $eval can throw "Execution context was destroyed" when MSAL's
+            // handleRedirectPromise triggers a redirect.  Treat that as a
+            // retry rather than a hard failure.
+            const initializedText = await page
+                .$eval("#pca-initialized", (node) => node.textContent)
+                .catch(() => null);
+            if (initializedText !== "true") {
+                throw new Error("PCA not yet initialized");
+            }
         },
         timeoutMs,
         "Timed out while waiting for PublicClientApplication to be initialized"
