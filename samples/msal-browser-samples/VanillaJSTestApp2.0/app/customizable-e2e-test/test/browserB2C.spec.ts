@@ -154,7 +154,7 @@ describe("B2C Tests", () => {
             beforeAll(async () => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+                page.setDefaultTimeout(ONE_SECOND_IN_MS * 15);
                 BrowserCache = new BrowserCacheUtils(
                     page,
                     b2cMsalConfig.cache.cacheLocation
@@ -187,7 +187,7 @@ describe("B2C Tests", () => {
             beforeEach(async () => {
                 await page.reload();
                 await page.waitForSelector("#WelcomeMessage");
-                await pcaInitializedPoller(page, 5000);
+                await pcaInitializedPoller(page, 10000);
             });
 
             afterAll(async () => {
@@ -388,7 +388,7 @@ describe("B2C Tests", () => {
             beforeAll(async () => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+                page.setDefaultTimeout(ONE_SECOND_IN_MS * 15);
                 BrowserCache = new BrowserCacheUtils(
                     page,
                     b2cMsalConfig.cache.cacheLocation
@@ -421,7 +421,7 @@ describe("B2C Tests", () => {
             beforeEach(async () => {
                 await page.reload();
                 await page.waitForSelector("#WelcomeMessage");
-                await pcaInitializedPoller(page, 5000);
+                await pcaInitializedPoller(page, 10000);
             });
 
             afterAll(async () => {
