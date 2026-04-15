@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776220634654,
+  "lastUpdate": 1776277251548,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20503,6 +20503,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.78%",
             "unit": "ops/sec",
             "extra": "232 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "58bc3b2ac409699a5a622e222c907094aa3c1366",
+          "message": "Enhance security guidance in redirect bridge documentation regarding CDN usage and Safari Private Browsing (#8518)\n\nEnhance security guidance in redirect bridge documentation regarding CDN\nusage and Safari Private Browsing",
+          "timestamp": "2026-04-15T10:05:48-07:00",
+          "tree_id": "d80519f1677e8d47f65f28df59d46bf8e2844bf2",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/58bc3b2ac409699a5a622e222c907094aa3c1366"
+        },
+        "date": 1776277247000,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 235362,
+            "range": "±0.99%",
+            "unit": "ops/sec",
+            "extra": "211 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 232927,
+            "range": "±1.00%",
+            "unit": "ops/sec",
+            "extra": "229 samples"
           }
         ]
       }
