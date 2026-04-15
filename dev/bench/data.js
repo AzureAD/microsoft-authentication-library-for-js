@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776277251548,
+  "lastUpdate": 1776280944892,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20541,6 +20541,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.00%",
             "unit": "ops/sec",
             "extra": "229 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "45bd7d90ecf2eaf9f9eb018ea319b9993c83e8f6",
+          "message": "[v5] Cache lookup B2C tests (#8508)\n\nAdds B2C E2E tests to ensure msal-node performs acquire token silent\nwhen tokens are only present in persistent cache (for PR #7469).",
+          "timestamp": "2026-04-15T18:36:42Z",
+          "tree_id": "2c030921ace31e9aab82da367b963f454a3ed2a9",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/45bd7d90ecf2eaf9f9eb018ea319b9993c83e8f6"
+        },
+        "date": 1776280940204,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 239211,
+            "range": "±0.72%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 241471,
+            "range": "±0.91%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
