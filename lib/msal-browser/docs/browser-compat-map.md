@@ -128,7 +128,7 @@ These are not API availability issues but behavioral restrictions that affect MS
 | Chrome | Storage Access API | Shipping; continuing support | Potential fallback for environments where 3P cookies are manually blocked |
 | Safari | Tracking domain list expansion | Ongoing | More CDN domains may be blocked in PB mode |
 | Firefox | `BroadcastChannel` partitioned under TCP | Already active in TCP (Firefox 102+ default) | Breaks cross-origin iframe ↔ popup `BroadcastChannel` communication (same effect as Chrome 115 storage partitioning) |
-| All | Web Platform Authentication API (`navigator.platformAuthentication`) | Early proposal | May provide native broker access without extension |
+| All | Platform authentication proposal | Early proposal | May provide native broker access without extension |
 
 ## API-to-Flow Matrix
 
