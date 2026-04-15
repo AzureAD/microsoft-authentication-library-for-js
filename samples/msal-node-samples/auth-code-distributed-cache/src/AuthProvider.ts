@@ -19,7 +19,7 @@ import {
 } from "@azure/msal-node";
 import RedisClientWrapper from "./RedisClientWrapper";
 import PartitionManager from "./PartitionManager";
-import AxiosHelper from "./AxiosHelper";
+import FetchHelper from "./FetchHelper";
 
 export type AppConfig = {
     instance: string;
@@ -222,7 +222,7 @@ export class AuthProvider {
         const endpoint =
             "https://login.microsoftonline.com/common/discovery/instance";
 
-        return await AxiosHelper.callDownstreamApi(endpoint, undefined, {
+        return await FetchHelper.callDownstreamApi(endpoint, undefined, {
             "api-version": "1.1",
             authorization_endpoint: `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`,
         });
@@ -231,6 +231,6 @@ export class AuthProvider {
     private static async fetchOIDCMetadata(tenantId: string): Promise<any> {
         const endpoint = `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration`;
 
-        return await AxiosHelper.callDownstreamApi(endpoint);
+        return await FetchHelper.callDownstreamApi(endpoint);
     }
 }

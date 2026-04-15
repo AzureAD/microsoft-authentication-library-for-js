@@ -38,6 +38,7 @@ import {
     BrowserCacheManager,
     DEFAULT_BROWSER_CACHE_MANAGER,
 } from "../cache/BrowserCacheManager.js";
+import * as CacheKeys from "../cache/CacheKeys.js";
 import * as AccountManager from "../cache/AccountManager.js";
 import { BrowserConfiguration, CacheOptions } from "../config/Configuration.js";
 import {
@@ -474,6 +475,7 @@ export class StandardController implements IController {
         let rootMeasurement: InProgressPerformanceEvent;
 
         let redirectResponse: Promise<AuthenticationResult | null>;
+        let cachedRedirectRequest: SsoSilentRequest | undefined;
         try {
             if (useNative && this.platformAuthProvider) {
                 const correlationId =
@@ -519,6 +521,7 @@ export class StandardController implements IController {
             } else {
                 const [standardRequest, codeVerifier] =
                     this.browserStorage.getCachedRequest("");
+                cachedRedirectRequest = standardRequest;
                 const correlationId = standardRequest.correlationId;
                 this.eventHandler.emitEvent(
                     EventType.HANDLE_REDIRECT_START,
@@ -583,6 +586,12 @@ export class StandardController implements IController {
                         },
                         undefined,
                         result.account
+                    );
+
+                    // Fire-and-forget SSO capability verification in background
+                    this.verifySsoCapability(
+                        cachedRedirectRequest,
+                        InteractionType.Redirect
                     );
                 } else {
                     /*
@@ -907,6 +916,10 @@ export class StandardController implements IController {
                     undefined,
                     result.account
                 );
+
+                // SSO capability verification in background
+                this.verifySsoCapability(request, InteractionType.Popup);
+
                 return result;
             })
             .catch((e: Error) => {
@@ -982,6 +995,145 @@ export class StandardController implements IController {
         window.removeEventListener("online", listener);
         window.removeEventListener("offline", listener);
     }
+
+    /**
+     * Reads the cached ssoCapable value from localStorage.
+     * @returns The cached ssoCapable boolean value, or undefined if not cached or expired.
+     */
+    private getCachedSsoCapable(): boolean | undefined {
+        try {
+            const cachedValue = window.localStorage.getItem(
+                CacheKeys.SSO_CAPABLE
+            );
+            if (cachedValue) {
+                const parsed = JSON.parse(cachedValue);
+                if (
+                    parsed &&
+                    typeof parsed.ssoCapable === "boolean" &&
+                    parsed.expiresOn &&
+                    Date.now() < parsed.expiresOn
+                ) {
+                    return parsed.ssoCapable;
+                }
+            }
+        } catch {
+            // If parsing fails, return undefined
+        }
+        return undefined;
+    }
+
+    /**
+     * SSO capability verification in the background.
+     * This method makes an iframe request to /authorize to verify SSO capability without calling /token.
+     * This method does not block the caller and tracks telemetry for success/failure.
+     * This method only executes if verifySSO is set to true in the auth configuration.
+     * The result is cached in localStorage with a 24-hour TTL; the SSO verification call
+     * is only attempted when the cached value is absent or expired.
+     * @param request - The original request used for the authentication flow
+     * @param interactionType - The interactionType of the AT operation for logging purposes
+     */
+    private verifySsoCapability(
+        request: SsoSilentRequest | undefined,
+        interactionType: InteractionType
+    ): void {
+        // Check if SSO capability verification is enabled
+        if (!this.config.auth.verifySSO) {
+            return;
+        }
+
+        // Check TTL: derive ssoCapable state from localStorage and skip if not expired
+        const ssoCacheKey = CacheKeys.SSO_CAPABLE;
+        const SSO_CAPABLE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+        const cachedSsoCapable = this.getCachedSsoCapable();
+        if (cachedSsoCapable !== undefined) {
+            this.logger.verbose(
+                `SSO capability verification skipped - cached value has not expired (interactionType: '${interactionType}')`,
+                ""
+            );
+            return;
+        }
+
+        const correlationId = createNewGuid();
+        const ssoCapableMeasurement = this.performanceClient.startMeasurement(
+            BrowserRootPerformanceEvents.SsoCapable,
+            correlationId
+        );
+        ssoCapableMeasurement.add({
+            "ext.interactionType": interactionType,
+        });
+
+        this.logger.verbose(
+            `SSO capability verification initiated after '${interactionType}'`,
+            correlationId
+        );
+
+        /*
+         * Use setTimeout to ensure this runs in a separate macrotask after the current call stack completes
+         * This ensures the result is returned to the caller before the SSO verification starts and doesn't affect performance
+         */
+        setTimeout(() => {
+            const ssoVerificationRequest: SsoSilentRequest = {
+                ...request,
+                correlationId: correlationId,
+            };
+
+            const silentIframeClient =
+                this.createSilentIframeClient(correlationId);
+            silentIframeClient
+                .verifySso(ssoVerificationRequest)
+                .then((result: boolean) => {
+                    this.logger.verbose(
+                        `SSO capability verification completed after '${interactionType}', result: '${result}'`,
+                        correlationId
+                    );
+
+                    // TBD to add profileTelemetry later in localStorage with 24h TTL
+                    try {
+                        const cacheEntry = JSON.stringify({
+                            ssoCapable: result,
+                            expiresOn: Date.now() + SSO_CAPABLE_TTL_MS,
+                        });
+                        window.localStorage.setItem(ssoCacheKey, cacheEntry);
+                    } catch {
+                        this.logger.warning(
+                            `Failed to cache SSO capability verification result (interactionType: '${interactionType}')`,
+                            correlationId
+                        );
+                    }
+
+                    ssoCapableMeasurement.end(
+                        {
+                            fromCache: false,
+                            success: result,
+                        },
+                        undefined
+                    );
+                })
+                .catch((error: Error) => {
+                    this.logger.warning(
+                        `SSO capability verification failed after '${interactionType}': '${error.message}'`,
+                        correlationId
+                    );
+                    // reset the cache
+                    try {
+                        window.localStorage.removeItem(ssoCacheKey);
+                    } catch {
+                        this.logger.warning(
+                            `Failed to reset cached SSO capability verification result (interactionType: '${interactionType}')`,
+                            correlationId
+                        );
+                    }
+                    ssoCapableMeasurement.end(
+                        {
+                            fromCache: false,
+                            success: false,
+                        },
+                        error
+                    );
+                });
+        }, 0);
+    }
+
     // #endregion
 
     // #region Silent Flow
@@ -1013,6 +1165,7 @@ export class StandardController implements IController {
         );
         this.ssoSilentMeasurement?.add({
             scenarioId: request.scenarioId,
+            ssoCapable: this.getCachedSsoCapable(),
         });
         preflightCheck(
             this.initialized,
@@ -2031,6 +2184,7 @@ export class StandardController implements IController {
         atsMeasurement.add({
             cacheLookupPolicy: request.cacheLookupPolicy,
             scenarioId: request.scenarioId,
+            ssoCapable: this.getCachedSsoCapable(),
         });
 
         preflightCheck(this.initialized, atsMeasurement, this.config, request);

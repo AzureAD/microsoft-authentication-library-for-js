@@ -1607,6 +1607,149 @@ describe("SilentIframeClient", () => {
         });
     });
 
+    describe("verifySso", () => {
+        it("returns true when authorization code is present in response", async () => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+            );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            const result = await silentIframeClient.verifySso({
+                account: {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "testuser@microsoft.com",
+                },
+                correlationId: RANDOM_TEST_GUID,
+            });
+
+            expect(result).toBe(true);
+        });
+
+        it("returns false when authorization code is missing from response", async () => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            // Return response without code
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
+                `#state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
+            );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            const result = await silentIframeClient.verifySso({
+                account: {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "testuser@microsoft.com",
+                },
+                correlationId: RANDOM_TEST_GUID,
+            });
+
+            expect(result).toBe(false);
+        });
+
+        it("sets prompt to none if not specified", async () => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+            );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            const initializeAuthorizationRequestSpy = jest.spyOn(
+                StandardInteractionClientExports,
+                "initializeAuthorizationRequest"
+            );
+
+            await silentIframeClient.verifySso({
+                account: {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "testuser@microsoft.com",
+                },
+                correlationId: RANDOM_TEST_GUID,
+            });
+
+            expect(initializeAuthorizationRequestSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    prompt: Constants.PromptValue.NONE,
+                }),
+                InteractionType.Silent,
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything()
+            );
+        });
+
+        it("propagates errors from iframe flow", async () => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.timedOut,
+                    "redirect_bridge_timeout"
+                )
+            );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            await expect(
+                silentIframeClient.verifySso({
+                    account: {
+                        homeAccountId:
+                            TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                        localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                        environment: "login.windows.net",
+                        tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                        username: "testuser@microsoft.com",
+                    },
+                    correlationId: RANDOM_TEST_GUID,
+                })
+            ).rejects.toThrow();
+        });
+    });
+
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentIframeClient.logout).rejects.toMatchObject(

@@ -57,8 +57,7 @@ describe("B2C Tests", () => {
         await browser.close();
     });
 
-    // TODO: Unskip when AAD client app registration is updated
-    describe.skip("AAD Account", () => {
+    describe("AAD Account", () => {
         beforeAll(async () => {
             const labApiParams: LabApiQueryParams = {
                 azureEnvironment: AzureEnvironments.CLOUD,
