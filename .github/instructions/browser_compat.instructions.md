@@ -33,7 +33,7 @@ Flag changes that may break under these browser privacy features:
 
 | Restriction | Browsers | What breaks |
 |-------------|----------|-------------|
-| Third-party cookie blocking | Safari (ITP), Firefox (ETP/TCP), Chrome (in progress) | Silent iframe renewal, IdP session detection |
+| Third-party cookie blocking | Safari (ITP), Firefox (ETP/TCP), Chrome (user-configured/manual blocking, Incognito) | Silent iframe renewal, IdP session detection |
 | Storage partitioning in iframes | Chrome 115+, Safari 16.1+ | `BroadcastChannel`, `sessionStorage`, `localStorage`, `IndexedDB` isolated by top-level site |
 | Script-writable storage 7-day cap | Safari (ITP 2.3+) | `localStorage` tokens expire without user interaction |
 | Private Browsing ephemeral storage | Safari, Firefox, Chrome | All storage cleared on tab/window close; IndexedDB blocked in Firefox PB |
