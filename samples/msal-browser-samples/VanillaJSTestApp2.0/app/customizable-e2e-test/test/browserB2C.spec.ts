@@ -157,7 +157,7 @@ describe("B2C Tests", () => {
                 // acquireToken tests share a single page and reload between each test.
                 // After acquireTokenRedirect, MSAL processes the redirect response and
                 // re-populates the cache on reload before the PCA is interactive.
-                // On cold agents this can exceed 5s, especially when running first in the job.
+                // This involves real network calls and can exceed 5s under load.
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 15);
                 BrowserCache = new BrowserCacheUtils(
                     page,
@@ -191,7 +191,7 @@ describe("B2C Tests", () => {
             beforeEach(async () => {
                 await page.reload();
                 await page.waitForSelector("#WelcomeMessage");
-                // B2C cache re-init after page.reload() can exceed 5s on cold agents.
+                // B2C cache re-init after page.reload() can exceed 5s under load.
                 await pcaInitializedPoller(page, 10000);
             });
 
@@ -396,7 +396,7 @@ describe("B2C Tests", () => {
                 // acquireToken tests share a single page and reload between each test.
                 // After acquireTokenRedirect, MSAL processes the redirect response and
                 // re-populates the cache on reload before the PCA is interactive.
-                // On cold agents this can exceed 5s, especially when running first in the job.
+                // This involves real network calls and can exceed 5s under load.
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 15);
                 BrowserCache = new BrowserCacheUtils(
                     page,
@@ -430,7 +430,7 @@ describe("B2C Tests", () => {
             beforeEach(async () => {
                 await page.reload();
                 await page.waitForSelector("#WelcomeMessage");
-                // B2C cache re-init after page.reload() can exceed 5s on cold agents.
+                // B2C cache re-init after page.reload() can exceed 5s under load.
                 await pcaInitializedPoller(page, 10000);
             });
 

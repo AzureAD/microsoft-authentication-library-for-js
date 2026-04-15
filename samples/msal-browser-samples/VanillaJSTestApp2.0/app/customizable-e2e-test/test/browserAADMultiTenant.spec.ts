@@ -33,8 +33,8 @@ let sampleHomeUrl = "";
 
 describe("AAD-Prod Tests", () => {
     // logout Tests beforeEach does a full popup login per test (new context,
-    // page.goto, enterCredentials, waitForReturnToApp). On cold agents this
-    // can exceed Jest's 30s default hook timeout.
+    // page.goto, enterCredentials, waitForReturnToApp), including real AAD
+    // network round-trips, which can exceed Jest's 30s default hook timeout.
     jest.setTimeout(90000);
 
     let browser: puppeteer.Browser;

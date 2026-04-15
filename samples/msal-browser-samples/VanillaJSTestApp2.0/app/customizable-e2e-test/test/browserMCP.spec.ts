@@ -29,7 +29,8 @@ let sampleHomeUrl = "";
 
 describe("MCP Tests", () => {
     // setupPageAndLogin (used in acquireToken* beforeEach) does a full popup
-    // login per test. On cold agents this can exceed Jest's 30s default hook timeout.
+    // login per test, including real AAD network round-trips, which can exceed
+    // Jest's 30s default hook timeout.
     jest.setTimeout(90000);
 
     let browser: puppeteer.Browser;
