@@ -10,7 +10,7 @@ import {
 
 import { AuthProvider, AppConfig } from "./AuthProvider";
 import { isAuthorized } from "./middleware";
-import AxiosHelper from "./AxiosHelper";
+import FetchHelper from "./FetchHelper";
 
 export const port = process.env.PORT || 5000;
 export const app: Express = express();
@@ -40,7 +40,7 @@ async function main() {
                     scopes: ["User.Read"],
                 });
 
-                const graphResponse = await AxiosHelper.callDownstreamApi(
+                const graphResponse = await FetchHelper.callDownstreamApi(
                     "https://graph.microsoft.com/v1.0/me",
                     tokenResponse?.accessToken
                 );

@@ -3,9 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import axios from "axios";
-
-class AxiosHelper {
+class FetchHelper {
     /**
      * Makes an HTTP GET to the endpoint uri. If an access token exists, it includes
      * an Authorization header in the request. The header contains the bearer token.
@@ -20,19 +18,25 @@ class AxiosHelper {
     ): Promise<any> {
         console.log(`Request to ${endpoint} made at: ${new Date().toString()}`);
 
-        const response = await axios.get(endpoint, {
+        const url = new URL(endpoint);
+        if (params) {
+            Object.entries(params).forEach(([key, value]) =>
+                url.searchParams.append(key, value)
+            );
+        }
+
+        const response = await fetch(url.toString(), {
             headers:
                 (accessToken && { Authorization: `Bearer ${accessToken}` }) ||
                 undefined,
-            params: params || undefined,
         });
 
-        if (response.status !== 200) {
+        if (!response.ok) {
             throw new Error(`Response: ${response.status}`);
         }
 
-        return await response.data;
+        return await response.json();
     }
 }
 
-export default AxiosHelper;
+export default FetchHelper;
