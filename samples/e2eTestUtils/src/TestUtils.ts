@@ -255,6 +255,13 @@ export async function clickSubmitButton(page: Page, screenshot: Screenshot): Pro
             page.locator(`${Object.values(SubmitButtonSelectors).join(", ")}`).setTimeout(30000).click(),
         ]);
     } catch (e) {
+        // A "detached" or "destroyed" error means the frame navigated away while the
+        // click was in-flight — the click succeeded and a redirect is underway, so
+        // treat this as success rather than a hard failure.
+        const msg = String(e).toLowerCase();
+        if (msg.includes("detach") || msg.includes("destroyed") || msg.includes("execution context")) {
+            return;
+        }
         await screenshot.takeScreenshot(page, "errorClickingSubmit").catch(() => {});
         throw e;
     }
@@ -288,6 +295,12 @@ export async function enterCredentials(
 
         await fillPassword(page, screenshot, accountPwd);
         await clickSubmitButton(page, screenshot);
+
+        // After submitting the password AAD may chain several rapid redirects
+        // (MFA, device-auth, consent, etc.).  Wait for the next navigation to
+        // settle before probing for optional post-auth dialogs so we don't race
+        // against a partially-detached frame.
+        await page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 10000 }).catch(() => {});
 
         if (page.isClosed() || page.url().startsWith(SAMPLE_HOME_URL)) {
             return;

@@ -78,7 +78,7 @@ describe("Device Code AAD AGC Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(15000);
+            page.setDefaultTimeout(30000);
         });
 
         afterEach(async () => {

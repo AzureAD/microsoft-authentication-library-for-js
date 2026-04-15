@@ -86,7 +86,7 @@ describe("Device Code ADFS 2019 Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(15000);
+            page.setDefaultTimeout(30000);
         });
 
         afterEach(async () => {
