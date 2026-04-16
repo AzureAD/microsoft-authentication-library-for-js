@@ -21,6 +21,17 @@ How developers provide their certificate to MSAL today:
 
 **Path 2 (Managed Identity):** No certificate input from the developer. MSAL generates the key, builds the CSR, and calls IMDS `/issuecredential` to obtain the binding certificate.
 
+### Proposed standard
+
+To reduce integration friction, all MSALs should accept the following certificate input formats. This is the recommended standard for Azure SDK integration:
+
+| Format | Recommendation |
+|---|---|
+| PEM strings (certificate + private key) | Universal minimum — all SDKs must accept |
+| PKCS#12 / PFX + passphrase | Optional secondary format |
+| Thumbprint (SHA-256) | For cert store lookup where applicable; SHA-256 as primary (SHA-1 deprecated) |
+| Language-native cert objects (`X509Certificate2`, `x509.Certificate`, etc.) | Ergonomic aliases — optional but encouraged |
+
 ---
 
 ## Part 2 — AuthResult: What MSAL Returns After Token Acquisition
@@ -95,15 +106,3 @@ The software key pivot (direction indicated by Dragos, the mTLS PoP architect) r
 - `AttestationClientLib.dll` and equivalent native attestation dependencies can be removed entirely
 
 Until that pivot lands, **the recommendation is to use MSAL's app-specific transport for downstream calls on msal-node, msal-java, and msal-python**, and BYO HTTP client on msal-dotnet and msal-go.
-
-### Certificate input standard
-
-To reduce integration friction for Azure SDK, all MSALs should accept:
-
-| Format | Status |
-|---|---|
-| PEM strings (certificate + private key) | Universal minimum — all SDKs must accept |
-| PKCS#12 / PFX + passphrase | Optional secondary format |
-| Thumbprint (SHA-256) | For cert store lookup where applicable; SHA-256 as primary (SHA-1 deprecated) |
-| Language-native cert objects (`X509Certificate2`, `x509.Certificate`, etc.) | Ergonomic aliases — optional but encouraged |
-
