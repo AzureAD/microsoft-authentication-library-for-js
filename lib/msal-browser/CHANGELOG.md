@@ -1,8 +1,27 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 01 Apr 2026 20:08:59 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 16 Apr 2026 22:07:09 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.7.0
+
+Thu, 16 Apr 2026 22:07:09 GMT
+
+### Minor changes
+
+- Implement redirect bridge for logout flows and update postLogoutRedirectUri in samples [#8489](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8489) (kshabelko@microsoft.com)
+- Add support for client data telemetry with CLI_DATA parameter [#8378](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8378) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.5.0
+
+### Patches
+
+- Verify if an app is SSO Capable with 24h TTL cached. Add SsoCapable performance event. (sameera.gajjarapu@microsoft.com)
+- Fix MsalAuthenticationTemplate passing in undefined SsoSilentRequest [#8520](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8520) (lalimasharda@microsoft.com)
+- Attach cached ssoCapable value to ssoSilent and acquireTokenSilent telemetry. Refactor verifySsoCapability to accept request instead of account. (sameera.gajjarapu@microsoft.com)
+- Add Platform broker telemetry [#8488](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8488) (lalimasharda@microsoft.com)
+- Enable waitForBridgeLateResponse Telemetry [#8509](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8509) (thomas.norling@microsoft.com)
+- Add missing client capabilities in platform broker flows [#8428](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8428) (lalimasharda@microsoft.com)
 
 ## 5.6.3
 
