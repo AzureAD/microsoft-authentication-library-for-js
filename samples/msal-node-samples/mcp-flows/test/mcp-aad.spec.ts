@@ -40,7 +40,7 @@ const DIFFERENT_RESOURCE = "https://differentresource.microsoft.com";
 
 describe("MCP Node AAD Tests", () => {
     jest.retryTimes(RETRY_TIMES);
-    jest.setTimeout(ONE_SECOND_IN_MS * 45);
+    jest.setTimeout(ONE_SECOND_IN_MS * 90);
 
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
