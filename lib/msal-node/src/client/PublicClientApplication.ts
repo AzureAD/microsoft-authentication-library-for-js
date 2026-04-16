@@ -70,6 +70,7 @@ export class PublicClientApplication
      */
     constructor(configuration: Configuration) {
         super(configuration);
+        console.log("dummy commit");
         if (this.config.broker.nativeBrokerPlugin) {
             if (this.config.broker.nativeBrokerPlugin.isBrokerAvailable) {
                 this.nativeBrokerPlugin = this.config.broker.nativeBrokerPlugin;
