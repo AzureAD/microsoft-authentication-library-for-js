@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776371191761,
+  "lastUpdate": 1776374435892,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20617,6 +20617,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.01%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "86735c62f6ab31d7c8341f76b291e4b20c31bd99",
+          "message": "fix(e2e): improve E2E pipeline reliability - Chrome pre-warm, timeout fixes, and job splitting (#8534)\n\n## Problem\n\nE2E tests in the Release pipeline are frequently all-red on the first\nrun, requiring manual retries. Three root causes:\n\n### 1. Chrome cold-start / Puppeteer launch timeout\nOn fresh Windows agents, Windows Defender scans the Chrome binary on\nfirst execution, which can exceed Puppeteer's 30s default launch\ntimeout. When `setup()` throws, `this.global.__BROWSER__` is never\nassigned. Jest calls `teardown()` regardless, crashing with `TypeError:\nCannot read properties of undefined (reading 'close')` — masking the\nreal error.\n\n### 2. Jest hook / test timeouts too tight for real AAD network\nround-trips\nSeveral spec files perform full popup logins (AAD credential submission\n+ redirect) inside `beforeEach`, and others share a single page across\ntests with `page.reload()` + MSAL redirect processing between each.\nJest's default 30s hook timeout and 5s `pcaInitializedPoller` were too\ntight for these flows under pipeline load.\n\n### 3. Detached frame flakiness in device-code tests\nADFS/AAD login chains multiple redirects. `clickSubmitButton` uses\n`Promise.all([waitForNavigation({timeout:2000}).catch(()=>{}),\nclick()])` — the 2s nav timeout is silently swallowed. On the next\nredirect hop, `waitForSelector(\"#message\")` runs against a briefly\ndetached frame, throwing `\"Attempted to use detached Frame\"`.\n\n## Changes\n\n### Puppeteer environment (`e2eTestUtils`)\n- Remove `ignoreDefaultArgs: [\"--no-sandbox\",\n\"--disable-setuid-sandbox\"]` — no-op in Puppeteer v24\n- Add `timeout: 60000` to `puppeteer.launch()` to survive Defender\nscanning\n- Use optional chaining (`?.close()`) in `teardown()` so the real launch\nerror surfaces\n\n### Device-code tests\n- `jest.setTimeout(90000)` and `page.setDefaultTimeout(15000)` — device\ncode flow involves multiple real network hops\n- Retry loop on `waitForSelector(\"#message\")` catching `\"detached\"`\nerrors (up to 5 attempts, 1s delay) to handle mid-chain frame\ntransitions\n\n### Browser E2E spec files (`customizable-e2e-test`)\n- `jest.setTimeout(90000)` in `browserAAD`, `browserAADTenanted`,\n`browserAADMultiTenant`, `browserMCP` — all have\n`beforeEach`/`beforeAll` that perform full popup logins including real\nAAD network round-trips\n- `page.setDefaultTimeout(ONE_SECOND_IN_MS * 15)` in `browserB2C`\n`acquireToken Tests` — MSAL processes the redirect response and\nre-populates cache on `page.reload()` before PCA is interactive\n- `pcaInitializedPoller` timeout 5000 → 10000 in `browserB2C` and\n`browserAADMultiTenant`\n\n### Pipeline (`3p-e2e.yml`) — job splitting\n- `customizable-e2e-test` split 2 → 3 jobs (~20/24/17 tests each). The\noriginal `-1` filter `browserAAD` over-matched `browserAADTenanted` and\n`browserAADMultiTenant`, making it 44 tests vs 17 in `-2`. Fixed with\nprecise regex and a dedicated `-2` job for the tenanted/multi-tenant\nvariants.\n- `auth-code` split into `-1` (aad/adfs/agc, 24 tests) and `-2` (b2c, 15\ntests) — was ~9-11 min as a single job\n- `silent-flow` split into `-1` (aad/adfs/agc, 23 tests) and `-2` (b2c,\n15 tests) — same reasoning\n\n## Related\n\nCompanion 1P PR:\nhttps://identitydivision.visualstudio.com/IDDP/_git/msal-javascript-1p/pullrequest/23285\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-04-16T14:14:01-07:00",
+          "tree_id": "304e0a8179207fc1d2977ba26f06fca18380d14e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/86735c62f6ab31d7c8341f76b291e4b20c31bd99"
+        },
+        "date": 1776374431854,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 238769,
+            "range": "±0.87%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 241434,
+            "range": "±0.76%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
