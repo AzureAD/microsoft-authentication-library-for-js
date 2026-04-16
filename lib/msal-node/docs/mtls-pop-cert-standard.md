@@ -25,13 +25,13 @@ How developers provide their certificate to MSAL today:
 
 ## Part 2 — AuthResult: What MSAL Returns After Token Acquisition
 
-| SDK | Field name | Type | Private key accessible to developer? |
-|---|---|---|---|
-| **msal-dotnet** | `AuthenticationResult.BindingCertificate` | `X509Certificate2` | ✅ Yes — cert is stored in Windows Certificate Store; `GetRSAPrivateKey()` works |
-| **msal-go** | `AuthResult.BindingCertificate` | `*x509.Certificate` | ✅ Yes — also returns `AuthResult.BindingTLSCertificate` (`*tls.Certificate`) with `PrivateKey` as a `crypto.Signer` backed by CNG |
-| **msal-java** | `IAuthenticationResult.bindingCertificate()` | `X509Certificate` | ❌ No — private key stays in CNG (`CngRsaPrivateKey` in internal `MtlsBindingInfo`) |
-| **msal-node** | `AuthenticationResult.bindingCertificate` | PEM `string` | ❌ No — key is non-exportable from Windows CNG (KeyGuard) |
-| **msal-python** | TBD | TBD | ❌ No — private key stays in CNG; only public cert returned |
+| SDK | Field name | Type |
+|---|---|---|
+| **msal-dotnet** | `AuthenticationResult.BindingCertificate` | `X509Certificate2` |
+| **msal-go** | `AuthResult.BindingCertificate` + `AuthResult.BindingTLSCertificate` | `*x509.Certificate` + `*tls.Certificate` (with `PrivateKey` as `crypto.Signer`) |
+| **msal-java** | `IAuthenticationResult.bindingCertificate()` | `X509Certificate` |
+| **msal-node** | `AuthenticationResult.bindingCertificate` | PEM `string` |
+| **msal-python** | TBD | TBD |
 
 All SDKs set `tokenType` / `token_type` to `"mtls_pop"` in the result.
 
