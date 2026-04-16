@@ -31,7 +31,7 @@ How developers provide their certificate to MSAL today:
 | **msal-go** | `AuthResult.BindingCertificate` | `*x509.Certificate` | ✅ Yes — also returns `AuthResult.BindingTLSCertificate` (`*tls.Certificate`) with `PrivateKey` as a `crypto.Signer` backed by CNG |
 | **msal-java** | `IAuthenticationResult.bindingCertificate()` | `X509Certificate` | ❌ No — private key stays in CNG (`CngRsaPrivateKey` in internal `MtlsBindingInfo`) |
 | **msal-node** | `AuthenticationResult.bindingCertificate` | PEM `string` | ❌ No — key is non-exportable from Windows CNG (KeyGuard) |
-| **msal-python** | `result["cert_pem"]`, `result["cert_der_b64"]`, `result["cert_thumbprint_sha256"]` | PEM `str` + DER base64 + SHA-256 thumbprint | ❌ No — private key stays in CNG; only public cert returned |
+| **msal-python** | TBD | TBD | ❌ No — private key stays in CNG; only public cert returned |
 
 All SDKs set `tokenType` / `token_type` to `"mtls_pop"` in the result.
 
