@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776280944892,
+  "lastUpdate": 1776371191761,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20579,6 +20579,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.91%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2250b83510b09f585da83e990b9c5052ac7391c5",
+          "message": "Update event handling documentation for account state synchronization (#8526)\n\nThis pull request updates the event handling documentation for both\nAngular and React MSAL libraries to reflect new recommended events for\nsyncing authentication state across tabs and windows. The changes\nclarify which events should be listened to for login, logout, and active\naccount changes, and update example code accordingly.\n\n**Documentation and Example Updates:**\n\n* Updated both `msal-angular` and `msal-react` documentation to\nrecommend subscribing to `LOGIN_SUCCESS`, `LOGOUT_SUCCESS`, and\n`ACTIVE_ACCOUNT_CHANGED` events instead of the deprecated\n`ACCOUNT_ADDED` and `ACCOUNT_REMOVED` events for syncing authentication\nstate across browser tabs/windows. Clarified payload differences between\nthese events.\n[[1]](diffhunk://#diff-ed1247f205ad8f6d152baac4e4a3ff420a0f08ee262c779e560407be07d6f254L108-R111)\n[[2]](diffhunk://#diff-c82b574a4c28dcbe0dc95d118e817408645b4b5dd1b5c80fac5274cb7e6f3af3L84-R87)\n* Revised Angular and React code examples to filter and handle the new\nrecommended events, removing usage of `enableAccountStorageEvents` and\ndeprecated event types. Updated example logic to reflect the new event\nstructure and payloads.\n[[1]](diffhunk://#diff-ed1247f205ad8f6d152baac4e4a3ff420a0f08ee262c779e560407be07d6f254L124-R137)\n[[2]](diffhunk://#diff-c82b574a4c28dcbe0dc95d118e817408645b4b5dd1b5c80fac5274cb7e6f3af3L98-L112)\n\n---------\n\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-04-16T13:20:25-07:00",
+          "tree_id": "b818df49de6e476d8b8db4375802e63c32896295",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/2250b83510b09f585da83e990b9c5052ac7391c5"
+        },
+        "date": 1776371187077,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 200855,
+            "range": "±1.17%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 213016,
+            "range": "±1.01%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
