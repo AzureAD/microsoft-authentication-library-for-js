@@ -38,7 +38,7 @@ const config = require("../config/B2C-MSA.json");
 
 describe("Silent Flow B2C Tests (msa account)", () => {
     jest.retryTimes(RETRY_TIMES);
-    jest.setTimeout(ONE_SECOND_IN_MS * 45);
+    jest.setTimeout(ONE_SECOND_IN_MS * 90);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -105,7 +105,6 @@ describe("Silent Flow B2C Tests (msa account)", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
         });
 

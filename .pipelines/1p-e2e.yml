@@ -61,10 +61,10 @@ extends:
                         sourceBranch: ${{ variables.sourceBranch }}
                         workspace: "samples/"
                         samples:
-                            - "Broker_WAMTestApp"
-                            - "PerformanceTelemetrySample"
-                            - "BrokerTestApp-React"
-                            - "BrokerSingleFrameTestApp"
+                            - name: "Broker_WAMTestApp"
+                            - name: "PerformanceTelemetrySample"
+                            - name: "BrokerTestApp-React"
+                            - name: "BrokerSingleFrameTestApp"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}
