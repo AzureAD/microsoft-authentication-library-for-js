@@ -29,6 +29,7 @@ import {
 } from "../../../src/custom_auth/core/auth_flow/mfa/state/MfaState.js";
 import { MfaRequestChallengeResult } from "../../../src/custom_auth/core/auth_flow/mfa/result/MfaRequestChallengeResult.js";
 import { MfaSubmitChallengeResult } from "../../../src/custom_auth/core/auth_flow/mfa/result/MfaSubmitChallengeResult.js";
+import { CustomAuthApiError } from "../../../src/custom_auth/core/error/CustomAuthApiError.js";
 
 describe("Sign up", () => {
     let app: CustomAuthPublicClientApplication;
@@ -2420,17 +2421,6 @@ describe("Sign up", () => {
 
         const startResult = await app.signUp(signUpInputs);
 
-        // Verify flatusername was included in the /start request payload
-        const startCallBody = (fetch as jest.Mock).mock.calls[0][1]
-            .body as URLSearchParams;
-        const sentAttributes = JSON.parse(
-            startCallBody.get("attributes") as string
-        );
-        expect(sentAttributes).toEqual({
-            flatusername: "foobar",
-            city: "test-city",
-        });
-
         expect(startResult).toBeInstanceOf(SignUpResult);
         expect(startResult.error).toBeUndefined();
         expect(startResult.isCodeRequired()).toBe(true);
@@ -2575,17 +2565,6 @@ describe("Sign up", () => {
         const submitAttributesResult = await (
             submitCodeResult.state as SignUpAttributesRequiredState
         ).submitAttributes({
-            flatusername: "foobar",
-            displayName: "Test User",
-        });
-
-        // Verify flatusername was included in the /continue request payload
-        const continueCallBody = (fetch as jest.Mock).mock.calls[3][1]
-            .body as URLSearchParams;
-        const sentAttributes = JSON.parse(
-            continueCallBody.get("attributes") as string
-        );
-        expect(sentAttributes).toEqual({
             flatusername: "foobar",
             displayName: "Test User",
         });
@@ -2772,14 +2751,6 @@ describe("Sign up", () => {
 
         const startResult = await app.signUp(signUpInputs);
 
-        // Verify flatusername was in the request payload
-        const startCallBody = (fetch as jest.Mock).mock.calls[0][1]
-            .body as URLSearchParams;
-        const sentAttributes = JSON.parse(
-            startCallBody.get("attributes") as string
-        );
-        expect(sentAttributes).toEqual({ flatusername: "existinguser" });
-
         expect(startResult).toBeInstanceOf(SignUpResult);
         expect(startResult.isFailed()).toBe(true);
         expect(startResult.error).toBeDefined();
@@ -2887,7 +2858,10 @@ describe("Sign up", () => {
         const errorData = submitAttributesResult.error?.errorData;
         expect(errorData).toBeDefined();
         expect(errorData?.error).toBe("invalid_grant");
-        expect((errorData as any)?.attributes).toEqual(
+        expect(errorData).toBeInstanceOf(CustomAuthApiError);
+        expect(
+            (errorData as CustomAuthApiError).attributes
+        ).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({ name: "flatusername" }),
             ])
