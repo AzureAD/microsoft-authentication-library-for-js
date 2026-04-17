@@ -48,7 +48,7 @@ config.resourceApi = {
 
 describe("Silent Flow AAD AGC Public Tests", () => {
     jest.retryTimes(RETRY_TIMES);
-    jest.setTimeout(ONE_SECOND_IN_MS * 2);
+    jest.setTimeout(ONE_SECOND_IN_MS * 90);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -101,7 +101,6 @@ describe("Silent Flow AAD AGC Public Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
         });
 

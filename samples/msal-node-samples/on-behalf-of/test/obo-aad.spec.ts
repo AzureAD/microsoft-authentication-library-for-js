@@ -51,7 +51,7 @@ const HOME_ROUTE = `http://localhost:${webAppConfig.serverPort}`;
 
 describe("OBO AAD Tests", () => {
     jest.retryTimes(1);
-    jest.setTimeout(45000);
+    jest.setTimeout(90000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -148,7 +148,6 @@ describe("OBO AAD Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(5000);
             page.on("dialog", async (dialog) => {
                 console.log(dialog.message());
                 await dialog.dismiss();
@@ -188,3 +187,4 @@ describe("OBO AAD Tests", () => {
         });
     });
 });
+

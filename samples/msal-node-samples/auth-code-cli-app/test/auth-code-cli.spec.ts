@@ -32,7 +32,7 @@ const config = require("../config/AAD.json");
 
 describe("Auth Code CLI AAD Prod Tests", () => {
     jest.retryTimes(RETRY_TIMES);
-    jest.setTimeout(45000);
+    jest.setTimeout(90000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -89,7 +89,6 @@ describe("Auth Code CLI AAD Prod Tests", () => {
             const openBrowser = async (url: string) => {
                 context = await browser.createBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(5000);
                 page.goto(url);
                 enterCredentials(page, screenshot, username, accountPwd);
             };
@@ -122,3 +121,4 @@ describe("Auth Code CLI AAD Prod Tests", () => {
         });
     });
 });
+

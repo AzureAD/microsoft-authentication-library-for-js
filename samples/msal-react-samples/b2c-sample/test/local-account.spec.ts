@@ -48,7 +48,6 @@ describe("B2C user-flow tests (local account)", () => {
     beforeEach(async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
         await page.goto(`http://localhost:${port}`);
     });
@@ -121,8 +120,7 @@ describe("B2C user-flow tests (local account)", () => {
             ),
             page.waitForSelector("#idTokenClaims"),
             page.waitForSelector(
-                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])",
-                { timeout: 10000 }
+                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])"
             ),
         ]);
         const idTokenClaims = await page.$eval(

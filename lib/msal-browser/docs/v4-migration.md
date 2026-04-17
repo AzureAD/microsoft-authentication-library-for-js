@@ -372,10 +372,14 @@ The setup varies by build system — see the **[Redirect Bridge — Framework-Sp
 
 > [!CAUTION]
 > **Do NOT load the redirect bridge page from a CDN** (e.g., jsdelivr, unpkg,
-> cdnjs). The bridge receives the raw authentication response and loading it
-> from a third-party CDN creates a supply-chain and token-theft risk. Always
-> bundle the redirect bridge with your application or serve it from your own
-> infrastructure. See the [Redirect Bridge guide](./redirect-bridge.md) for details.
+> cdnjs). The bridge receives the raw authentication response — including
+> authorization codes and tokens — and loading it from a third-party CDN
+> creates a supply-chain and token-theft risk. Always bundle the redirect
+> bridge with your application and serve it **from the same origin** as your
+> application. The bridge page should also be served with
+> `Cache-Control: no-store` to prevent intermediaries from caching the
+> authentication response. See the [Redirect Bridge guide](./redirect-bridge.md) for
+> details.
 
 ##### 2. Update your MSAL configuration
 

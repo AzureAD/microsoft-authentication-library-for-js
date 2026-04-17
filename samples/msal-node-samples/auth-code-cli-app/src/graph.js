@@ -1,4 +1,3 @@
-const axios = require('axios').default;
 const { graphMeEndpoint } = require("./authConfig.js")
 
 async function callMicrosoftGraph(accessToken) {
@@ -10,8 +9,8 @@ async function callMicrosoftGraph(accessToken) {
     };
 
     try {
-        const response = await axios.get(graphMeEndpoint, options);
-        return response.data;
+        const response = await fetch(graphMeEndpoint, options);
+        return response.json();
     } catch (error) {
         return error;
     }

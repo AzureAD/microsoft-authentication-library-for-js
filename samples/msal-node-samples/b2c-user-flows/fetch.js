@@ -3,14 +3,12 @@
  * Licensed under the MIT License.
  */
 
-var axios = require('axios').default;
-
 /**
  * Attaches a given access token to a MS Graph API call
  * @param endpoint: REST API endpoint to call
  * @param accessToken: raw access token string
  */
-async function fetch(endpoint, accessToken) {
+async function callApi(endpoint, accessToken) {
     const options = {
         headers: {
             Authorization: `Bearer ${accessToken}`
@@ -20,11 +18,11 @@ async function fetch(endpoint, accessToken) {
     console.log(`request made to ${endpoint} at: ` + new Date().toString());
 
     try {
-        const response = await axios.get(endpoint, options);
-        return await response.data;
+        const response = await fetch(endpoint, options);
+        return await response.json();
     } catch (error) {
         throw new Error(error);
     }
 }
 
-module.exports = fetch;
+module.exports = callApi;
