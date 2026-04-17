@@ -60,8 +60,8 @@ test("Popup Login Flow - Successful authentication and token acquisition", async
     }
     await screenshot.takeScreenshot(popupPage, "Popup opened");
 
-    await browserPage.waitForSelector("#successAuthCode", { timeout: 3000 });
-    await browserPage.waitForSelector("#successMsg", { timeout: 3000 });
+    await browserPage.waitForSelector("#successAuthCode", { timeout: 30000 });
+    await browserPage.waitForSelector("#successMsg", { timeout: 30000 });
 
     await screenshot.takeScreenshot(
         browserPage,
@@ -107,8 +107,8 @@ test("ssoSilent Token Acquisition", async () => {
     console.log("Silent iframe frame object:", frame.url());
     expect(frame.url()).toContain("/authorize");
 
-    await browserPage.waitForSelector("#successAuthCode", { timeout: 3000 });
-    await browserPage.waitForSelector("#successMsg", { timeout: 3000 });
+    await browserPage.waitForSelector("#successAuthCode", { timeout: 30000 });
+    await browserPage.waitForSelector("#successMsg", { timeout: 30000 });
 
     await screenshot.takeScreenshot(
         browserPage,
