@@ -2718,9 +2718,9 @@ describe("Sign up", () => {
         expect(submitAttributesResult.error?.errorData?.error).toBe(
             "invalid_request"
         );
-        expect(
-            submitAttributesResult.error?.errorData?.errorCodes
-        ).toContain(901002);
+        expect(submitAttributesResult.error?.errorData?.errorCodes).toContain(
+            901002
+        );
         expect(
             submitAttributesResult.error?.errorData?.errorDescription
         ).toContain("flatusername");
@@ -2859,9 +2859,7 @@ describe("Sign up", () => {
         expect(errorData).toBeDefined();
         expect(errorData?.error).toBe("invalid_grant");
         expect(errorData).toBeInstanceOf(CustomAuthApiError);
-        expect(
-            (errorData as CustomAuthApiError).attributes
-        ).toEqual(
+        expect((errorData as CustomAuthApiError).attributes).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({ name: "flatusername" }),
             ])
@@ -2900,8 +2898,7 @@ describe("Sign up", () => {
             status: 400,
             json: async () => ({
                 error: "attributes_required",
-                error_description:
-                    "AADSTS55106: User attributes required.",
+                error_description: "AADSTS55106: User attributes required.",
                 error_codes: [55106],
                 timestamp: "yy-mm-dd 02:37:33Z",
                 trace_id: "test-trace-id",
