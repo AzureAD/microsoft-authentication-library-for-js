@@ -513,10 +513,9 @@ export abstract class CacheManager implements ICacheManager {
 
         if (
             !!tenantProfileFilter.loginHint &&
-            !(
-                tenantProfile.loginHint === tenantProfileFilter.loginHint ||
-                tenantProfile.username === tenantProfileFilter.loginHint ||
-                tenantProfile.upn === tenantProfileFilter.loginHint
+            !this.matchLoginHintWithTenantProfile(
+                tenantProfile,
+                tenantProfileFilter.loginHint
             )
         ) {
             return false;
@@ -719,8 +718,7 @@ export abstract class CacheManager implements ICacheManager {
     ): AccountEntity[] {
         const allAccountKeys = this.getAccountKeys();
         const matchingAccounts: AccountEntity[] = [];
-        for (let i = 0; i < allAccountKeys.length; i++) {
-            const cacheKey = allAccountKeys[i];
+        allAccountKeys.forEach((cacheKey) => {
             const entity: AccountEntity | null = this.getAccount(
                 cacheKey,
                 correlationId
@@ -729,14 +727,14 @@ export abstract class CacheManager implements ICacheManager {
             // Match base account fields
 
             if (!entity) {
-                continue;
+                return;
             }
 
             if (
                 !!accountFilter.homeAccountId &&
                 !this.matchHomeAccountId(entity, accountFilter.homeAccountId)
             ) {
-                continue;
+                return;
             }
 
             if (
@@ -747,14 +745,14 @@ export abstract class CacheManager implements ICacheManager {
                     correlationId
                 )
             ) {
-                continue;
+                return;
             }
 
             if (
                 !!accountFilter.realm &&
                 !this.matchRealm(entity, accountFilter.realm)
             ) {
-                continue;
+                return;
             }
 
             if (
@@ -764,14 +762,14 @@ export abstract class CacheManager implements ICacheManager {
                     accountFilter.nativeAccountId
                 )
             ) {
-                continue;
+                return;
             }
 
             if (
                 !!accountFilter.authorityType &&
                 !this.matchAuthorityType(entity, accountFilter.authorityType)
             ) {
-                continue;
+                return;
             }
 
             // If at least one tenant profile matches the tenant profile filter, add the account to the list of matching accounts
@@ -792,11 +790,11 @@ export abstract class CacheManager implements ICacheManager {
 
             if (matchingTenantProfiles && matchingTenantProfiles.length === 0) {
                 // No tenant profile for this account matches filter, don't add to list of matching accounts
-                continue;
+                return;
             }
 
             matchingAccounts.push(entity);
-        }
+        });
 
         return matchingAccounts;
     }
@@ -1195,7 +1193,8 @@ export abstract class CacheManager implements ICacheManager {
         correlationId: string,
         tokenKeys?: TokenKeys
     ): Map<string, IdTokenEntity> {
-        const idTokenKeys = (tokenKeys && tokenKeys.idToken) || this.getTokenKeys().idToken;
+        const idTokenKeys =
+            (tokenKeys && tokenKeys.idToken) || this.getTokenKeys().idToken;
 
         const idTokens: Map<string, IdTokenEntity> = new Map<
             string,
@@ -1680,6 +1679,23 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
+     * helper to match usernames
+     * @param entity
+     * @param username
+     * @returns
+     */
+    private matchLoginHintWithTenantProfile(
+        tenantProfile: TenantProfile,
+        filterLoginHint: string
+    ): boolean {
+        return (
+            tenantProfile.loginHint === filterLoginHint ||
+            tenantProfile.username === filterLoginHint ||
+            tenantProfile.upn === filterLoginHint
+        );
+    }
+
+    /**
      * helper to match assertion
      * @param value
      * @param oboAssertion
@@ -1824,7 +1840,7 @@ export abstract class CacheManager implements ICacheManager {
             return true;
         }
 
-        //check login hint against list of emails in token claims
+        // check login hint against list of emails in token claims
         if (tokenClaims.emails && tokenClaims.emails.includes(loginHint)) {
             return true;
         }
