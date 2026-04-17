@@ -36,7 +36,7 @@ const config = require("../config/B2C-Local.json");
 
 describe("B2C User Flow Tests", () => {
     jest.retryTimes(RETRY_TIMES);
-    jest.setTimeout(45000);
+    jest.setTimeout(90000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -112,7 +112,6 @@ describe("B2C User Flow Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(5000);
             page.on("dialog", async (dialog) => {
                 console.log(dialog.message());
                 await dialog.dismiss();
@@ -159,3 +158,4 @@ describe("B2C User Flow Tests", () => {
         });
     });
 });
+

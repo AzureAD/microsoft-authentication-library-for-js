@@ -28,6 +28,8 @@ const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screensh
 let sampleHomeUrl = "";
 
 describe("MCP Tests", () => {
+    // setupPageAndLogin (used in acquireToken* beforeEach) does a full popup
+    // login per test, including real AAD network round-trips, which can exceed the default Jest test timeout.
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -67,16 +69,16 @@ describe("MCP Tests", () => {
     const setupPage = async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+
         BrowserCache = new BrowserCacheUtils(page, mcpMsalConfig.cache.cacheLocation);
         await page.goto(sampleHomeUrl);
-        await pcaInitializedPoller(page, 5000);
+        await pcaInitializedPoller(page, 10000);
     };
 
     const setupPageAndLogin = async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+
         BrowserCache = new BrowserCacheUtils(page, mcpMsalConfig.cache.cacheLocation);
         await page.goto(sampleHomeUrl);
 
@@ -86,7 +88,7 @@ describe("MCP Tests", () => {
         await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
         await page.reload();
         await page.waitForSelector("#WelcomeMessage");
-        await pcaInitializedPoller(page, 5000);
+        await pcaInitializedPoller(page, 10000);
     };
 
 
@@ -164,7 +166,7 @@ describe("MCP Tests", () => {
 
             await page.reload();
             await page.waitForSelector("#WelcomeMessage");
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
 
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
@@ -223,3 +225,4 @@ describe("MCP Tests", () => {
         });
     });
 });
+

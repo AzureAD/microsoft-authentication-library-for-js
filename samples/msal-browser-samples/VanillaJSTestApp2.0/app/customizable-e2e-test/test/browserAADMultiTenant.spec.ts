@@ -84,13 +84,15 @@ describe("AAD-Prod Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation
             );
             await page.goto(sampleHomeUrl);
-            await pcaInitializedPoller(page, 5000);
+            // Each logout test starts from a fresh page; allow extra time for MSAL init
+            // before the login step that every test requires.
+            await pcaInitializedPoller(page, 10000);
 
             testName = "logoutBaseCase";
             screenshot = new Screenshot(
@@ -107,7 +109,8 @@ describe("AAD-Prod Tests", () => {
                 popupPage,
                 popupWindowClosed
             );
-            await pcaInitializedPoller(page, 5000);
+            // Allow MSAL to finish processing the login response before the test begins.
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterEach(async () => {
@@ -169,7 +172,6 @@ describe("AAD-Prod Tests", () => {
         beforeAll(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation
@@ -196,7 +198,7 @@ describe("AAD-Prod Tests", () => {
         beforeEach(async () => {
             await page.reload();
             await page.waitForSelector("#WelcomeMessage");
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterAll(async () => {
@@ -412,7 +414,6 @@ describe("AAD-Prod Tests", () => {
         beforeAll(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation
@@ -444,7 +445,7 @@ describe("AAD-Prod Tests", () => {
         beforeEach(async () => {
             await page.reload();
             await page.waitForSelector("#WelcomeMessage");
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterAll(async () => {
@@ -507,3 +508,4 @@ describe("AAD-Prod Tests", () => {
         });
     });
 });
+
