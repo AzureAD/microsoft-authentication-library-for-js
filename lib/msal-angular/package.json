@@ -29,7 +29,8 @@
     "prepack": "npm run build:all",
     "prepublishOnly": "echo Use npm run deploy && exit 1",
     "format:check": "prettier --ignore-path .gitignore --check src",
-    "format:fix": "prettier --ignore-path .gitignore --write src"
+    "format:fix": "prettier --ignore-path .gitignore --write src",
+    "validate:exports": "node ../../scripts/check-exports.js"
   },
   "typings": "./dist/azure-msal-angular.d.ts",
   "beachball": {

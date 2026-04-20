@@ -54,6 +54,7 @@
     "format:check": "prettier --ignore-path .gitignore --check src test",
     "format:fix": "prettier --ignore-path .gitignore --write src test",
     "typecheck": "tsc --noEmit -p tsconfig.build.json",
+    "validate:exports": "node ../../scripts/check-exports.js",
     "apiExtractor": "api-extractor run"
   },
   "peerDependencies": {
