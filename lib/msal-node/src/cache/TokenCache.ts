@@ -235,7 +235,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
         // Preserve authority metadata before clearing since it is not included in the serialized cache
         const authorityMetadataKeys = this.storage.getAuthorityMetadataKeys();
-        const authorityMetadata: Record<string, object> = {};
+        const authorityMetadata: Record<string, AuthorityMetadataEntity> = {};
         authorityMetadataKeys.forEach((key) => {
             const metadata = this.storage.getAuthorityMetadata(key);
             if (metadata) {
@@ -251,10 +251,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
         // Restore authority metadata after cache overwrite
         Object.entries(authorityMetadata).forEach(([key, metadata]) => {
-            this.storage.setAuthorityMetadata(
-                key,
-                metadata as AuthorityMetadataEntity
-            );
+            this.storage.setAuthorityMetadata(key, metadata);
         });
 
         await this.persistence.afterCacheAccess(cacheContext);
