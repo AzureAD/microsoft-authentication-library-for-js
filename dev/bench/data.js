@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776374435892,
+  "lastUpdate": 1776709700629,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20653,6 +20653,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 241434,
             "range": "±0.76%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "152663010+msal-js-release-automation[bot]@users.noreply.github.com",
+            "name": "msal-js-release-automation[bot]",
+            "username": "msal-js-release-automation[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4958ee22afddde6ceaf3f6b4631b1c34ece0326d",
+          "message": "Post-release PR (#8539)\n\nThis PR contains the changelogs and version bumps for the MSAL.js 3P\nreleases.\n\nCo-authored-by: MSAL.js Release Automation <msaljsbuilds@microsoft.com>",
+          "timestamp": "2026-04-20T18:22:27Z",
+          "tree_id": "ad14f7e24224a339ab54d73549be1e3fe1ad9652",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/4958ee22afddde6ceaf3f6b4631b1c34ece0326d"
+        },
+        "date": 1776709695569,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 216680,
+            "range": "±1.22%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 213897,
+            "range": "±1.06%",
             "unit": "ops/sec",
             "extra": "234 samples"
           }
