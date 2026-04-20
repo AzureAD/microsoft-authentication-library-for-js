@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776709700629,
+  "lastUpdate": 1776714798235,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20693,6 +20693,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.06%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f2dcab722a6e8e6c578e40d110b183d5400936e6",
+          "message": "Add CJS build for redirect-bridge subpath export (#8541)\n\nThis pull request updates the build process for the `redirect-bridge`\nmodule in `msal-browser` to add a CommonJS (CJS) build output. The\npackage configuration is also updated to reference this new CJS bundle\nas the default export.\n\n**Build system updates:**\n\n* Added a new Rollup build configuration in `rollup.config.js` to\ngenerate a CommonJS (`.cjs`) bundle for `redirect-bridge`, including\nsource maps and type definitions.\n\n**Package configuration updates:**\n\n* Updated the `package.json` export map to point the `default` export to\nthe new CommonJS bundle (`msal-redirect-bridge.cjs`) instead of the\nprevious JavaScript file.",
+          "timestamp": "2026-04-20T12:46:48-07:00",
+          "tree_id": "ab4af7fc95d67691c2d10b5a5041f34887eb4588",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f2dcab722a6e8e6c578e40d110b183d5400936e6"
+        },
+        "date": 1776714794931,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 235939,
+            "range": "±0.88%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 235707,
+            "range": "±0.78%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
