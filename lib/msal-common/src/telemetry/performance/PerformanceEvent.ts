@@ -430,6 +430,11 @@ export type PerformanceEvent = {
     kmsi?: boolean;
 
     /**
+     * Cached SSO capability status from the most recent SSO verification
+     */
+    ssoCapable?: boolean;
+
+    /**
      * Whether this event was executed in the background
      */
     isBackground?: boolean;

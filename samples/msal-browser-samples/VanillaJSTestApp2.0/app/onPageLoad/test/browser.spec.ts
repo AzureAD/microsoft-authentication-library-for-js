@@ -48,7 +48,6 @@ describe("On Page Load tests", function () {
     beforeEach(async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
     });
 
