@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add CJS build for redirect-bridge subpath export [#8541](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8541)",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
