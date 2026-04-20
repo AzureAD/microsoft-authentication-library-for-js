@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Preserve authority metadata during persistent cache overwrite #8542",
+  "packageName": "@azure/msal-node",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
