@@ -2,6 +2,29 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Thu, 16 Apr 2026 22:44:53 GMT",
+      "version": "5.3.0",
+      "tag": "@azure/msal-react_v5.3.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "86735c62f6ab31d7c8341f76b291e4b20c31bd99",
+            "comment": "Fix MsalAuthenticationTemplate passing in undefined SsoSilentRequest [#8520](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8520)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v5.7.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 01 Apr 2026 20:09:00 GMT",
       "version": "5.2.1",
       "tag": "@azure/msal-react_v5.2.1",

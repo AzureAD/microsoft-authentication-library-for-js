@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-react
 
-<!-- This log was last generated on Wed, 01 Apr 2026 20:09:00 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 16 Apr 2026 22:44:53 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.3.0
+
+Thu, 16 Apr 2026 22:44:53 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to v5.7.0
+
+### Patches
+
+- Fix MsalAuthenticationTemplate passing in undefined SsoSilentRequest [#8520](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8520) (lalimasharda@microsoft.com)
 
 ## 5.2.1
 
