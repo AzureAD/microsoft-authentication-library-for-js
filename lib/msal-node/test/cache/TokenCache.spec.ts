@@ -339,10 +339,8 @@ describe("TokenCache tests", () => {
 
         await tokenCache.overwriteCache();
 
-        // Authority metadata should survive the overwrite
-        const restoredMetadata = storage.getAuthorityMetadata(
-            authorityMetadataKey
-        );
+        const restoredMetadata =
+            storage.getAuthorityMetadata(authorityMetadataKey);
         expect(restoredMetadata).not.toBeNull();
         expect(restoredMetadata!.aliases).toEqual(authorityMetadata.aliases);
         expect(restoredMetadata!.preferred_cache).toEqual(

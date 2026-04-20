@@ -234,8 +234,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         );
 
         // Preserve authority metadata before clearing since it is not included in the serialized cache
-        const authorityMetadataKeys =
-            this.storage.getAuthorityMetadataKeys();
+        const authorityMetadataKeys = this.storage.getAuthorityMetadataKeys();
         const authorityMetadata: Record<string, object> = {};
         authorityMetadataKeys.forEach((key) => {
             const metadata = this.storage.getAuthorityMetadata(key);
