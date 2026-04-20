@@ -28,8 +28,16 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
 const missing = [];
 
 function checkPath(filePath, context) {
-    if (typeof filePath !== "string" || !filePath.startsWith("./")) return;
-    const resolved = path.join(pkgDir, filePath);
+    if (typeof filePath !== "string") return;
+
+    // Skip URL schemes (e.g. "https://...") and absolute paths.
+    // Treat everything else as a package-local relative path, including paths
+    // that omit the leading "./" (e.g. "dist/index.d.ts").
+    if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(filePath) || path.isAbsolute(filePath)) {
+        return;
+    }
+
+    const resolved = path.resolve(pkgDir, filePath);
     if (!fs.existsSync(resolved)) {
         missing.push({ path: filePath, context });
     }
