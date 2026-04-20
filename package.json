@@ -65,6 +65,6 @@
         "regression-tests/msal-node/client-credential"
     ],
     "overrides": {
-        "tar": "^7.5.3"
+        "tar": "7.5.13"
     }
 }
