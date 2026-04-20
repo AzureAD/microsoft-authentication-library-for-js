@@ -135,7 +135,7 @@ Please refer to the [Web app using DistributedCachePlugin](../../../samples/msal
 See the samples below for more about how to handle caching in MSAL Node apps:
 
 -   [(PCA) Console app using MSAL Node Extensions](../../../extensions/samples/msal-node-extensions/index.js)
--   [(PCA) Dektop app using MSAL Node Extensions](../../../extensions/samples/electron-webpack/README.md)
+-   [(PCA) Dektop app using MSAL Node Extensions](../../../extensions/samples/electron/electron-webpack/README.md)
 -   [(CCA) Web app using DistributedCachePlugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)
 -   [(CCA) Web API using a custom distributed cache plugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)
 -   [(CCA) Daemon app using a custom distributed cache plugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)

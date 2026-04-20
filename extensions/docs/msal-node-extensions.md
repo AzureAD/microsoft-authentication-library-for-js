@@ -251,7 +251,7 @@ module.exports = {
 
 ### Note for Electron Developers:
 Electron sample :
-This [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/electron-webpack) depicts how to integrate the msal-node-extensions library to your electron application that has been bundled by webpack.
+This [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/electron/electron-webpack) depicts how to integrate the msal-node-extensions library to your electron application that has been bundled by webpack.
 
 If you are using this extension for Electron, you might face an error similar to this:
 ```
@@ -266,5 +266,5 @@ This error is probably due to Node.js version differences between the Electron p
 
 
 ### Samples
-1) [Electron-webpack sample for persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/electron-webpack)
+1) [Electron-webpack sample for persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/electron/electron-webpack)
 2) [Msal-node extensions sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/msal-node-extensions)

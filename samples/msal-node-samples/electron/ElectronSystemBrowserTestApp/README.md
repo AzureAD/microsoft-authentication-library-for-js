@@ -90,7 +90,7 @@ $ npm start
 ```
 
 ```bash
-cd samples/msal-node-samples/ElectronSystemBrowserTestApp
+cd samples/msal-node-samples/electron/ElectronSystemBrowserTestApp
 npm start
 ```
 

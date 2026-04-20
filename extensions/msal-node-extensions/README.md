@@ -178,7 +178,7 @@ npm test
 ## Samples
 
 - [Auth Code CLI sample with Cache Persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/msal-node-extensions). This can be run on Windows, Mac and Linux.
-- [Electron sample with Cache Persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/electron-webpack)
+- [Electron sample with Cache Persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/electron/electron-webpack)
 - [Brokering sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-cli-brokered-app)
 
 ## Security Reporting
