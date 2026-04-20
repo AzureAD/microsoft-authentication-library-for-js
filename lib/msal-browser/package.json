@@ -44,7 +44,7 @@
       },
       "require": {
         "types": "./lib/redirect-bridge/types/redirect_bridge/index.d.ts",
-        "default": "./lib/redirect-bridge/msal-redirect-bridge.js"
+        "default": "./lib/redirect-bridge/msal-redirect-bridge.cjs"
       }
     },
     ".": {
