@@ -53,6 +53,7 @@
     "lint:fix": "npm run lint -- --fix",
     "format:check": "prettier --ignore-path .gitignore --check src test",
     "format:fix": "prettier --ignore-path .gitignore --write src test",
+    "typecheck": "tsc --noEmit -p tsconfig.build.json",
     "prepack": "npm run build:all && node ./scripts/checkBinaries.cjs"
   },
   "author": {
