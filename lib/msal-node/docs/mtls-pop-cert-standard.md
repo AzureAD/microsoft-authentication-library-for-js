@@ -9,7 +9,7 @@ Before diving in, two independent axes shape how the MSI mTLS PoP flow behaves:
 
 **Axis 1 — Key model:**
 
-- **Software / exportable keys** *(roadmap — not yet supported by Entra STS today)*: MSAL generates a software RSA key; key material can be exported as PEM bytes. This is the simpler scenario — no attestation required, and downstream BYO HTTP client is **possible** for all SDKs.
+- **Software / exportable keys** *(roadmap — not yet supported by Entra STS today)*: MSAL generates a software RSA key; key material can be exported as PEM bytes. This is the simpler scenario — no attestation required, and downstream BYO HTTP client is **possible** for all SDKs because the raw key bytes can be passed to any TLS stack (see [Part 3](#part-3--downstream-mtls-calls-the-core-problem)).
 - **KeyGuard / VBS-protected keys** *(current implementation)*: MSAL generates a key inside Windows Virtualization-Based Security (VBS) KeyGuard. The key material is **never** accessible outside CNG (`NCryptSignHash` only). This is the complex scenario — attestation may be required, and downstream BYO HTTP client is **not possible** for most SDKs.
 
 **Axis 2 — Attestation:**
@@ -29,58 +29,35 @@ Each MSAL SDK exposes a way to signal that mTLS PoP should be used. Current per-
 
 | SDK | API |
 |---|---|
-| **msal-dotnet** | `.WithMtlsProofOfPossession()` on `AcquireTokenForManagedIdentity()` |
-| **msal-go** | Use `MtlsClient` type instead of standard `ManagedIdentityClient` |
-| **msal-java** | Use `MtlsMsiClient` type |
-| **msal-node** | `authenticationScheme: AuthenticationScheme.MTLS_POP` in `acquireTokenForClient()` params |
+| **msal-dotnet** | Path 1 (SNI): `app.AcquireTokenForClient(scopes).WithMtlsProofOfPossession()` on `ConfidentialClientApplication`<br/>Path 2 (MSI): `app.AcquireTokenForManagedIdentity(resource).WithMtlsProofOfPossession()` on `ManagedIdentityApplication` |
+| **msal-go** | Path 1 (SNI): `confidential.WithMtlsProofOfPossession()` on `AcquireTokenByCredential()`<br/>Path 2 (MSI): `managedidentity.WithMtlsProofOfPossession()` on `AcquireToken()` |
+| **msal-java** | Path 1 (SNI): `ClientCredentialParameters.builder(scopes).withMtlsProofOfPossession().build()` on `app.acquireToken()`<br/>Path 2 (MSI): `new MtlsMsiClient().acquireToken(resource, identityType, identityId, withAttestation, correlationId)` |
+| **msal-node** | Path 1 (SNI): `app.acquireTokenByClientCredential({ scopes, authenticationScheme: AuthenticationScheme.MTLS_POP })` — `@azure/msal-node`<br/>Path 2 (MSI): `new MtlsManagedIdentityApplication().acquireToken({ resource })` — `@azure/msal-node-mtls-extensions` |
 | **msal-python** | TBD |
 
 ### Enabling Attestation
 
 | SDK | API | Native dependency |
 |---|---|---|
-| **msal-dotnet** | `.WithAttestation()` | `AttestationClientLib.dll` |
-| **msal-go** | TBD | TBD |
-| **msal-java** | TBD | TBD |
-| **msal-node** | Not yet implemented (planned for `msal-node-mtls-extensions` package) | `AttestationClientLib.dll` + `msal_mtls_win.node` |
+| **msal-dotnet** | `.WithAttestationSupport()` — extension method in the separate `Microsoft.Identity.Client.KeyAttestation` NuGet package | `Microsoft.Identity.Client.KeyAttestation` NuGet (wraps native `Microsoft.Azure.Security.KeyGuardAttestation.dll`) |
+| **msal-go** | Automatic — key type is selected at runtime (KeyGuard → Hardware → InMemory fallback); KeyGuard path triggers attestation when `AttestationClientLib.dll` is present; no explicit API flag | `AttestationClientLib.dll` |
+| **msal-java** | `withAttestation: true` boolean parameter in `MtlsMsiClient.acquireToken()` | `AttestationClientLib.dll` on system `PATH` |
+| **msal-node** | `withAttestation: true` in `MtlsManagedIdentityConfiguration` — `@azure/msal-node-mtls-extensions` | `msal_mtls_win.node` N-API addon (ships in the package under `bin/win-x64/`) |
 | **msal-python** | TBD | TBD |
 
 The attestation native dependency must be placed alongside the MSAL native addon (e.g., `bin/win-x64/`). Automating placement via a NuGet download script at build time is tracked as a follow-up for the extensions packages.
 
 ### HTTP Client Injection
 
-A key architectural change for mTLS PoP: MSAL must control (or be injected with) the HTTP client used for the token request, because it must present the client certificate during the TLS handshake with the STS.
+A key architectural change for mTLS PoP: MSAL must control (or be injected with) the HTTP client used for the token request, because it must present the client certificate during the TLS handshake with the STS. For MSI flows specifically, this applies only to the second leg (IMDS → ESTS token request) — a custom HTTP client can be used for the first leg (calls made within IMDS, which require no client certificate). MSAL uses its own internal transport for the cert-authenticated ESTS leg because the private key is non-exportable and cannot be surfaced to an external HTTP client.
 
 | SDK | Injection model | For mTLS PoP |
 |---|---|---|
-| **msal-dotnet** | `IMsalHttpClientFactory` | `HttpClientHandler.ClientCertificates.Add(cert)` before factory is passed to MSAL |
+| **msal-dotnet** | `IMsalMtlsHttpClientFactory : IMsalHttpClientFactory` — new interface that extends the base factory with `GetHttpClient(X509Certificate2)`; inject via `.WithHttpClientFactory(factory)` on the builder | MSAL automatically calls `GetHttpClient(X509Certificate2)` for mTLS token requests; implement it to return an `HttpClient` with `handler.ClientCertificates.Add(cert)` configured |
 | **msal-go** | `http.Client` in `CommManager` | `comm.NewMtlsHTTPClient(cert)` provides a pre-configured client |
-| **msal-java** | Internal — no BYO HTTP client for mTLS PoP MSI | N/A; `MtlsMsiClient` uses JNA→`ncrypt.dll` internally |
-| **msal-node** | `system.networkClient: INetworkModule` | Inject `new MtlsHttpClient(cert, key)` — **replaces** the default `HttpClient` for all MSAL requests on this app instance |
+| **msal-java** | Internal — no BYO HTTP client for mTLS PoP MSI | `MtlsMsiClient` builds JSSE `SSLContext` with custom `CngProvider`/`CngSignatureSpi` (JNA → `ncrypt.dll`); private key never leaves CNG; no BYO HTTP client |
+| **msal-node** | Path 1 (SNI): `system.networkClient: new MtlsHttpClient(cert, key)` — `@azure/msal-node`<br/>Path 2 (MSI): no injection — `system.networkClient` intentionally absent; WinHTTP mandatory for non-exportable KeyGuard key | Path 1: `MtlsHttpClient` replaces the default HTTP client for the app instance; Path 2: WinHTTP used internally by `msal_mtls_win.node` addon |
 | **msal-python** | TBD | TBD |
-
-For msal-node, this is a significant departure from the standard flow. `MtlsHttpClient` is a dedicated `INetworkModule` implementation that creates a persistent `https.Agent` with the client certificate pre-configured. It replaces the standard HTTP client for the entire application instance:
-
-```typescript
-import { ConfidentialClientApplication, AuthenticationScheme } from "@azure/msal-node";
-import { MtlsHttpClient } from "@azure/msal-node";
-
-const app = new ConfidentialClientApplication({
-    auth: {
-        clientId: "...",
-        authority: "https://mtlsauth.microsoft.com/<tenant-id>",
-        clientCertificate: { thumbprintSha256, privateKey, x5c },
-    },
-    system: {
-        networkClient: new MtlsHttpClient(x5c, privateKey), // ← replaces default HTTP client
-    },
-});
-
-const result = await app.acquireTokenByClientCredential({
-    scopes: ["https://vault.azure.net/.default"],
-    authenticationScheme: AuthenticationScheme.MTLS_POP,
-});
-```
 
 ### Token Acquisition Result
 
@@ -89,11 +66,11 @@ const result = await app.acquireTokenByClientCredential({
 | `tokenType` / `token_type` | `"mtls_pop"` | Indicates the access token must be presented over an mTLS connection |
 | `bindingCertificate` | `string` (PEM) or SDK-native cert object | The public X.509 certificate bound to the token; used for downstream resource calls |
 
-The binding certificate (`AuthenticationResult.BindingCertificate` in msal-dotnet; `bindingCertificate` in msal-node) contains only the public certificate — **the private key is never surfaced in `AuthenticationResult`**. For Path 1 (SNI/CCA), the developer already holds the private key. For Path 2 (MSI), the key is non-exportable and stays in CNG.
+The binding certificate (`AuthenticationResult.BindingCertificate` in msal-dotnet, for example) contains only the public certificate — **the private key is never surfaced in `AuthenticationResult`**. For Path 1 (SNI/CCA), the developer already holds the private key. For Path 2 (MSI), the key is non-exportable and stays in CNG.
 
-### GetSource() — See [Appendix C](#appendix-c--getsource)
+### GetManagedIdentitySourceAsync() — See [Appendix C](#appendix-c--getmanagedidentitysourceasync)
 
-`GetSource()` / `getSource()` returns the token source (cache vs. STS). Detailed cross-SDK treatment is deferred to Appendix C as it would add significant scope here.
+`GetManagedIdentitySourceAsync()` detects which managed identity environment is available on the current host. The return value tells you whether mTLS PoP (`ImdsV2`) is available. This is separate from `result.AuthenticationResultMetadata.TokenSource`, which indicates whether a token came from cache or the STS. Currently implemented in msal-dotnet; see Appendix C.
 
 ---
 
@@ -102,9 +79,9 @@ The binding certificate (`AuthenticationResult.BindingCertificate` in msal-dotne
 | SDK | Field name | Type |
 |---|---|---|
 | **msal-dotnet** | `AuthenticationResult.BindingCertificate` | `X509Certificate2` |
-| **msal-go** | `AuthResult.BindingCertificate` + `AuthResult.BindingTLSCertificate` | `*x509.Certificate` + `*tls.Certificate` (with `PrivateKey` as `crypto.Signer`) |
-| **msal-java** | `IAuthenticationResult.bindingCertificate()` | `X509Certificate` |
-| **msal-node** | `AuthenticationResult.bindingCertificate` | PEM `string` |
+| **msal-go** | Path 1 (SNI): `AuthResult.BindingCertificate`<br/>Path 2 (MSI): `AuthResult.BindingCertificate` + `AuthResult.BindingTLSCertificate` | Path 1: `*x509.Certificate`<br/>Path 2: `*x509.Certificate` + `*tls.Certificate` (with `PrivateKey` as `crypto.Signer`) |
+| **msal-java** | Path 1: `IAuthenticationResult.bindingCertificate()`<br/>Path 2: `MtlsMsiHelperResult.getBindingCertificate()` | Path 1: `X509Certificate`<br/>Path 2: PEM `String` |
+| **msal-node** | Path 1 (SNI): `AuthenticationResult.bindingCertificate` — `@azure/msal-node`<br/>Path 2 (MSI): `AuthenticationResult.bindingCertificate` — `@azure/msal-node-mtls-extensions` | PEM `string` (both paths) |
 | **msal-python** | TBD | TBD |
 
 All SDKs set `tokenType` / `token_type` to `"mtls_pop"`.
@@ -134,7 +111,7 @@ Any TLS stack performing a client certificate handshake must have access to raw 
 | Scenario | Key type | Exportable? | BYO HTTP client possible? |
 |---|---|---|---|
 | **MSI — KeyGuard (current implementation)** | VBS RSA 2048 (`NCryptSignHash` only) | ❌ Non-exportable | ❌ Not possible |
-| **MSI — software keys (roadmap)** | Software RSA | ✅ Exportable as PEM | ✅ Yes — for all SDKs |
+| **MSI — software keys (roadmap)** | Software RSA | ✅ Exportable as PEM | ✅ Projected — not yet validated (Entra STS does not yet support software keys) |
 | **SNI / Confidential Client (Path 1)** | Developer-provided | Depends on import flags | ✅ Yes — developer holds the key directly |
 
 ### Per-SDK current state (KeyGuard path)
@@ -143,8 +120,8 @@ Any TLS stack performing a client certificate handshake must have access to raw 
 |---|---|---|---|
 | **msal-dotnet** | Schannel | ✅ Yes — Schannel uses CNG key handle via `NCryptSignHash`; `HttpClientHandler.ClientCertificates.Add(result.BindingCertificate)` | None needed |
 | **msal-go** | `crypto/tls` (Go stdlib) | ✅ Yes — `result.BindingTLSCertificate` contains a `crypto.Signer` backed by CNG; use in `tls.Config` on any `http.Client` | `comm.NewMtlsHTTPClient()` (convenience) |
-| **msal-java** | JSSE + JNA → `ncrypt.dll` | ❌ **Not possible** — JSSE requires exportable key material; no `KeyStore`/`Signer` bridge to CNG is available | `MtlsMsiClient.httpRequest()` |
-| **msal-node** | WinHTTP + Schannel (N-API addon) | ❌ **Not possible** — Node.js/OpenSSL needs raw key bytes; CNG refuses export for KeyGuard keys | `app.sendGetRequestAsync()` / `app.sendPostRequestAsync()` |
+| **msal-java** | JSSE + custom `CngProvider`/`CngSignatureSpi` → JNA → `ncrypt.dll` | ❌ **Not possible in practice** — `CngSignatureSpi` + `CngProvider` sign TLS handshakes via JNA without exporting the key, but configuring a BYO HTTP client with MSAL's custom `SSLSocketFactory` is not a supported path | `MtlsMsiClient.httpRequest()` |
+| **msal-node** | WinHTTP + Schannel (N-API addon) | ❌ **Not possible** — Node.js/OpenSSL needs raw key bytes; CNG refuses export for KeyGuard keys | `MtlsManagedIdentityApplication.sendGetRequestAsync()` / `sendPostRequestAsync()` — `@azure/msal-node-mtls-extensions` |
 | **msal-python** | WinHTTP + Schannel (ctypes) | ❌ **Not possible** — same CNG constraint | ❌ **Not yet implemented** |
 
 > **Default stance for msal-java, msal-node, msal-python**: With the current KeyGuard architecture, downstream BYO HTTP client use is **not possible**. This is a fundamental architectural constraint — the key cannot be extracted from CNG. SDK-provided transports are the only workaround where available; for msal-python, no downstream helper exists yet.
@@ -163,6 +140,8 @@ The software key pivot (direction indicated by the mTLS PoP architect) resolves 
 - `AttestationClientLib.dll` and native attestation dependencies are not required
 
 **Current status**: Entra STS does not yet accept mTLS PoP token requests with software (non-KeyGuard) keys. This is on the roadmap. Until that pivot lands, **use MSAL's SDK-provided transport for downstream calls on msal-java, msal-node, and msal-python**, and BYO HTTP client on msal-dotnet and msal-go.
+
+> **Note on MSI flow sequencing**: For the MSI path, the binding certificate is issued by IMDS as part of the token acquisition flow — it cannot be provided to the Azure SDK before `acquireToken()` completes. The Azure SDK receives the binding certificate (and exportable key, once software keys land) in `AuthenticationResult` and uses them for subsequent downstream mTLS calls.
 
 ---
 
@@ -212,6 +191,43 @@ To enable mTLS PoP across SDKs, all MSALs should accept the following certificat
 
 ---
 
-## Appendix C — GetSource()
+## Appendix C — GetManagedIdentitySourceAsync()
 
-Cross-SDK treatment of `GetSource()` / `getSource()` for mTLS PoP telemetry is deferred. This appendix will document the per-SDK return values and cache integration for mTLS PoP token sources when the feature stabilizes.
+`GetManagedIdentitySourceAsync()` detects which managed identity environment is available on the current host. It is distinct from `result.AuthenticationResultMetadata.TokenSource` (which reports cache vs. STS). It is useful for:
+
+- Verifying that the VM supports mTLS PoP before attempting token acquisition
+- Telemetry: logging the MI source alongside the token type
+- Choosing between mTLS PoP and a fallback path (e.g., when `ImdsV2` is unavailable)
+
+### msal-dotnet
+
+```csharp
+// Preferred: async, includes probe failure reasons
+var app = ManagedIdentityApplicationBuilder
+    .Create(ManagedIdentityId.SystemAssigned)
+    .Build();
+
+ManagedIdentitySourceResult result = await ((ManagedIdentityApplication)app)
+    .GetManagedIdentitySourceAsync(cancellationToken);
+
+// result.Source — the detected MI environment
+// result.ImdsV1FailureReason — reason IMDS v1 probe failed (if applicable)
+// result.ImdsV2FailureReason — reason IMDS v2 probe failed (if applicable)
+```
+
+**`ManagedIdentitySource` enum values:**
+
+| Value | Meaning | mTLS PoP supported? |
+|---|---|---|
+| `ImdsV2` | Azure VM with IMDS v2 (Credential Guard / KeyGuard) | ✅ Yes — primary mTLS PoP path |
+| `Imds` | Azure VM with IMDS v1 | ❌ No |
+| `AppService` | Azure App Service / Functions | ❌ No |
+| `AzureArc` | Azure Arc-connected machine | ❌ No |
+| `CloudShell` | Azure Cloud Shell | ❌ No |
+| `ServiceFabric` | Azure Service Fabric | ❌ No |
+| `MachineLearning` | Azure Machine Learning | ❌ No |
+| `None` | No MI source detected | ❌ No |
+
+> **Note:** `DefaultToImds` is deprecated — use `GetManagedIdentitySourceAsync()` instead of the obsolete `GetManagedIdentitySource()`.
+
+This API is currently implemented in msal-dotnet only. Equivalent source-detection APIs will be added to other MSAL SDKs as the mTLS PoP feature is ported.

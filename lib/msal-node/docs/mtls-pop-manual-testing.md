@@ -16,7 +16,6 @@ This guide walks through manually testing both mTLS PoP paths end-to-end.
 - Node.js 20+
 - An Azure AD **app registration** with an SNI certificate registered
 - A **tenanted authority** — `/common` and `/organizations` are not supported
-- The Azure **region** your workload runs in (e.g. `eastus`)
 - The certificate PEM and private key files from your SNI cert
 
 If you don't have a cert yet, see [certificate-credentials.md](./certificate-credentials.md) and [sni.md](./sni.md).
@@ -39,7 +38,7 @@ const CERT_PEM   = fs.readFileSync("cert.pem", "utf8");   // x5c (public cert)
 const CERT_KEY   = fs.readFileSync("cert.key", "utf8");   // private key
 const CLIENT_ID  = "YOUR_APP_CLIENT_ID";
 const TENANT_ID  = "YOUR_TENANT_ID";
-const REGION     = "eastus";                               // must match your app's region
+const REGION     = "eastus";                               // optional — omit to use global endpoint
 const SCOPE      = "https://management.azure.com/.default";
 
 async function main() {
