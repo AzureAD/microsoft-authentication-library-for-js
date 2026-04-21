@@ -7978,13 +7978,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         // Account 1
         const testAccount1: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const testAccountInfo1: AccountInfo = 
-            updateAccountTenantProfileData(
-                AccountEntityUtils.getAccountInfo(testAccount1),
-                undefined,
-                ID_TOKEN_CLAIMS,
-                TEST_TOKENS.IDTOKEN_V2
-            );
+        const testAccountInfo1: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(testAccount1),
+            undefined,
+            ID_TOKEN_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2
+        );
 
         const idToken1: IdTokenEntity = buildIdToken(
             ID_TOKEN_CLAIMS,
@@ -7996,14 +7995,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         const testAccount2: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
-        const testAccountInfo2: AccountInfo =
-            updateAccountTenantProfileData(
-                AccountEntityUtils.getAccountInfo(testAccount2),
-                undefined,
-                ID_TOKEN_ALT_CLAIMS,
-                TEST_TOKENS.IDTOKEN_V2_ALT
-            );
-
+        const testAccountInfo2: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(testAccount2),
+            undefined,
+            ID_TOKEN_ALT_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2_ALT
+        );
 
         const idToken2: IdTokenEntity = buildIdToken(
             ID_TOKEN_ALT_CLAIMS,
@@ -8296,15 +8293,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("hydrateCache tests", () => {
-        const testAccount: AccountInfo =
-            updateAccountTenantProfileData(
-                AccountEntityUtils.getAccountInfo(
-                    buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
-                ),
-                undefined,
-                ID_TOKEN_CLAIMS,
-                TEST_TOKENS.IDTOKEN_V2
-            );
+        const testAccount: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            ),
+            undefined,
+            ID_TOKEN_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2
+        );
 
         const testAuthenticationResult: AuthenticationResult = {
             authority: TEST_CONFIG.validAuthority,
