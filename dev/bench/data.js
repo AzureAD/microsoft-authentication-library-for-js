@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776807379471,
+  "lastUpdate": 1776812278962,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20845,6 +20845,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.96%",
             "unit": "ops/sec",
             "extra": "230 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ae4e3ccd5192b6d417ab57345e85a37cb56c8397",
+          "message": "Remove office-addin-debugging from OfficeAddin sample (#8546)\n\nSince office-addin-debugging is unable to remove axios from their\nlibrary, we're removing office-addin-debugging from our OfficeAddin\nsample.\n\nThis PR includes an update to the README on how to manually sideload an\nadd-in into Office.\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: shylasummers <24848549+shylasummers@users.noreply.github.com>",
+          "timestamp": "2026-04-21T15:51:41-07:00",
+          "tree_id": "b346db8807d5ee8896af4004947504bff2dde0a3",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ae4e3ccd5192b6d417ab57345e85a37cb56c8397"
+        },
+        "date": 1776812275183,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 246938,
+            "range": "±0.83%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 242159,
+            "range": "±0.87%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
