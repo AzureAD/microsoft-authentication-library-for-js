@@ -147,5 +147,5 @@ pca.acquireTokenSilent(tokenRequest).then(async (result) => {
 ## Additional Resources
 
 -   [Office Add-ins documentation](https://docs.microsoft.com/office/dev/add-ins/)
--   [MSAL Browser NAA documentation](../../../lib/msal-browser/docs/nested-app-auth.md)
+-   [MSAL Browser NAA documentation](../../../lib/msal-browser/docs/initialization.md#nested-app-configuration)
 -   [Microsoft Graph API documentation](https://docs.microsoft.com/graph/)
