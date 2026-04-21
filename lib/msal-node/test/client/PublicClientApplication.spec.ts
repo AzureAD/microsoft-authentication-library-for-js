@@ -1284,9 +1284,6 @@ describe("PublicClientApplication", () => {
             // @ts-ignore
             await authApp.storage.setAccount(accountEntity);
 
-            // @ts-ignore
-            await authApp.storage.setAccount(accountEntity);
-
             const idTokenEntity = CacheHelpers.createIdTokenEntity(
                 mockAccountInfo.homeAccountId,
                 mockAccountInfo.environment,

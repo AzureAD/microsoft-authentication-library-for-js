@@ -495,6 +495,39 @@ export abstract class CacheManager implements ICacheManager {
             return false;
         }
 
+        if (
+            !!tenantProfileFilter.username &&
+            !(
+                this.matchUsername(
+                    tenantProfile.username,
+                    tenantProfileFilter.username
+                ) ||
+                !this.matchUsername(
+                    tenantProfile.upn,
+                    tenantProfileFilter.username
+                )
+            )
+        ) {
+            return false;
+        }
+
+        if (
+            !!tenantProfileFilter.loginHint &&
+            !this.matchLoginHintWithTenantProfile(
+                tenantProfile,
+                tenantProfileFilter.loginHint
+            )
+        ) {
+            return false;
+        }
+
+        if (
+            !!tenantProfileFilter.upn &&
+            !(tenantProfile.upn === tenantProfileFilter.upn)
+        ) {
+            return false;
+        }
+
         return true;
     }
 
@@ -528,6 +561,10 @@ export abstract class CacheManager implements ICacheManager {
                 !!tenantProfileFilter.username &&
                 !this.matchUsername(
                     idTokenClaims.preferred_username,
+                    tenantProfileFilter.username
+                ) &&
+                !this.matchUsername(
+                    idTokenClaims.upn,
                     tenantProfileFilter.username
                 )
             ) {
@@ -708,13 +745,6 @@ export abstract class CacheManager implements ICacheManager {
             }
 
             if (
-                !!accountFilter.username &&
-                !this.matchUsername(entity.username, accountFilter.username)
-            ) {
-                return;
-            }
-
-            if (
                 !!accountFilter.environment &&
                 !this.matchEnvironment(
                     entity,
@@ -753,6 +783,9 @@ export abstract class CacheManager implements ICacheManager {
             const tenantProfileFilter: TenantProfileFilter = {
                 localAccountId: accountFilter?.localAccountId,
                 name: accountFilter?.name,
+                username: accountFilter?.username,
+                loginHint: accountFilter?.loginHint,
+                upn: accountFilter?.upn,
             };
 
             const matchingTenantProfiles = entity.tenantProfiles?.filter(
@@ -1125,13 +1158,13 @@ export abstract class CacheManager implements ICacheManager {
                         "CacheManager:getIdToken - Multiple ID tokens found for account but none match account entity tenant id, returning first result",
                         correlationId
                     );
-                    return idTokenMap.values().next().value;
+                    return idTokenMap.values().next().value ?? null;
                 } else if (numHomeIdTokens === 1) {
                     this.commonLogger.info(
                         "CacheManager:getIdToken - Multiple ID tokens found for account, defaulting to home tenant profile",
                         correlationId
                     );
-                    return homeIdTokenMap.values().next().value;
+                    return homeIdTokenMap.values().next().value ?? null;
                 } else {
                     // Multiple ID tokens for home tenant profile, remove all and return null
                     tokensToBeRemoved = homeIdTokenMap;
@@ -1156,7 +1189,7 @@ export abstract class CacheManager implements ICacheManager {
             "CacheManager:getIdToken - Returning ID token",
             correlationId
         );
-        return idTokenMap.values().next().value;
+        return idTokenMap.values().next().value ?? null;
     }
 
     /**
@@ -1655,6 +1688,23 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
+     * helper to match loginhints
+     * @param entity
+     * @param loginHint
+     * @returns
+     */
+    private matchLoginHintWithTenantProfile(
+        tenantProfile: TenantProfile,
+        loginHintFilter: string
+    ): boolean {
+        return (
+            tenantProfile.loginHint === loginHintFilter ||
+            tenantProfile.username === loginHintFilter ||
+            tenantProfile.upn === loginHintFilter
+        );
+    }
+
+    /**
      * helper to match assertion
      * @param value
      * @param oboAssertion
@@ -1796,6 +1846,11 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         if (tokenClaims.upn === loginHint) {
+            return true;
+        }
+
+        // check login hint against list of emails in token claims
+        if (tokenClaims.emails && tokenClaims.emails.includes(loginHint)) {
             return true;
         }
 
