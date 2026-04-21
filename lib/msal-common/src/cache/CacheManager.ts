@@ -1680,19 +1680,19 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * helper to match usernames
+     * helper to match loginhints
      * @param entity
-     * @param username
+     * @param loginHint
      * @returns
      */
     private matchLoginHintWithTenantProfile(
         tenantProfile: TenantProfile,
-        filterLoginHint: string
+        loginHintFilter: string
     ): boolean {
         return (
-            tenantProfile.loginHint === filterLoginHint ||
-            tenantProfile.username === filterLoginHint ||
-            tenantProfile.upn === filterLoginHint
+            tenantProfile.loginHint === loginHintFilter ||
+            tenantProfile.username === loginHintFilter ||
+            tenantProfile.upn === loginHintFilter
         );
     }
 
