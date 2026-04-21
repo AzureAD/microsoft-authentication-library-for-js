@@ -159,9 +159,9 @@ export class BrowserCacheUtils {
 
     async getAccountFromCache(): Promise<Array<string> | null> {
         const storage = await this.getWindowStorage();
-        const accountKeys = storage["msal.2.account.keys"];
+        const accountKeys = storage["msal.3.account.keys"];
 
-        return JSON.parse(accountKeys);
+        return accountKeys ? (JSON.parse(accountKeys) as Array<string>) : null;
     }
 
     async getTelemetryCacheEntry(
