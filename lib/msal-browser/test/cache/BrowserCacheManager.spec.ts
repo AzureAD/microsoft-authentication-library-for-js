@@ -501,15 +501,31 @@ describe("BrowserCacheManager tests", () => {
                     lastUpdatedAt: timestamp,
                 };
 
-                const compactIdTokenKey = `msal.2|${schema2IdToken.homeAccountId}|${schema2IdToken.environment}|${schema2IdToken.credentialType}|${schema2IdToken.clientId}|${schema2IdToken.realm}||`.toLowerCase();
-                const legacyIdTokenKey = `msal.2|${schema2IdToken.homeAccountId}|${schema2IdToken.environment}|${schema2IdToken.credentialType}|${schema2IdToken.clientId}|${schema2IdToken.realm}|||`.toLowerCase();
-                const compactAccessTokenKey = `msal.2|${schema2AccessToken.homeAccountId}|${schema2AccessToken.environment}|${schema2AccessToken.credentialType}|${schema2AccessToken.clientId}|${schema2AccessToken.realm}|${schema2AccessToken.target}|`.toLowerCase();
-                const legacyAccessTokenKey = `msal.2|${schema2AccessToken.homeAccountId}|${schema2AccessToken.environment}|${schema2AccessToken.credentialType}|${schema2AccessToken.clientId}|${schema2AccessToken.realm}|${schema2AccessToken.target}||`.toLowerCase();
+                const compactIdTokenKey =
+                    `msal.2|${schema2IdToken.homeAccountId}|${schema2IdToken.environment}|${schema2IdToken.credentialType}|${schema2IdToken.clientId}|${schema2IdToken.realm}||`.toLowerCase();
+                const legacyIdTokenKey =
+                    `msal.2|${schema2IdToken.homeAccountId}|${schema2IdToken.environment}|${schema2IdToken.credentialType}|${schema2IdToken.clientId}|${schema2IdToken.realm}|||`.toLowerCase();
+                const compactAccessTokenKey =
+                    `msal.2|${schema2AccessToken.homeAccountId}|${schema2AccessToken.environment}|${schema2AccessToken.credentialType}|${schema2AccessToken.clientId}|${schema2AccessToken.realm}|${schema2AccessToken.target}|`.toLowerCase();
+                const legacyAccessTokenKey =
+                    `msal.2|${schema2AccessToken.homeAccountId}|${schema2AccessToken.environment}|${schema2AccessToken.credentialType}|${schema2AccessToken.clientId}|${schema2AccessToken.realm}|${schema2AccessToken.target}||`.toLowerCase();
                 const schema2RefreshTokenFamilyId =
                     schema2RefreshToken.familyId ||
                     schema2RefreshToken.clientId;
-                const compactRefreshTokenKey = `msal.2|${schema2RefreshToken.homeAccountId}|${schema2RefreshToken.environment}|${schema2RefreshToken.credentialType}|${schema2RefreshTokenFamilyId}|${schema2RefreshToken.realm || ""}||`.toLowerCase();
-                const legacyRefreshTokenKey = `msal.2|${schema2RefreshToken.homeAccountId}|${schema2RefreshToken.environment}|${schema2RefreshToken.credentialType}|${schema2RefreshTokenFamilyId}|${schema2RefreshToken.realm || ""}|||`.toLowerCase();
+                const compactRefreshTokenKey = `msal.2|${
+                    schema2RefreshToken.homeAccountId
+                }|${schema2RefreshToken.environment}|${
+                    schema2RefreshToken.credentialType
+                }|${schema2RefreshTokenFamilyId}|${
+                    schema2RefreshToken.realm || ""
+                }||`.toLowerCase();
+                const legacyRefreshTokenKey = `msal.2|${
+                    schema2RefreshToken.homeAccountId
+                }|${schema2RefreshToken.environment}|${
+                    schema2RefreshToken.credentialType
+                }|${schema2RefreshTokenFamilyId}|${
+                    schema2RefreshToken.realm || ""
+                }|||`.toLowerCase();
 
                 window.localStorage.setItem(
                     compactIdTokenKey,
@@ -629,9 +645,9 @@ describe("BrowserCacheManager tests", () => {
                 expect(window.localStorage.getItem(legacyAccessTokenKey)).toBe(
                     JSON.stringify(schema2AccessToken)
                 );
-                expect(window.localStorage.getItem(compactRefreshTokenKey)).toBe(
-                    JSON.stringify(schema2RefreshToken)
-                );
+                expect(
+                    window.localStorage.getItem(compactRefreshTokenKey)
+                ).toBe(JSON.stringify(schema2RefreshToken));
                 expect(window.localStorage.getItem(legacyRefreshTokenKey)).toBe(
                     JSON.stringify(schema2RefreshToken)
                 );
