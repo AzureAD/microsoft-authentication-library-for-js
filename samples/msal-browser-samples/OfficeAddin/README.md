@@ -86,7 +86,7 @@ This Office Add-in sample shows how to:
     1. Go to **Home** > **Add-ins** > **More Add-ins** > **My Add-ins** tab > **Upload My Add-in**.
     1. Browse to this sample's `manifest.xml` and click **Upload**.
 
-    **Office desktop on web:**
+    **Office on the web:**
 
     1. Open Word (or another supported Office host).
     1. Go to **Home** > **Add-ins** > **More Settings** > **Office Add-ins** tab > **Upload My Add-in**.
