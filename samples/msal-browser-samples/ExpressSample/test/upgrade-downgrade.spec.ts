@@ -9,7 +9,7 @@ import {
     BrowserCacheUtils,
 } from "e2e-test-utils";
 import {
-    forceRefreshAndVerifyTokenCountsDoNotIncrease,
+    forceRefreshAndVerifyTokenCountsDoNotChange,
     verifyCacheWasUsed,
     switchToVersion,
     signIn,
@@ -110,7 +110,7 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("local", page, screenshot);
 
             await verifyCacheWasUsed(page, screenshot);
-            await forceRefreshAndVerifyTokenCountsDoNotIncrease(
+            await forceRefreshAndVerifyTokenCountsDoNotChange(
                 page,
                 screenshot,
                 BrowserCache
@@ -129,7 +129,7 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("local", page, screenshot);
 
             await verifyCacheWasUsed(page, screenshot);
-            await forceRefreshAndVerifyTokenCountsDoNotIncrease(
+            await forceRefreshAndVerifyTokenCountsDoNotChange(
                 page,
                 screenshot,
                 BrowserCache
@@ -148,7 +148,7 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("local", page, screenshot);
 
             await verifyCacheWasUsed(page, screenshot);
-            await forceRefreshAndVerifyTokenCountsDoNotIncrease(
+            await forceRefreshAndVerifyTokenCountsDoNotChange(
                 page,
                 screenshot,
                 BrowserCache
@@ -167,7 +167,7 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("local", page, screenshot);
 
             await verifyCacheWasUsed(page, screenshot);
-            await forceRefreshAndVerifyTokenCountsDoNotIncrease(
+            await forceRefreshAndVerifyTokenCountsDoNotChange(
                 page,
                 screenshot,
                 BrowserCache
@@ -186,7 +186,7 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("local", page, screenshot);
 
             await verifyCacheWasUsed(page, screenshot);
-            await forceRefreshAndVerifyTokenCountsDoNotIncrease(
+            await forceRefreshAndVerifyTokenCountsDoNotChange(
                 page,
                 screenshot,
                 BrowserCache
@@ -210,7 +210,7 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("local", page, screenshot);
 
             await verifyCacheWasUsed(page, screenshot);
-            await forceRefreshAndVerifyTokenCountsDoNotIncrease(
+            await forceRefreshAndVerifyTokenCountsDoNotChange(
                 page,
                 screenshot,
                 BrowserCache

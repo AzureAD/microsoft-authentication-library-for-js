@@ -39,12 +39,12 @@ export async function verifyCacheWasUsed(page: puppeteer.Page, screenshot: Scree
 }
 
 /**
- * Force refresh tokens after an upgrade and verify the cache does not contain more token entries than before.
+ * Force refresh tokens after an upgrade and verify the cache does not contain more or less token entries than before.
  * @param page
  * @param screenshot
  * @param browserCache
  */
-export async function forceRefreshAndVerifyTokenCountsDoNotIncrease(
+export async function forceRefreshAndVerifyTokenCountsDoNotChange(
     page: puppeteer.Page,
     screenshot: Screenshot,
     browserCache: BrowserCacheUtils
