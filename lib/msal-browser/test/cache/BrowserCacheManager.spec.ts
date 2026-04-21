@@ -449,7 +449,7 @@ describe("BrowserCacheManager tests", () => {
                 );
             });
 
-            it("should migrate schema 2 credential keys into schema 3 without deleting schema 2 keys", async () => {
+            it("should migrate v2 tokens to current schema in localStorage", async () => {
                 await browserCacheManager.initialize(
                     TEST_CONFIG.CORRELATION_ID
                 );
