@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776804951657,
+  "lastUpdate": 1776807379471,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20807,6 +20807,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.22%",
             "unit": "ops/sec",
             "extra": "231 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4ff5911eacefacd2d2cd4f13b6a3a39fd3a3a68c",
+          "message": "[v5] improve account filtering when login hint is provided (#8478)\n\nThis pull request improves account filtering logic when a login hint is\nprovided, ensuring that the correct account is selected and preventing\nmismatches. It also updates token storage behavior for native broker\nresponses, refines how tokens are cached, and adds comprehensive unit\ntests to verify these changes. The most important changes are grouped\nbelow:\n\n**Account Filtering and Retrieval Improvements:**\n\n* Enhanced account filtering to ensure that when a `loginHint` is\nprovided, only the matching tenant-based account is returned, and cached\naccounts with different login hints are not incorrectly matched. This\nprevents returning the wrong account or native account ID when searching\nwith a login hint that doesn't match any cached account.\n[[1]](diffhunk://#diff-d8bde128bad64cb357b230e9a738968be4d62b4e3d7c78e889f3e38d4689f73fL1841-R1894)],\n[[2]](diffhunk://#diff-f936803be34376b4fc36745b78ec5110b6e3b420d907b033fa6924453d2815d5R7784-R7971)],\n[[3]](diffhunk://#diff-763bb9e9dfe004e7f109fcdaa38b118ebd9165a896138a91f281f87d509d21f0R1097-R1155)])\n* Moved login_hint and username filtering to be performed against\naccount's tenant profile data.\n* Added and updated unit tests to verify that account retrieval and\nnative account ID resolution behave correctly when searching by login\nhint, both with and without cached ID tokens.\n[[1]](diffhunk://#diff-f936803be34376b4fc36745b78ec5110b6e3b420d907b033fa6924453d2815d5R7784-R7971)],\n[[2]](diffhunk://#diff-763bb9e9dfe004e7f109fcdaa38b118ebd9165a896138a91f281f87d509d21f0R1097-R1155)])\n\n**Token Storage and Caching Enhancements:**\n\n* Changed storage logic for native broker responses to store the ID\ntoken in browser storage and the access token in in-memory storage,\nrather than storing all tokens in memory.\n([[lib/msal-browser/src/controllers/StandardController.tsL1709-R1764](diffhunk://#diff-d8bde128bad64cb357b230e9a738968be4d62b4e3d7c78e889f3e38d4689f73fL1709-R1764)])\n* Updated the `PlatformAuthInteractionClient` to properly retrieve,\ndecode, and cache ID tokens and access tokens, ensuring tokens are saved\nin the correct storage locations and environments.\n[[1]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7R311-R332)],\n[[2]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7L579-R595)],\n[[3]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7L797-R823)],\n[[4]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7L831-R846)],\n[[5]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7R859-L846)])\n\n**Testing and Validation:**\n\n* Adjusted and added tests to confirm that tokens are stored in the\ncorrect cache (browser or internal) depending on configuration, and that\nstorage behavior matches expectations for both ID tokens and access\ntokens.\n[[1]](diffhunk://#diff-487fd093427294009e88334d1384fbc6c84e560de569161ce0d5c8877c0eed4eL1265-R1271)],\n[[2]](diffhunk://#diff-487fd093427294009e88334d1384fbc6c84e560de569161ce0d5c8877c0eed4eL1292-R1298)])\n\n**Dependency and Utility Updates:**\n\n* Imported new helpers (`CacheHelpers`, `TimeUtils`, `base64Decode`) to\nsupport the improved token caching and decoding logic.\n[[1]](diffhunk://#diff-d8bde128bad64cb357b230e9a738968be4d62b4e3d7c78e889f3e38d4689f73fR32-R33)],\n[[2]](diffhunk://#diff-d8bde128bad64cb357b230e9a738968be4d62b4e3d7c78e889f3e38d4689f73fR65)])\n\n**Changelog Updates:**\n\n* Added patch changelog entries for `@azure/msal-browser` and\n`@azure/msal-common` documenting the improved account filtering when a\nlogin hint is provided.\n[[1]](diffhunk://#diff-4c9ca465278a995fae5fb35c2477176d530d9b0fc5c5a71b68626503a29f3281R1-R7)],\n[[2]](diffhunk://#diff-5963725c35e8300880abc03927c47f85c8caff05f270b372b2c6030339cf9764R1-R7)])\n\n---------\n\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: lalimasharda <26092202+lalimasharda@users.noreply.github.com>\nCo-authored-by: Hector Morales <hemoral@microsoft.com>\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2026-04-21T14:29:58-07:00",
+          "tree_id": "6589a20d5ed7f04cbd0ee966235c369a8dae61c9",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/4ff5911eacefacd2d2cd4f13b6a3a39fd3a3a68c"
+        },
+        "date": 1776807375776,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 243126,
+            "range": "±0.90%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 234973,
+            "range": "±0.96%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
           }
         ]
       }
