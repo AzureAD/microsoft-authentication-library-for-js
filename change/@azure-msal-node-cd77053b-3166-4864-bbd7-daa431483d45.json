@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Updated msal-node tests to reflect upn idtokenclaim [#8478](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8478)",
+  "packageName": "@azure/msal-node",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "none"
+}
