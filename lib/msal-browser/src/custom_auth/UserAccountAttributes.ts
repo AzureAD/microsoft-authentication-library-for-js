@@ -7,6 +7,7 @@ export type UserAccountAttributes = Record<string, string> & {
     city?: string;
     country?: string;
     displayName?: string;
+    flatusername?: string;
     givenName?: string;
     jobTitle?: string;
     postalCode?: string;

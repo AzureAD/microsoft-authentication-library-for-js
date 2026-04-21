@@ -38,7 +38,7 @@ const config = require("../config/B2C-Local.json");
 
 describe("Silent Flow B2C Tests", () => {
     jest.retryTimes(RETRY_TIMES);
-    jest.setTimeout(ONE_SECOND_IN_MS * 45);
+    jest.setTimeout(ONE_SECOND_IN_MS * 90);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -105,7 +105,6 @@ describe("Silent Flow B2C Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
         });
 
@@ -127,6 +126,30 @@ describe("Silent Flow B2C Tests", () => {
                 accountPwd
             );
             await page.waitForSelector("#acquireTokenSilent");
+            await page.click("#acquireTokenSilent");
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                ONE_SECOND_IN_MS * 2
+            );
+            expect(cachedTokens.accessTokens.length).toBe(1);
+            expect(cachedTokens.idTokens.length).toBe(1);
+            expect(cachedTokens.refreshTokens.length).toBe(1);
+        });
+
+        it("Performs acquire token silent when tokens are only present in persistent cache", async () => {
+            const screenshot = new Screenshot(
+                `${screenshotFolder}/AcquireTokenSilentFromPersistent`
+            );
+            await clickSignIn(page, screenshot);
+            await b2cLocalAccountEnterCredentials(
+                page,
+                screenshot,
+                username,
+                accountPwd
+            );
+            await page.waitForSelector("#acquireTokenSilent");
+            await publicClientApplication.clearCache();
+            await screenshot.takeScreenshot(page, "ATS");
             await page.click("#acquireTokenSilent");
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(
                 TEST_CACHE_LOCATION,

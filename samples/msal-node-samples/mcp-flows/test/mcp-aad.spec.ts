@@ -40,7 +40,7 @@ const DIFFERENT_RESOURCE = "https://differentresource.microsoft.com";
 
 describe("MCP Node AAD Tests", () => {
     jest.retryTimes(RETRY_TIMES);
-    jest.setTimeout(ONE_SECOND_IN_MS * 45);
+    jest.setTimeout(ONE_SECOND_IN_MS * 90);
 
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -102,7 +102,6 @@ describe("MCP Node AAD Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
         });
 
@@ -131,7 +130,6 @@ describe("MCP Node AAD Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
         });
 

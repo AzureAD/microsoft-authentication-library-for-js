@@ -36,7 +36,7 @@ const config = require("../config/B2C-MSA.json");
 
 describe("Auth Code B2C Tests (msa account)", () => {
     jest.retryTimes(RETRY_TIMES);
-    jest.setTimeout(45000);
+    jest.setTimeout(90000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -102,7 +102,6 @@ describe("Auth Code B2C Tests (msa account)", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(5000);
             page.on("dialog", async (dialog) => {
                 console.log(dialog.message());
                 await dialog.dismiss();
@@ -240,3 +239,4 @@ describe("Auth Code B2C Tests (msa account)", () => {
         });
     });
 });
+

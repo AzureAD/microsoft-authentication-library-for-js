@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Attach cached ssoCapable value to ssoSilent and acquireTokenSilent telemetry. Refactor verifySsoCapability to accept request instead of account.",
-    "packageName": "@azure/msal-browser",
-    "email": "sameera.gajjarapu@microsoft.com",
-    "dependentChangeType": "patch"
-}
