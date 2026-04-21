@@ -83,7 +83,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             },
         };
 
-        createNestablePublicClientApplication(config).then((result) => {
+        await createNestablePublicClientApplication(config).then((result) => {
             pca = result;
         });
 
