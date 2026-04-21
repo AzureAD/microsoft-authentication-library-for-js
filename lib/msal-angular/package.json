@@ -32,7 +32,7 @@
     "format:fix": "prettier --ignore-path .gitignore --write src",
     "validate:exports": "node ../../scripts/check-exports.js"
   },
-  "typings": "./dist/azure-msal-angular.d.ts",
+  "typings": "./dist/index.d.ts",
   "beachball": {
     "disallowedChangeTypes": [
       "major"
