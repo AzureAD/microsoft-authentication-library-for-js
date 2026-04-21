@@ -49,6 +49,7 @@ import {
     StubPerformanceClient,
     AccountEntityUtils,
     Constants,
+    updateAccountTenantProfileData,
 } from "@azure/msal-common/browser";
 import {
     ApiId,
@@ -7516,8 +7517,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccount: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
-        const testAccountInfo: AccountInfo =
-            AccountEntityUtils.getAccountInfo(testAccount);
+        const testAccountInfo: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(testAccount),
+            undefined,
+            ID_TOKEN_CLAIMS
+        );
+
         const matchAccount: AccountInfo = {
             ...testAccountInfo,
             idTokenClaims: ID_TOKEN_CLAIMS,
@@ -7570,9 +7575,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         // Account 1
         const testAccount1: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const testAccountInfo1: AccountInfo =
-            AccountEntityUtils.getAccountInfo(testAccount1);
-        testAccountInfo1.idTokenClaims = ID_TOKEN_CLAIMS;
+        const testAccountInfo1: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(testAccount1),
+            undefined,
+            ID_TOKEN_CLAIMS
+        );
         testAccountInfo1.idToken = TEST_TOKENS.IDTOKEN_V2;
 
         testAccount1.clientInfo =
@@ -7588,9 +7595,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         const testAccount2: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
-        const testAccountInfo2: AccountInfo =
-            AccountEntityUtils.getAccountInfo(testAccount2);
-        testAccountInfo2.idTokenClaims = ID_TOKEN_ALT_CLAIMS;
+        const testAccountInfo2: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(testAccount2),
+            undefined,
+            ID_TOKEN_ALT_CLAIMS
+        );
         testAccountInfo2.idToken = TEST_TOKENS.IDTOKEN_V2_ALT;
 
         testAccount2.clientInfo =
@@ -7786,9 +7795,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccount1: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         testAccount1.nativeAccountId = "nativeAccountId1";
-        const testAccountInfo1: AccountInfo =
-            AccountEntityUtils.getAccountInfo(testAccount1);
-        testAccountInfo1.idTokenClaims = ID_TOKEN_CLAIMS;
+        const testAccountInfo1: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(testAccount1),
+            undefined,
+            ID_TOKEN_CLAIMS
+        );
         testAccountInfo1.idToken = TEST_TOKENS.IDTOKEN_V2;
 
         testAccount1.clientInfo =
@@ -7974,7 +7985,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccount1: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         const testAccountInfo1: AccountInfo = {
-            ...AccountEntityUtils.getAccountInfo(testAccount1),
+            ...updateAccountTenantProfileData(
+                AccountEntityUtils.getAccountInfo(testAccount1),
+                undefined,
+                ID_TOKEN_CLAIMS
+            ),
             idTokenClaims: ID_TOKEN_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2,
         };
@@ -7990,7 +8005,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccount2: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
         const testAccountInfo2: AccountInfo = {
-            ...AccountEntityUtils.getAccountInfo(testAccount2),
+            ...updateAccountTenantProfileData(
+                AccountEntityUtils.getAccountInfo(testAccount2),
+                undefined,
+                ID_TOKEN_ALT_CLAIMS
+            ),
             idTokenClaims: ID_TOKEN_ALT_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2_ALT,
         };
@@ -8287,8 +8306,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("hydrateCache tests", () => {
         const testAccount: AccountInfo = {
-            ...AccountEntityUtils.getAccountInfo(
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            ...updateAccountTenantProfileData(
+                AccountEntityUtils.getAccountInfo(
+                    buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+                ),
+                undefined,
+                ID_TOKEN_CLAIMS
             ),
             idTokenClaims: ID_TOKEN_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2,
@@ -8646,8 +8669,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         let secondBrowserStorageInstance: BrowserCacheManager;
         const accountEntity: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const accountInfo: AccountInfo =
-            AccountEntityUtils.getAccountInfo(accountEntity);
+        const accountInfo: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(accountEntity),
+            undefined,
+            ID_TOKEN_CLAIMS
+        );
         let callbackId: string | null;
         let pca2: PublicClientApplication;
 

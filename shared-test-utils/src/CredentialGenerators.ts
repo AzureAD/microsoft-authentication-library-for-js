@@ -14,6 +14,20 @@ export function buildAccountFromIdTokenClaims(
     guestIdTokenClaimsList?: TokenClaims[],
     options?: Partial<AccountInfo>
 ): AccountEntity {
+    const accountInfo = buildAccountInfoFromIdTokenClaims(
+        idTokenClaims,
+        guestIdTokenClaimsList
+    );
+    return AccountEntityUtils.createAccountEntityFromAccountInfo({
+        ...accountInfo,
+        ...options,
+    });
+}
+
+export function buildAccountInfoFromIdTokenClaims(
+    idTokenClaims: TokenClaims,
+    guestIdTokenClaimsList?: TokenClaims[]
+): AccountInfo {
     const { oid, tid, preferred_username, emails, name, login_hint, upn } =
         idTokenClaims;
     const tenantId = tid || "";
@@ -30,6 +44,7 @@ export function buildAccountFromIdTokenClaims(
         authorityType: "MSSTS",
         name: name,
         loginHint: login_hint,
+        upn: upn,
         tenantProfiles: new Map<string, TenantProfile>([
             [
                 tenantId,
@@ -54,7 +69,7 @@ export function buildAccountFromIdTokenClaims(
             )
         );
     });
-    return AccountEntityUtils.createAccountEntityFromAccountInfo({ ...accountInfo, ...options });
+    return accountInfo;
 }
 
 export function buildIdToken(
@@ -71,7 +86,7 @@ export function buildIdToken(
         secret: idTokenSecret,
         clientId: "mock_client_id",
         homeAccountId: homeAccountId,
-        lastUpdatedAt: Date.now().toString()
+        lastUpdatedAt: Date.now().toString(),
     };
 
     return { ...idToken, ...options };

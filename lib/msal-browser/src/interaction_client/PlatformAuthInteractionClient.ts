@@ -320,11 +320,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 base64Decode
             );
 
-            const fullAccount = {
-                ...account,
-                idTokenClaims: idTokenClaims,
-                idToken: idToken?.secret,
-            };
+            const fullAccount = updateAccountTenantProfileData(
+                account,
+                undefined, // tenantProfile optional
+                idTokenClaims,
+                idToken?.secret
+            );
 
             return {
                 ...result,

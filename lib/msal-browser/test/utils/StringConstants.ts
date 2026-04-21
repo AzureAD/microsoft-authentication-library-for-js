@@ -552,6 +552,7 @@ export const TEST_ACCOUNT_INFO: AccountInfo = {
     idToken: TEST_TOKENS.IDTOKEN_V2,
     idTokenClaims: ID_TOKEN_CLAIMS,
     name: ID_TOKEN_CLAIMS.name,
+    upn: ID_TOKEN_CLAIMS.upn,
     nativeAccountId: undefined,
     tenantProfiles: testTenantProfilesMap,
 };

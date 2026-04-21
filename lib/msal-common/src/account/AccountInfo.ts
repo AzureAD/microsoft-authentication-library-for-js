@@ -13,6 +13,7 @@ export type DataBoundary = "EU" | "None";
  * - environment            - Entity which issued the token represented by the domain of the issuer (e.g. login.microsoftonline.com)
  * - tenantId               - Full tenant or organizational id that this account belongs to
  * - username               - preferred_username claim of the id_token that represents this account
+ * - upn                    - The user's UPN used to populate the account username in cases where preferred_username is not present in the ID token claims.
  * - localAccountId         - Local, tenant-specific account identifer for this account object, usually used in legacy cases
  * - name                   - Full name for the account, including given name and family name
  * - idToken                - raw ID token
@@ -29,6 +30,7 @@ export type AccountInfo = {
     localAccountId: string;
     loginHint?: string;
     name?: string;
+    upn?: string;
     idToken?: string;
     idTokenClaims?: TokenClaims & {
         [key: string]:
@@ -56,6 +58,9 @@ export type TenantProfile = Pick<
      * - isHomeTenant           - True if this is the home tenant profile of the account, false if it's a guest tenant profile
      */
     isHomeTenant?: boolean;
+    /**
+     * upn                     - The user's UPN used to populate the account username in cases where preferred_username is not present in the ID token claims.
+     */
     upn?: string;
 };
 
@@ -152,15 +157,15 @@ export function updateAccountTenantProfileData(
     // Tenant Profile overrides passed in account info
     if (tenantProfile) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { isHomeTenant, upn, ...tenantProfileOverride } = tenantProfile;
+        const { isHomeTenant, ...tenantProfileOverride } = tenantProfile;
         updatedAccountInfo = { ...baseAccountInfo, ...tenantProfileOverride };
     }
 
     // ID token claims override passed in account info and tenant profile
     if (idTokenClaims) {
-        // Ignore isHomeTenant, loginHint, and sid which are part of tenant profile but not base account info
+        // Ignore isHomeTenant which is a utility property of tenant profile but not required in base account info
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { isHomeTenant, upn, ...claimsSourcedTenantProfile } =
+        const { isHomeTenant, ...claimsSourcedTenantProfile } =
             buildTenantProfile(
                 baseAccountInfo.homeAccountId,
                 baseAccountInfo.localAccountId,
