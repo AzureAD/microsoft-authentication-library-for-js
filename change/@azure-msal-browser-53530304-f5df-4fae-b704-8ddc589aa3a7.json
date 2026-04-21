@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update cache schema version to fix bug when upgrading from v4 to v5",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
