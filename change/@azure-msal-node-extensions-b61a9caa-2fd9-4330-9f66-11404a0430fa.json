@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "ci: add typecheck script to all Rollup-based packages",
+  "comment": "ci: add typecheck and validate:exports scripts [#8544](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8544)",
   "packageName": "@azure/msal-node-extensions",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "none"
