@@ -7520,14 +7520,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccountInfo: AccountInfo = updateAccountTenantProfileData(
             AccountEntityUtils.getAccountInfo(testAccount),
             undefined,
-            ID_TOKEN_CLAIMS
+            ID_TOKEN_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2
         );
-
-        const matchAccount: AccountInfo = {
-            ...testAccountInfo,
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
-        };
 
         const testIdToken: IdTokenEntity = buildIdToken(
             ID_TOKEN_CLAIMS,
@@ -7551,20 +7546,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("browser cache cleared when clearCache called without a ClearCacheRequest object", () => {
             expect(pca.getActiveAccount()).toEqual(null);
-            pca.setActiveAccount(matchAccount);
+            pca.setActiveAccount(testAccountInfo);
             const activeAccount = pca.getActiveAccount();
-            expect(activeAccount).toEqual(matchAccount);
+            expect(activeAccount).toEqual(testAccountInfo);
             pca.clearCache();
             expect(pca.getActiveAccount()).toEqual(null);
         });
 
         it("browser cache cleared when clearCache called with a ClearCacheRequest object", () => {
             expect(pca.getActiveAccount()).toEqual(null);
-            pca.setActiveAccount(matchAccount);
+            pca.setActiveAccount(testAccountInfo);
             const activeAccount = pca.getActiveAccount();
-            expect(activeAccount).toEqual(matchAccount);
+            expect(activeAccount).toEqual(testAccountInfo);
             pca.clearCache({
-                account: matchAccount,
+                account: testAccountInfo,
                 correlationId: "test123",
             });
             expect(pca.getActiveAccount()).toEqual(null);
@@ -7578,9 +7573,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccountInfo1: AccountInfo = updateAccountTenantProfileData(
             AccountEntityUtils.getAccountInfo(testAccount1),
             undefined,
-            ID_TOKEN_CLAIMS
+            ID_TOKEN_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2
         );
-        testAccountInfo1.idToken = TEST_TOKENS.IDTOKEN_V2;
 
         testAccount1.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
@@ -7598,9 +7593,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccountInfo2: AccountInfo = updateAccountTenantProfileData(
             AccountEntityUtils.getAccountInfo(testAccount2),
             undefined,
-            ID_TOKEN_ALT_CLAIMS
+            ID_TOKEN_ALT_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2_ALT
         );
-        testAccountInfo2.idToken = TEST_TOKENS.IDTOKEN_V2_ALT;
 
         testAccount2.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
@@ -7798,10 +7793,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccountInfo1: AccountInfo = updateAccountTenantProfileData(
             AccountEntityUtils.getAccountInfo(testAccount1),
             undefined,
-            ID_TOKEN_CLAIMS
+            ID_TOKEN_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2
         );
-        testAccountInfo1.idToken = TEST_TOKENS.IDTOKEN_V2;
-
         testAccount1.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
@@ -7984,15 +7978,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         // Account 1
         const testAccount1: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const testAccountInfo1: AccountInfo = {
-            ...updateAccountTenantProfileData(
+        const testAccountInfo1: AccountInfo = 
+            updateAccountTenantProfileData(
                 AccountEntityUtils.getAccountInfo(testAccount1),
                 undefined,
-                ID_TOKEN_CLAIMS
-            ),
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
-        };
+                ID_TOKEN_CLAIMS,
+                TEST_TOKENS.IDTOKEN_V2
+            );
 
         const idToken1: IdTokenEntity = buildIdToken(
             ID_TOKEN_CLAIMS,
@@ -8004,15 +7996,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         const testAccount2: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
-        const testAccountInfo2: AccountInfo = {
-            ...updateAccountTenantProfileData(
+        const testAccountInfo2: AccountInfo =
+            updateAccountTenantProfileData(
                 AccountEntityUtils.getAccountInfo(testAccount2),
                 undefined,
-                ID_TOKEN_ALT_CLAIMS
-            ),
-            idTokenClaims: ID_TOKEN_ALT_CLAIMS,
-            idToken: TEST_TOKENS.IDTOKEN_V2_ALT,
-        };
+                ID_TOKEN_ALT_CLAIMS,
+                TEST_TOKENS.IDTOKEN_V2_ALT
+            );
+
 
         const idToken2: IdTokenEntity = buildIdToken(
             ID_TOKEN_ALT_CLAIMS,
@@ -8305,17 +8296,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("hydrateCache tests", () => {
-        const testAccount: AccountInfo = {
-            ...updateAccountTenantProfileData(
+        const testAccount: AccountInfo =
+            updateAccountTenantProfileData(
                 AccountEntityUtils.getAccountInfo(
                     buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
                 ),
                 undefined,
-                ID_TOKEN_CLAIMS
-            ),
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
-        };
+                ID_TOKEN_CLAIMS,
+                TEST_TOKENS.IDTOKEN_V2
+            );
 
         const testAuthenticationResult: AuthenticationResult = {
             authority: TEST_CONFIG.validAuthority,
