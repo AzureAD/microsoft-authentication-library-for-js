@@ -24,7 +24,7 @@ Before diving in, two scenarios shape how the MSI mTLS PoP flow behaves — they
 MSAL generates a key inside Windows Virtualization-Based Security (VBS) KeyGuard. The key material is **never** accessible outside CNG (`NCryptSignHash` only). Attestation via MAA is an integral part of this path — KeyGuard without attestation provides minimal security value. This is the complex scenario: attestation requires a native `AttestationClientLib.dll` distributed separately, and downstream BYO HTTP client is **not possible** for most SDKs (see [Part 3](#part-3--downstream-mtls-calls-the-core-problem)).
 
 **Roadmap — software / exportable keys (simpler path):**
-MSAL generates a software RSA key; key material can be exported as PEM bytes. No attestation is required. Downstream BYO HTTP client is **possible** for all SDKs because the raw key bytes can be passed to any TLS stack. This path is not yet supported by Entra STS.
+MSAL generates a software RSA key; key material can be exported as PEM bytes. No attestation is required. Downstream BYO HTTP client is **possible** for all SDKs because the raw key bytes can be passed to any TLS stack. This path is not yet end-to-end testable — Entra STS accepts software-key mTLS PoP tokens, but IMDS (MIRP) does not yet issue software-key binding certificates, so the full flow cannot be validated.
 
 > **Critical**: Downstream transport feasibility depends on the **key model**. A KeyGuard key cannot be used with standard BYO HTTP clients regardless of whether attestation is enabled.
 
@@ -109,7 +109,7 @@ All SDKs set `tokenType` / `token_type` to `"mtls_pop"`.
 
 After acquiring an mTLS PoP token, the developer must make downstream resource calls **over mTLS using the same binding certificate**. This is where the key model critically matters.
 
-Any TLS stack performing a client certificate handshake must have access to raw private key material to sign the `CertificateVerify` message in the TLS exchange. When the private key is stored in Windows KeyGuard (VBS-protected), the CNG key storage provider rejects all export operations:
+Any TLS stack performing a client certificate handshake must have signing access to the private key for the `CertificateVerify` step in the TLS exchange — either through raw key material (as OpenSSL-style stacks require) or through a platform/provider-backed key handle (as Schannel, WinHTTP, and Go's `crypto.Signer` provide). When the private key is stored in Windows KeyGuard (VBS-protected), the CNG key storage provider rejects all export operations, so only stacks with a CNG-handle path can work:
 
 - **Windows CNG**: `NCryptExportKey()` → `NTE_NOT_SUPPORTED` for KeyGuard keys
 - **.NET**: `RSACng.ExportPkcs8PrivateKey()` → `CryptographicException` (`NTE_NOT_SUPPORTED`)
@@ -124,7 +124,7 @@ Any TLS stack performing a client certificate handshake must have access to raw 
 | Scenario | Key type | Exportable? | BYO HTTP client possible? |
 |---|---|---|---|
 | **MSI — KeyGuard (current implementation)** | VBS RSA 2048 (`NCryptSignHash` only) | ❌ Non-exportable | ❌ Not possible |
-| **MSI — software keys (roadmap)** | Software RSA | ✅ Exportable as PEM | ✅ Projected — not yet validated (Entra STS does not yet support software keys) |
+| **MSI — software keys (roadmap)** | Software RSA | ✅ Exportable as PEM | ✅ Projected — not yet validated (IMDS does not yet issue software-key binding certs; Entra STS supports the flow but e2e testing is not yet possible) |
 | **SNI / Confidential Client (Path 1)** | Developer-provided | Depends on import flags | ✅ Yes — developer holds the key directly |
 
 ### Per-SDK current state (KeyGuard path)
@@ -143,6 +143,8 @@ Any TLS stack performing a client certificate handshake must have access to raw 
 
 ## Part 4 — Path Forward: Software Key Pivot
 
+> **This is not the current implementation.** Today, all MSI mTLS PoP uses KeyGuard + attestation (Part 1–3). The software key pivot described here is a future direction pending IMDS support.
+
 The software key pivot (direction indicated by the mTLS PoP architect) resolves the downstream constraint universally. With software/exportable keys:
 
 - MSAL generates a software RSA key (no KeyGuard, no attestation required)
@@ -152,7 +154,7 @@ The software key pivot (direction indicated by the mTLS PoP architect) resolves 
 - MSAL's built-in transport helpers become optional convenience wrappers rather than mandatory requirements
 - `AttestationClientLib.dll` and native attestation dependencies are not required
 
-**Current status**: Entra STS does not yet accept mTLS PoP token requests with software (non-KeyGuard) keys. This is on the roadmap. Until that pivot lands, **use MSAL's SDK-provided transport for downstream calls on msal-java, msal-node, and msal-python**, and BYO HTTP client on msal-dotnet and msal-go.
+**Current status**: IMDS (MIRP) does not yet issue software-key binding certificates, making this path untestable end-to-end. Entra STS accepts software-key mTLS PoP tokens, but without IMDS support the full MSI flow cannot be exercised. This is on the roadmap — there is an active ask to the IMDS team to enable software-key issuance. Until that pivot lands, **use MSAL's SDK-provided transport for downstream calls on msal-java, msal-node, and msal-python**, and BYO HTTP client on msal-dotnet and msal-go.
 
 > **Note on MSI flow sequencing**: For the MSI path, the binding certificate is issued by IMDS as part of the token acquisition flow — it cannot be provided to the Azure SDK before `acquireToken()` completes. The Azure SDK receives the binding certificate (and exportable key, once software keys land) in `AuthenticationResult` and uses them for subsequent downstream mTLS calls.
 

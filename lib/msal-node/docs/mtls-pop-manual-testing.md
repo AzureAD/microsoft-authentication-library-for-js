@@ -1,5 +1,7 @@
 # mTLS PoP — Manual Testing Guide
 
+mTLS Proof-of-Possession tokens are different from standard bearer tokens: acquiring the token is only the first step. The downstream resource call must also be made over a mutually-authenticated TLS connection using the same binding certificate — the resource server verifies that the client presenting the token holds the corresponding private key. This guide covers both steps: token acquisition and the downstream mTLS call.
+
 This guide walks through manually testing both mTLS PoP paths end-to-end.
 
 - **Path 1** — Confidential Client Application (CCA) with an SNI certificate (`@azure/msal-node`)
