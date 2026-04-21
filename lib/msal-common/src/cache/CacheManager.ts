@@ -777,6 +777,7 @@ export abstract class CacheManager implements ICacheManager {
                 localAccountId: accountFilter?.localAccountId,
                 name: accountFilter?.name,
                 username: accountFilter?.username,
+                loginHint: accountFilter?.loginHint,
             };
 
             const matchingTenantProfiles = entity.tenantProfiles?.filter(
