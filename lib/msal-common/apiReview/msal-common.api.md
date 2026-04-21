@@ -192,6 +192,7 @@ export type AccountInfo = {
     localAccountId: string;
     loginHint?: string;
     name?: string;
+    upn?: string;
     idToken?: string;
     idTokenClaims?: TokenClaims & {
         [key: string]: string | number | string[] | object | undefined | unknown;
@@ -4745,7 +4746,7 @@ export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTok
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "16.5.0";
+export const version = "16.4.1";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

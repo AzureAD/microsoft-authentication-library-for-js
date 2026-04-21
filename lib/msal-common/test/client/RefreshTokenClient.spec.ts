@@ -1307,7 +1307,7 @@ describe("RefreshTokenClient unit tests", () => {
             ID_TOKEN_CLAIMS,
             TEST_TOKENS.IDTOKEN_V2
         );
-        
+
         beforeEach(async () => {
             jest.spyOn(
                 Authority.prototype,
