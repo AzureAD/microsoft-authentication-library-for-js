@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776714798235,
+  "lastUpdate": 1776783559283,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20731,6 +20731,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.78%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ydi.w127@gmail.com",
+            "name": "Yongdi Wang",
+            "username": "yongdiw"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ea87289a08d07c8f2bceb43bdf1952595dfb0a31",
+          "message": "Add flat username (alias) support in sign-up flow (#8536)\n\nAdd flatusername as a typed optional attribute in UserAccountAttributes.\n\nAdd comprehensive integration tests covering all 9 test scenarios:\n\nHappy path:\n- flatusername submitted at /signup/start with payload verification\n- flatusername submitted at /signup/continue with metadata validation\n\nNegative:\n- flatusername rejected for EmailOTP flow at /start (AADSTS901002)\n- flatusername rejected for EmailOTP flow at /continue (AADSTS901002)\n- Duplicate flat username (user_already_exists)\n- Invalid flat username regex validation (attribute_validation_failed)\n- Missing required flat username (attributes_required with metadata)\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-04-21T15:52:45+01:00",
+          "tree_id": "0b279e9c6a103e81d4c3d56dda65f88678d56faa",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ea87289a08d07c8f2bceb43bdf1952595dfb0a31"
+        },
+        "date": 1776783555916,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 233378,
+            "range": "±0.83%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 213190,
+            "range": "±1.23%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
           }
         ]
       }
