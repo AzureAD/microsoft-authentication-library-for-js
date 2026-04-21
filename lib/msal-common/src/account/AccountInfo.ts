@@ -52,16 +52,12 @@ export type AccountInfo = {
  */
 export type TenantProfile = Pick<
     AccountInfo,
-    "tenantId" | "localAccountId" | "name" | "username" | "loginHint"
+    "tenantId" | "localAccountId" | "name" | "username" | "loginHint" | "upn"
 > & {
     /**
      * - isHomeTenant           - True if this is the home tenant profile of the account, false if it's a guest tenant profile
      */
     isHomeTenant?: boolean;
-    /**
-     * upn                     - The user's UPN used to populate the account username in cases where preferred_username is not present in the ID token claims.
-     */
-    upn?: string;
 };
 
 export type ActiveAccountFilters = {

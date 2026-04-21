@@ -521,6 +521,13 @@ export abstract class CacheManager implements ICacheManager {
             return false;
         }
 
+        if (
+            !!tenantProfileFilter.upn &&
+            !(tenantProfile.upn === tenantProfileFilter.upn)
+        ) {
+            return false;
+        }
+
         return true;
     }
 
@@ -778,6 +785,7 @@ export abstract class CacheManager implements ICacheManager {
                 name: accountFilter?.name,
                 username: accountFilter?.username,
                 loginHint: accountFilter?.loginHint,
+                upn: accountFilter?.upn,
             };
 
             const matchingTenantProfiles = entity.tenantProfiles?.filter(
