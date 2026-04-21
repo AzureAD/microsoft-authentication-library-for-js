@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776783559283,
+  "lastUpdate": 1776804951657,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20769,6 +20769,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.23%",
             "unit": "ops/sec",
             "extra": "230 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0f6c9816eb808d681a9cb36d88fb0819ab3645ec",
+          "message": "Update cache schema to fix upgrade bug between v4 and v5 (#8545)\n\nThis pull request introduces a new cache schema version (v3) for MSAL\nBrowser, updates the credential and account key formats, and enhances\nmigration logic and tests to ensure smooth upgrades and downgrades\nacross schema versions. The changes ensure backward compatibility and\nrobust migration from previous cache schemas, with thorough test\ncoverage validating token integrity and cache key handling.\n\n**Schema Version Upgrade and Key Format Changes:**\n\n- Bumped `CREDENTIAL_SCHEMA_VERSION` and `ACCOUNT_SCHEMA_VERSION` from 2\nto 3 in `CacheKeys.ts`, establishing a new schema version for cache\nentries.\n- Clarified the schema versioning in documentation.\n\n**Migration Logic Improvements:**\n\n- Improved migration logic in `BrowserCacheManager` to ensure new v3\nkeys are only added if they don't already exist, preventing duplicate\nentries during migration.\n- Added comprehensive migration test to verify that schema 2 (v2)\ncredential keys are correctly migrated to schema 3 (v3) without deleting\nthe original v2 keys, ensuring backward compatibility and data\nintegrity.\n\n**Test Enhancements for Upgrade/Downgrade Scenarios:**\n\n- Updated upgrade/downgrade tests to reflect the new schema version\n(v3), including checks that token counts do not increase after forced\nrefreshes post-upgrade, guarding against cache bloat or duplication.\n[[1]](diffhunk://#diff-e41b43706be7e3a838d4934809bd7201a6012abd1985538f9249179c98b75572L64-R70)\n[[2]](diffhunk://#diff-e41b43706be7e3a838d4934809bd7201a6012abd1985538f9249179c98b75572R113-R117)\n[[3]](diffhunk://#diff-e41b43706be7e3a838d4934809bd7201a6012abd1985538f9249179c98b75572R132-R155)\n[[4]](diffhunk://#diff-e41b43706be7e3a838d4934809bd7201a6012abd1985538f9249179c98b75572R170-R174)\n[[5]](diffhunk://#diff-e41b43706be7e3a838d4934809bd7201a6012abd1985538f9249179c98b75572R189-R193)\n[[6]](diffhunk://#diff-e41b43706be7e3a838d4934809bd7201a6012abd1985538f9249179c98b75572R213-R217)\n- Added new test cases to cover migration from and downgrades to\nprevious schema versions (v1 and v2), verifying cache usability and\ntoken retrieval after version transitions.\n\n**Test Utility and Helper Updates:**\n\n- Introduced a new helper function\n`forceRefreshAndVerifyTokenCountsDoNotIncrease` in test utilities to\nautomate validation that token counts remain stable after schema\nupgrades and forced refreshes.\n- Minor updates to test descriptions for clarity regarding migration to\nthe \"current schema\" rather than a specific version.\n[[1]](diffhunk://#diff-1f474f3b5ffedcb4da969f60d720532be75a02c6d91e65b7d1e3c107b0a4f13dL250-R250)\n[[2]](diffhunk://#diff-1f474f3b5ffedcb4da969f60d720532be75a02c6d91e65b7d1e3c107b0a4f13dL351-R351)\n\nThese changes collectively ensure a robust, backward-compatible cache\nmigration path as the MSAL Browser library evolves its schema.",
+          "timestamp": "2026-04-21T13:49:30-07:00",
+          "tree_id": "f50325a8a3cd6526ff21f3b1ad90a2cfb36d835e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/0f6c9816eb808d681a9cb36d88fb0819ab3645ec"
+        },
+        "date": 1776804947292,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 231299,
+            "range": "±0.89%",
+            "unit": "ops/sec",
+            "extra": "238 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 206449,
+            "range": "±1.22%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
           }
         ]
       }
