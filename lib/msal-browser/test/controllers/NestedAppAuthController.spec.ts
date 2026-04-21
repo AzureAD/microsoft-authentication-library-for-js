@@ -83,9 +83,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             },
         };
 
-        createNestablePublicClientApplication(config).then((result) => {
-            pca = result;
-        });
+        pca = await createNestablePublicClientApplication(config);
 
         windowSpy = jest.spyOn(global, "window", "get");
 

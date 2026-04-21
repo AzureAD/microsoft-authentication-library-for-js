@@ -6,8 +6,8 @@
 export const PREFIX = "msal";
 const BROWSER_PREFIX = "browser";
 export const CACHE_KEY_SEPARATOR = "|";
-export const CREDENTIAL_SCHEMA_VERSION = 2;
-export const ACCOUNT_SCHEMA_VERSION = 2;
+export const CREDENTIAL_SCHEMA_VERSION = 3;
+export const ACCOUNT_SCHEMA_VERSION = 3;
 
 export const LOG_LEVEL_CACHE_KEY = `${PREFIX}.${BROWSER_PREFIX}.log.level`;
 export const LOG_PII_CACHE_KEY = `${PREFIX}.${BROWSER_PREFIX}.log.pii`;
