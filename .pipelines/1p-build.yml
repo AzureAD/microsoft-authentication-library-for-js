@@ -12,10 +12,6 @@ variables:
     LinuxContainerImage: "mcr.microsoft.com/onebranch/cbl-mariner/build:2.0" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
     WindowsContainerImage: "onebranch.azurecr.io/windows/ltsc2022/vse2022:latest" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
     DEBIAN_FRONTEND: noninteractive
-    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
-        sourceBranchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
-    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/pull/') }}:
-        sourceBranchName: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '') }}
 
 resources:
     repositories:
