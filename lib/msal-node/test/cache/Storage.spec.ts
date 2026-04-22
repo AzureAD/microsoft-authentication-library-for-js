@@ -383,8 +383,7 @@ describe("Storage tests for msal-node: ", () => {
             canonical_authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
             authorization_endpoint:
                 DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint,
-            token_endpoint:
-                DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint,
+            token_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint,
             end_session_endpoint:
                 DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint,
             issuer: DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer,
