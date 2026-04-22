@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 21 Apr 2026 22:41:19 GMT",
+      "version": "16.5.1",
+      "tag": "@azure/msal-common_v16.5.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4ff5911eacefacd2d2cd4f13b6a3a39fd3a3a68c",
+            "comment": "Improved account filtering when login hint is provided [#8478](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8478)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 16 Apr 2026 22:44:53 GMT",
       "version": "16.5.0",
       "tag": "@azure/msal-common_v16.5.0",
