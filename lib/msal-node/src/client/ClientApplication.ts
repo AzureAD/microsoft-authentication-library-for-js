@@ -675,7 +675,7 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Clear the cache
+     * Clear the cache except for authority metadata.
      */
     clearCache(): void {
         this.storage.clear();

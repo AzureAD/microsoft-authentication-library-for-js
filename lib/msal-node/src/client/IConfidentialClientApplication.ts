@@ -67,7 +67,7 @@ export interface IConfidentialClientApplication {
     /** Replaces the default logger set in configurations with new Logger with new configurations */
     setLogger(logger: Logger): void;
 
-    /** Clear the cache */
+    /** Clear the cache except for authority metadata. */
     clearCache(): void;
 
     /** This extensibility point is meant for Azure SDK to enhance Managed Identity support */

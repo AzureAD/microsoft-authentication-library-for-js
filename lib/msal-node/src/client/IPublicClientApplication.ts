@@ -68,7 +68,7 @@ export interface IPublicClientApplication {
     /** Replaces the default logger set in configurations with new Logger with new configurations */
     setLogger(logger: Logger): void;
 
-    /** Clear the cache */
+    /** Clear the cache except for authority metadata, which is not included in the serialized cache and would otherwise be lost. */
     clearCache(): void;
 
     /** Gets all cached accounts */
