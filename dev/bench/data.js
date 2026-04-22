@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776819103402,
+  "lastUpdate": 1776882018918,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20921,6 +20921,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.37%",
             "unit": "ops/sec",
             "extra": "218 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "136d9c3045787f5f630ee769726555ec7cb426ba",
+          "message": "fix(e2e): resolve puppeteer from cwd and fix sourceBranch variable in pipeline (#8547)\n\n## Problem\n\n### 1. Puppeteer pre-warm resolution\n\nThe pre-warm script (`.pipelines/scripts/prewarm-puppeteer.js`) used\n`require('puppeteer')`, which Node resolves relative to the **script\nfile's directory**. In the `3p-e2e.yml` pipeline, the script lives in\nthe 3P repo so puppeteer is found correctly, but the module resolution\nwas still fragile.\n\nAdditionally, the script previously only lived in the 1P repo, so in the\n`3p-e2e.yml` context (`./` = 3P root) the file was not found at all.\n\n### 2. `sourceBranch` always empty in E2E pipelines\n\n`1p-e2e.yml` and `3p-e2e.yml` used compile-time template expressions\n(`${{ if ... }}`) to set `sourceBranch` from `Build.SourceBranch` /\n`System.PullRequest.SourceBranch`. These expressions are evaluated at\npipeline compilation time — before runtime variables are populated — so\nboth conditions always evaluated to false and `sourceBranch` was never\nset.\n\nAs a result, the checkout step always fell back to `origin/dev`, meaning\nE2E tests were **never validating the actual PR branch** — they were\nsilently re-testing `dev` on every PR.\n\n## Fix\n\n### Puppeteer pre-warm\n- Move `prewarm-puppeteer.js` here (3P repo) so it is available in both\npipeline contexts via `./` in the template path.\n- Use `createRequire(process.cwd())` so puppeteer is resolved from the\nsample's `node_modules` (the pipeline sets cwd to the sample path),\nwhich is reliable in all three pipelines:\n  - `1p-e2e.yml` (1P samples) ✅\n  - `3p-e2e.yml` (3P samples) ✅\n  - Release pipeline (3P samples via submodule) ✅\n\n### `sourceBranch` variable\n- Replace compile-time `${{ if }}` conditionals with a single runtime\n`$[coalesce(...)]` expression in both `1p-e2e.yml` and `3p-e2e.yml`:\n  ```yaml\nsourceBranch:\n$[coalesce(replace(variables['System.PullRequest.SourceBranch'],\n'refs/heads/', ''), replace(variables['Build.SourceBranch'],\n'refs/heads/', ''))]\n  ```\n- **PR builds**: `System.PullRequest.SourceBranch` =\n`refs/heads/my-branch` → `my-branch` ✅\n- **CI builds**: `System.PullRequest.SourceBranch` is empty, coalesce\nfalls through to `Build.SourceBranch` = `refs/heads/dev` → `dev` ✅\n- Remove unused `sourceBranchName` dead code from `1p-build.yml` (was\nset with the same broken pattern but never passed to any template).\n\n## Related\n\nCompanion 1P PR updates the template path to use `./` and removes the\nnow-redundant copy of the script from the 1P repo.\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-04-22T18:13:39Z",
+          "tree_id": "c004968fa89cf14f32db0427ab5c538c7648ecd8",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/136d9c3045787f5f630ee769726555ec7cb426ba"
+        },
+        "date": 1776882015204,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 242431,
+            "range": "±0.95%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 241032,
+            "range": "±0.61%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
