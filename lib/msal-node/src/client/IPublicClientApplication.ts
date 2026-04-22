@@ -68,8 +68,10 @@ export interface IPublicClientApplication {
     /** Replaces the default logger set in configurations with new Logger with new configurations */
     setLogger(logger: Logger): void;
 
-    /** Clear the cache except for authority metadata. */
+    /** Clear the cache except for authority metadata, which is not included in the serialized cache and would otherwise be lost. */
     clearCache(): void;
+
+    /** Gets all cached accounts */
     getAllAccounts(): Promise<AccountInfo[]>;
 
     /** Removes cache artifacts associated with the given account */
