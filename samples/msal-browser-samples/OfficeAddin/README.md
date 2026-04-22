@@ -74,15 +74,35 @@ This Office Add-in sample shows how to:
     npm run dev-server
     ```
 
+    This hosts the add-in at `https://localhost:3000`. You may be prompted to install/trust a dev certificate the first time.
+
 1. Sideload the add-in in Office:
 
-    ```bash
-    # For desktop Office applications
-    npm run start:desktop
+    The add-in is sideloaded by pointing Office at `manifest.xml` in this directory.
 
-    # For Office on the web
-    npm run start:web
-    ```
+    **Office desktop on Windows:**
+
+    1. Open Word (or another supported Office host).
+    1. Go to **Home** > **Add-ins** > **More Add-ins** > **My Add-ins** tab > **Upload My Add-in**.
+    1. Browse to this sample's `manifest.xml` and click **Upload**.
+
+    **Office on the web:**
+
+    1. Open Word (or another supported Office host).
+    1. Go to **Home** > **Add-ins** > **More Settings** > **Office Add-ins** tab > **Upload My Add-in**.
+    1. Browse to this sample's `manifest.xml` and click **Upload**.
+
+    For more information, see <https://learn.microsoft.com/en-us/office/dev/add-ins/testing/sideload-office-add-ins-for-testing#manually-sideload-an-add-in-to-office-on-the-web>.
+
+    **Office desktop on Mac:**
+
+    Copy `manifest.xml` into the Office app's wef sideload directory.
+    For more information, see <https://learn.microsoft.com/office/dev/add-ins/testing/sideload-an-office-add-in-on-mac>.
+
+    **Remove the add-in when you're done:**
+
+    - Desktop (Windows) and web: open **My Add-ins**, click the `…` menu on the add-in, and choose **Remove**.
+    - Desktop (Mac): delete `manifest.xml` from the `wef` folder above, then clear the Office application's cache. See <https://learn.microsoft.com/office/dev/add-ins/testing/clear-cache>.
 
 ## MSAL Usage in Office Add-ins
 
@@ -127,5 +147,5 @@ pca.acquireTokenSilent(tokenRequest).then(async (result) => {
 ## Additional Resources
 
 -   [Office Add-ins documentation](https://docs.microsoft.com/office/dev/add-ins/)
--   [MSAL Browser NAA documentation](../../../lib/msal-browser/docs/nested-app-auth.md)
+-   [MSAL Browser NAA documentation](../../../lib/msal-browser/docs/initialization.md#nested-app-configuration)
 -   [Microsoft Graph API documentation](https://docs.microsoft.com/graph/)

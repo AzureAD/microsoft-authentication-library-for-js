@@ -71,6 +71,7 @@ export type TenantProfileFilter = Pick<
     | "sid"
     | "isHomeTenant"
     | "username"
+    | "upn"
 >;
 
 /**

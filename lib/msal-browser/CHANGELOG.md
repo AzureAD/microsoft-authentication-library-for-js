@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Thu, 16 Apr 2026 22:44:53 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 21 Apr 2026 22:41:19 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.8.0
+
+Tue, 21 Apr 2026 22:41:19 GMT
+
+### Minor changes
+
+- Add CJS build for redirect-bridge subpath export [#8541](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8541) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.5.1
+
+### Patches
+
+- Add flat username (alias) attribute support in sign-up flow [#8536](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8536) (yongdiwang@microsoft.com)
+- Update cache schema version to fix bug when upgrading from v4 to v5 [#8545](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8545) (thomas.norling@microsoft.com)
+- Improved account filtering when login hint is provided [#8478](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8478) (lalimasharda@microsoft.com)
 
 ## 5.7.0
 
