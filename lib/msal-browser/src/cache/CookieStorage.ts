@@ -25,15 +25,21 @@ export class CookieStorage implements IWindowStorage<string> {
     }
 
     getItem(key: string): string | null {
-        const name = `${encodeURIComponent(key)}`;
+        const name = encodeURIComponent(key);
         const cookieList = document.cookie.split(";");
         for (let i = 0; i < cookieList.length; i++) {
-            const cookie = cookieList[i];
-            const [key, ...rest] = decodeURIComponent(cookie).trim().split("=");
-            const value = rest.join("=");
-
-            if (key === name) {
-                return value;
+            const cookie = cookieList[i].trim();
+            const eqIndex = cookie.indexOf("=");
+            const rawKey =
+                eqIndex === -1 ? cookie : cookie.substring(0, eqIndex);
+            if (rawKey === name) {
+                const rawValue =
+                    eqIndex === -1 ? "" : cookie.substring(eqIndex + 1);
+                try {
+                    return decodeURIComponent(rawValue);
+                } catch {
+                    return rawValue;
+                }
             }
         }
         return "";
@@ -82,8 +88,15 @@ export class CookieStorage implements IWindowStorage<string> {
         const cookieList = document.cookie.split(";");
         const keys: Array<string> = [];
         cookieList.forEach((cookie) => {
-            const cookieParts = decodeURIComponent(cookie).trim().split("=");
-            keys.push(cookieParts[0]);
+            const trimmed = cookie.trim();
+            const eqIndex = trimmed.indexOf("=");
+            const rawKey =
+                eqIndex === -1 ? trimmed : trimmed.substring(0, eqIndex);
+            try {
+                keys.push(decodeURIComponent(rawKey));
+            } catch {
+                // Skip cookies with malformed percent-encoded sequences in the key
+            }
         });
 
         return keys;

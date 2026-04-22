@@ -70,6 +70,23 @@ describe("CookieStorage tests", () => {
         expect(cookieStorage.getItem(msalCacheKey)).toBe(cacheVal);
     });
 
+    it("getItem returns correct value when unrelated cookie has malformed percent-encoded sequence", () => {
+        cookieStorage.setItem(msalCacheKey, cacheVal);
+        // Simulate an unrelated cookie with an invalid UTF-8 percent sequence (e.g. latin1 %E4)
+        jest.spyOn(document, "cookie", "get").mockReturnValue(
+            `someTracker=Kraftr%E4ume; ${msalCacheKey}=${encodeURIComponent(cacheVal)}`
+        );
+        expect(cookieStorage.getItem(msalCacheKey)).toBe(cacheVal);
+    });
+
+    it("getItem does not throw when all unrelated cookies have malformed percent-encoded sequences", () => {
+        jest.spyOn(document, "cookie", "get").mockReturnValue(
+            `badCookie1=val%E4ue; badCookie2=%GGinvalid`
+        );
+        expect(() => cookieStorage.getItem(msalCacheKey)).not.toThrow();
+        expect(cookieStorage.getItem(msalCacheKey)).toBe("");
+    });
+
     it("removeItem", () => {
         cookieStorage.setItem(msalCacheKey, cacheVal);
         expect(cookieStorage.getItem(msalCacheKey)).toEqual(cacheVal);
@@ -86,6 +103,19 @@ describe("CookieStorage tests", () => {
             "testKey2",
             "testKey3",
         ]);
+    });
+
+    it("getKeys skips cookies with malformed percent-encoded key sequences", () => {
+        // Simulate cookies where one key has an invalid percent-encoded sequence
+        jest.spyOn(document, "cookie", "get").mockReturnValue(
+            `testKey1=testVal1; bad%E4Key=someVal; testKey2=testVal2`
+        );
+        expect(() => cookieStorage.getKeys()).not.toThrow();
+        const keys = cookieStorage.getKeys();
+        expect(keys).toContain("testKey1");
+        expect(keys).toContain("testKey2");
+        // bad%E4Key has a malformed percent sequence in the key and should be skipped
+        expect(keys.some((k) => k.includes("bad"))).toBe(false);
     });
 
     it("containsKey", () => {
