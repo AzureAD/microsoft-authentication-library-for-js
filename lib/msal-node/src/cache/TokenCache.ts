@@ -6,7 +6,6 @@
 import { NodeStorage } from "./NodeStorage.js";
 import {
     AccountInfo,
-    AuthorityMetadataEntity,
     Logger,
     ISerializableTokenCache,
     ICachePlugin,
@@ -233,27 +232,11 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
             ""
         );
 
-        // Preserve authority metadata before clearing since it is not included in the serialized cache
-        const authorityMetadataKeys = this.storage.getAuthorityMetadataKeys();
-        const authorityMetadata: Record<string, AuthorityMetadataEntity> = {};
-        authorityMetadataKeys.forEach((key) => {
-            const metadata = this.storage.getAuthorityMetadata(key);
-            if (metadata) {
-                authorityMetadata[key] = metadata;
-            }
-        });
-
         this.storage.clear();
         const cacheContext = new TokenCacheContext(this, false);
         await this.persistence.beforeCacheAccess(cacheContext);
         const cacheSnapshot = this.getCacheSnapshot();
         this.storage.setCache(cacheSnapshot);
-
-        // Restore authority metadata after cache overwrite
-        Object.entries(authorityMetadata).forEach(([key, metadata]) => {
-            this.storage.setAuthorityMetadata(key, metadata);
-        });
-
         await this.persistence.afterCacheAccess(cacheContext);
     }
 
