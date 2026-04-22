@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776882018918,
+  "lastUpdate": 1776891798779,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20959,6 +20959,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.61%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b24a1226561bcd490e6ba06d0af720f405dae3e6",
+          "message": "[MSAL Node] Preserve authority metadata when calling clear() (#8542)\n\nThis PR ensures that the authority metadata is preserved during the\n`overwriteCache` call by not removing the authority metadata when\ncalling `clear`. This is to fix a bug where changing the authority cloud\non request object results in a cache miss when a persistent cache is\navailable.",
+          "timestamp": "2026-04-22T13:56:54-07:00",
+          "tree_id": "c41f6254401591861f21582458608f59fb17fafa",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b24a1226561bcd490e6ba06d0af720f405dae3e6"
+        },
+        "date": 1776891794505,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 220707,
+            "range": "±1.36%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 233075,
+            "range": "±0.98%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
