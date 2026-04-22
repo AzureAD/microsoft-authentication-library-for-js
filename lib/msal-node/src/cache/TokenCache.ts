@@ -231,7 +231,6 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
             "Overwriting in-memory cache with persistent cache",
             ""
         );
-
         this.storage.clear();
         const cacheContext = new TokenCacheContext(this, false);
         await this.persistence.beforeCacheAccess(cacheContext);

@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Preserve authority metadata during persistent cache overwrite [#8542](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8542)",
+  "comment": "Preserve authority metadata when calling clear() [#8542](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8542)",
   "packageName": "@azure/msal-node",
   "email": "shylasummers@microsoft.com",
   "dependentChangeType": "patch"
