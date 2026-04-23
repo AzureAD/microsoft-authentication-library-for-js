@@ -24,7 +24,28 @@ const createPackageJson = ({libPath}) => {
     }
 }
 
+/**
+ * Creates CommonJS declaration shims that point to ESM declaration entrypoints.
+ */
+const createCjsTypeShims = ({ packageRoot, shims }) => {
+    return {
+        name: "createCjsTypeShims",
+        writeBundle: () => {
+            for (const shim of shims) {
+                const absolutePath = path.resolve(packageRoot, shim.filePath);
+                fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+                fs.writeFileSync(
+                    absolutePath,
+                    `import type * as types from "${shim.target}";\nexport = types;\n`,
+                    "utf8"
+                );
+            }
+        }
+    }
+}
+
 module.exports = {
     createPackageJson,
+    createCjsTypeShims,
     loggerMinifyPlugin
 }

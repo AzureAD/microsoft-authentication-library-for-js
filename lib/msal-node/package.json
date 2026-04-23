@@ -32,7 +32,7 @@
         "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./lib/types/index.d.ts",
+        "types": "./dist/index.d.cts",
         "default": "./lib/msal-node.cjs"
       }
     },

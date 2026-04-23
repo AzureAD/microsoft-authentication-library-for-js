@@ -23,7 +23,7 @@
         "default": "./dist/index.js"
       },
       "require": {
-        "types": "./lib/types/index.d.ts",
+        "types": "./dist/index.d.cts",
         "default": "./lib/msal-react.cjs"
       }
     },

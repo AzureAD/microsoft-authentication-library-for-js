@@ -33,7 +33,7 @@
         "default": "./dist-browser/index-browser.mjs"
       },
       "require": {
-        "types": "./lib/types/index-browser.d.ts",
+        "types": "./dist-browser/index-browser.d.cts",
         "default": "./lib/index-browser.cjs"
       }
     },
@@ -43,7 +43,7 @@
         "default": "./dist/index-node.mjs"
       },
       "require": {
-        "types": "./lib/types/index-node.d.ts",
+        "types": "./dist/index-node.d.cts",
         "default": "./lib/index-node.cjs"
       }
     },
@@ -53,7 +53,7 @@
         "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./lib/types/index.d.ts",
+        "types": "./dist/index.d.cts",
         "default": "./lib/index.cjs"
       }
     },
