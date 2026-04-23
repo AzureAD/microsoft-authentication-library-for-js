@@ -15,7 +15,6 @@
     "@azure/msal-node": "^3.0.0",
     "express": "^4.17.1",
     "jsonwebtoken": "^9.0.0",
-    "jwks-rsa": "^3.0.1",
-    "uuid": "^8.3.1"
+    "jwks-rsa": "^3.0.1"
   }
 }
