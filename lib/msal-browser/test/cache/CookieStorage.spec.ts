@@ -74,7 +74,9 @@ describe("CookieStorage tests", () => {
         cookieStorage.setItem(msalCacheKey, cacheVal);
         // Simulate an unrelated cookie with an invalid UTF-8 percent sequence (e.g. latin1 %E4)
         jest.spyOn(document, "cookie", "get").mockReturnValue(
-            `someTracker=Kraftr%E4ume; ${msalCacheKey}=${encodeURIComponent(cacheVal)}`
+            `someTracker=Kraftr%E4ume; ${msalCacheKey}=${encodeURIComponent(
+                cacheVal
+            )}`
         );
         expect(cookieStorage.getItem(msalCacheKey)).toBe(cacheVal);
     });
