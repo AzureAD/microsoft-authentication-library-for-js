@@ -500,7 +500,7 @@ export class NodeStorage extends CacheManager {
     }
 
     /**
-     * Clears all cache entries created by MSAL (except tokens).
+     * Clears all cache entries created by MSAL except authority metadata..
      */
     clear(): void {
         this.logger.trace("Clearing cache entries created by MSAL", "");
@@ -510,6 +510,9 @@ export class NodeStorage extends CacheManager {
 
         // delete each element
         cacheKeys.forEach((key) => {
+            if (this.isAuthorityMetadata(key)) {
+                return;
+            }
             this.removeItem(key);
         });
         this.emitChange();
