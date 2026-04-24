@@ -7,6 +7,7 @@ import {
     AccountEntityUtils,
     CacheHelpers,
     CommonSilentFlowRequest,
+    Constants,
     createInteractionRequiredAuthError,
     ICrypto,
     INetworkModule,
@@ -36,7 +37,6 @@ import {
     getDefaultEventHandler,
     getDefaultPerformanceClient,
 } from "../../test_resources/TestModules.js";
-import { Constants } from "@azure/msal-common";
 import { mock } from "node:test";
 
 describe("CustomAuthSilentCacheClient", () => {
