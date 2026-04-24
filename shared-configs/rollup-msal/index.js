@@ -36,7 +36,7 @@ const createCjsTypeShims = ({ packageRoot, shims }) => {
                 fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
                 fs.writeFileSync(
                     absolutePath,
-                    `declare const mod: typeof import("${shim.target}");\nexport = mod;\n`,
+                    `export * from "${shim.target}";\n`,
                     "utf8"
                 );
             }
