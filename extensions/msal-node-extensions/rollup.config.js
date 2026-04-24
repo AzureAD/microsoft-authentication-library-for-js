@@ -38,9 +38,7 @@ export default [
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json",
                 compilerOptions: {
-                    outDir: "./lib",
-                    declaration: false,
-                    declarationMap: false
+                    outDir: "./lib"
                 }
             }),
             nodeResolve({
@@ -72,18 +70,14 @@ export default [
         plugins: [
             typescript({
                 typescript: require("typescript"),
-                tsconfig: "tsconfig.build.json",
-                compilerOptions: {
-                    declaration: false,
-                    declarationMap: false
-                }
+                tsconfig: "tsconfig.build.json"
             }),
             createCjsTypeShims({
                 packageRoot: __dirname,
                 shims: [
                     {
                         filePath: path.join("types", "index.d.cts"),
-                        target: "../dist/index.mjs"
+                        target: "./index.js"
                     }
                 ]
             }),
