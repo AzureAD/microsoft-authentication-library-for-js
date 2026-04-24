@@ -14,16 +14,16 @@
   "description": "Microsoft Authentication Library for React",
   "type": "module",
   "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "types/index.d.ts",
   "main": "lib/msal-react.cjs",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.ts",
+        "types": "./types/index.d.ts",
         "default": "./dist/index.js"
       },
       "require": {
-        "types": "./dist/index.d.cts",
+        "types": "./types/index.d.cts",
         "default": "./lib/msal-react.cjs"
       }
     },
@@ -31,6 +31,7 @@
   },
   "files": [
     "dist",
+    "types",
     "lib",
     "src"
   ],
@@ -43,7 +44,9 @@
     ]
   },
   "scripts": {
-    "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "clean": "shx rm -rf dist types lib",
+    "build": "npm run clean && rollup -c --strictDeprecations --bundleConfigAsCjs && npm run build:types",
+    "build:types": "tsc -p tsconfig.build.types.json",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "test": "jest --forceExit",
     "test:coverage": "jest --coverage",
