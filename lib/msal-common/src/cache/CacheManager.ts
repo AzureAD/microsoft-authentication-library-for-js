@@ -4,49 +4,49 @@
  */
 
 import {
-    AccountFilter,
-    CredentialFilter,
-    ValidCredentialType,
-    AppMetadataFilter,
-    AppMetadataCache,
-    TokenKeys,
-    TenantProfileFilter,
-} from "./utils/CacheTypes.js";
-import { CacheRecord } from "./entities/CacheRecord.js";
-import * as Constants from "../utils/Constants.js";
-import { CredentialEntity } from "./entities/CredentialEntity.js";
-import { ScopeSet } from "../request/ScopeSet.js";
-import { AccountEntity } from "./entities/AccountEntity.js";
-import { AccessTokenEntity } from "./entities/AccessTokenEntity.js";
-import { IdTokenEntity } from "./entities/IdTokenEntity.js";
-import { RefreshTokenEntity } from "./entities/RefreshTokenEntity.js";
-import { ICacheManager } from "./interface/ICacheManager.js";
-import {
-    createClientAuthError,
-    ClientAuthErrorCodes,
-} from "../error/ClientAuthError.js";
-import {
     AccountInfo,
     TenantProfile,
     updateAccountTenantProfileData,
 } from "../account/AccountInfo.js";
-import { AppMetadataEntity } from "./entities/AppMetadataEntity.js";
-import { ServerTelemetryEntity } from "./entities/ServerTelemetryEntity.js";
-import { ThrottlingEntity } from "./entities/ThrottlingEntity.js";
 import { extractTokenClaims } from "../account/AuthToken.js";
-import { ICrypto } from "../crypto/ICrypto.js";
-import { AuthorityMetadataEntity } from "./entities/AuthorityMetadataEntity.js";
-import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
-import { Logger } from "../logger/Logger.js";
-import { name, version } from "../packageMetadata.js";
-import { StoreInCache } from "../request/StoreInCache.js";
+import { TokenClaims } from "../account/TokenClaims.js";
 import { getAliasesFromStaticSources } from "../authority/AuthorityMetadata.js";
 import { StaticAuthorityOptions } from "../authority/AuthorityOptions.js";
-import { TokenClaims } from "../account/TokenClaims.js";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { createCacheError } from "../error/CacheError.js";
-import * as AccountEntityUtils from "./utils/AccountEntityUtils.js";
+import { ICrypto } from "../crypto/ICrypto.js";
 import { AuthError } from "../error/AuthError.js";
+import { createCacheError } from "../error/CacheError.js";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError.js";
+import { Logger } from "../logger/Logger.js";
+import { name, version } from "../packageMetadata.js";
+import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
+import { ScopeSet } from "../request/ScopeSet.js";
+import { StoreInCache } from "../request/StoreInCache.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import * as Constants from "../utils/Constants.js";
+import { AccessTokenEntity } from "./entities/AccessTokenEntity.js";
+import { AccountEntity } from "./entities/AccountEntity.js";
+import { AppMetadataEntity } from "./entities/AppMetadataEntity.js";
+import { AuthorityMetadataEntity } from "./entities/AuthorityMetadataEntity.js";
+import { CacheRecord } from "./entities/CacheRecord.js";
+import { CredentialEntity } from "./entities/CredentialEntity.js";
+import { IdTokenEntity } from "./entities/IdTokenEntity.js";
+import { RefreshTokenEntity } from "./entities/RefreshTokenEntity.js";
+import { ServerTelemetryEntity } from "./entities/ServerTelemetryEntity.js";
+import { ThrottlingEntity } from "./entities/ThrottlingEntity.js";
+import { ICacheManager } from "./interface/ICacheManager.js";
+import * as AccountEntityUtils from "./utils/AccountEntityUtils.js";
+import {
+    AccountFilter,
+    AppMetadataCache,
+    AppMetadataFilter,
+    CredentialFilter,
+    TenantProfileFilter,
+    TokenKeys,
+    ValidCredentialType,
+} from "./utils/CacheTypes.js";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -315,8 +315,10 @@ export abstract class CacheManager implements ICacheManager {
         const allAccounts = this.getAllAccounts(accountFilter, correlationId);
         if (allAccounts.length > 1) {
             // If one or more accounts are found, prioritize accounts that have an ID token
-            const sortedAccounts = allAccounts.sort((account) => {
-                return account.idTokenClaims ? -1 : 1;
+            const sortedAccounts = allAccounts.sort((a, b) => {
+                const aHasClaims = a.idTokenClaims ? 1 : 0;
+                const bHasClaims = b.idTokenClaims ? 1 : 0;
+                return bHasClaims - aHasClaims;
             });
             return sortedAccounts[0];
         } else if (allAccounts.length === 1) {
