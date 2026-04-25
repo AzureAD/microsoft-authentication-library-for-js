@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "include extra query parameters in ExtraParameters in PlatformAuthRequest",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
