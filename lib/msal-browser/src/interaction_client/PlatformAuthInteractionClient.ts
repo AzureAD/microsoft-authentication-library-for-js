@@ -989,6 +989,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
             extraParameters: {
+                ...request.extraQueryParameters,
                 ...request.extraParameters,
             },
             extendedExpiryToken: false, // Make this configurable?

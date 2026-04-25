@@ -309,6 +309,36 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
         });
 
+        it("Extension: token request merges extraQueryParameters into extraParameters", async () => {
+            const sendMessageSpy = jest
+                .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
+                .mockImplementation((): Promise<PlatformAuthResponse> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+
+            await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                extraQueryParameters: {
+                    testEQP1: "testEQP1",
+                    testEQP2: "testEQP2",
+                },
+                extraParameters: {
+                    testEP1: "testEP1",
+                },
+            });
+
+            expect(sendMessageSpy).toHaveProperty(
+                "mock.calls[0][0].extraParameters",
+                {
+                    telemetry: "MATS",
+                    testEQP1: "testEQP1",
+                    testEQP2: "testEQP2",
+                    testEP1: "testEP1",
+                    "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
+                }
+            );
+        });
+
         it("DOM API: acquires token successfully", async () => {
             platformAuthDOMHandler = new PlatformAuthDOMHandler(
                 pca.getLogger(),
