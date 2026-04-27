@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Revert extra query parameters forwarding to native broker [#8565](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8565)",
+  "packageName": "@azure/msal-browser",
+  "email": "copilot@microsoft.com",
+  "dependentChangeType": "patch"
+}
