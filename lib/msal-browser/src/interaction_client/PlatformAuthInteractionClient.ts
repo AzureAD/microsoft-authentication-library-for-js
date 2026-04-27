@@ -959,7 +959,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 : this.config.auth.clientCapabilities;
 
         // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
-        const { scopes, claims, ...remainingProperties } = request;
+        const { scopes, claims, extraQueryParameters, ...remainingProperties } =
+            request;
         const scopeSet = new ScopeSet(scopes || []);
         scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
 
@@ -989,7 +990,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
             extraParameters: {
-                ...request.extraQueryParameters,
+                ...extraQueryParameters,
                 ...request.extraParameters,
             },
             extendedExpiryToken: false, // Make this configurable?
