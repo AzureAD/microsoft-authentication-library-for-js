@@ -53,6 +53,13 @@ export type NodeAuthOptions = {
      * Flag on whether a resource parameter is required for token requests. Used for MCP flows.
      */
     isMcp?: boolean;
+    /**
+     * When set to true, MSAL validates the `issuer` value returned by the OIDC discovery document
+     * fetched from the network against the configured authority, per
+     * https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation.
+     * Defaults to false. Cached, hardcoded, and config-provided metadata are not re-validated.
+     */
+    validateAuthorityIssuer?: boolean;
 };
 
 /**
@@ -148,6 +155,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
         tenant: "",
     },
     isMcp: false,
+    validateAuthorityIssuer: false,
 };
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {

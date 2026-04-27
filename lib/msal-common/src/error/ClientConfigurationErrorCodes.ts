@@ -26,3 +26,4 @@ export const cannotSetOIDCOptions = "cannot_set_OIDCOptions";
 export const cannotAllowPlatformBroker = "cannot_allow_platform_broker";
 export const authorityMismatch = "authority_mismatch";
 export const invalidRequestMethodForEAR = "invalid_request_method_for_EAR";
+export const issuerValidationFailed = "issuer_validation_failed";

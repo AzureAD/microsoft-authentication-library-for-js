@@ -46,6 +46,7 @@ export class CustomAuthAuthority extends Authority {
             knownAuthorities: config.auth.knownAuthorities,
             cloudDiscoveryMetadata: config.auth.cloudDiscoveryMetadata,
             authorityMetadata: config.auth.authorityMetadata,
+            validateAuthorityIssuer: config.auth.validateAuthorityIssuer,
         };
 
         super(

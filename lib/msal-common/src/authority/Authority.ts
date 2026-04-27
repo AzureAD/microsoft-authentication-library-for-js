@@ -547,6 +547,11 @@ export class Authority {
             this.correlationId
         )();
         if (metadata) {
+            // Validate the issuer returned by the OIDC discovery document, when enabled.
+            if (this.authorityOptions.validateAuthorityIssuer) {
+                this.validateIssuer(metadata.issuer, metadataEntity);
+            }
+
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
                 metadata = await invokeAsync(
@@ -839,7 +844,7 @@ export class Authority {
         metadataEntity: AuthorityMetadataEntity
     ): Constants.AuthorityMetadataSource | null {
         this.logger.verbose(
-            "Attempting to get cloud discovery metadata  from authority configuration",
+            "Attempting to get cloud discovery metadata from authority configuration",
             this.correlationId
         );
         this.logger.verbosePii(
@@ -1193,6 +1198,92 @@ export class Authority {
      */
     isAliasOfKnownMicrosoftAuthority(host: string): boolean {
         return InstanceDiscoveryMetadataAliases.has(host);
+    }
+
+    /**
+     * Determines whether this authority belongs to a Microsoft cloud (public,
+     * sovereign, CIAM, or a CIAM vanity domain that resolved to a Microsoft
+     * cloud via instance discovery). Used by OIDC issuer validation to apply
+     * the relaxed Microsoft host-set rule.
+     * @param metadataEntity Current metadata entity (post cloud discovery).
+     */
+    private isMicrosoftAuthority(
+        metadataEntity: AuthorityMetadataEntity
+    ): boolean {
+        if (this.authorityType === AuthorityType.Ciam) {
+            return true;
+        }
+        if (
+            Constants.KNOWN_MICROSOFT_AUTHORITY_HOSTS.has(this.hostnameAndPort)
+        ) {
+            return true;
+        }
+        // CIAM vanity domains: instance discovery resolved this authority to a Microsoft cloud, so any of its aliases will be in the known Microsoft host set.
+        return (
+            metadataEntity.aliases?.some((alias) =>
+                Constants.KNOWN_MICROSOFT_AUTHORITY_HOSTS.has(alias)
+            ) ?? false
+        );
+    }
+
+    /**
+     * Validates the `issuer` returned by an OIDC discovery document against
+     * this authority, per
+     * https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation
+     *
+     * Validation rules:
+     * - Non-Microsoft authorities require strict origin (scheme + host + port)
+     *   equality between the canonical authority and the issuer.
+     * - Microsoft authorities (public cloud, sovereign clouds, CIAM, and CIAM
+     *   vanity domains that resolved to a Microsoft cloud via instance
+     *   discovery) require the issuer host to be in the known Microsoft host
+     *   set.
+     *
+     * @param issuer The `issuer` value returned in the OIDC discovery document.
+     * @param metadataEntity Current metadata entity (post cloud discovery).
+     * @throws ClientConfigurationError("issuer_validation_failed") on failure.
+     */
+    private validateIssuer(
+        issuer: string,
+        metadataEntity: AuthorityMetadataEntity
+    ): void {
+        if (!issuer) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.issuerValidationFailed
+            );
+        }
+
+        const issuerOrigin = Authority.getOriginFromUrl(issuer);
+
+        if (this.isMicrosoftAuthority(metadataEntity)) {
+            const issuerHost = issuerOrigin.replace(/^[a-z]+:\/\//, "");
+            if (!Constants.KNOWN_MICROSOFT_AUTHORITY_HOSTS.has(issuerHost)) {
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.issuerValidationFailed
+                );
+            }
+            return;
+        }
+
+        const authorityOrigin = Authority.getOriginFromUrl(
+            this.canonicalAuthority
+        );
+        if (authorityOrigin !== issuerOrigin) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.issuerValidationFailed
+            );
+        }
+    }
+
+    /**
+     * Returns the lowercase origin (`scheme://host[:port]`) of the given URL.
+     * Strips path, query, and fragment.
+     */
+    private static getOriginFromUrl(url: string): string {
+        const components = new UrlString(url).getUrlComponents();
+        const protocol = (components.Protocol || "https:").toLowerCase();
+        const hostAndPort = (components.HostNameAndPort || "").toLowerCase();
+        return `${protocol}//${hostAndPort}`;
     }
 
     /**

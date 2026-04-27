@@ -168,6 +168,7 @@ export async function getDiscoveredAuthority(
         knownAuthorities: config.auth.knownAuthorities,
         cloudDiscoveryMetadata: config.auth.cloudDiscoveryMetadata,
         authorityMetadata: config.auth.authorityMetadata,
+        validateAuthorityIssuer: config.auth.validateAuthorityIssuer,
     };
 
     // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority

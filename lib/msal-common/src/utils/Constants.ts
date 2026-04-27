@@ -45,6 +45,33 @@ export const KNOWN_PUBLIC_CLOUDS = [
     "login.microsoft.com",
     "sts.windows.net",
 ];
+/**
+ * Known Microsoft authority and issuer hosts across public and sovereign clouds.
+ * Used by OIDC issuer validation to permit issuer host substitutions that occur
+ * within the Microsoft identity platform (e.g., the China cloud authority host
+ * is `login.chinacloudapi.cn` while the issuer host is
+ * `login.partner.microsoftonline.cn`).
+ */
+export const KNOWN_MICROSOFT_AUTHORITY_HOSTS = new Set<string>([
+    // Public cloud (authority + issuer)
+    "login.microsoftonline.com",
+    "login.windows.net",
+    "login.microsoft.com",
+    "sts.windows.net",
+    // China cloud
+    "login.chinacloudapi.cn",
+    "login.partner.microsoftonline.cn",
+    // US Government cloud
+    "login.microsoftonline.us",
+    "login.usgovcloudapi.net",
+    "login-us.microsoftonline.com",
+    // Germany cloud (legacy)
+    "login.microsoftonline.de",
+    // Sovereign clouds
+    "login.sovcloud-identity.fr",
+    "login.sovcloud-identity.de",
+    "login.sovcloud-identity.sg",
+]);
 export const SHR_NONCE_VALIDITY = 240;
 export const INVALID_INSTANCE = "invalid_instance";
 

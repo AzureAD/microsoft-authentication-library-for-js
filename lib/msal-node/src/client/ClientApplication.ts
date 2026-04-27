@@ -661,6 +661,7 @@ export abstract class ClientApplication {
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,
             azureRegionConfiguration,
+            validateAuthorityIssuer: this.config.auth.validateAuthorityIssuer,
         };
 
         return AuthorityFactory.createDiscoveredInstance(

@@ -89,6 +89,8 @@ export async function loadExternalTokens(
             knownAuthorities: browserConfig.auth.knownAuthorities,
             cloudDiscoveryMetadata: browserConfig.auth.cloudDiscoveryMetadata,
             authorityMetadata: browserConfig.auth.authorityMetadata,
+            validateAuthorityIssuer:
+                browserConfig.auth.validateAuthorityIssuer,
         };
 
         const logger = new Logger(browserConfig.system.loggerOptions || {});
