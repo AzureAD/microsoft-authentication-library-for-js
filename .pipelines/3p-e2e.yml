@@ -63,7 +63,158 @@ extends:
             - stage: e2e_test
               displayName: "3P E2E Tests"
               jobs:
+                - job: detect_changes
+                  displayName: "Detect changed packages"
+                  pool:
+                    type: linux
+                    isCustom: true
+                    name: "Azure Pipelines"
+                    vmImage: "ubuntu-latest"
+                  steps:
+                    - checkout: self
+                      fetchDepth: 0
+                      persistCredentials: true
+                    - task: PowerShell@2
+                      name: detect
+                      displayName: "Compute affected libraries"
+                      inputs:
+                        targetType: inline
+                        pwsh: true
+                        script: |
+                          # Default: run everything (non-PR builds and manual runs)
+                          $runBrowser = $runNode = $runReact = $runAngular = $true
+
+                          if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH) {
+                              $target = $env:SYSTEM_PULLREQUEST_TARGETBRANCH -replace '^refs/heads/', ''
+                              Write-Host "PR build: diffing against origin/$target"
+                              git fetch origin $target
+                              if ($LASTEXITCODE -ne 0) { throw "git fetch failed" }
+
+                              $changed = git diff --name-only "origin/$target...HEAD"
+                              Write-Host "Changed files:`n$($changed -join "`n")"
+
+                              # Shared infra changes → run everything
+                              $sharedChanged = ($changed | Where-Object {
+                                  $_ -match '^samples/e2eTestUtils/' -or $_ -match '^\.pipelines/'
+                              }).Count -gt 0
+
+                              if ($sharedChanged) {
+                                  Write-Host "Shared infra changed — running all test suites"
+                              } else {
+                                  $changedCommon  = ($changed | Where-Object { $_ -match '^lib/msal-common/' }).Count -gt 0
+                                  $changedBrowser = ($changed | Where-Object { $_ -match '^lib/msal-browser/'  -or $_ -match '^samples/msal-browser-samples/' }).Count -gt 0
+                                  $changedNode    = ($changed | Where-Object { $_ -match '^lib/msal-node/'     -or $_ -match '^samples/msal-node-samples/' }).Count -gt 0
+                                  $changedReact   = ($changed | Where-Object { $_ -match '^lib/msal-react/'    -or $_ -match '^samples/msal-react-samples/' }).Count -gt 0
+                                  $changedAngular = ($changed | Where-Object { $_ -match '^lib/msal-angular/'  -or $_ -match '^samples/msal-angular-samples/' }).Count -gt 0
+
+                                  $runBrowser = $changedCommon -or $changedBrowser
+                                  $runNode    = $changedCommon -or $changedNode
+                                  $runReact   = $changedCommon -or $changedBrowser -or $changedReact
+                                  $runAngular = $changedCommon -or $changedBrowser -or $changedAngular
+
+                                  Write-Host "Changed: common=$changedCommon browser=$changedBrowser node=$changedNode react=$changedReact angular=$changedAngular"
+                              }
+                          } else {
+                              Write-Host "Non-PR build — running all test suites"
+                          }
+
+                          Write-Host "Run: browser=$runBrowser node=$runNode react=$runReact angular=$runAngular"
+                          Write-Host "##vso[task.setvariable variable=runMsalBrowser;isOutput=true]$($runBrowser.ToString().ToLower())"
+                          Write-Host "##vso[task.setvariable variable=runMsalNode;isOutput=true]$($runNode.ToString().ToLower())"
+                          Write-Host "##vso[task.setvariable variable=runMsalReact;isOutput=true]$($runReact.ToString().ToLower())"
+                          Write-Host "##vso[task.setvariable variable=runMsalAngular;isOutput=true]$($runAngular.ToString().ToLower())"
+
                 - ${{ if eq(parameters.runBrowserTests, true) }}:
+                  - template: .pipelines/templates/e2e-tests.yml@1P
+                    parameters:
+                        jobName: "validate_msal_browser"
+                        targetLib: "msal-browser"
+                        poolType: ${{ parameters.poolType }}
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        workspace: "samples/msal-browser-samples"
+                        samples:
+                            - "client-capabilities"
+                            - "onPageLoad"
+                            - "pop"
+                            - "customizable-e2e-test"
+                            - "ExpressSample"
+                        debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        dependsOn: [detect_changes]
+                        jobCondition: "eq(dependencies.detect_changes.outputs['detect.runMsalBrowser'], 'true')"
+                - ${{ if eq(parameters.runNodeTests, true) }}:
+                  - template: .pipelines/templates/e2e-tests.yml@1P
+                    parameters:
+                        jobName: "validate_msal_node"
+                        targetLib: "msal-node"
+                        poolType: ${{ parameters.poolType }}
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        workspace: "samples/msal-node-samples"
+                        nodeVersions: [20, 22, 24]
+                        samples:
+                            - "auth-code"
+                            - "auth-code-cli-app"
+                            - "client-credentials"
+                            - "client-credentials-with-cert-from-key-vault"
+                            - "device-code"
+                            - "silent-flow"
+                            - "b2c-user-flows"
+                            # - "on-behalf-of"
+                        debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        dependsOn: [detect_changes]
+                        jobCondition: "eq(dependencies.detect_changes.outputs['detect.runMsalNode'], 'true')"
+                - ${{ if eq(parameters.runReactTests, true) }}:
+                  - template: .pipelines/templates/e2e-tests.yml@1P
+                    parameters:
+                        jobName: "validate_msal_react"
+                        targetLib: "msal-react"
+                        poolType: ${{ parameters.poolType }}
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        workspace: "samples/msal-react-samples"
+                        samples:
+                            - "nextjs-sample"
+                            - "react-router-sample"
+                            - "typescript-sample"
+                            - "b2c-sample"
+                        debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        dependsOn: [detect_changes]
+                        jobCondition: "eq(dependencies.detect_changes.outputs['detect.runMsalReact'], 'true')"
+                  - template: .pipelines/templates/msal-react-react18-e2e.yml@self
+                    parameters:
+                        poolType: ${{ parameters.poolType }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        samples:
+                            - "react-router-sample"
+                            - "typescript-sample"
+                            - "b2c-sample"
+                - ${{ if eq(parameters.runAngularTests, true) }}:
+                  - template: .pipelines/templates/e2e-tests.yml@1P
+                    parameters:
+                        jobName: "validate_msal_angular"
+                        targetLib: "msal-angular"
+                        poolType: ${{ parameters.poolType }}
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        workspace: "samples/msal-angular-samples"
+                        samples:
+                            - "angular-b2c-sample"
+                            - "angular-modules-sample"
+                            - "angular-standalone-sample"
+                        debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        dependsOn: [detect_changes]
+                        jobCondition: "eq(dependencies.detect_changes.outputs['detect.runMsalAngular'], 'true')"
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
                         jobName: "validate_msal_browser"
