@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Include extra query parameters in ExtraParameters in PlatformAuthRequest [#8560](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8560)",
-  "packageName": "@azure/msal-browser",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}
