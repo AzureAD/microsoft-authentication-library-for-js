@@ -29,6 +29,8 @@ import {
     Constants,
     AuthToken,
     enforceResourceParameter,
+    CacheHelpers,
+    TimeUtils,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -60,6 +62,7 @@ import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { EventHandler } from "../event/EventHandler.js";
+import { base64Decode } from "../encode/Base64Decode.js";
 import { PopupClient } from "../interaction_client/PopupClient.js";
 import { RedirectClient } from "../interaction_client/RedirectClient.js";
 import { SilentIframeClient } from "../interaction_client/SilentIframeClient.js";
@@ -1706,11 +1709,59 @@ export class StandardController implements IController {
 
         if (result.fromPlatformBroker) {
             this.logger.verbose(
-                "Response was from native broker, storing in-memory",
+                "Response was from native broker, storing ID Token in browser storage and Access Token in-memory",
                 result.correlationId
             );
-            // Tokens from native broker are stored in-memory
-            return this.nativeInternalStorage.hydrateCache(result, request);
+
+            // Create idToken entity and store in browser storage
+            const idTokenEntity = CacheHelpers.createIdTokenEntity(
+                result.account.homeAccountId,
+                result.account.environment,
+                result.idToken,
+                this.config.auth.clientId,
+                result.tenantId
+            );
+
+            // Create accessToken entity and store in native internal storage
+            const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
+                result.account.homeAccountId,
+                result.account.environment,
+                result.accessToken,
+                this.config.auth.clientId,
+                result.tenantId,
+                result.scopes.join(" "),
+                result.expiresOn
+                    ? TimeUtils.toSecondsFromDate(result.expiresOn)
+                    : 0,
+                result.extExpiresOn
+                    ? TimeUtils.toSecondsFromDate(result.extExpiresOn)
+                    : 0,
+                base64Decode,
+                undefined, // refreshOn
+                result.tokenType as Constants.AuthenticationScheme,
+                undefined, // userAssertionHash
+                request.sshKid
+            );
+
+            if (request.resource) {
+                accessTokenEntity.resource = request.resource;
+            }
+
+            const kmsi = AuthToken.isKmsi(result.idTokenClaims);
+
+            // Store idToken in browser storage
+            await this.browserStorage.setIdTokenCredential(
+                idTokenEntity,
+                result.correlationId,
+                kmsi
+            );
+
+            // Store accessToken in native internal storage
+            await this.nativeInternalStorage.setAccessTokenCredential(
+                accessTokenEntity,
+                result.correlationId,
+                kmsi
+            );
         } else {
             return this.browserStorage.hydrateCache(result, request);
         }
@@ -1838,7 +1889,9 @@ export class StandardController implements IController {
                 loginHint: request.loginHint,
                 sid: request.sid,
             }) ||
-            this.getActiveAccount();
+            (!request.loginHint && !request.sid
+                ? this.getActiveAccount()
+                : null);
 
         return (account && account.nativeAccountId) || "";
     }

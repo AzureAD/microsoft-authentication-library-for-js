@@ -10,6 +10,7 @@ import {
     ICachePlugin,
     buildStaticAuthorityOptions,
     Constants,
+    AuthorityMetadataEntity,
 } from "@azure/msal-common";
 import { NodeStorage } from "../../src/cache/NodeStorage.js";
 import { TokenCache } from "../../src/cache/TokenCache.js";
@@ -280,6 +281,70 @@ describe("TokenCache tests", () => {
         expect(deserializedCacheSpy).toHaveBeenCalledTimes(2); // first call returns serialized cache, second call returns deserialized cache
         expect(deserializedCacheSpy.mock.results[1].value).toBe(
             tokenCache.getKVStore()
+        );
+    });
+
+    it("overwriteCache should preserve authority metadata", async () => {
+        const cachePath = "./test/cache/cache-test-files/default-cache.json";
+        const beforeCacheAccess = async (context: TokenCacheContext) => {
+            context.tokenCache.deserialize(
+                await promises.readFile(cachePath, Constants.EncodingTypes.UTF8)
+            );
+        };
+        const afterCacheAccess = async (context: TokenCacheContext) => {
+            await promises.writeFile(cachePath, context.tokenCache.serialize());
+        };
+
+        const cachePlugin: ICachePlugin = {
+            beforeCacheAccess,
+            afterCacheAccess,
+        };
+
+        const tokenCache = new TokenCache(storage, logger, cachePlugin);
+
+        // Populate authority metadata in the storage before overwriting
+        const authorityMetadataKey =
+            "authority-metadata-mock_client_id-login.microsoftonline.com";
+        const authorityMetadata = {
+            aliases: [
+                "login.microsoftonline.com",
+                "login.windows.net",
+                "login.microsoft.com",
+            ],
+            preferred_cache: "login.windows.net",
+            preferred_network: "login.microsoftonline.com",
+            canonical_authority: "https://login.microsoftonline.com/common",
+            authorization_endpoint:
+                "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+            token_endpoint:
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+            end_session_endpoint:
+                "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
+            issuer: "https://login.microsoftonline.com/{tenantid}/v2.0",
+            jwks_uri:
+                "https://login.microsoftonline.com/common/discovery/v2.0/keys",
+            aliasesFromNetwork: true,
+            endpointsFromNetwork: true,
+            expiresAt:
+                msalCommon.CacheHelpers.generateAuthorityMetadataExpiresAt(),
+        };
+        storage.setAuthorityMetadata(
+            authorityMetadataKey,
+            authorityMetadata as AuthorityMetadataEntity
+        );
+
+        expect(storage.getAuthorityMetadata(authorityMetadataKey)).toEqual(
+            authorityMetadata
+        );
+
+        await tokenCache.overwriteCache();
+
+        const restoredMetadata =
+            storage.getAuthorityMetadata(authorityMetadataKey);
+        expect(restoredMetadata).not.toBeNull();
+        expect(restoredMetadata!.aliases).toEqual(authorityMetadata.aliases);
+        expect(restoredMetadata!.preferred_cache).toEqual(
+            authorityMetadata.preferred_cache
         );
     });
 

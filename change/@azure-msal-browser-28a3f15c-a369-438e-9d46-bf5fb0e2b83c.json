@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Enable waitForBridgeLateResponse Telemetry [#8509](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8509)",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -247,7 +247,7 @@ describe("BrowserCacheManager tests", () => {
         });
 
         describe("migrateExistingCache", () => {
-            it("should migrate v0 tokens to v2 in localStorage", async () => {
+            it("should migrate v0 tokens to current schema in localStorage", async () => {
                 await browserCacheManager.initialize(
                     TEST_CONFIG.CORRELATION_ID
                 );
@@ -348,7 +348,7 @@ describe("BrowserCacheManager tests", () => {
                 );
             });
 
-            it("should migrate v1 tokens to v2 in localStorage", async () => {
+            it("should migrate v1 tokens to current schema in localStorage", async () => {
                 await browserCacheManager.initialize(
                     TEST_CONFIG.CORRELATION_ID
                 );
@@ -447,6 +447,218 @@ describe("BrowserCacheManager tests", () => {
                     },
                     TEST_CONFIG.CORRELATION_ID
                 );
+            });
+
+            it("should migrate v2 tokens to current schema in localStorage", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Setup some current cache entries
+                await browserCacheManager.saveCacheRecord(
+                    {
+                        account: TEST_ACCOUNT_ENTITY,
+                        accessToken: TEST_ACCESS_TOKEN_ENTITY,
+                        idToken: TEST_ID_TOKEN_ENTITY,
+                        refreshToken: TEST_REFRESH_TOKEN_ENTITY,
+                    },
+                    TEST_CONFIG.CORRELATION_ID,
+                    true,
+                    0
+                );
+
+                // Setup some schema 2 cache entries
+                const schema2Account = {
+                    ...TEST_ACCOUNT_ENTITY,
+                    homeAccountId: "schema2-cleanup.uid.utid",
+                    lastUpdatedAt: (Date.now() - 1000).toString(),
+                };
+                const schema2AccountKey =
+                    `msal.2|${schema2Account.homeAccountId}|${schema2Account.environment}|utid`.toLowerCase();
+                window.localStorage.setItem(
+                    CacheKeys.getAccountKeysCacheKey(2),
+                    JSON.stringify([schema2AccountKey])
+                );
+                window.localStorage.setItem(
+                    schema2AccountKey,
+                    JSON.stringify(schema2Account)
+                );
+
+                const timestamp = (Date.now() - 1000).toString();
+                const schema2IdToken = {
+                    ...TEST_ID_TOKEN_ENTITY,
+                    homeAccountId: schema2Account.homeAccountId,
+                    lastUpdatedAt: timestamp,
+                };
+                const schema2AccessToken = {
+                    ...TEST_ACCESS_TOKEN_ENTITY,
+                    homeAccountId: schema2Account.homeAccountId,
+                    lastUpdatedAt: timestamp,
+                };
+                const schema2RefreshToken = {
+                    ...TEST_REFRESH_TOKEN_ENTITY,
+                    homeAccountId: schema2Account.homeAccountId,
+                    lastUpdatedAt: timestamp,
+                };
+
+                const compactIdTokenKey =
+                    `msal.2|${schema2IdToken.homeAccountId}|${schema2IdToken.environment}|${schema2IdToken.credentialType}|${schema2IdToken.clientId}|${schema2IdToken.realm}||`.toLowerCase();
+                const legacyIdTokenKey =
+                    `msal.2|${schema2IdToken.homeAccountId}|${schema2IdToken.environment}|${schema2IdToken.credentialType}|${schema2IdToken.clientId}|${schema2IdToken.realm}|||`.toLowerCase();
+                const compactAccessTokenKey =
+                    `msal.2|${schema2AccessToken.homeAccountId}|${schema2AccessToken.environment}|${schema2AccessToken.credentialType}|${schema2AccessToken.clientId}|${schema2AccessToken.realm}|${schema2AccessToken.target}|`.toLowerCase();
+                const legacyAccessTokenKey =
+                    `msal.2|${schema2AccessToken.homeAccountId}|${schema2AccessToken.environment}|${schema2AccessToken.credentialType}|${schema2AccessToken.clientId}|${schema2AccessToken.realm}|${schema2AccessToken.target}||`.toLowerCase();
+                const schema2RefreshTokenFamilyId =
+                    schema2RefreshToken.familyId ||
+                    schema2RefreshToken.clientId;
+                const compactRefreshTokenKey = `msal.2|${
+                    schema2RefreshToken.homeAccountId
+                }|${schema2RefreshToken.environment}|${
+                    schema2RefreshToken.credentialType
+                }|${schema2RefreshTokenFamilyId}|${
+                    schema2RefreshToken.realm || ""
+                }||`.toLowerCase();
+                const legacyRefreshTokenKey = `msal.2|${
+                    schema2RefreshToken.homeAccountId
+                }|${schema2RefreshToken.environment}|${
+                    schema2RefreshToken.credentialType
+                }|${schema2RefreshTokenFamilyId}|${
+                    schema2RefreshToken.realm || ""
+                }|||`.toLowerCase();
+
+                window.localStorage.setItem(
+                    compactIdTokenKey,
+                    JSON.stringify(schema2IdToken)
+                );
+                window.localStorage.setItem(
+                    legacyIdTokenKey,
+                    JSON.stringify(schema2IdToken)
+                );
+                window.localStorage.setItem(
+                    compactAccessTokenKey,
+                    JSON.stringify(schema2AccessToken)
+                );
+                window.localStorage.setItem(
+                    legacyAccessTokenKey,
+                    JSON.stringify(schema2AccessToken)
+                );
+                window.localStorage.setItem(
+                    compactRefreshTokenKey,
+                    JSON.stringify(schema2RefreshToken)
+                );
+                window.localStorage.setItem(
+                    legacyRefreshTokenKey,
+                    JSON.stringify(schema2RefreshToken)
+                );
+                window.localStorage.setItem(
+                    CacheKeys.getTokenKeysCacheKey(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        2
+                    ),
+                    JSON.stringify({
+                        idToken: [compactIdTokenKey, legacyIdTokenKey],
+                        accessToken: [
+                            compactAccessTokenKey,
+                            legacyAccessTokenKey,
+                        ],
+                        refreshToken: [
+                            compactRefreshTokenKey,
+                            legacyRefreshTokenKey,
+                        ],
+                    })
+                );
+
+                const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
+
+                await browserCacheManager.migrateExistingCache(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(addFieldsSpy).toHaveBeenCalledWith(
+                    {
+                        preMigrateATCount: 1,
+                        preMigrateAcntCount: 1,
+                        preMigrateITCount: 1,
+                        preMigrateRTCount: 1,
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(addFieldsSpy).toHaveBeenCalledWith(
+                    {
+                        postMigrateATCount: 2,
+                        postMigrateAcntCount: 2,
+                        postMigrateITCount: 2,
+                        postMigrateRTCount: 2,
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                const currentTokenKeys = browserCacheManager.getTokenKeys();
+                expect(currentTokenKeys.idToken).toEqual([
+                    browserCacheManager.generateCredentialKey(
+                        TEST_ID_TOKEN_ENTITY
+                    ),
+                    browserCacheManager.generateCredentialKey(schema2IdToken),
+                ]);
+                expect(currentTokenKeys.accessToken).toEqual([
+                    browserCacheManager.generateCredentialKey(
+                        TEST_ACCESS_TOKEN_ENTITY
+                    ),
+                    browserCacheManager.generateCredentialKey(
+                        schema2AccessToken
+                    ),
+                ]);
+                expect(currentTokenKeys.refreshToken).toEqual([
+                    browserCacheManager.generateCredentialKey(
+                        TEST_REFRESH_TOKEN_ENTITY
+                    ),
+                    browserCacheManager.generateCredentialKey(
+                        schema2RefreshToken
+                    ),
+                ]);
+
+                const schema2TokenKeys = browserCacheManager.getTokenKeys(2);
+                expect(schema2TokenKeys.idToken).toEqual([
+                    compactIdTokenKey,
+                    legacyIdTokenKey,
+                ]);
+                expect(schema2TokenKeys.accessToken).toEqual([
+                    compactAccessTokenKey,
+                    legacyAccessTokenKey,
+                ]);
+                expect(schema2TokenKeys.refreshToken).toEqual([
+                    compactRefreshTokenKey,
+                    legacyRefreshTokenKey,
+                ]);
+
+                expect(window.localStorage.getItem(compactIdTokenKey)).toBe(
+                    JSON.stringify(schema2IdToken)
+                );
+                expect(window.localStorage.getItem(legacyIdTokenKey)).toBe(
+                    JSON.stringify(schema2IdToken)
+                );
+                expect(window.localStorage.getItem(compactAccessTokenKey)).toBe(
+                    JSON.stringify(schema2AccessToken)
+                );
+                expect(window.localStorage.getItem(legacyAccessTokenKey)).toBe(
+                    JSON.stringify(schema2AccessToken)
+                );
+                expect(
+                    window.localStorage.getItem(compactRefreshTokenKey)
+                ).toBe(JSON.stringify(schema2RefreshToken));
+                expect(window.localStorage.getItem(legacyRefreshTokenKey)).toBe(
+                    JSON.stringify(schema2RefreshToken)
+                );
+                expect(
+                    window.localStorage.getItem(
+                        CacheKeys.getTokenKeysCacheKey(
+                            TEST_CONFIG.MSAL_CLIENT_ID,
+                            2
+                        )
+                    )
+                ).not.toBeNull();
             });
 
             describe("getKMSIValues", () => {
