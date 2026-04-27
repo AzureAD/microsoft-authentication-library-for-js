@@ -339,6 +339,63 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
         });
 
+        it("DOM API: token request merges extraQueryParameters into extraParameters", async () => {
+            platformAuthDOMHandler = new PlatformAuthDOMHandler(
+                pca.getLogger(),
+                getDefaultPerformanceClient(),
+                "test-correlation-id"
+            );
+
+            const testInteractionClient = new PlatformAuthInteractionClient(
+                // @ts-ignore
+                pca.config,
+                // @ts-ignore
+                pca.browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                pca.getLogger(),
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                ApiId.acquireTokenRedirect,
+                perfClient,
+                platformAuthDOMHandler,
+                "nativeAccountId",
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                RANDOM_TEST_GUID
+            );
+
+            const sendMessageSpy = jest
+                .spyOn(PlatformAuthDOMHandler.prototype, "sendMessage")
+                .mockImplementation((): Promise<PlatformAuthResponse> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+
+            await testInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                extraQueryParameters: {
+                    testEQP1: "testEQP1",
+                    testEQP2: "testEQP2",
+                },
+                extraParameters: {
+                    testEP1: "testEP1",
+                },
+            });
+
+            expect(sendMessageSpy).toHaveProperty(
+                "mock.calls[0][0].extraParameters",
+                {
+                    telemetry: "MATS",
+                    testEQP1: "testEQP1",
+                    testEQP2: "testEQP2",
+                    testEP1: "testEP1",
+                    "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
+                }
+            );
+        });
+
         it("DOM API: acquires token successfully", async () => {
             platformAuthDOMHandler = new PlatformAuthDOMHandler(
                 pca.getLogger(),
