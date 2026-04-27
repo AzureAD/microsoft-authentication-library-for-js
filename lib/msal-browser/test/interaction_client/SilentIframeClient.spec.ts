@@ -733,6 +733,7 @@ describe("SilentIframeClient", () => {
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 loginHint: ID_TOKEN_CLAIMS.login_hint,
                 name: ID_TOKEN_CLAIMS.name,
+                upn: ID_TOKEN_CLAIMS.upn,
                 nativeAccountId: undefined,
                 authorityType: "MSSTS",
                 tenantProfiles: new Map<string, TenantProfile>([
@@ -745,6 +746,7 @@ describe("SilentIframeClient", () => {
                             loginHint: ID_TOKEN_CLAIMS.login_hint,
                             name: ID_TOKEN_CLAIMS.name,
                             tenantId: ID_TOKEN_CLAIMS.tid,
+                            upn: ID_TOKEN_CLAIMS.upn,
                         },
                     ],
                 ]),
