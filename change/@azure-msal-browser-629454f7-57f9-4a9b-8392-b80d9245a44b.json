@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix MsalAuthenticationTemplate passing in undefined SsoSilentRequest [#8520](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8520)",
-  "packageName": "@azure/msal-browser",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}

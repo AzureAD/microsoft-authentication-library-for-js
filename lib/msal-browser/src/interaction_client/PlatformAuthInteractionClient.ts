@@ -308,14 +308,29 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 silentRequest
             );
 
-            const fullAccount = {
-                ...account,
-                idTokenClaims: result?.idTokenClaims as TokenClaims,
-                idToken: result?.idToken,
-            };
+            const idToken = this.browserStorage.getIdToken(
+                account,
+                this.correlationId,
+                this.browserStorage.getTokenKeys(),
+                account.tenantId
+            );
+
+            const idTokenClaims = AuthToken.extractTokenClaims(
+                idToken?.secret || "",
+                base64Decode
+            );
+
+            const fullAccount = updateAccountTenantProfileData(
+                account,
+                undefined, // tenantProfile optional
+                idTokenClaims,
+                idToken?.secret
+            );
 
             return {
                 ...result,
+                idToken: idToken?.secret || "",
+                idTokenClaims: idTokenClaims as TokenClaims,
                 account: fullAccount,
             };
         } catch (e) {
@@ -576,9 +591,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             request,
             homeAccountIdentifier,
             idTokenClaims,
-            response.access_token,
             result.tenantId,
-            reqTimestamp
+            reqTimestamp,
+            authority.getPreferredCache() // environment
         );
 
         return result;
@@ -794,19 +809,19 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @param tenantId
      * @param reqTimestamp
      */
-    cacheNativeTokens(
+    async cacheNativeTokens(
         response: PlatformAuthResponse,
         request: PlatformAuthRequest,
         homeAccountIdentifier: string,
         idTokenClaims: TokenClaims,
-        responseAccessToken: string,
         tenantId: string,
-        reqTimestamp: number
+        reqTimestamp: number,
+        environment: string
     ): Promise<void> {
         const cachedIdToken: IdTokenEntity | null =
             CacheHelpers.createIdTokenEntity(
                 homeAccountIdentifier,
-                request.authority,
+                environment,
                 response.id_token || "",
                 request.clientId,
                 idTokenClaims.tid || ""
@@ -828,8 +843,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const cachedAccessToken: AccessTokenEntity | null =
             CacheHelpers.createAccessTokenEntity(
                 homeAccountIdentifier,
-                request.authority,
-                responseAccessToken,
+                environment,
+                response.access_token,
                 request.clientId,
                 idTokenClaims.tid || tenantId,
                 responseScopes.printScopes(),
@@ -842,8 +857,17 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 request.keyId
             );
 
+        // save idtoken credential in configured browser storage
+        if (!!cachedIdToken && request.storeInCache?.idToken !== false) {
+            await this.browserStorage.setIdTokenCredential(
+                cachedIdToken,
+                this.correlationId,
+                AuthToken.isKmsi(idTokenClaims)
+            );
+        }
+
+        // save access token credential in memory storage
         const nativeCacheRecord = {
-            idToken: cachedIdToken,
             accessToken: cachedAccessToken,
         };
 
