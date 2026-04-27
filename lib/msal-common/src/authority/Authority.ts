@@ -547,6 +547,12 @@ export class Authority {
             this.correlationId
         )();
         if (metadata) {
+            /*
+             * Validate the issuer returned by the OpenID configuration endpoint
+             * before trusting any of the metadata it contains.
+             */
+            this.validateIssuer(metadata, metadataEntity);
+
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
                 metadata = await invokeAsync(
@@ -739,6 +745,134 @@ export class Authority {
         }
 
         return null;
+    }
+
+    /**
+     * Validates that the issuer returned by the OpenID configuration discovery
+     * endpoint matches the authority used to discover it.
+     *
+     * The OpenID Connect Discovery 1.0 specification requires the value of the
+     * `issuer` member returned by the discovery document to match the URL the
+     * client used to construct the discovery URL by exact (case-sensitive)
+     * string comparison
+     * (https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation).
+     *
+     * MSAL applies a relaxed comparison for Microsoft authorities to support
+     * tenant name to id replacement and cross-cloud B2B (e.g. an authority on
+     * the Microsoft public cloud may issue tokens from another known Microsoft
+     * cloud host):
+     *
+     *  1. Non-Microsoft (OIDC ProtocolMode) authorities: exact case-sensitive
+     *     match between the authority used to construct the discovery URL and
+     *     the value of `issuer` in the discovery document.
+     *  2. Microsoft sovereign clouds: scheme + host of `issuer` must match the
+     *     scheme + host of the authority (or one of its instance discovery
+     *     aliases).
+     *  3. Microsoft public cloud: scheme + host of `issuer` must be one of the
+     *     known Microsoft public cloud hosts.
+     *  4. CIAM vanity domains: after the vanity domain is validated against the
+     *     Microsoft instance discovery endpoint, the issuer must come from a
+     *     known Microsoft public cloud host.
+     *
+     * For non-Microsoft authorities under the AAD ProtocolMode (e.g. B2C or
+     * dSTS that use custom domains) the host of the issuer must match the host
+     * of the authority (or one of its aliases).
+     *
+     * @param metadata OpenIdConfigResponse returned by the network discovery call
+     * @param metadataEntity AuthorityMetadataEntity containing the cloud discovery aliases
+     */
+    private validateIssuer(
+        metadata: OpenIdConfigResponse,
+        metadataEntity: AuthorityMetadataEntity
+    ): void {
+        if (!metadata.issuer) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.authorityMismatch
+            );
+        }
+
+        let issuerHost: string;
+        try {
+            issuerHost = new UrlString(metadata.issuer)
+                .getUrlComponents()
+                .HostNameAndPort.toLowerCase();
+        } catch (e) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.authorityMismatch
+            );
+        }
+
+        const authorityHost = this.hostnameAndPort;
+
+        // Rule 4: CIAM vanity domains.
+        /*
+         * The vanity domain has already been validated against the Entra
+         * instance discovery endpoint, so the issuer must come from a known
+         * Microsoft public cloud host.
+         */
+        if (this.authorityType === AuthorityType.Ciam) {
+            if (!Authority.isPublicCloudAuthority(issuerHost)) {
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.authorityMismatch
+                );
+            }
+            return;
+        }
+
+        // Rule 3: Microsoft public cloud.
+        if (Authority.isPublicCloudAuthority(authorityHost)) {
+            if (!Authority.isPublicCloudAuthority(issuerHost)) {
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.authorityMismatch
+                );
+            }
+            return;
+        }
+
+        /*
+         * Rule 1: Non-Microsoft authorities under OIDC ProtocolMode use the
+         * strict OIDC discovery validation rule.
+         */
+        if (
+            this.protocolMode === ProtocolMode.OIDC &&
+            !this.isAliasOfKnownMicrosoftAuthority(authorityHost)
+        ) {
+            const wellKnownSuffix = "/.well-known/openid-configuration";
+            let expectedIssuer = this.defaultOpenIdConfigurationEndpoint;
+            if (expectedIssuer.endsWith("/")) {
+                expectedIssuer = expectedIssuer.slice(0, -1);
+            }
+            if (expectedIssuer.endsWith(wellKnownSuffix)) {
+                expectedIssuer = expectedIssuer.slice(
+                    0,
+                    expectedIssuer.length - wellKnownSuffix.length
+                );
+            }
+            const actualIssuer = metadata.issuer.endsWith("/")
+                ? metadata.issuer.slice(0, -1)
+                : metadata.issuer;
+            if (expectedIssuer !== actualIssuer) {
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.authorityMismatch
+                );
+            }
+            return;
+        }
+
+        /*
+         * Rule 2: Microsoft sovereign clouds (and AAD ProtocolMode authorities
+         * with custom domains, e.g. B2C / dSTS) - the issuer host must match
+         * the authority host or one of its instance discovery aliases.
+         */
+        const aliases = metadataEntity.aliases || [];
+        if (
+            issuerHost !== authorityHost &&
+            aliases.indexOf(issuerHost) === -1
+        ) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.authorityMismatch
+            );
+        }
     }
 
     /**

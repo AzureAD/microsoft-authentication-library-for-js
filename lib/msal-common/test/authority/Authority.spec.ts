@@ -2544,7 +2544,13 @@ describe("Authority.ts Class Unit Tests", () => {
             ).mockImplementation((openIdConfigEndpoint) => {
                 // @ts-ignore
                 endpoint = openIdConfigEndpoint;
-                return DEFAULT_OPENID_CONFIG_RESPONSE;
+                return {
+                    ...DEFAULT_OPENID_CONFIG_RESPONSE,
+                    body: {
+                        ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                        issuer: "https://fabrikamb2c.b2clogin.com/{tenant}/v2.0",
+                    },
+                };
             });
 
             await authority.resolveEndpointsAsync();
@@ -2636,7 +2642,13 @@ describe("Authority.ts Class Unit Tests", () => {
             ).mockImplementation((openIdConfigEndpoint) => {
                 // @ts-ignore
                 endpoint = openIdConfigEndpoint;
-                return DEFAULT_OPENID_CONFIG_RESPONSE;
+                return {
+                    ...DEFAULT_OPENID_CONFIG_RESPONSE,
+                    body: {
+                        ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                        issuer: "https://test.com",
+                    },
+                };
             });
 
             await authority.resolveEndpointsAsync();
@@ -2668,6 +2680,238 @@ describe("Authority.ts Class Unit Tests", () => {
             expect(authority.defaultOpenIdConfigurationEndpoint).toBe(
                 `${authorityUrl}v2.0/.well-known/openid-configuration`
             );
+        });
+
+        describe("Issuer validation", () => {
+            const buildAuthority = (
+                authorityUrl: string,
+                options: AuthorityOptions
+            ): Authority => {
+                return new Authority(
+                    authorityUrl,
+                    networkInterface,
+                    mockStorage,
+                    options,
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
+                );
+            };
+
+            const mockNetworkOpenIdConfig = (issuer: string) => {
+                jest.spyOn(
+                    Authority.prototype as any,
+                    "getEndpointMetadataFromHardcodedValues"
+                ).mockReturnValue(null);
+                jest.spyOn(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                ).mockResolvedValue({
+                    ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                    issuer,
+                });
+            };
+
+            afterEach(() => {
+                jest.restoreAllMocks();
+            });
+
+            it("Microsoft public cloud: accepts issuer from a known public cloud host", async () => {
+                mockNetworkOpenIdConfig(
+                    "https://login.windows.net/{tenantid}/v2.0"
+                );
+                const authority = buildAuthority(
+                    "https://login.microsoftonline.com/common/",
+                    authorityOptions
+                );
+                await expect(
+                    authority.resolveEndpointsAsync()
+                ).resolves.not.toThrow();
+            });
+
+            it("Microsoft public cloud: rejects issuer from a non-Microsoft host", async () => {
+                mockNetworkOpenIdConfig(
+                    "https://malicious.example.com/{tenantid}/v2.0"
+                );
+                const authority = buildAuthority(
+                    "https://login.microsoftonline.com/common/",
+                    authorityOptions
+                );
+                await expect(authority.resolveEndpointsAsync()).rejects.toEqual(
+                    createClientConfigurationError(
+                        ClientConfigurationErrorCodes.authorityMismatch
+                    )
+                );
+            });
+
+            it("Microsoft sovereign cloud: accepts issuer with the same host", async () => {
+                mockNetworkOpenIdConfig(
+                    "https://login.microsoftonline.de/{tenantid}/v2.0"
+                );
+                const authority = buildAuthority(
+                    "https://login.microsoftonline.de/common/",
+                    {
+                        ...authorityOptions,
+                        knownAuthorities: ["login.microsoftonline.de"],
+                    }
+                );
+                await expect(
+                    authority.resolveEndpointsAsync()
+                ).resolves.not.toThrow();
+            });
+
+            it("Microsoft sovereign cloud: accepts issuer host listed in instance discovery aliases", async () => {
+                // login.partner.microsoftonline.cn is the issuer host returned by login.chinacloudapi.cn
+                mockNetworkOpenIdConfig(
+                    "https://login.partner.microsoftonline.cn/{tenantid}/v2.0"
+                );
+                // Rely on hardcoded instance discovery metadata to populate aliases
+                const authority = buildAuthority(
+                    "https://login.chinacloudapi.cn/common/",
+                    authorityOptions
+                );
+                await expect(
+                    authority.resolveEndpointsAsync()
+                ).resolves.not.toThrow();
+            });
+
+            it("Microsoft sovereign cloud: rejects issuer from a different cloud", async () => {
+                mockNetworkOpenIdConfig(
+                    "https://login.microsoftonline.com/{tenantid}/v2.0"
+                );
+                const authority = buildAuthority(
+                    "https://login.microsoftonline.de/common/",
+                    {
+                        ...authorityOptions,
+                        knownAuthorities: ["login.microsoftonline.de"],
+                    }
+                );
+                await expect(authority.resolveEndpointsAsync()).rejects.toEqual(
+                    createClientConfigurationError(
+                        ClientConfigurationErrorCodes.authorityMismatch
+                    )
+                );
+            });
+
+            it("CIAM authority: accepts issuer from a known Microsoft public cloud host", async () => {
+                mockNetworkOpenIdConfig(
+                    "https://login.microsoftonline.com/{tenantid}/v2.0"
+                );
+                const authority = buildAuthority(
+                    "https://tenant.ciamlogin.com/tenant.onmicrosoft.com/",
+                    {
+                        ...authorityOptions,
+                        knownAuthorities: ["tenant.ciamlogin.com"],
+                    }
+                );
+                await expect(
+                    authority.resolveEndpointsAsync()
+                ).resolves.not.toThrow();
+            });
+
+            it("CIAM authority: rejects issuer from a non-Microsoft host", async () => {
+                mockNetworkOpenIdConfig(
+                    "https://tenant.ciamlogin.com/{tenantid}/v2.0"
+                );
+                const authority = buildAuthority(
+                    "https://tenant.ciamlogin.com/tenant.onmicrosoft.com/",
+                    {
+                        ...authorityOptions,
+                        knownAuthorities: ["tenant.ciamlogin.com"],
+                    }
+                );
+                await expect(authority.resolveEndpointsAsync()).rejects.toEqual(
+                    createClientConfigurationError(
+                        ClientConfigurationErrorCodes.authorityMismatch
+                    )
+                );
+            });
+
+            it("OIDC ProtocolMode (non-Microsoft): accepts issuer when it exactly matches the authority", async () => {
+                const authorityUrl = "https://oidc.example.com/";
+                mockNetworkOpenIdConfig("https://oidc.example.com");
+                const authority = buildAuthority(authorityUrl, {
+                    protocolMode: ProtocolMode.OIDC,
+                    knownAuthorities: ["oidc.example.com"],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: "",
+                });
+                await expect(
+                    authority.resolveEndpointsAsync()
+                ).resolves.not.toThrow();
+            });
+
+            it("OIDC ProtocolMode (non-Microsoft): rejects issuer that does not exactly match the authority", async () => {
+                const authorityUrl = "https://oidc.example.com/";
+                mockNetworkOpenIdConfig("https://malicious.example.com");
+                const authority = buildAuthority(authorityUrl, {
+                    protocolMode: ProtocolMode.OIDC,
+                    knownAuthorities: ["oidc.example.com"],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: "",
+                });
+                await expect(authority.resolveEndpointsAsync()).rejects.toEqual(
+                    createClientConfigurationError(
+                        ClientConfigurationErrorCodes.authorityMismatch
+                    )
+                );
+            });
+
+            it("AAD ProtocolMode with non-Microsoft host (e.g. dSTS): accepts issuer with matching host", async () => {
+                const authorityUrl =
+                    "https://domain.dsts.subdomain/dstsv2/tenant/";
+                mockNetworkOpenIdConfig(
+                    "https://domain.dsts.subdomain/{tenantid}/v2.0"
+                );
+                const authority = buildAuthority(authorityUrl, {
+                    ...authorityOptions,
+                    knownAuthorities: ["domain.dsts.subdomain"],
+                });
+                await expect(
+                    authority.resolveEndpointsAsync()
+                ).resolves.not.toThrow();
+            });
+
+            it("Throws when issuer is missing from the discovery document", async () => {
+                jest.spyOn(
+                    Authority.prototype as any,
+                    "getEndpointMetadataFromHardcodedValues"
+                ).mockReturnValue(null);
+                jest.spyOn(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                ).mockResolvedValue({
+                    ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                    issuer: "",
+                });
+                const authority = buildAuthority(
+                    "https://login.microsoftonline.com/common/",
+                    authorityOptions
+                );
+                await expect(authority.resolveEndpointsAsync()).rejects.toEqual(
+                    createClientConfigurationError(
+                        ClientConfigurationErrorCodes.authorityMismatch
+                    )
+                );
+            });
+
+            it("Does not validate issuer when metadata comes from authority configuration", async () => {
+                // Issuer host intentionally does not match the authority host;
+                // validation must only run for the network discovery path.
+                const authority = buildAuthority(
+                    "https://login.microsoftonline.com/common/",
+                    {
+                        ...authorityOptions,
+                        authorityMetadata: JSON.stringify({
+                            ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                            issuer: "https://malicious.example.com/{tenantid}/v2.0",
+                        }),
+                    }
+                );
+                await expect(
+                    authority.resolveEndpointsAsync()
+                ).resolves.not.toThrow();
+            });
         });
     });
 

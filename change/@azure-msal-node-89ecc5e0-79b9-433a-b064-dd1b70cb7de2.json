@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Validate the issuer returned by the OpenID configuration discovery endpoint against the authority used to discover it [#8580](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8580)",
+  "packageName": "@azure/msal-node",
+  "email": "26092202+lalimasharda@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}

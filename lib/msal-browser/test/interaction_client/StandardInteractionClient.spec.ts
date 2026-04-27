@@ -137,7 +137,16 @@ describe("StandardInteractionClient", () => {
         jest.spyOn(
             Authority.prototype,
             <any>"getEndpointMetadataFromNetwork"
-        ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        ).mockImplementation(function (this: Authority) {
+            // Return a discovery response whose `issuer` matches the host of
+            // the authority being resolved so that the issuer validation in
+            // Authority.updateEndpointMetadata succeeds for sovereign-cloud
+            // authorities like login.microsoftonline.de.
+            return Promise.resolve({
+                ...(DEFAULT_OPENID_CONFIG_RESPONSE.body as object),
+                issuer: `https://${this.hostnameAndPort}/{tenant}/v2.0`,
+            });
+        });
         jest.spyOn(
             FetchClient.prototype,
             "sendGetRequestAsync"
