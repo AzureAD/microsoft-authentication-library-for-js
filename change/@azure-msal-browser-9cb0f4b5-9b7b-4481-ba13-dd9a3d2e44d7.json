@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "fix: use client_info=\"1\" string value in native auth token requests",
+  "packageName": "@azure/msal-browser",
+  "email": "jiashen@microsoft.com",
+  "dependentChangeType": "patch"
+}
