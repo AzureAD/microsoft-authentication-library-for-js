@@ -146,7 +146,6 @@ export class SignInApiClient extends BaseApiClient {
                 continuation_token: params.continuation_token,
                 scope: params.scope,
                 grant_type: GrantType.CONTINUATION_TOKEN,
-                client_info: "1",
                 ...(params.claims && { claims: params.claims }),
                 ...(params.username && { username: params.username }),
             },
@@ -180,7 +179,7 @@ export class SignInApiClient extends BaseApiClient {
     }
 
     private async requestTokens(
-        requestData: Record<string, string | boolean>,
+        requestData: Record<string, string>,
         telemetryManager: ServerTelemetryManager,
         correlationId: string
     ): Promise<SignInTokenResponse> {
