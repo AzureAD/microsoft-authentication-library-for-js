@@ -146,7 +146,6 @@ export class SignInApiClient extends BaseApiClient {
                 continuation_token: params.continuation_token,
                 scope: params.scope,
                 grant_type: GrantType.CONTINUATION_TOKEN,
-                client_info: true,
                 ...(params.claims && { claims: params.claims }),
                 ...(params.username && { username: params.username }),
             },
@@ -180,12 +179,12 @@ export class SignInApiClient extends BaseApiClient {
     }
 
     private async requestTokens(
-        requestData: Record<string, string | boolean>,
+        requestData: Record<string, string>,
         telemetryManager: ServerTelemetryManager,
         correlationId: string
     ): Promise<SignInTokenResponse> {
         // The client_info parameter is required for MSAL to return the uid and utid in the response.
-        requestData.client_info = true;
+        requestData.client_info = "1";
 
         const result = await this.request<SignInTokenResponse>(
             CustomAuthApiEndpoint.SIGNIN_TOKEN,

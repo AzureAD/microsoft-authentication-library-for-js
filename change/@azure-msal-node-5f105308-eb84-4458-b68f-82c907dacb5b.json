@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "fix(msal-node): replace uuid with node:crypto to resolve GHSA-w5hq-g745-h8pq",
+  "packageName": "@azure/msal-node",
+  "email": "pieter.willaert@colruytgroup.com",
+  "dependentChangeType": "patch"
+}
