@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 28 Apr 2026 21:30:32 GMT",
+      "version": "16.5.2",
+      "tag": "@azure/msal-common_v16.5.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "ruijungao@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "7ca7202caaa8f335bf5cec4359de7f664b335d2b",
+            "comment": "Fix unstable sort that can result in returning guest account instead of home account [#8477](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8477)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 21 Apr 2026 22:41:19 GMT",
       "version": "16.5.1",
       "tag": "@azure/msal-common_v16.5.1",
