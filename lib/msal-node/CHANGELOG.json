@@ -2,6 +2,33 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 28 Apr 2026 21:30:32 GMT",
+      "version": "5.1.5",
+      "tag": "@azure/msal-node_v5.1.5",
+      "comments": {
+        "patch": [
+          {
+            "author": "pieter.willaert@colruytgroup.com",
+            "package": "@azure/msal-node",
+            "commit": "7ca7202caaa8f335bf5cec4359de7f664b335d2b",
+            "comment": "fix(msal-node): replace uuid with node:crypto to resolve GHSA-w5hq-g745-h8pq"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "7ca7202caaa8f335bf5cec4359de7f664b335d2b",
+            "comment": "Preserve authority metadata when calling clear() [#8542](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8542)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.5.2",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 21 Apr 2026 22:41:19 GMT",
       "version": "5.1.4",
       "tag": "@azure/msal-node_v5.1.4",
