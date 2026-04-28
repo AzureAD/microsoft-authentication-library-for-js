@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Use client_info=\"1\" string value in native auth token requests [#8562](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8562)",
-  "packageName": "@azure/msal-browser",
-  "email": "jiashen@microsoft.com",
-  "dependentChangeType": "patch"
-}
