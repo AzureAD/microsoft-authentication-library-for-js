@@ -1647,6 +1647,113 @@ describe("Authority.ts Class Unit Tests", () => {
                     done();
                 });
             });
+
+            describe("validateIssuer", () => {
+                const networkMetadataBase =
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body;
+
+                beforeEach(() => {
+                    // Force hardcoded values to return null so the network path is taken
+                    getEndpointMetadataFromHarcodedValuesSpy.mockReturnValue(
+                        null
+                    );
+                });
+
+                it("throws issuerValidationFailed when issuer is empty", async () => {
+                    getEndpointMetadataFromNetworkSpy.mockResolvedValue({
+                        ...networkMetadataBase,
+                        issuer: "",
+                    });
+
+                    await expect(
+                        authority.resolveEndpointsAsync()
+                    ).rejects.toThrow(
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.issuerValidationFailed
+                        )
+                    );
+                });
+
+                it("throws issuerValidationFailed when issuer host does not match authority or any known alias", async () => {
+                    getEndpointMetadataFromNetworkSpy.mockResolvedValue({
+                        ...networkMetadataBase,
+                        issuer: "https://malicious.attacker.com/tenant/v2.0",
+                    });
+
+                    await expect(
+                        authority.resolveEndpointsAsync()
+                    ).rejects.toThrow(
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.issuerValidationFailed
+                        )
+                    );
+                });
+
+                it("succeeds when issuer scheme and host match the authority exactly (Rule 1)", async () => {
+                    getEndpointMetadataFromNetworkSpy.mockResolvedValue({
+                        ...networkMetadataBase,
+                        issuer: "https://login.microsoftonline.com/common/v2.0",
+                    });
+
+                    await authority.resolveEndpointsAsync();
+                    expect(authority.discoveryComplete()).toBe(true);
+                });
+
+                it("succeeds when issuer host is a known Microsoft authority alias (Rule 2)", async () => {
+                    // login.windows.net is a known alias of login.microsoftonline.com
+                    getEndpointMetadataFromNetworkSpy.mockResolvedValue({
+                        ...networkMetadataBase,
+                        issuer: "https://login.windows.net/common/v2.0",
+                    });
+
+                    await authority.resolveEndpointsAsync();
+                    expect(authority.discoveryComplete()).toBe(true);
+                });
+
+                it("succeeds when issuer host is a regional variant of a known Microsoft authority host (Rule 3)", async () => {
+                    // westus2.login.microsoftonline.com is a regional variant of the known host login.microsoftonline.com
+                    getEndpointMetadataFromNetworkSpy.mockResolvedValue({
+                        ...networkMetadataBase,
+                        issuer: "https://westus2.login.microsoftonline.com/common/v2.0",
+                    });
+
+                    await authority.resolveEndpointsAsync();
+                    expect(authority.discoveryComplete()).toBe(true);
+                });
+
+                it("succeeds when issuer matches a valid CIAM tenant pattern for a CIAM authority (Rule 4)", async () => {
+                    const ciamTenant = "mytenant";
+                    const ciamAuthorityUrl = `https://${ciamTenant}.ciamlogin.com/`;
+                    const ciamIssuer = `https://${ciamTenant}.ciamlogin.com/${ciamTenant}/v2.0`;
+
+                    getEndpointMetadataFromNetworkSpy.mockResolvedValue({
+                        ...networkMetadataBase,
+                        issuer: ciamIssuer,
+                        authorization_endpoint: `https://${ciamTenant}.ciamlogin.com/${ciamTenant}/oauth2/v2.0/authorize`,
+                        token_endpoint: `https://${ciamTenant}.ciamlogin.com/${ciamTenant}/oauth2/v2.0/token`,
+                        end_session_endpoint: `https://${ciamTenant}.ciamlogin.com/${ciamTenant}/oauth2/v2.0/logout`,
+                        jwks_uri: `https://${ciamTenant}.ciamlogin.com/${ciamTenant}/discovery/v2.0/keys`,
+                    });
+
+                    const ciamAuthorityInstance = new Authority(
+                        ciamAuthorityUrl,
+                        networkInterface,
+                        mockStorage,
+                        {
+                            ...authorityOptions,
+                            knownAuthorities: [
+                                `${ciamTenant}.ciamlogin.com`,
+                            ],
+                        },
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
+                    );
+
+                    await ciamAuthorityInstance.resolveEndpointsAsync();
+                    expect(ciamAuthorityInstance.discoveryComplete()).toBe(true);
+                });
+            });
         });
 
         describe("Cloud Discovery Metadata", () => {
