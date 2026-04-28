@@ -41,10 +41,10 @@ resources:
                   - job: detect_changes
                     displayName: "Detect changed packages"
                     pool:
-                      type: linux
+                      type: windows
                       isCustom: true
                       name: "Azure Pipelines"
-                      vmImage: "ubuntu-latest"
+                      vmImage: "windows-latest"
                     steps:
                       - checkout: self
                         path: 3p
