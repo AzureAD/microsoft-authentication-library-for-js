@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777405631856,
+  "lastUpdate": 1777407352130,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21073,6 +21073,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.68%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7ca7202caaa8f335bf5cec4359de7f664b335d2b",
+          "message": "fix(sample): acquire token after B2C edit profile policy (#8568)\n\nThe EDIT_PROFILE redirect case was not calling acquireTokenByCode,\nleaving the session with the old account and display name. Fix by\nacquiring the token and updating req.session.account, matching the\nSIGN_IN pattern.\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-04-28T20:09:25Z",
+          "tree_id": "e6abb6629730636d75018c7b8cefe7a043a1759f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/7ca7202caaa8f335bf5cec4359de7f664b335d2b"
+        },
+        "date": 1777407347798,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 239735,
+            "range": "±1.06%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 228863,
+            "range": "±0.96%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
           }
         ]
       }
