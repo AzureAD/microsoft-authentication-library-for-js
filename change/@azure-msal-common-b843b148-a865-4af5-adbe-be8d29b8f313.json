@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Fix unstable sort that can result in returning guest account instead of home account [#8477](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8477)",
-    "packageName": "@azure/msal-common",
-    "email": "ruijungao@microsoft.com",
-    "dependentChangeType": "patch"
-}

@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 21 Apr 2026 22:41:19 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 28 Apr 2026 21:30:32 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.1.5
+
+Tue, 28 Apr 2026 21:30:32 GMT
+
+### Patches
+
+- fix(msal-node): replace uuid with node:crypto to resolve GHSA-w5hq-g745-h8pq (pieter.willaert@colruytgroup.com)
+- Preserve authority metadata when calling clear() [#8542](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8542) (shylasummers@microsoft.com)
+- Bump @azure/msal-common to v16.5.2
 
 ## 5.1.4
 
