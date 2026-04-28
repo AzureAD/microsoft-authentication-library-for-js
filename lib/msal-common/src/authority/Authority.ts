@@ -1271,33 +1271,31 @@ export class Authority {
          * Rule 4: Check for CIAM tenant pattern `{tenant}.ciamlogin.com` as a host,
          * even when using a custom domain.
          */
-        if (authorityHost.endsWith(Constants.CIAM_AUTH_URL)) {
-            let tenant: string = "";
-            if (!!authorityComponents.PathSegments[1]) {
-                tenant = authorityComponents.PathSegments[1];
-            } else {
-                // If no path segments exist, try to extract from hostname (first part)
-                const hostParts = authorityHost.split(".");
-                tenant = hostParts.length > 0 ? hostParts[0] : "";
-            }
-            if (!!tenant) {
-                // Create a collection of valid CIAM issuer patterns for the tenant
-                const validCiamPatterns: string[] = [
-                    `https://${tenant}${Constants.CIAM_AUTH_URL}`,
-                    `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}`,
-                    `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}/v2.0`,
-                ];
+        let tenant: string = "";
+        if (!!authorityComponents.PathSegments[1]) {
+            tenant = authorityComponents.PathSegments[1];
+        } else {
+            // If no path segments exist, try to extract from hostname (first part)
+            const hostParts = authorityHost.split(".");
+            tenant = hostParts.length > 0 ? hostParts[0] : "";
+        }
+        if (!!tenant) {
+            // Create a collection of valid CIAM issuer patterns for the tenant
+            const validCiamPatterns: string[] = [
+                `https://${tenant}${Constants.CIAM_AUTH_URL}`,
+                `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}`,
+                `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}/v2.0`,
+            ];
 
-                // Normalize and check if the issuer matches any of the valid patterns
-                const normalizedIssuer = issuer.replace(/\/+$/, ""); // strips one or more trailing slashes
-                if (
-                    validCiamPatterns.some(
-                        (pattern) =>
-                            pattern.replace(/\/+$/, "") === normalizedIssuer
-                    )
-                ) {
-                    return;
-                }
+            // Normalize and check if the issuer matches any of the valid patterns
+            const normalizedIssuer = issuer.replace(/\/+$/, ""); // strips one or more trailing slashes
+            if (
+                validCiamPatterns.some(
+                    (pattern) =>
+                        pattern.replace(/\/+$/, "") === normalizedIssuer
+                )
+            ) {
+                return;
             }
         }
 
