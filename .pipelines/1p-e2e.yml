@@ -34,17 +34,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: dev
-
-extends:
-    template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
-    parameters:
-        globalSdl:
-            policheck:
-                break: true
-        stages:
-            - stage: e2e_test
-              displayName: "E2E Tests"
+          ref: feat/e2e-affected-package-gating
               variables:
                   Codeql.Enabled: true
               jobs:
