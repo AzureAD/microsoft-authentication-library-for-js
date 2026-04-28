@@ -548,7 +548,7 @@ export class Authority {
         )();
         if (metadata) {
             // Validate the issuer returned by the OIDC discovery document.
-            this.validateIssuer(metadata.issuer, metadataEntity);
+            this.validateIssuer(metadata.issuer);
 
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
@@ -1199,89 +1199,112 @@ export class Authority {
     }
 
     /**
-     * Determines whether this authority belongs to a Microsoft cloud (public,
-     * sovereign, CIAM, or a CIAM vanity domain that resolved to a Microsoft
-     * cloud via instance discovery). Used by OIDC issuer validation to apply
-     * the relaxed Microsoft host-set rule.
-     * @param metadataEntity Current metadata entity (post cloud discovery).
-     */
-    private isMicrosoftAuthority(
-        metadataEntity: AuthorityMetadataEntity
-    ): boolean {
-        if (this.authorityType === AuthorityType.Ciam) {
-            return true;
-        }
-        if (
-            Constants.KNOWN_MICROSOFT_AUTHORITY_HOSTS.has(this.hostnameAndPort)
-        ) {
-            return true;
-        }
-        // CIAM vanity domains: instance discovery resolved this authority to a Microsoft cloud, so any of its aliases will be in the known Microsoft host set.
-        return (
-            metadataEntity.aliases?.some((alias) =>
-                Constants.KNOWN_MICROSOFT_AUTHORITY_HOSTS.has(alias)
-            ) ?? false
-        );
-    }
-
-    /**
      * Validates the `issuer` returned by an OIDC discovery document against
      * this authority, per
      * https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation
      *
-     * Validation rules:
-     * - Non-Microsoft authorities require strict origin (scheme + host + port)
-     *   equality between the canonical authority and the issuer.
-     * - Microsoft authorities (public cloud, sovereign clouds, CIAM, and CIAM
-     *   vanity domains that resolved to a Microsoft cloud via instance
-     *   discovery) require the issuer host to be in the known Microsoft host
-     *   set.
+     * The issuer is accepted when ANY of the following holds:
+     *  1. The issuer scheme + host + port match the authority's (path may
+     *     differ). Applies to all authorities.
+     *  2. The authority is a Microsoft cloud authority (public, sovereign,
+     *     CIAM, or CIAM vanity that resolved to a Microsoft cloud via
+     *     instance discovery), the issuer is HTTPS, and the issuer host is in
+     *     the known Microsoft authority host set.
+     *  3. Same as (2), but the issuer host is a single-label regional variant
+     *     of a known Microsoft host (e.g. `westus.login.microsoftonline.com`).
+     *  4. Same as (2), but the issuer host matches the CIAM tenant pattern
+     *     `{tenant}.ciamlogin.com`.
      *
      * @param issuer The `issuer` value returned in the OIDC discovery document.
      * @param metadataEntity Current metadata entity (post cloud discovery).
      * @throws ClientConfigurationError("issuer_validation_failed") on failure.
      */
-    private validateIssuer(
-        issuer: string,
-        metadataEntity: AuthorityMetadataEntity
-    ): void {
+    private validateIssuer(issuer: string): void {
         if (!issuer) {
             throw createClientConfigurationError(
                 ClientConfigurationErrorCodes.issuerValidationFailed
             );
         }
 
-        const issuerOrigin = Authority.getOriginFromUrl(issuer);
+        const issuerComponents = new UrlString(issuer).getUrlComponents();
+        const issuerScheme = (issuerComponents.Protocol || "").toLowerCase();
+        const issuerHost = (
+            issuerComponents.HostNameAndPort || ""
+        ).toLowerCase();
 
-        if (this.isMicrosoftAuthority(metadataEntity)) {
-            const issuerHost = issuerOrigin.replace(/^[a-z]+:\/\//, "");
-            if (!Constants.KNOWN_MICROSOFT_AUTHORITY_HOSTS.has(issuerHost)) {
-                throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.issuerValidationFailed
-                );
-            }
+        const authorityComponents = new UrlString(
+            this.canonicalAuthority
+        ).getUrlComponents();
+        const authorityScheme = (
+            authorityComponents.Protocol || ""
+        ).toLowerCase();
+        const authorityHost = (
+            authorityComponents.HostNameAndPort || ""
+        ).toLowerCase();
+
+        // Rule 1: scheme + host equality (any authority)
+        if (issuerScheme === authorityScheme && issuerHost === authorityHost) {
             return;
         }
 
-        const authorityOrigin = Authority.getOriginFromUrl(
-            this.canonicalAuthority
-        );
-        if (authorityOrigin !== issuerOrigin) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.issuerValidationFailed
-            );
-        }
-    }
+        // Rules 2-3 require HTTPS.
+        if (issuerScheme === "https:") {
+            // Rule 2: Rule 2: The issuer host is a well-known Microsoft authority host (HTTPS only)
+            if (this.isAliasOfKnownMicrosoftAuthority(issuerHost)) {
+                return;
+            }
 
-    /**
-     * Returns the lowercase origin (`scheme://host[:port]`) of the given URL.
-     * Strips path, query, and fragment.
-     */
-    private static getOriginFromUrl(url: string): string {
-        const components = new UrlString(url).getUrlComponents();
-        const protocol = (components.Protocol || "https:").toLowerCase();
-        const hostAndPort = (components.HostNameAndPort || "").toLowerCase();
-        return `${protocol}//${hostAndPort}`;
+            /*
+             * Rule 3: The issuer host is a regional variant ({region}.{host}) of a well-known host
+             * E.g. westus2.login.microsoft.com
+             */
+            const firstDot = issuerHost.indexOf(".");
+            if (firstDot > 0 && firstDot < issuerHost.length - 1) {
+                const hostWithoutRegion = issuerHost.substring(firstDot + 1);
+                if (this.isAliasOfKnownMicrosoftAuthority(hostWithoutRegion)) {
+                    return;
+                }
+            }
+        }
+
+        /*
+         * Rule 4: Check for CIAM tenant pattern `{tenant}.ciamlogin.com` as a host,
+         * even when using a custom domain.
+         */
+        if (authorityHost.endsWith(Constants.CIAM_AUTH_URL)) {
+            let tenant: string = "";
+            if (!!authorityComponents.PathSegments[1]) {
+                tenant = authorityComponents.PathSegments[1];
+            } else {
+                // If no path segments exist, try to extract from hostname (first part)
+                const hostParts = authorityHost.split(".");
+                tenant = hostParts.length > 0 ? hostParts[0] : "";
+            }
+            if (!!tenant) {
+                // Create a collection of valid CIAM issuer patterns for the tenant
+                const validCiamPatterns: string[] = [
+                    `https://${tenant}${Constants.CIAM_AUTH_URL}`,
+                    `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}`,
+                    `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}/v2.0`,
+                ];
+
+                // Normalize and check if the issuer matches any of the valid patterns
+                const normalizedIssuer = issuer.replace(/\/+$/, ""); // strips one or more trailing slashes
+                if (
+                    validCiamPatterns.some(
+                        (pattern) =>
+                            pattern.replace(/\/+$/, "") === normalizedIssuer
+                    )
+                ) {
+                    return;
+                }
+            }
+        }
+
+        // issuer validation fails if none of the above rules are satisfied
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.issuerValidationFailed
+        );
     }
 
     /**
