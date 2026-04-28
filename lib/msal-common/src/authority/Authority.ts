@@ -1216,7 +1216,6 @@ export class Authority {
      *     `{tenant}.ciamlogin.com`.
      *
      * @param issuer The `issuer` value returned in the OIDC discovery document.
-     * @param metadataEntity Current metadata entity (post cloud discovery).
      * @throws ClientConfigurationError("issuer_validation_failed") on failure.
      */
     private validateIssuer(issuer: string): void {
