@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776891798779,
+  "lastUpdate": 1777400216343,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -20997,6 +20997,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.98%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "198982749+Copilot@users.noreply.github.com",
+            "name": "Copilot",
+            "username": "Copilot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "34a4e06620d35bdf51f6d7577831d9e6767b280a",
+          "message": "fix(msal-browser): CookieStorage tolerates malformed percent-encoded cookies from unrelated third parties (#8549)\n\n- [x] Fix `CookieStorage.getItem` to compare raw (encoded) key before\ndecoding, avoiding `decodeURIComponent` on unrelated cookies\n- [x] Fix `CookieStorage.getKeys` to split on `=` first and wrap\n`decodeURIComponent` of the key in try-catch to skip malformed cookies\n- [x] Add tests for `getItem` and `getKeys` with malformed/invalid\npercent-encoded cookies\n- [x] Add test: `getItem` returns raw value when matching MSAL cookie\nhas a malformed percent-encoded value (fallback branch)\n- [x] Add test: `getKeys` still includes keys when the cookie value (not\nkey) has a malformed percent-encoded sequence\n- [x] Create changefile for the fix\n- [x] Fix prettier formatting in source and test files\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: tnorling <5307810+tnorling@users.noreply.github.com>\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2026-04-28T18:10:24Z",
+          "tree_id": "bbb1be4c97b174a155b692c3d62d035cf0d5988e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/34a4e06620d35bdf51f6d7577831d9e6767b280a"
+        },
+        "date": 1777400212989,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 234156,
+            "range": "±0.87%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 235829,
+            "range": "±0.93%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
