@@ -57,51 +57,20 @@ extends:
                       vmImage: "ubuntu-latest"
                     steps:
                       - checkout: self
+                        path: 3p
                         fetchDepth: 0
                         persistCredentials: true
                       - checkout: 1P
+                        path: 1p
                         fetchDepth: 0
                         persistCredentials: true
                       - task: PowerShell@2
                         name: detect
                         displayName: "Compute affected libraries"
                         inputs:
-                          targetType: inline
+                          targetType: filePath
+                          filePath: $(Pipeline.Workspace)/3p/.pipelines/scripts/detect-changes-1p.ps1
                           pwsh: true
-                          script: |
-                            # Default: run everything (non-PR builds and manual runs)
-                            $run1p = $true
-
-                            if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH) {
-                                $target = $env:SYSTEM_PULLREQUEST_TARGETBRANCH -replace '^refs/heads/', ''
-                                Write-Host "PR build: diffing against origin/$target"
-
-                                # Check 3P repo for msal-common and msal-browser changes
-                                Set-Location "$(Build.SourcesDirectory)/microsoft-authentication-library-for-js"
-                                git fetch origin $target
-                                if ($LASTEXITCODE -ne 0) { throw "git fetch failed in 3P repo" }
-                                $changed3p = git diff --name-only "origin/$target...HEAD"
-
-                                # Check 1P repo for msal-browser-1p changes
-                                Set-Location "$(Build.SourcesDirectory)/msal-javascript-1p"
-                                git fetch origin $target 2>$null  # branch may not exist in 1P repo; non-fatal
-                                $changed1p = if ($LASTEXITCODE -eq 0) {
-                                    git diff --name-only "origin/$target...HEAD"
-                                } else { @() }
-
-                                $changedCommon  = ($changed3p | Where-Object { $_ -match '^lib/msal-common/' }).Count -gt 0
-                                $changedBrowser = ($changed3p | Where-Object { $_ -match '^lib/msal-browser/' -or $_ -match '^samples/msal-browser-samples/' }).Count -gt 0
-                                $changed1pPkg   = ($changed1p  | Where-Object { $_ -match '^msal-browser-1p/' -or $_ -match '^samples/' }).Count -gt 0
-
-                                $run1p = $changedCommon -or $changedBrowser -or $changed1pPkg
-
-                                Write-Host "Changed: common=$changedCommon browser=$changedBrowser 1p=$changed1pPkg"
-                            } else {
-                                Write-Host "Non-PR build — running all test suites"
-                            }
-
-                            Write-Host "Run: browser-1p=$run1p"
-                            Write-Host "##vso[task.setvariable variable=runMsalBrowser1p;isOutput=true]$($run1p.ToString().ToLower())"
 
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
