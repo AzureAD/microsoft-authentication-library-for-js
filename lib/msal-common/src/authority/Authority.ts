@@ -1248,7 +1248,7 @@ export class Authority {
 
         // Rules 2-3 require HTTPS.
         if (issuerScheme === "https:") {
-            // Rule 2: Rule 2: The issuer host is a well-known Microsoft authority host (HTTPS only)
+            // Rule 2: The issuer host is a well-known Microsoft authority host (HTTPS only)
             if (this.isAliasOfKnownMicrosoftAuthority(issuerHost)) {
                 return;
             }
