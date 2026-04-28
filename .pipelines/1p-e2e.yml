@@ -43,8 +43,35 @@ extends:
             policheck:
                 break: true
         stages:
+            # —— Gate: verify no testable 1P sample is missing from the list ————————
+            - stage: check_coverage
+              displayName: "Check E2E Sample Coverage"
+              variables:
+                  E2ESampleList: "Broker_WAMTestApp,PerformanceTelemetrySample,BrokerTestApp-React,BrokerSingleFrameTestApp"
+                  E2EExcludedSamples: ""
+              jobs:
+                  - job: CheckSampleCoverage
+                    displayName: "Verify all testable samples are listed"
+                    pool:
+                        type: windows
+                    variables:
+                        - name: ob_outputDirectory
+                          value: $(Build.ArtifactStagingDirectory)
+                    steps:
+                        - checkout: 1P
+                        - task: PowerShell@2
+                          displayName: "Check spec-file coverage"
+                          inputs:
+                              pwsh: true
+                              filePath: $(Build.SourcesDirectory)/.pipelines/scripts/check-e2e-coverage.ps1
+                              arguments: >-
+                                  -SamplesRoot "$(Build.SourcesDirectory)/samples"
+                                  -Listed "$(E2ESampleList)"
+                                  -Excluded "$(E2EExcludedSamples)"
+            # —— E2E test jobs — runs in parallel with check_coverage ————————————
             - stage: e2e_test
               displayName: "E2E Tests"
+              dependsOn: []
               variables:
                   Codeql.Enabled: true
               jobs:
