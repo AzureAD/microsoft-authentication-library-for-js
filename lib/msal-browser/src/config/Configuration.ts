@@ -97,13 +97,6 @@ export type BrowserAuthOptions = {
      * This is a boolean flag and defaults to false if not specified.
      */
     verifySSO?: boolean;
-    /**
-     * When set to true, MSAL validates the `issuer` value returned by the OIDC discovery document
-     * fetched from the network against the configured authority, per
-     * https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation.
-     * Defaults to false. Cached, hardcoded, and config-provided metadata are not re-validated.
-     */
-    validateAuthorityIssuer?: boolean;
 };
 
 /** @internal */
@@ -280,7 +273,6 @@ export function buildConfiguration(
         instanceAware: false,
         isMcp: false,
         verifySSO: false,
-        validateAuthorityIssuer: false,
     };
 
     // Default cache options for browser

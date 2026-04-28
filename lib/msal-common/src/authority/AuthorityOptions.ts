@@ -16,14 +16,6 @@ export type AuthorityOptions = {
     authorityMetadata: string;
     azureRegionConfiguration?: AzureRegionConfiguration;
     authority?: string;
-    /**
-     * When true, the `issuer` returned by the OIDC discovery document
-     * fetched from the network is validated against the configured authority
-     * per https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation
-     * Defaults to false. Cached, hardcoded, and config-provided metadata are
-     * not re-validated.
-     */
-    validateAuthorityIssuer?: boolean;
 };
 
 export type StaticAuthorityOptions = Partial<

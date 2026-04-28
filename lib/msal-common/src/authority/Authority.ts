@@ -547,10 +547,8 @@ export class Authority {
             this.correlationId
         )();
         if (metadata) {
-            // Validate the issuer returned by the OIDC discovery document, when enabled.
-            if (this.authorityOptions.validateAuthorityIssuer) {
-                this.validateIssuer(metadata.issuer, metadataEntity);
-            }
+            // Validate the issuer returned by the OIDC discovery document.
+            this.validateIssuer(metadata.issuer, metadataEntity);
 
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
