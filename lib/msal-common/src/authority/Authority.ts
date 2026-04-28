@@ -1216,7 +1216,6 @@ export class Authority {
      *     `{tenant}.ciamlogin.com`.
      *
      * @param issuer The `issuer` value returned in the OIDC discovery document.
-     * @param metadataEntity Current metadata entity (post cloud discovery).
      * @throws ClientConfigurationError("issuer_validation_failed") on failure.
      */
     private validateIssuer(issuer: string): void {
@@ -1249,7 +1248,7 @@ export class Authority {
 
         // Rules 2-3 require HTTPS.
         if (issuerScheme === "https:") {
-            // Rule 2: Rule 2: The issuer host is a well-known Microsoft authority host (HTTPS only)
+            // Rule 2: The issuer host is a well-known Microsoft authority host (HTTPS only)
             if (this.isAliasOfKnownMicrosoftAuthority(issuerHost)) {
                 return;
             }
