@@ -79,7 +79,7 @@ extends:
                       displayName: "Compute affected libraries"
                       inputs:
                         targetType: filePath
-                        filePath: .pipelines/scripts/detect-changes-3p.ps1
+                        filePath: .pipelines/scripts/detect-changes.ps1
                         pwsh: true
 
                 - ${{ if eq(parameters.runBrowserTests, true) }}:
