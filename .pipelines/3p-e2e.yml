@@ -80,6 +80,11 @@ extends:
                       inputs:
                         targetType: filePath
                         filePath: .pipelines/scripts/detect-changes.ps1
+                        arguments: >-
+                          -EnableBrowser "${{ parameters.runBrowserTests }}"
+                          -EnableNode "${{ parameters.runNodeTests }}"
+                          -EnableReact "${{ parameters.runReactTests }}"
+                          -EnableAngular "${{ parameters.runAngularTests }}"
                         pwsh: true
 
                 - ${{ if eq(parameters.runBrowserTests, true) }}:
