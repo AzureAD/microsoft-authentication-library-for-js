@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777400216343,
+  "lastUpdate": 1777405631856,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21035,6 +21035,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.93%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "29a826b8abf0371b8ab74201f105bdb4f4679cd9",
+          "message": "Address dependabot Github Actions alerts (#8550)\n\nThis pull request updates and simplifies the project's GitHub Actions\nworkflows. The main changes are the removal of several legacy or\nredundant workflow files and the upgrade of GitHub Actions versions to\ntheir latest releases for improved reliability and security.\n\n**Workflow removals:**\n\n* Removed the following workflow files, which are no longer needed or\nhave been consolidated elsewhere:\n  - `.github/workflows/beachball-bump.yml`\n  - `.github/workflows/label.yml`\n  - `.github/workflows/metadata-check.yml`\n  - `.github/workflows/npm-audit.yml`\n\n**Actions version upgrades:**\n\n* Upgraded `actions/checkout` and `actions/setup-node` from v4 to v6 in\nthe following workflows to use the latest features and security updates:\n  - `.github/workflows/beachball-check.yml`\n  - `.github/workflows/client-credential-benchmark.yml`\n  - `.github/workflows/issue-template-bot.yml`\n  - `.github/workflows/msal-node-confidential-client-benchmarks.yml`\n  - `.github/workflows/typedoc.yml`",
+          "timestamp": "2026-04-28T19:40:29Z",
+          "tree_id": "a446284e68dbc877dad03a06acc528a6a384aa70",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/29a826b8abf0371b8ab74201f105bdb4f4679cd9"
+        },
+        "date": 1777405628378,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 241882,
+            "range": "±0.87%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 245593,
+            "range": "±0.68%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
