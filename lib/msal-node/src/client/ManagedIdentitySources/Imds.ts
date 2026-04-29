@@ -169,9 +169,10 @@ export class Imds extends BaseManagedIdentitySource {
             );
 
         request.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] = "true";
-        request.headers["x-client-SKU"] = NodeConstants.MSAL_SKU;
-        request.headers["x-client-VER"] = packageVersion;
-        request.headers["x-ms-client-request-id"] =
+        request.headers[ManagedIdentityHeaders.CLIENT_SKU] =
+            NodeConstants.MSAL_SKU;
+        request.headers[ManagedIdentityHeaders.CLIENT_VER] = packageVersion;
+        request.headers[ManagedIdentityHeaders.CLIENT_REQUEST_ID] =
             this.cryptoProvider.createNewGuid();
 
         request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
