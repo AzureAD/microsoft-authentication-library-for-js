@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777417387265,
+  "lastUpdate": 1777487813095,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21149,6 +21149,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.82%",
             "unit": "ops/sec",
             "extra": "232 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b79cadc212e20ac115768d44c13e97c592dac67a",
+          "message": "Dedupe build output (#8557)\n\nThis pull request updates the packaging and build configuration for all\nMSAL packages to improve TypeScript type resolution for consumers using\nboth ESM and CommonJS. The main improvements are the introduction of\nCommonJS type declaration shims, consolidation of subpath export builds,\nand updates to the `package.json` exports to reference the correct type\ndeclaration files. These changes should resolve longstanding issues with\ntype resolution in CommonJS environments and simplify the build process.\n\n**Build process and type declaration improvements:**\n\n* Introduced a new `createCjsTypeShims` utility in\n`shared-configs/rollup-msal/index.js` to generate CommonJS `.d.cts` type\ndeclaration files that re-export types from ESM entrypoints, ensuring\ncorrect type resolution for CommonJS consumers.\n* Updated all package `rollup.config.js` files (`msal-browser`,\n`msal-common`, `msal-node`, `msal-react`) to use `createCjsTypeShims`\nand generate `.d.cts` files for CommonJS exports.\n[[1]](diffhunk://#diff-21caec55dec811634b36ae223d0ecdf31f82be03f62be4d0d987a8edabfa96e2L10-R10)\n[[2]](diffhunk://#diff-fd348f45ab67876db48ac0fddad999b99688fdaab88eef49d9196d1ead750d09L8-R8)\n[[3]](diffhunk://#diff-6226b9088b3a28c4aea351bbcaa0561aca49f07f8f071dd093b42710f2618e2aL9-R9)\n[[4]](diffhunk://#diff-163ef4f9263f0bb47cb150847b69ec559a2584d4a61c798662cc400dd06ebceeL8-R8)\n* Changed TypeScript compiler options in all build configs to disable\ngeneration of `.d.ts` and `.d.ts.map` files for CommonJS builds,\npreventing duplicate or unnecessary declaration files.\n[[1]](diffhunk://#diff-21caec55dec811634b36ae223d0ecdf31f82be03f62be4d0d987a8edabfa96e2L72-R97)\n[[2]](diffhunk://#diff-21caec55dec811634b36ae223d0ecdf31f82be03f62be4d0d987a8edabfa96e2L205-R201)\n[[3]](diffhunk://#diff-21caec55dec811634b36ae223d0ecdf31f82be03f62be4d0d987a8edabfa96e2L258-R230)\n[[4]](diffhunk://#diff-fd348f45ab67876db48ac0fddad999b99688fdaab88eef49d9196d1ead750d09L96-R117)\n[[5]](diffhunk://#diff-6226b9088b3a28c4aea351bbcaa0561aca49f07f8f071dd093b42710f2618e2aL66-R79)\n[[6]](diffhunk://#diff-163ef4f9263f0bb47cb150847b69ec559a2584d4a61c798662cc400dd06ebceeL62-R75)\n\n**Package exports and type resolution:**\n\n* Updated `package.json` `exports` fields in all packages to reference\nthe new `.d.cts` files in the `dist` (or `dist-browser`) directories for\nCommonJS `types` entries, instead of the previous `.d.ts` files in\n`lib/types`.\n[[1]](diffhunk://#diff-47203e32567c3117f66eb961e1c44acb16430d43698501078fc6a3024598374dL32-R46)\n[[2]](diffhunk://#diff-47203e32567c3117f66eb961e1c44acb16430d43698501078fc6a3024598374dL56-R56)\n[[3]](diffhunk://#diff-bea350f23875265b6aae3d83042e3664ad5a4ad6b9c1d033c61408c76422e684L36-R36)\n[[4]](diffhunk://#diff-bea350f23875265b6aae3d83042e3664ad5a4ad6b9c1d033c61408c76422e684L46-R46)\n[[5]](diffhunk://#diff-bea350f23875265b6aae3d83042e3664ad5a4ad6b9c1d033c61408c76422e684L56-R56)\n[[6]](diffhunk://#diff-62439d9fdbc0dab67f7dec5f7dceca262c262c3daa7b158308987bb5fb99ee2dL35-R35)\n[[7]](diffhunk://#diff-a224e61cdbcab14a1ab13594e78b3fed246a7c3b5e98db4a51721492bdf00093L26-R26)\n\n**Build process simplification and consolidation:**\n\n* Consolidated the ES module build for `msal-browser` subpath exports\n(`custom_auth` and `redirect_bridge`) into the main build step, removing\nredundant build configurations and simplifying the output directory\nstructure.\n[[1]](diffhunk://#diff-21caec55dec811634b36ae223d0ecdf31f82be03f62be4d0d987a8edabfa96e2L22-R27)\n[[2]](diffhunk://#diff-21caec55dec811634b36ae223d0ecdf31f82be03f62be4d0d987a8edabfa96e2L156-L184)\n[[3]](diffhunk://#diff-21caec55dec811634b36ae223d0ecdf31f82be03f62be4d0d987a8edabfa96e2L214-L237)\n\n**Summary of the most important changes:**\n\n**Type Declaration and Exports Modernization**\n- Added `createCjsTypeShims` to generate `.d.cts` files for CommonJS\ntype resolution and integrated it into all package builds.\n[[1]](diffhunk://#diff-b410664dee851173959893e2d741792587ef1215a9ae5812862dbd3a7c3e9783R27-R49)\n[[2]](diffhunk://#diff-21caec55dec811634b36ae223d0ecdf31f82be03f62be4d0d987a8edabfa96e2L10-R10)\n[[3]](diffhunk://#diff-fd348f45ab67876db48ac0fddad999b99688fdaab88eef49d9196d1ead750d09L8-R8)\n[[4]](diffhunk://#diff-6226b9088b3a28c4aea351bbcaa0561aca49f07f8f071dd093b42710f2618e2aL9-R9)\n[[5]](diffhunk://#diff-163ef4f9263f0bb47cb150847b69ec559a2584d4a61c798662cc400dd06ebceeL8-R8)\n- Updated all `package.json` `exports` to point CommonJS `types` to the\nnew `.d.cts` files in `dist` folders.\n[[1]](diffhunk://#diff-47203e32567c3117f66eb961e1c44acb16430d43698501078fc6a3024598374dL32-R46)\n[[2]](diffhunk://#diff-47203e32567c3117f66eb961e1c44acb16430d43698501078fc6a3024598374dL56-R56)\n[[3]](diffhunk://#diff-bea350f23875265b6aae3d83042e3664ad5a4ad6b9c1d033c61408c76422e684L36-R36)\n[[4]](diffhunk://#diff-bea350f23875265b6aae3d83042e3664ad5a4ad6b9c1d033c61408c76422e684L46-R46)\n[[5]](diffhunk://#diff-bea350f23875265b6aae3d83042e3664ad5a4ad6b9c1d033c61408c76422e684L56-R56)\n[[6]](diffhunk://#diff-62439d9fdbc0dab67f7dec5f7dceca262c262c3daa7b158308987bb5fb99ee2dL35-R35)\n[[7]](diffhunk://#diff-a224e61cdbcab14a1ab13594e78b3fed246a7c3b5e98db4a51721492bdf00093L26-R26)\n\n**Build Process Improvements**\n- Disabled TypeScript declaration and declaration map generation for\nCommonJS builds to avoid duplicate or conflicting type files.\n[[1]](diffhunk://#diff-21caec55dec811634b36ae223d0ecdf31f82be03f62be4d0d987a8edabfa96e2L72-R97)\n[[2]](diffhunk://#diff-21caec55dec811634b36ae223d0ecdf31f82be03f62be4d0d987a8edabfa96e2L205-R201)\n[[3]](diffhunk://#diff-21caec55dec811634b36ae223d0ecdf31f82be03f62be4d0d987a8edabfa96e2L258-R230)\n[[4]](diffhunk://#diff-fd348f45ab67876db48ac0fddad999b99688fdaab88eef49d9196d1ead750d09L96-R117)\n[[5]](diffhunk://#diff-6226b9088b3a28c4aea351bbcaa0561aca49f07f8f071dd093b42710f2618e2aL66-R79)\n[[6]](diffhunk://#diff-163ef4f9263f0bb47cb150847b69ec559a2584d4a61c798662cc400dd06ebceeL62-R75)\n- Consolidated ES build steps for `msal-browser` subpaths, reducing\nbuild complexity and output directories.\n[[1]](diffhunk://#diff-21caec55dec811634b36ae223d0ecdf31f82be03f62be4d0d987a8edabfa96e2L22-R27)\n[[2]](diffhunk://#diff-21caec55dec811634b36ae223d0ecdf31f82be03f62be4d0d987a8edabfa96e2L156-L184)\n[[3]](diffhunk://#diff-21caec55dec811634b36ae223d0ecdf31f82be03f62be4d0d987a8edabfa96e2L214-L237)",
+          "timestamp": "2026-04-29T18:17:03Z",
+          "tree_id": "d69886ced98ed05f83713d76ac9d49ee6730d005",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b79cadc212e20ac115768d44c13e97c592dac67a"
+        },
+        "date": 1777487809722,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 243687,
+            "range": "±0.96%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 243464,
+            "range": "±0.74%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
