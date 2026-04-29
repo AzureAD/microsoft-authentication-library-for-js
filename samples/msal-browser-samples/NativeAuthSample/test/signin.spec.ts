@@ -11,6 +11,7 @@ import {
     pcaInitializedPoller,
     BrowserCacheUtils,
     getHomeUrl,
+    RETRY_TIMES,
 } from "e2e-test-utils";
 import { ChildProcess } from "child_process";
 import path = require("path");
@@ -30,6 +31,7 @@ const AUTH_TIMEOUT = testConfig.timeouts.auth;
 let sampleHomeUrl = "";
 
 describe("Native Auth Sample - Sign In Tests", () => {
+    jest.retryTimes(RETRY_TIMES);
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
