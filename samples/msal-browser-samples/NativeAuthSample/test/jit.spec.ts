@@ -6,6 +6,7 @@ import {
     pcaInitializedPoller,
     BrowserCacheUtils,
     getHomeUrl,
+    RETRY_TIMES,
 } from "e2e-test-utils";
 import { ChildProcess } from "child_process";
 import path = require("path");
@@ -63,6 +64,7 @@ async function selectJitMethod(
 }
 
 describe("Native Auth Sample - JIT Tests", () => {
+    jest.retryTimes(RETRY_TIMES);
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
