@@ -8,8 +8,8 @@ parameters:
       type: string
       default: "windows"
       values:
-          - "windows"
-          - "linux"
+        - "windows"
+        - "linux"
     - name: "runBrowserTests"
       displayName: "Run Browser Tests"
       type: boolean
@@ -63,102 +63,102 @@ extends:
             - stage: e2e_test
               displayName: "3P E2E Tests"
               jobs:
-                  - ${{ if eq(parameters.runBrowserTests, true) }}:
-                        - template: .pipelines/templates/e2e-tests.yml@1P
-                          parameters:
-                              jobName: "validate_msal_browser"
-                              targetLib: "msal-browser"
-                              poolType: ${{ parameters.poolType }}
-                              stage: "CI"
-                              sourceRepo: ${{ variables.sourceRepo }}
-                              sourceBranch: ${{ variables.sourceBranch }}
-                              workspace: "samples/msal-browser-samples"
-                              samples:
-                                  - name: "client-capabilities"
-                                  - name: "onPageLoad"
-                                  - name: "pop"
-                                  - name: "customizable-e2e-test-1"
-                                    dir: "customizable-e2e-test"
-                                    testFilter: "browserAAD\\.spec|localStorage|browserMem"
-                                  - name: "customizable-e2e-test-2"
-                                    dir: "customizable-e2e-test"
-                                    testFilter: "browserAADTenanted|browserAADMultiTenant"
-                                  - name: "customizable-e2e-test-3"
-                                    dir: "customizable-e2e-test"
-                                    testFilter: "browserB2C|browserMCP"
-                                  - name: "ExpressSample"
-                                  - name: "NativeAuthSample"
-                              debug: ${{ parameters.debug }}
-                              npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
-                              enableScreenshots: ${{ parameters.enableScreenshots }}
-                  - ${{ if eq(parameters.runNodeTests, true) }}:
-                        - template: .pipelines/templates/e2e-tests.yml@1P
-                          parameters:
-                              jobName: "validate_msal_node"
-                              targetLib: "msal-node"
-                              poolType: ${{ parameters.poolType }}
-                              stage: "CI"
-                              sourceRepo: ${{ variables.sourceRepo }}
-                              sourceBranch: ${{ variables.sourceBranch }}
-                              workspace: "samples/msal-node-samples"
-                              nodeVersions: ["20", "22", "24"]
-                              samples:
-                                  - name: "auth-code-1"
-                                    dir: "auth-code"
-                                    testFilter: "auth-code-aad|auth-code-adfs"
-                                  - name: "auth-code-2"
-                                    dir: "auth-code"
-                                    testFilter: "auth-code-b2c"
-                                  - name: "auth-code-cli-app"
-                                  - name: "client-credentials"
-                                  - name: "client-credentials-with-cert-from-key-vault"
-                                  - name: "device-code"
-                                  - name: "silent-flow-1"
-                                    dir: "silent-flow"
-                                    testFilter: "silent-flow-aad|silent-flow-adfs"
-                                  - name: "silent-flow-2"
-                                    dir: "silent-flow"
-                                    testFilter: "silent-flow-b2c"
-                                  - name: "b2c-user-flows"
-                                  # - name: "on-behalf-of"
-                              debug: ${{ parameters.debug }}
-                              npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
-                              enableScreenshots: ${{ parameters.enableScreenshots }}
-                  - ${{ if eq(parameters.runReactTests, true) }}:
-                        - template: .pipelines/templates/e2e-tests.yml@1P
-                          parameters:
-                              jobName: "validate_msal_react"
-                              targetLib: "msal-react"
-                              poolType: ${{ parameters.poolType }}
-                              stage: "CI"
-                              sourceRepo: ${{ variables.sourceRepo }}
-                              sourceBranch: ${{ variables.sourceBranch }}
-                              workspace: "samples/msal-react-samples"
-                              samples:
-                                  - name: "nextjs-sample"
-                                  - name: "react-router-sample"
-                                  - name: "typescript-sample"
-                                  - name: "b2c-sample"
-                                  - name: "react16-sample"
-                                  - name: "react17-sample"
-                                  - name: "react18-sample"
-                              debug: ${{ parameters.debug }}
-                              npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
-                              enableScreenshots: ${{ parameters.enableScreenshots }}
-                  - ${{ if eq(parameters.runAngularTests, true) }}:
-                        - template: .pipelines/templates/e2e-tests.yml@1P
-                          parameters:
-                              jobName: "validate_msal_angular"
-                              targetLib: "msal-angular"
-                              poolType: ${{ parameters.poolType }}
-                              stage: "CI"
-                              sourceRepo: ${{ variables.sourceRepo }}
-                              sourceBranch: ${{ variables.sourceBranch }}
-                              workspace: "samples/msal-angular-samples"
-                              samples:
-                                  - name: "angular-b2c-sample"
-                                  - name: "angular-modules-sample"
-                                  - name: "angular-standalone-sample"
-                              debug: ${{ parameters.debug }}
-                              npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
-                              enableScreenshots: ${{ parameters.enableScreenshots }}
+                - ${{ if eq(parameters.runBrowserTests, true) }}:
+                  - template: .pipelines/templates/e2e-tests.yml@1P
+                    parameters:
+                        jobName: "validate_msal_browser"
+                        targetLib: "msal-browser"
+                        poolType: ${{ parameters.poolType }}
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        workspace: "samples/msal-browser-samples"
+                        samples:
+                            - name: "client-capabilities"
+                            - name: "onPageLoad"
+                            - name: "pop"
+                            - name: "customizable-e2e-test-1"
+                              dir: "customizable-e2e-test"
+                              testFilter: "browserAAD\\.spec|localStorage|browserMem"
+                            - name: "customizable-e2e-test-2"
+                              dir: "customizable-e2e-test"
+                              testFilter: "browserAADTenanted|browserAADMultiTenant"
+                            - name: "customizable-e2e-test-3"
+                              dir: "customizable-e2e-test"
+                              testFilter: "browserB2C|browserMCP"
+                            - name: "ExpressSample"
+                            - name: "NativeAuthSample"
+                        debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        enableScreenshots: ${{ parameters.enableScreenshots }}
+                - ${{ if eq(parameters.runNodeTests, true) }}:
+                  - template: .pipelines/templates/e2e-tests.yml@1P
+                    parameters:
+                        jobName: "validate_msal_node"
+                        targetLib: "msal-node"
+                        poolType: ${{ parameters.poolType }}
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        workspace: "samples/msal-node-samples"
+                        nodeVersions: ["20", "22", "24"]
+                        samples:
+                            - name: "auth-code-1"
+                              dir: "auth-code"
+                              testFilter: "auth-code-aad|auth-code-adfs"
+                            - name: "auth-code-2"
+                              dir: "auth-code"
+                              testFilter: "auth-code-b2c"
+                            - name: "auth-code-cli-app"
+                            - name: "client-credentials"
+                            - name: "client-credentials-with-cert-from-key-vault"
+                            - name: "device-code"
+                            - name: "silent-flow-1"
+                              dir: "silent-flow"
+                              testFilter: "silent-flow-aad|silent-flow-adfs"
+                            - name: "silent-flow-2"
+                              dir: "silent-flow"
+                              testFilter: "silent-flow-b2c"
+                            - name: "b2c-user-flows"
+                            # - name: "on-behalf-of"
+                        debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        enableScreenshots: ${{ parameters.enableScreenshots }}
+                - ${{ if eq(parameters.runReactTests, true) }}:
+                  - template: .pipelines/templates/e2e-tests.yml@1P
+                    parameters:
+                        jobName: "validate_msal_react"
+                        targetLib: "msal-react"
+                        poolType: ${{ parameters.poolType }}
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        workspace: "samples/msal-react-samples"
+                        samples:
+                            - name: "nextjs-sample"
+                            - name: "react-router-sample"
+                            - name: "typescript-sample"
+                            - name: "b2c-sample"
+                            - name: "react16-sample"
+                            - name: "react17-sample"
+                            - name: "react18-sample"
+                        debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        enableScreenshots: ${{ parameters.enableScreenshots }}
+                - ${{ if eq(parameters.runAngularTests, true) }}:
+                  - template: .pipelines/templates/e2e-tests.yml@1P
+                    parameters:
+                        jobName: "validate_msal_angular"
+                        targetLib: "msal-angular"
+                        poolType: ${{ parameters.poolType }}
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        workspace: "samples/msal-angular-samples"
+                        samples:
+                            - name: "angular-b2c-sample"
+                            - name: "angular-modules-sample"
+                            - name: "angular-standalone-sample"
+                        debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
+                        enableScreenshots: ${{ parameters.enableScreenshots }}
