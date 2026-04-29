@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 21 Apr 2026 22:41:19 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 28 Apr 2026 21:30:32 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.5.2
+
+Tue, 28 Apr 2026 21:30:32 GMT
+
+### Patches
+
+- Fix unstable sort that can result in returning guest account instead of home account [#8477](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8477) (ruijungao@microsoft.com)
 
 ## 16.5.1
 
