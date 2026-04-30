@@ -1199,6 +1199,110 @@ export class Authority {
     }
 
     /**
+     * Parses URL components (protocol, host, path segments, etc.) from an
+     * authority or issuer URL string.
+     *
+     * @param url Authority or issuer URL string to parse.
+     */
+    private static parseUrlComponents(url: string): IUri {
+        return new UrlString(url).getUrlComponents();
+    }
+
+    /**
+     * Rule 1: The issuer scheme and host exactly match the configured authority.
+     * Applies to all authority types.
+     */
+    private issuerMatchesAuthoritySchemeAndHost(
+        issuerComponents: IUri,
+        authorityComponents: IUri
+    ): boolean {
+        const issuerScheme = (issuerComponents.Protocol || "").toLowerCase();
+        const issuerHost = (
+            issuerComponents.HostNameAndPort || ""
+        ).toLowerCase();
+        const authorityScheme = (
+            authorityComponents.Protocol || ""
+        ).toLowerCase();
+        const authorityHost = (
+            authorityComponents.HostNameAndPort || ""
+        ).toLowerCase();
+        return issuerScheme === authorityScheme && issuerHost === authorityHost;
+    }
+
+    /**
+     * Rule 2: The issuer host is a well-known Microsoft authority host (HTTPS only).
+     */
+    private issuerHostIsKnownMicrosoftAuthority(
+        issuerComponents: IUri
+    ): boolean {
+        if (
+            (issuerComponents.Protocol || "").toLowerCase() !== "https:"
+        ) {
+            return false;
+        }
+        const issuerHost = (
+            issuerComponents.HostNameAndPort || ""
+        ).toLowerCase();
+        return this.isAliasOfKnownMicrosoftAuthority(issuerHost);
+    }
+
+    /**
+     * Rule 3: The issuer host is a regional variant ({region}.{host}) of a
+     * well-known Microsoft host (HTTPS only).
+     * E.g. westus2.login.microsoftonline.com
+     */
+    private issuerHostIsRegionalMicrosoftAuthority(
+        issuerComponents: IUri
+    ): boolean {
+        if (
+            (issuerComponents.Protocol || "").toLowerCase() !== "https:"
+        ) {
+            return false;
+        }
+        const issuerHost = (
+            issuerComponents.HostNameAndPort || ""
+        ).toLowerCase();
+        const firstDot = issuerHost.indexOf(".");
+        if (firstDot > 0 && firstDot < issuerHost.length - 1) {
+            const hostWithoutRegion = issuerHost.substring(firstDot + 1);
+            return this.isAliasOfKnownMicrosoftAuthority(hostWithoutRegion);
+        }
+        return false;
+    }
+
+    /**
+     * Rule 4: The issuer matches a valid CIAM tenant pattern for the
+     * configured CIAM authority. The tenant is extracted from the first
+     * hostname label of the CIAM authority
+     * (e.g. "mytenant" from "mytenant.ciamlogin.com").
+     */
+    private issuerMatchesCiamTenantPattern(
+        issuer: string,
+        authorityComponents: IUri
+    ): boolean {
+        const authorityHost = (
+            authorityComponents.HostNameAndPort || ""
+        ).toLowerCase();
+        if (!authorityHost.endsWith(Constants.CIAM_AUTH_URL)) {
+            return false;
+        }
+        // Extract tenant from the first label of the CIAM authority hostname
+        const tenant = authorityHost.split(".")[0];
+        if (!tenant) {
+            return false;
+        }
+        const normalizedIssuer = issuer.replace(/\/+$/, "");
+        const validCiamPatterns: string[] = [
+            `https://${tenant}${Constants.CIAM_AUTH_URL}`,
+            `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}`,
+            `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}/v2.0`,
+        ];
+        return validCiamPatterns.some(
+            (pattern) => pattern.replace(/\/+$/, "") === normalizedIssuer
+        );
+    }
+
+    /**
      * Validates the `issuer` returned by an OIDC discovery document against
      * this authority, per
      * https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation
