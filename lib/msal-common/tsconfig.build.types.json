@@ -1,0 +1,13 @@
+{
+    "extends": "./tsconfig.build.json",
+    "compilerOptions": {
+        "outDir": "./types",
+        "declaration": true,
+        "declarationMap": true,
+        "emitDeclarationOnly": true,
+        "noEmit": false
+    },
+    "include": [
+        "src"
+    ]
+}

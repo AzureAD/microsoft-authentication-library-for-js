@@ -48,6 +48,7 @@ import {
     AccountEntityUtils,
     Constants,
     ProtocolUtils,
+    updateAccountTenantProfileData,
 } from "@azure/msal-common/browser";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
@@ -199,6 +200,9 @@ describe("RedirectClient", () => {
         mockSetRequestState.mockReturnValue(
             TEST_STATE_VALUES.TEST_STATE_REDIRECT
         );
+        // Freeze Date.now() so timestamp comparisons in toEqual don't fail
+        // when a 1-second boundary is crossed during async acquireToken calls.
+        jest.spyOn(Date, "now").mockReturnValue(Date.now());
     });
 
     afterEach(() => {
@@ -2706,12 +2710,12 @@ describe("RedirectClient", () => {
         it("clears active account entry from the cache", async () => {
             const testAccountEntity =
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-            const testAccountInfo: AccountInfo = {
-                ...AccountEntityUtils.getAccountInfo(testAccountEntity),
-                idTokenClaims: ID_TOKEN_CLAIMS,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
-            };
-
+            const testAccountInfo: AccountInfo = updateAccountTenantProfileData(
+                AccountEntityUtils.getAccountInfo(testAccountEntity),
+                undefined,
+                ID_TOKEN_CLAIMS,
+                TEST_TOKENS.IDTOKEN_V2
+            );
             const testIdToken: IdTokenEntity = buildIdToken(
                 ID_TOKEN_CLAIMS,
                 TEST_TOKENS.IDTOKEN_V2,

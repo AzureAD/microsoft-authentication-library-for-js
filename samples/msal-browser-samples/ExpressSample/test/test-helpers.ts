@@ -2,6 +2,7 @@ import * as puppeteer from "puppeteer";
 import {
     Screenshot,
     enterCredentials,
+    BrowserCacheUtils,
 } from "e2e-test-utils";
 
 /**
@@ -35,6 +36,74 @@ export async function verifyCacheWasUsed(page: puppeteer.Page, screenshot: Scree
 
     // Verify no authentication network requests were made (indicating cached tokens were used)
     expect(networkRequests.length).toBe(0);
+}
+
+/**
+ * Force refresh tokens after an upgrade and verify the cache does not contain more or less token entries than before.
+ * @param page
+ * @param screenshot
+ * @param browserCache
+ */
+export async function forceRefreshAndVerifyTokenCountsDoNotChange(
+    page: puppeteer.Page,
+    screenshot: Screenshot,
+    browserCache: BrowserCacheUtils
+) {
+    const tokenKeysBefore = await browserCache.getTokens();
+
+    await page.locator('a[href="/playground"]').click();
+    await page.locator("button#applyConfig").waitHandle();
+    await screenshot.takeScreenshot(page, "Playground loaded");
+
+    await page.locator("button#applyConfig").click();
+    await page.waitForFunction(() => {
+        const responseContent = document.getElementById("responseContent");
+        return !!responseContent?.textContent?.includes(
+            'MSAL instance created and initialized'
+        );
+    });
+
+    await page.evaluate(() => {
+        const requestElement = document.getElementById(
+            "tokenRequest"
+        ) as HTMLTextAreaElement | null;
+
+        if (!requestElement) {
+            throw new Error("Token request textarea not found");
+        }
+
+        const request = requestElement.value
+            ? JSON.parse(requestElement.value)
+            : {};
+        request.forceRefresh = true;
+        requestElement.value = JSON.stringify(request, null, 2);
+    });
+    await screenshot.takeScreenshot(page, "Force refresh configured");
+
+    await page.locator("button#btnAcquireTokenSilent").click();
+    await page.waitForFunction(() => {
+        const responseContent = document.getElementById("responseContent");
+        const text = responseContent?.textContent || "";
+
+        return (
+            text.includes('"api": "acquireTokenSilent"') &&
+            text.includes('"result"') &&
+            !text.includes('"status": "Executing..."')
+        );
+    });
+    await screenshot.takeScreenshot(page, "Force refresh completed");
+
+    const tokenKeysAfter = await browserCache.getTokens();
+
+    expect(tokenKeysAfter.idTokens.length).toEqual(
+        tokenKeysBefore.idTokens.length
+    );
+    expect(tokenKeysAfter.accessTokens.length).toEqual(
+        tokenKeysBefore.accessTokens.length
+    );
+    expect(tokenKeysAfter.refreshTokens.length).toEqual(
+        tokenKeysBefore.refreshTokens.length
+    );
 }
 
 /**

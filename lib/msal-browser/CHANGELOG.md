@@ -1,8 +1,56 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 01 Apr 2026 20:08:59 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 28 Apr 2026 21:30:31 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.9.0
+
+Tue, 28 Apr 2026 21:30:31 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+- Bump @azure/msal-common to v16.5.2
+
+### Patches
+
+- Use client_info="1" string value in native auth token requests [#8562](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8562) (jiashen@microsoft.com)
+- Fix CookieStorage.getItem and getKeys throwing URIError when unrelated cookies contain invalid percent-encoded sequences [#7531](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/7531) (198982749+Copilot@users.noreply.github.com)
+
+## 5.8.0
+
+Tue, 21 Apr 2026 22:41:19 GMT
+
+### Minor changes
+
+- Add CJS build for redirect-bridge subpath export [#8541](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8541) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.5.1
+
+### Patches
+
+- Add flat username (alias) attribute support in sign-up flow [#8536](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8536) (yongdiwang@microsoft.com)
+- Update cache schema version to fix bug when upgrading from v4 to v5 [#8545](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8545) (thomas.norling@microsoft.com)
+- Improved account filtering when login hint is provided [#8478](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8478) (lalimasharda@microsoft.com)
+
+## 5.7.0
+
+Thu, 16 Apr 2026 22:44:53 GMT
+
+### Minor changes
+
+- Implement redirect bridge for logout flows and update postLogoutRedirectUri in samples [#8489](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8489) (kshabelko@microsoft.com)
+- Add support for client data telemetry with CLI_DATA parameter [#8378](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8378) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.5.0
+
+### Patches
+
+- Verify if an app is SSO Capable with 24h TTL cached. Add SsoCapable performance event. (sameera.gajjarapu@microsoft.com)
+- Fix MsalAuthenticationTemplate passing in undefined SsoSilentRequest [#8520](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8520) (lalimasharda@microsoft.com)
+- Attach cached ssoCapable value to ssoSilent and acquireTokenSilent telemetry. Refactor verifySsoCapability to accept request instead of account. (sameera.gajjarapu@microsoft.com)
+- Add Platform broker telemetry [#8488](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8488) (lalimasharda@microsoft.com)
+- Enable waitForBridgeLateResponse Telemetry [#8509](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8509) (thomas.norling@microsoft.com)
+- Add missing client capabilities in platform broker flows [#8428](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8428) (lalimasharda@microsoft.com)
 
 ## 5.6.3
 

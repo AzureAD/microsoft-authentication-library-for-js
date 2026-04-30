@@ -563,7 +563,9 @@ export class BrowserCacheManager extends CacheManager {
                     { migratedITCount: 1 },
                     correlationId
                 );
-                currentCredentialKeys.idToken.push(newIdTokenKey);
+                if (!currentCredentialKeys.idToken.includes(newIdTokenKey)) {
+                    currentCredentialKeys.idToken.push(newIdTokenKey);
+                }
             }
         }
 
@@ -2006,10 +2008,8 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Cache Key: msal.<schema_version>-<home_account_id>-<environment>-<credential_type>-<client_id or familyId>-<realm>-<scopes>-<claims hash>-<scheme>
-     * IdToken Example: uid.utid-login.microsoftonline.com-idtoken-app_client_id-contoso.com
-     * AccessToken Example: uid.utid-login.microsoftonline.com-accesstoken-app_client_id-contoso.com-scope1 scope2--pop
-     * RefreshToken Example: uid.utid-login.microsoftonline.com-refreshtoken-1-contoso.com
+     * Generate Credential Key. All changes to the key REQUIRE a schema version update.
+     * Cache Key: msal.<schema_version>|<home_account_id>|<environment>|<credential_type>|<client_id or familyId>|<realm>|<scopes>|<scheme>
      * @param credentialEntity
      * @returns
      */
