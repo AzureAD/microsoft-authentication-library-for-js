@@ -3,7 +3,7 @@
 # MSAL Browser
 /lib/msal-browser/src/custom_auth/ @shenj @yongdiw @nilo-ms @spetrescu84 @mustafamizrak
 /lib/msal-browser/test/custom_auth/ @shenj @yongdiw @nilo-ms @spetrescu84 @mustafamizrak
-/samples/msal-browser-samples/NativeAuthSample @shenj @yongdiw @nilo-ms @spetrescu84 @mustafamizrak
+/samples/msal-browser-samples/NativeAuthSample @shenj @yongdiw @spetrescu84 @mustafamizrak
 
 # MSAL Node
 /lib/msal-node/ @AzureAD/msal-js-public-client @AzureAD/id4s-msal-team
