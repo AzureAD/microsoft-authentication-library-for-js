@@ -31,74 +31,107 @@ $enabled1p      = $Enable1p      -ne "false"
 
 $runBrowser = $runNode = $runReact = $runAngular = $run1p = $true
 
+Write-Host "##[section]🔍 MSAL E2E — Change Detection"
+
 if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH) {
     $target = $env:SYSTEM_PULLREQUEST_TARGETBRANCH -replace '^refs/heads/', ''
-    Write-Host "PR build: diffing against origin/$target"
+    Write-Host "PR build — diffing against origin/$target"
 
     Set-Location $Repo3pPath
     git fetch origin $target
     if ($LASTEXITCODE -ne 0) { throw "git fetch failed in 3P repo" }
-    $changed3p = git diff --name-only "origin/$target...HEAD"
+    $changed3p = @(git diff --name-only "origin/$target...HEAD")
 
     $changed1p = @()
     if ($Repo1pPath) {
         Set-Location $Repo1pPath
         git fetch origin $target 2>$null  # branch may not exist in 1P repo; non-fatal
         $changed1p = if ($LASTEXITCODE -eq 0) {
-            git diff --name-only "origin/$target...HEAD"
+            @(git diff --name-only "origin/$target...HEAD")
         } else { @() }
     }
 
-    Write-Host "Changed 3P files:`n$($changed3p -join "`n")"
-    if ($changed1p) { Write-Host "Changed 1P files:`n$($changed1p -join "`n")" }
+    # Bucket files by package
+    $files = @{
+        common  = @($changed3p | Where-Object { $_ -match '^lib/msal-common/' })
+        browser = @($changed3p | Where-Object { $_ -match '^lib/msal-browser/' -or $_ -match '^samples/msal-browser-samples/' })
+        node    = @($changed3p | Where-Object { $_ -match '^lib/msal-node/'    -or $_ -match '^samples/msal-node-samples/' })
+        react   = @($changed3p | Where-Object { $_ -match '^lib/msal-react/'   -or $_ -match '^samples/msal-react-samples/' })
+        angular = @($changed3p | Where-Object { $_ -match '^lib/msal-angular/' -or $_ -match '^samples/msal-angular-samples/' })
+        infra   = @($changed3p | Where-Object { $_ -match '^\.pipelines/'      -or $_ -match '^samples/e2eTestUtils/' })
+        infra1p = @($changed1p | Where-Object { $_ -match '^\.pipelines/' })
+        pkg1p   = @($changed1p | Where-Object { $_ -match '^msal-browser-1p/'  -or $_ -match '^samples/' })
+        other3p = @($changed3p | Where-Object { $_ -notmatch '^lib/msal-(common|browser|node|react|angular)/' -and $_ -notmatch '^samples/' -and $_ -notmatch '^\.pipelines/' })
+    }
+
+    # Print grouped file lists
+    function Write-FileGroup([string]$label, [string[]]$files) {
+        if ($files.Count -eq 0) { return }
+        Write-Host "##[group]  $label ($($files.Count) file$(if ($files.Count -ne 1) {'s'}))"
+        $files | ForEach-Object { Write-Host "    $_" }
+        Write-Host "##[endgroup]"
+    }
+
+    Write-Host ""
+    Write-Host "##[group]📂 Changed files ($($changed3p.Count + $changed1p.Count) total)"
+    Write-FileGroup "msal-common"    $files.common
+    Write-FileGroup "msal-browser"   $files.browser
+    Write-FileGroup "msal-node"      $files.node
+    Write-FileGroup "msal-react"     $files.react
+    Write-FileGroup "msal-angular"   $files.angular
+    Write-FileGroup "msal-browser-1p" $files.pkg1p
+    Write-FileGroup "pipeline infra (3P)" $files.infra
+    Write-FileGroup "pipeline infra (1P)" $files.infra1p
+    Write-FileGroup "other"          $files.other3p
+    Write-Host "##[endgroup]"
+    Write-Host ""
 
     # Shared infra changes in either repo → run everything
-    $sharedChanged = (
-        ($changed3p | Where-Object { $_ -match '^\.pipelines/' -or $_ -match '^samples/e2eTestUtils/' }).Count -gt 0 -or
-        ($changed1p | Where-Object { $_ -match '^\.pipelines/' }).Count -gt 0
-    )
+    $sharedChanged = ($files.infra.Count -gt 0 -or $files.infra1p.Count -gt 0)
 
     if ($sharedChanged) {
-        Write-Host "Shared infra changed — running all test suites"
+        Write-Host "##[warning]Pipeline infra changed — running all test suites"
     } else {
-        $changedCommon  = ($changed3p | Where-Object { $_ -match '^lib/msal-common/' }).Count -gt 0
-        $changedBrowser = ($changed3p | Where-Object { $_ -match '^lib/msal-browser/'  -or $_ -match '^samples/msal-browser-samples/' }).Count -gt 0
-        $changedNode    = ($changed3p | Where-Object { $_ -match '^lib/msal-node/'     -or $_ -match '^samples/msal-node-samples/' }).Count -gt 0
-        $changedReact   = ($changed3p | Where-Object { $_ -match '^lib/msal-react/'    -or $_ -match '^samples/msal-react-samples/' }).Count -gt 0
-        $changedAngular = ($changed3p | Where-Object { $_ -match '^lib/msal-angular/'  -or $_ -match '^samples/msal-angular-samples/' }).Count -gt 0
-        $changed1pPkg   = ($changed1p  | Where-Object { $_ -match '^msal-browser-1p/'  -or $_ -match '^samples/' }).Count -gt 0
+        $changedCommon  = $files.common.Count  -gt 0
+        $changedBrowser = $files.browser.Count -gt 0
+        $changedNode    = $files.node.Count    -gt 0
+        $changedReact   = $files.react.Count   -gt 0
+        $changedAngular = $files.angular.Count -gt 0
+        $changed1pPkg   = $files.pkg1p.Count   -gt 0
 
         $runBrowser = $changedCommon -or $changedBrowser
         $runNode    = $changedCommon -or $changedNode
         $runReact   = $changedCommon -or $changedBrowser -or $changedReact
         $runAngular = $changedCommon -or $changedBrowser -or $changedAngular
         $run1p      = $changedCommon -or $changedBrowser -or $changed1pPkg
-
-        Write-Host "Changed: common=$changedCommon browser=$changedBrowser node=$changedNode react=$changedReact angular=$changedAngular 1p=$changed1pPkg"
     }
 } else {
     Write-Host "Non-PR build — running all test suites"
+    Write-Host ""
 }
 
-# AND detection result with compile-time enabled flags and report reason
-function Report-Suite([string]$name, [bool]$detected, [bool]$enabled) {
-    if (-not $enabled)   { Write-Host "  $name`: skipped (disabled by parameter)" }
-    elseif (-not $detected) { Write-Host "  $name`: skipped (no affected changes)" }
-    else                 { Write-Host "  $name`: will run" }
-}
-
-Write-Host "Suite status:"
-Report-Suite "msal-browser"    $runBrowser $enabledBrowser
-Report-Suite "msal-node"       $runNode    $enabledNode
-Report-Suite "msal-react"      $runReact   $enabledReact
-Report-Suite "msal-angular"    $runAngular $enabledAngular
-Report-Suite "msal-browser-1p" $run1p      $enabled1p
-
+# AND detection result with compile-time enabled flags and print summary table
 $runBrowser = $runBrowser -and $enabledBrowser
 $runNode    = $runNode    -and $enabledNode
 $runReact   = $runReact   -and $enabledReact
 $runAngular = $runAngular -and $enabledAngular
 $run1p      = $run1p      -and $enabled1p
+
+function Suite-Row([string]$name, [bool]$will_run, [bool]$enabled) {
+    $icon   = if ($will_run)    { "✅" } else { "⏭️ " }
+    $status = if (-not $enabled)   { "skipped  (disabled by parameter)" }
+              elseif ($will_run)   { "WILL RUN" }
+              else                 { "skipped  (no affected changes)" }
+    Write-Host "  $icon  $($name.PadRight(16)) $status"
+}
+
+Write-Host "##[section]📦 Suite decisions"
+Suite-Row "msal-browser"    $runBrowser $enabledBrowser
+Suite-Row "msal-node"       $runNode    $enabledNode
+Suite-Row "msal-react"      $runReact   $enabledReact
+Suite-Row "msal-angular"    $runAngular $enabledAngular
+Suite-Row "msal-browser-1p" $run1p      $enabled1p
+Write-Host ""
 
 Write-Host "##vso[task.setvariable variable=runMsalBrowser;isOutput=true]$($runBrowser.ToString().ToLower())"
 Write-Host "##vso[task.setvariable variable=runMsalNode;isOutput=true]$($runNode.ToString().ToLower())"
