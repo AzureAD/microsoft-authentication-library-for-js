@@ -122,11 +122,14 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 )
             ).toBe(false);
 
-            const headers =
-                sendGetRequestAsyncSpy.mock.lastCall[1].headers;
-            expect(headers[ManagedIdentityHeaders.CLIENT_SKU]).toBe(EXPECTED_SKU);
+            const headers = sendGetRequestAsyncSpy.mock.lastCall[1].headers;
+            expect(headers[ManagedIdentityHeaders.CLIENT_SKU]).toBe(
+                EXPECTED_SKU
+            );
             expect(headers[ManagedIdentityHeaders.CLIENT_VER]).toBeDefined();
-            expect(headers[ManagedIdentityHeaders.CLIENT_REQUEST_ID]).toMatch(UUID_REGEX);
+            expect(headers[ManagedIdentityHeaders.CLIENT_REQUEST_ID]).toMatch(
+                UUID_REGEX
+            );
         });
 
         test("acquires a User Assigned Object Id token", async () => {
@@ -181,11 +184,14 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 )
             ).toEqual(MANAGED_IDENTITY_RESOURCE_ID);
 
-            const headers =
-                sendGetRequestAsyncSpy.mock.lastCall[1].headers;
-            expect(headers[ManagedIdentityHeaders.CLIENT_SKU]).toBe(EXPECTED_SKU);
+            const headers = sendGetRequestAsyncSpy.mock.lastCall[1].headers;
+            expect(headers[ManagedIdentityHeaders.CLIENT_SKU]).toBe(
+                EXPECTED_SKU
+            );
             expect(headers[ManagedIdentityHeaders.CLIENT_VER]).toBeDefined();
-            expect(headers[ManagedIdentityHeaders.CLIENT_REQUEST_ID]).toMatch(UUID_REGEX);
+            expect(headers[ManagedIdentityHeaders.CLIENT_REQUEST_ID]).toMatch(
+                UUID_REGEX
+            );
 
             jest.restoreAllMocks();
         });
@@ -218,11 +224,14 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
 
-            const headers =
-                sendGetRequestAsyncSpy.mock.lastCall[1].headers;
-            expect(headers[ManagedIdentityHeaders.CLIENT_SKU]).toBe(EXPECTED_SKU);
+            const headers = sendGetRequestAsyncSpy.mock.lastCall[1].headers;
+            expect(headers[ManagedIdentityHeaders.CLIENT_SKU]).toBe(
+                EXPECTED_SKU
+            );
             expect(headers[ManagedIdentityHeaders.CLIENT_VER]).toBeDefined();
-            expect(headers[ManagedIdentityHeaders.CLIENT_REQUEST_ID]).toMatch(UUID_REGEX);
+            expect(headers[ManagedIdentityHeaders.CLIENT_REQUEST_ID]).toMatch(
+                UUID_REGEX
+            );
         });
 
         test("returns an already acquired token from the cache", async () => {
