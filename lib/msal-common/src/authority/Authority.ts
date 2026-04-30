@@ -1287,19 +1287,22 @@ export class Authority {
             return false;
         }
         // Extract tenant from the first label of the CIAM authority hostname
-        const tenant = authorityHost.split(".")[0];
+        const hostLabels = authorityHost.split(".");
+        const tenant = hostLabels.length > 0 ? hostLabels[0] : "";
         if (!tenant) {
             return false;
         }
-        const normalizedIssuer = issuer.replace(/\/+$/, "");
+        // Strip trailing slashes without a regex to avoid ReDoS exposure
+        let normalizedIssuer = issuer;
+        while (normalizedIssuer.endsWith("/")) {
+            normalizedIssuer = normalizedIssuer.slice(0, -1);
+        }
         const validCiamPatterns: string[] = [
             `https://${tenant}${Constants.CIAM_AUTH_URL}`,
             `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}`,
             `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}/v2.0`,
         ];
-        return validCiamPatterns.some(
-            (pattern) => pattern.replace(/\/+$/, "") === normalizedIssuer
-        );
+        return validCiamPatterns.includes(normalizedIssuer);
     }
 
     /**
