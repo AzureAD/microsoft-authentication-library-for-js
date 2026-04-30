@@ -121,7 +121,7 @@ function Suite-Row([string]$name, [bool]$will_run, [bool]$enabled) {
     $icon   = if ($will_run)    { "✅" } else { "⏭️ " }
     $status = if (-not $enabled)   { "skipped  (disabled by parameter)" }
               elseif ($will_run)   { "WILL RUN" }
-              else                 { "skipped  (no affected changes)" }
+              else                 { "skipped  (not affected by this change)" }
     Write-Host "  $icon  $($name.PadRight(16)) $status"
 }
 
