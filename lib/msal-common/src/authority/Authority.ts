@@ -1292,11 +1292,13 @@ export class Authority {
         if (!tenant) {
             return false;
         }
-        // Strip trailing slashes without a regex to avoid ReDoS exposure
-        let normalizedIssuer = issuer;
-        while (normalizedIssuer.endsWith("/")) {
-            normalizedIssuer = normalizedIssuer.slice(0, -1);
+        // Strip trailing slashes without a regex (avoids ReDoS) and with a
+        // single slice to avoid allocating a new string per trailing slash.
+        let end = issuer.length;
+        while (end > 0 && issuer[end - 1] === "/") {
+            end--;
         }
+        const normalizedIssuer = issuer.slice(0, end);
         const validCiamPatterns: string[] = [
             `https://${tenant}${Constants.CIAM_AUTH_URL}`,
             `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}`,
