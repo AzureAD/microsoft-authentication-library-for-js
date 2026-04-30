@@ -1231,76 +1231,114 @@ export class Authority {
             issuerComponents.HostNameAndPort || ""
         ).toLowerCase();
 
-        const authorityComponents = new UrlString(
-            this.canonicalAuthority
-        ).getUrlComponents();
         const authorityScheme = (
-            authorityComponents.Protocol || ""
+            this.canonicalAuthorityUrlComponents.Protocol || ""
         ).toLowerCase();
         const authorityHost = (
-            authorityComponents.HostNameAndPort || ""
+            this.canonicalAuthorityUrlComponents.HostNameAndPort || ""
         ).toLowerCase();
 
-        // Rule 1: scheme + host equality (any authority)
-        if (issuerScheme === authorityScheme && issuerHost === authorityHost) {
-            return;
-        }
+        // Rule 1: Same scheme and host
+        const matchesAuthorityOrigin = Authority.matchesAuthorityOrigin(
+            issuerScheme,
+            issuerHost,
+            authorityScheme,
+            authorityHost
+        );
 
-        // Rules 2-3 require HTTPS.
-        if (issuerScheme === "https:") {
-            // Rule 2: The issuer host is a well-known Microsoft authority host (HTTPS only)
-            if (this.isAliasOfKnownMicrosoftAuthority(issuerHost)) {
-                return;
-            }
-
-            /*
-             * Rule 3: The issuer host is a regional variant ({region}.{host}) of a well-known host
-             * E.g. westus2.login.microsoft.com
-             */
-            const firstDot = issuerHost.indexOf(".");
-            if (firstDot > 0 && firstDot < issuerHost.length - 1) {
-                const hostWithoutRegion = issuerHost.substring(firstDot + 1);
-                if (this.isAliasOfKnownMicrosoftAuthority(hostWithoutRegion)) {
-                    return;
-                }
-            }
-        }
+        // Rule 2: The issuer host is a well-known Microsoft authority host (HTTPS only)
+        const matchesKnownMicrosoftHost =
+            issuerScheme === "https:" &&
+            this.isAliasOfKnownMicrosoftAuthority(issuerHost);
 
         /*
-         * Rule 4: Check for CIAM tenant pattern `{tenant}.ciamlogin.com` as a host,
-         * even when using a custom domain.
+         * Rule 3: The issuer host is a regional variant ({region}.{host}) of a well-known host
+         * (HTTPS only). E.g. westus2.login.microsoft.com
          */
-        let tenant: string = "";
-        if (!!authorityComponents.PathSegments[1]) {
-            tenant = authorityComponents.PathSegments[1];
-        } else {
-            // If no path segments exist, try to extract from hostname (first part)
-            const hostParts = authorityHost.split(".");
-            tenant = hostParts.length > 0 ? hostParts[0] : "";
-        }
-        if (!!tenant) {
-            // Create a collection of valid CIAM issuer patterns for the tenant
-            const validCiamPatterns: string[] = [
-                `https://${tenant}${Constants.CIAM_AUTH_URL}`,
-                `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}`,
-                `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}/v2.0`,
-            ];
+        const matchesRegionalMicrosoftHost =
+            issuerScheme === "https:" &&
+            this.matchesRegionalMicrosoftHost(issuerHost);
 
-            // Normalize and check if the issuer matches any of the valid patterns
-            const normalizedIssuer = issuer.replace(/\/+$/, ""); // strips one or more trailing slashes
-            if (
-                validCiamPatterns.some(
-                    (pattern) =>
-                        pattern.replace(/\/+$/, "") === normalizedIssuer
-                )
-            ) {
-                return;
-            }
+        /*
+         * CIAM-specific validation: In a CIAM scenario the issuer is expected to have "{tenant}.ciamlogin.com"
+         * as the host, even when using a custom domain.
+         */
+        const matchesCiamTenantPattern = this.matchesCiamTenantPattern(
+            issuer,
+            authorityHost,
+            this.canonicalAuthorityUrlComponents.PathSegments
+        );
+
+        // Each rule is an independent boolean; the issuer is valid if ANY rule matches.
+        if (
+            matchesAuthorityOrigin ||
+            matchesKnownMicrosoftHost ||
+            matchesRegionalMicrosoftHost ||
+            matchesCiamTenantPattern
+        ) {
+            return;
         }
 
         // issuer validation fails if none of the above rules are satisfied
         throw createClientConfigurationError(
             ClientConfigurationErrorCodes.issuerValidationFailed
+        );
+    }
+
+    /**
+     * Rule 1: The issuer scheme + host (and port) match the authority's. Path
+     * may differ. Applies to all authorities.
+     */
+    private static matchesAuthorityOrigin(
+        issuerScheme: string,
+        issuerHost: string,
+        authorityScheme: string,
+        authorityHost: string
+    ): boolean {
+        return issuerScheme === authorityScheme && issuerHost === authorityHost;
+    }
+
+    /**
+     * Rule 3: The issuer host is a regional variant
+     * (`{region}.{host}`) of a known Microsoft authority host.
+     * E.g. `westus2.login.microsoft.com`.
+     */
+    private matchesRegionalMicrosoftHost(issuerHost: string): boolean {
+        const firstDot = issuerHost.indexOf(".");
+        if (firstDot > 0 && firstDot < issuerHost.length - 1) {
+            const hostWithoutRegion = issuerHost.substring(firstDot + 1);
+            return this.isAliasOfKnownMicrosoftAuthority(hostWithoutRegion);       
+        }
+        return false;
+    }
+
+    /**
+     * Rule 4: The issuer matches one of the well-known CIAM tenant patterns
+     * (`https://{tenant}.ciamlogin.com[/{tenant}[/v2.0]]`). The tenant is
+     * extracted from the authority's first path segment when available, or
+     * otherwise from the leftmost label of the authority host (to support
+     * CIAM custom domain scenarios).
+     */
+    private matchesCiamTenantPattern(
+        issuer: string,
+        authorityHost: string,
+        authorityPathSegments: string[]
+    ): boolean {
+        const tenant = authorityPathSegments[1] || authorityHost.split(".")[0];
+        if (!tenant) {
+            return false;
+        }
+
+        const validCiamPatterns: string[] = [
+            `https://${tenant}${Constants.CIAM_AUTH_URL}`,
+            `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}`,
+            `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}/v2.0`,
+        ];
+
+        // Normalize trailing slashes on both sides before comparing.
+        const normalizedIssuer = issuer.replace(/\/+$/, "");
+        return validCiamPatterns.some(
+            (pattern) => pattern.replace(/\/+$/, "") === normalizedIssuer
         );
     }
 
