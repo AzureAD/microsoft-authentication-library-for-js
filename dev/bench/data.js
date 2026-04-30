@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777487813095,
+  "lastUpdate": 1777568652661,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21187,6 +21187,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.74%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ydi.w127@gmail.com",
+            "name": "Yongdi Wang",
+            "username": "yongdiw"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "45bb72c53f3802919315238fe1d433b6c2ea33f8",
+          "message": "Restore NativeAuthSample app, e2e tests, and 3p-e2e pipeline (re-apply #8176, #8200, #8262, #8268) (#8576)\n\nRestore lost NativeAuthSample work from `dev` after history rewrite.\n\n## Cherry-picked PRs\n- #8176 — Add native auth e2e app\n- #8200 — Update 3p-e2e pipelines and native auth e2e tests\n- #8262 — Update NativeAuthSample app to support JIT and MFA\n- #8268 — Add JIT and MFA e2e tests and refactor\n\n## Additional changes\n- Regenerated `package-lock.json` against current `dev`\n- Added `jest.retryTimes(RETRY_TIMES)` to all 6 NativeAuthSample e2e\nspecs (signin, signup, signout, resetpassword, jit, mfa) for consistency\nwith other e2e suites\n\n## Notes\n- `EBADENGINE` warning for `@azure/msal-node@1.18.4` during install is\npre-existing on `dev` (caused by\n`samples/msal-node-samples/auth-code-distributed-cache` pinning\n`^1.15.0`); unrelated to this PR.\n\n---------\n\nCo-authored-by: Konstantin <kshabelko@microsoft.com>\nCo-authored-by: Copilot Autofix powered by AI <223894421+github-code-quality[bot]@users.noreply.github.com>\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-04-30T17:57:31+01:00",
+          "tree_id": "d6c589d70e8474d43b0a06e73d7abecd2bae469b",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/45bb72c53f3802919315238fe1d433b6c2ea33f8"
+        },
+        "date": 1777568649279,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 239384,
+            "range": "±0.97%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 236923,
+            "range": "±0.93%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
           }
         ]
       }
