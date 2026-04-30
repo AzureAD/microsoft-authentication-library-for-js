@@ -103,7 +103,7 @@ if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH) {
         $runNode    = $changedCommon -or $changedNode
         $runReact   = $changedCommon -or $changedBrowser -or $changedReact
         $runAngular = $changedCommon -or $changedBrowser -or $changedAngular
-        $run1p      = $changedCommon -or $changedBrowser -or $changed1pPkg
+        $run1p      = $changedCommon -or $changedBrowser -or $changedReact -or $changed1pPkg
     }
 } else {
     Write-Host "Non-PR build — running all test suites"
