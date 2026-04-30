@@ -1199,6 +1199,110 @@ export class Authority {
     }
 
     /**
+     * Parses URL components (protocol, host, path segments, etc.) from an
+     * authority or issuer URL string.
+     *
+     * @param url Authority or issuer URL string to parse.
+     */
+    private static parseUrlComponents(url: string): IUri {
+        return new UrlString(url).getUrlComponents();
+    }
+
+    /**
+     * Rule 1: The issuer scheme and host exactly match the configured authority.
+     * Applies to all authority types.
+     */
+    private issuerMatchesAuthoritySchemeAndHost(
+        issuerComponents: IUri,
+        authorityComponents: IUri
+    ): boolean {
+        const issuerScheme = (issuerComponents.Protocol || "").toLowerCase();
+        const issuerHost = (
+            issuerComponents.HostNameAndPort || ""
+        ).toLowerCase();
+        const authorityScheme = (
+            authorityComponents.Protocol || ""
+        ).toLowerCase();
+        const authorityHost = (
+            authorityComponents.HostNameAndPort || ""
+        ).toLowerCase();
+        return issuerScheme === authorityScheme && issuerHost === authorityHost;
+    }
+
+    /**
+     * Rule 2: The issuer host is a well-known Microsoft authority host (HTTPS only).
+     */
+    private issuerHostIsKnownMicrosoftAuthority(
+        issuerComponents: IUri
+    ): boolean {
+        if (
+            (issuerComponents.Protocol || "").toLowerCase() !== "https:"
+        ) {
+            return false;
+        }
+        const issuerHost = (
+            issuerComponents.HostNameAndPort || ""
+        ).toLowerCase();
+        return this.isAliasOfKnownMicrosoftAuthority(issuerHost);
+    }
+
+    /**
+     * Rule 3: The issuer host is a regional variant ({region}.{host}) of a
+     * well-known Microsoft host (HTTPS only).
+     * E.g. westus2.login.microsoftonline.com
+     */
+    private issuerHostIsRegionalMicrosoftAuthority(
+        issuerComponents: IUri
+    ): boolean {
+        if (
+            (issuerComponents.Protocol || "").toLowerCase() !== "https:"
+        ) {
+            return false;
+        }
+        const issuerHost = (
+            issuerComponents.HostNameAndPort || ""
+        ).toLowerCase();
+        const firstDot = issuerHost.indexOf(".");
+        if (firstDot > 0 && firstDot < issuerHost.length - 1) {
+            const hostWithoutRegion = issuerHost.substring(firstDot + 1);
+            return this.isAliasOfKnownMicrosoftAuthority(hostWithoutRegion);
+        }
+        return false;
+    }
+
+    /**
+     * Rule 4: The issuer matches a valid CIAM tenant pattern for the
+     * configured CIAM authority. The tenant is extracted from the first
+     * hostname label of the CIAM authority
+     * (e.g. "mytenant" from "mytenant.ciamlogin.com").
+     */
+    private issuerMatchesCiamTenantPattern(
+        issuer: string,
+        authorityComponents: IUri
+    ): boolean {
+        const authorityHost = (
+            authorityComponents.HostNameAndPort || ""
+        ).toLowerCase();
+        if (!authorityHost.endsWith(Constants.CIAM_AUTH_URL)) {
+            return false;
+        }
+        // Extract tenant from the first label of the CIAM authority hostname
+        const tenant = authorityHost.split(".")[0];
+        if (!tenant) {
+            return false;
+        }
+        const normalizedIssuer = issuer.replace(/\/+$/, "");
+        const validCiamPatterns: string[] = [
+            `https://${tenant}${Constants.CIAM_AUTH_URL}`,
+            `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}`,
+            `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}/v2.0`,
+        ];
+        return validCiamPatterns.some(
+            (pattern) => pattern.replace(/\/+$/, "") === normalizedIssuer
+        );
+    }
+
+    /**
      * Validates the `issuer` returned by an OIDC discovery document against
      * this authority, per
      * https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation
@@ -1225,82 +1329,31 @@ export class Authority {
             );
         }
 
-        const issuerComponents = new UrlString(issuer).getUrlComponents();
-        const issuerScheme = (issuerComponents.Protocol || "").toLowerCase();
-        const issuerHost = (
-            issuerComponents.HostNameAndPort || ""
-        ).toLowerCase();
+        const issuerComponents = Authority.parseUrlComponents(issuer);
+        const authorityComponents = this.canonicalAuthorityUrlComponents;
 
-        const authorityComponents = new UrlString(
-            this.canonicalAuthority
-        ).getUrlComponents();
-        const authorityScheme = (
-            authorityComponents.Protocol || ""
-        ).toLowerCase();
-        const authorityHost = (
-            authorityComponents.HostNameAndPort || ""
-        ).toLowerCase();
+        const ruleOneMatches = this.issuerMatchesAuthoritySchemeAndHost(
+            issuerComponents,
+            authorityComponents
+        );
+        const ruleTwoMatches =
+            this.issuerHostIsKnownMicrosoftAuthority(issuerComponents);
+        const ruleThreeMatches =
+            this.issuerHostIsRegionalMicrosoftAuthority(issuerComponents);
+        const ruleFourMatches = this.issuerMatchesCiamTenantPattern(
+            issuer,
+            authorityComponents
+        );
 
-        // Rule 1: scheme + host equality (any authority)
-        if (issuerScheme === authorityScheme && issuerHost === authorityHost) {
+        if (
+            ruleOneMatches ||
+            ruleTwoMatches ||
+            ruleThreeMatches ||
+            ruleFourMatches
+        ) {
             return;
         }
 
-        // Rules 2-3 require HTTPS.
-        if (issuerScheme === "https:") {
-            // Rule 2: The issuer host is a well-known Microsoft authority host (HTTPS only)
-            if (this.isAliasOfKnownMicrosoftAuthority(issuerHost)) {
-                return;
-            }
-
-            /*
-             * Rule 3: The issuer host is a regional variant ({region}.{host}) of a well-known host
-             * E.g. westus2.login.microsoft.com
-             */
-            const firstDot = issuerHost.indexOf(".");
-            if (firstDot > 0 && firstDot < issuerHost.length - 1) {
-                const hostWithoutRegion = issuerHost.substring(firstDot + 1);
-                if (this.isAliasOfKnownMicrosoftAuthority(hostWithoutRegion)) {
-                    return;
-                }
-            }
-        }
-
-        /*
-         * Rule 4: Check for CIAM tenant pattern `{tenant}.ciamlogin.com` as a host,
-         * even when using a custom domain.
-         */
-        if (authorityHost.endsWith(Constants.CIAM_AUTH_URL)) {
-            let tenant: string = "";
-            if (!!authorityComponents.PathSegments[1]) {
-                tenant = authorityComponents.PathSegments[1];
-            } else {
-                // If no path segments exist, try to extract from hostname (first part)
-                const hostParts = authorityHost.split(".");
-                tenant = hostParts.length > 0 ? hostParts[0] : "";
-            }
-            if (!!tenant) {
-                // Create a collection of valid CIAM issuer patterns for the tenant
-                const validCiamPatterns: string[] = [
-                    `https://${tenant}${Constants.CIAM_AUTH_URL}`,
-                    `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}`,
-                    `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}/v2.0`,
-                ];
-
-                // Normalize and check if the issuer matches any of the valid patterns
-                const normalizedIssuer = issuer.replace(/\/+$/, ""); // strips one or more trailing slashes
-                if (
-                    validCiamPatterns.some(
-                        (pattern) =>
-                            pattern.replace(/\/+$/, "") === normalizedIssuer
-                    )
-                ) {
-                    return;
-                }
-            }
-        }
-
-        // issuer validation fails if none of the above rules are satisfied
         throw createClientConfigurationError(
             ClientConfigurationErrorCodes.issuerValidationFailed
         );
