@@ -87,6 +87,7 @@ extends:
                               dir: "customizable-e2e-test"
                               testFilter: "browserB2C|browserMCP"
                             - name: "ExpressSample"
+                            - name: "NativeAuthSample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}
