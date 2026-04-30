@@ -118,10 +118,9 @@ $runAngular = $runAngular -and $enabledAngular
 $run1p      = $run1p      -and $enabled1p
 
 function Suite-Row([string]$name, [bool]$will_run, [bool]$enabled) {
+    if (-not $enabled) { return }
     $icon   = if ($will_run) { "[RUN] " } else { "[SKIP]" }
-    $status = if (-not $enabled)   { "skipped  (disabled by parameter)" }
-              elseif ($will_run)   { "WILL RUN" }
-              else                 { "skipped  (not affected by this change)" }
+    $status = if ($will_run) { "WILL RUN" } else { "skipped  (not affected by this change)" }
     Write-Host "  $icon  $($name.PadRight(16)) $status"
 }
 
