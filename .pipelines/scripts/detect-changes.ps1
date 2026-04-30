@@ -31,7 +31,7 @@ $enabled1p      = $Enable1p      -ne "false"
 
 $runBrowser = $runNode = $runReact = $runAngular = $run1p = $true
 
-Write-Host "##[section]🔍 MSAL E2E — Change Detection"
+Write-Host "##[command]🔍 MSAL E2E — Change Detection"
 
 if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH) {
     $target = $env:SYSTEM_PULLREQUEST_TARGETBRANCH -replace '^refs/heads/', ''
@@ -118,19 +118,21 @@ $runAngular = $runAngular -and $enabledAngular
 $run1p      = $run1p      -and $enabled1p
 
 function Suite-Row([string]$name, [bool]$will_run, [bool]$enabled) {
-    $icon   = if ($will_run)    { "✅" } else { "⏭️ " }
+    $icon   = if ($will_run) { "[RUN] " } else { "[SKIP]" }
     $status = if (-not $enabled)   { "skipped  (disabled by parameter)" }
               elseif ($will_run)   { "WILL RUN" }
               else                 { "skipped  (not affected by this change)" }
     Write-Host "  $icon  $($name.PadRight(16)) $status"
 }
 
-Write-Host "##[section]📦 Suite decisions"
+Write-Host "##[command]📦 Suite decisions"
+Write-Host "##[group]Results"
 Suite-Row "msal-browser"    $runBrowser $enabledBrowser
 Suite-Row "msal-node"       $runNode    $enabledNode
 Suite-Row "msal-react"      $runReact   $enabledReact
 Suite-Row "msal-angular"    $runAngular $enabledAngular
 Suite-Row "msal-browser-1p" $run1p      $enabled1p
+Write-Host "##[endgroup]"
 Write-Host ""
 
 Write-Host "##vso[task.setvariable variable=runMsalBrowser;isOutput=true]$($runBrowser.ToString().ToLower())"
