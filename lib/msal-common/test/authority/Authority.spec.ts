@@ -3,11 +3,11 @@ import {
     buildStaticAuthorityOptions,
     formatAuthorityUri,
     getTenantFromAuthorityString,
-} from "../../src/authority/Authority";
+} from "../../src/authority/Authority.js";
 import {
     INetworkModule,
     NetworkRequestOptions,
-} from "../../src/network/INetworkModule";
+} from "../../src/network/INetworkModule.js";
 import * as Constants from "../../src/utils/Constants.js";
 import {
     TEST_URIS,
@@ -16,35 +16,35 @@ import {
     TEST_CONFIG,
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     B2C_OPENID_CONFIG_RESPONSE,
-} from "../test_kit/StringConstants";
+} from "../test_kit/StringConstants.js";
 import {
     ClientConfigurationError,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-} from "../../src/error/ClientConfigurationError";
-import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
+} from "../../src/error/ClientConfigurationError.js";
+import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils.js";
 import {
     ClientAuthError,
     createClientAuthError,
     ClientAuthErrorCodes,
-} from "../../src/error/ClientAuthError";
+} from "../../src/error/ClientAuthError.js";
 import {
     AuthorityOptions,
     StaticAuthorityOptions,
-} from "../../src/authority/AuthorityOptions";
-import { ProtocolMode } from "../../src/authority/ProtocolMode";
-import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity";
-import { OpenIdConfigResponse } from "../../src/authority/OpenIdConfigResponse";
+} from "../../src/authority/AuthorityOptions.js";
+import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
+import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity.js";
+import { OpenIdConfigResponse } from "../../src/authority/OpenIdConfigResponse.js";
 import {
     CacheHelpers,
     Logger,
     LogLevel,
     TimeUtils,
     UrlString,
-} from "../../src";
-import { RegionDiscovery } from "../../src/authority/RegionDiscovery";
-import { InstanceDiscoveryMetadata } from "../../src/authority/AuthorityMetadata";
-import * as authorityMetadata from "../../src/authority/AuthorityMetadata";
+} from "../../src/index.js";
+import { RegionDiscovery } from "../../src/authority/RegionDiscovery.js";
+import { InstanceDiscoveryMetadata } from "../../src/authority/AuthorityMetadata.js";
+import * as authorityMetadata from "../../src/authority/AuthorityMetadata.js";
 import { getDefaultErrorMessage } from "../../src/error/AuthError.js";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
