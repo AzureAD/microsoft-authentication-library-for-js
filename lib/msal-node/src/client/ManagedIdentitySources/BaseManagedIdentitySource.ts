@@ -64,7 +64,7 @@ export abstract class BaseManagedIdentitySource {
     protected logger: Logger;
     private nodeStorage: NodeStorage;
     private networkClient: INetworkModule;
-    protected cryptoProvider: CryptoProvider;
+    private cryptoProvider: CryptoProvider;
     private disableInternalRetries: boolean;
 
     /**
@@ -88,6 +88,15 @@ export abstract class BaseManagedIdentitySource {
         this.networkClient = networkClient;
         this.cryptoProvider = cryptoProvider;
         this.disableInternalRetries = disableInternalRetries;
+    }
+
+    /**
+     * Generates a new correlation ID for request tracing.
+     *
+     * @returns A new GUID string for use as a correlation or request ID
+     */
+    protected createCorrelationId(): string {
+        return this.cryptoProvider.createNewGuid();
     }
 
     /**

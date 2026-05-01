@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { AADServerParamKeys } from "@azure/msal-common/node";
 import { DefaultManagedIdentityRetryPolicy } from "../retry/DefaultManagedIdentityRetryPolicy.js";
 import { ImdsRetryPolicy } from "../retry/ImdsRetryPolicy.js";
 
@@ -19,8 +20,8 @@ export const ManagedIdentityHeaders = {
     METADATA_HEADER_NAME: "Metadata",
     APP_SERVICE_SECRET_HEADER_NAME: "X-IDENTITY-HEADER",
     ML_AND_SF_SECRET_HEADER_NAME: "secret",
-    CLIENT_SKU: "x-client-SKU",
-    CLIENT_VER: "x-client-VER",
+    CLIENT_SKU: AADServerParamKeys.X_CLIENT_SKU,
+    CLIENT_VER: AADServerParamKeys.X_CLIENT_VER,
     CLIENT_REQUEST_ID: "x-ms-client-request-id",
 } as const;
 export type ManagedIdentityHeaders =

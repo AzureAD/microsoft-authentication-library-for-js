@@ -64,6 +64,7 @@ import { NodeStorage } from "../../../src/cache/NodeStorage.js";
 import { CacheKVStore } from "../../../src/cache/serializer/SerializerTypes.js";
 import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
 import { ImdsRetryPolicy } from "../../../src/retry/ImdsRetryPolicy.js";
+import { version as packageVersion } from "../../../src/packageMetadata.js";
 
 const EXPECTED_SKU = NodeConstants.MSAL_SKU;
 const UUID_REGEX =
@@ -126,7 +127,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             expect(headers[ManagedIdentityHeaders.CLIENT_SKU]).toBe(
                 EXPECTED_SKU
             );
-            expect(headers[ManagedIdentityHeaders.CLIENT_VER]).toBeDefined();
+            expect(headers[ManagedIdentityHeaders.CLIENT_VER]).toBe(
+                packageVersion
+            );
             expect(headers[ManagedIdentityHeaders.CLIENT_REQUEST_ID]).toMatch(
                 UUID_REGEX
             );
@@ -188,7 +191,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             expect(headers[ManagedIdentityHeaders.CLIENT_SKU]).toBe(
                 EXPECTED_SKU
             );
-            expect(headers[ManagedIdentityHeaders.CLIENT_VER]).toBeDefined();
+            expect(headers[ManagedIdentityHeaders.CLIENT_VER]).toBe(
+                packageVersion
+            );
             expect(headers[ManagedIdentityHeaders.CLIENT_REQUEST_ID]).toMatch(
                 UUID_REGEX
             );
@@ -228,7 +233,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             expect(headers[ManagedIdentityHeaders.CLIENT_SKU]).toBe(
                 EXPECTED_SKU
             );
-            expect(headers[ManagedIdentityHeaders.CLIENT_VER]).toBeDefined();
+            expect(headers[ManagedIdentityHeaders.CLIENT_VER]).toBe(
+                packageVersion
+            );
             expect(headers[ManagedIdentityHeaders.CLIENT_REQUEST_ID]).toMatch(
                 UUID_REGEX
             );
