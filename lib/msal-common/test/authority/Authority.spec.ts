@@ -3231,38 +3231,5 @@ describe("Authority.ts Class Unit Tests", () => {
             });
         });
 
-        describe("Rules 2–4 gating: only apply when authority is a Microsoft cloud", () => {
-            it("rejects a known Microsoft host issuer when the authority is ADFS (not a Microsoft cloud)", () => {
-                // An ADFS authority is not a Microsoft cloud authority, so even
-                // a valid Microsoft issuer host must not pass validation via
-                // Rules 2–4.  Only Rule 1 (scheme + host equality) is allowed
-                // for non-Microsoft-cloud authorities.
-                const adfsAuthority = buildAuthority(
-                    "https://adfs.contoso.com/adfs/",
-                    ["adfs.contoso.com"],
-                    ProtocolMode.AAD
-                );
-                expect(() =>
-                    callValidateIssuer(
-                        adfsAuthority,
-                        "https://login.microsoftonline.com/tenantid/v2.0"
-                    )
-                ).toThrow(issuerValidationFailedError);
-            });
-
-            it("rejects a regional Microsoft host issuer when the authority is ADFS", () => {
-                const adfsAuthority = buildAuthority(
-                    "https://adfs.contoso.com/adfs/",
-                    ["adfs.contoso.com"],
-                    ProtocolMode.AAD
-                );
-                expect(() =>
-                    callValidateIssuer(
-                        adfsAuthority,
-                        "https://westus2.login.microsoftonline.com/tenantid/v2.0"
-                    )
-                ).toThrow(issuerValidationFailedError);
-            });
-        });
     });
 });

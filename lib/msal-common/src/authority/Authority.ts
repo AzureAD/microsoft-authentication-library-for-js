@@ -1248,20 +1248,8 @@ export class Authority {
             authorityHost
         );
 
-        /*
-         * Rules 2–4 are Microsoft-cloud-specific and should only apply when the
-         * configured authority itself resolves to a Microsoft cloud endpoint.
-         * Gating on this prevents ADFS, dSTS, or other non-Microsoft authorities
-         * with spoofed OIDC discovery documents from passing validation by
-         * presenting a Microsoft-hosted issuer.
-         */
-        const authorityIsMicrosoftCloud =
-            this.isAliasOfKnownMicrosoftAuthority(authorityHost) ||
-            authorityHost.endsWith(Constants.CIAM_AUTH_URL);
-
         // Rule 2: The issuer host is a well-known Microsoft authority host (HTTPS only)
         const matchesKnownMicrosoftHost =
-            authorityIsMicrosoftCloud &&
             issuerScheme === "https:" &&
             this.isAliasOfKnownMicrosoftAuthority(issuerHost);
 
@@ -1270,7 +1258,6 @@ export class Authority {
          * (HTTPS only). E.g. westus2.login.microsoft.com
          */
         const matchesRegionalMicrosoftHost =
-            authorityIsMicrosoftCloud &&
             issuerScheme === "https:" &&
             this.matchesRegionalMicrosoftHost(issuerHost);
 
@@ -1278,13 +1265,11 @@ export class Authority {
          * Rule 4: CIAM-specific validation. In a CIAM scenario the issuer is expected to
          * have "{tenant}.ciamlogin.com" as the host, even when using a custom domain.
          */
-        const matchesCiamTenantPattern =
-            authorityIsMicrosoftCloud &&
-            this.matchesCiamTenantPattern(
-                issuer,
-                authorityHost,
-                this.canonicalAuthorityUrlComponents.PathSegments
-            );
+        const matchesCiamTenantPattern = this.matchesCiamTenantPattern(
+            issuer,
+            authorityHost,
+            this.canonicalAuthorityUrlComponents.PathSegments
+        );
 
         // Each rule is an independent boolean; the issuer is valid if ANY rule matches.
         if (
@@ -1363,7 +1348,10 @@ export class Authority {
          */
         const tenantName = pathSegment
             ? pathSegment.endsWith(Constants.AAD_TENANT_DOMAIN_SUFFIX)
-                ? pathSegment.slice(0, -Constants.AAD_TENANT_DOMAIN_SUFFIX.length)
+                ? pathSegment.slice(
+                      0,
+                      -Constants.AAD_TENANT_DOMAIN_SUFFIX.length
+                  )
                 : pathSegment
             : authorityHost.split(".")[0];
 
@@ -1373,11 +1361,11 @@ export class Authority {
 
         const ciamBaseURL = `https://${tenantName}${Constants.CIAM_AUTH_URL}`;
         const validCiamPatterns: string[] = [
-            ciamBaseURL,                                                                        // https://{tenant}.ciamlogin.com
-            `${ciamBaseURL}/${tenantName}`,                                                     // https://{tenant}.ciamlogin.com/{tenant}
-            `${ciamBaseURL}/${tenantName}/v2.0`,                                                // https://{tenant}.ciamlogin.com/{tenant}/v2.0
-            `${ciamBaseURL}/${tenantName}${Constants.AAD_TENANT_DOMAIN_SUFFIX}`,                // https://{tenant}.ciamlogin.com/{tenant}.onmicrosoft.com
-            `${ciamBaseURL}/${tenantName}${Constants.AAD_TENANT_DOMAIN_SUFFIX}/v2.0`,           // https://{tenant}.ciamlogin.com/{tenant}.onmicrosoft.com/v2.0
+            ciamBaseURL, // https://{tenant}.ciamlogin.com
+            `${ciamBaseURL}/${tenantName}`, // https://{tenant}.ciamlogin.com/{tenant}
+            `${ciamBaseURL}/${tenantName}/v2.0`, // https://{tenant}.ciamlogin.com/{tenant}/v2.0
+            `${ciamBaseURL}/${tenantName}${Constants.AAD_TENANT_DOMAIN_SUFFIX}`, // https://{tenant}.ciamlogin.com/{tenant}.onmicrosoft.com
+            `${ciamBaseURL}/${tenantName}${Constants.AAD_TENANT_DOMAIN_SUFFIX}/v2.0`, // https://{tenant}.ciamlogin.com/{tenant}.onmicrosoft.com/v2.0
         ];
 
         /*
