@@ -24,15 +24,15 @@
   "type": "module",
   "main": "lib/msal-node.cjs",
   "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "types": "types/index.d.ts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.ts",
+        "types": "./types/index.d.ts",
         "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./lib/types/index.d.ts",
+        "types": "./types/index.d.cts",
         "default": "./lib/msal-node.cjs"
       }
     },
@@ -40,13 +40,15 @@
   },
   "files": [
     "dist",
+    "types",
     "lib",
     "src"
   ],
   "scripts": {
-    "build": "npm run clean && rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build": "npm run clean && rollup -c --strictDeprecations --bundleConfigAsCjs && npm run build:types",
+    "build:types": "tsc -p tsconfig.build.types.json",
     "build:watch": "rollup -c --watch --strictDeprecations --bundleConfigAsCjs",
-    "clean": "shx rm -rf dist lib",
+    "clean": "shx rm -rf dist types lib",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

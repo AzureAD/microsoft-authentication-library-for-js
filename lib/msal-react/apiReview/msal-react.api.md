@@ -170,7 +170,7 @@ export type WithMsalProps = {
 
 // Warnings were encountered during analysis:
 //
-// dist/index.d.ts:3:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
-// dist/index.d.ts:3:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
+// src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
+// src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
 
 ```
