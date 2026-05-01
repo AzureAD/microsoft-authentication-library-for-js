@@ -1307,7 +1307,7 @@ export class Authority {
         const firstDot = issuerHost.indexOf(".");
         if (firstDot > 0 && firstDot < issuerHost.length - 1) {
             const hostWithoutRegion = issuerHost.substring(firstDot + 1);
-            return this.isAliasOfKnownMicrosoftAuthority(hostWithoutRegion);       
+            return this.isAliasOfKnownMicrosoftAuthority(hostWithoutRegion);
         }
         return false;
     }

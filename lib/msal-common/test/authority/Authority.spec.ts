@@ -1649,8 +1649,7 @@ describe("Authority.ts Class Unit Tests", () => {
             });
 
             describe("validateIssuer", () => {
-                const networkMetadataBase =
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body;
+                const networkMetadataBase = DEFAULT_OPENID_CONFIG_RESPONSE.body;
 
                 beforeEach(() => {
                     // Force hardcoded values to return null so the network path is taken
@@ -1741,9 +1740,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         mockStorage,
                         {
                             ...authorityOptions,
-                            knownAuthorities: [
-                                `${ciamTenant}.ciamlogin.com`,
-                            ],
+                            knownAuthorities: [`${ciamTenant}.ciamlogin.com`],
                         },
                         logger,
                         TEST_CONFIG.CORRELATION_ID,
@@ -1751,7 +1748,9 @@ describe("Authority.ts Class Unit Tests", () => {
                     );
 
                     await ciamAuthorityInstance.resolveEndpointsAsync();
-                    expect(ciamAuthorityInstance.discoveryComplete()).toBe(true);
+                    expect(ciamAuthorityInstance.discoveryComplete()).toBe(
+                        true
+                    );
                 });
             });
         });
@@ -3016,10 +3015,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     ProtocolMode.OIDC
                 );
                 expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "http://accounts.google.com/"
-                    )
+                    callValidateIssuer(authority, "http://accounts.google.com/")
                 ).toThrow(issuerValidationFailedError);
             });
         });
@@ -3112,9 +3108,7 @@ describe("Authority.ts Class Unit Tests", () => {
         describe("Rule 4: CIAM tenant pattern {tenant}.ciamlogin.com", () => {
             const ciamAuthorityUrl =
                 "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/";
-            const ciamKnownAuthorities = [
-                "https://contoso.ciamlogin.com/",
-            ];
+            const ciamKnownAuthorities = ["https://contoso.ciamlogin.com/"];
 
             it("accepts the bare tenant host pattern (https://{tenant}.ciamlogin.com)", () => {
                 const authority = buildAuthority(
