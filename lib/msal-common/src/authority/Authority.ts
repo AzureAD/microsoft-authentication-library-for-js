@@ -1207,13 +1207,15 @@ export class Authority {
      *  1. The issuer scheme + host + port match the authority's (path may
      *     differ). Applies to all authorities.
      *  2. The authority is a Microsoft cloud authority (public, sovereign,
-     *     CIAM, or CIAM vanity that resolved to a Microsoft cloud via
-     *     instance discovery), the issuer is HTTPS, and the issuer host is in
-     *     the known Microsoft authority host set.
+     *     or CIAM), the issuer is HTTPS, and the issuer host is in the known
+     *     Microsoft authority host set. Rules 2–4 require the authority itself
+     *     to be a Microsoft cloud authority so that ADFS/dSTS authorities
+     *     cannot pass validation via a spoofed Microsoft-hosted issuer.
      *  3. Same as (2), but the issuer host is a single-label regional variant
      *     of a known Microsoft host (e.g. `westus.login.microsoftonline.com`).
      *  4. Same as (2), but the issuer host matches the CIAM tenant pattern
-     *     `{tenant}.ciamlogin.com`.
+     *     `{tenant}.ciamlogin.com` with an optional `/{tenant}[.onmicrosoft.com][/v2.0]`
+     *     path.
      *
      * @param issuer The `issuer` value returned in the OIDC discovery document.
      * @throws ClientConfigurationError("issuer_validation_failed") on failure.
@@ -1246,8 +1248,20 @@ export class Authority {
             authorityHost
         );
 
+        /*
+         * Rules 2–4 are Microsoft-cloud-specific and should only apply when the
+         * configured authority itself resolves to a Microsoft cloud endpoint.
+         * Gating on this prevents ADFS, dSTS, or other non-Microsoft authorities
+         * with spoofed OIDC discovery documents from passing validation by
+         * presenting a Microsoft-hosted issuer.
+         */
+        const authorityIsMicrosoftCloud =
+            this.isAliasOfKnownMicrosoftAuthority(authorityHost) ||
+            authorityHost.endsWith(Constants.CIAM_AUTH_URL);
+
         // Rule 2: The issuer host is a well-known Microsoft authority host (HTTPS only)
         const matchesKnownMicrosoftHost =
+            authorityIsMicrosoftCloud &&
             issuerScheme === "https:" &&
             this.isAliasOfKnownMicrosoftAuthority(issuerHost);
 
@@ -1256,18 +1270,21 @@ export class Authority {
          * (HTTPS only). E.g. westus2.login.microsoft.com
          */
         const matchesRegionalMicrosoftHost =
+            authorityIsMicrosoftCloud &&
             issuerScheme === "https:" &&
             this.matchesRegionalMicrosoftHost(issuerHost);
 
         /*
-         * CIAM-specific validation: In a CIAM scenario the issuer is expected to have "{tenant}.ciamlogin.com"
-         * as the host, even when using a custom domain.
+         * Rule 4: CIAM-specific validation. In a CIAM scenario the issuer is expected to
+         * have "{tenant}.ciamlogin.com" as the host, even when using a custom domain.
          */
-        const matchesCiamTenantPattern = this.matchesCiamTenantPattern(
-            issuer,
-            authorityHost,
-            this.canonicalAuthorityUrlComponents.PathSegments
-        );
+        const matchesCiamTenantPattern =
+            authorityIsMicrosoftCloud &&
+            this.matchesCiamTenantPattern(
+                issuer,
+                authorityHost,
+                this.canonicalAuthorityUrlComponents.PathSegments
+            );
 
         // Each rule is an independent boolean; the issuer is valid if ANY rule matches.
         if (
@@ -1314,31 +1331,54 @@ export class Authority {
 
     /**
      * Rule 4: The issuer matches one of the well-known CIAM tenant patterns
-     * (`https://{tenant}.ciamlogin.com[/{tenant}[/v2.0]]`). The tenant is
-     * extracted from the authority's first path segment when available, or
-     * otherwise from the leftmost label of the authority host (to support
-     * CIAM custom domain scenarios).
+     * (`https://{tenant}.ciamlogin.com[/{tenant}[.onmicrosoft.com][/v2.0]]`).
+     *
+     * The bare tenant name is extracted from the authority's first path segment
+     * when available (stripping the `.onmicrosoft.com` suffix that
+     * `transformCIAMAuthority` adds), or otherwise from the leftmost label of
+     * the authority host (to support CIAM custom domain scenarios).
+     *
+     * Both `/{tenant}` and `/{tenant}.onmicrosoft.com` path forms are accepted
+     * because the OIDC issuer may use either form depending on the authority URL
+     * that was used to trigger discovery.
      */
     private matchesCiamTenantPattern(
         issuer: string,
         authorityHost: string,
         authorityPathSegments: string[]
     ): boolean {
-        const tenant = authorityPathSegments[1] || authorityHost.split(".")[0];
-        if (!tenant) {
+        // PathSegments[0] (not [1]) is the first — and normally the only —
+        // path segment after transformCIAMAuthority (e.g. "contoso.onmicrosoft.com").
+        const pathSegment = authorityPathSegments[0];
+        const aadSuffix = Constants.AAD_TENANT_DOMAIN_SUFFIX; // ".onmicrosoft.com"
+
+        // Extract the bare tenant name: strip the .onmicrosoft.com suffix when
+        // present (introduced by transformCIAMAuthority), or fall back to the
+        // first label of the authority hostname for non-transformed/custom-domain
+        // CIAM authorities.
+        const tenantName = pathSegment
+            ? pathSegment.endsWith(aadSuffix)
+                ? pathSegment.slice(0, -aadSuffix.length)
+                : pathSegment
+            : authorityHost.split(".")[0];
+
+        if (!tenantName) {
             return false;
         }
 
+        const ciamBase = `https://${tenantName}${Constants.CIAM_AUTH_URL}`;
         const validCiamPatterns: string[] = [
-            `https://${tenant}${Constants.CIAM_AUTH_URL}`,
-            `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}`,
-            `https://${tenant}${Constants.CIAM_AUTH_URL}/${tenant}/v2.0`,
+            ciamBase,                                               // https://{tenant}.ciamlogin.com
+            `${ciamBase}/${tenantName}`,                           // https://{tenant}.ciamlogin.com/{tenant}
+            `${ciamBase}/${tenantName}/v2.0`,                      // https://{tenant}.ciamlogin.com/{tenant}/v2.0
+            `${ciamBase}/${tenantName}${aadSuffix}`,               // https://{tenant}.ciamlogin.com/{tenant}.onmicrosoft.com
+            `${ciamBase}/${tenantName}${aadSuffix}/v2.0`,          // https://{tenant}.ciamlogin.com/{tenant}.onmicrosoft.com/v2.0
         ];
 
         // Normalize trailing slashes on both sides before comparing.
         const normalizedIssuer = issuer.replace(/\/+$/, "");
         return validCiamPatterns.some(
-            (pattern) => pattern.replace(/\/+$/, "") === normalizedIssuer
+            (pattern) => pattern === normalizedIssuer
         );
     }
 

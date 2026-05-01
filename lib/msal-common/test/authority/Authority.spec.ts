@@ -2650,7 +2650,15 @@ describe("Authority.ts Class Unit Tests", () => {
             ).mockImplementation((openIdConfigEndpoint) => {
                 // @ts-ignore
                 endpoint = openIdConfigEndpoint;
-                return DEFAULT_OPENID_CONFIG_RESPONSE;
+                // Use a B2C-appropriate issuer so validateIssuer (Rule 1: same
+                // scheme + host) does not reject the discovery response.
+                return {
+                    ...DEFAULT_OPENID_CONFIG_RESPONSE,
+                    body: {
+                        ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                        issuer: "https://fabrikamb2c.b2clogin.com/tfp/fabrikamb2c.onmicrosoft.com/b2c_1_susi/v2.0/",
+                    },
+                };
             });
 
             await authority.resolveEndpointsAsync();
@@ -2742,7 +2750,15 @@ describe("Authority.ts Class Unit Tests", () => {
             ).mockImplementation((openIdConfigEndpoint) => {
                 // @ts-ignore
                 endpoint = openIdConfigEndpoint;
-                return DEFAULT_OPENID_CONFIG_RESPONSE;
+                // Use a matching issuer so validateIssuer (Rule 1: same scheme + host)
+                // passes for this non-Microsoft OIDC authority.
+                return {
+                    ...DEFAULT_OPENID_CONFIG_RESPONSE,
+                    body: {
+                        ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                        issuer: "https://test.com/v2.0",
+                    },
+                };
             });
 
             await authority.resolveEndpointsAsync();
@@ -3162,6 +3178,32 @@ describe("Authority.ts Class Unit Tests", () => {
                 ).not.toThrow();
             });
 
+            it("accepts the tenant host with {tenant}.onmicrosoft.com path (transformCIAMAuthority form)", () => {
+                const authority = buildAuthority(
+                    ciamAuthorityUrl,
+                    ciamKnownAuthorities
+                );
+                expect(() =>
+                    callValidateIssuer(
+                        authority,
+                        "https://contoso.ciamlogin.com/contoso.onmicrosoft.com"
+                    )
+                ).not.toThrow();
+            });
+
+            it("accepts the tenant host with {tenant}.onmicrosoft.com/v2.0 path", () => {
+                const authority = buildAuthority(
+                    ciamAuthorityUrl,
+                    ciamKnownAuthorities
+                );
+                expect(() =>
+                    callValidateIssuer(
+                        authority,
+                        "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/v2.0"
+                    )
+                ).not.toThrow();
+            });
+
             it("rejects a CIAM-shaped issuer for a different tenant", () => {
                 const authority = buildAuthority(
                     ciamAuthorityUrl,
@@ -3184,6 +3226,40 @@ describe("Authority.ts Class Unit Tests", () => {
                     callValidateIssuer(
                         authority,
                         "https://attacker.example/contoso/v2.0"
+                    )
+                ).toThrow(issuerValidationFailedError);
+            });
+        });
+
+        describe("Rules 2–4 gating: only apply when authority is a Microsoft cloud", () => {
+            it("rejects a known Microsoft host issuer when the authority is ADFS (not a Microsoft cloud)", () => {
+                // An ADFS authority is not a Microsoft cloud authority, so even
+                // a valid Microsoft issuer host must not pass validation via
+                // Rules 2–4.  Only Rule 1 (scheme + host equality) is allowed
+                // for non-Microsoft-cloud authorities.
+                const adfsAuthority = buildAuthority(
+                    "https://adfs.contoso.com/adfs/",
+                    ["adfs.contoso.com"],
+                    ProtocolMode.AAD
+                );
+                expect(() =>
+                    callValidateIssuer(
+                        adfsAuthority,
+                        "https://login.microsoftonline.com/tenantid/v2.0"
+                    )
+                ).toThrow(issuerValidationFailedError);
+            });
+
+            it("rejects a regional Microsoft host issuer when the authority is ADFS", () => {
+                const adfsAuthority = buildAuthority(
+                    "https://adfs.contoso.com/adfs/",
+                    ["adfs.contoso.com"],
+                    ProtocolMode.AAD
+                );
+                expect(() =>
+                    callValidateIssuer(
+                        adfsAuthority,
+                        "https://westus2.login.microsoftonline.com/tenantid/v2.0"
                     )
                 ).toThrow(issuerValidationFailedError);
             });
