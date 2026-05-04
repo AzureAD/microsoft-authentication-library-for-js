@@ -2,6 +2,41 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 28 Apr 2026 21:30:31 GMT",
+      "version": "5.9.0",
+      "tag": "@azure/msal-browser_v5.9.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "msaljsbuilds@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e8982c73cd3d294098dc6a189948af853b7ee877",
+            "comment": "Bump @azure/msal-browser to match @azure/msal-browser-1p"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.5.2",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "jiashen@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7ca7202caaa8f335bf5cec4359de7f664b335d2b",
+            "comment": "Use client_info=\"1\" string value in native auth token requests [#8562](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8562)"
+          },
+          {
+            "author": "198982749+Copilot@users.noreply.github.com",
+            "package": "@azure/msal-browser",
+            "commit": "7ca7202caaa8f335bf5cec4359de7f664b335d2b",
+            "comment": "Fix CookieStorage.getItem and getKeys throwing URIError when unrelated cookies contain invalid percent-encoded sequences [#7531](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/7531)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 21 Apr 2026 22:41:19 GMT",
       "version": "5.8.0",
       "tag": "@azure/msal-browser_v5.8.0",
