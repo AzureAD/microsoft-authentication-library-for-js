@@ -1901,7 +1901,10 @@ export class BrowserCacheManager extends CacheManager {
         correlationId: string,
         generateKey?: boolean
     ): string | null {
-        this.logger.trace("BrowserCacheManager.getTemporaryCache called", correlationId);
+        this.logger.trace(
+            "BrowserCacheManager.getTemporaryCache called",
+            correlationId
+        );
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
         return this.temporaryCacheStorage.getItem(key);
     }
