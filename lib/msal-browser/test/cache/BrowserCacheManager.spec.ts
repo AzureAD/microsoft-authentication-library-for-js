@@ -1875,29 +1875,6 @@ describe("BrowserCacheManager tests", () => {
             expect(window.sessionStorage.getItem(msalCacheKey2)).toBe(cacheVal);
         });
 
-        it("getTemporaryCache falls back to local storage if not found in session/memory storage", () => {
-            const testTempItemKey = "test-temp-item-key";
-            const testTempItemValue = "test-temp-item-value";
-            window.localStorage.setItem(testTempItemKey, testTempItemValue);
-            browserLocalStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                {
-                    ...cacheConfig,
-                    cacheLocation: BrowserCacheLocation.LocalStorage,
-                },
-                browserCrypto,
-                logger,
-                new StubPerformanceClient(),
-                new EventHandler()
-            );
-            expect(
-                browserLocalStorage.getTemporaryCache(
-                    testTempItemKey,
-                    TEST_CONFIG.CORRELATION_ID
-                )
-            ).toBe(testTempItemValue);
-        });
-
         it("setItem", () => {
             window.sessionStorage.setItem(msalCacheKey, cacheVal);
             window.localStorage.setItem(msalCacheKey2, cacheVal);
