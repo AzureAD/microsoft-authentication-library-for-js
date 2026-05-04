@@ -242,7 +242,7 @@ Starting in MSAL Browser v5, popup authentication uses a [BroadcastChannel](http
 
 ### What happens when a user manually closes the popup
 
-When a user closes the popup window without completing authentication (e.g., clicks the X button), MSAL cannot detect the closure immediately. Because the popup communicates via BroadcastChannel rather than `window.opener`, MSAL has no way to observe when the popup window is closed. Instead, MSAL waits for the configured `popupBridgeTimeout` (default: 60 seconds) to expire before throwing a `timed_out` error.
+When a user closes the popup window without completing authentication (e.g., clicks the X button), MSAL cannot detect the closure immediately. Because of Cross Origin Opener Policies (COOP) that sever the connection between the opener and popup windows, MSAL no longer has a way to observe when the popup window is closed. Instead, MSAL waits for the configured `popupBridgeTimeout` (default: 60 seconds) to expire before throwing a `timed_out` error.
 
 This means:
 - `InteractionStatus` remains `Login` (or `AcquireToken`) until the timeout fires
