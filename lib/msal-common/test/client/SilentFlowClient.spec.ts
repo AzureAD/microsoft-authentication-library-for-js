@@ -28,7 +28,10 @@ import { Authority } from "../../src/authority/Authority.js";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient.js";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
-import { AccountInfo } from "../../src/account/AccountInfo.js";
+import {
+    AccountInfo,
+    updateAccountTenantProfileData,
+} from "../../src/account/AccountInfo.js";
 import * as AuthToken from "../../src/account/AuthToken.js";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity.js";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity.js";
@@ -52,11 +55,12 @@ import * as TokenProtocol from "../../src/protocol/Token.js";
 const testAccountEntity: AccountEntity =
     buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
-const testAccount: AccountInfo = {
-    ...AccountEntityUtils.getAccountInfo(testAccountEntity),
-    idTokenClaims: ID_TOKEN_CLAIMS,
-    idToken: TEST_TOKENS.IDTOKEN_V2,
-};
+const testAccount: AccountInfo = updateAccountTenantProfileData(
+    AccountEntityUtils.getAccountInfo(testAccountEntity),
+    undefined,
+    ID_TOKEN_CLAIMS,
+    TEST_TOKENS.IDTOKEN_V2
+);
 
 const testIdToken: IdTokenEntity = {
     homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
