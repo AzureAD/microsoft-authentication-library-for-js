@@ -45,10 +45,10 @@ export const AzureCloudInstance = {
     AzureUsGovernment: "https://login.microsoftonline.us",
 
     // US Secret cloud (USSec)
-    AzureUSSec: "https://login.microsoftonline.microsoft.scloud",
+    AzureUsSec: "https://login.microsoftonline.microsoft.scloud",
 
     // US Top Secret cloud (USNat)
-    AzureUSNat: "https://login.microsoftonline.eaglex.ic.gov",
+    AzureUsNat: "https://login.microsoftonline.eaglex.ic.gov",
 } as const;
 export type AzureCloudInstance =
     (typeof AzureCloudInstance)[keyof typeof AzureCloudInstance];
