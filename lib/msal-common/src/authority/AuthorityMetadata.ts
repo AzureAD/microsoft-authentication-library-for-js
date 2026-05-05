@@ -27,6 +27,8 @@ const endpointHosts: Array<{ host: string; issuerHost?: string }> = [
     { host: "login.sovcloud-identity.fr" },
     { host: "login.sovcloud-identity.de" },
     { host: "login.sovcloud-identity.sg" },
+    { host: "login.microsoftonline.microsoft.scloud" },
+    { host: "login.microsoftonline.eaglex.ic.gov" },
 ];
 
 function buildOpenIdConfig(
@@ -104,6 +106,22 @@ export const rawMetdataJSON: RawMetadata = {
                 preferred_network: "login.sovcloud-identity.sg",
                 preferred_cache: "login.sovcloud-identity.sg",
                 aliases: ["login.sovcloud-identity.sg"],
+            },
+            {
+                preferred_network:
+                    "login.microsoftonline.microsoft.scloud",
+                preferred_cache:
+                    "login.microsoftonline.microsoft.scloud",
+                aliases: [
+                    "login.microsoftonline.microsoft.scloud",
+                ],
+            },
+            {
+                preferred_network:
+                    "login.microsoftonline.eaglex.ic.gov",
+                preferred_cache:
+                    "login.microsoftonline.eaglex.ic.gov",
+                aliases: ["login.microsoftonline.eaglex.ic.gov"],
             },
         ],
     },

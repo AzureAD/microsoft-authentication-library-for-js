@@ -300,6 +300,8 @@ export const CLOUD_HOSTS = {
     SovCloudFR: "login.sovcloud-identity.fr",
     SovCloudDE: "login.sovcloud-identity.de",
     SovCloudSG: "login.sovcloud-identity.sg",
+    USSec: "login.microsoftonline.microsoft.scloud",
+    USNat: "login.microsoftonline.eaglex.ic.gov",
 };
 
 export const METADATA_ALIASES = {
@@ -316,6 +318,8 @@ export const METADATA_ALIASES = {
     SovCloudFR: ["login.sovcloud-identity.fr"],
     SovCloudDE: ["login.sovcloud-identity.de"],
     SovCloudSG: ["login.sovcloud-identity.sg"],
+    USSec: ["login.microsoftonline.microsoft.scloud"],
+    USNat: ["login.microsoftonline.eaglex.ic.gov"],
 };
 
 export const PREFERRED_CACHE_ALIAS = "login.windows.net";
