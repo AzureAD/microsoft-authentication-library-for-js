@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Remove duplicate typings in the build output [#8557](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8557)",
+  "packageName": "@azure/msal-react",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

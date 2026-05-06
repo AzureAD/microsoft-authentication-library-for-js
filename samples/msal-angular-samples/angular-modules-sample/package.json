@@ -22,7 +22,7 @@
     "@angular/platform-browser": "^21.2.0",
     "@angular/platform-browser-dynamic": "^21.2.0",
     "@angular/router": "^21.2.0",
-    "@azure/msal-angular": "file:../../../lib/msal-angular/dist/azure-msal-angular-5.2.1.tgz",
+    "@azure/msal-angular": "^5.0.0",
     "@azure/msal-browser": "^5.1.0",
     "rxjs": "~7.8.2",
     "ts-node": "^10.9.1",

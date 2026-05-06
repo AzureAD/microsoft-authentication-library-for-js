@@ -110,7 +110,7 @@ MSALJS caches tokens from managed identity in memory. There is no eviction, but 
 
 ## Troubleshooting
 
-For failed requests the error response contains a correlation ID that can be used for further diagnostics and log analysis. Keep in mind that the correlation IDs generated in MSALJS or passed into MSAL are different than the one returned in server error responses, as MSALJS cannot pass the correlation ID to managed identity token acquisition endpoints.
+For failed requests the error response contains a correlation ID that can be used for further diagnostics and log analysis. Note that for IMDS requests, MSALJS sends an `x-ms-client-request-id` header that IMDS can forward to ESTS, enabling end-to-end request tracing. For other managed identity sources, the correlation IDs generated in MSALJS or passed into MSAL may differ from the one returned in server error responses.
 
 ### Potential errors
 

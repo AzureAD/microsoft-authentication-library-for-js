@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix CookieStorage.getItem and getKeys throwing URIError when unrelated cookies contain invalid percent-encoded sequences [#7531](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/7531)",
-  "packageName": "@azure/msal-browser",
-  "email": "198982749+Copilot@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}

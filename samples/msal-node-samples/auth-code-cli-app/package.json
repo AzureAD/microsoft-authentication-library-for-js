@@ -18,7 +18,7 @@
     },
     "devDependencies": {
         "@types/jest": "^29.5.8",
-        "e2e-test-utils": "^0.0.1",
+        "e2e-test-utils": "file:../../e2eTestUtils",
         "jest": "^29.7.0",
         "jest-junit": "^16.0.0",
         "ts-jest": "^29.1.1"

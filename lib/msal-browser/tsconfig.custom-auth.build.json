@@ -3,6 +3,10 @@
     "compilerOptions": {
         "rootDir": "./src",
         "outDir": "./dist/custom-auth-path",
+        "declaration": false,
+        "declarationMap": false,
     },
-    "include": ["src"]
+    "include": [
+        "src"
+    ]
 }
