@@ -1901,30 +1901,12 @@ export class BrowserCacheManager extends CacheManager {
         correlationId: string,
         generateKey?: boolean
     ): string | null {
+        this.logger.trace(
+            "BrowserCacheManager.getTemporaryCache called",
+            correlationId
+        );
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
-        const value = this.temporaryCacheStorage.getItem(key);
-        if (!value) {
-            // If temp cache item not found in session/memory, check local storage for items set by old versions
-            if (
-                this.cacheConfig.cacheLocation ===
-                BrowserCacheLocation.LocalStorage
-            ) {
-                const item = this.browserStorage.getItem(key);
-                if (item) {
-                    this.logger.trace(
-                        "BrowserCacheManager.getTemporaryCache: Temporary cache item found in local storage",
-                        correlationId
-                    );
-                    return item;
-                }
-            }
-            this.logger.trace(
-                "BrowserCacheManager.getTemporaryCache: No cache item found in local storage",
-                correlationId
-            );
-            return null;
-        }
-        return value;
+        return this.temporaryCacheStorage.getItem(key);
     }
 
     /**
