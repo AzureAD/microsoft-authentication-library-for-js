@@ -30,7 +30,7 @@ When MSAL retrieves the OpenID configuration document from the network, it valid
 
 If the issuer does not satisfy these conditions, MSAL throws a `ClientConfigurationError` with error code `issuer_validation_failed` and endpoint discovery is aborted. This validation is applied only to OpenID configuration documents fetched from the network &mdash; cached, hardcoded, and config-supplied metadata are not re-validated.
 
-> :warning: After upgrading, an IdP whose `issuer` does not satisfy the conditions above will fail discovery. If you are using a non-Microsoft OIDC provider whose issuer does not exactly match the authority host you configured, ensure the authority you pass to MSAL has the same scheme and host as the value the IdP returns in its discovery document.
+> :warning: An IdP whose `issuer` does not satisfy the conditions above will fail discovery. If you are using a non-Microsoft OIDC provider whose issuer does not exactly match the authority host you configured, ensure the authority you pass to MSAL has the same scheme and host as the value the IdP returns in its discovery document.
 
 ## Authority configuration
 
