@@ -3230,6 +3230,5 @@ describe("Authority.ts Class Unit Tests", () => {
                 ).toThrow(issuerValidationFailedError);
             });
         });
-
     });
 });
