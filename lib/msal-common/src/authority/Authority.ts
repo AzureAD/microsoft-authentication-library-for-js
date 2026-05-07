@@ -1208,9 +1208,7 @@ export class Authority {
      *     differ). Applies to all authorities.
      *  2. The authority is a Microsoft cloud authority (public, sovereign,
      *     or CIAM), the issuer is HTTPS, and the issuer host is in the known
-     *     Microsoft authority host set. Rules 2–4 require the authority itself
-     *     to be a Microsoft cloud authority so that ADFS/dSTS authorities
-     *     cannot pass validation via a spoofed Microsoft-hosted issuer.
+     *     Microsoft authority host set.
      *  3. Same as (2), but the issuer host is a single-label regional variant
      *     of a known Microsoft host (e.g. `westus.login.microsoftonline.com`).
      *  4. Same as (2), but the issuer host matches the CIAM tenant pattern
