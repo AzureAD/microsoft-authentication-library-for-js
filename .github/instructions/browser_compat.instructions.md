@@ -5,7 +5,7 @@ applyTo: "**/lib/msal-browser/src/**"
 
 # Browser Compatibility Review
 
-When reviewing changes to `lib/msal-browser/src/`, check for browser compatibility and privacy restriction risks. This instruction applies to code that introduces, modifies, or removes usage of browser Web APIs.
+When a change to `lib/msal-browser/src/` introduces, modifies, or removes a browser Web API call, review the [Browser Compatibility Map](../../lib/msal-browser/docs/browser-compat-map.md) for known restrictions and flow dependencies.
 
 ## Review checklist
 
