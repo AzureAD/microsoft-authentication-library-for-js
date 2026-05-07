@@ -2,6 +2,71 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 28 Apr 2026 21:30:32 GMT",
+      "version": "5.1.5",
+      "tag": "@azure/msal-node_v5.1.5",
+      "comments": {
+        "patch": [
+          {
+            "author": "pieter.willaert@colruytgroup.com",
+            "package": "@azure/msal-node",
+            "commit": "7ca7202caaa8f335bf5cec4359de7f664b335d2b",
+            "comment": "fix(msal-node): replace uuid with node:crypto to resolve GHSA-w5hq-g745-h8pq"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "7ca7202caaa8f335bf5cec4359de7f664b335d2b",
+            "comment": "Preserve authority metadata when calling clear() [#8542](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8542)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.5.2",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 21 Apr 2026 22:41:19 GMT",
+      "version": "5.1.4",
+      "tag": "@azure/msal-node_v5.1.4",
+      "comments": {
+        "none": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4ff5911eacefacd2d2cd4f13b6a3a39fd3a3a68c",
+            "comment": "Updated msal-node tests to reflect upn idtokenclaim [#8478](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8478)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.5.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 16 Apr 2026 22:44:53 GMT",
+      "version": "5.1.3",
+      "tag": "@azure/msal-node_v5.1.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.5.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 01 Apr 2026 20:09:00 GMT",
       "version": "5.1.2",
       "tag": "@azure/msal-node_v5.1.2",

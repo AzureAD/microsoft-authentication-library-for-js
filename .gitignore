@@ -278,6 +278,7 @@ ref/
 
 # Typescript & Rollup
 tsconfig.build.tsbuildinfo
+types/
 
 # MSAL Node Cache Files
 temp-cache.json

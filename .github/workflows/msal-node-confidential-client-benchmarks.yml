@@ -15,8 +15,8 @@ jobs:
         name: Performance regression check
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
-            - uses: actions/setup-node@v4
+            - uses: actions/checkout@v6
+            - uses: actions/setup-node@v6
 
             - name: Install dependencies
               run: npm install --workspace=lib/msal-common --workspace=lib/msal-node

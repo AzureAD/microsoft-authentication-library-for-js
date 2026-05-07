@@ -42,7 +42,7 @@ config.resourceApi = {
 };
 
 describe("Device Code AAD AGC Tests", () => {
-    jest.setTimeout(45000);
+    jest.setTimeout(90000);
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -78,7 +78,7 @@ describe("Device Code AAD AGC Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(5000);
+            page.setDefaultTimeout(30000);
         });
 
         afterEach(async () => {
@@ -100,7 +100,17 @@ describe("Device Code AAD AGC Tests", () => {
                 );
                 await approveRemoteConnect(page, screenshot);
                 await enterCredentials(page, screenshot, username, password);
-                await page.waitForSelector("#message");
+                // The AAD redirect chain can briefly detach the current frame between
+                // navigations. Retry until the success page settles.
+                for (let i = 0; i < 5; i++) {
+                    try {
+                        await page.waitForSelector("#message", { timeout: 15000 });
+                        break;
+                    } catch (e) {
+                        if (i >= 4 || !String(e).includes("detached")) throw e;
+                        await new Promise((r) => setTimeout(r, 1000));
+                    }
+                }
                 await screenshot.takeScreenshot(
                     page,
                     "SuccessfulDeviceCodeMessage"

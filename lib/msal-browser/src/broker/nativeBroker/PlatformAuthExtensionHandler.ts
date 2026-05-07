@@ -66,7 +66,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         this.messageChannel = new MessageChannel();
         this.windowListener = this.onWindowMessage.bind(this); // Window event callback doesn't have access to 'this' unless it's bound
         this.performanceClient = performanceClient;
-        this.handshakeEvent = performanceClient.startMeasurement(
+        this.handshakeEvent = this.performanceClient.startMeasurement(
             BrowserPerformanceEvents.NativeMessageHandlerHandshake
         );
         this.platformAuthType =

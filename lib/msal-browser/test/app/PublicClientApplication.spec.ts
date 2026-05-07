@@ -49,6 +49,7 @@ import {
     StubPerformanceClient,
     AccountEntityUtils,
     Constants,
+    updateAccountTenantProfileData,
 } from "@azure/msal-common/browser";
 import {
     ApiId,
@@ -7516,13 +7517,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccount: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
-        const testAccountInfo: AccountInfo =
-            AccountEntityUtils.getAccountInfo(testAccount);
-        const matchAccount: AccountInfo = {
-            ...testAccountInfo,
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
-        };
+        const testAccountInfo: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(testAccount),
+            undefined,
+            ID_TOKEN_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2
+        );
 
         const testIdToken: IdTokenEntity = buildIdToken(
             ID_TOKEN_CLAIMS,
@@ -7546,20 +7546,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("browser cache cleared when clearCache called without a ClearCacheRequest object", () => {
             expect(pca.getActiveAccount()).toEqual(null);
-            pca.setActiveAccount(matchAccount);
+            pca.setActiveAccount(testAccountInfo);
             const activeAccount = pca.getActiveAccount();
-            expect(activeAccount).toEqual(matchAccount);
+            expect(activeAccount).toEqual(testAccountInfo);
             pca.clearCache();
             expect(pca.getActiveAccount()).toEqual(null);
         });
 
         it("browser cache cleared when clearCache called with a ClearCacheRequest object", () => {
             expect(pca.getActiveAccount()).toEqual(null);
-            pca.setActiveAccount(matchAccount);
+            pca.setActiveAccount(testAccountInfo);
             const activeAccount = pca.getActiveAccount();
-            expect(activeAccount).toEqual(matchAccount);
+            expect(activeAccount).toEqual(testAccountInfo);
             pca.clearCache({
-                account: matchAccount,
+                account: testAccountInfo,
                 correlationId: "test123",
             });
             expect(pca.getActiveAccount()).toEqual(null);
@@ -7570,10 +7570,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         // Account 1
         const testAccount1: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const testAccountInfo1: AccountInfo =
-            AccountEntityUtils.getAccountInfo(testAccount1);
-        testAccountInfo1.idTokenClaims = ID_TOKEN_CLAIMS;
-        testAccountInfo1.idToken = TEST_TOKENS.IDTOKEN_V2;
+        const testAccountInfo1: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(testAccount1),
+            undefined,
+            ID_TOKEN_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2
+        );
 
         testAccount1.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
@@ -7588,10 +7590,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         const testAccount2: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
-        const testAccountInfo2: AccountInfo =
-            AccountEntityUtils.getAccountInfo(testAccount2);
-        testAccountInfo2.idTokenClaims = ID_TOKEN_ALT_CLAIMS;
-        testAccountInfo2.idToken = TEST_TOKENS.IDTOKEN_V2_ALT;
+        const testAccountInfo2: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(testAccount2),
+            undefined,
+            ID_TOKEN_ALT_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2_ALT
+        );
 
         testAccount2.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
@@ -7781,15 +7785,205 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
+    describe("getNativeAccountId tests", () => {
+        // Account 1
+        const testAccount1: AccountEntity =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        testAccount1.nativeAccountId = "nativeAccountId1";
+        const testAccountInfo1: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(testAccount1),
+            undefined,
+            ID_TOKEN_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2
+        );
+        testAccount1.clientInfo =
+            TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+
+        const idToken1: IdTokenEntity = buildIdToken(
+            ID_TOKEN_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2,
+            { clientId: TEST_CONFIG.MSAL_CLIENT_ID }
+        );
+
+        beforeEach(async () => {
+            await pca.initialize();
+        });
+
+        afterEach(() => {
+            window.sessionStorage.clear();
+            window.localStorage.clear();
+        });
+
+        it("should not return cached account's nativeAccountId when searching for account B by loginHint with idToken cached", async () => {
+            // Mock controller to test getNativeAccountId behavior
+            const controller = (pca as any).controller;
+            // Mock the browser storage to return account A
+            const cacheManager = controller.browserStorage;
+            // @ts-ignore
+            await cacheManager.setAccount(testAccount1);
+
+            // @ts-ignore
+            await cacheManager.setIdTokenCredential(idToken1);
+
+            // New Account B login hint (not cached)
+            const searchLoginHintB = "userB@contoso.com";
+
+            const idToken1Key = cacheManager.generateCredentialKey(idToken1);
+
+            jest.spyOn(cacheManager, "getAccountKeys").mockReturnValue([
+                "account-a-key",
+            ]);
+
+            jest.spyOn(cacheManager, "getTokenKeys").mockReturnValue({
+                idToken: [idToken1Key],
+                accessToken: [],
+                refreshToken: [],
+                appMetadata: [],
+            });
+
+            const getAccountSpy = jest
+                .spyOn(cacheManager, "getAccount")
+                .mockReturnValue(testAccount1);
+
+            // Mock getActiveAccount to return null
+            const getActiveAccountSpy = jest
+                .spyOn(controller, "getActiveAccount")
+                .mockReturnValue(testAccount1);
+
+            // Test getNativeAccountId with a request containing loginHint for account B
+            const testRequest = {
+                scopes: ["user.read"],
+                loginHint: searchLoginHintB,
+            };
+
+            const nativeAccountId = controller.getNativeAccountId(testRequest);
+
+            // Should return empty string since no matching account found for account B's loginHint
+            expect(nativeAccountId).toBe("");
+
+            // Cleanup
+            getAccountSpy.mockRestore();
+            getActiveAccountSpy.mockRestore();
+        });
+
+        it("should not return cached account's nativeAccountId when searching for account B by loginHint without idToken cached", async () => {
+            // Mock controller to test getNativeAccountId behavior
+            const controller = (pca as any).controller;
+            // Mock the browser storage to return account A
+            const cacheManager = controller.browserStorage;
+            // @ts-ignore
+            await cacheManager.setAccount(testAccount1);
+
+            // New Account B login hint (not cached)
+            const searchLoginHintB = "userB@contoso.com";
+
+            jest.spyOn(controller, "getRequestCorrelationId").mockReturnValue(
+                "019d2855-0ed2-7b33-8f4b-ad00a1a5f4be"
+            );
+            jest.spyOn(cacheManager, "getAccountKeys").mockReturnValue([
+                "account-a-key",
+            ]);
+
+            jest.spyOn(cacheManager, "getTokenKeys").mockReturnValue({
+                idToken: [],
+                accessToken: [],
+                refreshToken: [],
+                appMetadata: [],
+            });
+
+            const getAccountSpy = jest
+                .spyOn(cacheManager, "getAccount")
+                .mockReturnValue(testAccount1);
+
+            // Mock getActiveAccount to return null
+            const getActiveAccountSpy = jest
+                .spyOn(controller, "getActiveAccount")
+                .mockReturnValue(testAccount1);
+
+            const getAccountsFilteredBySpy = jest.spyOn(
+                CacheManager.prototype,
+                "getAccountsFilteredBy"
+            );
+
+            // Test getNativeAccountId with a request containing loginHint for account B
+            const testRequest = {
+                scopes: ["user.read"],
+                loginHint: searchLoginHintB,
+            };
+
+            const nativeAccountId = controller.getNativeAccountId(testRequest);
+
+            // Should return empty string since no matching account found for account B's loginHint
+            expect(nativeAccountId).toBe("");
+            expect(getAccountsFilteredBySpy).toHaveBeenCalledWith(
+                {
+                    loginHint: searchLoginHintB,
+                    sid: undefined,
+                },
+                "019d2855-0ed2-7b33-8f4b-ad00a1a5f4be"
+            );
+
+            // Cleanup
+            getAccountSpy.mockRestore();
+            getActiveAccountSpy.mockRestore();
+        });
+
+        it("should return active account's nativeAccountId when no account or login hint is provided", async () => {
+            // Mock controller to test getNativeAccountId behavior
+            const controller = (pca as any).controller;
+            // Mock the browser storage to return account A
+            const cacheManager = controller.browserStorage;
+            // @ts-ignore
+            await cacheManager.setAccount(testAccount1);
+
+            // @ts-ignore
+            await cacheManager.setIdTokenCredential(idToken1);
+
+            jest.spyOn(cacheManager, "getAccountKeys").mockReturnValue([
+                "account-a-key",
+            ]);
+
+            jest.spyOn(cacheManager, "getTokenKeys").mockReturnValue({
+                idToken: [],
+                accessToken: [],
+                refreshToken: [],
+                appMetadata: [],
+            });
+
+            const getAccountSpy = jest
+                .spyOn(cacheManager, "getAccount")
+                .mockReturnValue(testAccount1);
+
+            // Mock getActiveAccount to return null
+            const getActiveAccountSpy = jest
+                .spyOn(controller, "getActiveAccount")
+                .mockReturnValue(testAccount1);
+
+            // Test getNativeAccountId with a request containing loginHint for account B
+            const testRequest = {
+                scopes: ["user.read"],
+            };
+
+            const nativeAccountId = controller.getNativeAccountId(testRequest);
+
+            expect(nativeAccountId).toBe("nativeAccountId1");
+
+            // Cleanup
+            getAccountSpy.mockRestore();
+            getActiveAccountSpy.mockRestore();
+        });
+    });
+
     describe("activeAccount API tests", () => {
         // Account 1
         const testAccount1: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const testAccountInfo1: AccountInfo = {
-            ...AccountEntityUtils.getAccountInfo(testAccount1),
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
-        };
+        const testAccountInfo1: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(testAccount1),
+            undefined,
+            ID_TOKEN_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2
+        );
 
         const idToken1: IdTokenEntity = buildIdToken(
             ID_TOKEN_CLAIMS,
@@ -7801,11 +7995,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         const testAccount2: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
-        const testAccountInfo2: AccountInfo = {
-            ...AccountEntityUtils.getAccountInfo(testAccount2),
-            idTokenClaims: ID_TOKEN_ALT_CLAIMS,
-            idToken: TEST_TOKENS.IDTOKEN_V2_ALT,
-        };
+        const testAccountInfo2: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(testAccount2),
+            undefined,
+            ID_TOKEN_ALT_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2_ALT
+        );
 
         const idToken2: IdTokenEntity = buildIdToken(
             ID_TOKEN_ALT_CLAIMS,
@@ -8098,13 +8293,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("hydrateCache tests", () => {
-        const testAccount: AccountInfo = {
-            ...AccountEntityUtils.getAccountInfo(
+        const testAccount: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
             ),
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
-        };
+            undefined,
+            ID_TOKEN_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2
+        );
 
         const testAuthenticationResult: AuthenticationResult = {
             authority: TEST_CONFIG.validAuthority,
@@ -8458,8 +8654,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         let secondBrowserStorageInstance: BrowserCacheManager;
         const accountEntity: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const accountInfo: AccountInfo =
-            AccountEntityUtils.getAccountInfo(accountEntity);
+        const accountInfo: AccountInfo = updateAccountTenantProfileData(
+            AccountEntityUtils.getAccountInfo(accountEntity),
+            undefined,
+            ID_TOKEN_CLAIMS
+        );
         let callbackId: string | null;
         let pca2: PublicClientApplication;
 

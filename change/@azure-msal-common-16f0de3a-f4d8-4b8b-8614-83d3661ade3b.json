@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Add ssoCapable field to PerformanceEvent type for SSO capability telemetry.",
-    "packageName": "@azure/msal-common",
-    "email": "sameera.gajjarapu@microsoft.com",
-    "dependentChangeType": "patch"
-}
