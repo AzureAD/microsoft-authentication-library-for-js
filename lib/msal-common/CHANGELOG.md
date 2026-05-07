@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 28 Apr 2026 21:30:32 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 07 May 2026 19:01:04 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.6.0
+
+Thu, 07 May 2026 19:01:04 GMT
+
+### Minor changes
+
+- Remove duplicate typings in the build output [#8557](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8557) (thomas.norling@microsoft.com)
 
 ## 16.5.2
 
