@@ -2,6 +2,35 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Thu, 07 May 2026 19:01:04 GMT",
+      "version": "5.2.0",
+      "tag": "@azure/msal-node_v5.2.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "nicagra@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "b4e498cf6e52136ad1123691138a66f8e9a1a87c",
+            "comment": "Add MSAL client metadata headers (x-client-SKU, x-client-VER, x-ms-client-request-id) to IMDS managed identity requests [#8529](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8529)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "b4e498cf6e52136ad1123691138a66f8e9a1a87c",
+            "comment": "Remove duplicate typings in the build output [#8557](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8557)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.6.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 28 Apr 2026 21:30:32 GMT",
       "version": "5.1.5",
       "tag": "@azure/msal-node_v5.1.5",
