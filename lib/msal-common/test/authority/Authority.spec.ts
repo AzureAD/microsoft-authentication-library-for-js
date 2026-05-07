@@ -1649,108 +1649,372 @@ describe("Authority.ts Class Unit Tests", () => {
             });
 
             describe("validateIssuer", () => {
-                const networkMetadataBase = DEFAULT_OPENID_CONFIG_RESPONSE.body;
-
-                beforeEach(() => {
-                    // Force hardcoded values to return null so the network path is taken
-                    getEndpointMetadataFromHarcodedValuesSpy.mockReturnValue(
-                        null
+                const issuerValidationFailedError =
+                    createClientConfigurationError(
+                        ClientConfigurationErrorCodes.issuerValidationFailed
                     );
-                });
 
-                it("throws issuerValidationFailed when issuer is empty", async () => {
-                    getEndpointMetadataFromNetworkSpy.mockResolvedValue({
-                        ...networkMetadataBase,
-                        issuer: "",
-                    });
-
-                    await expect(
-                        authority.resolveEndpointsAsync()
-                    ).rejects.toThrow(
-                        createClientConfigurationError(
-                            ClientConfigurationErrorCodes.issuerValidationFailed
-                        )
-                    );
-                });
-
-                it("throws issuerValidationFailed when issuer host does not match authority or any known alias", async () => {
-                    getEndpointMetadataFromNetworkSpy.mockResolvedValue({
-                        ...networkMetadataBase,
-                        issuer: "https://malicious.attacker.com/tenant/v2.0",
-                    });
-
-                    await expect(
-                        authority.resolveEndpointsAsync()
-                    ).rejects.toThrow(
-                        createClientConfigurationError(
-                            ClientConfigurationErrorCodes.issuerValidationFailed
-                        )
-                    );
-                });
-
-                it("succeeds when issuer scheme and host match the authority exactly (Rule 1)", async () => {
-                    getEndpointMetadataFromNetworkSpy.mockResolvedValue({
-                        ...networkMetadataBase,
-                        issuer: "https://login.microsoftonline.com/common/v2.0",
-                    });
-
-                    await authority.resolveEndpointsAsync();
-                    expect(authority.discoveryComplete()).toBe(true);
-                });
-
-                it("succeeds when issuer host is a known Microsoft authority alias (Rule 2)", async () => {
-                    // login.windows.net is a known alias of login.microsoftonline.com
-                    getEndpointMetadataFromNetworkSpy.mockResolvedValue({
-                        ...networkMetadataBase,
-                        issuer: "https://login.windows.net/common/v2.0",
-                    });
-
-                    await authority.resolveEndpointsAsync();
-                    expect(authority.discoveryComplete()).toBe(true);
-                });
-
-                it("succeeds when issuer host is a regional variant of a known Microsoft authority host (Rule 3)", async () => {
-                    // westus2.login.microsoftonline.com is a regional variant of the known host login.microsoftonline.com
-                    getEndpointMetadataFromNetworkSpy.mockResolvedValue({
-                        ...networkMetadataBase,
-                        issuer: "https://westus2.login.microsoftonline.com/common/v2.0",
-                    });
-
-                    await authority.resolveEndpointsAsync();
-                    expect(authority.discoveryComplete()).toBe(true);
-                });
-
-                it("succeeds when issuer matches a valid CIAM tenant pattern for a CIAM authority (Rule 4)", async () => {
-                    const ciamTenant = "mytenant";
-                    const ciamAuthorityUrl = `https://${ciamTenant}.ciamlogin.com/`;
-                    const ciamIssuer = `https://${ciamTenant}.ciamlogin.com/${ciamTenant}/v2.0`;
-
-                    getEndpointMetadataFromNetworkSpy.mockResolvedValue({
-                        ...networkMetadataBase,
-                        issuer: ciamIssuer,
-                        authorization_endpoint: `https://${ciamTenant}.ciamlogin.com/${ciamTenant}/oauth2/v2.0/authorize`,
-                        token_endpoint: `https://${ciamTenant}.ciamlogin.com/${ciamTenant}/oauth2/v2.0/token`,
-                        end_session_endpoint: `https://${ciamTenant}.ciamlogin.com/${ciamTenant}/oauth2/v2.0/logout`,
-                        jwks_uri: `https://${ciamTenant}.ciamlogin.com/${ciamTenant}/discovery/v2.0/keys`,
-                    });
-
-                    const ciamAuthorityInstance = new Authority(
-                        ciamAuthorityUrl,
+                const buildAuthority = (
+                    authorityUrl: string,
+                    knownAuthorities: string[] = [
+                        Constants.DEFAULT_AUTHORITY_HOST,
+                    ],
+                    protocolMode: ProtocolMode = ProtocolMode.AAD
+                ): Authority =>
+                    new Authority(
+                        authorityUrl,
                         networkInterface,
                         mockStorage,
                         {
-                            ...authorityOptions,
-                            knownAuthorities: [`${ciamTenant}.ciamlogin.com`],
+                            protocolMode,
+                            knownAuthorities,
+                            cloudDiscoveryMetadata: "",
+                            authorityMetadata: "",
                         },
                         logger,
                         TEST_CONFIG.CORRELATION_ID,
                         new StubPerformanceClient()
                     );
 
-                    await ciamAuthorityInstance.resolveEndpointsAsync();
-                    expect(ciamAuthorityInstance.discoveryComplete()).toBe(
-                        true
+                const callValidateIssuer = (
+                    authority: Authority,
+                    issuer: string
+                ): void => {
+                    // @ts-ignore - exercising private method directly
+                    authority.validateIssuer(issuer);
+                };
+
+                it("throws if the issuer is empty", () => {
+                    const testAuthority = buildAuthority(
+                        Constants.DEFAULT_AUTHORITY
                     );
+                    expect(() => callValidateIssuer(testAuthority, "")).toThrow(
+                        issuerValidationFailedError
+                    );
+                });
+
+                it("skips issuer validation when endpoint metadata is supplied via authorityMetadata config", async () => {
+                    /*
+                     * Issuer validation only runs on the network path. When the
+                     * developer supplies authorityMetadata config, that path is
+                     * skipped entirely — even an issuer that would otherwise
+                     * fail Rules 1–4 must be accepted.
+                     */
+                    // Force hardcoded values to return null so config is the only local source
+                    getEndpointMetadataFromHarcodedValuesSpy.mockReturnValue(
+                        null
+                    );
+
+                    const authorityJson = {
+                        ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                        issuer: "https://malicious.attacker.com/tenant/v2.0",
+                    };
+
+                    const configAuthority = new Authority(
+                        Constants.DEFAULT_AUTHORITY,
+                        networkInterface,
+                        mockStorage,
+                        {
+                            ...authorityOptions,
+                            authorityMetadata: JSON.stringify(authorityJson),
+                        },
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
+                    );
+
+                    await expect(
+                        configAuthority.resolveEndpointsAsync()
+                    ).resolves.not.toThrow();
+                    expect(configAuthority.discoveryComplete()).toBe(true);
+                    expect(
+                        getEndpointMetadataFromNetworkSpy
+                    ).not.toHaveBeenCalled();
+                });
+
+                describe("Rule 1: scheme + host equality (any authority)", () => {
+                    it("accepts an issuer that shares scheme and host with the authority but differs in path", () => {
+                        const testAuthority = buildAuthority(
+                            "https://accounts.google.com/",
+                            ["https://accounts.google.com/"],
+                            ProtocolMode.OIDC
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://accounts.google.com/some/other/path"
+                            )
+                        ).not.toThrow();
+                    });
+
+                    it("accepts an exact match including path", () => {
+                        const testAuthority = buildAuthority(
+                            "https://accounts.google.com/",
+                            ["https://accounts.google.com/"],
+                            ProtocolMode.OIDC
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://accounts.google.com/"
+                            )
+                        ).not.toThrow();
+                    });
+
+                    it("rejects an issuer on a different host", () => {
+                        const testAuthority = buildAuthority(
+                            "https://accounts.google.com/",
+                            ["https://accounts.google.com/"],
+                            ProtocolMode.OIDC
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://attacker.example/"
+                            )
+                        ).toThrow(issuerValidationFailedError);
+                    });
+
+                    it("rejects an issuer when only the scheme differs", () => {
+                        const testAuthority = buildAuthority(
+                            "https://accounts.google.com/",
+                            ["https://accounts.google.com/"],
+                            ProtocolMode.OIDC
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "http://accounts.google.com/"
+                            )
+                        ).toThrow(issuerValidationFailedError);
+                    });
+                });
+
+                describe("Rule 2: well-known Microsoft authority host (HTTPS only)", () => {
+                    it("accepts an issuer whose host is a known Microsoft alias different from the authority", () => {
+                        const testAuthority = buildAuthority(
+                            Constants.DEFAULT_AUTHORITY
+                        );
+                        // sts.windows.net is in InstanceDiscoveryMetadataAliases for the public cloud
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://sts.windows.net/tenantid/"
+                            )
+                        ).not.toThrow();
+                    });
+
+                    it("accepts a sovereign issuer host paired with a different sovereign authority host (China cloud)", () => {
+                        const testAuthority = buildAuthority(
+                            "https://login.chinacloudapi.cn/common/",
+                            ["https://login.chinacloudapi.cn/"]
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://login.partner.microsoftonline.cn/tenantid/v2.0"
+                            )
+                        ).not.toThrow();
+                    });
+
+                    it("accepts a sovereign issuer host with a custom sovereign authority host (China cloud)", () => {
+                        const testAuthority = buildAuthority(
+                            "https://custom.chinacloudapi.cn/common/",
+                            ["https://login.chinacloudapi.cn/"]
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://login.partner.microsoftonline.cn/tenantid/v2.0"
+                            )
+                        ).not.toThrow();
+                    });
+
+                    it("rejects a known Microsoft host issuer when the scheme is not https", () => {
+                        const testAuthority = buildAuthority(
+                            Constants.DEFAULT_AUTHORITY
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "http://sts.windows.net/tenantid/"
+                            )
+                        ).toThrow(issuerValidationFailedError);
+                    });
+
+                    it("rejects an issuer whose host is not a known Microsoft alias", () => {
+                        const testAuthority = buildAuthority(
+                            Constants.DEFAULT_AUTHORITY
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://attacker.example/tenantid/"
+                            )
+                        ).toThrow(issuerValidationFailedError);
+                    });
+                });
+
+                describe("Rule 3: regional variant of a known Microsoft host (HTTPS only)", () => {
+                    it("accepts a regional issuer derived from a known Microsoft host", () => {
+                        const testAuthority = buildAuthority(
+                            Constants.DEFAULT_AUTHORITY
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://westus2.login.microsoftonline.com/tenantid/v2.0"
+                            )
+                        ).not.toThrow();
+                    });
+
+                    it("rejects a regional issuer when the scheme is not https", () => {
+                        const testAuthority = buildAuthority(
+                            Constants.DEFAULT_AUTHORITY
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "http://westus2.login.microsoftonline.com/tenantid/v2.0"
+                            )
+                        ).toThrow(issuerValidationFailedError);
+                    });
+
+                    it("rejects when the parent host (after the region label) is not a known Microsoft alias", () => {
+                        const testAuthority = buildAuthority(
+                            Constants.DEFAULT_AUTHORITY
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://westus2.attacker.example/tenantid/v2.0"
+                            )
+                        ).toThrow(issuerValidationFailedError);
+                    });
+
+                    it("rejects when the issuer host has no dot (single label)", () => {
+                        const testAuthority = buildAuthority(
+                            Constants.DEFAULT_AUTHORITY
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://localhost/"
+                            )
+                        ).toThrow(issuerValidationFailedError);
+                    });
+                });
+
+                describe("Rule 4: CIAM tenant pattern {tenant}.ciamlogin.com", () => {
+                    const ciamAuthorityUrl =
+                        "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/";
+                    const ciamKnownAuthorities = [
+                        "https://contoso.ciamlogin.com/",
+                    ];
+
+                    it("accepts the bare tenant host pattern (https://{tenant}.ciamlogin.com)", () => {
+                        const testAuthority = buildAuthority(
+                            ciamAuthorityUrl,
+                            ciamKnownAuthorities
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://contoso.ciamlogin.com"
+                            )
+                        ).not.toThrow();
+                    });
+
+                    it("accepts the tenant host with tenant path (https://{tenant}.ciamlogin.com/{tenant})", () => {
+                        const testAuthority = buildAuthority(
+                            ciamAuthorityUrl,
+                            ciamKnownAuthorities
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://contoso.ciamlogin.com/contoso"
+                            )
+                        ).not.toThrow();
+                    });
+
+                    it("accepts the tenant host with tenant/v2.0 path", () => {
+                        const testAuthority = buildAuthority(
+                            ciamAuthorityUrl,
+                            ciamKnownAuthorities
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://contoso.ciamlogin.com/contoso/v2.0"
+                            )
+                        ).not.toThrow();
+                    });
+
+                    it("ignores trailing slashes when matching a CIAM pattern", () => {
+                        const testAuthority = buildAuthority(
+                            ciamAuthorityUrl,
+                            ciamKnownAuthorities
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://contoso.ciamlogin.com/contoso/v2.0/"
+                            )
+                        ).not.toThrow();
+                    });
+
+                    it("accepts the tenant host with {tenant}.onmicrosoft.com path (transformCIAMAuthority form)", () => {
+                        const testAuthority = buildAuthority(
+                            ciamAuthorityUrl,
+                            ciamKnownAuthorities
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://contoso.ciamlogin.com/contoso.onmicrosoft.com"
+                            )
+                        ).not.toThrow();
+                    });
+
+                    it("accepts the tenant host with {tenant}.onmicrosoft.com/v2.0 path", () => {
+                        const testAuthority = buildAuthority(
+                            ciamAuthorityUrl,
+                            ciamKnownAuthorities
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/v2.0"
+                            )
+                        ).not.toThrow();
+                    });
+
+                    it("rejects a CIAM-shaped issuer for a different tenant", () => {
+                        const testAuthority = buildAuthority(
+                            ciamAuthorityUrl,
+                            ciamKnownAuthorities
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://attacker.ciamlogin.com/contoso/v2.0"
+                            )
+                        ).toThrow(issuerValidationFailedError);
+                    });
+
+                    it("rejects a non-CIAM issuer when no other rule matches", () => {
+                        const testAuthority = buildAuthority(
+                            ciamAuthorityUrl,
+                            ciamKnownAuthorities
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                "https://attacker.example/contoso/v2.0"
+                            )
+                        ).toThrow(issuerValidationFailedError);
+                    });
                 });
             });
         });
@@ -2930,305 +3194,6 @@ describe("Authority.ts Class Unit Tests", () => {
                     ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata
                 )
             );
-        });
-    });
-
-    describe("validateIssuer", () => {
-        const networkInterface: INetworkModule = {
-            sendGetRequestAsync<T>(): T {
-                // @ts-ignore
-                return null;
-            },
-            sendPostRequestAsync<T>(): T {
-                // @ts-ignore
-                return null;
-            },
-        };
-
-        const issuerValidationFailedError = createClientConfigurationError(
-            ClientConfigurationErrorCodes.issuerValidationFailed
-        );
-
-        const buildAuthority = (
-            authorityUrl: string,
-            knownAuthorities: string[] = [Constants.DEFAULT_AUTHORITY_HOST],
-            protocolMode: ProtocolMode = ProtocolMode.AAD
-        ): Authority =>
-            new Authority(
-                authorityUrl,
-                networkInterface,
-                mockStorage,
-                {
-                    protocolMode,
-                    knownAuthorities,
-                    cloudDiscoveryMetadata: "",
-                    authorityMetadata: "",
-                },
-                logger,
-                TEST_CONFIG.CORRELATION_ID,
-                new StubPerformanceClient()
-            );
-
-        const callValidateIssuer = (
-            authority: Authority,
-            issuer: string
-        ): void => {
-            // @ts-ignore - exercising private method directly
-            authority.validateIssuer(issuer);
-        };
-
-        it("throws if the issuer is empty", () => {
-            const authority = buildAuthority(Constants.DEFAULT_AUTHORITY);
-            expect(() => callValidateIssuer(authority, "")).toThrow(
-                issuerValidationFailedError
-            );
-        });
-
-        describe("Rule 1: scheme + host equality (any authority)", () => {
-            it("accepts an issuer that shares scheme and host with the authority but differs in path", () => {
-                const authority = buildAuthority(
-                    "https://accounts.google.com/",
-                    ["https://accounts.google.com/"],
-                    ProtocolMode.OIDC
-                );
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://accounts.google.com/some/other/path"
-                    )
-                ).not.toThrow();
-            });
-
-            it("accepts an exact match including path", () => {
-                const authority = buildAuthority(
-                    "https://accounts.google.com/",
-                    ["https://accounts.google.com/"],
-                    ProtocolMode.OIDC
-                );
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://accounts.google.com/"
-                    )
-                ).not.toThrow();
-            });
-
-            it("rejects an issuer on a different host", () => {
-                const authority = buildAuthority(
-                    "https://accounts.google.com/",
-                    ["https://accounts.google.com/"],
-                    ProtocolMode.OIDC
-                );
-                expect(() =>
-                    callValidateIssuer(authority, "https://attacker.example/")
-                ).toThrow(issuerValidationFailedError);
-            });
-
-            it("rejects an issuer when only the scheme differs", () => {
-                const authority = buildAuthority(
-                    "https://accounts.google.com/",
-                    ["https://accounts.google.com/"],
-                    ProtocolMode.OIDC
-                );
-                expect(() =>
-                    callValidateIssuer(authority, "http://accounts.google.com/")
-                ).toThrow(issuerValidationFailedError);
-            });
-        });
-
-        describe("Rule 2: well-known Microsoft authority host (HTTPS only)", () => {
-            it("accepts an issuer whose host is a known Microsoft alias different from the authority", () => {
-                const authority = buildAuthority(Constants.DEFAULT_AUTHORITY);
-                // sts.windows.net is in InstanceDiscoveryMetadataAliases for the public cloud
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://sts.windows.net/tenantid/"
-                    )
-                ).not.toThrow();
-            });
-
-            it("accepts a sovereign issuer host paired with a different sovereign authority host (China cloud)", () => {
-                const authority = buildAuthority(
-                    "https://login.chinacloudapi.cn/common/",
-                    ["https://login.chinacloudapi.cn/"]
-                );
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://login.partner.microsoftonline.cn/tenantid/v2.0"
-                    )
-                ).not.toThrow();
-            });
-
-            it("rejects a known Microsoft host issuer when the scheme is not https", () => {
-                const authority = buildAuthority(Constants.DEFAULT_AUTHORITY);
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "http://sts.windows.net/tenantid/"
-                    )
-                ).toThrow(issuerValidationFailedError);
-            });
-
-            it("rejects an issuer whose host is not a known Microsoft alias", () => {
-                const authority = buildAuthority(Constants.DEFAULT_AUTHORITY);
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://attacker.example/tenantid/"
-                    )
-                ).toThrow(issuerValidationFailedError);
-            });
-        });
-
-        describe("Rule 3: regional variant of a known Microsoft host (HTTPS only)", () => {
-            it("accepts a regional issuer derived from a known Microsoft host", () => {
-                const authority = buildAuthority(Constants.DEFAULT_AUTHORITY);
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://westus2.login.microsoftonline.com/tenantid/v2.0"
-                    )
-                ).not.toThrow();
-            });
-
-            it("rejects a regional issuer when the scheme is not https", () => {
-                const authority = buildAuthority(Constants.DEFAULT_AUTHORITY);
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "http://westus2.login.microsoftonline.com/tenantid/v2.0"
-                    )
-                ).toThrow(issuerValidationFailedError);
-            });
-
-            it("rejects when the parent host (after the region label) is not a known Microsoft alias", () => {
-                const authority = buildAuthority(Constants.DEFAULT_AUTHORITY);
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://westus2.attacker.example/tenantid/v2.0"
-                    )
-                ).toThrow(issuerValidationFailedError);
-            });
-
-            it("rejects when the issuer host has no dot (single label)", () => {
-                const authority = buildAuthority(Constants.DEFAULT_AUTHORITY);
-                expect(() =>
-                    callValidateIssuer(authority, "https://localhost/")
-                ).toThrow(issuerValidationFailedError);
-            });
-        });
-
-        describe("Rule 4: CIAM tenant pattern {tenant}.ciamlogin.com", () => {
-            const ciamAuthorityUrl =
-                "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/";
-            const ciamKnownAuthorities = ["https://contoso.ciamlogin.com/"];
-
-            it("accepts the bare tenant host pattern (https://{tenant}.ciamlogin.com)", () => {
-                const authority = buildAuthority(
-                    ciamAuthorityUrl,
-                    ciamKnownAuthorities
-                );
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://contoso.ciamlogin.com"
-                    )
-                ).not.toThrow();
-            });
-
-            it("accepts the tenant host with tenant path (https://{tenant}.ciamlogin.com/{tenant})", () => {
-                const authority = buildAuthority(
-                    ciamAuthorityUrl,
-                    ciamKnownAuthorities
-                );
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://contoso.ciamlogin.com/contoso"
-                    )
-                ).not.toThrow();
-            });
-
-            it("accepts the tenant host with tenant/v2.0 path", () => {
-                const authority = buildAuthority(
-                    ciamAuthorityUrl,
-                    ciamKnownAuthorities
-                );
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://contoso.ciamlogin.com/contoso/v2.0"
-                    )
-                ).not.toThrow();
-            });
-
-            it("ignores trailing slashes when matching a CIAM pattern", () => {
-                const authority = buildAuthority(
-                    ciamAuthorityUrl,
-                    ciamKnownAuthorities
-                );
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://contoso.ciamlogin.com/contoso/v2.0/"
-                    )
-                ).not.toThrow();
-            });
-
-            it("accepts the tenant host with {tenant}.onmicrosoft.com path (transformCIAMAuthority form)", () => {
-                const authority = buildAuthority(
-                    ciamAuthorityUrl,
-                    ciamKnownAuthorities
-                );
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://contoso.ciamlogin.com/contoso.onmicrosoft.com"
-                    )
-                ).not.toThrow();
-            });
-
-            it("accepts the tenant host with {tenant}.onmicrosoft.com/v2.0 path", () => {
-                const authority = buildAuthority(
-                    ciamAuthorityUrl,
-                    ciamKnownAuthorities
-                );
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/v2.0"
-                    )
-                ).not.toThrow();
-            });
-
-            it("rejects a CIAM-shaped issuer for a different tenant", () => {
-                const authority = buildAuthority(
-                    ciamAuthorityUrl,
-                    ciamKnownAuthorities
-                );
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://attacker.ciamlogin.com/contoso/v2.0"
-                    )
-                ).toThrow(issuerValidationFailedError);
-            });
-
-            it("rejects a non-CIAM issuer when no other rule matches", () => {
-                const authority = buildAuthority(
-                    ciamAuthorityUrl,
-                    ciamKnownAuthorities
-                );
-                expect(() =>
-                    callValidateIssuer(
-                        authority,
-                        "https://attacker.example/contoso/v2.0"
-                    )
-                ).toThrow(issuerValidationFailedError);
-            });
         });
     });
 });
