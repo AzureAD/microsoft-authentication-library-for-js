@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add native auth e2e sample app",
-  "packageName": "@azure/msal-browser",
-  "email": "yongdiwang@microsoft.com",
-  "dependentChangeType": "patch"
-}

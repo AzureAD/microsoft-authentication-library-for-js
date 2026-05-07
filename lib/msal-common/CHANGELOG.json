@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 07 May 2026 19:01:04 GMT",
+      "version": "16.6.0",
+      "tag": "@azure/msal-common_v16.6.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "b4e498cf6e52136ad1123691138a66f8e9a1a87c",
+            "comment": "Remove duplicate typings in the build output [#8557](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8557)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 28 Apr 2026 21:30:32 GMT",
       "version": "16.5.2",
       "tag": "@azure/msal-common_v16.5.2",
