@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778187576000,
+  "lastUpdate": 1778257078162,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21263,6 +21263,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.59%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d7a7eb50c40b24e7cc17b341f1109cdbfac83e3f",
+          "message": "Add issuer validation check whenever MSAL JS performs OIDC endpoint discovery (#8570)\n\nThis pull request adds issuer validation for OpenID Connect (OIDC)\ndiscovery in the `@azure/msal-common` package, ensuring that the issuer\nreturned from the OIDC discovery document matches authority set by the\napplication for security and correctness. It also introduces a new error\ncode for issuer validation failures and updates internal metadata and\ndocumentation accordingly.\n\n**OIDC Issuer Validation Enhancements:**\n\n* Added a `validateIssuer` private method to the `Authority` class in\n`Authority.ts` to enforce issuer validation based on OIDC and\nMicrosoft-specific rules. This method checks that the issuer from the\ndiscovery document matches the authority or known Microsoft hosts,\nincluding support for regional and CIAM tenant patterns. If validation\nfails, a `ClientConfigurationError` is thrown.\n* Integrated the new `validateIssuer` method into the OIDC discovery\nflow within the `Authority` class to ensure issuer validation is\nperformed after discovery metadata is fetched.\n\n**Error Handling and Codes:**\n\n* Introduced a new error code `issuerValidationFailed` in\n`ClientConfigurationErrorCodes` and exported it for use when issuer\nvalidation fails.\n[[1]](diffhunk://#diff-b8eec2047e45982117c70657c616ab76429becdd5a52b4dd168670cce0688352R29)\n[[2]](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117L1584-R1585)\n[[3]](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117R2905-R2909)\n\n**Metadata and Test Updates:**\n\n* Added new metadata for the PPE environment in `AuthorityMetadata.ts`\nto support additional authority hosts.\n\n**Documentation and API Review:**\n\n* Updated the API review file (`msal-common.api.md`) to reflect the new\nerror code, document the new method, and adjust line references for\nTSDoc warnings.\n[[1]](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117L1584-R1585)\n[[2]](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117R2905-R2909)\n[[3]](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117L4825-R4837)\n\n**Release and Change Tracking:**\n\n* Added a change file describing the patch and referencing the related\nissue and PR for tracking.\n\n---------\n\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: lalimasharda <26092202+lalimasharda@users.noreply.github.com>",
+          "timestamp": "2026-05-08T09:11:15-07:00",
+          "tree_id": "f886b1b2c8354ad9b17f705f9d82ff91c8574011",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d7a7eb50c40b24e7cc17b341f1109cdbfac83e3f"
+        },
+        "date": 1778257074871,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 247677,
+            "range": "±0.70%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 241525,
+            "range": "±0.69%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
