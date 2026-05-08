@@ -33,6 +33,7 @@ Each library has its own `docs/` directory. When reviewing changes, look for the
 
 - Changes affected by browser security policies (COOP, COEP, storage partitioning, iframe sandboxing) → update `lib/msal-browser/docs/redirect-bridge.md`, `lib/msal-browser/docs/iframe-usage.md`
 - Changes to cross-origin or cross-window communication → update relevant flow docs and known limitations
+- Browser API changes: If the change introduces, removes, or modifies usage of a browser Web API (`sessionStorage`, `localStorage`, `IndexedDB`, `BroadcastChannel`, `crypto.subtle`, `window.open`, hidden iframes, `fetch`, `document.cookie`, form submission, etc.), update `lib/msal-browser/docs/browser-compat-map.md` with the new or changed API entry, known restrictions, and fallback behavior
 
 ### Migration impact
 
