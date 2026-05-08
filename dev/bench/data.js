@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778257078162,
+  "lastUpdate": 1778270303094,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21301,6 +21301,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.69%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bbcc105174de98d336f758674ecd84cf66d8e1f6",
+          "message": "Add browser compatibility guidelines and review instructions for msal-browser (#8525)\n\nThis pull request introduces comprehensive documentation and review\nprocess improvements focused on browser compatibility, privacy risks,\nand the handling of browser Web APIs in the `msal-browser` library. The\nchanges add a detailed compatibility map, new review instructions, and\nupdate existing documentation to ensure that all browser API usage is\ntracked, reviewed, and communicated clearly to both developers and\nreviewers.\n\n**Key changes include:**\n\n### Browser Compatibility Documentation and Review Process\n\n* Added a new, detailed browser compatibility review instruction file\n(`.github/instructions/browser_compat.instructions.md`) that provides a\nchecklist for reviewing changes to browser Web API usage, including\nprivacy risks, fallback requirements, and cross-browser restrictions.\n* Introduced a comprehensive \"Browser Compatibility Map\"\n(`lib/msal-browser/docs/browser-compat-map.md`) documenting all browser\nAPIs used by MSAL, their restrictions across browsers and privacy modes,\nand upcoming changes in browser beta channels. This serves as a central\nreference for reviewers and is to be updated with every new or changed\nAPI dependency.\n\n### Integration with Review Workflows\n\n* Updated the doc review instructions to require updating the\ncompatibility map whenever browser Web API usage is introduced, removed,\nor changed, ensuring documentation stays current with code changes.\n* Enhanced the agent guidelines (`AGENTS.md`) to reference the new\ncompatibility map and review checklist, clarifying when and how browser\ncompatibility should be checked during PR review.\n\n### Security and Privacy Best Practices\n\n* Strengthened the security guidance in the redirect bridge\ndocumentation to explicitly prohibit hosting the bridge or its assets on\nthird-party CDNs or origins, require `Cache-Control: no-store`, and\nexplain privacy risks in Safari Private Browsing and similar modes.\n\nThese changes together ensure that MSAL's browser compatibility and\nprivacy risks are systematically tracked, reviewed, and documented,\nreducing the likelihood of subtle breakages or security regressions\nacross browsers and privacy modes.\n\n---------\n\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-05-08T19:51:37Z",
+          "tree_id": "7adf97ab40bf4561d530f698f042fddcddb9f5ba",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/bbcc105174de98d336f758674ecd84cf66d8e1f6"
+        },
+        "date": 1778270299040,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 246228,
+            "range": "±0.99%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 248374,
+            "range": "±0.76%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
