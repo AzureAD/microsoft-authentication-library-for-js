@@ -1,8 +1,46 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Wed, 01 Apr 2026 20:09:00 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 07 May 2026 19:01:04 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.6.0
+
+Thu, 07 May 2026 19:01:04 GMT
+
+### Minor changes
+
+- Remove duplicate typings in the build output [#8557](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8557) (thomas.norling@microsoft.com)
+
+## 16.5.2
+
+Tue, 28 Apr 2026 21:30:32 GMT
+
+### Patches
+
+- Fix unstable sort that can result in returning guest account instead of home account [#8477](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8477) (ruijungao@microsoft.com)
+
+## 16.5.1
+
+Tue, 21 Apr 2026 22:41:19 GMT
+
+### Patches
+
+- Improved account filtering when login hint is provided [#8478](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8478) (lalimasharda@microsoft.com)
+
+## 16.5.0
+
+Thu, 16 Apr 2026 22:44:53 GMT
+
+### Minor changes
+
+- Add support for client data telemetry with CLI_DATA parameter [#8378](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8378) (kshabelko@microsoft.com)
+- Add Platform broker telemetry [#8488](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8488) (lalimasharda@microsoft.com)
+
+### Patches
+
+- Add ssoCapable field to PerformanceEvent type for SSO capability telemetry. (sameera.gajjarapu@microsoft.com)
+- Add skipBrokerClaims parameter for brokered authentication flows [#8419](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8419) (AzureADGitHubBot@users.noreply.github.com)
 
 ## 16.4.1
 

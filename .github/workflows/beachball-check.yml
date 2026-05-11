@@ -33,16 +33,14 @@ jobs:
                         - 'lib/**/**.!(md)'
                         - 'extensions/msal-node-extensions/**/**.!(md)'
 
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
               if: ${{ steps.filter.outputs.lib == 'true' }}
               with:
                   fetch-depth: 0
 
             - name: Use Node.js
               if: ${{ steps.filter.outputs.lib == 'true' }}
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 18
+              uses: actions/setup-node@v6
 
             - name: Install beachball
               if: ${{ steps.filter.outputs.lib == 'true' }}

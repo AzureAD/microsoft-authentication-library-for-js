@@ -1,5 +1,5 @@
 {
   "main": "../lib/index-node.cjs",
   "module": "../dist/index-node.mjs",
-  "types": "../lib/types/index-node.d.ts"
+  "types": "../types/index-node.d.ts"
 }

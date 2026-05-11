@@ -4,16 +4,15 @@
  */
 
 import { IGuidGenerator } from "@azure/msal-common/node";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "node:crypto";
 
 export class GuidGenerator implements IGuidGenerator {
     /**
-     *
-     * RFC4122: The version 4 UUID is meant for generating UUIDs from truly-random or pseudo-random numbers.
-     * uuidv4 generates guids from cryprtographically-string random
+     * Generates a random [RFC 4122](https://www.rfc-editor.org/rfc/rfc4122.txt) version 4 UUID. The UUID is generated using a
+     * cryptographic pseudorandom number generator.
      */
     generateGuid(): string {
-        return uuidv4();
+        return randomUUID();
     }
 
     /**

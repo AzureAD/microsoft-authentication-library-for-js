@@ -119,6 +119,9 @@ describe("SilentIframeClient", () => {
         mockSetRequestState.mockReturnValue(
             TEST_STATE_VALUES.TEST_STATE_SILENT
         );
+        // Freeze Date.now() so timestamp comparisons in toEqual don't fail
+        // when a 1-second boundary is crossed during async acquireToken calls.
+        jest.spyOn(Date, "now").mockReturnValue(Date.now());
     });
 
     afterEach(() => {
@@ -730,6 +733,7 @@ describe("SilentIframeClient", () => {
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 loginHint: ID_TOKEN_CLAIMS.login_hint,
                 name: ID_TOKEN_CLAIMS.name,
+                upn: ID_TOKEN_CLAIMS.upn,
                 nativeAccountId: undefined,
                 authorityType: "MSSTS",
                 tenantProfiles: new Map<string, TenantProfile>([
@@ -742,6 +746,7 @@ describe("SilentIframeClient", () => {
                             loginHint: ID_TOKEN_CLAIMS.login_hint,
                             name: ID_TOKEN_CLAIMS.name,
                             tenantId: ID_TOKEN_CLAIMS.tid,
+                            upn: ID_TOKEN_CLAIMS.upn,
                         },
                     ],
                 ]),
