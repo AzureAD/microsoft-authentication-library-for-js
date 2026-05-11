@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add issuer validation check on OIDC discovery from network [#8570](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8570)",
-  "packageName": "@azure/msal-common",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}

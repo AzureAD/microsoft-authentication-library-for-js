@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Thu, 07 May 2026 19:01:04 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 11 May 2026 21:48:15 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.6.1
+
+Mon, 11 May 2026 21:48:15 GMT
+
+### Patches
+
+- Add issuer validation check on OIDC discovery from network [#8570](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8570) (lalimasharda@microsoft.com)
 
 ## 16.6.0
 
