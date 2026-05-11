@@ -247,7 +247,9 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
             state: state,
         };
 
-        const authCodeRequestParams = {};
+        const authCodeRequestParams = {
+            authority: scenarioConfig.policies.authorities.editProfile.authority,
+        };
 
         return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
     });
@@ -360,9 +362,30 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
 
                     break;
                 case APP_STAGES.PASSWORD_RESET:
-                case APP_STAGES.EDIT_PROFILE:
-                    // redirect the user to sign-in again
+                    // After a password reset the user must sign in again with their new password
                     res.redirect('/sign-in');
+                    break;
+                case APP_STAGES.EDIT_PROFILE:
+                    if (req.query.error) {
+                        // User cancelled edit profile or B2C returned an error — return to home
+                        return res.redirect('/');
+                    }
+
+                    if (!req.query.code) {
+                        return next(new Error('Authorization code not found in edit profile redirect'));
+                    }
+
+                    req.session.authCodeRequest.code = req.query.code; // authZ code
+                    req.session.authCodeRequest.codeVerifier = req.session.pkceCodes.verifier; // PKCE Code Verifier
+
+                    try {
+                        const tokenResponse = await clientApplication.acquireTokenByCode(req.session.authCodeRequest);
+                        req.session.account = tokenResponse.account; // update session with new profile data
+                        res.redirect('/');
+                    } catch (error) {
+                        next(error);
+                    }
+
                     break;
                 default:
                     next(new Error('cannot determine app stage'));

@@ -25,17 +25,19 @@ import {
 } from "@azure/msal-common";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
+import { updateAccountTenantProfileData } from "@azure/msal-common/browser";
 
 const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
     ID_TOKEN_CLAIMS,
     undefined,
     { environment: "login.microsoftonline.com" }
 );
-const testAccount: AccountInfo = {
-    ...AccountEntityUtils.getAccountInfo(testAccountEntity),
-    idTokenClaims: ID_TOKEN_CLAIMS,
-    idToken: TEST_TOKENS.IDTOKEN_V2,
-};
+const testAccount: AccountInfo = updateAccountTenantProfileData(
+    AccountEntityUtils.getAccountInfo(testAccountEntity),
+    undefined,
+    ID_TOKEN_CLAIMS,
+    TEST_TOKENS.IDTOKEN_V2
+);
 
 const testIdToken: IdTokenEntity = buildIdToken(
     ID_TOKEN_CLAIMS,

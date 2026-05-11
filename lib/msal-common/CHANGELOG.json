@@ -2,6 +2,86 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 07 May 2026 19:01:04 GMT",
+      "version": "16.6.0",
+      "tag": "@azure/msal-common_v16.6.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "b4e498cf6e52136ad1123691138a66f8e9a1a87c",
+            "comment": "Remove duplicate typings in the build output [#8557](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8557)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 28 Apr 2026 21:30:32 GMT",
+      "version": "16.5.2",
+      "tag": "@azure/msal-common_v16.5.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "ruijungao@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "7ca7202caaa8f335bf5cec4359de7f664b335d2b",
+            "comment": "Fix unstable sort that can result in returning guest account instead of home account [#8477](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8477)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 21 Apr 2026 22:41:19 GMT",
+      "version": "16.5.1",
+      "tag": "@azure/msal-common_v16.5.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4ff5911eacefacd2d2cd4f13b6a3a39fd3a3a68c",
+            "comment": "Improved account filtering when login hint is provided [#8478](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8478)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 16 Apr 2026 22:44:53 GMT",
+      "version": "16.5.0",
+      "tag": "@azure/msal-common_v16.5.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "86735c62f6ab31d7c8341f76b291e4b20c31bd99",
+            "comment": "Add ssoCapable field to PerformanceEvent type for SSO capability telemetry."
+          },
+          {
+            "author": "AzureADGitHubBot@users.noreply.github.com",
+            "package": "@azure/msal-common",
+            "commit": "86735c62f6ab31d7c8341f76b291e4b20c31bd99",
+            "comment": "Add skipBrokerClaims parameter for brokered authentication flows [#8419](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8419)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "86735c62f6ab31d7c8341f76b291e4b20c31bd99",
+            "comment": "Add support for client data telemetry with CLI_DATA parameter [#8378](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8378)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "86735c62f6ab31d7c8341f76b291e4b20c31bd99",
+            "comment": "Add Platform broker telemetry [#8488](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8488)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 01 Apr 2026 20:09:00 GMT",
       "version": "16.4.1",
       "tag": "@azure/msal-common_v16.4.1",

@@ -29,6 +29,7 @@ import {
 } from "../../../src/custom_auth/core/auth_flow/mfa/state/MfaState.js";
 import { MfaRequestChallengeResult } from "../../../src/custom_auth/core/auth_flow/mfa/result/MfaRequestChallengeResult.js";
 import { MfaSubmitChallengeResult } from "../../../src/custom_auth/core/auth_flow/mfa/result/MfaSubmitChallengeResult.js";
+import { CustomAuthApiError } from "../../../src/custom_auth/core/error/CustomAuthApiError.js";
 
 describe("Sign up", () => {
     let app: CustomAuthPublicClientApplication;
@@ -2338,6 +2339,614 @@ describe("Sign up", () => {
         expect(submitChallengeResult.isCompleted()).toBe(true);
         expect(submitChallengeResult.data).toBeInstanceOf(
             CustomAuthAccountData
+        );
+    });
+
+    // --- Flat username (alias) sign-up tests ---
+
+    it("should sign up successfully with flatusername attribute provided at /start", async () => {
+        // Step 1: Mock /signup/v1.0/start - successful start with flatusername in attributes
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-1",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /signup/v1.0/challenge - email challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "oob",
+                binding_method: "prompt",
+                challenge_channel: "email",
+                challenge_target_label: "s****n@o*********m",
+                code_length: 8,
+                interval: 300,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /signup/v1.0/continue - code submission (requires password)
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                continuation_token: "test-continuation-token-3",
+                error: "credential_required",
+                error_description: "Credential required.",
+                error_codes: [55103],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /signup/v1.0/challenge - password requirement
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-4",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 5: Mock /signup/v1.0/continue - password submission (signup complete)
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-5",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 6: Mock /oauth2/token - successful sign-in after signup
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => TestServerTokenResponse,
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        const signUpInputs: SignUpInputs = {
+            username: "test@test.com",
+            correlationId: correlationId,
+            attributes: { flatusername: "foobar", city: "test-city" },
+        };
+
+        const startResult = await app.signUp(signUpInputs);
+
+        expect(startResult).toBeInstanceOf(SignUpResult);
+        expect(startResult.error).toBeUndefined();
+        expect(startResult.isCodeRequired()).toBe(true);
+
+        const submitCodeResult = await (
+            startResult.state as SignUpCodeRequiredState
+        ).submitCode("12345678");
+
+        expect(submitCodeResult).toBeInstanceOf(SignUpSubmitCodeResult);
+        expect(submitCodeResult.error).toBeUndefined();
+        expect(submitCodeResult.isPasswordRequired()).toBe(true);
+
+        const submitPasswordResult = await (
+            submitCodeResult.state as SignUpPasswordRequiredState
+        ).submitPassword("valid-password");
+
+        expect(submitPasswordResult).toBeInstanceOf(SignUpSubmitPasswordResult);
+        expect(submitPasswordResult.error).toBeUndefined();
+        expect(submitPasswordResult.isCompleted()).toBe(true);
+
+        const signInResult = await (
+            submitPasswordResult.state as SignUpCompletedState
+        ).signIn();
+
+        expect(signInResult).toBeInstanceOf(SignInResult);
+        expect(signInResult.error).toBeUndefined();
+        expect(signInResult.isCompleted()).toBe(true);
+        expect(signInResult.data).toBeDefined();
+        expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
+    });
+
+    it("should sign up successfully with flatusername attribute submitted at /continue", async () => {
+        // Step 1: Mock /signup/v1.0/start - successful start
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-1",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /signup/v1.0/challenge - email challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "oob",
+                binding_method: "prompt",
+                challenge_channel: "email",
+                challenge_target_label: "s****n@o*********m",
+                code_length: 8,
+                interval: 300,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /signup/v1.0/continue (code) - attributes required including flatusername
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "attributes_required",
+                error_description: "User attributes required",
+                error_codes: [55106],
+                timestamp: "yy-mm-dd 02:37:33Z",
+                trace_id: "test-trace-id",
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-3",
+                required_attributes: [
+                    {
+                        name: "flatusername",
+                        type: "Text",
+                        required: true,
+                        options: {
+                            regex: "^[a-zA-Z0-9](?!.*[.,_-]{2})[a-zA-Z0-9.,_-]{2,30}[a-zA-Z0-9]$",
+                        },
+                    },
+                    {
+                        name: "displayName",
+                        type: "string",
+                        required: true,
+                    },
+                ],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /signup/v1.0/continue (attributes) - signup complete
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-4",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 5: Mock /oauth2/token - successful sign-in
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => TestServerTokenResponse,
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        const signUpInputs: SignUpInputs = {
+            username: "test@test.com",
+            correlationId: correlationId,
+        };
+
+        const startResult = await app.signUp(signUpInputs);
+
+        expect(startResult).toBeInstanceOf(SignUpResult);
+        expect(startResult.error).toBeUndefined();
+        expect(startResult.isCodeRequired()).toBe(true);
+
+        const submitCodeResult = await (
+            startResult.state as SignUpCodeRequiredState
+        ).submitCode("12345678");
+
+        expect(submitCodeResult).toBeInstanceOf(SignUpSubmitCodeResult);
+        expect(submitCodeResult.error).toBeUndefined();
+        expect(submitCodeResult.isAttributesRequired()).toBe(true);
+
+        // Verify flatusername is in required attributes with metadata
+        const requiredAttrs = (
+            submitCodeResult.state as SignUpAttributesRequiredState
+        ).getRequiredAttributes();
+        expect(requiredAttrs.length).toBe(2);
+        const flatUsernameAttr = requiredAttrs.find(
+            (attr) => attr.name === "flatusername"
+        );
+        expect(flatUsernameAttr).toBeDefined();
+        expect(flatUsernameAttr?.type).toBe("Text");
+        expect(flatUsernameAttr?.required).toBe(true);
+        expect(flatUsernameAttr?.options?.regex).toBe(
+            "^[a-zA-Z0-9](?!.*[.,_-]{2})[a-zA-Z0-9.,_-]{2,30}[a-zA-Z0-9]$"
+        );
+
+        const submitAttributesResult = await (
+            submitCodeResult.state as SignUpAttributesRequiredState
+        ).submitAttributes({
+            flatusername: "foobar",
+            displayName: "Test User",
+        });
+
+        expect(submitAttributesResult).toBeInstanceOf(
+            SignUpSubmitAttributesResult
+        );
+        expect(submitAttributesResult.error).toBeUndefined();
+        expect(submitAttributesResult.isCompleted()).toBe(true);
+
+        const signInResult = await (
+            submitAttributesResult.state as SignUpCompletedState
+        ).signIn();
+
+        expect(signInResult).toBeInstanceOf(SignInResult);
+        expect(signInResult.error).toBeUndefined();
+        expect(signInResult.isCompleted()).toBe(true);
+        expect(signInResult.data).toBeDefined();
+        expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
+    });
+
+    it("should fail sign up when flatusername is rejected at /start for EmailOTP flow", async () => {
+        // Server rejects flatusername for non-EmailPassword IDP at /start
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_request",
+                error_description:
+                    "AADSTS901002: The 'flatusername' request parameter is not supported.",
+                error_codes: [901002],
+                timestamp: "yy-mm-dd 02:37:33Z",
+                trace_id: "test-trace-id",
+                correlation_id: correlationId,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        const signUpInputs: SignUpInputs = {
+            username: "test@test.com",
+            correlationId: correlationId,
+            attributes: { flatusername: "foobar" },
+        };
+
+        const startResult = await app.signUp(signUpInputs);
+
+        expect(startResult).toBeInstanceOf(SignUpResult);
+        expect(startResult.isFailed()).toBe(true);
+        expect(startResult.error).toBeDefined();
+        expect(startResult.error?.errorData?.error).toBe("invalid_request");
+        expect(startResult.error?.errorData?.errorCodes).toContain(901002);
+        expect(startResult.error?.errorData?.errorDescription).toContain(
+            "flatusername"
+        );
+        // Verify only one fetch call was made (no challenge request)
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("should fail sign up when flatusername is rejected at /continue for EmailOTP flow", async () => {
+        // Step 1: Mock /signup/v1.0/start - successful start
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-1",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /signup/v1.0/challenge - email challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "oob",
+                binding_method: "prompt",
+                challenge_channel: "email",
+                challenge_target_label: "s****n@o*********m",
+                code_length: 8,
+                interval: 300,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /signup/v1.0/continue (code) - attributes required
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "attributes_required",
+                error_description: "User attributes required",
+                error_codes: [55106],
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-3",
+                required_attributes: [
+                    {
+                        name: "displayName",
+                        type: "string",
+                        required: true,
+                    },
+                ],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /signup/v1.0/continue (attributes) - flatusername rejected
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_request",
+                error_description:
+                    "AADSTS901002: The 'flatusername' request parameter is not supported.",
+                error_codes: [901002],
+                timestamp: "yy-mm-dd 02:37:33Z",
+                trace_id: "test-trace-id",
+                correlation_id: correlationId,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        const signUpInputs: SignUpInputs = {
+            username: "test@test.com",
+            correlationId: correlationId,
+        };
+
+        const startResult = await app.signUp(signUpInputs);
+
+        expect(startResult).toBeInstanceOf(SignUpResult);
+        expect(startResult.isCodeRequired()).toBe(true);
+
+        const submitCodeResult = await (
+            startResult.state as SignUpCodeRequiredState
+        ).submitCode("12345678");
+
+        expect(submitCodeResult.isAttributesRequired()).toBe(true);
+
+        const submitAttributesResult = await (
+            submitCodeResult.state as SignUpAttributesRequiredState
+        ).submitAttributes({
+            flatusername: "foobar",
+            displayName: "Test User",
+        });
+
+        expect(submitAttributesResult).toBeInstanceOf(
+            SignUpSubmitAttributesResult
+        );
+        expect(submitAttributesResult.isFailed()).toBe(true);
+        expect(submitAttributesResult.error).toBeDefined();
+        expect(submitAttributesResult.error?.errorData?.error).toBe(
+            "invalid_request"
+        );
+        expect(submitAttributesResult.error?.errorData?.errorCodes).toContain(
+            901002
+        );
+        expect(
+            submitAttributesResult.error?.errorData?.errorDescription
+        ).toContain("flatusername");
+    });
+
+    it("should fail sign up with duplicate flat username", async () => {
+        // Server rejects at /start with user_already_exists due to duplicate flatusername
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "user_already_exists",
+                error_description:
+                    "AADSTS1003037: It looks like you may already have an account with us using this email address. Try signing in again with another identity provider.",
+                error_codes: [1003037],
+                timestamp: "yy-mm-dd 10:15:00Z",
+                trace_id: "test-trace-id",
+                correlation_id: correlationId,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        const signUpInputs: SignUpInputs = {
+            username: "test@test.com",
+            correlationId: correlationId,
+            attributes: { flatusername: "existinguser" },
+        };
+
+        const startResult = await app.signUp(signUpInputs);
+
+        expect(startResult).toBeInstanceOf(SignUpResult);
+        expect(startResult.isFailed()).toBe(true);
+        expect(startResult.error).toBeDefined();
+        expect(startResult.error?.isUserAlreadyExists()).toBe(true);
+    });
+
+    it("should fail sign up with invalid flat username that fails regex validation", async () => {
+        // Step 1: Mock /signup/v1.0/start - successful start
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-1",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /signup/v1.0/challenge - email challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "oob",
+                binding_method: "prompt",
+                challenge_channel: "email",
+                challenge_target_label: "s****n@o*********m",
+                code_length: 8,
+                interval: 300,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /signup/v1.0/continue (code) - attributes required
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "attributes_required",
+                error_description: "User attributes required",
+                error_codes: [55106],
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-3",
+                required_attributes: [
+                    {
+                        name: "flatusername",
+                        type: "Text",
+                        required: true,
+                        options: {
+                            regex: "^[a-zA-Z0-9](?!.*[.,_-]{2})[a-zA-Z0-9.,_-]{2,30}[a-zA-Z0-9]$",
+                        },
+                    },
+                ],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /signup/v1.0/continue (attributes) - invalid flatusername
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description:
+                    "AADSTS55105: User attribute validation failed.",
+                error_codes: [55105],
+                suberror: "attribute_validation_failed",
+                timestamp: "yy-mm-dd 02:37:33Z",
+                trace_id: "test-trace-id",
+                correlation_id: correlationId,
+                invalid_attributes: [{ name: "flatusername" }],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        const signUpInputs: SignUpInputs = {
+            username: "test@test.com",
+            correlationId: correlationId,
+        };
+
+        const startResult = await app.signUp(signUpInputs);
+
+        expect(startResult.isCodeRequired()).toBe(true);
+
+        const submitCodeResult = await (
+            startResult.state as SignUpCodeRequiredState
+        ).submitCode("12345678");
+
+        expect(submitCodeResult.isAttributesRequired()).toBe(true);
+
+        const submitAttributesResult = await (
+            submitCodeResult.state as SignUpAttributesRequiredState
+        ).submitAttributes({ flatusername: "bad!" });
+
+        expect(submitAttributesResult).toBeInstanceOf(
+            SignUpSubmitAttributesResult
+        );
+        expect(submitAttributesResult.isFailed()).toBe(true);
+        expect(submitAttributesResult.error).toBeDefined();
+        expect(
+            submitAttributesResult.error?.isAttributesValidationFailed()
+        ).toBe(true);
+
+        // Verify the error contains the invalid attribute name
+        const errorData = submitAttributesResult.error?.errorData;
+        expect(errorData).toBeDefined();
+        expect(errorData?.error).toBe("invalid_grant");
+        expect(errorData).toBeInstanceOf(CustomAuthApiError);
+        expect((errorData as CustomAuthApiError).attributes).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ name: "flatusername" }),
+            ])
+        );
+    });
+
+    it("should transition to attributes required state when flatusername is missing at /continue", async () => {
+        // Step 1: Mock /signup/v1.0/start - successful start
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-1",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /signup/v1.0/challenge - email challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "oob",
+                binding_method: "prompt",
+                challenge_channel: "email",
+                challenge_target_label: "s****n@o*********m",
+                code_length: 8,
+                interval: 300,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /signup/v1.0/continue (code) - flatusername required
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "attributes_required",
+                error_description: "AADSTS55106: User attributes required.",
+                error_codes: [55106],
+                timestamp: "yy-mm-dd 02:37:33Z",
+                trace_id: "test-trace-id",
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-3",
+                required_attributes: [
+                    {
+                        name: "flatusername",
+                        type: "Text",
+                        required: true,
+                        options: {
+                            regex: "^[a-zA-Z0-9](?!.*[.,_-]{2})[a-zA-Z0-9.,_-]{2,30}[a-zA-Z0-9]$",
+                        },
+                    },
+                ],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        const signUpInputs: SignUpInputs = {
+            username: "test@test.com",
+            correlationId: correlationId,
+        };
+
+        const startResult = await app.signUp(signUpInputs);
+
+        expect(startResult.isCodeRequired()).toBe(true);
+
+        const submitCodeResult = await (
+            startResult.state as SignUpCodeRequiredState
+        ).submitCode("12345678");
+
+        // Verify the result transitions to attributes required state
+        expect(submitCodeResult).toBeInstanceOf(SignUpSubmitCodeResult);
+        expect(submitCodeResult.error).toBeUndefined();
+        expect(submitCodeResult.isAttributesRequired()).toBe(true);
+
+        // Verify flatusername is in required attributes with full metadata
+        const requiredAttrs = (
+            submitCodeResult.state as SignUpAttributesRequiredState
+        ).getRequiredAttributes();
+        expect(requiredAttrs.length).toBe(1);
+        expect(requiredAttrs[0].name).toBe("flatusername");
+        expect(requiredAttrs[0].type).toBe("Text");
+        expect(requiredAttrs[0].required).toBe(true);
+        expect(requiredAttrs[0].options?.regex).toBe(
+            "^[a-zA-Z0-9](?!.*[.,_-]{2})[a-zA-Z0-9.,_-]{2,30}[a-zA-Z0-9]$"
         );
     });
 });

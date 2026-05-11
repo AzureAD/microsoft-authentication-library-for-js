@@ -1,7 +1,6 @@
 {
   "include": [
     "src",
-    "types",
     "test"
   ],
   "compilerOptions": {

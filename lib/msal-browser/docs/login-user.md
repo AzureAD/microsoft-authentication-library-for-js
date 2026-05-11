@@ -236,6 +236,23 @@ For more information and complete sample implementations, see:
 - [React Router Sample](../../../samples/msal-react-samples/react-router-sample)
 - [Express Sample](../../../samples/msal-browser-samples/ExpressSample)
 
+## Popup closure detection and `InteractionStatus`
+
+Starting in MSAL Browser v5, popup authentication uses a [BroadcastChannel](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel) to receive the authentication response from the popup window. This replaces the previous `window.closed` polling mechanism used in earlier versions.
+
+### What happens when a user manually closes the popup
+
+When a user closes the popup window without completing authentication (e.g., clicks the X button), MSAL cannot detect the closure immediately. Because of Cross Origin Opener Policies (COOP) that sever the connection between the opener and popup windows, MSAL no longer has a way to observe when the popup window is closed. Instead, MSAL waits for the configured `popupBridgeTimeout` (default: 60 seconds) to expire before throwing a `timed_out` error.
+
+This means:
+- `InteractionStatus` remains `Login` (or `AcquireToken`) until the timeout fires
+- The `LOGIN_FAILURE` (or `ACQUIRE_TOKEN_FAILURE`) event is emitted only after the timeout
+- The `loginPopup()` (or `acquireTokenPopup()`) promise rejects with a `timed_out` error after the timeout
+
+### Allowing the user to retry immediately
+
+If a user closes the popup and you want to allow them to retry login without waiting for the timeout, use the `overrideInteractionInProgress` flag as described in the section below.
+
 ## Handling popup `interaction_in_progress` errors
 
 For popup flows, you can use the `overrideInteractionInProgress` flag to cancel a pending interaction and start a new one. This is useful for recovery scenarios where the user cancelled a popup or an interaction failed.

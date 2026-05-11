@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add missing client capabilities in platform broker flows [#8428](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8428)",
-  "packageName": "@azure/msal-browser",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}

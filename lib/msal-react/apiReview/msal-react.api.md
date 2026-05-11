@@ -153,7 +153,7 @@ export function useMsalAuthentication(interactionType: InteractionType, authenti
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "5.2.1";
+export const version = "5.4.0";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "withMsal" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -170,7 +170,7 @@ export type WithMsalProps = {
 
 // Warnings were encountered during analysis:
 //
-// dist/index.d.ts:3:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
-// dist/index.d.ts:3:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
+// src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
+// src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
 
 ```

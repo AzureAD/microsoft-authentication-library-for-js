@@ -1,8 +1,45 @@
 # Change Log - @azure/msal-react
 
-<!-- This log was last generated on Wed, 01 Apr 2026 20:09:00 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 07 May 2026 19:01:04 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.4.0
+
+Thu, 07 May 2026 19:01:04 GMT
+
+### Minor changes
+
+- Remove duplicate typings in the build output [#8557](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8557) (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v5.10.0
+
+## 5.3.2
+
+Tue, 28 Apr 2026 21:30:33 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.9.0
+
+## 5.3.1
+
+Tue, 21 Apr 2026 22:41:19 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.8.0
+
+## 5.3.0
+
+Thu, 16 Apr 2026 22:44:53 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to v5.7.0
+
+### Patches
+
+- Fix MsalAuthenticationTemplate passing in undefined SsoSilentRequest [#8520](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8520) (lalimasharda@microsoft.com)
 
 ## 5.2.1
 
