@@ -297,19 +297,12 @@ export class SilentIframeClient extends StandardInteractionClient {
         let responseString: string;
         try {
             responseString = await invokeAsync(
-                BrowserUtils.waitForBridgeResponse,
+                this.waitForIframeResponse.bind(this),
                 BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
                 this.logger,
                 this.performanceClient,
                 correlationId
-            )(
-                this.config.system.iframeBridgeTimeout,
-                this.logger,
-                this.browserCrypto,
-                request,
-                this.performanceClient,
-                this.config.experimental
-            );
+            )(iframe, request, responseType);
         } finally {
             invoke(
                 removeHiddenIframe,
@@ -528,7 +521,7 @@ export class SilentIframeClient extends StandardInteractionClient {
      * and returns the deserialized server parameters along with the PKCE codes
      * and the request that was sent.
      */
-    private async silentAuthorizeHelper(
+    protected async silentAuthorizeHelper(
         authClient: AuthorizationCodeClient,
         request: CommonAuthorizationUrlRequest
     ): Promise<{
@@ -596,19 +589,12 @@ export class SilentIframeClient extends StandardInteractionClient {
         let responseString: string;
         try {
             responseString = await invokeAsync(
-                BrowserUtils.waitForBridgeResponse,
+                this.waitForIframeResponse.bind(this),
                 BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
                 this.logger,
                 this.performanceClient,
                 correlationId
-            )(
-                this.config.system.iframeBridgeTimeout,
-                this.logger,
-                this.browserCrypto,
-                request,
-                this.performanceClient,
-                this.config.experimental
-            );
+            )(iframe, request, responseType);
         } finally {
             invoke(
                 removeHiddenIframe,
@@ -628,5 +614,20 @@ export class SilentIframeClient extends StandardInteractionClient {
         )(responseString, responseType, this.logger, this.correlationId);
 
         return { serverParams, pkceCodes, silentRequest };
+    }
+
+    protected async waitForIframeResponse(
+        iframe: HTMLIFrameElement, // eslint-disable-line @typescript-eslint/no-unused-vars
+        request: CommonAuthorizationUrlRequest,
+        responseMode: string // eslint-disable-line @typescript-eslint/no-unused-vars
+    ): Promise<string> {
+        return BrowserUtils.waitForBridgeResponse(
+            this.config.system.iframeBridgeTimeout,
+            this.logger,
+            this.browserCrypto,
+            request,
+            this.performanceClient,
+            this.config.experimental
+        );
     }
 }

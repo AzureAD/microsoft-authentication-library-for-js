@@ -369,12 +369,10 @@ export class PopupClient extends StandardInteractionClient {
                 );
 
                 // Wait for the redirect bridge response
-                const responseString = await BrowserUtils.waitForBridgeResponse(
-                    this.config.system.popupBridgeTimeout,
-                    this.logger,
-                    this.browserCrypto,
+                const responseString = await this.waitForPopupResponse(
                     request,
-                    this.performanceClient
+                    popupWindow,
+                    popupParams.popupWindowParent
                 );
 
                 const serverParams = invoke(
@@ -494,18 +492,12 @@ export class PopupClient extends StandardInteractionClient {
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
-            BrowserUtils.waitForBridgeResponse,
+            this.waitForPopupResponse.bind(this),
             BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
-        )(
-            this.config.system.popupBridgeTimeout,
-            this.logger,
-            this.browserCrypto,
-            popupRequest,
-            this.performanceClient
-        );
+        )(popupRequest, popupWindow, popupParams.popupWindowParent);
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
@@ -623,18 +615,12 @@ export class PopupClient extends StandardInteractionClient {
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
-            BrowserUtils.waitForBridgeResponse,
+            this.waitForPopupResponse.bind(this),
             BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
-        )(
-            this.config.system.popupBridgeTimeout,
-            this.logger,
-            this.browserCrypto,
-            request,
-            this.performanceClient
-        );
+        )(request, popupWindow, popupParams.popupWindowParent);
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
@@ -792,12 +778,10 @@ export class PopupClient extends StandardInteractionClient {
                 null
             );
 
-            await BrowserUtils.waitForBridgeResponse(
-                this.config.system.popupBridgeTimeout,
-                this.logger,
-                this.browserCrypto,
+            await this.waitForPopupResponse(
                 validRequest,
-                this.performanceClient
+                popupWindow,
+                popupParams.popupWindowParent
             ).catch(() => {
                 // Swallow any errors related to monitoring the window. Server logout is best effort
             });
@@ -1042,5 +1026,19 @@ export class PopupClient extends StandardInteractionClient {
     generateLogoutPopupName(request: CommonEndSessionRequest): string {
         const homeAccountId = request.account && request.account.homeAccountId;
         return `${BrowserConstants.POPUP_NAME_PREFIX}.${this.config.auth.clientId}.${homeAccountId}.${this.correlationId}`;
+    }
+
+    protected async waitForPopupResponse(
+        request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+        popupWindow: Window, // eslint-disable-line @typescript-eslint/no-unused-vars
+        popupWindowParent: Window // eslint-disable-line @typescript-eslint/no-unused-vars
+    ): Promise<string> {
+        return BrowserUtils.waitForBridgeResponse(
+            this.config.system.popupBridgeTimeout,
+            this.logger,
+            this.browserCrypto,
+            request,
+            this.performanceClient
+        );
     }
 }

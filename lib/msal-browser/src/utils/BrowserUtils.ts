@@ -157,6 +157,21 @@ export function clearHash(contentWindow: Window): void {
 }
 
 /**
+ * Strips both hash and query string from the given window's URL by replacing
+ * with origin + pathname only. Used to remove auth response parameters
+ * (auth code, state, etc.) before the window is closed or navigated away.
+ */
+export function clearAuthResponseFromUrl(contentWindow: Window): void {
+    if (typeof contentWindow.history?.replaceState === "function") {
+        contentWindow.history.replaceState(
+            null,
+            "",
+            `${contentWindow.location.origin}${contentWindow.location.pathname}`
+        );
+    }
+}
+
+/**
  * Replaces current hash with hash from provided url
  */
 export function replaceHash(url: string): void {

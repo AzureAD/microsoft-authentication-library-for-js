@@ -18,6 +18,10 @@ export {
     createStandardPublicClientApplication,
 } from "./app/PublicClientApplication.js";
 export { IController } from "./controllers/IController.js";
+export { StandardController } from "./controllers/StandardController.js";
+export { StandardOperatingContext } from "./operatingcontext/StandardOperatingContext.js";
+export { SilentIframeClient } from "./interaction_client/SilentIframeClient.js";
+export { PopupClient, PopupParams } from "./interaction_client/PopupClient.js";
 export {
     Configuration,
     BrowserAuthOptions,

@@ -3546,6 +3546,7 @@ export type PerformanceEvent = {
     silentRefreshReason?: string;
     deduped?: boolean;
     kmsi?: boolean;
+    usesLegacyPopupFlow?: boolean;
     ssoCapable?: boolean;
     isBackground?: boolean;
     preMigrateAcntCount?: number;
