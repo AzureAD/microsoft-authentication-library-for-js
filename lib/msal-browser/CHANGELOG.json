@@ -2,6 +2,21 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 11 May 2026 21:48:15 GMT",
+      "version": "5.10.1",
+      "tag": "@azure/msal-browser_v5.10.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.6.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 07 May 2026 19:01:04 GMT",
       "version": "5.10.0",
       "tag": "@azure/msal-browser_v5.10.0",

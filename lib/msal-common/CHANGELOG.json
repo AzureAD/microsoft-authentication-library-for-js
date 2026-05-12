@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 11 May 2026 21:48:15 GMT",
+      "version": "16.6.1",
+      "tag": "@azure/msal-common_v16.6.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c66140125e3e4bdc7acb9199fc0004bb5429b41d",
+            "comment": "Add issuer validation check on OIDC discovery from network [#8570](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8570)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 07 May 2026 19:01:04 GMT",
       "version": "16.6.0",
       "tag": "@azure/msal-common_v16.6.0",
