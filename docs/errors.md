@@ -268,6 +268,9 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ### `invalid_request_method_for_EAR`
 - The EAR protocol cannot be used with HTTP method `GET`. The `httpMethod` parameter in all requests using `protocolMode: ProtocolMode.EAR` must be either unset or `"POST"`/`HttpMethod.POST`.
 
+### `issuer_validation_failed`
+- Issuer returned from OpenID configuration endpoint does not match with the authority configured by the application.
+
 ## Interaction required errors
 
 ### `no_tokens_found`

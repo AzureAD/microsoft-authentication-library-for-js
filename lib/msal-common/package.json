@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "16.5.0",
+  "version": "16.6.1",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -25,35 +25,35 @@
   "type": "module",
   "main": "./lib/index.cjs",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "types": "./types/index.d.ts",
   "exports": {
     "./browser": {
       "import": {
-        "types": "./dist-browser/index-browser.d.ts",
+        "types": "./types/index-browser.d.ts",
         "default": "./dist-browser/index-browser.mjs"
       },
       "require": {
-        "types": "./lib/types/index-browser.d.ts",
+        "types": "./types/index-browser.d.cts",
         "default": "./lib/index-browser.cjs"
       }
     },
     "./node": {
       "import": {
-        "types": "./dist/index-node.d.ts",
+        "types": "./types/index-node.d.ts",
         "default": "./dist/index-node.mjs"
       },
       "require": {
-        "types": "./lib/types/index-node.d.ts",
+        "types": "./types/index-node.d.cts",
         "default": "./lib/index-node.cjs"
       }
     },
     ".": {
       "import": {
-        "types": "./dist/index.d.ts",
+        "types": "./types/index.d.ts",
         "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./lib/types/index.d.ts",
+        "types": "./types/index.d.cts",
         "default": "./lib/index.cjs"
       }
     },
@@ -68,20 +68,22 @@
   "files": [
     "dist",
     "dist-browser",
+    "types",
     "lib",
     "src",
     "node",
     "browser"
   ],
   "scripts": {
-    "clean": "shx rm -rf dist dist-browser lib",
+    "clean": "shx rm -rf dist dist-browser types lib",
     "clean:coverage": "rimraf ../../.nyc_output/*",
     "lint": "eslint src --ext .ts",
     "lint:fix": "npm run lint -- --fix",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
-    "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs && npm run build:types",
+    "build:types": "tsc -p tsconfig.build.types.json",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "build": "npm run clean && npm run build:modules",
     "build:debug": "npm run clean && cross-env MSAL_MINIFY_LOGS=false npm run build:modules",

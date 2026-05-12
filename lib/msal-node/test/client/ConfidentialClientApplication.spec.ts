@@ -14,6 +14,7 @@ import {
     InteractionRequiredAuthErrorCodes,
     ClientAssertion,
     AccountEntityUtils,
+    INetworkModule,
 } from "@azure/msal-common";
 import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -45,7 +46,6 @@ import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { Constants, MSAL_FORCE_REGION } from "../../src/utils/Constants.js";
 import jwt from "jsonwebtoken";
 import { NodeAuthError } from "../../src/error/NodeAuthError.js";
-import { INetworkModule } from "../../../msal-common/lib/types/exports-common.js";
 import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
 import * as NodeClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";
 import { ClientApplication } from "../../src/client/ClientApplication.js";

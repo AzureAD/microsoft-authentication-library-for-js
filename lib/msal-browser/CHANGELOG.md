@@ -1,8 +1,59 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Thu, 16 Apr 2026 22:44:53 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 11 May 2026 21:48:15 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.10.1
+
+Mon, 11 May 2026 21:48:15 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.6.1
+
+## 5.10.0
+
+Thu, 07 May 2026 19:01:04 GMT
+
+### Minor changes
+
+- Add native auth e2e sample app (yongdiwang@microsoft.com)
+- Remove duplicate typings in the build output [#8557](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8557) (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v16.6.0
+
+### Patches
+
+- Stop looking in localStorage for temporary cache [#8579](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8579) (-g)
+
+## 5.9.0
+
+Tue, 28 Apr 2026 21:30:31 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+- Bump @azure/msal-common to v16.5.2
+
+### Patches
+
+- Use client_info="1" string value in native auth token requests [#8562](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8562) (jiashen@microsoft.com)
+- Fix CookieStorage.getItem and getKeys throwing URIError when unrelated cookies contain invalid percent-encoded sequences [#7531](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/7531) (198982749+Copilot@users.noreply.github.com)
+
+## 5.8.0
+
+Tue, 21 Apr 2026 22:41:19 GMT
+
+### Minor changes
+
+- Add CJS build for redirect-bridge subpath export [#8541](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8541) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.5.1
+
+### Patches
+
+- Add flat username (alias) attribute support in sign-up flow [#8536](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8536) (yongdiwang@microsoft.com)
+- Update cache schema version to fix bug when upgrading from v4 to v5 [#8545](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8545) (thomas.norling@microsoft.com)
+- Improved account filtering when login hint is provided [#8478](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8478) (lalimasharda@microsoft.com)
 
 ## 5.7.0
 

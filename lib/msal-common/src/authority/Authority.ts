@@ -427,7 +427,7 @@ export class Authority {
     }
 
     /**
-     * Returns metadata entity from cache if it exists, otherwiser returns a new metadata entity built
+     * Returns metadata entity from cache if it exists, otherwise returns a new metadata entity built
      * from the configured canonical authority
      * @returns
      */
@@ -547,6 +547,9 @@ export class Authority {
             this.correlationId
         )();
         if (metadata) {
+            // Validate the issuer returned by the OIDC discovery document.
+            this.validateIssuer(metadata.issuer);
+
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
                 metadata = await invokeAsync(
@@ -839,7 +842,7 @@ export class Authority {
         metadataEntity: AuthorityMetadataEntity
     ): Constants.AuthorityMetadataSource | null {
         this.logger.verbose(
-            "Attempting to get cloud discovery metadata  from authority configuration",
+            "Attempting to get cloud discovery metadata from authority configuration",
             this.correlationId
         );
         this.logger.verbosePii(
@@ -1193,6 +1196,190 @@ export class Authority {
      */
     isAliasOfKnownMicrosoftAuthority(host: string): boolean {
         return InstanceDiscoveryMetadataAliases.has(host);
+    }
+
+    /**
+     * Validates the `issuer` returned by an OIDC discovery document against
+     * this authority, per
+     * https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation
+     *
+     * The issuer is accepted when ANY of the following holds:
+     *  1. The issuer scheme + host + port match the authority's (path may
+     *     differ). Applies to all authorities.
+     *  2. The authority is a Microsoft cloud authority (public, sovereign,
+     *     or CIAM), the issuer is HTTPS, and the issuer host is in the known
+     *     Microsoft authority host set.
+     *  3. Same as (2), but the issuer host is a single-label regional variant
+     *     of a known Microsoft host (e.g. `westus.login.microsoftonline.com`).
+     *  4. Same as (2), but the issuer host matches the CIAM tenant pattern
+     *     `{tenant}.ciamlogin.com` with an optional `/{tenant}[.onmicrosoft.com][/v2.0]`
+     *     path.
+     *
+     * @param issuer The `issuer` value returned in the OIDC discovery document.
+     * @throws ClientConfigurationError("issuer_validation_failed") on failure.
+     */
+    private validateIssuer(issuer: string): void {
+        if (!issuer) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.issuerValidationFailed
+            );
+        }
+
+        // Parse with the WHATWG URL API. URL normalizes scheme + host to lowercase per RFC 3986.
+        let issuerUrl: URL;
+        try {
+            issuerUrl = new URL(issuer);
+        } catch {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.issuerValidationFailed
+            );
+        }
+        const issuerScheme = issuerUrl.protocol;
+        const issuerHost = issuerUrl.host;
+        const authorityScheme = (
+            this.canonicalAuthorityUrlComponents.Protocol || ""
+        ).toLowerCase();
+        const authorityHost = (
+            this.canonicalAuthorityUrlComponents.HostNameAndPort || ""
+        ).toLowerCase();
+
+        // Rule 1: Same scheme and host
+        const matchesAuthorityOrigin = this.matchesAuthorityOrigin(
+            issuerScheme,
+            issuerHost,
+            authorityScheme,
+            authorityHost
+        );
+
+        // Rule 2: The issuer host is a well-known Microsoft authority host (HTTPS only)
+        const matchesKnownMicrosoftHost =
+            issuerScheme === "https:" &&
+            this.isAliasOfKnownMicrosoftAuthority(issuerHost);
+
+        /*
+         * Rule 3: The issuer host is a regional variant ({region}.{host}) of a well-known host
+         * (HTTPS only). E.g. westus2.login.microsoft.com
+         */
+        const matchesRegionalMicrosoftHost =
+            issuerScheme === "https:" &&
+            this.matchesRegionalMicrosoftHost(issuerHost);
+
+        /*
+         * Rule 4: CIAM-specific validation. In a CIAM scenario the issuer is expected to
+         * have "{tenant}.ciamlogin.com" as the host, even when using a custom domain.
+         */
+        const matchesCiamTenantPattern = this.matchesCiamTenantPattern(
+            issuerUrl,
+            authorityHost,
+            this.canonicalAuthorityUrlComponents.PathSegments
+        );
+
+        // Each rule is an independent boolean; the issuer is valid if ANY rule matches.
+        if (
+            matchesAuthorityOrigin ||
+            matchesKnownMicrosoftHost ||
+            matchesRegionalMicrosoftHost ||
+            matchesCiamTenantPattern
+        ) {
+            return;
+        }
+
+        // issuer validation fails if none of the above rules are satisfied
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.issuerValidationFailed
+        );
+    }
+
+    /**
+     * Rule 1: The issuer scheme + host (and port) match the authority's. Path
+     * may differ. Applies to all authorities.
+     */
+    private matchesAuthorityOrigin(
+        issuerScheme: string,
+        issuerHost: string,
+        authorityScheme: string,
+        authorityHost: string
+    ): boolean {
+        return issuerScheme === authorityScheme && issuerHost === authorityHost;
+    }
+
+    /**
+     * Rule 3: The issuer host is a regional variant
+     * (`{region}.{host}`) of a known Microsoft authority host.
+     * E.g. `westus2.login.microsoft.com`.
+     */
+    private matchesRegionalMicrosoftHost(issuerHost: string): boolean {
+        const firstDot = issuerHost.indexOf(".");
+        if (firstDot > 0 && firstDot < issuerHost.length - 1) {
+            const hostWithoutRegion = issuerHost.substring(firstDot + 1);
+            return this.isAliasOfKnownMicrosoftAuthority(hostWithoutRegion);
+        }
+        return false;
+    }
+
+    /**
+     * Rule 4: The issuer matches one of the well-known CIAM tenant patterns
+     * (`https://{tenant}.ciamlogin.com[/{tenant}[.onmicrosoft.com][/v2.0]]`).
+     *
+     * The bare tenant name is extracted from the authority's first path segment
+     * when available (stripping the `.onmicrosoft.com` suffix that
+     * `transformCIAMAuthority` adds), or otherwise from the leftmost label of
+     * the authority host (to support CIAM custom domain scenarios).
+     *
+     * Both `/{tenant}` and `/{tenant}.onmicrosoft.com` path forms are accepted
+     * because the OIDC issuer may use either form depending on the authority URL
+     * that was used to trigger discovery.
+     */
+    private matchesCiamTenantPattern(
+        issuerUrl: URL,
+        authorityHost: string,
+        authorityPathSegments: string[]
+    ): boolean {
+        /*
+         * authorityPathSegments[0] is the first path segment of the *authority
+         * URL* after transformCIAMAuthority runs (e.g. "contoso.onmicrosoft.com").
+         * Additional CIAM issuer path segments such as "/v2.0" are part of the
+         * issuer string, not the authority URL's PathSegments.
+         */
+        const pathSegment = authorityPathSegments[0];
+
+        /*
+         * Extract the bare tenant name: strip the .onmicrosoft.com suffix when
+         * present (introduced by transformCIAMAuthority), or fall back to the
+         * first label of the authority hostname for non-transformed/custom-domain
+         * CIAM authorities.
+         */
+        const tenantName = pathSegment
+            ? pathSegment.endsWith(Constants.AAD_TENANT_DOMAIN_SUFFIX)
+                ? pathSegment.slice(
+                      0,
+                      -Constants.AAD_TENANT_DOMAIN_SUFFIX.length
+                  )
+                : pathSegment
+            : authorityHost.split(".")[0];
+
+        if (!tenantName) {
+            return false;
+        }
+
+        const ciamBaseURL = `https://${tenantName}${Constants.CIAM_AUTH_URL}`;
+        const validCiamPatterns: string[] = [
+            ciamBaseURL, // https://{tenant}.ciamlogin.com
+            `${ciamBaseURL}/${tenantName}`, // https://{tenant}.ciamlogin.com/{tenant}
+            `${ciamBaseURL}/${tenantName}/v2.0`, // https://{tenant}.ciamlogin.com/{tenant}/v2.0
+            `${ciamBaseURL}/${tenantName}${Constants.AAD_TENANT_DOMAIN_SUFFIX}`, // https://{tenant}.ciamlogin.com/{tenant}.onmicrosoft.com
+            `${ciamBaseURL}/${tenantName}${Constants.AAD_TENANT_DOMAIN_SUFFIX}/v2.0`, // https://{tenant}.ciamlogin.com/{tenant}.onmicrosoft.com/v2.0
+        ];
+
+        /*
+         * Compose the canonical issuer string from URL components and strip any
+         * trailing slashes from the path so it can be compared to the pattern set.
+         */
+        const issuerPath = issuerUrl.pathname.replace(/\/+$/, "");
+        const normalizedIssuer = `${issuerUrl.protocol}//${issuerUrl.host}${issuerPath}`;
+        return validCiamPatterns.some(
+            (pattern) => pattern === normalizedIssuer
+        );
     }
 
     /**

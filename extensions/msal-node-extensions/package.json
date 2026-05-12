@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "5.1.3",
+  "version": "5.2.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
@@ -8,16 +8,16 @@
   "license": "MIT",
   "type": "module",
   "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "types": "types/index.d.ts",
   "main": "lib/msal-node-extensions.cjs",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.ts",
+        "types": "./types/index.d.ts",
         "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./lib/types/index.d.ts",
+        "types": "./types/index.d.cts",
         "default": "./lib/msal-node-extensions.cjs"
       }
     },
@@ -33,6 +33,7 @@
   ],
   "files": [
     "dist",
+    "types",
     "bin",
     "lib"
   ],
@@ -42,9 +43,10 @@
   "scripts": {
     "compile": "node-gyp rebuild",
     "install": "exit 0",
-    "clean": "shx rm -rf dist bin lib",
-    "build": "npm run clean && npm run build:js && npm run build:binaries",
+    "clean": "shx rm -rf dist types bin lib",
+    "build": "npm run clean && npm run build:js && npm run build:types && npm run build:binaries",
     "build:js": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build:types": "tsc -p tsconfig.build.types.json",
     "build:binaries": "node ./scripts/buildBinaries.cjs",
     "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-node-extensions",
     "test": "jest",
@@ -66,7 +68,7 @@
     ]
   },
   "dependencies": {
-    "@azure/msal-common": "16.5.0",
+    "@azure/msal-common": "16.6.1",
     "@azure/msal-node-runtime": "^0.20.0",
     "keytar": "^7.8.0"
   },

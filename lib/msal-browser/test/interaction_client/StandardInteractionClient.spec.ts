@@ -29,6 +29,7 @@ import {
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     ID_TOKEN_CLAIMS,
+    TEST_TOKENS,
 } from "../utils/StringConstants.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
@@ -39,6 +40,10 @@ import {
     clearCacheOnLogout,
     getDiscoveredAuthority,
 } from "../../src/interaction_client/BaseInteractionClient.js";
+import {
+    IdTokenEntity,
+    updateAccountTenantProfileData,
+} from "@azure/msal-common/browser";
 
 class testStandardInteractionClient extends StandardInteractionClient {
     acquireToken(): Promise<void> {
@@ -95,8 +100,12 @@ describe("StandardInteractionClient", () => {
         undefined,
         { environment: "login.microsoftonline.com" }
     );
-    const testAccount: AccountInfo =
-        AccountEntityUtils.getAccountInfo(testAccountEntity);
+    const testAccount: AccountInfo = updateAccountTenantProfileData(
+        AccountEntityUtils.getAccountInfo(testAccountEntity),
+        undefined,
+        ID_TOKEN_CLAIMS,
+        TEST_TOKENS.IDTOKEN_V2
+    );
 
     beforeEach(() => {
         pca = new PublicClientApplication({
@@ -199,6 +208,18 @@ describe("StandardInteractionClient", () => {
         // @ts-ignore
         await pca.browserStorage.setAccount(testAccountEntity);
         pca.setActiveAccount(testAccount);
+
+        const idTokenEntity: IdTokenEntity = {
+            realm: testAccount.tenantId,
+            environment: testAccount.environment,
+            credentialType: "IdToken",
+            secret: TEST_TOKENS.IDTOKEN_V2,
+            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            homeAccountId: testAccount.homeAccountId,
+            lastUpdatedAt: Date.now().toString(),
+        };
+        // @ts-ignore
+        await pca.browserStorage.setIdTokenCredential(idTokenEntity);
 
         const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,

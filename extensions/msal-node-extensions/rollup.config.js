@@ -6,7 +6,8 @@
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import pkg from "./package.json";
-import { createPackageJson } from "rollup-msal";
+import { createCjsTypeShims, createPackageJson } from "rollup-msal";
+import path from "path";
 
 const libraryHeader = `/*! ${pkg.name} v${pkg.version} ${new Date().toISOString().split("T")[0]} */`;
 const useStrictHeader = "'use strict';";
@@ -36,7 +37,9 @@ export default [
             typescript({
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json",
-                compilerOptions: { outDir: "lib/types" }
+                compilerOptions: {
+                    outDir: "./lib"
+                }
             }),
             nodeResolve({
                 preferBuiltins: true
@@ -68,6 +71,15 @@ export default [
             typescript({
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json"
+            }),
+            createCjsTypeShims({
+                packageRoot: __dirname,
+                shims: [
+                    {
+                        filePath: path.join("types", "index.d.cts"),
+                        target: "./index.js"
+                    }
+                ]
             }),
             nodeResolve({
                 preferBuiltins: true
