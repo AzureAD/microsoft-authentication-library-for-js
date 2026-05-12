@@ -1010,6 +1010,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             ),
             prompt: this.getPrompt(request.prompt),
             correlationId: this.correlationId,
+            // TODO: Move tokenType to be a part of extraParameters once MacOS broker adds support for it
             tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
             extraParameters: {
