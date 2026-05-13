@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Custom Auth: add `requestInterceptor` configuration option that lets apps attach additional `x-*` headers to custom-auth backend requests (e.g., for fraud/bot-detection vendors). Headers without the `x-` prefix and headers starting with reserved prefixes (`x-client-`, `x-ms-`, `x-broker-`, `x-app-`) are filtered out.",
+  "comment": "Custom Auth: add `requestInterceptor` configuration option that lets apps attach additional `x-*` headers to custom-auth backend requests (e.g., for fraud/bot-detection vendors). Headers without the `x-` prefix and headers starting with reserved prefixes (`x-client-`, `x-ms-`, `x-broker-`, `x-app-`) are filtered out. [#8587](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8587)",
   "packageName": "@azure/msal-browser",
   "email": "shen.jian@live.com",
   "dependentChangeType": "patch"
