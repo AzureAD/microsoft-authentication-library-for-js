@@ -1,1 +1,21 @@
-{"msalConfig":{"auth":{"clientId":"b5c2e510-4a17-4feb-b219-e55aa5b74144","authority":"https://login.microsoftonline.com/common","redirectUri":"/redirect","isMcp":true},"cache":{"cacheLocation":"sessionStorage"},"system":{"allowPlatformBroker":false}},"request":{"scopes":["User.Read"],"resource":"https://graph.microsoft.com"}}
+{
+    "msalConfig": {
+        "auth": {
+            "clientId": "0845a021-afdf-4126-abdd-099c5e6948e1",
+            "authority": "https://login.microsoftonline.com/common",
+            "redirectUri": "/redirect",
+            "postLogoutRedirectUri": "/redirect"
+        },
+        "cache": {
+            "cacheLocation": "memoryStorage"
+        },
+        "system": {
+            "allowPlatformBroker": false
+        }
+    },
+    "request": {
+        "scopes": [
+            "User.Read"
+        ]
+    }
+}

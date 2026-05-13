@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Export StandardController, StandardOperatingContext, and SilentIframeClient. Bump SilentIframeClient.silentAuthorizeHelper visibility from private to protected so 1P subclasses can compose without forking.",
+  "comment": "Export StandardController, StandardOperatingContext, and SilentIframeClient",
   "packageName": "@azure/msal-browser",
   "email": "shylasummers@microsoft.com",
   "dependentChangeType": "patch"
