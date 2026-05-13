@@ -14,14 +14,39 @@ import {
 import { NavigationOptions } from "../navigation/NavigationOptions.js";
 import { DEFAULT_REDIRECT_TIMEOUT_MS } from "../config/Configuration.js";
 import { NavigationClient } from "../navigation/NavigationClient.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
 import { PREFIX } from "../cache/CacheKeys.js";
+
+/**
+ * Options for {@link broadcastResponseToMainFrame}.
+ */
+export interface BroadcastOptions {
+    /** Optional navigation client for redirect scenario. */
+    navigationClient?: INavigationClient;
+    /**
+     * When true, skips clearing the auth response from the URL hash/query.
+     * This preserves the hash so that MSAL 4's handleRedirectPromise can
+     * pick up the response directly from the URL.
+     */
+    msal4Compat?: boolean;
+}
+
+/**
+ * Returns true when the argument looks like a NavigationClient (duck-type check).
+ */
+function isNavigationClient(
+    value: BroadcastOptions | INavigationClient
+): value is INavigationClient {
+    return typeof (value as INavigationClient).navigateInternal === "function";
+}
 
 /**
  * Processes the authentication response from the redirect URL
  * For SSO and popup scenarios broadcasts it to the main frame
  * For redirect scenario navigates to the home page
  *
- * @param {NavigationClient} navigationClient - Optional navigation client for redirect scenario.
+ * @param {BroadcastOptions | INavigationClient} optionsOrNavClient - Optional broadcast options object,
+ *   or a NavigationClient for backward compatibility.
  *
  * @returns {Promise<void>} A promise that resolves when the response has been broadcast and cleanup is complete.
  *
@@ -30,14 +55,25 @@ import { PREFIX } from "../cache/CacheKeys.js";
  * @throws {AuthError} If the state is missing required 'id' or 'meta' attributes.
  */
 export async function broadcastResponseToMainFrame(
-    navigationClient?: NavigationClient
+    optionsOrNavClient?: BroadcastOptions | INavigationClient
 ): Promise<void> {
+    let options: BroadcastOptions = {};
+    if (optionsOrNavClient) {
+        if (isNavigationClient(optionsOrNavClient)) {
+            // Backward compat: caller passed a NavigationClient directly
+            options = { navigationClient: optionsOrNavClient };
+        } else {
+            options = optionsOrNavClient;
+        }
+    }
+
+    const { navigationClient, msal4Compat } = options;
     let parsedResponse;
     try {
         parsedResponse = parseAuthResponseFromUrl();
     } catch (error) {
         // Clear hash and query string before re-throwing parse errors
-        if (typeof window.history.replaceState === "function") {
+        if (!msal4Compat && typeof window.history.replaceState === "function") {
             window.history.replaceState(
                 null,
                 "",
@@ -59,7 +95,7 @@ export async function broadcastResponseToMainFrame(
     const { id, meta } = libraryState;
 
     if (meta["interactionType"] === InteractionType.Redirect) {
-        const navClient = navigationClient || new NavigationClient();
+        const navClient = options.navigationClient || new NavigationClient();
 
         let navigateToUrl = "";
         let clientId = "";
@@ -134,7 +170,7 @@ export async function broadcastResponseToMainFrame(
     }
 
     // Clear only the part(s) containing the auth response from redirect bridge URL
-    if (typeof window.history.replaceState === "function") {
+    if (!msal4Compat && typeof window.history.replaceState === "function") {
         let newUrl = `${window.location.origin}${window.location.pathname}`;
         // Preserve hash if it didn't contain the response
         if (!hasResponseInHash && urlHash) {
