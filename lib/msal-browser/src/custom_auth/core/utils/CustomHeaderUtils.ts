@@ -3,10 +3,31 @@
  * Licensed under the MIT License.
  */
 
+import { Logger } from "@azure/msal-common/browser";
 import { CustomHeaderConstants } from "../../CustomAuthConstants.js";
 
+/**
+ * Filters the headers returned by a {@link CustomAuthRequestInterceptor},
+ * keeping only those that conform to the custom-auth header naming rules.
+ *
+ * Rules (mirrors the iOS / Android native auth implementations):
+ *  - Header names must start with `x-` (case-insensitive); others are dropped.
+ *  - Header names that start with any reserved prefix (`x-client-`, `x-ms-`,
+ *    `x-broker-`, `x-app-`) are dropped.
+ *  - Headers with empty/whitespace-only names or null/undefined values are dropped.
+ *
+ * Dropped headers are logged as warnings (PII-safe) when a logger is provided.
+ *
+ * @param headers - Raw headers returned by the interceptor.
+ * @param logger - Optional logger used to emit warnings for dropped headers.
+ * @param correlationId - Optional correlation id forwarded to the logger.
+ * @returns A new record containing only the headers that pass the filter,
+ *          preserving the original casing of header names.
+ */
 export function filterCustomHeaders(
-    headers: Record<string, string> | null | undefined
+    headers: Record<string, string> | null | undefined,
+    logger?: Logger,
+    correlationId?: string
 ): Record<string, string> {
     const filtered: Record<string, string> = {};
 
@@ -28,15 +49,22 @@ export function filterCustomHeaders(
         const lowerName = trimmedName.toLowerCase();
 
         if (!lowerName.startsWith(CustomHeaderConstants.REQUIRED_PREFIX)) {
+            logger?.warningPii(
+                `Additional header field "${trimmedName}" must start with the "${CustomHeaderConstants.REQUIRED_PREFIX}" prefix. Ignoring.`,
+                correlationId ?? ""
+            );
             continue;
         }
 
-        const startsWithReservedPrefix =
-            CustomHeaderConstants.RESERVED_PREFIXES.some((prefix) =>
-                lowerName.startsWith(prefix)
-            );
+        const reservedPrefix = CustomHeaderConstants.RESERVED_PREFIXES.find(
+            (prefix) => lowerName.startsWith(prefix)
+        );
 
-        if (startsWithReservedPrefix) {
+        if (reservedPrefix) {
+            logger?.warningPii(
+                `Additional header field "${trimmedName}" uses reserved prefix "${reservedPrefix}". Ignoring.`,
+                correlationId ?? ""
+            );
             continue;
         }
 

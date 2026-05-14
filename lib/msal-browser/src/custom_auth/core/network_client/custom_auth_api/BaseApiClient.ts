@@ -202,7 +202,7 @@ export abstract class BaseApiClient {
                 this.requestInterceptor.addAdditionalHeaderFields(url)
             );
 
-            return filterCustomHeaders(result);
+            return filterCustomHeaders(result, this.logger, correlationId);
         } catch (e) {
             this.logger?.warningPii(
                 `CustomAuthRequestInterceptor.addAdditionalHeaderFields threw an error; continuing without additional headers: ${e}`,

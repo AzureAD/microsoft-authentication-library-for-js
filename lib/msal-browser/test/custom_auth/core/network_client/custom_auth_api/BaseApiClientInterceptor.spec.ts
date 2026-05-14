@@ -9,7 +9,18 @@ import {
 } from "@azure/msal-common/browser";
 import { SignInApiClient } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/SignInApiClient.js";
 import { CustomAuthRequestInterceptor } from "../../../../../src/custom_auth/configuration/CustomAuthRequestInterceptor.js";
+import { CustomHeaderConstants } from "../../../../../src/custom_auth/CustomAuthConstants.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";
+
+const isUserCustomHeader = (name: string): boolean => {
+    const lowerName = name.toLowerCase();
+    return (
+        lowerName.startsWith(CustomHeaderConstants.REQUIRED_PREFIX) &&
+        !CustomHeaderConstants.RESERVED_PREFIXES.some((prefix) =>
+            lowerName.startsWith(prefix)
+        )
+    );
+};
 
 const mockTelemetryManager = {
     generateCurrentRequestHeaderValue: jest.fn(() => "cur"),
@@ -84,16 +95,8 @@ describe("BaseApiClient request interceptor behaviour", () => {
         expect(headers[AADServerParamKeys.CLIENT_REQUEST_ID]).toBe("corr");
         // Confirm no user-vendor header (i.e., x-* not starting with reserved prefixes)
         // is present when no interceptor is configured.
-        const customHeaderKeys = Object.keys(headers).filter((k) => {
-            const lk = k.toLowerCase();
-            return (
-                lk.startsWith("x-") &&
-                !lk.startsWith("x-client-") &&
-                !lk.startsWith("x-ms-") &&
-                !lk.startsWith("x-broker-") &&
-                !lk.startsWith("x-app-")
-            );
-        });
+        const customHeaderKeys =
+            Object.keys(headers).filter(isUserCustomHeader);
         expect(customHeaderKeys).toEqual([]);
     });
 
@@ -265,14 +268,7 @@ describe("BaseApiClient request interceptor behaviour", () => {
 
         // Spot-check: no non-MSAL custom header was added
         const headers = lastSentHeaders();
-        const userHeaders = Object.keys(headers).filter((k) => {
-            const lk = k.toLowerCase();
-            return (
-                lk.startsWith("x-") &&
-                !lk.startsWith("x-client-") &&
-                !lk.startsWith("x-ms-")
-            );
-        });
+        const userHeaders = Object.keys(headers).filter(isUserCustomHeader);
         expect(userHeaders).toEqual([]);
     });
 
