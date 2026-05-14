@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add invalidPlatformBrokerConfiguration error code for DOM-based platform brokering",
+    "packageName": "@azure/msal-common",
+    "email": "lalimasharda@microsoft.com",
+    "dependentChangeType": "patch"
+}
