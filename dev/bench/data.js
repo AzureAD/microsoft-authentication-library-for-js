@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778604850663,
+  "lastUpdate": 1778846887562,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21415,6 +21415,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.01%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "45603194+shenj@users.noreply.github.com",
+            "name": "Jian Shen",
+            "username": "shenj"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "99e0895b66400ba15d1bfd41e9ef0869b3e45753",
+          "message": "Custom Auth: add requestInterceptor for custom x-* request headers (#8587)\n\n## Summary\n\nAdds a new `requestInterceptor` option to `CustomAuthOptions` that lets\napplications attach additional `x-*` headers to every custom-auth\nbackend request (sign-in, sign-up, reset-password, register).\n\nThe primary use case is integrating with third-party fraud /\nbot-detection SDKs that require vendor-supplied headers on the auth\nendpoints.\n\n## API\n\n```ts\nimport { CustomAuthRequestInterceptor } from \"@azure/msal-browser/custom-auth\";\n\nconst interceptor: CustomAuthRequestInterceptor = {\n    addAdditionalHeaderFields(requestUrl: URL) {\n        if (requestUrl.pathname.includes(\"/oauth2/v2.0/initiate\")) {\n            return {\n                value_1: \"customer_header_1\",          // Ignored: no \"x-\" prefix\n                \"x-client-header\": \"customer_header_2\",  // Ignored: reserved prefix\n                \"X-my-custom-header\": \"my data\",         // Sent\n            };\n        }\n        return null;\n    },\n};\n\nconst config: CustomAuthConfiguration = {\n    auth: { clientId, authority },\n    customAuth: {\n        authApiProxyUrl,\n        requestInterceptor: interceptor,\n    },\n};\n```\n\nThe interceptor may return either a synchronous record or a `Promise`.\n\n## Filter rules (same as iOS doc)\n\n* Names must start with `x-` (case-insensitive); others are dropped.\n* Reserved prefixes are dropped: `x-client-`, `x-ms-`, `x-broker-`,\n`x-app-`.\n* User headers that pass the filter take precedence over MSAL's common\nheaders.\n* Exceptions thrown by the interceptor are captured and logged via\n`Logger.warningPii`; the request still goes through so user-supplied\ncode cannot break authentication.\n\n## Scope\n\n* Filtering applied only to custom-auth backend requests (anything\nrouted through `BaseApiClient.request`).\n* Wiring: `CustomAuthStandardController` → `CustomAuthApiClient` → each\nsub-client (`SignInApiClient`, `SignupApiClient`,\n`ResetPasswordApiClient`, `RegisterApiClient`) → `BaseApiClient`.\n* No cache schema impact.\n\n## Tests\n\n* `CustomHeaderUtils.spec.ts` — 16 cases covering each filter rule,\ncasing, and edge cases.\n* `BaseApiClientInterceptor.spec.ts` — 8 cases covering: no-interceptor,\nURL passed to interceptor, filtering, precedence, sync return, async\nreturn, null return, sync throw, async rejection (all swallowed).\n* `CustomAuthApiClient.spec.ts` extended with 2 construction cases.\n* Full `lib/msal-browser` suite: **1643 tests pass**; lint, format,\nbuild, and api-extractor all clean.\n\n## Changefile\n\n`change/@azure-msal-browser-ec2f3299-….json` — `minor` (new public\noption).\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-05-15T13:01:53+01:00",
+          "tree_id": "8ad951dbeae6d6214956e3e6b84ccdf61fa61093",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/99e0895b66400ba15d1bfd41e9ef0869b3e45753"
+        },
+        "date": 1778846884064,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 235813,
+            "range": "±1.04%",
+            "unit": "ops/sec",
+            "extra": "212 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 236573,
+            "range": "±0.83%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
