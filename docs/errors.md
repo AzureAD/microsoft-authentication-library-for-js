@@ -261,6 +261,10 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Cannot set allowPlatformBroker parameter to true when not in AAD protocol mode.
 
+### `invalid_platform_broker_configuration`
+
+-   Invalid platform broker configuration. `allowPlatformBrokerWithDOM` requires `allowPlatformBroker` to also be set to `true`.
+
 ### `authority_mismatch`
 
 -   Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.
