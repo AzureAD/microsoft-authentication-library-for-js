@@ -617,17 +617,34 @@ export class SilentIframeClient extends StandardInteractionClient {
     }
 
     protected async waitForIframeResponse(
-        iframe: HTMLIFrameElement, // eslint-disable-line @typescript-eslint/no-unused-vars
+        iframe: HTMLIFrameElement,
         request: CommonAuthorizationUrlRequest,
-        responseMode: string // eslint-disable-line @typescript-eslint/no-unused-vars
+        responseMode: string
     ): Promise<string> {
-        return BrowserUtils.waitForBridgeResponse(
-            this.config.system.iframeBridgeTimeout,
-            this.logger,
-            this.browserCrypto,
-            request,
-            this.performanceClient,
-            this.config.experimental
-        );
+        const defaultHandler = (): Promise<string> =>
+            BrowserUtils.waitForBridgeResponse(
+                this.config.system.iframeBridgeTimeout,
+                this.logger,
+                this.browserCrypto,
+                request,
+                this.performanceClient,
+                this.config.experimental
+            );
+
+        const override = this.config.system.waitForIframeResponse;
+        if (override) {
+            return override(
+                iframe,
+                request,
+                responseMode,
+                {
+                    config: this.config,
+                    logger: this.logger,
+                    performanceClient: this.performanceClient,
+                },
+                defaultHandler
+            );
+        }
+        return defaultHandler();
     }
 }

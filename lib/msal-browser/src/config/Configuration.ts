@@ -21,6 +21,8 @@ import {
     StubPerformanceClient,
     Logger,
     Constants,
+    CommonAuthorizationUrlRequest,
+    CommonEndSessionRequest,
 } from "@azure/msal-common/browser";
 import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
@@ -167,6 +169,50 @@ export type BrowserSystemOptions = SystemOptions & {
      * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
      */
     protocolMode?: ProtocolMode;
+    /**
+     * Optional hook to override how MSAL waits for the auth response from a popup window.
+     * The hook receives the request, the popup window and its parent, a context bag exposing
+     * the resolved `BrowserConfiguration`, `Logger`, and `IPerformanceClient`, and a
+     * `defaultHandler` callback that runs the built-in BroadcastChannel-based monitor.
+     * Implementations may either replace the default behavior entirely or wrap/chain it by
+     * invoking `defaultHandler()`.
+     *
+     * The returned promise must resolve with the raw response string (hash/query/fragment)
+     * MSAL would have received from the popup, or reject with an AuthError on failure.
+     */
+    waitForPopupResponse?: (
+        request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+        popupWindow: Window,
+        popupWindowParent: Window,
+        context: {
+            config: BrowserConfiguration;
+            logger: Logger;
+            performanceClient: IPerformanceClient;
+        },
+        defaultHandler: () => Promise<string>
+    ) => Promise<string>;
+    /**
+     * Optional hook to override how MSAL waits for the auth response from a hidden iframe.
+     * The hook receives the iframe element, the request, the OIDC response mode, a context
+     * bag exposing the resolved `BrowserConfiguration`, `Logger`, and `IPerformanceClient`,
+     * and a `defaultHandler` callback that runs the built-in BroadcastChannel-based monitor.
+     * Implementations may either replace the default behavior entirely or wrap/chain it by
+     * invoking `defaultHandler()`.
+     *
+     * The returned promise must resolve with the raw response string (hash/query/fragment)
+     * MSAL would have received from the iframe, or reject with an AuthError on failure.
+     */
+    waitForIframeResponse?: (
+        iframe: HTMLIFrameElement,
+        request: CommonAuthorizationUrlRequest,
+        responseMode: string,
+        context: {
+            config: BrowserConfiguration;
+            logger: Logger;
+            performanceClient: IPerformanceClient;
+        },
+        defaultHandler: () => Promise<string>
+    ) => Promise<string>;
 };
 
 /** @internal */
@@ -221,10 +267,17 @@ export type Configuration = {
 export type BrowserConfiguration = {
     auth: InternalAuthOptions;
     cache: Required<CacheOptions>;
-    system: Required<BrowserSystemOptions>;
+    system: Required<Omit<BrowserSystemOptions, keyof BrowserSystemHooks>> &
+        BrowserSystemHooks;
     experimental: Required<BrowserExperimentalOptions>;
     telemetry: Required<BrowserTelemetryOptions>;
 };
+
+/** Internal helper alias used to keep {@link BrowserConfiguration.system} readable. */
+type BrowserSystemHooks = Pick<
+    BrowserSystemOptions,
+    "waitForPopupResponse" | "waitForIframeResponse"
+>;
 
 /**
  * MSAL function that sets the default options when not explicitly configured from app developer
@@ -292,7 +345,7 @@ export function buildConfiguration(
     };
 
     // Default system options for browser
-    const DEFAULT_BROWSER_SYSTEM_OPTIONS: Required<BrowserSystemOptions> = {
+    const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserConfiguration["system"] = {
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
         networkClient: isBrowserEnvironment
@@ -311,9 +364,11 @@ export function buildConfiguration(
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
         protocolMode: ProtocolMode.AAD,
+        waitForPopupResponse: undefined,
+        waitForIframeResponse: undefined,
     };
 
-    const providedSystemOptions: Required<BrowserSystemOptions> = {
+    const providedSystemOptions: BrowserConfiguration["system"] = {
         ...DEFAULT_BROWSER_SYSTEM_OPTIONS,
         ...userInputSystem,
         loggerOptions: userInputSystem?.loggerOptions || DEFAULT_LOGGER_OPTIONS,

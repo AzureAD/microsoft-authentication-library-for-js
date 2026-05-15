@@ -430,9 +430,9 @@ export type PerformanceEvent = {
     kmsi?: boolean;
 
     /**
-     * Whether the legacy (non-COOP) popup/iframe flow was used (1P only)
+     * Whether the legacy (non-COOP) popup/iframe hash polling flow was used (1P only)
      */
-    usesLegacyPopupFlow?: boolean;
+    usesLegacyPolling?: boolean;
 
     /**
      * Cached SSO capability status from the most recent SSO verification

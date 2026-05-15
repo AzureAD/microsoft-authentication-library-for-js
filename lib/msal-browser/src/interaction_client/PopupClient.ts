@@ -1030,15 +1030,32 @@ export class PopupClient extends StandardInteractionClient {
 
     protected async waitForPopupResponse(
         request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
-        popupWindow: Window, // eslint-disable-line @typescript-eslint/no-unused-vars
-        popupWindowParent: Window // eslint-disable-line @typescript-eslint/no-unused-vars
+        popupWindow: Window,
+        popupWindowParent: Window
     ): Promise<string> {
-        return BrowserUtils.waitForBridgeResponse(
-            this.config.system.popupBridgeTimeout,
-            this.logger,
-            this.browserCrypto,
-            request,
-            this.performanceClient
-        );
+        const defaultHandler = (): Promise<string> =>
+            BrowserUtils.waitForBridgeResponse(
+                this.config.system.popupBridgeTimeout,
+                this.logger,
+                this.browserCrypto,
+                request,
+                this.performanceClient
+            );
+
+        const override = this.config.system.waitForPopupResponse;
+        if (override) {
+            return override(
+                request,
+                popupWindow,
+                popupWindowParent,
+                {
+                    config: this.config,
+                    logger: this.logger,
+                    performanceClient: this.performanceClient,
+                },
+                defaultHandler
+            );
+        }
+        return defaultHandler();
     }
 }
