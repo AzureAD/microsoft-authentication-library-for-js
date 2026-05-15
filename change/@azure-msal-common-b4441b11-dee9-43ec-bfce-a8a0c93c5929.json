@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add optional hooks for custom authentication response handling [#8590](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8590)",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
