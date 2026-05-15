@@ -521,7 +521,7 @@ export class SilentIframeClient extends StandardInteractionClient {
      * and returns the deserialized server parameters along with the PKCE codes
      * and the request that was sent.
      */
-    protected async silentAuthorizeHelper(
+    private async silentAuthorizeHelper(
         authClient: AuthorizationCodeClient,
         request: CommonAuthorizationUrlRequest
     ): Promise<{
