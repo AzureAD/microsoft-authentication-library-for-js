@@ -19,6 +19,10 @@ export { ICustomAuthPublicClientApplication } from "./ICustomAuthPublicClientApp
 
 // Configuration
 export { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration.js";
+export {
+    CustomAuthRequestInterceptor,
+    CustomAuthAdditionalHeaderFieldsResult,
+} from "./configuration/CustomAuthRequestInterceptor.js";
 
 // Models
 export { CustomAuthAccountData } from "./get_account/auth_flow/CustomAuthAccountData.js";
