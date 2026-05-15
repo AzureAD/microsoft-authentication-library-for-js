@@ -6,6 +6,7 @@
 import { GrantType } from "../../../CustomAuthConstants.js";
 import { BaseApiClient } from "./BaseApiClient.js";
 import { IHttpClient } from "../http_client/IHttpClient.js";
+import { Logger } from "@azure/msal-common/browser";
 import * as CustomAuthApiEndpoint from "./CustomAuthApiEndpoint.js";
 import {
     SignUpChallengeRequest,
@@ -19,6 +20,7 @@ import {
     SignUpContinueResponse,
     SignUpStartResponse,
 } from "./types/ApiResponseTypes.js";
+import { CustomAuthRequestInterceptor } from "../../../configuration/CustomAuthRequestInterceptor.js";
 
 export class SignupApiClient extends BaseApiClient {
     private readonly capabilities?: string;
@@ -28,13 +30,17 @@ export class SignupApiClient extends BaseApiClient {
         clientId: string,
         httpClient: IHttpClient,
         capabilities?: string,
-        customAuthApiQueryParams?: Record<string, string>
+        customAuthApiQueryParams?: Record<string, string>,
+        requestInterceptor?: CustomAuthRequestInterceptor,
+        logger?: Logger
     ) {
         super(
             customAuthApiBaseUrl,
             clientId,
             httpClient,
-            customAuthApiQueryParams
+            customAuthApiQueryParams,
+            requestInterceptor,
+            logger
         );
         this.capabilities = capabilities;
     }
