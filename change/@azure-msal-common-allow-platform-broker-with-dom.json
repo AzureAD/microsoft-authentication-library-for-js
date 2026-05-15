@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Add invalidPlatformBrokerConfiguration error code for DOM-based platform brokering",
+    "comment": "Add invalidPlatformBrokerConfiguration error code for DOM-based platform brokering [#8589](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8589)",
     "packageName": "@azure/msal-common",
     "email": "lalimasharda@microsoft.com",
     "dependentChangeType": "patch"
