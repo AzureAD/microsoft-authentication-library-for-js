@@ -83,7 +83,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                         );
                     if (logoutHint) {
                         this.logger.verbose(
-                            "Setting logoutHint to login_hint value for the account provided",
+                            "Setting logoutHint value to loginHint of the account provided",
                             this.correlationId
                         );
                         validLogoutRequest.logoutHint = logoutHint;
@@ -169,6 +169,10 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const idTokenClaims: IdTokenClaims | undefined = account.idTokenClaims;
         if (idTokenClaims) {
             if (idTokenClaims.login_hint) {
+                this.logger.verbose(
+                    "Extracted login_hint claim from account ID Token Claims to be used as logoutHint",
+                    this.correlationId
+                );
                 return idTokenClaims.login_hint;
             } else {
                 this.logger.verbose(
