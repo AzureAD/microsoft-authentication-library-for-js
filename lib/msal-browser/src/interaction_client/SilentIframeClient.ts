@@ -621,30 +621,34 @@ export class SilentIframeClient extends StandardInteractionClient {
         request: CommonAuthorizationUrlRequest,
         responseMode: string
     ): Promise<string> {
-        const defaultHandler = (): Promise<string> =>
-            BrowserUtils.waitForBridgeResponse(
-                this.config.system.iframeBridgeTimeout,
-                this.logger,
-                this.browserCrypto,
-                request,
-                this.performanceClient,
-                this.config.experimental
-            );
-
         const override = this.config.system.waitForIframeResponse;
         if (override) {
-            return override(
-                iframe,
-                request,
-                responseMode,
-                {
+            try {
+                return await override(iframe, request, responseMode, {
                     config: this.config,
                     logger: this.logger,
                     performanceClient: this.performanceClient,
-                },
-                defaultHandler
-            );
+                });
+            } finally {
+                // Strip auth response params from the iframe URL
+                try {
+                    if (iframe.contentWindow) {
+                        BrowserUtils.clearAuthResponseFromUrl(
+                            iframe.contentWindow
+                        );
+                    }
+                } catch {
+                    // Iframe may already be navigated away or cross-origin; ignore.
+                }
+            }
         }
-        return defaultHandler();
+        return BrowserUtils.waitForBridgeResponse(
+            this.config.system.iframeBridgeTimeout,
+            this.logger,
+            this.browserCrypto,
+            request,
+            this.performanceClient,
+            this.config.experimental
+        );
     }
 }

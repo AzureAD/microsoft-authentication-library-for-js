@@ -170,15 +170,14 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     protocolMode?: ProtocolMode;
     /**
-     * Optional hook to override how MSAL waits for the auth response from a popup window.
-     * The hook receives the request, the popup window and its parent, a context bag exposing
-     * the resolved `BrowserConfiguration`, `Logger`, and `IPerformanceClient`, and a
-     * `defaultHandler` callback that runs the built-in BroadcastChannel-based monitor.
-     * Implementations may either replace the default behavior entirely or wrap/chain it by
-     * invoking `defaultHandler()`.
+     * Optional hook to fully replace how MSAL waits for the auth response from a popup window.
+     * The hook receives the request, the popup window and its parent, and a context bag exposing
+     * the resolved `BrowserConfiguration`, `Logger`, and `IPerformanceClient`.
      *
-     * The returned promise must resolve with the raw response string (hash/query/fragment)
-     * MSAL would have received from the popup, or reject with an AuthError on failure.
+     * When provided, this hook takes the place of the built-in BroadcastChannel-based monitor;
+     * MSAL will not invoke the default monitor. The returned promise must resolve with the raw
+     * response string (hash/query/fragment) MSAL would have received from the popup, or reject
+     * with an AuthError on failure.
      */
     waitForPopupResponse?: (
         request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
@@ -188,19 +187,17 @@ export type BrowserSystemOptions = SystemOptions & {
             config: BrowserConfiguration;
             logger: Logger;
             performanceClient: IPerformanceClient;
-        },
-        defaultHandler: () => Promise<string>
+        }
     ) => Promise<string>;
     /**
-     * Optional hook to override how MSAL waits for the auth response from a hidden iframe.
-     * The hook receives the iframe element, the request, the OIDC response mode, a context
-     * bag exposing the resolved `BrowserConfiguration`, `Logger`, and `IPerformanceClient`,
-     * and a `defaultHandler` callback that runs the built-in BroadcastChannel-based monitor.
-     * Implementations may either replace the default behavior entirely or wrap/chain it by
-     * invoking `defaultHandler()`.
+     * Optional hook to fully replace how MSAL waits for the auth response from a hidden iframe.
+     * The hook receives the iframe element, the request, the OIDC response mode, and a context
+     * bag exposing the resolved `BrowserConfiguration`, `Logger`, and `IPerformanceClient`.
      *
-     * The returned promise must resolve with the raw response string (hash/query/fragment)
-     * MSAL would have received from the iframe, or reject with an AuthError on failure.
+     * When provided, this hook takes the place of the built-in BroadcastChannel-based monitor;
+     * MSAL will not invoke the default monitor. The returned promise must resolve with the raw
+     * response string (hash/query/fragment) MSAL would have received from the iframe, or reject
+     * with an AuthError on failure.
      */
     waitForIframeResponse?: (
         iframe: HTMLIFrameElement,
@@ -210,8 +207,7 @@ export type BrowserSystemOptions = SystemOptions & {
             config: BrowserConfiguration;
             logger: Logger;
             performanceClient: IPerformanceClient;
-        },
-        defaultHandler: () => Promise<string>
+        }
     ) => Promise<string>;
 };
 

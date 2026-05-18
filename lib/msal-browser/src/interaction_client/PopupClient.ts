@@ -1033,29 +1033,29 @@ export class PopupClient extends StandardInteractionClient {
         popupWindow: Window,
         popupWindowParent: Window
     ): Promise<string> {
-        const defaultHandler = (): Promise<string> =>
-            BrowserUtils.waitForBridgeResponse(
-                this.config.system.popupBridgeTimeout,
-                this.logger,
-                this.browserCrypto,
-                request,
-                this.performanceClient
-            );
-
         const override = this.config.system.waitForPopupResponse;
         if (override) {
-            return override(
-                request,
-                popupWindow,
-                popupWindowParent,
-                {
+            try {
+                return await override(request, popupWindow, popupWindowParent, {
                     config: this.config,
                     logger: this.logger,
                     performanceClient: this.performanceClient,
-                },
-                defaultHandler
-            );
+                });
+            } finally {
+                // Strip auth response params from the popup URL
+                try {
+                    BrowserUtils.clearAuthResponseFromUrl(popupWindow);
+                } catch {
+                    // Popup may already be closed or cross-origin; ignore.
+                }
+            }
         }
-        return defaultHandler();
+        return BrowserUtils.waitForBridgeResponse(
+            this.config.system.popupBridgeTimeout,
+            this.logger,
+            this.browserCrypto,
+            request,
+            this.performanceClient
+        );
     }
 }
