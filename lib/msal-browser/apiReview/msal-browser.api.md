@@ -410,12 +410,12 @@ export type BrowserSystemOptions = SystemOptions & {
     allowPlatformBroker?: boolean;
     nativeBrokerHandshakeTimeout?: number;
     protocolMode?: ProtocolMode;
-    waitForPopupResponse?: (request: CommonAuthorizationUrlRequest | CommonEndSessionRequest, popupWindow: Window, popupWindowParent: Window, context: {
+    waitForPopupResponse?: (request: CommonAuthorizationUrlRequest | CommonEndSessionRequest, popupWindow: Window, popupWindowParent: Window, internals: {
         config: BrowserConfiguration;
         logger: Logger;
         performanceClient: IPerformanceClient;
     }) => Promise<string>;
-    waitForIframeResponse?: (iframe: HTMLIFrameElement, request: CommonAuthorizationUrlRequest, responseMode: string, context: {
+    waitForIframeResponse?: (iframe: HTMLIFrameElement, request: CommonAuthorizationUrlRequest, responseMode: string, internals: {
         config: BrowserConfiguration;
         logger: Logger;
         performanceClient: IPerformanceClient;
@@ -1560,11 +1560,11 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/cache/LocalStorage.ts:366:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:429:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:460:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/Configuration.ts:187:13 - (ae-incompatible-release-tags) The symbol "config" is marked as @public, but its signature references "BrowserConfiguration" which is marked as @internal
-// src/config/Configuration.ts:207:13 - (ae-incompatible-release-tags) The symbol "config" is marked as @public, but its signature references "BrowserConfiguration" which is marked as @internal
-// src/config/Configuration.ts:255:5 - (ae-incompatible-release-tags) The symbol "experimental" is marked as @public, but its signature references "BrowserExperimentalOptions" which is marked as @internal
-// src/config/Configuration.ts:264:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
-// src/config/Configuration.ts:266:5 - (ae-forgotten-export) The symbol "BrowserSystemHooks" needs to be exported by the entry point index.d.ts
+// src/config/Configuration.ts:190:13 - (ae-incompatible-release-tags) The symbol "config" is marked as @public, but its signature references "BrowserConfiguration" which is marked as @internal
+// src/config/Configuration.ts:213:13 - (ae-incompatible-release-tags) The symbol "config" is marked as @public, but its signature references "BrowserConfiguration" which is marked as @internal
+// src/config/Configuration.ts:261:5 - (ae-incompatible-release-tags) The symbol "experimental" is marked as @public, but its signature references "BrowserExperimentalOptions" which is marked as @internal
+// src/config/Configuration.ts:270:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
+// src/config/Configuration.ts:272:5 - (ae-forgotten-export) The symbol "BrowserSystemHooks" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:116:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:143:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"

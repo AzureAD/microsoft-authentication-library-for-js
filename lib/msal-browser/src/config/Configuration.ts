@@ -171,8 +171,11 @@ export type BrowserSystemOptions = SystemOptions & {
     protocolMode?: ProtocolMode;
     /**
      * Optional hook to fully replace how MSAL waits for the auth response from a popup window.
-     * The hook receives the request, the popup window and its parent, and a context bag exposing
-     * the resolved `BrowserConfiguration`, `Logger`, and `IPerformanceClient`.
+     *
+     * This is a callback invoked by MSAL; the application does not call it directly. All
+     * arguments are supplied by MSAL at invocation time: the in-flight `request`, the
+     * `popupWindow` and its `popupWindowParent`, and an `internals` bag exposing MSAL's resolved
+     * `BrowserConfiguration`, `Logger`, and `IPerformanceClient` for use inside the hook.
      *
      * When provided, this hook takes the place of the built-in BroadcastChannel-based monitor;
      * MSAL will not invoke the default monitor. The returned promise must resolve with the raw
@@ -183,7 +186,7 @@ export type BrowserSystemOptions = SystemOptions & {
         request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
         popupWindow: Window,
         popupWindowParent: Window,
-        context: {
+        internals: {
             config: BrowserConfiguration;
             logger: Logger;
             performanceClient: IPerformanceClient;
@@ -191,8 +194,11 @@ export type BrowserSystemOptions = SystemOptions & {
     ) => Promise<string>;
     /**
      * Optional hook to fully replace how MSAL waits for the auth response from a hidden iframe.
-     * The hook receives the iframe element, the request, the OIDC response mode, and a context
-     * bag exposing the resolved `BrowserConfiguration`, `Logger`, and `IPerformanceClient`.
+     *
+     * This is a callback invoked by MSAL; the application does not call it directly. All
+     * arguments are supplied by MSAL at invocation time: the `iframe` element, the in-flight
+     * `request`, the OIDC `responseMode`, and an `internals` bag exposing MSAL's resolved
+     * `BrowserConfiguration`, `Logger`, and `IPerformanceClient` for use inside the hook.
      *
      * When provided, this hook takes the place of the built-in BroadcastChannel-based monitor;
      * MSAL will not invoke the default monitor. The returned promise must resolve with the raw
@@ -203,7 +209,7 @@ export type BrowserSystemOptions = SystemOptions & {
         iframe: HTMLIFrameElement,
         request: CommonAuthorizationUrlRequest,
         responseMode: string,
-        context: {
+        internals: {
             config: BrowserConfiguration;
             logger: Logger;
             performanceClient: IPerformanceClient;
