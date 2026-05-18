@@ -78,4 +78,4 @@ const msalConfig = {
 
 Note: The `allowPlatformBroker` flag must also be set to true in order to use this feature. There will be a configuration error - `invalid_platform_broker_configuration` if `allowPlatformBrokerWithDOM` is set to true while `allowPlatformBroker` is false.
 
-Eventually, in a future major version, this flag will be merged with `allowPlatformBroker` and MSAL.js will make the decision to use either the browser extension or DOM APIs based on the environment automatically.
+Eventually, in a future major version, this flag will be merged with `allowPlatformBroker` and MSAL.js will make the decision to use either the browser extension or DOM APIs based on the environment automatically. The behavior and availability of `experimental` flags is subject to change at any time, without following semver rules.
