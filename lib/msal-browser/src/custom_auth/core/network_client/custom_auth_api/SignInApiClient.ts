@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ServerTelemetryManager } from "@azure/msal-common/browser";
+import { Logger, ServerTelemetryManager } from "@azure/msal-common/browser";
 import { GrantType } from "../../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../error/CustomAuthApiError.js";
 import { BaseApiClient } from "./BaseApiClient.js";
@@ -24,6 +24,7 @@ import {
     SignInIntrospectResponse,
     SignInTokenResponse,
 } from "./types/ApiResponseTypes.js";
+import { CustomAuthRequestInterceptor } from "../../../configuration/CustomAuthRequestInterceptor.js";
 
 export class SignInApiClient extends BaseApiClient {
     private readonly capabilities?: string;
@@ -33,13 +34,17 @@ export class SignInApiClient extends BaseApiClient {
         clientId: string,
         httpClient: IHttpClient,
         capabilities?: string,
-        customAuthApiQueryParams?: Record<string, string>
+        customAuthApiQueryParams?: Record<string, string>,
+        requestInterceptor?: CustomAuthRequestInterceptor,
+        logger?: Logger
     ) {
         super(
             customAuthApiBaseUrl,
             clientId,
             httpClient,
-            customAuthApiQueryParams
+            customAuthApiQueryParams,
+            requestInterceptor,
+            logger
         );
         this.capabilities = capabilities;
     }

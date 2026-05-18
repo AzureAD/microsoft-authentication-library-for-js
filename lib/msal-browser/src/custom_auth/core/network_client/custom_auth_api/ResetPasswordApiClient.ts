@@ -10,6 +10,7 @@ import {
 import { CustomAuthApiError } from "../../error/CustomAuthApiError.js";
 import { BaseApiClient } from "./BaseApiClient.js";
 import { IHttpClient } from "../http_client/IHttpClient.js";
+import { Logger } from "@azure/msal-common/browser";
 import * as CustomAuthApiEndpoint from "./CustomAuthApiEndpoint.js";
 import * as CustomAuthApiErrorCode from "./types/ApiErrorCodes.js";
 import {
@@ -26,6 +27,7 @@ import {
     ResetPasswordStartResponse,
     ResetPasswordSubmitResponse,
 } from "./types/ApiResponseTypes.js";
+import { CustomAuthRequestInterceptor } from "../../../configuration/CustomAuthRequestInterceptor.js";
 
 export class ResetPasswordApiClient extends BaseApiClient {
     private readonly capabilities?: string;
@@ -35,13 +37,17 @@ export class ResetPasswordApiClient extends BaseApiClient {
         clientId: string,
         httpClient: IHttpClient,
         capabilities?: string,
-        customAuthApiQueryParams?: Record<string, string>
+        customAuthApiQueryParams?: Record<string, string>,
+        requestInterceptor?: CustomAuthRequestInterceptor,
+        logger?: Logger
     ) {
         super(
             customAuthApiBaseUrl,
             clientId,
             httpClient,
-            customAuthApiQueryParams
+            customAuthApiQueryParams,
+            requestInterceptor,
+            logger
         );
         this.capabilities = capabilities;
     }

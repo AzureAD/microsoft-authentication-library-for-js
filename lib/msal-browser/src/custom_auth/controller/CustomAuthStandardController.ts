@@ -125,7 +125,9 @@ export class CustomAuthStandardController
                     this.customAuthConfig.auth.clientId,
                     new FetchHttpClient(this.logger),
                     this.customAuthConfig.customAuth?.capabilities?.join(" "),
-                    this.customAuthConfig.customAuth?.customAuthApiQueryParams
+                    this.customAuthConfig.customAuth?.customAuthApiQueryParams,
+                    this.customAuthConfig.customAuth?.requestInterceptor,
+                    this.logger
                 ),
             this.authority
         );
