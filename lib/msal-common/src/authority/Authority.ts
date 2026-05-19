@@ -1286,8 +1286,7 @@ export class Authority {
          * (e.g., a GUID-based issuer for a name-based authority).
          */
         const matchesKnownAuthority =
-            issuerScheme === "https:" &&
-            this.isInKnownAuthorities(issuerHost);
+            issuerScheme === "https:" && this.isInKnownAuthorities(issuerHost);
 
         // Each rule is an independent boolean; the issuer is valid if ANY rule matches.
         if (
