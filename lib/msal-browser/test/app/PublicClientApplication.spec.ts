@@ -499,13 +499,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             };
 
-            jest.spyOn(
-                PlatformAuthProvider,
-                "isDomEnabledForPlatformAuth"
-            ).mockImplementation(() => {
-                return false;
-            });
-
             const getPlatformAuthProviderSpy = jest.spyOn(
                 PlatformAuthProvider,
                 "getPlatformAuthProvider"
@@ -558,7 +551,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca.platformAuthProvider).toBeUndefined();
         });
 
-        it("creates platform auth dom handler if allowPlatformBroker is true and dom APIs are present", async () => {
+        it("creates platform auth dom handler if allowPlatformBrokerWithDOM is true and dom APIs are present", async () => {
             const getPlatformAuthProviderSpy = jest.spyOn(
                 PlatformAuthProvider,
                 "getPlatformAuthProvider"
@@ -571,13 +564,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 system: {
                     allowPlatformBroker: true,
                 },
+                experimental: {
+                    allowPlatformBrokerWithDOM: true,
+                },
             };
 
             pca = new PublicClientApplication(config);
-            window.sessionStorage.setItem(
-                "msal.browser.platform.auth.dom",
-                "true"
-            );
 
             const createDOMProviderSpy = stubDOMProvider(config);
             await pca.initialize();
