@@ -1281,7 +1281,7 @@ export class Authority {
         /*
          * Rule 5: The issuer host is explicitly listed in the developer-configured
          * knownAuthorities. This covers scenarios where the OIDC discovery document
-         * returns an issuer with a different host than the authority 
+         * returns an issuer with a different host than the authority
          * (e.g., a GUID-based issuer for a name-based authority).
          */
         const matchesKnownAuthority =
