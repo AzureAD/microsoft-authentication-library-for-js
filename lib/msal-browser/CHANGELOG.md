@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Mon, 11 May 2026 21:48:15 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 19 May 2026 19:29:14 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.11.0
+
+Tue, 19 May 2026 19:29:14 GMT
+
+### Minor changes
+
+- Add allowPlatformBrokerWithDOM experimental config flag for DOM-based platform brokering [#8589](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8589) (lalimasharda@microsoft.com)
+- Custom Auth: add `requestInterceptor` configuration option that lets apps attach additional `x-*` headers to custom-auth backend requests (e.g., for fraud/bot-detection vendors). Headers without the `x-` prefix and headers starting with reserved prefixes (`x-client-`, `x-ms-`, `x-broker-`, `x-app-`) are filtered out. [#8587](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8587) (shen.jian@live.com)
+- Bump @azure/msal-common to v16.6.2
+
+### Patches
+
+- Fix logoutHint to check account loginHint before falling back to idTokenClaims [#8591](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8591) (lalimasharda@microsoft.com)
 
 ## 5.10.1
 
