@@ -2050,6 +2050,42 @@ describe("Authority.ts Class Unit Tests", () => {
                             )
                         ).toThrow(issuerValidationFailedError);
                     });
+
+                    it("rejects an HTTP issuer even when the host is listed in knownAuthorities", () => {
+                        const tenantGuid =
+                            "12345678-1234-1234-1234-123456789abc";
+                        const testAuthority = buildAuthority(
+                            "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/",
+                            [
+                                "contoso.ciamlogin.com",
+                                `${tenantGuid}.ciamlogin.com`,
+                            ]
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                `http://${tenantGuid}.ciamlogin.com/${tenantGuid}/v2.0`
+                            )
+                        ).toThrow(issuerValidationFailedError);
+                    });
+
+                    it("accepts an issuer whose host is in knownAuthorities regardless of case", () => {
+                        const tenantGuid =
+                            "12345678-1234-1234-1234-123456789abc";
+                        const testAuthority = buildAuthority(
+                            "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/",
+                            [
+                                "contoso.ciamlogin.com",
+                                `${tenantGuid}.ciamlogin.com`,
+                            ]
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                `https://${tenantGuid.toUpperCase()}.ciamlogin.com/${tenantGuid}/v2.0`
+                            )
+                        ).not.toThrow();
+                    });
                 });
             });
         });

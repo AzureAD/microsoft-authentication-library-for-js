@@ -1115,12 +1115,13 @@ export class Authority {
      * Helper function to determine if a host is included in the knownAuthorities config option.
      */
     private isInKnownAuthorities(host: string): boolean {
+        const hostLower = host.toLowerCase();
         const matches = this.authorityOptions.knownAuthorities.filter(
             (authority) => {
                 return (
                     authority &&
                     UrlString.getDomainFromUrl(authority).toLowerCase() ===
-                        host
+                        hostLower
                 );
             }
         );
