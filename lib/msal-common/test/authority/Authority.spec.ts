@@ -2016,6 +2016,41 @@ describe("Authority.ts Class Unit Tests", () => {
                         ).toThrow(issuerValidationFailedError);
                     });
                 });
+
+                describe("Rule 5: issuer host in knownAuthorities", () => {
+                    it("accepts an issuer whose host is explicitly listed in knownAuthorities", () => {
+                        const tenantGuid =
+                            "12345678-1234-1234-1234-123456789abc";
+                        const testAuthority = buildAuthority(
+                            "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/",
+                            [
+                                "contoso.ciamlogin.com",
+                                `${tenantGuid}.ciamlogin.com`,
+                            ]
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                `https://${tenantGuid}.ciamlogin.com/${tenantGuid}/v2.0`
+                            )
+                        ).not.toThrow();
+                    });
+
+                    it("rejects an issuer whose host is NOT in knownAuthorities and no other rule matches", () => {
+                        const tenantGuid =
+                            "12345678-1234-1234-1234-123456789abc";
+                        const testAuthority = buildAuthority(
+                            "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/",
+                            ["contoso.ciamlogin.com"]
+                        );
+                        expect(() =>
+                            callValidateIssuer(
+                                testAuthority,
+                                `https://${tenantGuid}.ciamlogin.com/${tenantGuid}/v2.0`
+                            )
+                        ).toThrow(issuerValidationFailedError);
+                    });
+                });
             });
         });
 

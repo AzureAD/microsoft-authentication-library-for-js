@@ -133,7 +133,32 @@ Where `tenant` would mean:
 - GUID (tenantId)
 - a verified domain for the tenant
 
-Note: MSAL JS currently is previeing the `CIAM` support. This is an emerging space and there could be some changes to the support until we GA the feature.
+#### CIAM Issuer Validation and `knownAuthorities`
+
+The Entra External ID (CIAM) service may return an OIDC issuer whose host uses the **tenant GUID** rather than the tenant name. For example, an authority configured as `https://contoso.ciamlogin.com/contoso.onmicrosoft.com/` may return an issuer of the form:
+
+```
+https://<tenant-guid>.ciamlogin.com/<tenant-guid>/v2.0
+```
+
+Because the issuer host (`<tenant-guid>.ciamlogin.com`) differs from the authority host (`contoso.ciamlogin.com`) and MSAL JS does not have a reliable way to know the mapping beforehand, MSAL's issuer validation will reject it unless the GUID-based host is explicitly trusted. To resolve this, add the GUID-based host to `knownAuthorities`:
+
+```javascript
+const pca = new PublicClientApplication({
+    auth: {
+        clientId: "<client-id>",
+        authority: "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/",
+        knownAuthorities: [
+            "contoso.ciamlogin.com",
+            "<tenant-guid>.ciamlogin.com" // Add the GUID-based issuer host
+        ]
+    }
+});
+```
+
+You can find your tenant GUID in the Azure portal under **Tenant properties** or by inspecting the OIDC discovery document at `https://<tenantName>.ciamlogin.com/<tenantName>.onmicrosoft.com/v2.0/.well-known/openid-configuration`.
+
+Note: MSAL JS currently is previewing the `CIAM` support. This is an emerging space and there could be some changes to the support until we GA the feature.
 
 ### Other OIDC-compliant IdPs
 
