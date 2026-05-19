@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix logoutHint to check account loginHint before falling back to idTokenClaims [#8591](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8591)",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
