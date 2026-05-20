@@ -1,6 +1,6 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
-  "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
+  "mainEntryPointFilePath": "<projectFolder>/types/index.d.ts",
   "newlineKind": "lf",
   "apiReport": {
     "enabled": true,
@@ -16,8 +16,8 @@
   "messages": {
     "compilerMessageReporting": {
       "default": {
-       "logLevel": "warning",
-       "addToApiReportFile": true
+        "logLevel": "warning",
+        "addToApiReportFile": true
       }
     },
     "extractorMessageReporting": {
@@ -40,7 +40,7 @@
     "tsdocMessageReporting": {
       "default": {
         "logLevel": "warning",
-        "addToApiReportFile":true
+        "addToApiReportFile": true
       }
     }
   }

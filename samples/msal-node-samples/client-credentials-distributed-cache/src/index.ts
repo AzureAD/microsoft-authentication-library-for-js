@@ -14,7 +14,7 @@ import {
 } from "perf_hooks";
 
 import { AuthProvider, AppConfig } from "./AuthProvider";
-import AxiosHelper from "./AxiosHelper";
+import FetchHelper from "./FetchHelper";
 import ProvisionHandler from "./ProvisionHandler";
 
 dotenv.config();
@@ -81,7 +81,7 @@ async function main() {
                     scopes: ["https://graph.microsoft.com/.default"],
                 });
 
-                const graphResponse = await AxiosHelper.callDownstreamApi(
+                const graphResponse = await FetchHelper.callDownstreamApi(
                     "https://graph.microsoft.com/v1.0/users",
                     tokenResponse?.accessToken
                 );

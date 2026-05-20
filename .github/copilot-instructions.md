@@ -36,9 +36,11 @@ Some samples located in the `samples/` directory contain a `test/` folder. End t
 
 ## Pull Request Review Guidelines
 
-When reviewing pull requests, GitHub Copilot should provide comprehensive feedback focusing on four key areas:
+When reviewing pull requests, GitHub Copilot should provide comprehensive feedback focusing on these key areas:
 
 1. Suggest documentation updates for new public methods, properties and APIs, changes to existing APIs, new error scenarios or codes, performance considerations, breaking changes, and usage examples. See `.github/instructions/doc_review.instructions.md` for the full documentation review checklist.
 1. Suggest adding test coverage (if not included) for new functions, properties, error and edge cases. Complex features should include E2E tests. 
 1. Suggest adding telemetry for any changes that may impact performance or reliability and for any areas that may be useful for debugging or monitoring.
 1. Changefiles should be included for all changes to the source code for core libraries (lib/) or extensions (extensions/) and should adhere to the guidelines specified in `.github/instructions/changefiles.instructions.md`
+1. Validate that all internal links in markdown files are correct. When files, directories, or samples are added, removed, renamed, or moved, scan all `.md` files for stale references (relative paths and GitHub URLs) and flag broken links. See `.github/instructions/doc_links.instructions.md` for the full link validation checklist.
+1. Review persisted cache changes for schema compatibility. If a PR changes cache keys or the persisted value shape in an incompatible way, require an explicit schema version bump plus migration, upgrade coverage, and downgrade coverage.

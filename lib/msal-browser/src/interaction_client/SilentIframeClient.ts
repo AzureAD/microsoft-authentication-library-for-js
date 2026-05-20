@@ -15,6 +15,8 @@ import {
     invoke,
     ProtocolMode,
     CommonAuthorizationUrlRequest,
+    AuthorizeProtocol,
+    PkceCodes,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
@@ -393,6 +395,85 @@ export class SilentIframeClient extends StandardInteractionClient {
     }
 
     /**
+     * Verifies SSO capability by making an iframe request to /authorize without exchanging the code for tokens.
+     * This is useful for verifying SSO capability in the background without the overhead of a full token exchange.
+     * @param request - The SSO silent request
+     * @returns true if SSO verification was successful with a valid authorization code, false otherwise
+     */
+    async verifySso(request: SsoSilentRequest): Promise<boolean> {
+        const inputRequest = { ...request };
+        if (!inputRequest.prompt) {
+            inputRequest.prompt = Constants.PromptValue.NONE;
+        }
+
+        // Create silent request
+        const silentRequest: CommonAuthorizationUrlRequest = await invokeAsync(
+            initializeAuthorizationRequest,
+            BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(
+            inputRequest,
+            InteractionType.Silent,
+            this.config,
+            this.browserCrypto,
+            this.browserStorage,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        );
+
+        const authClient: AuthorizationCodeClient = await invokeAsync(
+            this.createAuthCodeClient.bind(this),
+            BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )({
+            serverTelemetryManager: initializeServerTelemetryManager(
+                this.apiId,
+                this.config.auth.clientId,
+                this.correlationId,
+                this.browserStorage,
+                this.logger
+            ),
+            requestAuthority: silentRequest.authority,
+            requestAzureCloudOptions: silentRequest.azureCloudOptions,
+            requestExtraQueryParameters: silentRequest.extraQueryParameters,
+            account: silentRequest.account,
+        });
+
+        const { serverParams } = await this.silentAuthorizeHelper(
+            authClient,
+            silentRequest
+        );
+
+        const correlationId = silentRequest.correlationId;
+
+        // Validate the response - this checks for errors and validates state
+        AuthorizeProtocol.validateAuthorizationResponse(
+            serverParams,
+            silentRequest.state
+        );
+
+        // Verify a valid authorization code is present
+        if (!serverParams.code) {
+            this.logger.warning(
+                "SSO verification response did not contain an authorization code",
+                correlationId
+            );
+            return false;
+        }
+
+        this.logger.verbose(
+            "SSO verification completed successfully with valid authorization code - skipped token exchange",
+            correlationId
+        );
+        return true;
+    }
+
+    /**
      * Currently Unsupported
      */
     logout(): Promise<void> {
@@ -414,6 +495,47 @@ export class SilentIframeClient extends StandardInteractionClient {
         authClient: AuthorizationCodeClient,
         request: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
+        const { serverParams, pkceCodes } = await this.silentAuthorizeHelper(
+            authClient,
+            request
+        );
+
+        return invokeAsync(
+            Authorize.handleResponseCode,
+            BrowserPerformanceEvents.HandleResponseCode,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(
+            request,
+            serverParams,
+            pkceCodes.verifier,
+            this.apiId,
+            this.config,
+            authClient,
+            this.browserStorage,
+            this.nativeStorage,
+            this.eventHandler,
+            this.logger,
+            this.performanceClient,
+            this.platformAuthProvider
+        );
+    }
+
+    /**
+     * Shared helper that generates PKCE codes, builds the /authorize URL,
+     * loads it in a hidden iframe, waits for the redirect-bridge response,
+     * and returns the deserialized server parameters along with the PKCE codes
+     * and the request that was sent.
+     */
+    private async silentAuthorizeHelper(
+        authClient: AuthorizationCodeClient,
+        request: CommonAuthorizationUrlRequest
+    ): Promise<{
+        serverParams: ReturnType<typeof ResponseHandler.deserializeResponse>;
+        pkceCodes: PkceCodes;
+        silentRequest: CommonAuthorizationUrlRequest;
+    }> {
         const correlationId = request.correlationId;
         const pkceCodes = await invokeAsync(
             generatePkceCodes,
@@ -505,25 +627,6 @@ export class SilentIframeClient extends StandardInteractionClient {
             correlationId
         )(responseString, responseType, this.logger, this.correlationId);
 
-        return invokeAsync(
-            Authorize.handleResponseCode,
-            BrowserPerformanceEvents.HandleResponseCode,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(
-            request,
-            serverParams,
-            pkceCodes.verifier,
-            this.apiId,
-            this.config,
-            authClient,
-            this.browserStorage,
-            this.nativeStorage,
-            this.eventHandler,
-            this.logger,
-            this.performanceClient,
-            this.platformAuthProvider
-        );
+        return { serverParams, pkceCodes, silentRequest };
     }
 }

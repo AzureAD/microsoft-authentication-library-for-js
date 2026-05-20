@@ -34,9 +34,9 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/B2C-AAD.json");
 
-describe.skip("Auth Code B2C Tests (aad account)", () => {
+describe("Auth Code B2C Tests (aad account)", () => {
     jest.retryTimes(RETRY_TIMES);
-    jest.setTimeout(45000);
+    jest.setTimeout(90000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -102,7 +102,6 @@ describe.skip("Auth Code B2C Tests (aad account)", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(5000);
             page.on("dialog", async (dialog) => {
                 console.log(dialog.message());
                 await dialog.dismiss();
@@ -240,3 +239,4 @@ describe.skip("Auth Code B2C Tests (aad account)", () => {
         });
     });
 });
+

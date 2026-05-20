@@ -39,10 +39,7 @@ variables:
     CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
     LinuxContainerImage: "mcr.microsoft.com/onebranch/cbl-mariner/build:2.0" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
     DEBIAN_FRONTEND: noninteractive
-    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
-        sourceBranch: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
-    ${{ if startsWith(variables['System.PullRequest.SourceBranch'], 'refs/pull/') }}:
-        sourceBranch: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/pull/', '') }}
+    sourceBranch: $[coalesce(replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', ''), replace(variables['Build.SourceBranch'], 'refs/heads/', ''))]
     sourceRepo: "microsoft-authentication-library-for-js"
 
 resources:
@@ -77,11 +74,20 @@ extends:
                         sourceBranch: ${{ variables.sourceBranch }}
                         workspace: "samples/msal-browser-samples"
                         samples:
-                            - "client-capabilities"
-                            - "onPageLoad"
-                            - "pop"
-                            - "customizable-e2e-test"
-                            - "ExpressSample"
+                            - name: "client-capabilities"
+                            - name: "onPageLoad"
+                            - name: "pop"
+                            - name: "customizable-e2e-test-1"
+                              dir: "customizable-e2e-test"
+                              testFilter: "browserAAD\\.spec|localStorage|browserMem"
+                            - name: "customizable-e2e-test-2"
+                              dir: "customizable-e2e-test"
+                              testFilter: "browserAADTenanted|browserAADMultiTenant"
+                            - name: "customizable-e2e-test-3"
+                              dir: "customizable-e2e-test"
+                              testFilter: "browserB2C|browserMCP"
+                            - name: "ExpressSample"
+                            - name: "NativeAuthSample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}
@@ -95,16 +101,26 @@ extends:
                         sourceRepo: ${{ variables.sourceRepo }}
                         sourceBranch: ${{ variables.sourceBranch }}
                         workspace: "samples/msal-node-samples"
-                        nodeVersions: [20, 22, 24]
+                        nodeVersions: ["20", "22", "24"]
                         samples:
-                            - "auth-code"
-                            - "auth-code-cli-app"
-                            - "client-credentials"
-                            - "client-credentials-with-cert-from-key-vault"
-                            - "device-code"
-                            - "silent-flow"
-                            - "b2c-user-flows"
-                            # - "on-behalf-of"
+                            - name: "auth-code-1"
+                              dir: "auth-code"
+                              testFilter: "auth-code-aad|auth-code-adfs"
+                            - name: "auth-code-2"
+                              dir: "auth-code"
+                              testFilter: "auth-code-b2c"
+                            - name: "auth-code-cli-app"
+                            - name: "client-credentials"
+                            - name: "client-credentials-with-cert-from-key-vault"
+                            - name: "device-code"
+                            - name: "silent-flow-1"
+                              dir: "silent-flow"
+                              testFilter: "silent-flow-aad|silent-flow-adfs"
+                            - name: "silent-flow-2"
+                              dir: "silent-flow"
+                              testFilter: "silent-flow-b2c"
+                            - name: "b2c-user-flows"
+                            # - name: "on-behalf-of"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}
@@ -119,13 +135,13 @@ extends:
                         sourceBranch: ${{ variables.sourceBranch }}
                         workspace: "samples/msal-react-samples"
                         samples:
-                            - "nextjs-sample"
-                            - "react-router-sample"
-                            - "typescript-sample"
-                            - "b2c-sample"
-                            - "react16-sample"
-                            - "react17-sample"
-                            - "react18-sample"
+                            - name: "nextjs-sample"
+                            - name: "react-router-sample"
+                            - name: "typescript-sample"
+                            - name: "b2c-sample"
+                            - name: "react16-sample"
+                            - name: "react17-sample"
+                            - name: "react18-sample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}
@@ -140,9 +156,9 @@ extends:
                         sourceBranch: ${{ variables.sourceBranch }}
                         workspace: "samples/msal-angular-samples"
                         samples:
-                            - "angular-b2c-sample"
-                            - "angular-modules-sample"
-                            - "angular-standalone-sample"
+                            - name: "angular-b2c-sample"
+                            - name: "angular-modules-sample"
+                            - name: "angular-standalone-sample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}

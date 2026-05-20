@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Add allowPlatformBrokerWithDOM experimental config flag for DOM-based platform brokering [#8589](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8589)",
+    "packageName": "@azure/msal-browser",
+    "email": "lalimasharda@microsoft.com",
+    "dependentChangeType": "patch"
+}

@@ -2,6 +2,81 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Mon, 11 May 2026 21:48:15 GMT",
+      "version": "5.2.4",
+      "tag": "@azure/msal-angular_v5.2.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.10.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 07 May 2026 19:01:04 GMT",
+      "version": "5.2.3",
+      "tag": "@azure/msal-angular_v5.2.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.10.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 28 Apr 2026 21:30:33 GMT",
+      "version": "5.2.2",
+      "tag": "@azure/msal-angular_v5.2.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.9.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 21 Apr 2026 22:41:19 GMT",
+      "version": "5.2.1",
+      "tag": "@azure/msal-angular_v5.2.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.8.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 16 Apr 2026 22:44:53 GMT",
+      "version": "5.2.0",
+      "tag": "@azure/msal-angular_v5.2.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.7.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 01 Apr 2026 20:09:00 GMT",
       "version": "5.1.4",
       "tag": "@azure/msal-angular_v5.1.4",

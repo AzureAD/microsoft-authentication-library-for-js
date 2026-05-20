@@ -37,3 +37,11 @@ Add performance measurements for:
 - **Add relevant fields** like operation counts, cache hit/miss, and custom error details or additional error context not automatically captured by invoke/invokeAsync
 - **Use existing PerformanceEvents** when possible rather than creating new ones
 - **Add telemetry for new operations** following the guidelines above
+
+## Cache Schema Compatibility
+
+When working on persisted cache behavior, explicitly evaluate whether the change is compatible with existing cache entries.
+
+- If a cache change is incompatible, increment the relevant cache schema version and update migration logic and tests.
+- Incompatible changes include any changes to the cache key, removing properties from the JSON value, changing property types, or introducing properties that code now requires or assumes exist.
+- Add or update upgrade and downgrade coverage whenever cache schema behavior changes.

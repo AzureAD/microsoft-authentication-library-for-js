@@ -209,7 +209,7 @@ describe("MsalAuthenticationTemplate tests", () => {
         const ssoSilentSpy = jest
             .spyOn(pca, "ssoSilent")
             .mockImplementation((request) => {
-                expect(request).toBe(undefined);
+                expect(request).toStrictEqual({});
                 accounts = [testAccount];
                 const eventMessage: EventMessage = {
                     eventType: EventType.ACQUIRE_TOKEN_SUCCESS,

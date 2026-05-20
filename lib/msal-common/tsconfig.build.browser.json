@@ -2,7 +2,11 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "rootDir": "./src",
-        "outDir": "./dist-browser"
+        "outDir": "./dist-browser",
+        "declaration": false,
+        "declarationMap": false
     },
-    "include": ["src"]
+    "include": [
+        "src"
+    ]
 }

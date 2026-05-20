@@ -48,6 +48,7 @@ import { BrowserConstants } from "../../src/utils/BrowserConstants.js";
 import * as NativeStatusCodes from "../../src/broker/nativeBroker/NativeStatusCodes.js";
 import { PlatformAuthResponse } from "../../src/broker/nativeBroker/PlatformAuthResponse.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
+import { updateAccountTenantProfileData } from "@azure/msal-common/browser";
 const MOCK_WAM_RESPONSE: PlatformAuthResponse = {
     access_token: TEST_TOKENS.ACCESS_TOKEN,
     id_token: TEST_TOKENS.IDTOKEN_V2,
@@ -86,11 +87,12 @@ const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
     }
 );
 
-const TEST_ACCOUNT_INFO: AccountInfo = {
-    ...AccountEntityUtils.getAccountInfo(testAccountEntity),
-    idTokenClaims: ID_TOKEN_CLAIMS,
-    idToken: TEST_TOKENS.IDTOKEN_V2,
-};
+const TEST_ACCOUNT_INFO: AccountInfo = updateAccountTenantProfileData(
+    AccountEntityUtils.getAccountInfo(testAccountEntity),
+    undefined,
+    ID_TOKEN_CLAIMS,
+    TEST_TOKENS.IDTOKEN_V2
+);
 
 const TEST_ID_TOKEN: IdTokenEntity = buildIdToken(
     ID_TOKEN_CLAIMS,
@@ -190,6 +192,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             "test-measurement",
             "test-correlation-id"
         );
+        // Freeze Date.now() so timestamp comparisons in toEqual don't fail
+        // when a 1-second boundary is crossed during async acquireToken calls.
+        jest.spyOn(Date, "now").mockReturnValue(Date.now());
     });
 
     afterEach(() => {
@@ -1547,13 +1552,13 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
 
                 // Cache should not contain tokens which were turned off
-                const tokenKeys = browserCacheManager.getTokenKeys();
+                const tokenKeys = internalStorage.getTokenKeys();
                 expect(tokenKeys.idToken).toHaveLength(0);
                 expect(tokenKeys.accessToken).toHaveLength(0);
                 expect(tokenKeys.refreshToken).toHaveLength(0);
 
                 // Cache should not contain tokens which were turned off
-                const internalTokenKeys = internalStorage.getTokenKeys();
+                const internalTokenKeys = browserCacheManager.getTokenKeys();
                 expect(internalTokenKeys.idToken).toHaveLength(1);
                 expect(internalTokenKeys.accessToken).toHaveLength(0);
                 expect(internalTokenKeys.refreshToken).toHaveLength(0); // RT will never be returned by WAM
@@ -1574,13 +1579,13 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
                 // Browser Storage should not contain tokens
                 const tokenKeys = browserCacheManager.getTokenKeys();
-                expect(tokenKeys.idToken).toHaveLength(0);
+                expect(tokenKeys.idToken).toHaveLength(1);
                 expect(tokenKeys.accessToken).toHaveLength(0);
                 expect(tokenKeys.refreshToken).toHaveLength(0);
 
                 // Cache should not contain tokens which were turned off
                 const internalTokenKeys = internalStorage.getTokenKeys();
-                expect(internalTokenKeys.idToken).toHaveLength(1);
+                expect(internalTokenKeys.idToken).toHaveLength(0);
                 expect(internalTokenKeys.accessToken).toHaveLength(1);
                 expect(internalTokenKeys.refreshToken).toHaveLength(0); // RT will never be returned by WAM
             });

@@ -48,6 +48,7 @@ import {
     AccountEntityUtils,
     Constants,
     ProtocolUtils,
+    updateAccountTenantProfileData,
 } from "@azure/msal-common/browser";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
@@ -199,6 +200,9 @@ describe("RedirectClient", () => {
         mockSetRequestState.mockReturnValue(
             TEST_STATE_VALUES.TEST_STATE_REDIRECT
         );
+        // Freeze Date.now() so timestamp comparisons in toEqual don't fail
+        // when a 1-second boundary is crossed during async acquireToken calls.
+        jest.spyOn(Date, "now").mockReturnValue(Date.now());
     });
 
     afterEach(() => {
@@ -2591,6 +2595,120 @@ describe("RedirectClient", () => {
                 );
         });
 
+        it("gets logouthint from account loginhint first before checking idtokenclaims", (done) => {
+            const logoutHint = "accountloginhint@user.com";
+            const testIdTokenClaims: TokenClaims = {
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                loginHint: logoutHint,
+                idTokenClaims: testIdTokenClaims,
+            };
+
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                lastUpdatedAt: Date.now().toString(),
+            };
+
+            jest.spyOn(
+                NavigationClient.prototype,
+                "navigateExternal"
+            ).mockImplementation(
+                (
+                    urlNavigate: string,
+                    options: NavigationOptions
+                ): Promise<boolean> => {
+                    expect(urlNavigate).toContain(
+                        `logout_hint=${encodeURIComponent(logoutHint)}`
+                    );
+                    done();
+                    return Promise.resolve(true);
+                }
+            );
+            browserStorage
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true, 0)
+                .then(() =>
+                    redirectClient.logout({ account: testAccountInfo })
+                );
+        });
+
+        it("falls back to idTokenClaims login_hint when account loginHint is not available", (done) => {
+            const idTokenLoginHint = "idtoken@user.com";
+            const testIdTokenClaims: TokenClaims = {
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+                login_hint: idTokenLoginHint,
+            };
+
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                idTokenClaims: testIdTokenClaims,
+            };
+
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                lastUpdatedAt: Date.now().toString(),
+            };
+
+            jest.spyOn(
+                NavigationClient.prototype,
+                "navigateExternal"
+            ).mockImplementation(
+                (
+                    urlNavigate: string,
+                    options: NavigationOptions
+                ): Promise<boolean> => {
+                    expect(urlNavigate).toContain(
+                        `logout_hint=${encodeURIComponent(idTokenLoginHint)}`
+                    );
+                    done();
+                    return Promise.resolve(true);
+                }
+            );
+            browserStorage
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true, 0)
+                .then(() =>
+                    redirectClient.logout({ account: testAccountInfo })
+                );
+        });
+
         it("logoutHint attribute takes precedence over ID Token Claims from provided account when setting logout_hint", (done) => {
             const logoutHint = "test@user.com";
             const loginHint = "anothertest@user.com";
@@ -2706,12 +2824,12 @@ describe("RedirectClient", () => {
         it("clears active account entry from the cache", async () => {
             const testAccountEntity =
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-            const testAccountInfo: AccountInfo = {
-                ...AccountEntityUtils.getAccountInfo(testAccountEntity),
-                idTokenClaims: ID_TOKEN_CLAIMS,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
-            };
-
+            const testAccountInfo: AccountInfo = updateAccountTenantProfileData(
+                AccountEntityUtils.getAccountInfo(testAccountEntity),
+                undefined,
+                ID_TOKEN_CLAIMS,
+                TEST_TOKENS.IDTOKEN_V2
+            );
             const testIdToken: IdTokenEntity = buildIdToken(
                 ID_TOKEN_CLAIMS,
                 TEST_TOKENS.IDTOKEN_V2,

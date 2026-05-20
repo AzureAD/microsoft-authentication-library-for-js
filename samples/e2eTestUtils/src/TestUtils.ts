@@ -9,7 +9,7 @@ export const RETRY_TIMES = 5;
 
 const WAIT_FOR_NAVIGATION_CONFIG: WaitForOptions = {
     waitUntil: ["load", "domcontentloaded", "networkidle0"],
-    timeout: 2000
+    timeout: 10000
 };
 
 export class Screenshot {
@@ -86,17 +86,24 @@ export async function pcaInitializedPoller(
     timeoutMs: number
 ): Promise<void> {
     await poller(
-        () => {
-            return new Promise(async (resolve, reject) => {
-                await page.waitForSelector("#pca-initialized");
-                const initializedText = await page.$eval(
-                    "#pca-initialized",
-                    (el) => el.textContent
-                );
-                if (initializedText === "true") {
-                    resolve();
-                }
-            });
+        async () => {
+            // Short per-attempt wait so the poller can retry if the element
+            // hasn't appeared yet or the page is mid-navigation.
+            const el = await page
+                .waitForSelector("#pca-initialized", { timeout: 1000 })
+                .catch(() => null);
+            if (!el) {
+                throw new Error("PCA not yet initialized");
+            }
+            // $eval can throw "Execution context was destroyed" when MSAL's
+            // handleRedirectPromise triggers a redirect.  Treat that as a
+            // retry rather than a hard failure.
+            const initializedText = await page
+                .$eval("#pca-initialized", (node) => node.textContent)
+                .catch(() => null);
+            if (initializedText !== "true") {
+                throw new Error("PCA not yet initialized");
+            }
         },
         timeoutMs,
         "Timed out while waiting for PublicClientApplication to be initialized"
@@ -196,10 +203,10 @@ export async function b2cAadPpeAccountEnterCredentials(
     username: string,
     accountPwd: string
 ): Promise<void> {
-    await page.waitForSelector(HtmlSelectors.B2C_AAD_MSIDLAB4_SIGNIN_PAGE);
+    await page.waitForSelector(HtmlSelectors.B2C_AAD_ID4SLAB2_SIGNIN_PAGE);
     await screenshot.takeScreenshot(page, "b2cSignInPage");
     // Select Lab Provider
-    await page.click(HtmlSelectors.B2C_AAD_MSIDLAB4_SIGNIN_PAGE);
+    await page.click(HtmlSelectors.B2C_AAD_ID4SLAB2_SIGNIN_PAGE);
     // Enter credentials
     await enterCredentials(page, screenshot, username, accountPwd);
 }
@@ -229,7 +236,7 @@ export async function fillPassword(page: Page, screenshot: Screenshot, password:
     try {
         await page.locator('span ::-p-text(Use your password)').setTimeout(1000).click().catch(() => {});
         await screenshot.takeScreenshot(page, "passwordPage");
-        await page.locator(`${Object.values(PasswordInputSelectors).join(", ")}`).setTimeout(5000).fill(password);
+        await page.locator(`${Object.values(PasswordInputSelectors).join(", ")}`).setTimeout(30000).fill(password);
         await screenshot.takeScreenshot(page, "loginPagePasswordFilled");
     } catch (e) {
         await screenshot.takeScreenshot(page, "failedToFillPassword").catch(() => {});
@@ -240,7 +247,7 @@ export async function fillPassword(page: Page, screenshot: Screenshot, password:
 export async function fillUsername(page: Page, screenshot: Screenshot, username: string): Promise<void> {
     try {
         await screenshot.takeScreenshot(page, "loginPage");
-        await page.locator(`${Object.values(UsernameSelectors).join(", ")}`).setTimeout(5000).fill(username);
+        await page.locator(`${Object.values(UsernameSelectors).join(", ")}`).setTimeout(30000).fill(username);
         await screenshot.takeScreenshot(page, "loginPageUsernameFilled");
     } catch (e) {
         await screenshot.takeScreenshot(page, "failedToFillUsername").catch(() => {});
@@ -252,9 +259,16 @@ export async function clickSubmitButton(page: Page, screenshot: Screenshot): Pro
     try {
         await Promise.all([
             page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {}),
-            page.locator(`${Object.values(SubmitButtonSelectors).join(", ")}`).setTimeout(5000).click(),
+            page.locator(`${Object.values(SubmitButtonSelectors).join(", ")}`).setTimeout(30000).click(),
         ]);
     } catch (e) {
+        // A "detached" or "destroyed" error means the frame navigated away while the
+        // click was in-flight — the click succeeded and a redirect is underway, so
+        // treat this as success rather than a hard failure.
+        const msg = String(e).toLowerCase();
+        if (msg.includes("detach") || msg.includes("destroyed") || msg.includes("execution context")) {
+            return;
+        }
         await screenshot.takeScreenshot(page, "errorClickingSubmit").catch(() => {});
         throw e;
     }
@@ -288,6 +302,12 @@ export async function enterCredentials(
 
         await fillPassword(page, screenshot, accountPwd);
         await clickSubmitButton(page, screenshot);
+
+        // After submitting the password AAD may chain several rapid redirects
+        // (MFA, device-auth, consent, etc.).  Wait for the next navigation to
+        // settle before probing for optional post-auth dialogs so we don't race
+        // against a partially-detached frame.
+        await page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 10000 }).catch(() => {});
 
         if (page.isClosed() || page.url().startsWith(SAMPLE_HOME_URL)) {
             return;
@@ -430,7 +450,7 @@ export async function clickLoginRedirect(
     screenshot: Screenshot,
     page: Page
 ): Promise<void> {
-    await page.waitForSelector("#SignIn", { timeout: 5000 });
+    await page.waitForSelector("#SignIn", { timeout: 30000 });
     // Home Page
     await screenshot.takeScreenshot(page, "samplePageInit");
     // Click Sign In

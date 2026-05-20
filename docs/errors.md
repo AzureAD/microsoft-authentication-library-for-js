@@ -261,12 +261,19 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Cannot set allowPlatformBroker parameter to true when not in AAD protocol mode.
 
+### `invalid_platform_broker_configuration`
+
+-   Invalid platform broker configuration. `allowPlatformBrokerWithDOM` requires `allowPlatformBroker` to also be set to `true`.
+
 ### `authority_mismatch`
 
 -   Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.
 
 ### `invalid_request_method_for_EAR`
 - The EAR protocol cannot be used with HTTP method `GET`. The `httpMethod` parameter in all requests using `protocolMode: ProtocolMode.EAR` must be either unset or `"POST"`/`HttpMethod.POST`.
+
+### `issuer_validation_failed`
+- Issuer returned from OpenID configuration endpoint does not match with the authority configured by the application.
 
 ## Interaction required errors
 
