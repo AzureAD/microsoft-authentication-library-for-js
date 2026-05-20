@@ -513,15 +513,29 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.correlationId
             )?.homeAccountId;
 
-        // add exception for double brokering, please note this is temporary and will be fortified in future
+        // Allow accountId mismatch only for validated double-broker (pairwise broker) flows.
+        // The platform broker returns the embedded/child app's accountId, which legitimately
+        // differs from the parent broker's accountId. We must verify this is the correct
+        // parent-child pairing AND that the same user authenticated.
         if (
             request.extraParameters?.child_client_id &&
             response.account.id !== request.accountId
         ) {
-            this.logger.info(
-                "handleNativeServerResponse: Double broker flow detected, ignoring accountId mismatch",
-                this.correlationId
-            );
+            if (
+                this.validateDoubleBrokerResponse(
+                    request,
+                    response,
+                    homeAccountIdentifier,
+                    cachedhomeAccountId
+                )
+            ) {
+                this.logger.info(
+                    "handleNativeServerResponse: Double broker flow detected and validated, allowing accountId mismatch",
+                    this.correlationId
+                );
+            } else {
+                throw createNativeAuthError(NativeAuthErrorCodes.userSwitch);
+            }
         } else if (
             homeAccountIdentifier !== cachedhomeAccountId &&
             response.account.id !== request.accountId
@@ -605,6 +619,114 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         return homeAccountIdentifier;
+    }
+
+    /**
+     * Validates a double-broker (pairwise broker + platform broker) response. In double-broker flows
+     * the platform broker returns the embedded/child app's accountId rather than the parent
+     * broker's accountId, so the standard accountId equality check cannot be used. To safely
+     * accept the mismatch we require BOTH:
+     *   1. The user that authenticated (from response.client_info via homeAccountIdentifier)
+     *      matches the parent app's cached account looked up by request.accountId.
+     *   2. The brokerState envelope echoed back in response.state (set by the broker in 1P
+     *      via wrapState before the request was sent to STS) matches the parent-child
+     *      binding present on this request (child_client_id and origin of child_redirect_uri).
+     *
+     * Any failure (mismatch, missing/garbled state, missing brokerState envelope) returns
+     * false and the caller treats the response as a user-switch.
+     *
+     * @param request
+     * @param response
+     * @param homeAccountIdentifier home account id derived from response.client_info
+     * @param cachedHomeAccountId home account id of parent app's cached account looked up by request.accountId
+     */
+    private validateDoubleBrokerResponse(
+        request: PlatformAuthRequest,
+        response: PlatformAuthResponse,
+        homeAccountIdentifier: string,
+        cachedHomeAccountId: string | undefined
+    ): boolean {
+        // 1. Verify same user
+        if (
+            !cachedHomeAccountId ||
+            homeAccountIdentifier !== cachedHomeAccountId
+        ) {
+            this.logger.warning(
+                "validateDoubleBrokerResponse: user identified by response.client_info does not match parent app's cached account",
+                this.correlationId
+            );
+            return false;
+        }
+
+        // 2. Verify parent-child binding via state echo
+        if (!response.state) {
+            this.logger.warning(
+                "validateDoubleBrokerResponse: response.state is missing",
+                this.correlationId
+            );
+            return false;
+        }
+
+        let parsedState: { brokerState?: { requestClientId?: string; requestOrigin?: string } };
+        try {
+            parsedState = JSON.parse(base64Decode(response.state));
+        } catch (e) {
+            this.logger.warning(
+                "validateDoubleBrokerResponse: failed to decode response.state",
+                this.correlationId
+            );
+            return false;
+        }
+
+        const brokerState = parsedState?.brokerState;
+        if (
+            !brokerState ||
+            !brokerState.requestClientId ||
+            !brokerState.requestOrigin
+        ) {
+            this.logger.warning(
+                "validateDoubleBrokerResponse: response.state does not contain a brokerState envelope",
+                this.correlationId
+            );
+            return false;
+        }
+
+        const expectedChildClientId =
+            request.extraParameters?.child_client_id || "";
+        const expectedChildRedirectUri =
+            request.extraParameters?.child_redirect_uri || "";
+
+        if (
+            brokerState.requestClientId.toLowerCase() !==
+            expectedChildClientId.toLowerCase()
+        ) {
+            this.logger.warning(
+                "validateDoubleBrokerResponse: brokerState.requestClientId does not match request child_client_id",
+                this.correlationId
+            );
+            return false;
+        }
+
+        let expectedOrigin: string;
+        try {
+            expectedOrigin = new URL(expectedChildRedirectUri).origin;
+        } catch (e) {
+            this.logger.warning(
+                "validateDoubleBrokerResponse: child_redirect_uri is not a valid URL",
+                this.correlationId
+            );
+            return false;
+        }
+
+        if (brokerState.requestOrigin !== expectedOrigin) {
+            this.logger.warning(
+                "validateDoubleBrokerResponse: brokerState.requestOrigin does not match origin of child_redirect_uri",
+                this.correlationId
+            );
+            return false;
+        }
+
+        return true;
     }
 
     /**

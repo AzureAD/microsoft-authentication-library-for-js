@@ -830,8 +830,250 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         it("does not throw error on user switch for double brokering", (done) => {
+            // raw client_info matching TEST_ACCOUNT_INFO (oid.tid) so the user check passes
+            const raw_client_info =
+                "eyJ1aWQiOiAiMDAwMDAwMDAtMDAwMC0wMDAwLTY2ZjMtMzMzMmVjYTdlYTgxIiwgInV0aWQiOiIzMzM4MDQwZC02YzY3LTRjNWItYjExMi0zNmEzMDRiNjZkYWQifQ==";
+
+            // brokerState matching the parent-child binding sent on the request
+            const brokerStateB64 = window.btoa(
+                JSON.stringify({
+                    userState: undefined,
+                    brokerState: {
+                        requestOrigin: "https://embedded.example.com",
+                        requestClientId: "parent_client_id",
+                    },
+                })
+            );
+
+            const mockWamResponse: PlatformAuthResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2_ALT,
+                scope: "User.Read",
+                expires_in: 3600,
+                client_info: raw_client_info,
+                account: {
+                    id: "different-nativeAccountId",
+                    properties: {},
+                    userName: "test_username",
+                },
+                properties: {},
+                state: brokerStateB64,
+            };
+
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccountInfoFilteredBy"
+            ).mockReturnValue(TEST_ACCOUNT_INFO);
+
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
+                return Promise.resolve(mockWamResponse);
+            });
+
+            platformAuthInteractionClient
+                .acquireToken({
+                    scopes: ["User.Read"],
+                    redirectUri: "https://embedded.example.com",
+                    extraParameters: {
+                        brk_client_id: "broker_client_id",
+                        brk_redirect_uri: "https://broker_redirect_uri.com",
+                        client_id: "parent_client_id",
+                    },
+                })
+                .then((response) => {
+                    expect(response.accessToken).toEqual(
+                        mockWamResponse.access_token
+                    );
+                    done();
+                })
+                .catch((e) => {
+                    done(
+                        new Error(
+                            `User switch error should not have been thrown: ${e?.errorCode}`
+                        )
+                    );
+                });
+        });
+
+        it("throws userSwitch on double brokering when authenticated user does not match parent app's cached user", (done) => {
+            // raw client_info NOT matching TEST_ACCOUNT_INFO -> user mismatch
             const raw_client_info =
                 "eyJ1aWQiOiAiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwgInV0aWQiOiI3MmY5ODhiZi04NmYxLTQxYWYtOTFhYi0yZDdjZDAxMWRiNDcifQ==";
+
+            const brokerStateB64 = window.btoa(
+                JSON.stringify({
+                    userState: undefined,
+                    brokerState: {
+                        requestOrigin: "https://embedded.example.com",
+                        requestClientId: "parent_client_id",
+                    },
+                })
+            );
+
+            const mockWamResponse: PlatformAuthResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2_ALT,
+                scope: "User.Read",
+                expires_in: 3600,
+                client_info: raw_client_info,
+                account: {
+                    id: "different-nativeAccountId",
+                    properties: {},
+                    userName: "test_username",
+                },
+                properties: {},
+                state: brokerStateB64,
+            };
+
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccountInfoFilteredBy"
+            ).mockReturnValue(TEST_ACCOUNT_INFO);
+
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
+                return Promise.resolve(mockWamResponse);
+            });
+
+            platformAuthInteractionClient
+                .acquireToken({
+                    scopes: ["User.Read"],
+                    redirectUri: "https://embedded.example.com",
+                    extraParameters: {
+                        brk_client_id: "broker_client_id",
+                        brk_redirect_uri: "https://broker_redirect_uri.com",
+                        client_id: "parent_client_id",
+                    },
+                })
+                .catch((e) => {
+                    expect(e.errorCode).toBe(NativeAuthErrorCodes.userSwitch);
+                    done();
+                });
+        });
+
+        it("throws userSwitch on double brokering when brokerState.requestClientId does not match child_client_id", (done) => {
+            const raw_client_info =
+                "eyJ1aWQiOiAiMDAwMDAwMDAtMDAwMC0wMDAwLTY2ZjMtMzMzMmVjYTdlYTgxIiwgInV0aWQiOiIzMzM4MDQwZC02YzY3LTRjNWItYjExMi0zNmEzMDRiNjZkYWQifQ==";
+
+            // wrong requestClientId
+            const brokerStateB64 = window.btoa(
+                JSON.stringify({
+                    userState: undefined,
+                    brokerState: {
+                        requestOrigin: "https://embedded.example.com",
+                        requestClientId: "some_other_client_id",
+                    },
+                })
+            );
+
+            const mockWamResponse: PlatformAuthResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2_ALT,
+                scope: "User.Read",
+                expires_in: 3600,
+                client_info: raw_client_info,
+                account: {
+                    id: "different-nativeAccountId",
+                    properties: {},
+                    userName: "test_username",
+                },
+                properties: {},
+                state: brokerStateB64,
+            };
+
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccountInfoFilteredBy"
+            ).mockReturnValue(TEST_ACCOUNT_INFO);
+
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
+                return Promise.resolve(mockWamResponse);
+            });
+
+            platformAuthInteractionClient
+                .acquireToken({
+                    scopes: ["User.Read"],
+                    redirectUri: "https://embedded.example.com",
+                    extraParameters: {
+                        brk_client_id: "broker_client_id",
+                        brk_redirect_uri: "https://broker_redirect_uri.com",
+                        client_id: "parent_client_id",
+                    },
+                })
+                .catch((e) => {
+                    expect(e.errorCode).toBe(NativeAuthErrorCodes.userSwitch);
+                    done();
+                });
+        });
+
+        it("throws userSwitch on double brokering when brokerState.requestOrigin does not match origin of child_redirect_uri", (done) => {
+            const raw_client_info =
+                "eyJ1aWQiOiAiMDAwMDAwMDAtMDAwMC0wMDAwLTY2ZjMtMzMzMmVjYTdlYTgxIiwgInV0aWQiOiIzMzM4MDQwZC02YzY3LTRjNWItYjExMi0zNmEzMDRiNjZkYWQifQ==";
+
+            // wrong requestOrigin
+            const brokerStateB64 = window.btoa(
+                JSON.stringify({
+                    userState: undefined,
+                    brokerState: {
+                        requestOrigin: "https://attacker.example.com",
+                        requestClientId: "parent_client_id",
+                    },
+                })
+            );
+
+            const mockWamResponse: PlatformAuthResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2_ALT,
+                scope: "User.Read",
+                expires_in: 3600,
+                client_info: raw_client_info,
+                account: {
+                    id: "different-nativeAccountId",
+                    properties: {},
+                    userName: "test_username",
+                },
+                properties: {},
+                state: brokerStateB64,
+            };
+
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccountInfoFilteredBy"
+            ).mockReturnValue(TEST_ACCOUNT_INFO);
+
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
+                return Promise.resolve(mockWamResponse);
+            });
+
+            platformAuthInteractionClient
+                .acquireToken({
+                    scopes: ["User.Read"],
+                    redirectUri: "https://embedded.example.com",
+                    extraParameters: {
+                        brk_client_id: "broker_client_id",
+                        brk_redirect_uri: "https://broker_redirect_uri.com",
+                        client_id: "parent_client_id",
+                    },
+                })
+                .catch((e) => {
+                    expect(e.errorCode).toBe(NativeAuthErrorCodes.userSwitch);
+                    done();
+                });
+        });
+
+        it("throws userSwitch on double brokering when response.state is missing", (done) => {
+            const raw_client_info =
+                "eyJ1aWQiOiAiMDAwMDAwMDAtMDAwMC0wMDAwLTY2ZjMtMzMzMmVjYTdlYTgxIiwgInV0aWQiOiIzMzM4MDQwZC02YzY3LTRjNWItYjExMi0zNmEzMDRiNjZkYWQifQ==";
 
             const mockWamResponse: PlatformAuthResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
@@ -863,7 +1105,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             platformAuthInteractionClient
                 .acquireToken({
                     scopes: ["User.Read"],
-                    redirectUri: "localhost",
+                    redirectUri: "https://embedded.example.com",
                     extraParameters: {
                         brk_client_id: "broker_client_id",
                         brk_redirect_uri: "https://broker_redirect_uri.com",
@@ -871,18 +1113,61 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     },
                 })
                 .catch((e) => {
-                    console.error(
-                        "User switch error should not have been thrown."
-                    );
-                    expect(e.errorCode).not.toBe(
-                        NativeAuthErrorCodes.userSwitch
-                    );
-                    expect(e.errorMessage).not.toBe(
-                        getDefaultErrorMessage(NativeAuthErrorCodes.userSwitch)
-                    );
+                    expect(e.errorCode).toBe(NativeAuthErrorCodes.userSwitch);
                     done();
                 });
-            done();
+        });
+
+        it("throws userSwitch on double brokering when response.state does not contain brokerState envelope", (done) => {
+            const raw_client_info =
+                "eyJ1aWQiOiAiMDAwMDAwMDAtMDAwMC0wMDAwLTY2ZjMtMzMzMmVjYTdlYTgxIiwgInV0aWQiOiIzMzM4MDQwZC02YzY3LTRjNWItYjExMi0zNmEzMDRiNjZkYWQifQ==";
+
+            // valid base64+JSON but no brokerState field
+            const stateB64 = window.btoa(
+                JSON.stringify({ userState: "some_user_state" })
+            );
+
+            const mockWamResponse: PlatformAuthResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2_ALT,
+                scope: "User.Read",
+                expires_in: 3600,
+                client_info: raw_client_info,
+                account: {
+                    id: "different-nativeAccountId",
+                    properties: {},
+                    userName: "test_username",
+                },
+                properties: {},
+                state: stateB64,
+            };
+
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccountInfoFilteredBy"
+            ).mockReturnValue(TEST_ACCOUNT_INFO);
+
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
+                return Promise.resolve(mockWamResponse);
+            });
+
+            platformAuthInteractionClient
+                .acquireToken({
+                    scopes: ["User.Read"],
+                    redirectUri: "https://embedded.example.com",
+                    extraParameters: {
+                        brk_client_id: "broker_client_id",
+                        brk_redirect_uri: "https://broker_redirect_uri.com",
+                        client_id: "parent_client_id",
+                    },
+                })
+                .catch((e) => {
+                    expect(e.errorCode).toBe(NativeAuthErrorCodes.userSwitch);
+                    done();
+                });
         });
 
         it("ssoSilent overwrites prompt to be 'none' and succeeds", async () => {
