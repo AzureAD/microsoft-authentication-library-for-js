@@ -1,7 +1,7 @@
 {
   "type": "minor",
-  "comment": "Disable ServerTelemetryManager",
+  "comment": "Disable ServerTelemetryManager by default [#8600](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8600)",
   "packageName": "@azure/msal-common",
-  "email": "-g",
+  "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
 }
