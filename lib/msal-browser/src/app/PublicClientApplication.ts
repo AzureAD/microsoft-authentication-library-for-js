@@ -44,13 +44,11 @@ import type { WaitForPopupResponseFn } from "../interaction_client/PopupClient.j
 import type { WaitForIframeResponseFn } from "../interaction_client/SilentIframeClient.js";
 
 /**
- * Internal-only response-handler hooks supplied by {@link PublicClientApplication}
- * to the operating context. Subclasses of {@link PublicClientApplication} provide
- * custom behavior by overriding the matching protected methods.
+ * Auth-response handlers.
  *
  * @internal
  */
-export type BrowserSystemHooks = {
+export type AuthResponseHandlers = {
     waitForPopupResponse: WaitForPopupResponseFn;
     waitForIframeResponse: WaitForIframeResponseFn;
 };
