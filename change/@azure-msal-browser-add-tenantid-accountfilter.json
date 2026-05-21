@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add optional tenantId parameter to request type to allow filtering accounts using tenantId for multi-tenant scenarios [#8601](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8601)",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
