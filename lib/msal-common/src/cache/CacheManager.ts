@@ -14,7 +14,7 @@ import { getAliasesFromStaticSources } from "../authority/AuthorityMetadata.js";
 import { StaticAuthorityOptions } from "../authority/AuthorityOptions.js";
 import { ICrypto } from "../crypto/ICrypto.js";
 import { AuthError } from "../error/AuthError.js";
-import { createCacheError } from "../error/CacheError.js";
+import { CacheError, createCacheError } from "../error/CacheError.js";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
@@ -659,6 +659,8 @@ export abstract class CacheManager implements ICacheManager {
                 correlationId
             );
             if (e instanceof AuthError) {
+                throw e;
+            } else if (e instanceof CacheError) {
                 throw e;
             } else {
                 throw createCacheError(e);

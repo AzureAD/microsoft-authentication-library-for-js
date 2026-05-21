@@ -2347,23 +2347,22 @@ export class BrowserCacheManager extends CacheManager {
                 storeInCache
             );
         } catch (e) {
-            if (
-                e instanceof CacheError &&
-                this.performanceClient &&
-                correlationId
-            ) {
-                try {
-                    const tokenKeys = this.getTokenKeys();
+            if (e instanceof CacheError) {
+                if (this.performanceClient && correlationId) {
+                    try {
+                        const tokenKeys = this.getTokenKeys();
 
-                    this.performanceClient.addFields(
-                        {
-                            cacheRtCount: tokenKeys.refreshToken.length,
-                            cacheIdCount: tokenKeys.idToken.length,
-                            cacheAtCount: tokenKeys.accessToken.length,
-                        },
-                        correlationId
-                    );
-                } catch (e) {}
+                        this.performanceClient.addFields(
+                            {
+                                cacheRtCount: tokenKeys.refreshToken.length,
+                                cacheIdCount: tokenKeys.idToken.length,
+                                cacheAtCount: tokenKeys.accessToken.length,
+                            },
+                            correlationId
+                        );
+                    } catch (e) {}
+                }
+                throw createBrowserAuthError(e.errorCode);
             }
 
             throw e;
