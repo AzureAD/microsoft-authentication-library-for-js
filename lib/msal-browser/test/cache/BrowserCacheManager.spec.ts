@@ -4315,9 +4315,9 @@ describe("BrowserCacheManager tests", () => {
                                     expect(e.errorCode).toEqual(
                                         CacheErrorCodes.cacheQuotaExceeded
                                     );
-                                    expect(
-                                        typeof e.setCorrelationId
-                                    ).toBe("function");
+                                    expect(typeof e.setCorrelationId).toBe(
+                                        "function"
+                                    );
                                     measurement.end({ success: false }, e);
                                 })
                         );
