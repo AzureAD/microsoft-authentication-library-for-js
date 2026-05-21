@@ -1889,6 +1889,7 @@ export class StandardController implements IController {
             this.getAccount({
                 loginHint: request.loginHint,
                 sid: request.sid,
+                tenantId: request.tenantId,
             }) ||
             (!request.loginHint && !request.sid
                 ? this.getActiveAccount()

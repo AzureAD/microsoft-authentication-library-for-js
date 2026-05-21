@@ -17,4 +17,11 @@ export type SsoSilentRequest = Partial<
         | "codeChallengeMethod"
         | "platformBroker"
     >
->;
+> & {
+    /**
+     * Optional tenant ID (GUID) used to filter cached accounts in multi-tenant scenarios.
+     * When provided, account lookup will also match on tenantId, preventing incorrect account matches
+     * when the same user has accounts across multiple tenants with the same loginHint.
+     */
+    tenantId?: string;
+};

@@ -1175,6 +1175,7 @@ export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "response
     popupWindowAttributes?: PopupWindowAttributes;
     popupWindowParent?: Window;
     overrideInteractionInProgress?: boolean;
+    tenantId?: string;
 };
 
 // Warning: (ae-missing-release-tag) "PopupSize" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1335,6 +1336,7 @@ function redirectPreflightCheck(initialized: boolean, config: BrowserConfigurati
 export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
     scopes: Array<string>;
     redirectStartPage?: string;
+    tenantId?: string;
 };
 
 // Warning: (ae-missing-release-tag) "replaceHash" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1447,7 +1449,9 @@ const SsoSilent = "ssoSilent";
 // Warning: (ae-missing-release-tag) "SsoSilentRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">>;
+export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
+    tenantId?: string;
+};
 
 // Warning: (ae-missing-release-tag) "stateInteractionTypeMismatch" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

@@ -38,4 +38,10 @@ export type PopupRequest = Partial<
      * Optional flag to allow overriding an existing interaction_in_progress state for popup flows. **WARNING**: Use with caution! For usage details and examples, see the [login-user.md](../../../docs/login-user.md#handling-interaction_in_progress-errors) documentation.
      */
     overrideInteractionInProgress?: boolean;
+    /**
+     * Optional tenant ID (GUID) used to filter cached accounts in multi-tenant scenarios.
+     * When provided, account lookup will also match on tenantId, preventing incorrect account matches
+     * when the same user has accounts across multiple tenants with the same loginHint.
+     */
+    tenantId?: string;
 };

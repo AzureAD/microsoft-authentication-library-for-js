@@ -7911,6 +7911,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 {
                     loginHint: searchLoginHintB,
                     sid: undefined,
+                    tenantId: undefined,
                 },
                 "019d2855-0ed2-7b33-8f4b-ad00a1a5f4be"
             );
@@ -7959,6 +7960,65 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeAccountId = controller.getNativeAccountId(testRequest);
 
             expect(nativeAccountId).toBe("nativeAccountId1");
+
+            // Cleanup
+            getAccountSpy.mockRestore();
+            getActiveAccountSpy.mockRestore();
+        });
+
+        it("should pass tenantId to account filter when provided on the request", async () => {
+            const controller = (pca as any).controller;
+            const cacheManager = controller.browserStorage;
+            // @ts-ignore
+            await cacheManager.setAccount(testAccount1);
+
+            const targetTenantId = "11111111-1111-1111-1111-111111111111";
+
+            jest.spyOn(controller, "getRequestCorrelationId").mockReturnValue(
+                "019d2855-0ed2-7b33-8f4b-ad00a1a5f4be"
+            );
+            jest.spyOn(cacheManager, "getAccountKeys").mockReturnValue([
+                "account-a-key",
+            ]);
+
+            jest.spyOn(cacheManager, "getTokenKeys").mockReturnValue({
+                idToken: [],
+                accessToken: [],
+                refreshToken: [],
+                appMetadata: [],
+            });
+
+            const getAccountSpy = jest
+                .spyOn(cacheManager, "getAccount")
+                .mockReturnValue(testAccount1);
+
+            const getActiveAccountSpy = jest
+                .spyOn(controller, "getActiveAccount")
+                .mockReturnValue(null);
+
+            const getAccountsFilteredBySpy = jest.spyOn(
+                CacheManager.prototype,
+                "getAccountsFilteredBy"
+            );
+
+            const testRequest = {
+                scopes: ["user.read"],
+                loginHint: "user@contoso.com",
+                tenantId: targetTenantId,
+            };
+
+            const nativeAccountId = controller.getNativeAccountId(testRequest);
+
+            // Account in cache is for a different tenant, should not match
+            expect(nativeAccountId).toBe("");
+            expect(getAccountsFilteredBySpy).toHaveBeenCalledWith(
+                {
+                    loginHint: "user@contoso.com",
+                    sid: undefined,
+                    tenantId: targetTenantId,
+                },
+                "019d2855-0ed2-7b33-8f4b-ad00a1a5f4be"
+            );
 
             // Cleanup
             getAccountSpy.mockRestore();
