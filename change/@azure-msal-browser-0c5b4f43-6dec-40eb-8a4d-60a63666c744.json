@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Disable ServerTelemetryManager",
+  "packageName": "@azure/msal-browser",
+  "email": "-g",
+  "dependentChangeType": "patch"
+}
