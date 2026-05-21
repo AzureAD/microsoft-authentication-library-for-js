@@ -66,6 +66,53 @@ try {
 }
 ```
 
+## Multi-Tenant Login with `tenantId`
+
+When your application supports multiple tenants and users may be logged into more than one tenant, you can pass the optional `tenantId` parameter on the login request to ensure the correct cached account is used during platform broker flows.
+
+This is particularly important when a user who previously logged into Tenant A now wants to log into Tenant B using the same `loginHint`. Without `tenantId`, the cached account lookup may return the wrong tenant's account ID because `loginHint` alone cannot distinguish between tenants.
+
+**You should set `tenantId` when the user is logging into a tenant that is not their home tenant**, or whenever your application handles multi-tenant scenarios where the same user identity may exist across multiple tenants.
+
+The `tenantId` value should be the **tenant GUID** (not a domain name) of the target tenant the user is signing into.
+
+- Popup
+
+```javascript
+const loginRequest = {
+    scopes: ["user.read"],
+    loginHint: "user@contoso.com",
+    tenantId: "00000000-0000-0000-0000-000000000001", // Target tenant GUID
+    authority: "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000001",
+};
+
+try {
+    const loginResponse = await msalInstance.loginPopup(loginRequest);
+} catch (err) {
+    // handle error
+}
+```
+
+- Redirect
+
+```javascript
+const loginRequest = {
+    scopes: ["user.read"],
+    loginHint: "user@contoso.com",
+    tenantId: "00000000-0000-0000-0000-000000000001", // Target tenant GUID
+    authority: "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000001",
+};
+
+try {
+    msalInstance.loginRedirect(loginRequest);
+} catch (err) {
+    // handle error
+}
+```
+
+> [!NOTE]
+> If you omit `tenantId`, the login behavior is unchanged from previous versions. The `tenantId` parameter is only used to filter cached accounts during platform broker flows and does not affect the authority or token endpoint used for the request.
+
 ## Account APIs
 
 When a login call has succeeded, you can use the `getAllAccounts()` function to retrieve information about currently signed in users.
