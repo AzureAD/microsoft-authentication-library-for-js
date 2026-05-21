@@ -21,8 +21,6 @@ import {
     StubPerformanceClient,
     Logger,
     Constants,
-    CommonAuthorizationUrlRequest,
-    CommonEndSessionRequest,
 } from "@azure/msal-common/browser";
 import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
@@ -169,52 +167,6 @@ export type BrowserSystemOptions = SystemOptions & {
      * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
      */
     protocolMode?: ProtocolMode;
-    /**
-     * Optional hook to fully replace how MSAL waits for the auth response from a popup window.
-     *
-     * This is a callback invoked by MSAL; the application does not call it directly. All
-     * arguments are supplied by MSAL at invocation time: the in-flight `request`, the
-     * `popupWindow` and its `popupWindowParent`, and an `internals` bag exposing MSAL's resolved
-     * `BrowserConfiguration`, `Logger`, and `IPerformanceClient` for use inside the hook.
-     *
-     * When provided, this hook takes the place of the built-in BroadcastChannel-based monitor;
-     * MSAL will not invoke the default monitor. The returned promise must resolve with the raw
-     * response string (hash/query/fragment) MSAL would have received from the popup, or reject
-     * with an AuthError on failure.
-     */
-    waitForPopupResponse?: (
-        request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
-        popupWindow: Window,
-        popupWindowParent: Window,
-        internals: {
-            config: BrowserConfiguration;
-            logger: Logger;
-            performanceClient: IPerformanceClient;
-        }
-    ) => Promise<string>;
-    /**
-     * Optional hook to fully replace how MSAL waits for the auth response from a hidden iframe.
-     *
-     * This is a callback invoked by MSAL; the application does not call it directly. All
-     * arguments are supplied by MSAL at invocation time: the `iframe` element, the in-flight
-     * `request`, the OIDC `responseMode`, and an `internals` bag exposing MSAL's resolved
-     * `BrowserConfiguration`, `Logger`, and `IPerformanceClient` for use inside the hook.
-     *
-     * When provided, this hook takes the place of the built-in BroadcastChannel-based monitor;
-     * MSAL will not invoke the default monitor. The returned promise must resolve with the raw
-     * response string (hash/query/fragment) MSAL would have received from the iframe, or reject
-     * with an AuthError on failure.
-     */
-    waitForIframeResponse?: (
-        iframe: HTMLIFrameElement,
-        request: CommonAuthorizationUrlRequest,
-        responseMode: string,
-        internals: {
-            config: BrowserConfiguration;
-            logger: Logger;
-            performanceClient: IPerformanceClient;
-        }
-    ) => Promise<string>;
 };
 
 /** @internal */
@@ -273,17 +225,10 @@ export type Configuration = {
 export type BrowserConfiguration = {
     auth: InternalAuthOptions;
     cache: Required<CacheOptions>;
-    system: Required<Omit<BrowserSystemOptions, keyof BrowserSystemHooks>> &
-        BrowserSystemHooks;
+    system: Required<BrowserSystemOptions>;
     experimental: Required<BrowserExperimentalOptions>;
     telemetry: Required<BrowserTelemetryOptions>;
 };
-
-/** Internal helper alias used to keep {@link BrowserConfiguration.system} readable. */
-type BrowserSystemHooks = Pick<
-    BrowserSystemOptions,
-    "waitForPopupResponse" | "waitForIframeResponse"
->;
 
 /**
  * MSAL function that sets the default options when not explicitly configured from app developer
@@ -370,8 +315,6 @@ export function buildConfiguration(
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
         protocolMode: ProtocolMode.AAD,
-        waitForPopupResponse: undefined,
-        waitForIframeResponse: undefined,
     };
 
     const providedSystemOptions: BrowserConfiguration["system"] = {

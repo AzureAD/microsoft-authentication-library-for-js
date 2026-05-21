@@ -56,9 +56,25 @@ import {
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
 
+/**
+ * Signature of the iframe-response handler supplied by
+ * {@link PublicClientApplication} to {@link SilentIframeClient} via the
+ * operating context.
+ *
+ * @internal
+ */
+export type WaitForIframeResponseFn = (
+    iframe: HTMLIFrameElement,
+    request: CommonAuthorizationUrlRequest,
+    responseMode: string
+) => Promise<string>;
+
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
     protected nativeStorage: BrowserCacheManager;
+    private readonly waitForIframeResponseHook:
+        | WaitForIframeResponseFn
+        | undefined;
 
     constructor(
         config: BrowserConfiguration,
@@ -71,7 +87,8 @@ export class SilentIframeClient extends StandardInteractionClient {
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
-        platformAuthProvider?: IPlatformAuthHandler
+        platformAuthProvider?: IPlatformAuthHandler,
+        waitForIframeResponseHook?: WaitForIframeResponseFn
     ) {
         super(
             config,
@@ -86,6 +103,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         );
         this.apiId = apiId;
         this.nativeStorage = nativeStorageImpl;
+        this.waitForIframeResponseHook = waitForIframeResponseHook;
     }
 
     /**
@@ -621,26 +639,12 @@ export class SilentIframeClient extends StandardInteractionClient {
         request: CommonAuthorizationUrlRequest,
         responseMode: string
     ): Promise<string> {
-        const override = this.config.system.waitForIframeResponse;
-        if (override) {
-            try {
-                return await override(iframe, request, responseMode, {
-                    config: this.config,
-                    logger: this.logger,
-                    performanceClient: this.performanceClient,
-                });
-            } finally {
-                // Strip auth response params from the iframe URL
-                try {
-                    if (iframe.contentWindow) {
-                        BrowserUtils.clearAuthResponseFromUrl(
-                            iframe.contentWindow
-                        );
-                    }
-                } catch {
-                    // Iframe may already be navigated away or cross-origin; ignore.
-                }
-            }
+        if (this.waitForIframeResponseHook) {
+            return this.waitForIframeResponseHook(
+                iframe,
+                request,
+                responseMode
+            );
         }
         return BrowserUtils.waitForBridgeResponse(
             this.config.system.iframeBridgeTimeout,

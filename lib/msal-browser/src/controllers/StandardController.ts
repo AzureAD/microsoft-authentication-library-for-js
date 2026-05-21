@@ -1912,7 +1912,8 @@ export class StandardController implements IController {
             this.performanceClient,
             this.nativeInternalStorage,
             correlationId,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.operatingContext.getResponseHandlers()?.waitForPopupResponse
         );
     }
 
@@ -1951,7 +1952,8 @@ export class StandardController implements IController {
             this.performanceClient,
             this.nativeInternalStorage,
             correlationId,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.operatingContext.getResponseHandlers()?.waitForIframeResponse
         );
     }
 
@@ -2098,6 +2100,14 @@ export class StandardController implements IController {
      */
     public getPerformanceClient(): IPerformanceClient {
         return this.performanceClient;
+    }
+
+    /**
+     * Returns the browser crypto instance.
+     * @internal
+     */
+    public getBrowserCrypto(): ICrypto {
+        return this.browserCrypto;
     }
 
     /**

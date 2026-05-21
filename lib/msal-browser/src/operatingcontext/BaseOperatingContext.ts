@@ -9,6 +9,7 @@ import {
     buildConfiguration,
     Configuration,
 } from "../config/Configuration.js";
+import type { BrowserSystemHooks } from "../app/PublicClientApplication.js";
 import { version, name } from "../packageMetadata.js";
 import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
 import { LOG_LEVEL_CACHE_KEY, LOG_PII_CACHE_KEY } from "../cache/CacheKeys.js";
@@ -25,6 +26,7 @@ export abstract class BaseOperatingContext {
     protected config: BrowserConfiguration;
     protected available: boolean;
     protected browserEnvironment: boolean;
+    protected responseHandlers: BrowserSystemHooks | undefined;
 
     protected static loggerCallback(level: LogLevel, message: string): void {
         switch (level) {
@@ -51,7 +53,7 @@ export abstract class BaseOperatingContext {
         }
     }
 
-    constructor(config: Configuration) {
+    constructor(config: Configuration, responseHandlers?: BrowserSystemHooks) {
         /*
          * If loaded in an environment where window is not available,
          * set internal flag to false so that further requests fail.
@@ -59,6 +61,7 @@ export abstract class BaseOperatingContext {
          */
         this.browserEnvironment = typeof window !== "undefined";
         this.config = buildConfiguration(config, this.browserEnvironment);
+        this.responseHandlers = responseHandlers;
 
         let sessionStorage: Storage | undefined;
         try {
@@ -117,6 +120,14 @@ export abstract class BaseOperatingContext {
      */
     getConfig(): BrowserConfiguration {
         return this.config;
+    }
+
+    /**
+     * Returns the internal response handlers supplied by PublicClientApplication, if any.
+     * @returns BrowserSystemHooks | undefined
+     */
+    getResponseHandlers(): BrowserSystemHooks | undefined {
+        return this.responseHandlers;
     }
 
     /**

@@ -59,6 +59,19 @@ import {
 } from "./BaseInteractionClient.js";
 import { validateRequestMethod } from "../request/RequestHelpers.js";
 
+/**
+ * Signature of the popup-response handler supplied by
+ * {@link PublicClientApplication} to {@link PopupClient} via the operating
+ * context.
+ *
+ * @internal
+ */
+export type WaitForPopupResponseFn = (
+    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+    popupWindow: Window,
+    popupWindowParent: Window
+) => Promise<string>;
+
 export type PopupParams = {
     popup?: Window | null;
     popupName: string;
@@ -69,6 +82,9 @@ export type PopupParams = {
 export class PopupClient extends StandardInteractionClient {
     private currentWindow: Window | undefined;
     protected nativeStorage: BrowserCacheManager;
+    private readonly waitForPopupResponseHook:
+        | WaitForPopupResponseFn
+        | undefined;
 
     constructor(
         config: BrowserConfiguration,
@@ -80,7 +96,8 @@ export class PopupClient extends StandardInteractionClient {
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
-        platformAuthHandler?: IPlatformAuthHandler
+        platformAuthHandler?: IPlatformAuthHandler,
+        waitForPopupResponseHook?: WaitForPopupResponseFn
     ) {
         super(
             config,
@@ -95,6 +112,7 @@ export class PopupClient extends StandardInteractionClient {
         );
         this.nativeStorage = nativeStorageImpl;
         this.eventHandler = eventHandler;
+        this.waitForPopupResponseHook = waitForPopupResponseHook;
     }
 
     /**
@@ -1033,22 +1051,12 @@ export class PopupClient extends StandardInteractionClient {
         popupWindow: Window,
         popupWindowParent: Window
     ): Promise<string> {
-        const override = this.config.system.waitForPopupResponse;
-        if (override) {
-            try {
-                return await override(request, popupWindow, popupWindowParent, {
-                    config: this.config,
-                    logger: this.logger,
-                    performanceClient: this.performanceClient,
-                });
-            } finally {
-                // Strip auth response params from the popup URL
-                try {
-                    BrowserUtils.clearAuthResponseFromUrl(popupWindow);
-                } catch {
-                    // Popup may already be closed or cross-origin; ignore.
-                }
-            }
+        if (this.waitForPopupResponseHook) {
+            return this.waitForPopupResponseHook(
+                request,
+                popupWindow,
+                popupWindowParent
+            );
         }
         return BrowserUtils.waitForBridgeResponse(
             this.config.system.popupBridgeTimeout,
