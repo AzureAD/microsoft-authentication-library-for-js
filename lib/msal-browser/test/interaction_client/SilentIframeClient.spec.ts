@@ -228,6 +228,9 @@ describe("SilentIframeClient", () => {
         });
 
         it("Errors thrown during token acquisition are cached for telemetry and browserStorage is cleaned", (done) => {
+            // Enable server telemetry so cacheFailedRequest writes to storage
+            //@ts-ignore
+            silentIframeClient.config.system.serverTelemetryEnabled = true;
             jest.spyOn(
                 AuthorizeProtocol,
                 "getAuthCodeRequestUrl"

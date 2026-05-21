@@ -867,6 +867,9 @@ describe("PopupClient", () => {
         });
 
         it("catches error and cleans cache before rethrowing", async () => {
+            // Enable server telemetry so cacheFailedRequest writes to storage
+            //@ts-ignore
+            popupClient.config.system.serverTelemetryEnabled = true;
             const testError: AuthError = new AuthError(
                 "create_login_url_error",
                 "Error in creating a login url"
@@ -1136,6 +1139,9 @@ describe("PopupClient", () => {
         });
 
         it("catches error and cleans cache before rethrowing", async () => {
+            // Enable server telemetry so cacheFailedRequest writes to storage
+            //@ts-ignore
+            popupClient.config.system.serverTelemetryEnabled = true;
             const testError: AuthError = new AuthError(
                 "create_logout_url_error",
                 "Error in creating a logout url"

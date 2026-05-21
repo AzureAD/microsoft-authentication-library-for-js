@@ -5757,6 +5757,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error that SilentFlowClient.acquireToken() throws", async () => {
+            // Enable server telemetry so cacheFailedRequest writes to storage
+            //@ts-ignore
+            pca.config.system.serverTelemetryEnabled = true;
             const testError: AuthError = new AuthError(
                 "create_login_url_error",
                 "Error in creating a login url"
@@ -5800,6 +5803,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error that SilentFlowClient.acquireToken() throws when making parallel requests", async () => {
+            // Enable server telemetry so cacheFailedRequest writes to storage
+            //@ts-ignore
+            pca.config.system.serverTelemetryEnabled = true;
             const testError: AuthError = new AuthError(
                 "create_login_url_error",
                 "Error in creating a login url"

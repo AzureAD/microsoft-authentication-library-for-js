@@ -171,7 +171,9 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
-            this.logger
+            this.logger,
+            undefined,
+            this.config.system.serverTelemetryEnabled
         );
 
         try {
@@ -342,7 +344,9 @@ export class SilentIframeClient extends StandardInteractionClient {
                     this.config.auth.clientId,
                     correlationId,
                     this.browserStorage,
-                    this.logger
+                    this.logger,
+                    undefined,
+                    this.config.system.serverTelemetryEnabled
                 ),
                 requestAuthority: request.authority,
                 requestAzureCloudOptions: request.azureCloudOptions,
@@ -436,7 +440,9 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.config.auth.clientId,
                 this.correlationId,
                 this.browserStorage,
-                this.logger
+                this.logger,
+                undefined,
+                this.config.system.serverTelemetryEnabled
             ),
             requestAuthority: silentRequest.authority,
             requestAzureCloudOptions: silentRequest.azureCloudOptions,
