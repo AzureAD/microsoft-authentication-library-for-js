@@ -2,7 +2,7 @@
 
 If you are new to MSAL, you should start [here](initialization.md).
 
-If you are coming from MSAL v2, you should check [this guide](v2-migration.md) first to migrate to MSAL v3. If you are coming from MSAL v3, you should check [this guide](v4-migration.md) first to migrate to MSAL v4 and then follow next steps.
+If you are coming from MSAL v2, you should check [this guide](v2-migration.md) first to migrate to MSAL v3. If you are coming from MSAL v3, you should check [this guide](v3-migration.md) first to migrate to MSAL v4 and then follow next steps.
 
 If you are coming from MSAL v4, you can follow this guide to update your code to use MSAL v5.
 
