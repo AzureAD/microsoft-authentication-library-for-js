@@ -1,7 +1,7 @@
 {
   "type": "patch",
-  "comment": "Export StandardController, StandardOperatingContext, and SilentIframeClient",
+  "comment": "Add PCA functions for custom authentication response handling [#8590](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8590)",
   "packageName": "@azure/msal-browser",
-  "email": "shylasummers@microsoft.com",
+  "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"
 }
