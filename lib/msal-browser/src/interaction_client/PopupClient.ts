@@ -1061,7 +1061,6 @@ export class PopupClient extends StandardInteractionClient {
         return BrowserUtils.waitForBridgeResponse(
             this.config.system.popupBridgeTimeout,
             this.logger,
-            this.browserCrypto,
             request,
             this.performanceClient
         );

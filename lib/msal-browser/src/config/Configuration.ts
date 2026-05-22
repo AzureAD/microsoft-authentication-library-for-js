@@ -296,7 +296,7 @@ export function buildConfiguration(
     };
 
     // Default system options for browser
-    const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserConfiguration["system"] = {
+    const DEFAULT_BROWSER_SYSTEM_OPTIONS: Required<BrowserSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
         networkClient: isBrowserEnvironment
@@ -317,7 +317,7 @@ export function buildConfiguration(
         protocolMode: ProtocolMode.AAD,
     };
 
-    const providedSystemOptions: BrowserConfiguration["system"] = {
+    const providedSystemOptions: Required<BrowserSystemOptions> = {
         ...DEFAULT_BROWSER_SYSTEM_OPTIONS,
         ...userInputSystem,
         loggerOptions: userInputSystem?.loggerOptions || DEFAULT_LOGGER_OPTIONS,

@@ -24,7 +24,6 @@ import { CommonSilentFlowRequest } from '@azure/msal-common/browser';
 import { Constants } from '@azure/msal-common/browser';
 import { enforceResourceParameter } from '@azure/msal-common/browser';
 import { ExternalTokenResponse } from '@azure/msal-common/browser';
-import { ICrypto } from '@azure/msal-common/browser';
 import { IdTokenClaims } from '@azure/msal-common/browser';
 import { ILoggerCallback } from '@azure/msal-common/browser';
 import { INetworkModule } from '@azure/msal-common/browser';
@@ -1279,13 +1278,6 @@ export class PublicClientApplication implements IPublicClientApplication {
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
     // @internal
     getConfiguration(): BrowserConfiguration;
-    // @internal
-    protected getControllerServices(): {
-        config: BrowserConfiguration;
-        logger: Logger;
-        performanceClient: IPerformanceClient;
-        browserCrypto: ICrypto;
-    };
     getLogger(): Logger;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1323,10 +1315,9 @@ export class PublicClientApplication implements IPublicClientApplication {
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     //
     // @internal
-    protected waitForIframeResponse(iframe: HTMLIFrameElement, request: CommonAuthorizationUrlRequest, responseMode: string): Promise<string>;
+    protected waitForIframeResponse(iframe: HTMLIFrameElement, request: CommonAuthorizationUrlRequest): Promise<string>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1548,7 +1539,7 @@ const WaitForBridgeLateResponse = "waitForBridgeLateResponse";
 // Warning: (ae-missing-release-tag) "waitForBridgeResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-function waitForBridgeResponse(timeoutMs: number, logger: Logger, browserCrypto: ICrypto, request: CommonAuthorizationUrlRequest | CommonEndSessionRequest, performanceClient: IPerformanceClient, experimentalConfig?: BrowserExperimentalOptions): Promise<string>;
+function waitForBridgeResponse(timeoutMs: number, logger: Logger, request: CommonAuthorizationUrlRequest | CommonEndSessionRequest, performanceClient: IPerformanceClient, experimentalConfig?: BrowserExperimentalOptions): Promise<string>;
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)

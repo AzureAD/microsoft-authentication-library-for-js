@@ -9,7 +9,6 @@ import {
     invokeAsync,
     UrlUtils,
     RequestParameterBuilder,
-    ICrypto,
     IPerformanceClient,
     InProgressPerformanceEvent,
     Logger,
@@ -22,6 +21,7 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
+import { base64Decode } from "../encode/Base64Decode.js";
 import { BrowserCacheLocation, InteractionType } from "./BrowserConstants.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import {
@@ -33,7 +33,6 @@ import {
     BrowserExperimentalOptions,
 } from "../config/Configuration.js";
 import { redirectBridgeEmptyResponse } from "../error/BrowserAuthErrorCodes.js";
-import { base64Decode } from "../encode/Base64Decode.js";
 
 /**
  * Extracts and parses the authentication response from URL (hash and/or query string).
@@ -254,7 +253,6 @@ export function cancelPendingBridgeResponse(
 export async function waitForBridgeResponse(
     timeoutMs: number,
     logger: Logger,
-    browserCrypto: ICrypto,
     request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
     performanceClient: IPerformanceClient,
     experimentalConfig?: BrowserExperimentalOptions
@@ -277,7 +275,7 @@ export async function waitForBridgeResponse(
         );
 
         const { libraryState } = ProtocolUtils.parseRequestState(
-            browserCrypto.base64Decode,
+            base64Decode,
             request.state || ""
         );
         const channel = new BroadcastChannel(libraryState.id);

@@ -53,7 +53,10 @@ export abstract class BaseOperatingContext {
         }
     }
 
-    constructor(config: Configuration, responseHandlers?: AuthResponseHandlers) {
+    constructor(
+        config: Configuration,
+        responseHandlers?: AuthResponseHandlers
+    ) {
         /*
          * If loaded in an environment where window is not available,
          * set internal flag to false so that further requests fail.

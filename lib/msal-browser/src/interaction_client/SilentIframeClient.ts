@@ -65,8 +65,7 @@ import {
  */
 export type WaitForIframeResponseFn = (
     iframe: HTMLIFrameElement,
-    request: CommonAuthorizationUrlRequest,
-    responseMode: string
+    request: CommonAuthorizationUrlRequest
 ) => Promise<string>;
 
 export class SilentIframeClient extends StandardInteractionClient {
@@ -320,7 +319,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 correlationId
-            )(iframe, request, responseType);
+            )(iframe, request);
         } finally {
             invoke(
                 removeHiddenIframe,
@@ -612,7 +611,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 correlationId
-            )(iframe, request, responseType);
+            )(iframe, request);
         } finally {
             invoke(
                 removeHiddenIframe,
@@ -636,20 +635,14 @@ export class SilentIframeClient extends StandardInteractionClient {
 
     protected async waitForIframeResponse(
         iframe: HTMLIFrameElement,
-        request: CommonAuthorizationUrlRequest,
-        responseMode: string
+        request: CommonAuthorizationUrlRequest
     ): Promise<string> {
         if (this.waitForIframeResponseHook) {
-            return this.waitForIframeResponseHook(
-                iframe,
-                request,
-                responseMode
-            );
+            return this.waitForIframeResponseHook(iframe, request);
         }
         return BrowserUtils.waitForBridgeResponse(
             this.config.system.iframeBridgeTimeout,
             this.logger,
-            this.browserCrypto,
             request,
             this.performanceClient,
             this.config.experimental

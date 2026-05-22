@@ -2103,14 +2103,6 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns the browser crypto instance.
-     * @internal
-     */
-    public getBrowserCrypto(): ICrypto {
-        return this.browserCrypto;
-    }
-
-    /**
      * Returns the browser env indicator
      */
     public isBrowserEnv(): boolean {

@@ -18,7 +18,6 @@ import {
     Logger,
     CommonAuthorizationUrlRequest,
     CommonEndSessionRequest,
-    ICrypto,
     IPerformanceClient,
 } from "@azure/msal-common/browser";
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
@@ -113,13 +112,14 @@ export class PublicClientApplication implements IPublicClientApplication {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         popupWindowParent: Window
     ): Promise<string> {
-        const services = this.getControllerServices();
+        const controller = this.controller as IController & {
+            getPerformanceClient(): IPerformanceClient;
+        };
         return waitForBridgeResponse(
-            services.config.system.popupBridgeTimeout,
-            services.logger,
-            services.browserCrypto,
+            controller.getConfiguration().system.popupBridgeTimeout,
+            controller.getLogger(),
             request,
-            services.performanceClient
+            controller.getPerformanceClient()
         );
     }
 
@@ -133,49 +133,23 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @internal
      * @param iframe The hidden iframe MSAL attached to the document.
      * @param request The in-flight authorization request.
-     * @param responseMode The OIDC response mode to expect.
      */
     protected async waitForIframeResponse(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         iframe: HTMLIFrameElement,
-        request: CommonAuthorizationUrlRequest,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        responseMode: string
+        request: CommonAuthorizationUrlRequest
     ): Promise<string> {
-        const services = this.getControllerServices();
-        return waitForBridgeResponse(
-            services.config.system.iframeBridgeTimeout,
-            services.logger,
-            services.browserCrypto,
-            request,
-            services.performanceClient,
-            services.config.experimental
-        );
-    }
-
-    /**
-     * Resolves the controller-owned services needed by the default
-     * response-handler implementations. Subclasses can rely on the same
-     * helper instead of reaching into the controller directly.
-     *
-     * @internal
-     */
-    protected getControllerServices(): {
-        config: BrowserConfiguration;
-        logger: Logger;
-        performanceClient: IPerformanceClient;
-        browserCrypto: ICrypto;
-    } {
         const controller = this.controller as IController & {
             getPerformanceClient(): IPerformanceClient;
-            getBrowserCrypto(): ICrypto;
         };
-        return {
-            config: controller.getConfiguration(),
-            logger: controller.getLogger(),
-            performanceClient: controller.getPerformanceClient(),
-            browserCrypto: controller.getBrowserCrypto(),
-        };
+        const config = controller.getConfiguration();
+        return waitForBridgeResponse(
+            config.system.iframeBridgeTimeout,
+            controller.getLogger(),
+            request,
+            controller.getPerformanceClient(),
+            config.experimental
+        );
     }
 
     /**
