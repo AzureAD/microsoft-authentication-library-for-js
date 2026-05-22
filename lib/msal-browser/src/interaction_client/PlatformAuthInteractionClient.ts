@@ -388,7 +388,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             noHistory: false,
         };
         const redirectUri = navigateToLoginRequestUrl
-            ? window.location.href
+            ? request.redirectStartPage || window.location.href
             : getRedirectUri(
                   request.redirectUri,
                   this.config.auth.redirectUri,
