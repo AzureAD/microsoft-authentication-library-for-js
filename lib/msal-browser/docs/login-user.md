@@ -70,9 +70,8 @@ try {
 
 When your application supports multiple tenants and users may be logged into more than one tenant, you can pass the optional `tenantId` parameter on the login request to ensure the correct cached account is used during platform broker flows.
 
-This is particularly important when a user who previously logged into Tenant A now wants to log into Tenant B using the same `loginHint`. Without `tenantId`, the cached account lookup may return the wrong tenant's account ID because `loginHint` alone cannot distinguish between tenants.
+This is particularly important in **platform broker flows** when a user who previously logged into Tenant A now wants to log into Tenant B using the same `loginHint`. Without `tenantId`, the cached account lookup may return the wrong tenant's account ID because `loginHint` alone cannot distinguish between tenants.
 
-**You should set `tenantId` when the user is logging into a tenant that is not their home tenant**, or whenever your application handles multi-tenant scenarios where the same user identity may exist across multiple tenants.
 
 The `tenantId` value should be the **tenant GUID** (not a domain name) of the target tenant the user is signing into.
 
