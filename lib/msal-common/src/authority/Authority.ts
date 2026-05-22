@@ -984,7 +984,7 @@ export class Authority {
         }
 
         // If cloudDiscoveryMetadata is empty or does not contain the host, check knownAuthorities
-        if (this.isInKnownAuthorities()) {
+        if (this.isInKnownAuthorities(this.hostnameAndPort)) {
             this.logger.verbose(
                 "The host is included in knownAuthorities. Creating new cloud discovery metadata from the host.",
                 this.correlationId
@@ -1112,15 +1112,16 @@ export class Authority {
     }
 
     /**
-     * Helper function to determine if this host is included in the knownAuthorities config option
+     * Helper function to determine if a host is included in the knownAuthorities config option.
      */
-    private isInKnownAuthorities(): boolean {
+    private isInKnownAuthorities(host: string): boolean {
+        const normalizedHost = host.toLowerCase();
         const matches = this.authorityOptions.knownAuthorities.filter(
             (authority) => {
                 return (
                     authority &&
                     UrlString.getDomainFromUrl(authority).toLowerCase() ===
-                        this.hostnameAndPort
+                        normalizedHost
                 );
             }
         );
@@ -1214,6 +1215,10 @@ export class Authority {
      *  4. Same as (2), but the issuer host matches the CIAM tenant pattern
      *     `{tenant}.ciamlogin.com` with an optional `/{tenant}[.onmicrosoft.com][/v2.0]`
      *     path.
+     *  5. The issuer host is HTTPS and is explicitly listed in the
+     *     developer-configured `knownAuthorities`. This covers scenarios where
+     *     the OIDC discovery document returns an issuer host that differs from
+     *     the authority (e.g., a GUID-based issuer for a name-based CIAM authority).
      *
      * @param issuer The `issuer` value returned in the OIDC discovery document.
      * @throws ClientConfigurationError("issuer_validation_failed") on failure.
@@ -1274,12 +1279,22 @@ export class Authority {
             this.canonicalAuthorityUrlComponents.PathSegments
         );
 
+        /*
+         * Rule 5: The issuer host is explicitly listed in the developer-configured
+         * knownAuthorities. This covers scenarios where the OIDC discovery document
+         * returns an issuer with a different host than the authority
+         * (e.g., a GUID-based issuer for a name-based authority).
+         */
+        const matchesKnownAuthority =
+            issuerScheme === "https:" && this.isInKnownAuthorities(issuerHost);
+
         // Each rule is an independent boolean; the issuer is valid if ANY rule matches.
         if (
             matchesAuthorityOrigin ||
             matchesKnownMicrosoftHost ||
             matchesRegionalMicrosoftHost ||
-            matchesCiamTenantPattern
+            matchesCiamTenantPattern ||
+            matchesKnownAuthority
         ) {
             return;
         }
