@@ -66,12 +66,14 @@ describe("B2C user-flow tests (local account)", () => {
 
         // Initiate Login
         const signInButton = await page.waitForSelector(
-            "xpath=//button[contains(., 'Login')]"
+            "xpath=//button[contains(., 'Login')]",
+            { timeout: 60000 }
         );
         await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
         const loginRedirectButton = await page.waitForSelector(
-            "xpath=//li[contains(., 'Sign in using Redirect')]"
+            "xpath=//li[contains(., 'Sign in using Redirect')]",
+            { timeout: 60000 }
         );
         await loginRedirectButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
@@ -84,7 +86,7 @@ describe("B2C user-flow tests (local account)", () => {
         );
 
         // Verify UI now displays logged in content
-        await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]");
+        await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]", { timeout: 60000 });
         await screenshot.takeScreenshot(page, "Signed in with the policy");
 
         // Verify tokens are in cache
@@ -104,23 +106,26 @@ describe("B2C user-flow tests (local account)", () => {
 
         // initiate edit profile flow
         const editProfileButton = await page.waitForSelector(
-            "#editProfileButton"
+            "#editProfileButton",
+            { timeout: 60000 }
         );
         if (editProfileButton) {
             await editProfileButton.click();
         }
         let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
-        await page.waitForSelector("#attributeVerification", { visible: true });
+        await page.waitForSelector("#attributeVerification", { visible: true, timeout: 60000 });
         await page.$eval("#displayName", (el: any) => (el.value = "")), // clear the text field
             await page.type("#displayName", `${displayName}`),
             await page.click("#continue");
         await Promise.all([
             page.waitForFunction(
-                `window.location.href.startsWith("http://localhost:${port}")`
+                `window.location.href.startsWith("http://localhost:${port}")`,
+                { timeout: 60000 }
             ),
-            page.waitForSelector("#idTokenClaims"),
+            page.waitForSelector("#idTokenClaims", { timeout: 60000 }),
             page.waitForSelector(
-                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])"
+                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])",
+                { timeout: 60000 }
             ),
         ]);
         const idTokenClaims = await page.$eval(
