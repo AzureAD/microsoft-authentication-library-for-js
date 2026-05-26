@@ -369,7 +369,8 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     correlationId,
-                    this.config.system.nativeBrokerHandshakeTimeout
+                    this.config.system.nativeBrokerHandshakeTimeout,
+                    this.config.experimental.allowPlatformBrokerWithDOM
                 );
             } catch (e) {
                 this.logger.verbose(e as string, correlationId);

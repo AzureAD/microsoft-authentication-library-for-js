@@ -17,9 +17,12 @@ import {
 } from "../../error/CustomAuthApiError.js";
 import {
     AADServerParamKeys,
+    Logger,
     ServerTelemetryManager,
 } from "@azure/msal-common/browser";
 import { ApiErrorResponse } from "./types/ApiErrorResponseTypes.js";
+import { CustomAuthRequestInterceptor } from "../../../configuration/CustomAuthRequestInterceptor.js";
+import { filterCustomHeaders } from "../../utils/CustomHeaderUtils.js";
 
 export abstract class BaseApiClient {
     private readonly baseRequestUrl: URL;
@@ -28,7 +31,9 @@ export abstract class BaseApiClient {
         baseUrl: string,
         private readonly clientId: string,
         private httpClient: IHttpClient,
-        private customAuthApiQueryParams?: Record<string, string>
+        private customAuthApiQueryParams?: Record<string, string>,
+        private requestInterceptor?: CustomAuthRequestInterceptor,
+        private logger?: Logger
     ) {
         this.baseRequestUrl = parseUrl(
             !baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl
@@ -45,12 +50,22 @@ export abstract class BaseApiClient {
             client_id: this.clientId,
             ...data,
         });
-        const headers = this.getCommonHeaders(correlationId, telemetryManager);
+        const commonHeaders = this.getCommonHeaders(
+            correlationId,
+            telemetryManager
+        );
         const url = buildUrl(
             this.baseRequestUrl.href,
             endpoint,
             this.customAuthApiQueryParams
         );
+
+        const additionalHeaders = await this.getAdditionalHeaders(
+            url,
+            correlationId
+        );
+
+        const headers = { ...commonHeaders, ...additionalHeaders };
 
         let response: Response;
 
@@ -172,5 +187,29 @@ export abstract class BaseApiClient {
             responseError.trace_id,
             responseError.timestamp
         );
+    }
+
+    private async getAdditionalHeaders(
+        url: URL,
+        correlationId: string
+    ): Promise<Record<string, string>> {
+        if (!this.requestInterceptor) {
+            return {};
+        }
+
+        try {
+            const result = await Promise.resolve(
+                this.requestInterceptor.addAdditionalHeaderFields(url)
+            );
+
+            return filterCustomHeaders(result, this.logger, correlationId);
+        } catch (e) {
+            this.logger?.warningPii(
+                `CustomAuthRequestInterceptor.addAdditionalHeaderFields threw an error; continuing without additional headers: ${e}`,
+                correlationId
+            );
+
+            return {};
+        }
     }
 }

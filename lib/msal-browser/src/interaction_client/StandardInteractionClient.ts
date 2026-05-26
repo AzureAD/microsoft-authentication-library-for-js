@@ -73,15 +73,17 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
          * and logoutHint attribute wasn't manually set in logout request
          */
         if (logoutRequest) {
-            // If logoutHint isn't set and an account was passed in, try to extract logoutHint from ID Token Claims
+            // If logoutHint isn't set and an account was passed in, try to extract logoutHint from account loginHint or ID Token Claims
             if (!logoutRequest.logoutHint) {
                 if (logoutRequest.account) {
-                    const logoutHint = this.getLogoutHintFromIdTokenClaims(
-                        logoutRequest.account
-                    );
+                    const logoutHint =
+                        logoutRequest.account.loginHint ||
+                        this.getLogoutHintFromIdTokenClaims(
+                            logoutRequest.account
+                        );
                     if (logoutHint) {
                         this.logger.verbose(
-                            "Setting logoutHint to login_hint ID Token Claim value for the account provided",
+                            "Setting logoutHint value to loginHint of the account provided",
                             this.correlationId
                         );
                         validLogoutRequest.logoutHint = logoutHint;
@@ -167,6 +169,10 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const idTokenClaims: IdTokenClaims | undefined = account.idTokenClaims;
         if (idTokenClaims) {
             if (idTokenClaims.login_hint) {
+                this.logger.verbose(
+                    "Extracted login_hint claim from account ID Token Claims to be used as logoutHint",
+                    this.correlationId
+                );
                 return idTokenClaims.login_hint;
             } else {
                 this.logger.verbose(

@@ -175,6 +175,10 @@ export type BrowserExperimentalOptions = {
      * Enables iframe timeout telemetry experiment for silent iframe bridge monitoring.
      */
     iframeTimeoutTelemetry?: boolean;
+    /**
+     * Flag to enable native broker support through DOM APIs in Edge
+     */
+    allowPlatformBrokerWithDOM?: boolean;
 };
 
 /**
@@ -329,6 +333,7 @@ export function buildConfiguration(
 
     const DEFAULT_EXPERIMENTAL_OPTIONS: Required<BrowserExperimentalOptions> = {
         iframeTimeoutTelemetry: false,
+        allowPlatformBrokerWithDOM: false,
     };
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode

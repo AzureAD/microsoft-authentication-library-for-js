@@ -147,4 +147,47 @@ describe("CustomAuthApiClient", () => {
             expect(apiClient.resetPasswordApi).toBeDefined();
         });
     });
+
+    describe("requestInterceptor", () => {
+        it("should accept a requestInterceptor and logger when provided", () => {
+            const logger = getDefaultLogger();
+            const interceptor = {
+                addAdditionalHeaderFields: jest.fn(() => null),
+            };
+
+            const apiClient = new CustomAuthApiClient(
+                "https://test.com",
+                "client_id",
+                new FetchHttpClient(logger),
+                undefined,
+                undefined,
+                interceptor,
+                logger
+            );
+
+            expect(apiClient.signInApi).toBeDefined();
+            expect(apiClient.signUpApi).toBeDefined();
+            expect(apiClient.resetPasswordApi).toBeDefined();
+            expect(apiClient.registerApi).toBeDefined();
+        });
+
+        it("should initialize without requestInterceptor", () => {
+            const logger = getDefaultLogger();
+
+            const apiClient = new CustomAuthApiClient(
+                "https://test.com",
+                "client_id",
+                new FetchHttpClient(logger),
+                undefined,
+                undefined,
+                undefined,
+                logger
+            );
+
+            expect(apiClient.signInApi).toBeDefined();
+            expect(apiClient.signUpApi).toBeDefined();
+            expect(apiClient.resetPasswordApi).toBeDefined();
+            expect(apiClient.registerApi).toBeDefined();
+        });
+    });
 });

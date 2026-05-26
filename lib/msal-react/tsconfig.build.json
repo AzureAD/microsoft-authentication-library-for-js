@@ -2,6 +2,8 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "rootDir": "./src",
+        "declaration": false,
+        "declarationMap": false,
         "types": [
             "react"
         ]

@@ -91,6 +91,15 @@ export abstract class BaseManagedIdentitySource {
     }
 
     /**
+     * Generates a new correlation ID for request tracing.
+     *
+     * @returns A new GUID string for use as a correlation or request ID
+     */
+    protected createCorrelationId(): string {
+        return this.cryptoProvider.createNewGuid();
+    }
+
+    /**
      * Creates a managed identity request with source-specific parameters.
      * This method must be implemented by concrete managed identity sources to define
      * how requests are constructed for their specific endpoint requirements.
