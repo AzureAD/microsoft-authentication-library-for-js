@@ -203,7 +203,7 @@ export async function b2cAadPpeAccountEnterCredentials(
     username: string,
     accountPwd: string
 ): Promise<void> {
-    await page.waitForSelector(HtmlSelectors.B2C_AAD_ID4SLAB2_SIGNIN_PAGE);
+    await page.waitForSelector(HtmlSelectors.B2C_AAD_ID4SLAB2_SIGNIN_PAGE, { timeout: 60000 });
     await screenshot.takeScreenshot(page, "b2cSignInPage");
     // Select Lab Provider
     await page.click(HtmlSelectors.B2C_AAD_ID4SLAB2_SIGNIN_PAGE);
@@ -217,7 +217,7 @@ export async function b2cMsaAccountEnterCredentials(
     username: string,
     accountPwd: string
 ): Promise<void> {
-    await page.waitForSelector(HtmlSelectors.B2C_MSA_SIGNIN_PAGE);
+    await page.waitForSelector(HtmlSelectors.B2C_MSA_SIGNIN_PAGE, { timeout: 60000 });
     await screenshot.takeScreenshot(page, "b2cSignInPage");
     // Select Lab Provider
     await page.click(HtmlSelectors.B2C_MSA_SIGNIN_PAGE);
