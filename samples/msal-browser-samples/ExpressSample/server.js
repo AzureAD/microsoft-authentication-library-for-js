@@ -8,6 +8,8 @@ const exphbs = require('express-handlebars');
 const path = require('path');
 const { exec } = require('child_process');
 const { promisify } = require('util');
+const https = require('https');
+const fs = require('fs');
 require('dotenv').config();
 
 const execAsync = promisify(exec);
@@ -40,6 +42,10 @@ app.use(express.json()); // Parse JSON bodies
 
 // Serve MSAL library from local build
 app.use('/lib/msal-browser', express.static(path.join(__dirname, '../../../lib/msal-browser/lib')));
+
+// Serve locally cached CDN bundles when running in E2E test mode
+const CDN_CACHE_DIR = path.join(__dirname, 'test/cdn-cache');
+app.use('/lib/msal-cdn-cache', express.static(CDN_CACHE_DIR));
 
 const localBuildName = 'Local Build';
 const localBuildDebugName = 'Local Build (Debug)';
@@ -175,6 +181,76 @@ async function updateVersionDescriptions() {
 
 // Initialize version descriptions on startup
 updateVersionDescriptions();
+
+/**
+ * Downloads a CDN bundle to the local cache directory.
+ * Returns the local URL path to serve the cached file.
+ */
+async function downloadCdnBundle(versionKey, cdnUrl) {
+    const cacheDir = path.join(CDN_CACHE_DIR, versionKey);
+    const fileName = path.basename(cdnUrl.split('?')[0]);
+    const filePath = path.join(cacheDir, fileName);
+    const localPath = `/lib/msal-cdn-cache/${versionKey}/${fileName}`;
+
+    if (fs.existsSync(filePath)) {
+        return localPath;
+    }
+
+    fs.mkdirSync(cacheDir, { recursive: true });
+
+    return new Promise((resolve, reject) => {
+        const file = fs.createWriteStream(filePath);
+        https.get(cdnUrl, (response) => {
+            if (response.statusCode === 302 || response.statusCode === 301) {
+                // Follow redirect
+                file.close();
+                fs.unlinkSync(filePath);
+                https.get(response.headers.location, (redirectResponse) => {
+                    redirectResponse.pipe(file);
+                    file.on('finish', () => { file.close(); resolve(localPath); });
+                    file.on('error', reject);
+                }).on('error', reject);
+                return;
+            }
+            response.pipe(file);
+            file.on('finish', () => { file.close(); resolve(localPath); });
+            file.on('error', reject);
+        }).on('error', (err) => {
+            file.close();
+            fs.unlink(filePath, () => {});
+            reject(err);
+        });
+    });
+}
+
+/**
+ * Pre-downloads all CDN bundles at startup so version switches use localhost instead of CDN.
+ * Only runs when NODE_ENV=test or E2E_LOCAL_CDN=true.
+ */
+async function initializeCdnCache() {
+    if (process.env.NODE_ENV !== 'test' && process.env.E2E_LOCAL_CDN !== 'true') {
+        return;
+    }
+
+    console.log('E2E mode: pre-caching CDN bundles to eliminate network latency during tests...');
+    const cdnEntries = Object.entries(availableVersions)
+        .filter(([, info]) => info.path && info.path.startsWith('https://'));
+
+    const results = await Promise.allSettled(
+        cdnEntries.map(async ([key, info]) => {
+            try {
+                const localPath = await downloadCdnBundle(key, info.path);
+                availableVersions[key] = { ...info, path: localPath };
+                console.log(`  Cached ${key} -> ${localPath}`);
+            } catch (err) {
+                console.warn(`  Failed to cache ${key}: ${err.message} (will use CDN fallback)`);
+            }
+        })
+    );
+
+    const failed = results.filter(r => r.status === 'rejected').length;
+    console.log(`CDN cache ready (${cdnEntries.length - failed}/${cdnEntries.length} versions cached).`);
+}
 
 function getCurrentVersionInfo() {
     return {
@@ -407,7 +483,11 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`Express server listening on port ${PORT}`);
-    console.log(`Navigate to http://localhost:${PORT}`);
-});
+// Run startup tasks then begin listening
+(async () => {
+    await initializeCdnCache();
+    app.listen(PORT, () => {
+        console.log(`Express server listening on port ${PORT}`);
+        console.log(`Navigate to http://localhost:${PORT}`);
+    });
+})();
