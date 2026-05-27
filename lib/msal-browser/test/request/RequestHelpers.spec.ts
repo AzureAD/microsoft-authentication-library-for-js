@@ -81,9 +81,7 @@ describe("RequestHelpers tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 )
             ).rejects.toThrowError(
-                new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
-                )
+                new ClientConfigurationError(ClientConfigurationErrorCodes.missingSshJwk, "")
             );
         });
     });

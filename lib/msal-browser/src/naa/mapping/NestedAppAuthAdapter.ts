@@ -104,10 +104,7 @@ export class NestedAppAuthAdapter {
         reqTimestamp: number
     ): AuthenticationResult {
         if (!response.token.id_token || !response.token.access_token) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.nullOrEmptyToken,
-                undefined,
-                request.correlationId
+            throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, request.correlationId
             );
         }
 
@@ -199,9 +196,7 @@ export class NestedAppAuthAdapter {
         // Validate environment - required field
         const environment = fromAccount.environment;
         if (!environment) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.invalidCacheEnvironment
-            );
+            throw createClientAuthError(ClientAuthErrorCodes.invalidCacheEnvironment, "");
         }
 
         /*
@@ -266,39 +261,45 @@ export class NestedAppAuthAdapter {
             switch (error.status) {
                 case BridgeStatusCode.UserCancel:
                     return new ClientAuthError(
-                        ClientAuthErrorCodes.userCanceled
+                        ClientAuthErrorCodes.userCanceled,
+                        ""
                     );
                 case BridgeStatusCode.NoNetwork:
                     return new ClientAuthError(
-                        ClientAuthErrorCodes.noNetworkConnectivity
+                        ClientAuthErrorCodes.noNetworkConnectivity,
+                        ""
                     );
                 case BridgeStatusCode.AccountUnavailable:
                     return new ClientAuthError(
-                        ClientAuthErrorCodes.noAccountFound
+                        ClientAuthErrorCodes.noAccountFound,
+                        ""
                     );
                 case BridgeStatusCode.Disabled:
                     return new ClientAuthError(
-                        ClientAuthErrorCodes.nestedAppAuthBridgeDisabled
+                        ClientAuthErrorCodes.nestedAppAuthBridgeDisabled,
+                        ""
                     );
                 case BridgeStatusCode.NestedAppAuthUnavailable:
                     return new ClientAuthError(
                         error.code ||
                             ClientAuthErrorCodes.nestedAppAuthBridgeDisabled,
+                        "",
                         error.description
                     );
                 case BridgeStatusCode.TransientError:
                 case BridgeStatusCode.PersistentError:
-                    return new ServerError(error.code, error.description);
+                    return new ServerError(error.code || "", "", error.description);
                 case BridgeStatusCode.UserInteractionRequired:
                     return new InteractionRequiredAuthError(
-                        error.code,
+                        error.code || "",
+                        "",
                         error.description
                     );
                 default:
-                    return new AuthError(error.code, error.description);
+                    return new AuthError(error.code || "", "", error.description);
             }
         } else {
-            return new AuthError("unknown_error", "An unknown error occurred");
+            return new AuthError("unknown_error", "", "An unknown error occurred");
         }
     }
 
@@ -319,10 +320,7 @@ export class NestedAppAuthAdapter {
         correlationId: string
     ): AuthenticationResult {
         if (!idToken || !accessToken) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.nullOrEmptyToken,
-                undefined,
-                correlationId
+            throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, correlationId
             );
         }
 

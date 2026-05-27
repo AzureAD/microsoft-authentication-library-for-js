@@ -344,9 +344,7 @@ export function buildConfiguration(
         const logger = new Logger(providedSystemOptions.loggerOptions);
         logger.warning(
             JSON.stringify(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.cannotSetOIDCOptions
-                )
+                createClientConfigurationError(ClientConfigurationErrorCodes.cannotSetOIDCOptions, "")
             ),
             ""
         );
@@ -358,9 +356,7 @@ export function buildConfiguration(
         userInputSystem.protocolMode === ProtocolMode.OIDC &&
         providedSystemOptions?.allowPlatformBroker
     ) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.cannotAllowPlatformBroker
-        );
+        throw createClientConfigurationError(ClientConfigurationErrorCodes.cannotAllowPlatformBroker, "");
     }
 
     const overlayedConfig: BrowserConfiguration = {

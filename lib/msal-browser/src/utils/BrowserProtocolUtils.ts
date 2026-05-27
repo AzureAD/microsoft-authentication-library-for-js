@@ -34,6 +34,6 @@ export function extractBrowserRequestState(
             ProtocolUtils.parseRequestState(browserCrypto.base64Decode, state);
         return requestStateObj.libraryState.meta as BrowserStateObject;
     } catch (e) {
-        throw createClientAuthError(ClientAuthErrorCodes.invalidState);
+        throw createClientAuthError(ClientAuthErrorCodes.invalidState, "");
     }
 }

@@ -148,9 +148,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                     correlationId: NAA_CORRELATION_ID,
                 } as any)
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.resourceParameterRequired
-                )
+                createClientAuthError(ClientAuthErrorCodes.resourceParameterRequired, "")
             );
         });
 
@@ -177,9 +175,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                     },
                 } as any)
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.misplacedResourceParam
-                )
+                createClientAuthError(ClientAuthErrorCodes.misplacedResourceParam, "")
             );
         });
 
@@ -206,9 +202,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                     },
                 } as any)
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.misplacedResourceParam
-                )
+                createClientAuthError(ClientAuthErrorCodes.misplacedResourceParam, "")
             );
         });
 
@@ -451,9 +445,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 NestedAppAuthAdapter.prototype as any,
                 "fromNaaTokenResponse"
             ).mockImplementation(() => {
-                throw createClientAuthError(
-                    ClientAuthErrorCodes.nullOrEmptyToken
-                );
+                throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "");
             });
 
             const testRequest = {
@@ -465,7 +457,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             await expect(() =>
                 pca.acquireTokenSilent(testRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+                createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
         });
 
@@ -487,7 +479,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             await expect(() =>
                 pca.acquireTokenSilent(testRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+                createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
         });
 

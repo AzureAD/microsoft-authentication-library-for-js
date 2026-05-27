@@ -31,10 +31,7 @@ export function deserializeResponse(
                 `The request has returned to the redirectUri but a '${responseLocation}' is not present. It's likely that the '${responseLocation}' has been removed or the page has been redirected by code running on the redirectUri page.`,
                 correlationId
             );
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.hashEmptyError,
-                undefined,
-                correlationId
+            throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError, correlationId
             );
         } else {
             logger.error(
@@ -45,10 +42,7 @@ export function deserializeResponse(
                 `The '${responseLocation}' detected is: '${responseString}'`,
                 correlationId
             );
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
-                undefined,
-                correlationId
+            throw createBrowserAuthError(BrowserAuthErrorCodes.hashDoesNotContainKnownProperties, correlationId
             );
         }
     }
@@ -64,7 +58,7 @@ export function validateInteractionType(
     interactionType: InteractionType
 ): void {
     if (!response.state) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
+        throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash, "");
     }
 
     const platformStateObj = extractBrowserRequestState(
@@ -72,12 +66,10 @@ export function validateInteractionType(
         response.state
     );
     if (!platformStateObj) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.unableToParseState);
+        throw createBrowserAuthError(BrowserAuthErrorCodes.unableToParseState, "");
     }
 
     if (platformStateObj.interactionType !== interactionType) {
-        throw createBrowserAuthError(
-            BrowserAuthErrorCodes.stateInteractionTypeMismatch
-        );
+        throw createBrowserAuthError(BrowserAuthErrorCodes.stateInteractionTypeMismatch, "");
     }
 }

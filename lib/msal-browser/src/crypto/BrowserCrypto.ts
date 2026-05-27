@@ -58,16 +58,15 @@ export function validateCryptoAvailable(
     skipValidateSubtleCrypto: boolean
 ): void {
     if (!window) {
-        throw createBrowserAuthError(
-            BrowserAuthErrorCodes.nonBrowserEnvironment
-        );
+        throw createBrowserAuthError(BrowserAuthErrorCodes.nonBrowserEnvironment, "");
     }
     if (!window.crypto) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.cryptoNonExistent);
+        throw createBrowserAuthError(BrowserAuthErrorCodes.cryptoNonExistent, "");
     }
     if (!skipValidateSubtleCrypto && !window.crypto.subtle) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.cryptoNonExistent,
+            "",
             SUBTLE_SUBERROR
         );
     }
@@ -260,6 +259,7 @@ export async function decryptEarResponse(
     if (earJweParts.length !== 5) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            "",
             "jwe_length"
         );
     }
@@ -267,6 +267,7 @@ export async function decryptEarResponse(
     const key = await importEarKey(earJwk).catch(() => {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            "",
             "import_key"
         );
     });
@@ -298,6 +299,7 @@ export async function decryptEarResponse(
     } catch (e) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            "",
             "decrypt"
         );
     }

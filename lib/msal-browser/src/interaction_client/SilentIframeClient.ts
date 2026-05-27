@@ -199,7 +199,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             )(authClient, request);
         } catch (e) {
             if (e instanceof AuthError) {
-                (e as AuthError).setCorrelationId(this.correlationId);
+                (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
             }
 
@@ -479,9 +479,7 @@ export class SilentIframeClient extends StandardInteractionClient {
     logout(): Promise<void> {
         // Synchronous so we must reject
         return Promise.reject(
-            createBrowserAuthError(
-                BrowserAuthErrorCodes.silentLogoutUnsupported
-            )
+            createBrowserAuthError(BrowserAuthErrorCodes.silentLogoutUnsupported, "")
         );
     }
 

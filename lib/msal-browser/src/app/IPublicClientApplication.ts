@@ -80,37 +80,27 @@ export interface IPublicClientApplication {
 export const stubbedPublicClientApplication: IPublicClientApplication = {
     initialize: () => {
         return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
+            createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "")
         );
     },
     acquireTokenPopup: () => {
         return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
+            createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "")
         );
     },
     acquireTokenRedirect: () => {
         return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
+            createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "")
         );
     },
     acquireTokenSilent: () => {
         return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
+            createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "")
         );
     },
     acquireTokenByCode: () => {
         return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
+            createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "")
         );
     },
     getAllAccounts: () => {
@@ -121,44 +111,32 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     handleRedirectPromise: () => {
         return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
+            createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "")
         );
     },
     loginPopup: () => {
         return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
+            createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "")
         );
     },
     loginRedirect: () => {
         return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
+            createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "")
         );
     },
     logoutRedirect: () => {
         return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
+            createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "")
         );
     },
     logoutPopup: () => {
         return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
+            createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "")
         );
     },
     ssoSilent: () => {
         return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
+            createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "")
         );
     },
     addEventCallback: () => {
@@ -174,9 +152,7 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         return false;
     },
     getLogger: () => {
-        throw createBrowserConfigurationAuthError(
-            BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-        );
+        throw createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "");
     },
     setLogger: () => {
         return;
@@ -194,22 +170,16 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         return;
     },
     getConfiguration: () => {
-        throw createBrowserConfigurationAuthError(
-            BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-        );
+        throw createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "");
     },
     hydrateCache: () => {
         return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
+            createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "")
         );
     },
     clearCache: () => {
         return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
+            createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled, "")
         );
     },
 };

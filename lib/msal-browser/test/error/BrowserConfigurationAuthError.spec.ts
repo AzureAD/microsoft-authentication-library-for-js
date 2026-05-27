@@ -14,7 +14,7 @@ describe("BrowserConfigurationAuthError Unit Tests", () => {
             ];
         it(`BrowserConfigurationAuthError object can be created for code ${code}`, () => {
             const err: BrowserConfigurationAuthError =
-                createBrowserConfigurationAuthError(code);
+                createBrowserConfigurationAuthError(code, "");
 
             const message = getDefaultErrorMessage(code);
             expect(message).toBeTruthy();
@@ -40,12 +40,5 @@ describe("BrowserConfigurationAuthError Unit Tests", () => {
             TEST_CORRELATION_ID
         );
         expect(err.correlationId).toBe(TEST_CORRELATION_ID);
-    });
-
-    it("createBrowserConfigurationAuthError leaves correlationId undefined when not provided", () => {
-        const err = createBrowserConfigurationAuthError(
-            BrowserConfigurationAuthErrorCodes.storageNotSupported
-        );
-        expect(err.correlationId).toBeUndefined();
     });
 });

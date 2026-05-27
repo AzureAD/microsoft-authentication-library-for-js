@@ -46,7 +46,7 @@ export class CookieStorage implements IWindowStorage<string> {
     }
 
     getUserData(): string | null {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "");
     }
 
     setItem(
@@ -75,7 +75,7 @@ export class CookieStorage implements IWindowStorage<string> {
 
     async setUserData(): Promise<void> {
         return Promise.reject(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
     }
 

@@ -108,10 +108,10 @@ describe("AuthFlowResultBase", () => {
             it("should convert AuthError to MsalCustomAuthError", () => {
                 const authError = new AuthError(
                     "auth_error_code",
+                    "auth-correlation-id",
                     "Auth error message",
                     "auth_sub_error"
                 );
-                authError.setCorrelationId("auth-correlation-id");
 
                 const result =
                     MockAuthFlowResult.testCreateErrorData(authError);
@@ -125,10 +125,7 @@ describe("AuthFlowResultBase", () => {
             });
 
             it("should handle AuthError with string errorNo property", () => {
-                const authError = new AuthError(
-                    "auth_error_code",
-                    "Auth error message"
-                ) as any;
+                const authError = new AuthError("auth_error_code", "", "Auth error message") as any;
                 authError.errorNo = "1234";
 
                 const result =
@@ -139,10 +136,7 @@ describe("AuthFlowResultBase", () => {
             });
 
             it("should handle AuthError with numeric errorNo property", () => {
-                const authError = new AuthError(
-                    "auth_error_code",
-                    "Auth error message"
-                ) as any;
+                const authError = new AuthError("auth_error_code", "", "Auth error message") as any;
                 authError.errorNo = 5678;
 
                 const result =
@@ -155,6 +149,7 @@ describe("AuthFlowResultBase", () => {
             it("should handle ServerError with string errorNo property", () => {
                 const serverError = new ServerError(
                     "server_error_code",
+                    "",
                     "Server error message",
                     undefined,
                     "9999"
@@ -172,6 +167,7 @@ describe("AuthFlowResultBase", () => {
             it("should handle ServerError with numeric errorNo as string", () => {
                 const serverError = new ServerError(
                     "server_error_code",
+                    "",
                     "Server error message",
                     undefined,
                     "8888"
@@ -185,10 +181,7 @@ describe("AuthFlowResultBase", () => {
             });
 
             it("should handle InteractionRequiredAuthError with string errorNo property", () => {
-                const interactionError = new InteractionRequiredAuthError(
-                    "interaction_required",
-                    "Interaction required message",
-                    undefined,
+                const interactionError = new InteractionRequiredAuthError("interaction_required", "", "Interaction required message",
                     undefined,
                     undefined,
                     undefined,
@@ -208,10 +201,7 @@ describe("AuthFlowResultBase", () => {
             });
 
             it("should handle InteractionRequiredAuthError with numeric errorNo as string", () => {
-                const interactionError = new InteractionRequiredAuthError(
-                    "interaction_required",
-                    "Interaction required message",
-                    undefined,
+                const interactionError = new InteractionRequiredAuthError("interaction_required", "", "Interaction required message",
                     undefined,
                     undefined,
                     undefined,
@@ -227,10 +217,7 @@ describe("AuthFlowResultBase", () => {
             });
 
             it("should handle AuthError with invalid string errorNo property", () => {
-                const authError = new AuthError(
-                    "auth_error_code",
-                    "Auth error message"
-                ) as any;
+                const authError = new AuthError("auth_error_code", "", "Auth error message") as any;
                 authError.errorNo = "invalid_number";
 
                 const result =
@@ -241,12 +228,7 @@ describe("AuthFlowResultBase", () => {
             });
 
             it("should handle ServerError with invalid string errorNo property", () => {
-                const serverError = new ServerError(
-                    "server_error_code",
-                    "Server error message",
-                    undefined,
-                    "invalid_number"
-                );
+                const serverError = new ServerError("server_error_code", "", "Server error message", undefined, "invalid_number");
 
                 const result =
                     MockAuthFlowResult.testCreateErrorData(serverError);
@@ -256,10 +238,7 @@ describe("AuthFlowResultBase", () => {
             });
 
             it("should handle InteractionRequiredAuthError with invalid string errorNo property", () => {
-                const interactionError = new InteractionRequiredAuthError(
-                    "interaction_required",
-                    "Interaction required message",
-                    undefined,
+                const interactionError = new InteractionRequiredAuthError("interaction_required", "", "Interaction required message",
                     undefined,
                     undefined,
                     undefined,
@@ -275,10 +254,7 @@ describe("AuthFlowResultBase", () => {
             });
 
             it("should handle AuthError without errorNo property", () => {
-                const authError = new AuthError(
-                    "auth_error_code",
-                    "Auth error message"
-                );
+                const authError = new AuthError("auth_error_code", "", "Auth error message");
 
                 const result =
                     MockAuthFlowResult.testCreateErrorData(authError);

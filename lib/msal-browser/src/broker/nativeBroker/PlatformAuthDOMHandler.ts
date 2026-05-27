@@ -208,22 +208,22 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                     );
                     throw createNativeAuthError(
                         errorResponse.error.code,
+                        correlationId,
                         errorResponse.error.description,
                         {
                             error: parseInt(errorResponse.error.errorCode),
                             protocol_error: errorResponse.error.protocolError,
                             status: errorResponse.error.status,
                             properties: errorResponse.error.properties,
-                        },
-                        correlationId
+                        }
                     );
                 }
             }
         }
         throw createAuthError(
             AuthErrorCodes.unexpectedError,
-            "Response missing expected properties.",
-            correlationId
+            correlationId,
+            "Response missing expected properties."
         );
     }
 

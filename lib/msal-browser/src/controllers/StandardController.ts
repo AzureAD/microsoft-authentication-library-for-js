@@ -1306,10 +1306,7 @@ export class StandardController implements IController {
         try {
             if (request.code && request.nativeAccountId) {
                 // Throw error in case server returns both spa_code and spa_accountid in exchange for auth code.
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.spaCodeAndNativeAccountIdPresent,
-                    undefined,
-                    correlationId
+                throw createBrowserAuthError(BrowserAuthErrorCodes.spaCodeAndNativeAccountIdPresent, correlationId
                 );
             } else if (request.code) {
                 const hybridAuthCode = request.code;
@@ -1405,17 +1402,11 @@ export class StandardController implements IController {
                     );
                     return result;
                 } else {
-                    throw createBrowserAuthError(
-                        BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform,
-                        undefined,
-                        correlationId
+                    throw createBrowserAuthError(BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform, correlationId
                     );
                 }
             } else {
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired,
-                    undefined,
-                    correlationId
+                throw createBrowserAuthError(BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired, correlationId
                 );
             }
         } catch (e) {
@@ -1510,10 +1501,7 @@ export class StandardController implements IController {
                     commonRequest.correlationId
                 )(commonRequest);
             default:
-                throw createClientAuthError(
-                    ClientAuthErrorCodes.tokenRefreshRequired,
-                    undefined,
-                    commonRequest.correlationId
+                throw createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, commonRequest.correlationId
                 );
         }
     }
@@ -1545,10 +1533,7 @@ export class StandardController implements IController {
                     commonRequest.correlationId
                 )(commonRequest);
             default:
-                throw createClientAuthError(
-                    ClientAuthErrorCodes.tokenRefreshRequired,
-                    undefined,
-                    commonRequest.correlationId
+                throw createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, commonRequest.correlationId
                 );
         }
     }
@@ -1793,10 +1778,7 @@ export class StandardController implements IController {
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("acquireTokenNative called", correlationId);
         if (!this.platformAuthProvider) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.nativeConnectionNotEstablished,
-                undefined,
-                correlationId
+            throw createBrowserAuthError(BrowserAuthErrorCodes.nativeConnectionNotEstablished, correlationId
             );
         }
 
@@ -2205,10 +2187,7 @@ export class StandardController implements IController {
 
         const account = request.account || this.getActiveAccount();
         if (!account) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.noAccountError,
-                undefined,
-                correlationId
+            throw createBrowserAuthError(BrowserAuthErrorCodes.noAccountError, correlationId
             );
         }
 
@@ -2233,7 +2212,7 @@ export class StandardController implements IController {
             .catch((error: Error) => {
                 if (error instanceof AuthError) {
                     // Ensures PWB scenarios can correctly match request to response
-                    error.setCorrelationId(correlationId);
+                    error.correlationId = correlationId;
                 }
 
                 atsMeasurement.end(
@@ -2543,10 +2522,7 @@ export class StandardController implements IController {
                     );
                     this.platformAuthProvider = undefined; // Prevent future requests from continuing to attempt
                     // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
-                    throw createClientAuthError(
-                        ClientAuthErrorCodes.tokenRefreshRequired,
-                        undefined,
-                        silentRequest.correlationId
+                    throw createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, silentRequest.correlationId
                     );
                 }
                 throw e;

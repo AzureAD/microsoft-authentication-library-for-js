@@ -2111,9 +2111,7 @@ export class BrowserCacheManager extends CacheManager {
             true
         );
         if (!encodedTokenRequest) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.noTokenRequestCacheError
-            );
+            throw createBrowserAuthError(BrowserAuthErrorCodes.noTokenRequestCacheError, "");
         }
         const encodedVerifier = this.getTemporaryCache(
             TemporaryCacheKeys.VERIFIER,
@@ -2137,9 +2135,7 @@ export class BrowserCacheManager extends CacheManager {
                 `Parsing cached token request threw with error: '${e}'`,
                 correlationId
             );
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
-            );
+            throw createBrowserAuthError(BrowserAuthErrorCodes.unableToParseTokenRequestCacheError, "");
         }
 
         return [parsedRequest, verifier];
@@ -2238,9 +2234,7 @@ export class BrowserCacheManager extends CacheManager {
                     // Clear existing interaction to allow new one
                     this.removeTemporaryItem(key);
                 } else {
-                    throw createBrowserAuthError(
-                        BrowserAuthErrorCodes.interactionInProgress
-                    );
+                    throw createBrowserAuthError(BrowserAuthErrorCodes.interactionInProgress, "");
                 }
             }
             // Set new interaction

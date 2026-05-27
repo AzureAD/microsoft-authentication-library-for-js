@@ -72,10 +72,7 @@ export class InteractionHandler {
                 e.subError === BrowserAuthErrorCodes.userCancelled
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.userCancelled,
-                    undefined,
-                    request.correlationId
+                throw createBrowserAuthError(BrowserAuthErrorCodes.userCancelled, request.correlationId
                 );
             } else {
                 throw e;

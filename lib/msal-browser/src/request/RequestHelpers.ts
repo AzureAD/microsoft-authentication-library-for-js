@@ -61,14 +61,10 @@ export async function initializeBaseRequest(
             Constants.AuthenticationScheme.SSH
         ) {
             if (!request.sshJwk) {
-                throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
-                );
+                throw createClientConfigurationError(ClientConfigurationErrorCodes.missingSshJwk, "");
             }
             if (!request.sshKid) {
-                throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshKid
-                );
+                throw createClientConfigurationError(ClientConfigurationErrorCodes.missingSshKid, "");
             }
         }
         logger.verbose(
@@ -119,9 +115,7 @@ export function validateRequestMethod(
     if (protocolMode === ProtocolMode.EAR) {
         // Validate that method can only be POST when protocol mode is EAR
         if (requestMethod && requestMethod !== Constants.HttpMethod.POST) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidRequestMethodForEAR
-            );
+            throw createClientConfigurationError(ClientConfigurationErrorCodes.invalidRequestMethodForEAR, "");
         } else {
             httpMethod = Constants.HttpMethod.POST;
         }

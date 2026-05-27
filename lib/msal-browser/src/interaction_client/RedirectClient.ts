@@ -176,7 +176,7 @@ export class RedirectClient extends StandardInteractionClient {
             }
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
+                e.correlationId = this.correlationId;
             }
             window.removeEventListener("pageshow", handleBackButton);
             throw e;
@@ -258,7 +258,7 @@ export class RedirectClient extends StandardInteractionClient {
             }
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
+                e.correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             throw e;
@@ -337,10 +337,7 @@ export class RedirectClient extends StandardInteractionClient {
         return new Promise<void>((resolve, reject) => {
             setTimeout(() => {
                 reject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.timedOut,
-                        "failed_to_redirect"
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.timedOut, "", "failed_to_redirect")
                 );
             }, this.config.system.redirectNavigationTimeout);
         });
@@ -384,10 +381,7 @@ export class RedirectClient extends StandardInteractionClient {
         return new Promise<void>((resolve, reject) => {
             setTimeout(() => {
                 reject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.timedOut,
-                        "failed_to_redirect"
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.timedOut, "", "failed_to_redirect")
                 );
             }, this.config.system.redirectNavigationTimeout);
         });
@@ -560,7 +554,7 @@ export class RedirectClient extends StandardInteractionClient {
             return null;
         } catch (e) {
             if (e instanceof AuthError) {
-                (e as AuthError).setCorrelationId(this.correlationId);
+                (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             throw e;
@@ -654,10 +648,7 @@ export class RedirectClient extends StandardInteractionClient {
     ): Promise<AuthenticationResult> {
         const state = serverParams.state;
         if (!state) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.noStateInHash,
-                undefined,
-                request.correlationId
+            throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash, request.correlationId
             );
         }
 
@@ -800,10 +791,7 @@ export class RedirectClient extends StandardInteractionClient {
                 "RedirectHandler.initiateAuthRequest: Navigate url is empty",
                 this.correlationId
             );
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.emptyNavigateUri,
-                undefined,
-                this.correlationId
+            throw createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri, this.correlationId
             );
         }
     }
@@ -944,7 +932,7 @@ export class RedirectClient extends StandardInteractionClient {
             }
         } catch (e) {
             if (e instanceof AuthError) {
-                (e as AuthError).setCorrelationId(this.correlationId);
+                (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             this.eventHandler.emitEvent(

@@ -1473,9 +1473,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
             pca.loginRedirect().catch((e) => {
                 expect(e).toMatchObject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
                 );
                 done();
             });
@@ -1558,9 +1556,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
             pca.acquireTokenRedirect({ scopes: [] }).catch((e) => {
                 expect(e).toMatchObject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
                 );
                 done();
             });
@@ -1734,7 +1730,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     "acquireTokenRedirect"
                 )
                 .mockRejectedValue(
-                    new NativeAuthError("ContentError", "error in extension")
+                    new NativeAuthError("ContentError", "", "error in extension")
                 );
             const redirectSpy = jest
                 .spyOn(RedirectClient.prototype, "acquireToken")
@@ -1774,9 +1770,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     "acquireTokenRedirect"
                 )
                 .mockRejectedValue(
-                    createInteractionRequiredAuthError(
-                        InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
-                    )
+                    createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.nativeAccountUnavailable, "")
                 );
             const redirectSpy = jest
                 .spyOn(RedirectClient.prototype, "acquireToken")
@@ -1861,9 +1855,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: ["openid"] })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.interactionInProgress
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.interactionInProgress, "")
             );
         });
 
@@ -1899,9 +1891,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: ["openid"] })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.interactionInProgress
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.interactionInProgress, "")
             );
         });
 
@@ -1954,7 +1944,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe)
+                createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe, "")
             );
         });
 
@@ -1969,9 +1959,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.acquireTokenRedirect({ scopes: [] });
             } catch (e) {
                 expect(e).toMatchObject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
                 );
             }
         });
@@ -1992,9 +1980,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                createBrowserConfigurationAuthError(
-                    BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
-                )
+                createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable, "")
             );
         });
 
@@ -2396,9 +2382,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.resourceParameterRequired
-                )
+                createClientAuthError(ClientAuthErrorCodes.resourceParameterRequired, "")
             );
         });
 
@@ -2424,9 +2408,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.misplacedResourceParam
-                )
+                createClientAuthError(ClientAuthErrorCodes.misplacedResourceParam, "")
             );
         });
 
@@ -2452,9 +2434,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.misplacedResourceParam
-                )
+                createClientAuthError(ClientAuthErrorCodes.misplacedResourceParam, "")
             );
         });
 
@@ -2509,9 +2489,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.loginPopup();
             } catch (e) {
                 expect(e).toMatchObject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
                 );
             }
         });
@@ -2636,9 +2614,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
             );
         });
 
@@ -2885,7 +2861,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(
-                    new NativeAuthError("ContentError", "error in extension")
+                    new NativeAuthError("ContentError", "", "error in extension")
                 );
             const popupSpy: jest.SpyInstance = jest
                 .spyOn(PopupClient.prototype, "acquireToken")
@@ -2960,9 +2936,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockImplementation(() => {
-                    throw createInteractionRequiredAuthError(
-                        InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
-                    );
+                    throw createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.nativeAccountUnavailable, "");
                 });
             const popupSpy: jest.SpyInstance = jest
                 .spyOn(PopupClient.prototype, "acquireToken")
@@ -3019,7 +2993,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockImplementation(() => {
-                    throw new NativeAuthError("testNativeError");
+                    throw new NativeAuthError("testNativeError", "");
                 });
             const popupSpy: jest.SpyInstance = jest
                 .spyOn(PopupClient.prototype, "acquireToken")
@@ -3083,9 +3057,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.interactionInProgress
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.interactionInProgress, "")
             );
         });
 
@@ -3101,9 +3073,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
             );
         });
 
@@ -3463,9 +3433,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.resourceParameterRequired
-                )
+                createClientAuthError(ClientAuthErrorCodes.resourceParameterRequired, "")
             );
         });
 
@@ -3491,9 +3459,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.misplacedResourceParam
-                )
+                createClientAuthError(ClientAuthErrorCodes.misplacedResourceParam, "")
             );
         });
 
@@ -3519,9 +3485,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.misplacedResourceParam
-                )
+                createClientAuthError(ClientAuthErrorCodes.misplacedResourceParam, "")
             );
         });
 
@@ -3584,9 +3548,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.ssoSilent({ scopes: [] });
             } catch (e) {
                 expect(e).toMatchObject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
                 );
             }
         });
@@ -3728,7 +3690,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(
-                    new NativeAuthError("ContentError", "error in extension")
+                    new NativeAuthError("ContentError", "", "error in extension")
                 );
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -3786,7 +3748,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
-                .mockRejectedValue(new NativeAuthError("testNativeError"));
+                .mockRejectedValue(new NativeAuthError("testNativeError", ""));
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
                 .mockRejectedValue(new Error("testError"));
@@ -3840,9 +3802,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.ssoSilent({ scopes: [] });
             } catch (e) {
                 expect(e).toMatchObject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
                 );
             }
         });
@@ -3970,7 +3930,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             jest.spyOn(
                 SilentIframeClient.prototype,
                 "acquireToken"
-            ).mockRejectedValue(new AuthError("abc", "error message", "defg"));
+            ).mockRejectedValue(new AuthError("abc", "", "error message", "defg"));
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
                 expect(events[0].success).toBe(false);
@@ -4003,9 +3963,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
 
             await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.resourceParameterRequired
-                )
+                createClientAuthError(ClientAuthErrorCodes.resourceParameterRequired, "")
             );
         });
 
@@ -4031,9 +3989,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.misplacedResourceParam
-                )
+                createClientAuthError(ClientAuthErrorCodes.misplacedResourceParam, "")
             );
         });
 
@@ -4059,9 +4015,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.misplacedResourceParam
-                )
+                createClientAuthError(ClientAuthErrorCodes.misplacedResourceParam, "")
             );
         });
 
@@ -4457,7 +4411,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             jest.spyOn(
                 SilentIframeClient.prototype,
                 "acquireToken"
-            ).mockRejectedValue(new AuthError("abc", "error message", "defg"));
+            ).mockRejectedValue(new AuthError("abc", "", "error message", "defg"));
 
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].success).toBe(false);
@@ -4491,9 +4445,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.acquireTokenByCode({ scopes: [] });
             } catch (e) {
                 expect(e).toMatchObject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
                 );
             }
         });
@@ -4592,10 +4544,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(
-                    new NativeAuthError(
-                        "ContentError",
-                        "something went wrong in the extension"
-                    )
+                    new NativeAuthError("ContentError", "", "something went wrong in the extension")
                 );
 
             await pca
@@ -4666,9 +4615,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.acquireTokenByCode({});
             } catch (e) {
                 expect(e).toMatchObject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
                 );
             }
         });
@@ -4786,9 +4733,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("throws an error if falsey code is provided", () => {
             expect(pca.acquireTokenByCode({ code: "" })).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired, "")
             );
         });
 
@@ -4901,7 +4846,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentClientSpy: jest.SpyInstance = jest
                 .spyOn(SilentAuthCodeClient.prototype, "acquireToken")
                 .mockRejectedValue(
-                    new AuthError("abc", "error message", "defg")
+                    new AuthError("abc", "", "error message", "defg")
                 );
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
@@ -4929,7 +4874,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenSilent({ scopes: [] })
             ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.noAccountError)
+                createBrowserAuthError(BrowserAuthErrorCodes.noAccountError, "")
             );
         });
 
@@ -4947,9 +4892,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.acquireTokenSilent({ scopes: [] });
             } catch (e) {
                 expect(e).toMatchObject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
                 );
             }
         });
@@ -5069,7 +5012,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(
-                    new NativeAuthError("ContentError", "error in extension")
+                    new NativeAuthError("ContentError", "", "error in extension")
                 );
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -5322,9 +5265,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentRefreshSpy: jest.SpyInstance = jest
                 .spyOn(SilentRefreshClient.prototype, "acquireToken")
                 .mockRejectedValue(
-                    createInteractionRequiredAuthError(
-                        InteractionRequiredAuthErrorCodes.noTokensFound
-                    )
+                    createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.noTokensFound, "")
                 );
             const silentIframeSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -5891,9 +5832,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     "acquireTokenByRefreshToken"
                 )
                 .mockRejectedValue(
-                    createInteractionRequiredAuthError(
-                        InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                    )
+                    createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.refreshTokenExpired, "")
                 );
 
             let rtMockSecond;
@@ -5985,9 +5924,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     "acquireTokenByRefreshToken"
                 )
                 .mockRejectedValue(
-                    createInteractionRequiredAuthError(
-                        InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                    )
+                    createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.refreshTokenExpired, "")
                 );
 
             let rtMockSecond;
@@ -6054,9 +5991,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 })
                 .catch((e) => {
                     expect(e).toEqual(
-                        createInteractionRequiredAuthError(
-                            InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                        )
+                        createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.refreshTokenExpired, "")
                     );
                 });
             await silentRequest3
@@ -6065,9 +6000,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 })
                 .catch((e) => {
                     expect(e).toEqual(
-                        createInteractionRequiredAuthError(
-                            InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                        )
+                        createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.refreshTokenExpired, "")
                     );
                 });
         });
@@ -6086,9 +6019,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 RefreshTokenClient.prototype,
                 "acquireTokenByRefreshToken"
             ).mockRejectedValue(
-                createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                )
+                createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.refreshTokenExpired, "")
             );
 
             const testIframeError = new InteractionRequiredAuthError(
@@ -6425,7 +6356,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     <any>"acquireTokenSilentAsync"
                 )
                 .mockRejectedValue(
-                    new AuthError("abc", "error message", "defg")
+                    new AuthError("abc", "", "error message", "defg")
                 );
 
             const callbackId = pca.addPerformanceCallback((events) => {
@@ -6459,9 +6390,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
-            const refreshRequiredCacheError = createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
-            );
+            const refreshRequiredCacheError = createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "");
             const refreshRequiredServerError = new ServerError(
                 BrowserConstants.INVALID_GRANT_ERROR,
                 "Refresh Token expired"
@@ -6497,9 +6426,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const silentRefreshSpy = jest
                     .spyOn(SilentRefreshClient.prototype, "acquireToken")
                     .mockRejectedValue(
-                        createInteractionRequiredAuthError(
-                            InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                        )
+                        createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.refreshTokenExpired, "")
                     );
                 const silentIframeSpy = jest
                     .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -6758,6 +6685,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 it("adds silentRefreshReason telemetry field with errorCode and subError when subError is present", (done) => {
                     const errorWithSubError = new ServerError(
                         BrowserConstants.INVALID_GRANT_ERROR,
+                        "",
                         "Refresh Token expired",
                         "bad_token"
                     );
@@ -6793,9 +6721,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 it("adds silentRefreshReason telemetry field with refreshTokenExpired error code", (done) => {
                     const refreshTokenExpiredError =
-                        createInteractionRequiredAuthError(
-                            InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                        );
+                        createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.refreshTokenExpired, "");
 
                     jest.spyOn(
                         SilentCacheClient.prototype,
@@ -6828,9 +6754,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 it("adds silentRefreshReason telemetry field with noTokensFound error code", (done) => {
                     const noTokensFoundError =
-                        createInteractionRequiredAuthError(
-                            InteractionRequiredAuthErrorCodes.noTokensFound
-                        );
+                        createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.noTokensFound, "");
 
                     jest.spyOn(
                         SilentCacheClient.prototype,
@@ -6879,9 +6803,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenSilent({ scopes: [] })
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.resourceParameterRequired
-                )
+                createClientAuthError(ClientAuthErrorCodes.resourceParameterRequired, "")
             );
         });
 
@@ -6907,9 +6829,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.misplacedResourceParam
-                )
+                createClientAuthError(ClientAuthErrorCodes.misplacedResourceParam, "")
             );
         });
 
@@ -6935,9 +6855,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.misplacedResourceParam
-                )
+                createClientAuthError(ClientAuthErrorCodes.misplacedResourceParam, "")
             );
         });
 
@@ -7364,7 +7282,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             jest.spyOn(
                 SilentCacheClient.prototype,
                 "acquireToken"
-            ).mockRejectedValue(new AuthError("abc", "error message", "defg"));
+            ).mockRejectedValue(new AuthError("abc", "", "error message", "defg"));
 
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].success).toBe(false);
@@ -7400,9 +7318,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.logoutRedirect();
             } catch (error: any) {
                 expect(error).toMatchObject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
                 );
             }
         });
@@ -7434,7 +7350,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 mockParentWindow
             );
             await expect(pca.logoutRedirect()).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe)
+                createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe, "")
             );
         });
     });
@@ -7455,9 +7371,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.logoutPopup();
             } catch (error: any) {
                 expect(error).toMatchObject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
                 );
             }
         });
@@ -7497,9 +7411,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             browserStorage.setInteractionInProgress(true);
 
             await expect(pca.logoutPopup()).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.interactionInProgress
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.interactionInProgress, "")
             );
         });
     });
@@ -7660,9 +7572,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 pca.getAllAccounts();
             } catch (e) {
                 expect(e).toEqual(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
                 );
                 done();
             }
@@ -7695,9 +7605,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     pca.getAccount({ username: testAccount1.username });
                 } catch (e) {
                     expect(e).toEqual(
-                        createBrowserAuthError(
-                            BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                        )
+                        createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
                     );
                     done();
                 }
@@ -8052,9 +7960,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     pca.getActiveAccount();
                 } catch (e) {
                     expect(e).toEqual(
-                        createBrowserAuthError(
-                            BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                        )
+                        createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "")
                     );
                     done();
                 }
@@ -9350,7 +9256,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentCacheClientSpy = jest
                 .spyOn(SilentCacheClient.prototype, "acquireToken")
                 .mockRejectedValue(
-                    createBrowserAuthError(BrowserAuthErrorCodes.noAccountError)
+                    createBrowserAuthError(BrowserAuthErrorCodes.noAccountError, "")
                 );
 
             let caughtError: any = null;

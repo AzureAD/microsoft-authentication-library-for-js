@@ -297,9 +297,7 @@ describe("CustomAuthSilentCacheClient", () => {
                 accessTokenEntityToCache
             );
 
-            const mockNoTokensFoundError = createInteractionRequiredAuthError(
-                InteractionRequiredAuthErrorCodes.noTokensFound
-            );
+            const mockNoTokensFoundError = createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.noTokensFound, "");
 
             commonSilentFlowRequest.forceRefresh = true;
 
@@ -320,9 +318,7 @@ describe("CustomAuthSilentCacheClient", () => {
             );
 
             const mockRefreshTokenExpiredError =
-                createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                );
+                createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.refreshTokenExpired, "");
 
             commonSilentFlowRequest.forceRefresh = true;
 

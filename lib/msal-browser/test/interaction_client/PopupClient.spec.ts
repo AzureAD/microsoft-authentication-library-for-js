@@ -176,9 +176,7 @@ describe("PopupClient", () => {
             };
 
             await expect(popupClient.acquireToken(request)).rejects.toThrow(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
-                )
+                createClientConfigurationError(ClientConfigurationErrorCodes.missingSshJwk, "")
             );
         });
 
@@ -197,9 +195,7 @@ describe("PopupClient", () => {
             };
 
             await expect(popupClient.acquireToken(request)).rejects.toThrow(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshKid
-                )
+                createClientConfigurationError(ClientConfigurationErrorCodes.missingSshKid, "")
             );
         });
 
@@ -671,9 +667,7 @@ describe("PopupClient", () => {
                 })
                 .catch((e) => {
                     expect(e).toEqual(
-                        createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashEmptyError
-                        )
+                        createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError, "")
                     );
                     done();
                 });
@@ -691,9 +685,7 @@ describe("PopupClient", () => {
                 })
                 .catch((e) => {
                     expect(e).toEqual(
-                        createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
-                        )
+                        createBrowserAuthError(BrowserAuthErrorCodes.hashDoesNotContainKnownProperties, "")
                     );
                     done();
                 });
@@ -1030,9 +1022,7 @@ describe("PopupClient", () => {
                 await expect(
                     pca.acquireTokenPopup(validRequest)
                 ).rejects.toThrow(
-                    createClientConfigurationError(
-                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR
-                    )
+                    createClientConfigurationError(ClientConfigurationErrorCodes.invalidRequestMethodForEAR, "")
                 );
             });
         });
@@ -1996,10 +1986,7 @@ describe("PopupClient", () => {
 
             // Mock waitForBridgeResponse to simulate a timeout error
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.timedOut,
-                    "redirect_bridge_timeout"
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.timedOut, "", "redirect_bridge_timeout")
             );
 
             await expect(
@@ -2146,7 +2133,7 @@ describe("PopupClient", () => {
                     popupWindowParent: window,
                 })
             ).toThrow(
-                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri, "")
             );
             expect(() =>
                 popupClient.initiateAuthRequest("", {
@@ -2158,7 +2145,7 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(
-                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri, "")
             );
             //@ts-ignore
             expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(
@@ -2316,7 +2303,7 @@ describe("PopupClient", () => {
                     }
                 )
             ).toThrow(
-                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
+                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError, "")
             );
         });
 
@@ -2341,7 +2328,7 @@ describe("PopupClient", () => {
                     }
                 )
             ).toThrow(
-                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
+                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError, "")
             );
         });
     });

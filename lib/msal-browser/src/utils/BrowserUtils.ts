@@ -105,12 +105,12 @@ export function parseAuthResponseFromUrl(): {
     }
 
     if (!payload || !params) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.emptyResponse);
+        throw createBrowserAuthError(BrowserAuthErrorCodes.emptyResponse, "");
     }
 
     const state = params.get("state");
     if (!state) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
+        throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash, "");
     }
 
     const { libraryState } = ProtocolUtils.parseRequestState(
@@ -122,6 +122,7 @@ export function parseAuthResponseFromUrl(): {
     if (!id || !meta) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.unableToParseState,
+            "",
             "missing_library_state"
         );
     }
@@ -227,9 +228,7 @@ export function cancelPendingBridgeResponse(
         clearTimeout(activeBridgeMonitor.timeoutId);
         activeBridgeMonitor.channel.close();
         activeBridgeMonitor.reject(
-            createBrowserAuthError(
-                BrowserAuthErrorCodes.interactionInProgressCancelled
-            )
+            createBrowserAuthError(BrowserAuthErrorCodes.interactionInProgressCancelled, "")
         );
 
         activeBridgeMonitor = null;
@@ -291,6 +290,7 @@ export async function waitForBridgeResponse(
             reject(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.timedOut,
+                    "",
                     "redirect_bridge_timeout"
                 )
             );
@@ -335,7 +335,7 @@ export async function waitForBridgeResponse(
             if (responseString) {
                 resolve(responseString);
             } else {
-                reject(createBrowserAuthError(redirectBridgeEmptyResponse));
+                reject(createBrowserAuthError(redirectBridgeEmptyResponse, ""));
             }
         };
     });
@@ -371,7 +371,7 @@ export function blockReloadInHiddenIframes(): void {
     );
     // return an error if called from the hidden iframe created by the msal js silent calls
     if (isResponseHash && isInIframe()) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.blockIframeReload);
+        throw createBrowserAuthError(BrowserAuthErrorCodes.blockIframeReload, "");
     }
 }
 
@@ -383,7 +383,7 @@ export function blockReloadInHiddenIframes(): void {
 export function blockRedirectInIframe(allowRedirectInIframe: boolean): void {
     if (isInIframe() && !allowRedirectInIframe) {
         // If we are not in top frame, we shouldn't redirect. This is also handled by the service.
-        throw createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe);
+        throw createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe, "");
     }
 }
 
@@ -393,7 +393,7 @@ export function blockRedirectInIframe(allowRedirectInIframe: boolean): void {
 export function blockAcquireTokenInPopups(): void {
     // Popups opened by msal popup APIs are given a name that starts with "msal."
     if (isInPopup()) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.blockNestedPopups);
+        throw createBrowserAuthError(BrowserAuthErrorCodes.blockNestedPopups, "");
     }
 }
 
@@ -403,9 +403,7 @@ export function blockAcquireTokenInPopups(): void {
  */
 export function blockNonBrowserEnvironment(): void {
     if (typeof window === "undefined") {
-        throw createBrowserAuthError(
-            BrowserAuthErrorCodes.nonBrowserEnvironment
-        );
+        throw createBrowserAuthError(BrowserAuthErrorCodes.nonBrowserEnvironment, "");
     }
 }
 
@@ -415,9 +413,7 @@ export function blockNonBrowserEnvironment(): void {
  */
 export function blockAPICallsBeforeInitialize(initialized: boolean): void {
     if (!initialized) {
-        throw createBrowserAuthError(
-            BrowserAuthErrorCodes.uninitializedPublicClientApplication
-        );
+        throw createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "");
     }
 }
 
@@ -452,9 +448,7 @@ export function redirectPreflightCheck(
     blockRedirectInIframe(config.system.allowRedirectInIframe);
     // Block redirects if memory storage is enabled
     if (config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage) {
-        throw createBrowserConfigurationAuthError(
-            BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
-        );
+        throw createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable, "");
     }
 }
 

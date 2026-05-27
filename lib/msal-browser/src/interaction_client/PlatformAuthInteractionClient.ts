@@ -284,10 +284,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 "NativeInteractionClient:acquireTokensFromCache - No nativeAccountId provided",
                 this.correlationId
             );
-            throw createClientAuthError(
-                ClientAuthErrorCodes.noAccountFound,
-                undefined,
-                this.correlationId
+            throw createClientAuthError(ClientAuthErrorCodes.noAccountFound, this.correlationId
             );
         }
         // fetch the account from browser cache
@@ -299,10 +296,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         if (!account) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.noAccountFound,
-                undefined,
-                this.correlationId
+            throw createClientAuthError(ClientAuthErrorCodes.noAccountFound, this.correlationId
             );
         }
 
@@ -552,8 +546,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
             throw createNativeAuthError(
                 NativeAuthErrorCodes.userSwitch,
-                undefined,
-                undefined,
                 this.correlationId
             );
         }
@@ -692,10 +684,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
              * PopTokenGenerator to query the full key for signing
              */
             if (!request.keyId) {
-                throw createClientAuthError(
-                    ClientAuthErrorCodes.keyIdMissing,
-                    undefined,
-                    this.correlationId
+                throw createClientAuthError(ClientAuthErrorCodes.keyIdMissing, this.correlationId
                 );
             }
             return popTokenGenerator.signPopToken(
@@ -1038,10 +1027,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
         if (validatedRequest.signPopToken && !!request.popKid) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.invalidPopTokenRequest,
-                undefined,
-                this.correlationId
+            throw createBrowserAuthError(BrowserAuthErrorCodes.invalidPopTokenRequest, this.correlationId
             );
         }
 
@@ -1162,10 +1148,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     `initializePlatformRequest: prompt = '${prompt}' is not compatible with native flow`,
                     this.correlationId
                 );
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.nativePromptNotSupported,
-                    undefined,
-                    this.correlationId
+                throw createBrowserAuthError(BrowserAuthErrorCodes.nativePromptNotSupported, this.correlationId
                 );
         }
     }

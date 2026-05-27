@@ -11,8 +11,8 @@ export { BrowserConfigurationAuthErrorCodes };
  * Browser library error class thrown by the MSAL.js library for SPAs
  */
 export class BrowserConfigurationAuthError extends AuthError {
-    constructor(errorCode: string, errorMessage?: string) {
-        super(errorCode, errorMessage);
+    constructor(errorCode: string, correlationId: string, errorMessage?: string) {
+        super(errorCode, correlationId, errorMessage);
         this.name = "BrowserConfigurationAuthError";
 
         Object.setPrototypeOf(this, BrowserConfigurationAuthError.prototype);
@@ -21,14 +21,11 @@ export class BrowserConfigurationAuthError extends AuthError {
 
 export function createBrowserConfigurationAuthError(
     errorCode: string,
-    correlationId?: string
+    correlationId: string
 ): BrowserConfigurationAuthError {
-    const error = new BrowserConfigurationAuthError(
+    return new BrowserConfigurationAuthError(
         errorCode,
+        correlationId,
         getDefaultErrorMessage(errorCode)
     );
-    if (correlationId) {
-        error.setCorrelationId(correlationId);
-    }
-    return error;
 }

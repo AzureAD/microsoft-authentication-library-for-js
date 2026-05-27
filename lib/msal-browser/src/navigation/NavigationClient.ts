@@ -53,10 +53,7 @@ export class NavigationClient implements INavigationClient {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 reject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.timedOut,
-                        "failed_to_redirect"
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.timedOut, "", "failed_to_redirect")
                 );
             }, options.timeout);
         });

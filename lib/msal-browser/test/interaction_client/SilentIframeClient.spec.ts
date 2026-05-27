@@ -233,10 +233,7 @@ describe("SilentIframeClient", () => {
                 "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.timedOut,
-                    "redirect_bridge_timeout"
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.timedOut, "", "redirect_bridge_timeout")
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -249,10 +246,7 @@ describe("SilentIframeClient", () => {
                 .spyOn(ServerTelemetryManager.prototype, "cacheFailedRequest")
                 .mockImplementation((e) => {
                     expect(e).toMatchObject(
-                        createBrowserAuthError(
-                            BrowserAuthErrorCodes.timedOut,
-                            "redirect_bridge_timeout"
-                        )
+                        createBrowserAuthError(BrowserAuthErrorCodes.timedOut, "", "redirect_bridge_timeout")
                     );
                 });
 
@@ -674,9 +668,7 @@ describe("SilentIframeClient", () => {
                 })
                 .catch((e) => {
                     expect(e).toEqual(
-                        createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashEmptyError
-                        )
+                        createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError, "")
                     );
                     done();
                 });
@@ -692,9 +684,7 @@ describe("SilentIframeClient", () => {
                 })
                 .catch((e) => {
                     expect(e).toEqual(
-                        createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
-                        )
+                        createBrowserAuthError(BrowserAuthErrorCodes.hashDoesNotContainKnownProperties, "")
                     );
                     done();
                 });
@@ -1344,10 +1334,7 @@ describe("SilentIframeClient", () => {
                     BrowserUtils,
                     "waitForBridgeResponse"
                 ).mockRejectedValue(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.timedOut,
-                        "redirect_bridge_timeout"
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.timedOut, "", "redirect_bridge_timeout")
                 );
                 const removeIframeSpy = jest.spyOn(
                     SilentHandler,
@@ -1547,9 +1534,7 @@ describe("SilentIframeClient", () => {
                         httpMethod: Constants.HttpMethod.GET,
                     })
                 ).rejects.toThrow(
-                    createClientConfigurationError(
-                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR
-                    )
+                    createClientConfigurationError(ClientConfigurationErrorCodes.invalidRequestMethodForEAR, "")
                 );
             });
         });
@@ -1725,10 +1710,7 @@ describe("SilentIframeClient", () => {
                 "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.timedOut,
-                    "redirect_bridge_timeout"
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.timedOut, "", "redirect_bridge_timeout")
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -1757,9 +1739,7 @@ describe("SilentIframeClient", () => {
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentIframeClient.logout).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.silentLogoutUnsupported
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.silentLogoutUnsupported, "")
             );
         });
     });

@@ -210,9 +210,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                     success: false,
                 });
                 reject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.nativeHandshakeTimeout
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.nativeHandshakeTimeout, "")
                 );
                 this.handshakeResolvers.delete(req.responseId);
             }, this.handshakeTimeoutMs); // Use a reasonable timeout in milliseconds here
@@ -279,9 +277,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 extensionInstalled: false,
             });
             handshakeResolver.reject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.nativeExtensionNotInstalled
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.nativeExtensionNotInstalled, "")
             );
         }
     }
@@ -327,6 +323,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                     resolver.reject(
                         createNativeAuthError(
                             response.code,
+                            correlationId,
                             response.description,
                             response.ext
                         )
@@ -339,9 +336,9 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                         resolver.reject(
                             createNativeAuthError(
                                 response.result["code"],
+                                correlationId,
                                 response.result["description"],
-                                response.result["ext"],
-                                correlationId
+                                response.result["ext"]
                             )
                         );
                     } else {
@@ -350,8 +347,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 } else {
                     throw createAuthError(
                         AuthErrorCodes.unexpectedError,
-                        "Event does not contain result.",
-                        correlationId
+                        correlationId,
+                        "Event does not contain result."
                     );
                 }
                 this.resolvers.delete(request.responseId);
@@ -422,6 +419,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         } else {
             throw createAuthError(
                 AuthErrorCodes.unexpectedError,
+                "",
                 "Response missing expected properties."
             );
         }
