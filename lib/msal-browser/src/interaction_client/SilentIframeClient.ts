@@ -57,6 +57,18 @@ import {
 } from "./BaseInteractionClient.js";
 
 /**
+ * Minimal request shape accepted by the iframe-response hook.
+ * Intentionally narrow so subclasses can override without needing
+ * access to internal resolved-request types.
+ *
+ * @internal
+ */
+export interface WaitForIframeRequest {
+    correlationId: string;
+    state?: string;
+}
+
+/**
  * Signature of the iframe-response handler supplied by
  * {@link PublicClientApplication} to {@link SilentIframeClient} via the
  * operating context.
@@ -65,7 +77,7 @@ import {
  */
 export type WaitForIframeResponseFn = (
     iframe: HTMLIFrameElement,
-    request: CommonAuthorizationUrlRequest
+    request: WaitForIframeRequest
 ) => Promise<string>;
 
 export class SilentIframeClient extends StandardInteractionClient {
@@ -635,7 +647,7 @@ export class SilentIframeClient extends StandardInteractionClient {
 
     protected async waitForIframeResponse(
         iframe: HTMLIFrameElement,
-        request: CommonAuthorizationUrlRequest
+        request: WaitForIframeRequest
     ): Promise<string> {
         if (this.waitForIframeResponseHook) {
             return this.waitForIframeResponseHook(iframe, request);
@@ -643,7 +655,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         return BrowserUtils.waitForBridgeResponse(
             this.config.system.iframeBridgeTimeout,
             this.logger,
-            request,
+            request as CommonAuthorizationUrlRequest,
             this.performanceClient,
             this.config.experimental
         );

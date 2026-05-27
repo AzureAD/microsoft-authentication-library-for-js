@@ -40,7 +40,10 @@ import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 import { waitForBridgeResponse } from "../utils/BrowserUtils.js";
 import type { WaitForPopupResponseFn } from "../interaction_client/PopupClient.js";
-import type { WaitForIframeResponseFn } from "../interaction_client/SilentIframeClient.js";
+import type {
+    WaitForIframeResponseFn,
+    WaitForIframeRequest,
+} from "../interaction_client/SilentIframeClient.js";
 
 /**
  * Auth-response handlers.
@@ -137,7 +140,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     protected async waitForIframeResponse(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         iframe: HTMLIFrameElement,
-        request: CommonAuthorizationUrlRequest
+        request: WaitForIframeRequest
     ): Promise<string> {
         const controller = this.controller as IController & {
             getPerformanceClient(): IPerformanceClient;
@@ -146,7 +149,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         return waitForBridgeResponse(
             config.system.iframeBridgeTimeout,
             controller.getLogger(),
-            request,
+            request as CommonAuthorizationUrlRequest,
             controller.getPerformanceClient(),
             config.experimental
         );
