@@ -17,8 +17,8 @@ export const ReactAuthErrorMessage = {
 };
 
 export class ReactAuthError extends AuthError {
-    constructor(errorCode: string, errorMessage?: string) {
-        super(errorCode, errorMessage);
+    constructor(errorCode: string, correlationId: string, errorMessage?: string) {
+        super(errorCode, correlationId, errorMessage);
 
         Object.setPrototypeOf(this, ReactAuthError.prototype);
         this.name = "ReactAuthError";
@@ -27,6 +27,7 @@ export class ReactAuthError extends AuthError {
     static createInvalidInteractionTypeError(): ReactAuthError {
         return new ReactAuthError(
             ReactAuthErrorMessage.invalidInteractionType.code,
+            "",
             ReactAuthErrorMessage.invalidInteractionType.desc
         );
     }
@@ -34,6 +35,7 @@ export class ReactAuthError extends AuthError {
     static createUnableToFallbackToInteractionError(): ReactAuthError {
         return new ReactAuthError(
             ReactAuthErrorMessage.unableToFallbackToInteraction.code,
+            "",
             ReactAuthErrorMessage.unableToFallbackToInteraction.desc
         );
     }
