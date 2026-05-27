@@ -490,7 +490,7 @@ describe("MsalInterceptor", () => {
 
     msalBroadcastService.inProgress$ = _inProgress.asObservable();
 
-    const sampleError = new AuthError("123", "message");
+    const sampleError = new AuthError("123", "", "message");
     const sampleAccessToken = {
       accessToken: "123abc",
     };
@@ -549,7 +549,7 @@ describe("MsalInterceptor", () => {
 
     msalBroadcastService.inProgress$ = _inProgress.asObservable();
 
-    const sampleError = new AuthError("123", "message");
+    const sampleError = new AuthError("123", "", "message");
 
     spyOn(
       PublicClientApplication.prototype,
@@ -593,7 +593,7 @@ describe("MsalInterceptor", () => {
 
     msalBroadcastService.inProgress$ = _inProgress.asObservable();
 
-    const sampleError = new AuthError("123", "message");
+    const sampleError = new AuthError("123", "", "message");
     const sampleAccessToken = {
       accessToken: "123abc",
     };
@@ -656,7 +656,7 @@ describe("MsalInterceptor", () => {
 
     msalBroadcastService.inProgress$ = _inProgress.asObservable();
 
-    const sampleError = new AuthError("123", "message");
+    const sampleError = new AuthError("123", "", "message");
     const sampleAccessToken = {
       accessToken: "123abc",
     };
