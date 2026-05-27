@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Pass correlationId to PlatformBrokerError, InteractionRequiredAuthError, and ServerError constructors in NativeBrokerPlugin to match the updated msal-common error signatures [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)",
+    "packageName": "@azure/msal-node-extensions",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "patch"
+}

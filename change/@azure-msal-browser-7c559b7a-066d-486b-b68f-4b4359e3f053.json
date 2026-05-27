@@ -1,6 +1,6 @@
 {
-    "type": "patch",
-    "comment": "Propagate correlationId through browser/native error creation helpers and interaction client error paths [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)",
+    "type": "minor",
+    "comment": "Make correlationId a required parameter on AuthError and all derived error classes; remove setCorrelationId in favor of direct assignment [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)",
     "packageName": "@azure/msal-browser",
     "email": "sameera.gajjarapu@microsoft.com",
     "dependentChangeType": "patch"
