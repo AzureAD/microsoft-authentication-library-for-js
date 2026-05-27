@@ -84,7 +84,7 @@ describe("B2C user-flow tests (local account)", () => {
         );
 
         // Verify UI now displays logged in content
-        await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]", { timeout: 60000 });
+        await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]");
         await screenshot.takeScreenshot(page, "Signed in with the policy");
 
         // Verify tokens are in cache
@@ -110,19 +110,17 @@ describe("B2C user-flow tests (local account)", () => {
             await editProfileButton.click();
         }
         let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
-        await page.waitForSelector("#attributeVerification", { visible: true, timeout: 60000 });
+        await page.waitForSelector("#attributeVerification", { visible: true });
         await page.$eval("#displayName", (el: any) => (el.value = "")), // clear the text field
             await page.type("#displayName", `${displayName}`),
             await page.click("#continue");
         await Promise.all([
             page.waitForFunction(
-                `window.location.href.startsWith("http://localhost:${port}")`,
-                { timeout: 60000 }
+                `window.location.href.startsWith("http://localhost:${port}")`
             ),
             page.waitForSelector("#idTokenClaims"),
             page.waitForSelector(
-                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])",
-                { timeout: 60000 }
+                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])"
             ),
         ]);
         const idTokenClaims = await page.$eval(
