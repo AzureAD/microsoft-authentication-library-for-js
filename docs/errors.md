@@ -305,10 +305,13 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Identity provider returned bad_token due to an expired or invalid refresh token. Please invoke an interactive API to resolve.
 
-### `ux_not_allowed`
+### `ui_not_allowed`
 
 -   `canShowUI` flag in Edge was set to false. User interaction required on web page. Please invoke an interactive API to resolve.
 
+### `ux_not_allowed`
+
+-   Deprecated alias for `ui_not_allowed`.
 
 ### `interrupted_user`
 

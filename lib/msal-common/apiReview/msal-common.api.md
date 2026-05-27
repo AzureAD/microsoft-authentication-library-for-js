@@ -3122,6 +3122,7 @@ declare namespace InteractionRequiredAuthErrorCodes {
         nativeAccountUnavailable,
         refreshTokenExpired,
         uiNotAllowed,
+        uxNotAllowed,
         interactionRequired,
         consentRequired,
         loginRequired,
@@ -5274,6 +5275,9 @@ function toSecondsFromDate(date: Date): number;
 
 // @public
 const uiNotAllowed = "ui_not_allowed";
+
+// @public
+const uxNotAllowed = "ux_not_allowed";
 
 // Warning: (ae-missing-release-tag) "unexpectedCredentialType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

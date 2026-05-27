@@ -106,6 +106,7 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
                 InteractionRequiredAuthErrorCodes.refreshTokenExpired,
                 InteractionRequiredAuthErrorCodes.badToken,
                 InteractionRequiredAuthErrorCodes.uiNotAllowed,
+                InteractionRequiredAuthErrorCodes.uxNotAllowed,
                 InteractionRequiredAuthErrorCodes.interruptedUser,
             ];
 
