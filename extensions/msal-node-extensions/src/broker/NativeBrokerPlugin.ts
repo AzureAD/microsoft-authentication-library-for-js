@@ -377,7 +377,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
         const account = await this.getAccount(request);
         if (!account) {
-            throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
+            throw createClientAuthError(ClientAuthErrorCodes.noAccountFound, "");
         }
 
         return new Promise((resolve, reject) => {
@@ -668,6 +668,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
             const msalNodeRuntimeError = new PlatformBrokerError(
                 ErrorStatus[errorStatus],
+                "",
                 errorContext,
                 errorCode,
                 errorTag
@@ -678,45 +679,29 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             switch (errorStatus) {
                 case ErrorStatus.InteractionRequired:
                 case ErrorStatus.AccountUnusable:
-                    wrappedError = new InteractionRequiredAuthError(
-                        ErrorCodes.INTERATION_REQUIRED_ERROR_CODE,
-                        msalNodeRuntimeError.message
-                    );
+                    wrappedError = new InteractionRequiredAuthError(ErrorCodes.INTERATION_REQUIRED_ERROR_CODE, "", msalNodeRuntimeError.message);
                     break;
                 case ErrorStatus.NoNetwork:
                 case ErrorStatus.NetworkTemporarilyUnavailable:
-                    wrappedError = createClientAuthError(
-                        ClientAuthErrorCodes.noNetworkConnectivity
-                    );
+                    wrappedError = createClientAuthError(ClientAuthErrorCodes.noNetworkConnectivity, "");
                     break;
                 case ErrorStatus.ServerTemporarilyUnavailable:
-                    wrappedError = new ServerError(
-                        ErrorCodes.SERVER_UNAVAILABLE,
-                        msalNodeRuntimeError.message
-                    );
+                    wrappedError = new ServerError(ErrorCodes.SERVER_UNAVAILABLE, "", msalNodeRuntimeError.message);
                     break;
                 case ErrorStatus.UserCanceled:
-                    wrappedError = createClientAuthError(
-                        ClientAuthErrorCodes.userCanceled
-                    );
+                    wrappedError = createClientAuthError(ClientAuthErrorCodes.userCanceled, "");
                     break;
                 case ErrorStatus.AuthorityUntrusted:
-                    wrappedError = createClientConfigurationError(
-                        ClientConfigurationErrorCodes.untrustedAuthority
-                    );
+                    wrappedError = createClientConfigurationError(ClientConfigurationErrorCodes.untrustedAuthority, "");
                     break;
                 case ErrorStatus.UserSwitched:
                     // Not an error case, if there's customer demand we can surface this as a response property
                     return null;
                 case ErrorStatus.AccountNotFound:
-                    wrappedError = createClientAuthError(
-                        ClientAuthErrorCodes.noAccountFound
-                    );
+                    wrappedError = createClientAuthError(ClientAuthErrorCodes.noAccountFound, "");
                     break;
                 default:
-                    wrappedError = createClientAuthError(
-                        ClientAuthErrorCodes.platformBrokerError
-                    );
+                    wrappedError = createClientAuthError(ClientAuthErrorCodes.platformBrokerError, "");
             }
 
             wrappedError.platformBrokerError = msalNodeRuntimeError;
