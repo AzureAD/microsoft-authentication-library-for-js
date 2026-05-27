@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778846887562,
+  "lastUpdate": 1779918284107,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21453,6 +21453,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.83%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "152663010+msal-js-release-automation[bot]@users.noreply.github.com",
+            "name": "msal-js-release-automation[bot]",
+            "username": "msal-js-release-automation[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "08a223661d59eff3020e88e9d6b025fd404a2ca6",
+          "message": "Post-release PR (#8596)\n\nThis PR contains the changelogs and version bumps for the MSAL.js 3P\nreleases.\n\nCo-authored-by: MSAL.js Release Automation <msaljsbuilds@microsoft.com>\nCo-authored-by: Hector Morales <hemoral@microsoft.com>",
+          "timestamp": "2026-05-27T14:35:42-07:00",
+          "tree_id": "7bfa2c727c501561f4ce92366eff4aeb5ff6a346",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/08a223661d59eff3020e88e9d6b025fd404a2ca6"
+        },
+        "date": 1779918280654,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 362465,
+            "range": "±0.84%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 360593,
+            "range": "±0.61%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
           }
         ]
       }
