@@ -62,7 +62,10 @@ export class FetchClient implements INetworkModule {
             };
         } catch (e) {
             throw createNetworkError(
-                createBrowserAuthError(BrowserAuthErrorCodes.failedToParseResponse, ""),
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.failedToParseResponse,
+                    ""
+                ),
                 responseStatus,
                 responseHeaders,
                 e as Error
@@ -116,7 +119,10 @@ export class FetchClient implements INetworkModule {
             };
         } catch (e) {
             throw createNetworkError(
-                createBrowserAuthError(BrowserAuthErrorCodes.failedToParseResponse, ""),
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.failedToParseResponse,
+                    ""
+                ),
                 responseStatus,
                 responseHeaders,
                 e as Error
@@ -142,7 +148,10 @@ function getFetchHeaders(options?: NetworkRequestOptions): Headers {
         return headers;
     } catch (e) {
         throw createNetworkError(
-            createBrowserAuthError(BrowserAuthErrorCodes.failedToBuildHeaders, ""),
+            createBrowserAuthError(
+                BrowserAuthErrorCodes.failedToBuildHeaders,
+                ""
+            ),
             undefined,
             undefined,
             e as Error
@@ -163,6 +172,9 @@ function getHeaderDict(headers: Headers): Record<string, string> {
         });
         return headerDict;
     } catch (e) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.failedToParseHeaders, "");
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToParseHeaders,
+            ""
+        );
     }
 }

@@ -294,7 +294,10 @@ export abstract class BaseManagedIdentitySource {
             if (error instanceof AuthError) {
                 throw error;
             } else {
-                throw createClientAuthError(ClientAuthErrorCodes.networkError, "");
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.networkError,
+                    ""
+                );
             }
         }
 
@@ -379,7 +382,10 @@ export abstract class BaseManagedIdentitySource {
                 );
                 return ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_OBJECT_ID;
             default:
-                throw createManagedIdentityError(ManagedIdentityErrorCodes.invalidManagedIdentityIdType, "");
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType,
+                    ""
+                );
         }
     }
 

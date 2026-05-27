@@ -48,7 +48,11 @@ export const NodeAuthErrorMessage = {
 };
 
 export class NodeAuthError extends AuthError {
-    constructor(errorCode: string, correlationId: string, errorMessage?: string) {
+    constructor(
+        errorCode: string,
+        correlationId: string,
+        errorMessage?: string
+    ) {
         super(errorCode, correlationId, errorMessage);
         this.name = "NodeAuthError";
     }

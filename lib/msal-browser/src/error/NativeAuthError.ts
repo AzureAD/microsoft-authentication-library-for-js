@@ -32,8 +32,17 @@ const INVALID_METHOD_ERROR = -2147186943;
 export class NativeAuthError extends AuthError {
     ext: OSError | undefined;
 
-    constructor(errorCode: string, correlationId: string, description?: string, ext?: OSError) {
-        super(errorCode, correlationId, description || getDefaultErrorMessage(errorCode));
+    constructor(
+        errorCode: string,
+        correlationId: string,
+        description?: string,
+        ext?: OSError
+    ) {
+        super(
+            errorCode,
+            correlationId,
+            description || getDefaultErrorMessage(errorCode)
+        );
 
         Object.setPrototypeOf(this, NativeAuthError.prototype);
         this.name = "NativeAuthError";
@@ -94,7 +103,11 @@ export function createNativeAuthError(
                 );
                 break;
             case NativeStatusCodes.USER_INTERACTION_REQUIRED:
-                error = new InteractionRequiredAuthError(code, correlationId, description);
+                error = new InteractionRequiredAuthError(
+                    code,
+                    correlationId,
+                    description
+                );
                 break;
             case NativeStatusCodes.USER_CANCEL:
                 error = createBrowserAuthError(
@@ -115,7 +128,12 @@ export function createNativeAuthError(
                 );
                 break;
             default:
-                error = new NativeAuthError(code, correlationId, description, ext);
+                error = new NativeAuthError(
+                    code,
+                    correlationId,
+                    description,
+                    ext
+                );
         }
         return error;
     }

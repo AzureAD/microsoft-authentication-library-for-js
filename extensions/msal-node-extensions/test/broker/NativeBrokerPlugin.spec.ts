@@ -95,7 +95,10 @@ if (process.platform === "win32") {
         );
 
         // Expected wrapped error for the default case (Unexpected status)
-        const testWrappedBrokerError = createClientAuthError(ClientAuthErrorCodes.platformBrokerError, "");
+        const testWrappedBrokerError = createClientAuthError(
+            ClientAuthErrorCodes.platformBrokerError,
+            ""
+        );
         testWrappedBrokerError.platformBrokerError = testPlatformBrokerError;
 
         const generateCorrelationId = () => {
@@ -1769,7 +1772,10 @@ if (process.platform === "win32") {
                 await expect(
                     nativeBrokerPlugin.signOut(request)
                 ).rejects.toThrowError(
-                    createClientAuthError(ClientAuthErrorCodes.noAccountFound, "")
+                    createClientAuthError(
+                        ClientAuthErrorCodes.noAccountFound,
+                        ""
+                    )
                 );
             });
 
@@ -2038,7 +2044,10 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toStrictEqual(
-                            createClientAuthError(ClientAuthErrorCodes.noNetworkConnectivity, "")
+                            createClientAuthError(
+                                ClientAuthErrorCodes.noNetworkConnectivity,
+                                ""
+                            )
                         );
                         done();
                     });
@@ -2096,7 +2105,10 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toStrictEqual(
-                            createClientAuthError(ClientAuthErrorCodes.noNetworkConnectivity, "")
+                            createClientAuthError(
+                                ClientAuthErrorCodes.noNetworkConnectivity,
+                                ""
+                            )
                         );
                         done();
                     });
@@ -2209,7 +2221,10 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toStrictEqual(
-                            createClientAuthError(ClientAuthErrorCodes.userCanceled, "")
+                            createClientAuthError(
+                                ClientAuthErrorCodes.userCanceled,
+                                ""
+                            )
                         );
                         done();
                     });
@@ -2266,7 +2281,10 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toStrictEqual(
-                            createClientConfigurationError(ClientConfigurationErrorCodes.untrustedAuthority, "")
+                            createClientConfigurationError(
+                                ClientConfigurationErrorCodes.untrustedAuthority,
+                                ""
+                            )
                         );
                         done();
                     });
@@ -2387,7 +2405,10 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toStrictEqual(
-                            createClientAuthError(ClientAuthErrorCodes.noAccountFound, "")
+                            createClientAuthError(
+                                ClientAuthErrorCodes.noAccountFound,
+                                ""
+                            )
                         );
                         done();
                     });

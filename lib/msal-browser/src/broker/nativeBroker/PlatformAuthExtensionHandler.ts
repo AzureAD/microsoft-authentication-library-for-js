@@ -210,7 +210,10 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                     success: false,
                 });
                 reject(
-                    createBrowserAuthError(BrowserAuthErrorCodes.nativeHandshakeTimeout, "")
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.nativeHandshakeTimeout,
+                        ""
+                    )
                 );
                 this.handshakeResolvers.delete(req.responseId);
             }, this.handshakeTimeoutMs); // Use a reasonable timeout in milliseconds here
@@ -277,7 +280,10 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 extensionInstalled: false,
             });
             handshakeResolver.reject(
-                createBrowserAuthError(BrowserAuthErrorCodes.nativeExtensionNotInstalled, "")
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.nativeExtensionNotInstalled,
+                    ""
+                )
             );
         }
     }

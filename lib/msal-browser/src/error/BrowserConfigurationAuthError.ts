@@ -11,7 +11,11 @@ export { BrowserConfigurationAuthErrorCodes };
  * Browser library error class thrown by the MSAL.js library for SPAs
  */
 export class BrowserConfigurationAuthError extends AuthError {
-    constructor(errorCode: string, correlationId: string, errorMessage?: string) {
+    constructor(
+        errorCode: string,
+        correlationId: string,
+        errorMessage?: string
+    ) {
         super(errorCode, correlationId, errorMessage);
         this.name = "BrowserConfigurationAuthError";
 

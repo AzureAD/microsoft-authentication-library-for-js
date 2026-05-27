@@ -52,7 +52,11 @@ export const ManagedIdentityErrorMessages = {
 
 export class ManagedIdentityError extends AuthError {
     constructor(errorCode: string, correlationId: string) {
-        super(errorCode, correlationId, ManagedIdentityErrorMessages[errorCode]);
+        super(
+            errorCode,
+            correlationId,
+            ManagedIdentityErrorMessages[errorCode]
+        );
         this.name = "ManagedIdentityError";
         Object.setPrototypeOf(this, ManagedIdentityError.prototype);
     }

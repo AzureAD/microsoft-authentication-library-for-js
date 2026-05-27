@@ -221,7 +221,10 @@ export class DeviceCodeClient extends BaseClient {
                 "Token request cancelled by setting DeviceCodeRequest.cancel = true",
                 ""
             );
-            throw createClientAuthError(NodeClientAuthErrorCodes.deviceCodePollingCancelled, "");
+            throw createClientAuthError(
+                NodeClientAuthErrorCodes.deviceCodePollingCancelled,
+                ""
+            );
         } else if (
             userSpecifiedTimeout &&
             userSpecifiedTimeout < deviceCodeExpirationTime &&
@@ -231,7 +234,10 @@ export class DeviceCodeClient extends BaseClient {
                 `User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`,
                 ""
             );
-            throw createClientAuthError(NodeClientAuthErrorCodes.userTimeoutReached, "");
+            throw createClientAuthError(
+                NodeClientAuthErrorCodes.userTimeoutReached,
+                ""
+            );
         } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
             if (userSpecifiedTimeout) {
                 this.logger.verbose(
@@ -243,7 +249,10 @@ export class DeviceCodeClient extends BaseClient {
                 `Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`,
                 ""
             );
-            throw createClientAuthError(NodeClientAuthErrorCodes.deviceCodeExpired, "");
+            throw createClientAuthError(
+                NodeClientAuthErrorCodes.deviceCodeExpired,
+                ""
+            );
         }
         return true;
     }
@@ -343,7 +352,10 @@ export class DeviceCodeClient extends BaseClient {
             "Polling stopped for unknown reasons.",
             request.correlationId
         );
-        throw createClientAuthError(NodeClientAuthErrorCodes.deviceCodeUnknownError, "");
+        throw createClientAuthError(
+            NodeClientAuthErrorCodes.deviceCodeUnknownError,
+            ""
+        );
     }
 
     /**

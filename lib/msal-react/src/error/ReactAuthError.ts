@@ -17,7 +17,11 @@ export const ReactAuthErrorMessage = {
 };
 
 export class ReactAuthError extends AuthError {
-    constructor(errorCode: string, correlationId: string, errorMessage?: string) {
+    constructor(
+        errorCode: string,
+        correlationId: string,
+        errorMessage?: string
+    ) {
         super(errorCode, correlationId, errorMessage);
 
         Object.setPrototypeOf(this, ReactAuthError.prototype);

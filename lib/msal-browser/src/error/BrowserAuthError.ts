@@ -16,7 +16,12 @@ export function getDefaultErrorMessage(code: string): string {
  */
 export class BrowserAuthError extends AuthError {
     constructor(errorCode: string, correlationId: string, subError?: string) {
-        super(errorCode, correlationId, getDefaultErrorMessage(errorCode), subError);
+        super(
+            errorCode,
+            correlationId,
+            getDefaultErrorMessage(errorCode),
+            subError
+        );
 
         Object.setPrototypeOf(this, BrowserAuthError.prototype);
         this.name = "BrowserAuthError";

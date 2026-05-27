@@ -29,7 +29,9 @@ describe("BrowserAuthError Unit Tests", () => {
 
     it("createBrowserAuthError sets correlationId when provided", () => {
         const TEST_CORRELATION_ID = "test-correlation-id";
-        const err = createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri, TEST_CORRELATION_ID
+        const err = createBrowserAuthError(
+            BrowserAuthErrorCodes.emptyNavigateUri,
+            TEST_CORRELATION_ID
         );
         expect(err.correlationId).toBe(TEST_CORRELATION_ID);
     });

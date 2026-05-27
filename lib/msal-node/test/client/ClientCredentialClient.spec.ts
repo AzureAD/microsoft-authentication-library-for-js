@@ -208,7 +208,10 @@ describe("ClientCredentialClient unit tests", () => {
         await expect(
             client.acquireToken(clientCredentialRequest)
         ).resolves.not.toThrow(
-            createClientAuthError(ClientAuthErrorCodes.multipleMatchingTokens, "")
+            createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingTokens,
+                ""
+            )
         );
     });
 
@@ -916,7 +919,10 @@ describe("ClientCredentialClient unit tests", () => {
         await expect(
             client.acquireToken(clientCredentialRequest)
         ).rejects.toMatchObject(
-            createClientAuthError(ClientAuthErrorCodes.multipleMatchingTokens, "")
+            createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingTokens,
+                ""
+            )
         );
     });
 

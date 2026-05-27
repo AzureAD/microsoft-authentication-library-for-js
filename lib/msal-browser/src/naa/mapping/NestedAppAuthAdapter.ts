@@ -104,7 +104,9 @@ export class NestedAppAuthAdapter {
         reqTimestamp: number
     ): AuthenticationResult {
         if (!response.token.id_token || !response.token.access_token) {
-            throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, request.correlationId
+            throw createClientAuthError(
+                ClientAuthErrorCodes.nullOrEmptyToken,
+                request.correlationId
             );
         }
 
@@ -196,7 +198,10 @@ export class NestedAppAuthAdapter {
         // Validate environment - required field
         const environment = fromAccount.environment;
         if (!environment) {
-            throw createClientAuthError(ClientAuthErrorCodes.invalidCacheEnvironment, "");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidCacheEnvironment,
+                ""
+            );
         }
 
         /*
@@ -288,7 +293,11 @@ export class NestedAppAuthAdapter {
                     );
                 case BridgeStatusCode.TransientError:
                 case BridgeStatusCode.PersistentError:
-                    return new ServerError(error.code || "", "", error.description);
+                    return new ServerError(
+                        error.code || "",
+                        "",
+                        error.description
+                    );
                 case BridgeStatusCode.UserInteractionRequired:
                     return new InteractionRequiredAuthError(
                         error.code || "",
@@ -296,10 +305,18 @@ export class NestedAppAuthAdapter {
                         error.description
                     );
                 default:
-                    return new AuthError(error.code || "", "", error.description);
+                    return new AuthError(
+                        error.code || "",
+                        "",
+                        error.description
+                    );
             }
         } else {
-            return new AuthError("unknown_error", "", "An unknown error occurred");
+            return new AuthError(
+                "unknown_error",
+                "",
+                "An unknown error occurred"
+            );
         }
     }
 
@@ -320,7 +337,9 @@ export class NestedAppAuthAdapter {
         correlationId: string
     ): AuthenticationResult {
         if (!idToken || !accessToken) {
-            throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, correlationId
+            throw createClientAuthError(
+                ClientAuthErrorCodes.nullOrEmptyToken,
+                correlationId
             );
         }
 
