@@ -120,12 +120,9 @@ export function createInteractionRequiredAuthError(
     errorMessage?: string,
     correlationId?: string
 ): InteractionRequiredAuthError {
-    return new InteractionRequiredAuthError(
-        errorCode,
-        errorMessage,
-        undefined,
-        undefined,
-        undefined,
-        correlationId
-    );
+    const error = new InteractionRequiredAuthError(errorCode, errorMessage);
+    if (correlationId) {
+        error.setCorrelationId(correlationId);
+    }
+    return error;
 }
