@@ -208,7 +208,9 @@ export class ResponseHandler {
             if (authCodePayload && authCodePayload.nonce) {
                 if (idTokenClaims.nonce !== authCodePayload.nonce) {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.nonceMismatch
+                        ClientAuthErrorCodes.nonceMismatch,
+                        undefined,
+                        request.correlationId
                     );
                 }
             }
@@ -218,7 +220,9 @@ export class ResponseHandler {
                 const authTime = idTokenClaims.auth_time;
                 if (!authTime) {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.authTimeNotFound
+                        ClientAuthErrorCodes.authTimeNotFound,
+                        undefined,
+                        request.correlationId
                     );
                 }
 
@@ -368,7 +372,9 @@ export class ResponseHandler {
         const env = authority.getPreferredCache();
         if (!env) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.invalidCacheEnvironment
+                ClientAuthErrorCodes.invalidCacheEnvironment,
+                undefined,
+                request.correlationId
             );
         }
 
@@ -553,7 +559,9 @@ export class ResponseHandler {
 
                 if (!keyId) {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.keyIdMissing
+                        ClientAuthErrorCodes.keyIdMissing,
+                        undefined,
+                        request.correlationId
                     );
                 }
 

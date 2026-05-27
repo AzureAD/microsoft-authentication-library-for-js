@@ -239,7 +239,8 @@ export async function getAuthCodeRequestUrl(
 ): Promise<string> {
     if (!request.codeChallenge) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.pkceParamsMissing
+            ClientConfigurationErrorCodes.pkceParamsMissing,
+            request.correlationId
         );
     }
 
@@ -282,7 +283,11 @@ export async function getEARForm(
     performanceClient: IPerformanceClient
 ): Promise<HTMLFormElement> {
     if (!request.earJwk) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.earJwkEmpty);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.earJwkEmpty,
+            undefined,
+            request.correlationId
+        );
     }
 
     const parameters = await getStandardParameters(
@@ -442,7 +447,9 @@ export async function handleResponsePlatformBroker(
 
     if (!platformAuthProvider) {
         throw createBrowserAuthError(
-            BrowserAuthErrorCodes.nativeConnectionNotEstablished
+            BrowserAuthErrorCodes.nativeConnectionNotEstablished,
+            undefined,
+            request.correlationId
         );
     }
     const browserCrypto = new CryptoOps(logger, performanceClient);
@@ -599,11 +606,19 @@ export async function handleResponseEAR(
     AuthorizeProtocol.validateAuthorizationResponse(response, request.state);
 
     if (!response.ear_jwe) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.earJweEmpty);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.earJweEmpty,
+            undefined,
+            request.correlationId
+        );
     }
 
     if (!request.earJwk) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.earJwkEmpty);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.earJwkEmpty,
+            undefined,
+            request.correlationId
+        );
     }
 
     const decryptedData = JSON.parse(

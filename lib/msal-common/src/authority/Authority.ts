@@ -219,7 +219,9 @@ export class Authority {
             return this.replacePath(this.metadata.authorization_endpoint);
         } else {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
+                undefined,
+                this.correlationId
             );
         }
     }
@@ -232,7 +234,9 @@ export class Authority {
             return this.replacePath(this.metadata.token_endpoint);
         } else {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
+                undefined,
+                this.correlationId
             );
         }
     }
@@ -244,7 +248,9 @@ export class Authority {
             );
         } else {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
+                undefined,
+                this.correlationId
             );
         }
     }
@@ -257,13 +263,17 @@ export class Authority {
             // ROPC policies may not have end_session_endpoint set
             if (!this.metadata.end_session_endpoint) {
                 throw createClientAuthError(
-                    ClientAuthErrorCodes.endSessionEndpointNotSupported
+                    ClientAuthErrorCodes.endSessionEndpointNotSupported,
+                    undefined,
+                    this.correlationId
                 );
             }
             return this.replacePath(this.metadata.end_session_endpoint);
         } else {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
+                undefined,
+                this.correlationId
             );
         }
     }
@@ -276,7 +286,9 @@ export class Authority {
             return this.replacePath(this.metadata.issuer);
         } else {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
+                undefined,
+                this.correlationId
             );
         }
     }
@@ -289,7 +301,9 @@ export class Authority {
             return this.replacePath(this.metadata.jwks_uri);
         } else {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
+                undefined,
+                this.correlationId
             );
         }
     }
@@ -568,7 +582,8 @@ export class Authority {
             // Metadata could not be obtained from the config, cache, network or hardcoded values
             throw createClientAuthError(
                 ClientAuthErrorCodes.openIdConfigError,
-                this.defaultOpenIdConfigurationEndpoint
+                this.defaultOpenIdConfigurationEndpoint,
+                this.correlationId
             );
         }
     }
@@ -677,7 +692,8 @@ export class Authority {
                 ) as OpenIdConfigResponse;
             } catch (e) {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.invalidAuthorityMetadata
+                    ClientConfigurationErrorCodes.invalidAuthorityMetadata,
+                    this.correlationId
                 );
             }
         }
@@ -831,7 +847,8 @@ export class Authority {
 
         // Metadata could not be obtained from the config, cache, network or hardcoded values
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.untrustedAuthority
+            ClientConfigurationErrorCodes.untrustedAuthority,
+            this.correlationId
         );
     }
 
@@ -975,7 +992,8 @@ export class Authority {
                     this.correlationId
                 );
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata
+                    ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata,
+                    this.correlationId
                 );
             }
         }
@@ -1174,7 +1192,9 @@ export class Authority {
             return this.metadata.preferred_cache;
         } else {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
+                undefined,
+                this.correlationId
             );
         }
     }

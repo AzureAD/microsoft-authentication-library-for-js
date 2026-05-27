@@ -1793,7 +1793,9 @@ export class StandardController implements IController {
         this.logger.trace("acquireTokenNative called", correlationId);
         if (!this.platformAuthProvider) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                BrowserAuthErrorCodes.nativeConnectionNotEstablished,
+                undefined,
+                correlationId
             );
         }
 
@@ -2202,7 +2204,11 @@ export class StandardController implements IController {
 
         const account = request.account || this.getActiveAccount();
         if (!account) {
-            throw createBrowserAuthError(BrowserAuthErrorCodes.noAccountError);
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.noAccountError,
+                undefined,
+                correlationId
+            );
         }
 
         return this.acquireTokenSilentDeduped(request, account, correlationId)
@@ -2537,7 +2543,9 @@ export class StandardController implements IController {
                     this.platformAuthProvider = undefined; // Prevent future requests from continuing to attempt
                     // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.tokenRefreshRequired
+                        ClientAuthErrorCodes.tokenRefreshRequired,
+                        undefined,
+                        silentRequest.correlationId
                     );
                 }
                 throw e;

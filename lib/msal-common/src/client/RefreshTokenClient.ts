@@ -183,7 +183,9 @@ export class RefreshTokenClient {
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.noAccountInSilentRequest
+                ClientAuthErrorCodes.noAccountInSilentRequest,
+                undefined,
+                request.correlationId
             );
         }
 
@@ -501,7 +503,8 @@ export class RefreshTokenClient {
                 RequestParameterBuilder.addSshJwk(parameters, request.sshJwk);
             } else {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    request.correlationId
                 );
             }
         }

@@ -654,7 +654,11 @@ export class RedirectClient extends StandardInteractionClient {
     ): Promise<AuthenticationResult> {
         const state = serverParams.state;
         if (!state) {
-            throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.noStateInHash,
+                undefined,
+                request.correlationId
+            );
         }
 
         const { authority, azureCloudOptions, extraQueryParameters, account } =
@@ -797,7 +801,9 @@ export class RedirectClient extends StandardInteractionClient {
                 this.correlationId
             );
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.emptyNavigateUri
+                BrowserAuthErrorCodes.emptyNavigateUri,
+                undefined,
+                this.correlationId
             );
         }
     }

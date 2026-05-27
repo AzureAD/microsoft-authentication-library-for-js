@@ -104,7 +104,11 @@ export class NestedAppAuthAdapter {
         reqTimestamp: number
     ): AuthenticationResult {
         if (!response.token.id_token || !response.token.access_token) {
-            throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.nullOrEmptyToken,
+                undefined,
+                request.correlationId
+            );
         }
 
         // Request timestamp and AuthResult expires_in are in seconds, converting to Date for AuthenticationResult
@@ -315,7 +319,11 @@ export class NestedAppAuthAdapter {
         correlationId: string
     ): AuthenticationResult {
         if (!idToken || !accessToken) {
-            throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.nullOrEmptyToken,
+                undefined,
+                correlationId
+            );
         }
 
         const idTokenClaims = AuthToken.extractTokenClaims(

@@ -31,7 +31,11 @@ export function deserializeResponse(
                 `The request has returned to the redirectUri but a '${responseLocation}' is not present. It's likely that the '${responseLocation}' has been removed or the page has been redirected by code running on the redirectUri page.`,
                 correlationId
             );
-            throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.hashEmptyError,
+                undefined,
+                correlationId
+            );
         } else {
             logger.error(
                 `A '${responseLocation}' is present in the iframe but it does not contain known properties. It's likely that the '${responseLocation}' has been replaced by code running on the redirectUri page.`,
@@ -42,7 +46,9 @@ export function deserializeResponse(
                 correlationId
             );
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                undefined,
+                correlationId
             );
         }
     }

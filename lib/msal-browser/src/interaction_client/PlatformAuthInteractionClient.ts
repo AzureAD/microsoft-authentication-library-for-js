@@ -550,7 +550,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             response.account.id !== request.accountId
         ) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
-            throw createNativeAuthError(NativeAuthErrorCodes.userSwitch);
+            throw createNativeAuthError(
+                NativeAuthErrorCodes.userSwitch,
+                undefined,
+                undefined,
+                this.correlationId
+            );
         }
 
         // Get the preferred_cache domain for the given authority

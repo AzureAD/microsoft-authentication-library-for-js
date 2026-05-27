@@ -32,7 +32,11 @@ export async function initiateCodeRequest(
     if (!requestUrl) {
         // Throw error if request URL is empty.
         logger.info("Navigate url is empty", correlationId);
-        throw createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.emptyNavigateUri,
+            undefined,
+            correlationId
+        );
     }
 
     return invoke(
