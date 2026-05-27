@@ -1555,6 +1555,54 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 failedRequests: [],
             });
         });
+
+        it("navigates to redirectStartPage when provided and navigateToLoginRequestUrl is true", (done) => {
+            const redirectStartPage = "https://localhost:3000/startPage";
+            jest.spyOn(
+                NavigationClient.prototype,
+                "navigateExternal"
+            ).mockImplementation((url: string) => {
+                expect(url).toBe(redirectStartPage);
+                done();
+                return Promise.resolve(true);
+            });
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
+                return Promise.resolve(MOCK_WAM_RESPONSE);
+            });
+            platformAuthInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                    redirectStartPage: redirectStartPage,
+                },
+                perfMeasurement
+            );
+        });
+
+        it("navigates to window.location.href when redirectStartPage is not provided and navigateToLoginRequestUrl is true", (done) => {
+            jest.spyOn(
+                NavigationClient.prototype,
+                "navigateExternal"
+            ).mockImplementation((url: string) => {
+                expect(url).toBe(window.location.href);
+                done();
+                return Promise.resolve(true);
+            });
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
+                return Promise.resolve(MOCK_WAM_RESPONSE);
+            });
+            platformAuthInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                },
+                perfMeasurement
+            );
+        });
     });
 
     describe("handleRedirectPromise tests", () => {
