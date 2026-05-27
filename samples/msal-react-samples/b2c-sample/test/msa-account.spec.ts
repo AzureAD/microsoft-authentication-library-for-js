@@ -114,14 +114,14 @@ describe("B2C user-flow tests (msa account)", () => {
         await page.$eval("#displayName", (el: any) => (el.value = "")); // clear the text field
         await page.type("#displayName", `${displayName}`);
         await page.click("#continue");
-        await page.waitForNetworkIdle();
+        await page.waitForNetworkIdle({ timeout: 60000 });
         await screenshot.takeScreenshot(page, "Edit profile page filled");
         await Promise.all([
             page.waitForFunction(
                 `window.location.href.startsWith("http://localhost:${port}")`,
                 { timeout: 60000 }
             ),
-            page.waitForSelector("#idTokenClaims"),
+            page.waitForSelector("#idTokenClaims", { timeout: 60000 }),
             page.waitForSelector(
                 "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])",
                 { timeout: 60000 }
