@@ -114,8 +114,7 @@ describe("B2C user-flow tests (msa account)", () => {
         await page.$eval("#displayName", (el: any) => (el.value = "")); // clear the text field
         await page.type("#displayName", `${displayName}`);
         await page.click("#continue");
-        await page.waitForNetworkIdle();
-        await screenshot.takeScreenshot(page, "Edit profile page filled");
+        await screenshot.takeScreenshot(page, "Edit profile form submitted");
         await Promise.all([
             page.waitForFunction(
                 `window.location.href.startsWith("http://localhost:${port}")`

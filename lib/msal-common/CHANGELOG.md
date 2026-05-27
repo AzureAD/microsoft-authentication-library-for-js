@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Mon, 11 May 2026 21:48:15 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 19 May 2026 19:29:14 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.6.2
+
+Tue, 19 May 2026 19:29:14 GMT
+
+### Patches
+
+- Add invalidPlatformBrokerConfiguration error code for DOM-based platform brokering [#8589](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8589) (lalimasharda@microsoft.com)
 
 ## 16.6.1
 
