@@ -134,9 +134,7 @@ export class ManagedIdentityApplication {
         managedIdentityRequestParams: ManagedIdentityRequestParams
     ): Promise<AuthenticationResult> {
         if (!managedIdentityRequestParams.resource) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.urlEmptyError
-            );
+            throw createClientConfigurationError(ClientConfigurationErrorCodes.urlEmptyError, "");
         }
 
         const managedIdentityRequest: ManagedIdentityRequest = {

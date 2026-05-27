@@ -274,9 +274,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     managedIdentityRequestParams
                 )
             ).rejects.toMatchObject(
-                createManagedIdentityError(
-                    ManagedIdentityErrorCodes.unableToCreateAzureArc
-                )
+                createManagedIdentityError(ManagedIdentityErrorCodes.unableToCreateAzureArc, "")
             );
         });
 
@@ -302,9 +300,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     managedIdentityRequestParams
                 )
             ).rejects.toMatchObject(
-                createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidFileExtension
-                )
+                createManagedIdentityError(ManagedIdentityErrorCodes.invalidFileExtension, "")
             );
         });
 
@@ -325,9 +321,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     managedIdentityRequestParams
                 )
             ).rejects.toMatchObject(
-                createManagedIdentityError(
-                    ManagedIdentityErrorCodes.platformNotSupported
-                )
+                createManagedIdentityError(ManagedIdentityErrorCodes.platformNotSupported, "")
             );
 
             Object.defineProperty(process, "platform", {
@@ -357,9 +351,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     managedIdentityRequestParams
                 )
             ).rejects.toMatchObject(
-                createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidFilePath
-                )
+                createManagedIdentityError(ManagedIdentityErrorCodes.invalidFilePath, "")
             );
         });
 
@@ -380,9 +372,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     managedIdentityRequestParams
                 )
             ).rejects.toMatchObject(
-                createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidSecret
-                )
+                createManagedIdentityError(ManagedIdentityErrorCodes.invalidSecret, "")
             );
         });
 
@@ -406,9 +396,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     managedIdentityRequestParams
                 )
             ).rejects.toMatchObject(
-                createManagedIdentityError(
-                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing
-                )
+                createManagedIdentityError(ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing, "")
             );
         });
 
@@ -434,9 +422,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     managedIdentityRequestParams
                 )
             ).rejects.toMatchObject(
-                createManagedIdentityError(
-                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat
-                )
+                createManagedIdentityError(ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat, "")
             );
         });
 
@@ -457,9 +443,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     managedIdentityRequestParams
                 )
             ).rejects.toMatchObject(
-                createManagedIdentityError(
-                    ManagedIdentityErrorCodes.unableToReadSecretFile
-                )
+                createManagedIdentityError(ManagedIdentityErrorCodes.unableToReadSecretFile, "")
             );
 
             jest.spyOn(networkClient, <any>"sendGetRequestAsync")
@@ -482,9 +466,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     managedIdentityRequestParams
                 )
             ).rejects.toMatchObject(
-                createManagedIdentityError(
-                    ManagedIdentityErrorCodes.unableToReadSecretFile
-                )
+                createManagedIdentityError(ManagedIdentityErrorCodes.unableToReadSecretFile, "")
             );
         });
 
@@ -502,7 +484,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     managedIdentityNetworkErrorClient400.sendGetRequestAsync()
                 );
 
-            let serverError: ServerError = new ServerError();
+            let serverError: ServerError = new ServerError("", "");
             try {
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams

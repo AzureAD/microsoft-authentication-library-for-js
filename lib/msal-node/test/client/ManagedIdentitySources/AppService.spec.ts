@@ -197,7 +197,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                 ManagedIdentitySourceNames.APP_SERVICE
             );
 
-            let serverError: ServerError = new ServerError();
+            let serverError: ServerError = new ServerError("", "");
             try {
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams

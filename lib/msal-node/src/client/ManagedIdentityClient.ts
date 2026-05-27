@@ -180,9 +180,7 @@ export class ManagedIdentityClient {
                 disableInternalRetries
             );
         if (!source) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.unableToCreateSource
-            );
+            throw createManagedIdentityError(ManagedIdentityErrorCodes.unableToCreateSource, "");
         }
         return source;
     }

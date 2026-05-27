@@ -104,9 +104,7 @@ export class OnBehalfOfClient extends BaseClient {
                 "SilentFlowClient:acquireCachedToken - No access token found in cache for the given properties.",
                 request.correlationId
             );
-            throw createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
-            );
+            throw createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "");
         } else if (
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
@@ -121,9 +119,7 @@ export class OnBehalfOfClient extends BaseClient {
                 `OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`,
                 request.correlationId
             );
-            throw createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
-            );
+            throw createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "");
         }
 
         // fetch the idToken from cache
@@ -244,9 +240,7 @@ export class OnBehalfOfClient extends BaseClient {
         if (numAccessTokens < 1) {
             return null;
         } else if (numAccessTokens > 1) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.multipleMatchingTokens
-            );
+            throw createClientAuthError(ClientAuthErrorCodes.multipleMatchingTokens, "");
         }
 
         return accessTokens[0] as AccessTokenEntity;

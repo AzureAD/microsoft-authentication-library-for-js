@@ -331,9 +331,7 @@ export class ClientTestUtils {
         );
 
         await authority.resolveEndpointsAsync().catch(() => {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
-            );
+            throw createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, "");
         });
 
         const clientConfig: ClientConfiguration = {

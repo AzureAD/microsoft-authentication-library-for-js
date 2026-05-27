@@ -254,9 +254,7 @@ describe("ConfidentialClientApplication", () => {
             new ConfidentialClientApplication(config);
 
         await expect(client.acquireTokenSilent(request)).rejects.toMatchObject(
-            createInteractionRequiredAuthError(
-                InteractionRequiredAuthErrorCodes.noTokensFound
-            )
+            createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.noTokensFound, "")
         );
         expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1);
     });
@@ -494,9 +492,7 @@ describe("ConfidentialClientApplication", () => {
             await expect(
                 client.acquireTokenByClientCredential(request)
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    NodeClientAuthErrorCodes.missingTenantIdError
-                )
+                createClientAuthError(NodeClientAuthErrorCodes.missingTenantIdError, "")
             );
         });
 

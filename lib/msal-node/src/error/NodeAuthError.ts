@@ -48,8 +48,8 @@ export const NodeAuthErrorMessage = {
 };
 
 export class NodeAuthError extends AuthError {
-    constructor(errorCode: string, errorMessage?: string) {
-        super(errorCode, errorMessage);
+    constructor(errorCode: string, correlationId: string, errorMessage?: string) {
+        super(errorCode, correlationId, errorMessage);
         this.name = "NodeAuthError";
     }
 
@@ -59,6 +59,7 @@ export class NodeAuthError extends AuthError {
     static createInvalidLoopbackAddressTypeError(): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.invalidLoopbackAddressType.code,
+            "",
             `${NodeAuthErrorMessage.invalidLoopbackAddressType.desc}`
         );
     }
@@ -69,6 +70,7 @@ export class NodeAuthError extends AuthError {
     static createUnableToLoadRedirectUrlError(): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.unableToLoadRedirectUri.code,
+            "",
             `${NodeAuthErrorMessage.unableToLoadRedirectUri.desc}`
         );
     }
@@ -79,6 +81,7 @@ export class NodeAuthError extends AuthError {
     static createNoAuthCodeInResponseError(): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.noAuthCodeInResponse.code,
+            "",
             `${NodeAuthErrorMessage.noAuthCodeInResponse.desc}`
         );
     }
@@ -89,6 +92,7 @@ export class NodeAuthError extends AuthError {
     static createNoLoopbackServerExistsError(): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.noLoopbackServerExists.code,
+            "",
             `${NodeAuthErrorMessage.noLoopbackServerExists.desc}`
         );
     }
@@ -99,6 +103,7 @@ export class NodeAuthError extends AuthError {
     static createLoopbackServerAlreadyExistsError(): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.loopbackServerAlreadyExists.code,
+            "",
             `${NodeAuthErrorMessage.loopbackServerAlreadyExists.desc}`
         );
     }
@@ -109,6 +114,7 @@ export class NodeAuthError extends AuthError {
     static createLoopbackServerTimeoutError(): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.loopbackServerTimeout.code,
+            "",
             `${NodeAuthErrorMessage.loopbackServerTimeout.desc}`
         );
     }
@@ -119,6 +125,7 @@ export class NodeAuthError extends AuthError {
     static createStateNotFoundError(): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.stateNotFoundError.code,
+            "",
             NodeAuthErrorMessage.stateNotFoundError.desc
         );
     }
@@ -129,6 +136,7 @@ export class NodeAuthError extends AuthError {
     static createThumbprintMissingError(): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.thumbprintMissing.code,
+            "",
             NodeAuthErrorMessage.thumbprintMissing.desc
         );
     }
@@ -139,6 +147,7 @@ export class NodeAuthError extends AuthError {
     static createRedirectUriNotSupportedError(): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.redirectUriNotSupported.code,
+            "",
             NodeAuthErrorMessage.redirectUriNotSupported.desc
         );
     }

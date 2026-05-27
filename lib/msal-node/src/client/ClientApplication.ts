@@ -208,7 +208,7 @@ export abstract class ClientApplication {
             );
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(validRequest.correlationId);
+                e.correlationId = validRequest.correlationId;
             }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
@@ -267,7 +267,7 @@ export abstract class ClientApplication {
             );
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(validRequest.correlationId);
+                e.correlationId = validRequest.correlationId;
             }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
@@ -346,7 +346,7 @@ export abstract class ClientApplication {
             }
         } catch (error) {
             if (error instanceof AuthError) {
-                error.setCorrelationId(validRequest.correlationId);
+                error.correlationId = validRequest.correlationId;
             }
             serverTelemetryManager.cacheFailedRequest(error);
             throw error;
@@ -441,7 +441,7 @@ export abstract class ClientApplication {
             return await usernamePasswordClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(validRequest.correlationId);
+                e.correlationId = validRequest.correlationId;
             }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
@@ -471,7 +471,7 @@ export abstract class ClientApplication {
         }
 
         if (state !== cachedState) {
-            throw createClientAuthError(ClientAuthErrorCodes.stateMismatch);
+            throw createClientAuthError(ClientAuthErrorCodes.stateMismatch, "");
         }
     }
 

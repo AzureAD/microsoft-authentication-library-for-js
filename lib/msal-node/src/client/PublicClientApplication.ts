@@ -135,7 +135,7 @@ export class PublicClientApplication
             return await deviceCodeClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(validRequest.correlationId);
+                e.correlationId = validRequest.correlationId;
             }
             serverTelemetryManager.cacheFailedRequest(e as AuthError);
             throw e;
@@ -234,6 +234,7 @@ export class PublicClientApplication
             if (authCodeResponse.error) {
                 throw new ServerError(
                     authCodeResponse.error,
+                    correlationId,
                     authCodeResponse.error_description,
                     authCodeResponse.suberror
                 );

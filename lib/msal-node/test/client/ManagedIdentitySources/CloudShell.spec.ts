@@ -110,9 +110,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                     managedIdentityRequestParams
                 )
             ).rejects.toMatchObject(
-                createManagedIdentityError(
-                    ManagedIdentityErrorCodes.unableToCreateCloudShell
-                )
+                createManagedIdentityError(ManagedIdentityErrorCodes.unableToCreateCloudShell, "")
             );
         });
 
@@ -136,7 +134,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                 ManagedIdentitySourceNames.CLOUD_SHELL
             );
 
-            let serverError: ServerError = new ServerError();
+            let serverError: ServerError = new ServerError("", "");
             try {
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams

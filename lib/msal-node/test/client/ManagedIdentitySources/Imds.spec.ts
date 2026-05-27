@@ -454,7 +454,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeBeforeNetworkRequest = new Date();
 
-                let serverError: ServerError = new ServerError();
+                let serverError: ServerError = new ServerError("", "");
                 try {
                     await managedIdentityApplication.acquireToken(
                         managedIdentityRequestParams
@@ -508,7 +508,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeBeforeNetworkRequest = new Date();
 
-                let serverError: ServerError = new ServerError();
+                let serverError: ServerError = new ServerError("", "");
                 try {
                     await managedIdentityApplication.acquireToken(
                         managedIdentityRequestParams
@@ -602,7 +602,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         managedIdentityNetworkErrorClient400.sendGetRequestAsync()
                     );
 
-                let serverError: ServerError = new ServerError();
+                let serverError: ServerError = new ServerError("", "");
                 try {
                     await managedIdentityApplication.acquireToken(
                         managedIdentityRequestParams
@@ -641,7 +641,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         managedIdentityNetworkErrorClientDefault500.sendGetRequestAsync()
                     );
 
-                let serverError: ServerError = new ServerError();
+                let serverError: ServerError = new ServerError("", "");
                 try {
                     await managedIdentityApplicationNoRetry.acquireToken(
                         managedIdentityRequestParams
@@ -1049,9 +1049,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     resource: "",
                 })
             ).rejects.toMatchObject(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.urlEmptyError
-                )
+                createClientConfigurationError(ClientConfigurationErrorCodes.urlEmptyError, "")
             );
         });
 
@@ -1070,9 +1068,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             expect(() => {
                 new ManagedIdentityApplication(badUserAssignedClientIdConfig);
             }).toThrow(
-                createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType
-                )
+                createManagedIdentityError(ManagedIdentityErrorCodes.invalidManagedIdentityIdType, "")
             );
         });
 
@@ -1083,7 +1079,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     managedIdentityNetworkErrorClient400.sendGetRequestAsync()
                 );
 
-            let serverError: ServerError = new ServerError();
+            let serverError: ServerError = new ServerError("", "");
             try {
                 await systemAssignedManagedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
