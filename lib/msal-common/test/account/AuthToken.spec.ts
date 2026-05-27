@@ -84,14 +84,14 @@ describe("AuthToken.ts Class Unit Tests", () => {
             expect(() =>
                 AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
             ).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
 
             expect(() =>
                 // @ts-ignore
                 AuthToken.extractTokenClaims(null, cryptoInterface)
             ).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
         });
 
@@ -99,14 +99,14 @@ describe("AuthToken.ts Class Unit Tests", () => {
             expect(() =>
                 AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
             ).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
 
             expect(() =>
                 // @ts-ignore
                 AuthToken.extractTokenClaims(null, cryptoInterface)
             ).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
         });
 
@@ -117,7 +117,7 @@ describe("AuthToken.ts Class Unit Tests", () => {
                     cryptoInterface.base64Decode
                 )
             ).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.tokenParsingError)
+                new ClientAuthError(ClientAuthErrorCodes.tokenParsingError, "")
             );
         });
 

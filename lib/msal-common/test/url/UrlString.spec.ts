@@ -20,9 +20,7 @@ describe("UrlString.ts Class Unit Tests", () => {
     it("constructor throws error if uri is empty or null", () => {
         // @ts-ignore
         expect(() => new UrlString(null)).toThrowError(
-            createClientConfigurationError(
-                ClientConfigurationErrorCodes.urlEmptyError
-            )
+            createClientConfigurationError(ClientConfigurationErrorCodes.urlEmptyError, "")
         );
         // @ts-ignore
         expect(() => new UrlString(null)).toThrowError(
@@ -30,9 +28,7 @@ describe("UrlString.ts Class Unit Tests", () => {
         );
 
         expect(() => new UrlString("")).toThrowError(
-            createClientConfigurationError(
-                ClientConfigurationErrorCodes.urlEmptyError
-            )
+            createClientConfigurationError(ClientConfigurationErrorCodes.urlEmptyError, "")
         );
         expect(() => new UrlString("")).toThrowError(ClientConfigurationError);
     });
@@ -46,9 +42,7 @@ describe("UrlString.ts Class Unit Tests", () => {
         );
         let urlObj = new UrlString(TEST_URIS.TEST_REDIR_URI);
         expect(() => urlObj.validateAsUri()).toThrowError(
-            createClientConfigurationError(
-                ClientConfigurationErrorCodes.urlParseError
-            )
+            createClientConfigurationError(ClientConfigurationErrorCodes.urlParseError, "")
         );
         expect(() => urlObj.validateAsUri()).toThrowError(
             ClientConfigurationError
@@ -59,9 +53,7 @@ describe("UrlString.ts Class Unit Tests", () => {
         const insecureUrlString = "http://login.microsoft.com/common";
         let urlObj = new UrlString(insecureUrlString);
         expect(() => urlObj.validateAsUri()).toThrowError(
-            createClientConfigurationError(
-                ClientConfigurationErrorCodes.authorityUriInsecure
-            )
+            createClientConfigurationError(ClientConfigurationErrorCodes.authorityUriInsecure, "")
         );
         expect(() => urlObj.validateAsUri()).toThrowError(
             ClientConfigurationError

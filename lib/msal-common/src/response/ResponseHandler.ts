@@ -117,7 +117,8 @@ export class ResponseHandler {
                 ? serverResponse.error_codes[0]
                 : undefined;
             const serverError = new ServerError(
-                serverResponse.error,
+                serverResponse.error || "",
+                serverResponse.correlation_id || "",
                 errString,
                 serverResponse.suberror,
                 serverErrorNo,
@@ -164,12 +165,12 @@ export class ResponseHandler {
                 )
             ) {
                 throw new InteractionRequiredAuthError(
-                    serverResponse.error,
+                    serverResponse.error || "",
+                    serverResponse.correlation_id || "",
                     serverResponse.error_description,
                     serverResponse.suberror,
                     serverResponse.timestamp || "",
                     serverResponse.trace_id || "",
-                    serverResponse.correlation_id || "",
                     serverResponse.claims || "",
                     serverErrorNo
                 );
@@ -209,7 +210,6 @@ export class ResponseHandler {
                 if (idTokenClaims.nonce !== authCodePayload.nonce) {
                     throw createClientAuthError(
                         ClientAuthErrorCodes.nonceMismatch,
-                        undefined,
                         request.correlationId
                     );
                 }
@@ -221,7 +221,6 @@ export class ResponseHandler {
                 if (!authTime) {
                     throw createClientAuthError(
                         ClientAuthErrorCodes.authTimeNotFound,
-                        undefined,
                         request.correlationId
                     );
                 }
@@ -373,7 +372,6 @@ export class ResponseHandler {
         if (!env) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.invalidCacheEnvironment,
-                undefined,
                 request.correlationId
             );
         }
@@ -560,7 +558,6 @@ export class ResponseHandler {
                 if (!keyId) {
                     throw createClientAuthError(
                         ClientAuthErrorCodes.keyIdMissing,
-                        undefined,
                         request.correlationId
                     );
                 }

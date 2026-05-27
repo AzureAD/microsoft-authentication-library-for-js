@@ -364,9 +364,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 ""
             )
         ).toThrow(
-            new ClientConfigurationError(
-                ClientConfigurationErrorCodes.pkceParamsMissing
-            )
+            new ClientConfigurationError(ClientConfigurationErrorCodes.pkceParamsMissing, "")
         );
     });
 
@@ -379,9 +377,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 AADServerParamKeys.CODE_CHALLENGE_METHOD
             )
         ).toThrow(
-            new ClientConfigurationError(
-                ClientConfigurationErrorCodes.pkceParamsMissing
-            )
+            new ClientConfigurationError(ClientConfigurationErrorCodes.pkceParamsMissing, "")
         );
     });
 
@@ -648,9 +644,7 @@ describe("RequestParameterBuilder unit tests", () => {
                     []
                 )
             ).toThrow(
-                new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.invalidClaims
-                )
+                new ClientConfigurationError(ClientConfigurationErrorCodes.invalidClaims, "")
             );
         });
     });

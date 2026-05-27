@@ -1492,9 +1492,7 @@ describe("RefreshTokenClient unit tests", () => {
                     0
                 )
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.noAccountInSilentRequest
-                )
+                createClientAuthError(ClientAuthErrorCodes.noAccountInSilentRequest, "")
             );
         });
 
@@ -1514,18 +1512,14 @@ describe("RefreshTokenClient unit tests", () => {
                 //@ts-ignore
                 client.acquireTokenByRefreshToken(null, 0)
             ).rejects.toMatchObject(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
-                )
+                createClientConfigurationError(ClientConfigurationErrorCodes.tokenRequestEmpty, "")
             );
 
             await expect(
                 //@ts-ignore
                 client.acquireTokenByRefreshToken(undefined, 0)
             ).rejects.toMatchObject(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
-                )
+                createClientConfigurationError(ClientConfigurationErrorCodes.tokenRequestEmpty, "")
             );
         });
 
@@ -1571,7 +1565,7 @@ describe("RefreshTokenClient unit tests", () => {
             await expect(
                 client.acquireCachedToken(tokenRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "")
             );
         });
 
@@ -1608,9 +1602,7 @@ describe("RefreshTokenClient unit tests", () => {
             await expect(
                 client.acquireTokenByRefreshToken(tokenRequest, 0)
             ).rejects.toMatchObject(
-                createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                )
+                createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.refreshTokenExpired, "")
             );
             rootMeasurement.end({ success: false });
             // @ts-ignore
@@ -1646,9 +1638,7 @@ describe("RefreshTokenClient unit tests", () => {
             await expect(
                 client.acquireTokenByRefreshToken(tokenRequest, 0)
             ).rejects.toMatchObject(
-                createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                )
+                createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.refreshTokenExpired, "")
             );
         });
 
@@ -1700,11 +1690,11 @@ describe("RefreshTokenClient unit tests", () => {
             const serverResponse = BAD_TOKEN_ERROR_RESPONSE.body;
             const invalidGrantAuthError = new InteractionRequiredAuthError(
                 serverResponse.error,
+                serverResponse.correlation_id || "",
                 serverResponse.error_description,
                 serverResponse.suberror,
                 serverResponse.timestamp || "",
                 serverResponse.trace_id || "",
-                serverResponse.correlation_id || "",
                 // @ts-ignore
                 serverResponse.claims || ""
             );

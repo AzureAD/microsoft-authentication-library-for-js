@@ -82,7 +82,7 @@ export function getDeserializedResponse(
             return deserializedHash;
         }
     } catch (e) {
-        throw createClientAuthError(ClientAuthErrorCodes.hashNotDeserialized);
+        throw createClientAuthError(ClientAuthErrorCodes.hashNotDeserialized, "");
     }
 
     return null;

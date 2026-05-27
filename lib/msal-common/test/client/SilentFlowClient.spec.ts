@@ -368,7 +368,7 @@ describe("SilentFlowClient unit tests", () => {
             await expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "")
             );
         });
 
@@ -531,9 +531,7 @@ describe("SilentFlowClient unit tests", () => {
                     forceRefresh: false,
                 })
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.noAccountInSilentRequest
-                )
+                createClientAuthError(ClientAuthErrorCodes.noAccountInSilentRequest, "")
             );
             await expect(
                 client.acquireCachedToken({
@@ -545,9 +543,7 @@ describe("SilentFlowClient unit tests", () => {
                     forceRefresh: false,
                 })
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.noAccountInSilentRequest
-                )
+                createClientAuthError(ClientAuthErrorCodes.noAccountInSilentRequest, "")
             );
         });
 
@@ -585,7 +581,7 @@ describe("SilentFlowClient unit tests", () => {
             await expect(
                 client.acquireCachedToken(tokenRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "")
             );
         });
 
@@ -626,7 +622,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "")
             );
         });
 
@@ -666,7 +662,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "")
             );
         });
 
@@ -708,7 +704,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "")
             );
         });
 
@@ -768,7 +764,7 @@ describe("SilentFlowClient unit tests", () => {
             await expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "")
             );
         });
 
@@ -808,7 +804,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "")
             );
         });
 
@@ -867,7 +863,7 @@ describe("SilentFlowClient unit tests", () => {
             await expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "")
             );
         });
     });
@@ -981,7 +977,7 @@ describe("SilentFlowClient unit tests", () => {
             await expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired)
+                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired, "")
             );
         });
 
@@ -1001,7 +997,7 @@ describe("SilentFlowClient unit tests", () => {
             await expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound)
+                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound, "")
             );
         });
 
@@ -1020,7 +1016,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "")
             );
         });
     });

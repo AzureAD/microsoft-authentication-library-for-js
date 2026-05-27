@@ -10,7 +10,7 @@ describe("AuthError.ts Class", () => {
     for (const key in AuthErrorCodes) {
         const code = AuthErrorCodes[key as keyof typeof AuthErrorCodes];
         it(`AuthError object can be created for code ${code}`, () => {
-            const err: AuthError = createAuthError(code);
+            const err: AuthError = createAuthError(code, "");
 
             const message = getDefaultErrorMessage(code);
             expect(message).toBeTruthy();
@@ -31,8 +31,8 @@ describe("AuthError.ts Class", () => {
     it("setCorrelationId adds the provided correlationId to the error object", () => {
         const TEST_ERROR_CODE: string = "test";
         const TEST_ERROR_MSG: string = "This is a test error";
-        const err = new AuthError(TEST_ERROR_CODE, TEST_ERROR_MSG);
-        err.setCorrelationId(TEST_CONFIG.CORRELATION_ID);
+        const err = new AuthError(TEST_ERROR_CODE, "", TEST_ERROR_MSG);
+        err.correlationId = TEST_CONFIG.CORRELATION_ID;
 
         expect(err.errorCode).toBe(TEST_ERROR_CODE);
         expect(err.errorMessage).toBe(TEST_ERROR_MSG);
@@ -46,15 +46,10 @@ describe("AuthError.ts Class", () => {
         const code = AuthErrorCodes.unexpectedError;
         const err = createAuthError(
             code,
-            "additional msg",
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            "additional msg"
         );
         expect(err.correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
         expect(err.errorCode).toBe(code);
-    });
-
-    it("createAuthError leaves correlationId undefined when not provided", () => {
-        const err = createAuthError(AuthErrorCodes.unexpectedError);
-        expect(err.correlationId).toBeUndefined();
     });
 });

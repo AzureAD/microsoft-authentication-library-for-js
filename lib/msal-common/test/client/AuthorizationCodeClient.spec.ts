@@ -85,7 +85,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 // @ts-ignore
                 client.acquireToken({ code: null }, null)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade)
+                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade, "")
             );
             // @ts-ignore
             expect(config.storageInterface.getKeys().length).toBe(1);
@@ -125,7 +125,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 // @ts-ignore
                 client.acquireToken(codeRequest, null)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade)
+                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade, "")
             );
             // @ts-ignore
             expect(config.storageInterface.getKeys().length).toBe(1);
@@ -578,7 +578,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     state: testState,
                 })
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired)
+                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired, "")
             );
         });
 
@@ -678,7 +678,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     state: testState,
                 })
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound)
+                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound, "")
             );
         });
 
@@ -1924,9 +1924,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     state: testState,
                 })
             ).rejects.toThrow(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
-                )
+                createClientConfigurationError(ClientConfigurationErrorCodes.missingSshJwk, "")
             );
         });
 

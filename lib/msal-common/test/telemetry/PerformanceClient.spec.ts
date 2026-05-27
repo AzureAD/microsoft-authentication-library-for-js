@@ -255,10 +255,7 @@ describe("PerformanceClient.spec.ts", () => {
         const mockPerfClient = new MockPerformanceClient();
         const correlationId = "test-correlation-id";
 
-        const publicError = new AuthError(
-            "public_test_error",
-            "This error will be thrown to caller"
-        );
+        const publicError = new AuthError("public_test_error", "", "This error will be thrown to caller");
         const runtimeError = new TypeError("This error caused publicError");
 
         mockPerfClient.addPerformanceCallback((events) => {
@@ -304,10 +301,7 @@ describe("PerformanceClient.spec.ts", () => {
         const mockPerfClient = new MockPerformanceClient();
         const correlationId = "test-correlation-id";
 
-        const publicError = new AuthError(
-            "public_test_error",
-            "This error will be thrown to caller"
-        );
+        const publicError = new AuthError("public_test_error", "", "This error will be thrown to caller");
         const runtimeError = new TypeError("This error caused publicError");
 
         mockPerfClient.addPerformanceCallback((events) => {
@@ -584,12 +578,7 @@ describe("PerformanceClient.spec.ts", () => {
         it("captures server error no", (done) => {
             const mockPerfClient = new MockPerformanceClient();
             const correlationId = "test-correlation-id";
-            const error = new ServerError(
-                "test-error-code",
-                undefined,
-                undefined,
-                "70011"
-            );
+            const error = new ServerError("test-error-code", "", undefined, undefined, "70011");
 
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
@@ -613,16 +602,7 @@ describe("PerformanceClient.spec.ts", () => {
         it("captures interaction required error no", (done) => {
             const mockPerfClient = new MockPerformanceClient();
             const correlationId = "test-correlation-id";
-            const error = new InteractionRequiredAuthError(
-                "test-error-code",
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                "70011"
-            );
+            const error = new InteractionRequiredAuthError("test-error-code", "", undefined, undefined, undefined, undefined, undefined, "70011");
 
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
@@ -646,12 +626,7 @@ describe("PerformanceClient.spec.ts", () => {
         it("does not set serverErrorNo from ServerError when serverErrorNo is already present", (done) => {
             const mockPerfClient = new MockPerformanceClient();
             const correlationId = "test-correlation-id";
-            const error = new ServerError(
-                "test-error-code",
-                undefined,
-                undefined,
-                "70011"
-            );
+            const error = new ServerError("test-error-code", "", undefined, undefined, "70011");
 
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
@@ -684,16 +659,7 @@ describe("PerformanceClient.spec.ts", () => {
         it("does not set serverErrorNo from InteractionRequiredAuthError when serverErrorNo is already present", (done) => {
             const mockPerfClient = new MockPerformanceClient();
             const correlationId = "test-correlation-id";
-            const error = new InteractionRequiredAuthError(
-                "test-error-code",
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                "70011"
-            );
+            const error = new InteractionRequiredAuthError("test-error-code", "", undefined, undefined, undefined, undefined, undefined, "70011");
 
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
@@ -1023,11 +989,7 @@ describe("PerformanceClient.spec.ts", () => {
         it("captures auth errors", (done) => {
             const mockPerfClient = new MockPerformanceClient();
             const correlationId = "test-correlation-id";
-            const error = new AuthError(
-                "test error code",
-                "test error message",
-                "test sub error code"
-            );
+            const error = new AuthError("test error code", "", "test error message", "test sub error code");
 
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
@@ -1092,16 +1054,8 @@ describe("PerformanceClient.spec.ts", () => {
         it("captures different auth errors", (done) => {
             const mockPerfClient = new MockPerformanceClient();
             const correlationId = "test-correlation-id";
-            const error = new AuthError(
-                "test error code",
-                "test error message",
-                "test sub error code"
-            );
-            const secondError = new AuthError(
-                "test error code 2",
-                "test error message 2",
-                "test sub error code 2"
-            );
+            const error = new AuthError("test error code", "", "test error message", "test sub error code");
+            const secondError = new AuthError("test error code 2", "", "test error message 2", "test sub error code 2");
 
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
@@ -1168,11 +1122,7 @@ describe("PerformanceClient.spec.ts", () => {
         it("captures auth and non-auth errors", (done) => {
             const mockPerfClient = new MockPerformanceClient();
             const correlationId = "test-correlation-id";
-            const error = new AuthError(
-                "test error code",
-                "test error message",
-                "test sub error code"
-            );
+            const error = new AuthError("test error code", "", "test error message", "test sub error code");
             const secondError = new TypeError("test type error");
 
             mockPerfClient.addPerformanceCallback((events) => {

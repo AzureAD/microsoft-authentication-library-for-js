@@ -300,7 +300,8 @@ export function getAuthorizationCodePayload(
     // throw when there is no auth code in the response
     if (!serverParams.code) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse
+            ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse,
+            ""
         );
     }
 
@@ -350,7 +351,7 @@ export function validateAuthorizationResponse(
     }
 
     if (decodedServerResponseState !== decodedRequestState) {
-        throw createClientAuthError(ClientAuthErrorCodes.stateMismatch);
+        throw createClientAuthError(ClientAuthErrorCodes.stateMismatch, "");
     }
 
     // Check for error
@@ -369,11 +370,11 @@ export function validateAuthorizationResponse(
         ) {
             throw new InteractionRequiredAuthError(
                 serverResponse.error || "",
+                serverResponse.correlation_id || "",
                 serverResponse.error_description,
                 serverResponse.suberror,
                 serverResponse.timestamp || "",
                 serverResponse.trace_id || "",
-                serverResponse.correlation_id || "",
                 serverResponse.claims || "",
                 serverErrorNo
             );
@@ -381,6 +382,7 @@ export function validateAuthorizationResponse(
 
         throw new ServerError(
             serverResponse.error || "",
+            serverResponse.correlation_id || "",
             serverResponse.error_description,
             serverResponse.suberror,
             serverErrorNo

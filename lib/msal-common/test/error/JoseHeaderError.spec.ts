@@ -10,7 +10,7 @@ describe("JoseHeaderError.ts Class Unit Tests", () => {
         const code =
             JoseHeaderErrorCodes[key as keyof typeof JoseHeaderErrorCodes];
         it(`JoseHeaderError object can be created for code ${code}`, () => {
-            const err: JoseHeaderError = createJoseHeaderError(code);
+            const err: JoseHeaderError = createJoseHeaderError(code, "");
 
             const message = getDefaultErrorMessage(code);
             expect(message).toBeTruthy();

@@ -21,11 +21,11 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
         const err: InteractionRequiredAuthError =
             new InteractionRequiredAuthError(
                 TEST_ERROR_CODE,
+                TEST_ERROR_CORRELATION_ID,
                 TEST_ERROR_MSG,
                 "N/A",
                 TEST_ERROR_TIMESTAMP,
                 TEST_ERROR_TRACE_ID,
-                TEST_ERROR_CORRELATION_ID,
                 TEST_ERROR_CLAIMS
             );
 
@@ -110,7 +110,7 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
             ];
 
             codes.forEach((code) => {
-                const err = createInteractionRequiredAuthError(code);
+                const err = createInteractionRequiredAuthError(code, "");
                 expect(err instanceof InteractionRequiredAuthError).toBe(true);
                 expect(err.errorCode).toBe(code);
                 expect(typeof err.errorMessage).toBe("string");
@@ -122,17 +122,9 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
             const TEST_CORRELATION_ID = "test-correlation-id";
             const err = createInteractionRequiredAuthError(
                 InteractionRequiredAuthErrorCodes.noTokensFound,
-                undefined,
                 TEST_CORRELATION_ID
             );
             expect(err.correlationId).toBe(TEST_CORRELATION_ID);
-        });
-
-        it("leaves correlationId empty when not provided", () => {
-            const err = createInteractionRequiredAuthError(
-                InteractionRequiredAuthErrorCodes.noTokensFound
-            );
-            expect(err.correlationId).toBe("");
         });
     });
 });

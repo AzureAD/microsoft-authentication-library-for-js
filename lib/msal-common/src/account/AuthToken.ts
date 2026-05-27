@@ -26,7 +26,7 @@ export function extractTokenClaims(
         const base64Decoded = base64Decode(jswPayload);
         return JSON.parse(base64Decoded) as TokenClaims;
     } catch (err) {
-        throw createClientAuthError(ClientAuthErrorCodes.tokenParsingError);
+        throw createClientAuthError(ClientAuthErrorCodes.tokenParsingError, "");
     }
 }
 
@@ -59,12 +59,12 @@ export function isKmsi(idTokenClaims: TokenClaims): boolean {
  */
 export function getJWSPayload(authToken: string): string {
     if (!authToken) {
-        throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken);
+        throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "");
     }
     const tokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
     const matches = tokenPartsRegex.exec(authToken);
     if (!matches || matches.length < 4) {
-        throw createClientAuthError(ClientAuthErrorCodes.tokenParsingError);
+        throw createClientAuthError(ClientAuthErrorCodes.tokenParsingError, "");
     }
     /**
      * const crackedToken = {
@@ -88,6 +88,6 @@ export function checkMaxAge(authTime: number, maxAge: number): void {
      */
     const fiveMinuteSkew = 300000; // five minutes in milliseconds
     if (maxAge === 0 || Date.now() - fiveMinuteSkew > authTime + maxAge) {
-        throw createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired);
+        throw createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired, "");
     }
 }

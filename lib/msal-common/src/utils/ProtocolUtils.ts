@@ -38,7 +38,7 @@ export function generateLibraryState(
     meta?: Record<string, string>
 ): string {
     if (!cryptoObj) {
-        throw createClientAuthError(ClientAuthErrorCodes.noCryptoObject);
+        throw createClientAuthError(ClientAuthErrorCodes.noCryptoObject, "");
     }
 
     // Create a state object containing a unique id and the timestamp of the request creation
@@ -65,11 +65,11 @@ export function parseRequestState(
     state: string
 ): RequestStateObject {
     if (!base64Decode) {
-        throw createClientAuthError(ClientAuthErrorCodes.noCryptoObject);
+        throw createClientAuthError(ClientAuthErrorCodes.noCryptoObject, "");
     }
 
     if (!state) {
-        throw createClientAuthError(ClientAuthErrorCodes.invalidState);
+        throw createClientAuthError(ClientAuthErrorCodes.invalidState, "");
     }
 
     try {
@@ -89,6 +89,6 @@ export function parseRequestState(
             libraryState: libraryStateObj,
         };
     } catch (e) {
-        throw createClientAuthError(ClientAuthErrorCodes.invalidState);
+        throw createClientAuthError(ClientAuthErrorCodes.invalidState, "");
     }
 }

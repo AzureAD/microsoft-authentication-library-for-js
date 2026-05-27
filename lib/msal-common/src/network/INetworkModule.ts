@@ -48,12 +48,12 @@ export interface INetworkModule {
 export const StubbedNetworkModule: INetworkModule = {
     sendGetRequestAsync: () => {
         return Promise.reject(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
     },
     sendPostRequestAsync: () => {
         return Promise.reject(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
     },
 };

@@ -131,16 +131,14 @@ export function enforceResourceParameter(
     ) {
         throw createClientAuthError(
             ClientAuthErrorCodes.misplacedResourceParam,
-            undefined,
-            request.correlationId
+            request.correlationId || ""
         );
     }
 
     if (!request.resource) {
         throw createClientAuthError(
             ClientAuthErrorCodes.resourceParameterRequired,
-            undefined,
-            request.correlationId
+            request.correlationId || ""
         );
     }
 }

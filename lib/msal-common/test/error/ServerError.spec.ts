@@ -9,6 +9,7 @@ describe("ServerError.ts Class Unit Tests", () => {
         const TEST_ERROR_STATUS: number = HTTP_BAD_REQUEST;
         const err: ServerError = new ServerError(
             TEST_ERROR_CODE,
+            "",
             TEST_ERROR_MSG,
             undefined,
             undefined,
@@ -27,7 +28,7 @@ describe("ServerError.ts Class Unit Tests", () => {
     });
 
     it("Values are set as expected when no info was provided to ServerError", () => {
-        const err: ServerError = new ServerError();
+        const err: ServerError = new ServerError("", "");
 
         expect(err instanceof ServerError).toBe(true);
         expect(err instanceof AuthError).toBe(true);

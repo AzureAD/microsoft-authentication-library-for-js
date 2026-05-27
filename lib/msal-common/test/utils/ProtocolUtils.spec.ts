@@ -40,7 +40,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
         expect(() =>
             // @ts-ignore
             ProtocolUtils.setRequestState(null, userState)
-        ).toThrow(new ClientAuthError(ClientAuthErrorCodes.noCryptoObject));
+        ).toThrow(new ClientAuthError(ClientAuthErrorCodes.noCryptoObject, ""));
     });
 
     it("parseRequestState() throws error if given state is null or empty", () => {

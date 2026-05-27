@@ -10,7 +10,7 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         const code =
             ClientAuthErrorCodes[key as keyof typeof ClientAuthErrorCodes];
         it(`ClientAuthError object can be created for code ${code}`, () => {
-            const err: ClientAuthError = createClientAuthError(code);
+            const err: ClientAuthError = createClientAuthError(code, "");
 
             const message = getDefaultErrorMessage(code);
             expect(message).toBeTruthy();
@@ -29,13 +29,8 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
     it("createClientAuthError sets correlationId when provided", () => {
         const TEST_CORRELATION_ID = "test-correlation-id";
         const code = ClientAuthErrorCodes.noAccountFound;
-        const err = createClientAuthError(code, undefined, TEST_CORRELATION_ID);
+        const err = createClientAuthError(code, TEST_CORRELATION_ID);
         expect(err.correlationId).toBe(TEST_CORRELATION_ID);
         expect(err.errorCode).toBe(code);
-    });
-
-    it("createClientAuthError leaves correlationId undefined when not provided", () => {
-        const err = createClientAuthError(ClientAuthErrorCodes.noAccountFound);
-        expect(err.correlationId).toBeUndefined();
     });
 });
