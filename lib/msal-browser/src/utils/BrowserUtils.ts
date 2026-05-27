@@ -12,8 +12,6 @@ import {
     IPerformanceClient,
     InProgressPerformanceEvent,
     Logger,
-    CommonAuthorizationUrlRequest,
-    CommonEndSessionRequest,
     ProtocolUtils,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
@@ -250,10 +248,20 @@ export function cancelPendingBridgeResponse(
     }
 }
 
+/**
+ * Minimal request shape needed by the bridge response listener.
+ *
+ * @internal
+ */
+export interface WaitForBridgeRequest {
+    correlationId: string;
+    state?: string;
+}
+
 export async function waitForBridgeResponse(
     timeoutMs: number,
     logger: Logger,
-    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+    request: WaitForBridgeRequest,
     performanceClient: IPerformanceClient,
     experimentalConfig?: BrowserExperimentalOptions
 ): Promise<string> {

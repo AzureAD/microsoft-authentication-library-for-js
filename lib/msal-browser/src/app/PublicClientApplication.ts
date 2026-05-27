@@ -149,7 +149,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         return waitForBridgeResponse(
             config.system.iframeBridgeTimeout,
             controller.getLogger(),
-            request as CommonAuthorizationUrlRequest,
+            request,
             controller.getPerformanceClient(),
             config.experimental
         );

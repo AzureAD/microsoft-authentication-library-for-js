@@ -56,6 +56,8 @@ import {
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
 
+import type { WaitForBridgeRequest } from "../utils/BrowserUtils.js";
+
 /**
  * Minimal request shape accepted by the iframe-response hook.
  * Intentionally narrow so subclasses can override without needing
@@ -63,10 +65,7 @@ import {
  *
  * @internal
  */
-export interface WaitForIframeRequest {
-    correlationId: string;
-    state?: string;
-}
+export type WaitForIframeRequest = WaitForBridgeRequest;
 
 /**
  * Signature of the iframe-response handler supplied by
@@ -655,7 +654,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         return BrowserUtils.waitForBridgeResponse(
             this.config.system.iframeBridgeTimeout,
             this.logger,
-            request as CommonAuthorizationUrlRequest,
+            request,
             this.performanceClient,
             this.config.experimental
         );
