@@ -66,14 +66,12 @@ describe("B2C user-flow tests (local account)", () => {
 
         // Initiate Login
         const signInButton = await page.waitForSelector(
-            "xpath=//button[contains(., 'Login')]",
-            { timeout: 60000 }
+            "xpath=//button[contains(., 'Login')]"
         );
         await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
         const loginRedirectButton = await page.waitForSelector(
-            "xpath=//li[contains(., 'Sign in using Redirect')]",
-            { timeout: 60000 }
+            "xpath=//li[contains(., 'Sign in using Redirect')]"
         );
         await loginRedirectButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
@@ -106,8 +104,7 @@ describe("B2C user-flow tests (local account)", () => {
 
         // initiate edit profile flow
         const editProfileButton = await page.waitForSelector(
-            "#editProfileButton",
-            { timeout: 60000 }
+            "#editProfileButton"
         );
         if (editProfileButton) {
             await editProfileButton.click();
@@ -122,7 +119,7 @@ describe("B2C user-flow tests (local account)", () => {
                 `window.location.href.startsWith("http://localhost:${port}")`,
                 { timeout: 60000 }
             ),
-            page.waitForSelector("#idTokenClaims", { timeout: 60000 }),
+            page.waitForSelector("#idTokenClaims"),
             page.waitForSelector(
                 "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])",
                 { timeout: 60000 }
