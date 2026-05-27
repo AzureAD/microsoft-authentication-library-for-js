@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779918284107,
+  "lastUpdate": 1779924232793,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21491,6 +21491,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.61%",
             "unit": "ops/sec",
             "extra": "231 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4e18c5c47314b5d2a829fa1ae8b851d45617f134",
+          "message": "fix: respect redirectStartPage in PlatformAuthInteractionClient.acquireTokenRedirect (#8604)\n\n## Description\n\n**Bug:** `PlatformAuthInteractionClient.acquireTokenRedirect` ignored\n`request.redirectStartPage` when `navigateToLoginRequestUrl` was `true`,\nalways navigating to `window.location.href` instead.\n\n**Fix:** When `navigateToLoginRequestUrl` is `true`, use\n`request.redirectStartPage || window.location.href` so that callers who\nset `redirectStartPage` are respected. When `navigateToLoginRequestUrl`\nis `false`, behavior is unchanged (falls back to `redirectUri`).\n\nThis aligns `PlatformAuthInteractionClient` with the existing behavior\nin `RedirectClient`, which already honors `redirectStartPage`.\n\n## Changes\n\n-\n**`lib/msal-browser/src/interaction_client/PlatformAuthInteractionClient.ts`**\n— use `request.redirectStartPage` (with `window.location.href` fallback)\nwhen `navigateToLoginRequestUrl` is `true`\n-\n**`lib/msal-browser/test/interaction_client/PlatformAuthInteractionClient.spec.ts`**\n— added two tests:\n  - Navigates to `redirectStartPage` when provided\n- Falls back to `window.location.href` when `redirectStartPage` is not\nprovided\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-05-27T23:15:38Z",
+          "tree_id": "f3f43d0e79dc7f1bc60ebcf977387901554e3ded",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/4e18c5c47314b5d2a829fa1ae8b851d45617f134"
+        },
+        "date": 1779924228993,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 374062,
+            "range": "±0.91%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 376049,
+            "range": "±0.61%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
