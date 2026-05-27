@@ -258,7 +258,9 @@ export class RefreshTokenClient {
 
         if (!refreshToken) {
             throw createInteractionRequiredAuthError(
-                InteractionRequiredAuthErrorCodes.noTokensFound
+                InteractionRequiredAuthErrorCodes.noTokensFound,
+                undefined,
+                request.correlationId
             );
         }
 
@@ -276,7 +278,9 @@ export class RefreshTokenClient {
 
             if (TimeUtils.isTokenExpired(refreshToken.expiresOn, offset)) {
                 throw createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+                    undefined,
+                    request.correlationId
                 );
             }
         }

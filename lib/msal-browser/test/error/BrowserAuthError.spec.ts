@@ -26,4 +26,21 @@ describe("BrowserAuthError Unit Tests", () => {
             expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
         });
     }
+
+    it("createBrowserAuthError sets correlationId when provided", () => {
+        const TEST_CORRELATION_ID = "test-correlation-id";
+        const err = createBrowserAuthError(
+            BrowserAuthErrorCodes.emptyNavigateUri,
+            undefined,
+            TEST_CORRELATION_ID
+        );
+        expect(err.correlationId).toBe(TEST_CORRELATION_ID);
+    });
+
+    it("createBrowserAuthError leaves correlationId undefined when not provided", () => {
+        const err = createBrowserAuthError(
+            BrowserAuthErrorCodes.emptyNavigateUri
+        );
+        expect(err.correlationId).toBeUndefined();
+    });
 });

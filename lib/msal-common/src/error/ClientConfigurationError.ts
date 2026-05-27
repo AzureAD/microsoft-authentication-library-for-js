@@ -19,7 +19,12 @@ export class ClientConfigurationError extends AuthError {
 }
 
 export function createClientConfigurationError(
-    errorCode: string
+    errorCode: string,
+    correlationId?: string
 ): ClientConfigurationError {
-    return new ClientConfigurationError(errorCode);
+    const error = new ClientConfigurationError(errorCode);
+    if (correlationId) {
+        error.setCorrelationId(correlationId);
+    }
+    return error;
 }

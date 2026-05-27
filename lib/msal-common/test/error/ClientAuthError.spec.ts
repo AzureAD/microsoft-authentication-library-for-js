@@ -25,4 +25,17 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
             expect(err.stack?.includes("ClientAuthError.spec.ts")).toBe(true);
         });
     }
+
+    it("createClientAuthError sets correlationId when provided", () => {
+        const TEST_CORRELATION_ID = "test-correlation-id";
+        const code = ClientAuthErrorCodes.noAccountFound;
+        const err = createClientAuthError(code, undefined, TEST_CORRELATION_ID);
+        expect(err.correlationId).toBe(TEST_CORRELATION_ID);
+        expect(err.errorCode).toBe(code);
+    });
+
+    it("createClientAuthError leaves correlationId undefined when not provided", () => {
+        const err = createClientAuthError(ClientAuthErrorCodes.noAccountFound);
+        expect(err.correlationId).toBeUndefined();
+    });
 });

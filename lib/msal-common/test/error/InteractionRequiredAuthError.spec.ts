@@ -117,5 +117,22 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
                 expect(err.errorMessage.length).toBeGreaterThan(0);
             });
         });
+
+        it("sets correlationId when provided", () => {
+            const TEST_CORRELATION_ID = "test-correlation-id";
+            const err = createInteractionRequiredAuthError(
+                InteractionRequiredAuthErrorCodes.noTokensFound,
+                undefined,
+                TEST_CORRELATION_ID
+            );
+            expect(err.correlationId).toBe(TEST_CORRELATION_ID);
+        });
+
+        it("leaves correlationId empty when not provided", () => {
+            const err = createInteractionRequiredAuthError(
+                InteractionRequiredAuthErrorCodes.noTokensFound
+            );
+            expect(err.correlationId).toBe("");
+        });
     });
 });

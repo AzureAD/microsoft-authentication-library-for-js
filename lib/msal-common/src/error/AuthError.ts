@@ -61,10 +61,15 @@ export class AuthError extends Error {
 
 export function createAuthError(
     code: string,
-    additionalMessage?: string
+    additionalMessage?: string,
+    correlationId?: string
 ): AuthError {
-    return new AuthError(
+    const error = new AuthError(
         code,
         additionalMessage || getDefaultErrorMessage(code)
     );
+    if (correlationId) {
+        error.setCorrelationId(correlationId);
+    }
+    return error;
 }

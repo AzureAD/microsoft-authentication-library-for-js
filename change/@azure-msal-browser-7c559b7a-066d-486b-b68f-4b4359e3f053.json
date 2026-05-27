@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Propagate correlationId through browser/native error creation helpers and interaction client error paths",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

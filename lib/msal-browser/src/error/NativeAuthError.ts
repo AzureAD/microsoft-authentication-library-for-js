@@ -80,31 +80,62 @@ export function isFatalNativeAuthError(error: NativeAuthError): boolean {
 export function createNativeAuthError(
     code: string,
     description?: string,
-    ext?: OSError
+    ext?: OSError,
+    correlationId?: string
 ): AuthError {
+    let error: AuthError;
     if (ext && ext.status) {
         switch (ext.status) {
             case NativeStatusCodes.ACCOUNT_UNAVAILABLE:
-                return createInteractionRequiredAuthError(
+                error = createInteractionRequiredAuthError(
                     InteractionRequiredAuthErrorCodes.nativeAccountUnavailable,
-                    getDefaultErrorMessage(code)
+                    getDefaultErrorMessage(code),
+                    correlationId
                 );
+                break;
             case NativeStatusCodes.USER_INTERACTION_REQUIRED:
-                return new InteractionRequiredAuthError(code, description);
+                error = new InteractionRequiredAuthError(
+                    code,
+                    description,
+                    undefined,
+                    undefined,
+                    undefined,
+                    correlationId
+                );
+                break;
             case NativeStatusCodes.USER_CANCEL:
-                return createBrowserAuthError(
-                    BrowserAuthErrorCodes.userCancelled
+                error = createBrowserAuthError(
+                    BrowserAuthErrorCodes.userCancelled,
+                    undefined,
+                    correlationId
                 );
+                break;
             case NativeStatusCodes.NO_NETWORK:
-                return createBrowserAuthError(
-                    BrowserAuthErrorCodes.noNetworkConnectivity
+                error = createBrowserAuthError(
+                    BrowserAuthErrorCodes.noNetworkConnectivity,
+                    undefined,
+                    correlationId
                 );
+                break;
             case NativeStatusCodes.UX_NOT_ALLOWED:
-                return createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.uxNotAllowed
+                error = createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.uxNotAllowed,
+                    undefined,
+                    correlationId
                 );
+                break;
+            default:
+                error = new NativeAuthError(code, description, ext);
+                if (correlationId) {
+                    error.setCorrelationId(correlationId);
+                }
         }
+        return error;
     }
 
-    return new NativeAuthError(code, description, ext);
+    error = new NativeAuthError(code, description, ext);
+    if (correlationId) {
+        error.setCorrelationId(correlationId);
+    }
+    return error;
 }

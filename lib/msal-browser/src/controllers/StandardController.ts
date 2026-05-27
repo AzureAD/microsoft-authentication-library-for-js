@@ -1306,7 +1306,9 @@ export class StandardController implements IController {
             if (request.code && request.nativeAccountId) {
                 // Throw error in case server returns both spa_code and spa_accountid in exchange for auth code.
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.spaCodeAndNativeAccountIdPresent
+                    BrowserAuthErrorCodes.spaCodeAndNativeAccountIdPresent,
+                    undefined,
+                    correlationId
                 );
             } else if (request.code) {
                 const hybridAuthCode = request.code;
@@ -1403,12 +1405,16 @@ export class StandardController implements IController {
                     return result;
                 } else {
                     throw createBrowserAuthError(
-                        BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform
+                        BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform,
+                        undefined,
+                        correlationId
                     );
                 }
             } else {
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired
+                    BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired,
+                    undefined,
+                    correlationId
                 );
             }
         } catch (e) {
@@ -1504,7 +1510,9 @@ export class StandardController implements IController {
                 )(commonRequest);
             default:
                 throw createClientAuthError(
-                    ClientAuthErrorCodes.tokenRefreshRequired
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                    undefined,
+                    commonRequest.correlationId
                 );
         }
     }
@@ -1537,7 +1545,9 @@ export class StandardController implements IController {
                 )(commonRequest);
             default:
                 throw createClientAuthError(
-                    ClientAuthErrorCodes.tokenRefreshRequired
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                    undefined,
+                    commonRequest.correlationId
                 );
         }
     }

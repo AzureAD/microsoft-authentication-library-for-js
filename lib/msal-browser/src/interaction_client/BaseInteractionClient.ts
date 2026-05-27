@@ -207,7 +207,8 @@ export async function getDiscoveredAuthority(
 
     if (account && !discoveredAuthority.isAlias(account.environment)) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.authorityMismatch
+            ClientConfigurationErrorCodes.authorityMismatch,
+            correlationId
         );
     }
 

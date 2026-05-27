@@ -73,7 +73,9 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         // Auth code payload is required
         if (!request.code) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.authCodeRequired
+                BrowserAuthErrorCodes.authCodeRequired,
+                undefined,
+                this.correlationId
             );
         }
 

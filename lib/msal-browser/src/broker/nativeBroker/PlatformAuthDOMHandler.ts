@@ -214,14 +214,16 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                             protocol_error: errorResponse.error.protocolError,
                             status: errorResponse.error.status,
                             properties: errorResponse.error.properties,
-                        }
+                        },
+                        correlationId
                     );
                 }
             }
         }
         throw createAuthError(
             AuthErrorCodes.unexpectedError,
-            "Response missing expected properties."
+            "Response missing expected properties.",
+            correlationId
         );
     }
 

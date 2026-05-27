@@ -106,14 +106,18 @@ export class SilentFlowClient {
                 request.correlationId
             );
             throw createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
+                ClientAuthErrorCodes.tokenRefreshRequired,
+                undefined,
+                request.correlationId
             );
         }
 
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.noAccountInSilentRequest
+                ClientAuthErrorCodes.noAccountInSilentRequest,
+                undefined,
+                request.correlationId
             );
         }
 
@@ -135,7 +139,9 @@ export class SilentFlowClient {
                 request.correlationId
             );
             throw createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
+                ClientAuthErrorCodes.tokenRefreshRequired,
+                undefined,
+                request.correlationId
             );
         } else if (
             TimeUtils.wasClockTurnedBack(cachedAccessToken.cachedAt) ||
@@ -150,7 +156,9 @@ export class SilentFlowClient {
                 request.correlationId
             );
             throw createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
+                ClientAuthErrorCodes.tokenRefreshRequired,
+                undefined,
+                request.correlationId
             );
         } else if (request.resource) {
             // cached access token must have a resource that matches the request resource for MCP scenarios
@@ -160,7 +168,9 @@ export class SilentFlowClient {
                     request.correlationId
                 );
                 throw createClientAuthError(
-                    ClientAuthErrorCodes.tokenRefreshRequired
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                    undefined,
+                    request.correlationId
                 );
             }
         } else if (
@@ -252,7 +262,9 @@ export class SilentFlowClient {
             const authTime = idTokenClaims?.auth_time;
             if (!authTime) {
                 throw createClientAuthError(
-                    ClientAuthErrorCodes.authTimeNotFound
+                    ClientAuthErrorCodes.authTimeNotFound,
+                    undefined,
+                    request.correlationId
                 );
             }
 

@@ -176,6 +176,69 @@ describe("NativeAuthError Unit Tests", () => {
                     BrowserAuthErrorCodes.noNetworkConnectivity
                 );
             });
+
+            it("sets correlationId on translated NativeAuthError when provided", () => {
+                const TEST_CORRELATION_ID = "test-correlation-id";
+                const error = createNativeAuthError(
+                    "testError",
+                    "testWamError",
+                    undefined,
+                    TEST_CORRELATION_ID
+                );
+                expect(error).toBeInstanceOf(NativeAuthError);
+                expect(error.correlationId).toBe(TEST_CORRELATION_ID);
+            });
+
+            it("sets correlationId on translated InteractionRequiredAuthError (USER_INTERACTION_REQUIRED) when provided", () => {
+                const TEST_CORRELATION_ID = "test-correlation-id";
+                const error = createNativeAuthError(
+                    "interaction_required",
+                    "interaction is required",
+                    {
+                        error: 1,
+                        protocol_error: "testProtocolError",
+                        properties: {},
+                        status: NativeStatusCode.USER_INTERACTION_REQUIRED,
+                    },
+                    TEST_CORRELATION_ID
+                );
+                expect(error).toBeInstanceOf(InteractionRequiredAuthError);
+                expect(error.correlationId).toBe(TEST_CORRELATION_ID);
+            });
+
+            it("sets correlationId on translated InteractionRequiredAuthError (ACCOUNT_UNAVAILABLE) when provided", () => {
+                const TEST_CORRELATION_ID = "test-correlation-id";
+                const error = createNativeAuthError(
+                    "interaction_required",
+                    "interaction is required",
+                    {
+                        error: 1,
+                        protocol_error: "testProtocolError",
+                        properties: {},
+                        status: NativeStatusCode.ACCOUNT_UNAVAILABLE,
+                    },
+                    TEST_CORRELATION_ID
+                );
+                expect(error).toBeInstanceOf(InteractionRequiredAuthError);
+                expect(error.correlationId).toBe(TEST_CORRELATION_ID);
+            });
+
+            it("sets correlationId on translated BrowserAuthError (USER_CANCEL) when provided", () => {
+                const TEST_CORRELATION_ID = "test-correlation-id";
+                const error = createNativeAuthError(
+                    "user_cancel",
+                    "user cancelled",
+                    {
+                        error: 1,
+                        protocol_error: "testProtocolError",
+                        properties: {},
+                        status: NativeStatusCode.USER_CANCEL,
+                    },
+                    TEST_CORRELATION_ID
+                );
+                expect(error).toBeInstanceOf(BrowserAuthError);
+                expect(error.correlationId).toBe(TEST_CORRELATION_ID);
+            });
         });
     });
 });

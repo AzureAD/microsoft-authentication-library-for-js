@@ -31,4 +31,22 @@ describe("BrowserConfigurationAuthError Unit Tests", () => {
             ).toBe(true);
         });
     }
+
+    it("createBrowserConfigurationAuthError sets correlationId when provided", () => {
+        const TEST_CORRELATION_ID = "test-correlation-id";
+        const code =
+            BrowserConfigurationAuthErrorCodes.storageNotSupported;
+        const err = createBrowserConfigurationAuthError(
+            code,
+            TEST_CORRELATION_ID
+        );
+        expect(err.correlationId).toBe(TEST_CORRELATION_ID);
+    });
+
+    it("createBrowserConfigurationAuthError leaves correlationId undefined when not provided", () => {
+        const err = createBrowserConfigurationAuthError(
+            BrowserConfigurationAuthErrorCodes.storageNotSupported
+        );
+        expect(err.correlationId).toBeUndefined();
+    });
 });

@@ -41,4 +41,20 @@ describe("AuthError.ts Class", () => {
         expect(err.name).toBe("AuthError");
         expect(err.stack?.includes("AuthError.spec.ts")).toBe(true);
     });
+
+    it("createAuthError sets correlationId when provided", () => {
+        const code = AuthErrorCodes.unexpectedError;
+        const err = createAuthError(
+            code,
+            "additional msg",
+            TEST_CONFIG.CORRELATION_ID
+        );
+        expect(err.correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
+        expect(err.errorCode).toBe(code);
+    });
+
+    it("createAuthError leaves correlationId undefined when not provided", () => {
+        const err = createAuthError(AuthErrorCodes.unexpectedError);
+        expect(err.correlationId).toBeUndefined();
+    });
 });

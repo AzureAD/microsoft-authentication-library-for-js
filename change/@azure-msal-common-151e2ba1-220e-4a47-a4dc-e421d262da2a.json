@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Propagate correlationId through error creation helpers so thrown errors include the request correlationId",
+  "packageName": "@azure/msal-common",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -20,10 +20,15 @@ export class BrowserConfigurationAuthError extends AuthError {
 }
 
 export function createBrowserConfigurationAuthError(
-    errorCode: string
+    errorCode: string,
+    correlationId?: string
 ): BrowserConfigurationAuthError {
-    return new BrowserConfigurationAuthError(
+    const error = new BrowserConfigurationAuthError(
         errorCode,
         getDefaultErrorMessage(errorCode)
     );
+    if (correlationId) {
+        error.setCorrelationId(correlationId);
+    }
+    return error;
 }

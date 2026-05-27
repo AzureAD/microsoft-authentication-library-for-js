@@ -340,7 +340,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                             createNativeAuthError(
                                 response.result["code"],
                                 response.result["description"],
-                                response.result["ext"]
+                                response.result["ext"],
+                                correlationId
                             )
                         );
                     } else {
@@ -349,7 +350,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 } else {
                     throw createAuthError(
                         AuthErrorCodes.unexpectedError,
-                        "Event does not contain result."
+                        "Event does not contain result.",
+                        correlationId
                     );
                 }
                 this.resolvers.delete(request.responseId);

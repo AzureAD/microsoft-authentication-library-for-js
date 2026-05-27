@@ -117,7 +117,15 @@ export function isInteractionRequiredError(
  */
 export function createInteractionRequiredAuthError(
     errorCode: string,
-    errorMessage?: string
+    errorMessage?: string,
+    correlationId?: string
 ): InteractionRequiredAuthError {
-    return new InteractionRequiredAuthError(errorCode, errorMessage);
+    return new InteractionRequiredAuthError(
+        errorCode,
+        errorMessage,
+        undefined,
+        undefined,
+        undefined,
+        correlationId
+    );
 }

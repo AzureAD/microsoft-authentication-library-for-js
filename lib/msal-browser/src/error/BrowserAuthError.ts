@@ -25,7 +25,12 @@ export class BrowserAuthError extends AuthError {
 
 export function createBrowserAuthError(
     errorCode: string,
-    subError?: string
+    subError?: string,
+    correlationId?: string
 ): BrowserAuthError {
-    return new BrowserAuthError(errorCode, subError);
+    const error = new BrowserAuthError(errorCode, subError);
+    if (correlationId) {
+        error.setCorrelationId(correlationId);
+    }
+    return error;
 }

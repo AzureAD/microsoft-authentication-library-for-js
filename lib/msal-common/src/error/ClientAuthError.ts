@@ -25,7 +25,12 @@ export class ClientAuthError extends AuthError {
 
 export function createClientAuthError(
     errorCode: string,
-    additionalMessage?: string
+    additionalMessage?: string,
+    correlationId?: string
 ): ClientAuthError {
-    return new ClientAuthError(errorCode, additionalMessage);
+    const error = new ClientAuthError(errorCode, additionalMessage);
+    if (correlationId) {
+        error.setCorrelationId(correlationId);
+    }
+    return error;
 }

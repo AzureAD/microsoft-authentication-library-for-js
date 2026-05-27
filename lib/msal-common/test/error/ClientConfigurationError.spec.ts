@@ -30,4 +30,19 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             ).toBe(true);
         });
     }
+
+    it("createClientConfigurationError sets correlationId when provided", () => {
+        const TEST_CORRELATION_ID = "test-correlation-id";
+        const code = ClientConfigurationErrorCodes.redirectUriEmpty;
+        const err = createClientConfigurationError(code, TEST_CORRELATION_ID);
+        expect(err.correlationId).toBe(TEST_CORRELATION_ID);
+        expect(err.errorCode).toBe(code);
+    });
+
+    it("createClientConfigurationError leaves correlationId undefined when not provided", () => {
+        const err = createClientConfigurationError(
+            ClientConfigurationErrorCodes.redirectUriEmpty
+        );
+        expect(err.correlationId).toBeUndefined();
+    });
 });

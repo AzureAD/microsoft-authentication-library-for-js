@@ -132,7 +132,9 @@ export class AuthorizationCodeClient {
     ): Promise<AuthenticationResult> {
         if (!request.code) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.requestCannotBeMade
+                ClientAuthErrorCodes.requestCannotBeMade,
+                undefined,
+                request.correlationId
             );
         }
 
@@ -319,7 +321,8 @@ export class AuthorizationCodeClient {
             // Just validate
             if (!request.redirectUri) {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.redirectUriEmpty
+                    ClientConfigurationErrorCodes.redirectUriEmpty,
+                    request.correlationId
                 );
             }
         } else {
@@ -431,7 +434,8 @@ export class AuthorizationCodeClient {
                 RequestParameterBuilder.addSshJwk(parameters, request.sshJwk);
             } else {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    request.correlationId
                 );
             }
         }

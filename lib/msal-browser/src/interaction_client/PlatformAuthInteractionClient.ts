@@ -284,7 +284,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 "NativeInteractionClient:acquireTokensFromCache - No nativeAccountId provided",
                 this.correlationId
             );
-            throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.noAccountFound,
+                undefined,
+                this.correlationId
+            );
         }
         // fetch the account from browser cache
         const account = this.browserStorage.getBaseAccountInfo(
@@ -295,7 +299,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         if (!account) {
-            throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.noAccountFound,
+                undefined,
+                this.correlationId
+            );
         }
 
         // leverage silent flow for cached tokens retrieval
@@ -679,7 +687,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
              * PopTokenGenerator to query the full key for signing
              */
             if (!request.keyId) {
-                throw createClientAuthError(ClientAuthErrorCodes.keyIdMissing);
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.keyIdMissing,
+                    undefined,
+                    this.correlationId
+                );
             }
             return popTokenGenerator.signPopToken(
                 response.access_token,
@@ -1022,7 +1034,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
         if (validatedRequest.signPopToken && !!request.popKid) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.invalidPopTokenRequest
+                BrowserAuthErrorCodes.invalidPopTokenRequest,
+                undefined,
+                this.correlationId
             );
         }
 
@@ -1144,7 +1158,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     this.correlationId
                 );
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.nativePromptNotSupported
+                    BrowserAuthErrorCodes.nativePromptNotSupported,
+                    undefined,
+                    this.correlationId
                 );
         }
     }
