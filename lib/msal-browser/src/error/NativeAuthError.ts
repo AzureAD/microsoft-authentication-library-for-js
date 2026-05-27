@@ -94,14 +94,10 @@ export function createNativeAuthError(
                 );
                 break;
             case NativeStatusCodes.USER_INTERACTION_REQUIRED:
-                error = new InteractionRequiredAuthError(
-                    code,
-                    description,
-                    undefined,
-                    undefined,
-                    undefined,
-                    correlationId
-                );
+                error = new InteractionRequiredAuthError(code, description);
+                if (correlationId) {
+                    error.setCorrelationId(correlationId);
+                }
                 break;
             case NativeStatusCodes.USER_CANCEL:
                 error = createBrowserAuthError(
