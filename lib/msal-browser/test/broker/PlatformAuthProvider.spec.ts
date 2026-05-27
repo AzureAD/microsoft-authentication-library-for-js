@@ -2,6 +2,7 @@ import {
     Logger,
     IPerformanceClient,
     Constants,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common/browser";
 import * as PlatformAuthProvider from "../../src/broker/nativeBroker/PlatformAuthProvider.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
@@ -12,9 +13,6 @@ import {
     Configuration,
 } from "../../src/config/Configuration.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
-import exp from "constants";
-import { log } from "console";
-import { BrowserAuthError } from "../../src/index.js";
 import { TEST_CONFIG } from "../utils/StringConstants.js";
 
 describe("PlatformAuthProvider tests", () => {
@@ -60,6 +58,7 @@ describe("PlatformAuthProvider tests", () => {
             //@ts-ignore
             delete global.window;
             const result = await PlatformAuthProvider.isPlatformBrokerAvailable(
+                true,
                 {},
                 performanceClient,
                 "test-correlation-id"
@@ -69,24 +68,15 @@ describe("PlatformAuthProvider tests", () => {
         });
 
         it("should return true if its a browser app and dom handler is available", async () => {
-            window.sessionStorage.setItem(
-                "msal.browser.platform.auth.dom",
-                "true"
-            );
-            const getItemSpy = jest.spyOn(
-                Object.getPrototypeOf(sessionStorage),
-                "getItem"
-            );
-
             const domProviderSpy = stubDOMProvider();
 
             const result = await PlatformAuthProvider.isPlatformBrokerAvailable(
-                {},
+                true,
+                undefined,
                 performanceClient,
-                TEST_CONFIG.CORRELATION_ID
+                "test-correlation-id"
             );
             expect(result).toBe(true);
-            expect(getItemSpy).toHaveBeenCalled();
             expect(domProviderSpy).toHaveBeenCalled();
         });
 
@@ -94,6 +84,7 @@ describe("PlatformAuthProvider tests", () => {
             const extensionProviderSpy = stubExtensionProvider();
 
             const result = await PlatformAuthProvider.isPlatformBrokerAvailable(
+                false,
                 {},
                 performanceClient,
                 TEST_CONFIG.CORRELATION_ID
@@ -118,6 +109,7 @@ describe("PlatformAuthProvider tests", () => {
             });
 
             const result = await PlatformAuthProvider.isPlatformBrokerAvailable(
+                true,
                 {},
                 performanceClient,
                 TEST_CONFIG.CORRELATION_ID
@@ -151,25 +143,17 @@ describe("PlatformAuthProvider tests", () => {
         });
 
         it("returns dom handler when available", async () => {
-            window.sessionStorage.setItem(
-                "msal.browser.platform.auth.dom",
-                "true"
-            );
-            const getItemSpy = jest.spyOn(
-                Object.getPrototypeOf(sessionStorage),
-                "getItem"
-            );
-
             const domProviderSpy = stubDOMProvider();
 
             const result = await PlatformAuthProvider.getPlatformAuthProvider(
                 logger,
                 performanceClient,
-                "test-correlation-id"
+                "test-correlation-id",
+                undefined,
+                true
             );
             expect(result).not.toBe(undefined);
             expect(result).toBeInstanceOf(PlatformAuthDOMHandler);
-            expect(getItemSpy).toHaveBeenCalled();
             expect(domProviderSpy).toHaveBeenCalled();
         });
 
@@ -184,33 +168,6 @@ describe("PlatformAuthProvider tests", () => {
             expect(result).not.toBe(undefined);
             expect(result).toBeInstanceOf(PlatformAuthExtensionHandler);
             expect(extensionProviderSpy).toHaveBeenCalled();
-        });
-    });
-
-    describe("isDomEnabledForPlatformAuth tests", () => {
-        it("should return false if session storage is not set with DOM API flag", () => {
-            expect(PlatformAuthProvider.isDomEnabledForPlatformAuth()).toBe(
-                false
-            );
-        });
-
-        it("should return true if session storage is set with DOM API flag", () => {
-            window.sessionStorage.setItem(
-                "msal.browser.platform.auth.dom",
-                "true"
-            );
-            expect(PlatformAuthProvider.isDomEnabledForPlatformAuth()).toBe(
-                true
-            );
-        });
-
-        it("should return false if session storage errors out", () => {
-            const { sessionStorage } = global.window;
-            //@ts-ignore
-            delete global.window.sessionStorage;
-            const result = PlatformAuthProvider.isDomEnabledForPlatformAuth();
-            expect(result).toBe(false);
-            global.window.sessionStorage = sessionStorage; // Restore sessionStorage
         });
     });
 
@@ -274,6 +231,43 @@ describe("PlatformAuthProvider tests", () => {
         });
 
         it("returns true when platform auth provider is initialized and authentication scheme is supported", () => {
+            const result = PlatformAuthProvider.isPlatformAuthAllowed(
+                config,
+                logger,
+                TEST_CONFIG.CORRELATION_ID,
+                new PlatformAuthDOMHandler(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                ),
+                Constants.AuthenticationScheme.BEARER
+            );
+            expect(result).toBe(true);
+        });
+
+        it("throws error when allowPlatformBrokerWithDOM is enabled without allowPlatformBroker", () => {
+            config.system.allowPlatformBroker = false;
+            config.experimental.allowPlatformBrokerWithDOM = true;
+            expect(() => {
+                PlatformAuthProvider.isPlatformAuthAllowed(
+                    config,
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID,
+                    new PlatformAuthDOMHandler(
+                        logger,
+                        performanceClient,
+                        "test-correlation-id"
+                    ),
+                    Constants.AuthenticationScheme.BEARER
+                );
+            }).toThrow(
+                ClientConfigurationErrorCodes.invalidPlatformBrokerConfiguration
+            );
+        });
+
+        it("returns true when both allowPlatformBroker and allowPlatformBrokerWithDOM are enabled", () => {
+            config.system.allowPlatformBroker = true;
+            config.experimental.allowPlatformBrokerWithDOM = true;
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,

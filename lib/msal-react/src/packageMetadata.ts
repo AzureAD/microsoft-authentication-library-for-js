@@ -1,3 +1,3 @@
 /* eslint-disable header/header */
 export const name = "@azure/msal-react";
-export const version = "5.3.2";
+export const version = "5.4.1";

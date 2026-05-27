@@ -2,6 +2,42 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Mon, 11 May 2026 21:48:15 GMT",
+      "version": "5.4.1",
+      "tag": "@azure/msal-react_v5.4.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v5.10.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 07 May 2026 19:01:04 GMT",
+      "version": "5.4.0",
+      "tag": "@azure/msal-react_v5.4.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "b4e498cf6e52136ad1123691138a66f8e9a1a87c",
+            "comment": "Remove duplicate typings in the build output [#8557](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8557)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v5.10.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 28 Apr 2026 21:30:33 GMT",
       "version": "5.3.2",
       "tag": "@azure/msal-react_v5.3.2",

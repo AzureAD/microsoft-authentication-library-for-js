@@ -24,6 +24,14 @@ The authority URL guides MSAL where to look for the 3 endpoints that are require
 
 > :bulb: Certain OAuth 2.0 grants may skip the authorize endpoint and go directly for the token endpoint, e.g. [OAuth 2.0 Client Credentials Grant](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow)
 
+## Issuer validation
+
+When MSAL retrieves the OpenID configuration document from the network, it validates the `issuer` field returned by the IdP against the configured authority, per the [OpenID Connect Discovery 1.0 spec](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation). This protects against accepting metadata from a malicious or misconfigured service that hosts an OpenID configuration document under an unrelated domain. The issuer is accepted when its scheme and host (and port) match the configured authority, or &mdash; for Microsoft cloud authorities &mdash; when it is HTTPS and its host is a known Microsoft authority host (including regional variants and `{tenant}.ciamlogin.com` patterns).
+
+If the issuer does not satisfy these conditions, MSAL throws a `ClientConfigurationError` with error code `issuer_validation_failed` and the authentication flow is aborted. This validation is applied only to OpenID configuration documents fetched from the network &mdash; cached, hardcoded, and config-supplied metadata are not re-validated.
+
+> Warning: An IdP whose `issuer` does not satisfy the conditions above will fail discovery. If you are using a non-Microsoft OIDC provider whose issuer does not exactly match the authority host you configured, ensure the authority you pass to MSAL has the same scheme and host as the value the IdP returns in its discovery document.
+
 ## Authority configuration
 
 In MSAL, authority can be set in 2 locations:
@@ -125,7 +133,32 @@ Where `tenant` would mean:
 - GUID (tenantId)
 - a verified domain for the tenant
 
-Note: MSAL JS currently is previeing the `CIAM` support. This is an emerging space and there could be some changes to the support until we GA the feature.
+#### CIAM Issuer Validation and `knownAuthorities`
+
+The Entra External ID (CIAM) service may return an OIDC issuer whose host uses the **tenant GUID** rather than the tenant name. For example, an authority configured as `https://contoso.ciamlogin.com/contoso.onmicrosoft.com/` may return an issuer of the form:
+
+```
+https://<tenant-guid>.ciamlogin.com/<tenant-guid>/v2.0
+```
+
+Because the issuer host (`<tenant-guid>.ciamlogin.com`) differs from the authority host (`contoso.ciamlogin.com`) and MSAL JS does not have a reliable way to know the mapping beforehand, MSAL's issuer validation will reject it unless the GUID-based host is explicitly trusted. To resolve this, add the GUID-based host to `knownAuthorities`:
+
+```javascript
+const pca = new PublicClientApplication({
+    auth: {
+        clientId: "<client-id>",
+        authority: "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/",
+        knownAuthorities: [
+            "contoso.ciamlogin.com",
+            "<tenant-guid>.ciamlogin.com" // Add the GUID-based issuer host
+        ]
+    }
+});
+```
+
+You can find your tenant GUID in the Azure portal under **Tenant properties** or by inspecting the OIDC discovery document at `https://<tenantName>.ciamlogin.com/<tenantName>.onmicrosoft.com/v2.0/.well-known/openid-configuration`.
+
+Note: MSAL JS currently is previewing the `CIAM` support. This is an emerging space and there could be some changes to the support until we GA the feature.
 
 ### Other OIDC-compliant IdPs
 
