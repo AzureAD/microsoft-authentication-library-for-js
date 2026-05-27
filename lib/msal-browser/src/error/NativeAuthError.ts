@@ -100,6 +100,7 @@ export function createNativeAuthError(
                     BrowserAuthErrorCodes.noNetworkConnectivity
                 );
             case NativeStatusCodes.UI_NOT_ALLOWED:
+            case NativeStatusCodes.UX_NOT_ALLOWED:
                 return createInteractionRequiredAuthError(
                     InteractionRequiredAuthErrorCodes.uiNotAllowed
                 );
