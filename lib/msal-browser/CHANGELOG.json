@@ -2,6 +2,41 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 19 May 2026 19:29:14 GMT",
+      "version": "5.11.0",
+      "tag": "@azure/msal-browser_v5.11.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "738ade62dfbadf845fdf8afbc6d21564f00ac0bb",
+            "comment": "Add allowPlatformBrokerWithDOM experimental config flag for DOM-based platform brokering [#8589](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8589)"
+          },
+          {
+            "author": "shen.jian@live.com",
+            "package": "@azure/msal-browser",
+            "commit": "738ade62dfbadf845fdf8afbc6d21564f00ac0bb",
+            "comment": "Custom Auth: add `requestInterceptor` configuration option that lets apps attach additional `x-*` headers to custom-auth backend requests (e.g., for fraud/bot-detection vendors). Headers without the `x-` prefix and headers starting with reserved prefixes (`x-client-`, `x-ms-`, `x-broker-`, `x-app-`) are filtered out. [#8587](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8587)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.6.2",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "738ade62dfbadf845fdf8afbc6d21564f00ac0bb",
+            "comment": "Fix logoutHint to check account loginHint before falling back to idTokenClaims [#8591](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8591)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 11 May 2026 21:48:15 GMT",
       "version": "5.10.1",
       "tag": "@azure/msal-browser_v5.10.1",
