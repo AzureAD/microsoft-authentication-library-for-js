@@ -1,7 +1,7 @@
 {
-  "type": "patch",
-  "comment": "Propagate correlationId through browser/native error creation helpers and interaction client error paths",
-  "packageName": "@azure/msal-browser",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
+    "type": "patch",
+    "comment": "Propagate correlationId through browser/native error creation helpers and interaction client error paths [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)",
+    "packageName": "@azure/msal-browser",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "patch"
 }

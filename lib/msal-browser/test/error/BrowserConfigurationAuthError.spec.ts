@@ -34,8 +34,7 @@ describe("BrowserConfigurationAuthError Unit Tests", () => {
 
     it("createBrowserConfigurationAuthError sets correlationId when provided", () => {
         const TEST_CORRELATION_ID = "test-correlation-id";
-        const code =
-            BrowserConfigurationAuthErrorCodes.storageNotSupported;
+        const code = BrowserConfigurationAuthErrorCodes.storageNotSupported;
         const err = createBrowserConfigurationAuthError(
             code,
             TEST_CORRELATION_ID
