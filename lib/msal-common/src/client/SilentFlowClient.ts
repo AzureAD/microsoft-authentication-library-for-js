@@ -244,7 +244,7 @@ export class SilentFlowClient {
                 throw createClientAuthError(ClientAuthErrorCodes.authTimeNotFound, request.correlationId);
             }
 
-            checkMaxAge(authTime, request.maxAge);
+            checkMaxAge(authTime, request.maxAge, request.correlationId);
         }
 
         return ResponseHandler.generateAuthenticationResult(

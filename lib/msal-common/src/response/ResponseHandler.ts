@@ -225,7 +225,7 @@ export class ResponseHandler {
                     );
                 }
 
-                checkMaxAge(authTime, request.maxAge);
+                checkMaxAge(authTime, request.maxAge, request.correlationId);
             }
         }
 
