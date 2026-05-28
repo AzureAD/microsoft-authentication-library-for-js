@@ -11,6 +11,7 @@ const { promisify } = require('util');
 const https = require('https');
 const fs = require('fs');
 require('dotenv').config();
+require('dotenv').config({ path: '.env.e2e', override: true });
 
 const execAsync = promisify(exec);
 
