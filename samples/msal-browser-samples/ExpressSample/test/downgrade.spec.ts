@@ -86,7 +86,7 @@ describe("Upgrade/Downgrade Tests", () => {
         });
 
         test("acquireTokenSilent can return tokens from the cache after downgrading back to v4", async () => {
-            const testName = "downgradeLocalToLatest";
+            const testName = "downgradeLocalToLatestV4";
             const screenshot = new Screenshot(
                 `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
             );

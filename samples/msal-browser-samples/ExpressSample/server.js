@@ -14,6 +14,8 @@ require('dotenv').config();
 
 const execAsync = promisify(exec);
 
+const CDN_TIMEOUT_MS = 30_000;
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -45,7 +47,9 @@ app.use('/lib/msal-browser', express.static(path.join(__dirname, '../../../lib/m
 
 // Serve locally cached CDN bundles when running in E2E test mode
 const CDN_CACHE_DIR = path.join(__dirname, 'test/cdn-cache');
-app.use('/lib/msal-cdn-cache', express.static(CDN_CACHE_DIR));
+if (process.env.NODE_ENV === 'test' || process.env.E2E_LOCAL_CDN === 'true') {
+    app.use('/lib/msal-cdn-cache', express.static(CDN_CACHE_DIR));
+}
 
 const localBuildName = 'Local Build';
 const localBuildDebugName = 'Local Build (Debug)';
@@ -199,27 +203,41 @@ async function downloadCdnBundle(versionKey, cdnUrl) {
     fs.mkdirSync(cacheDir, { recursive: true });
 
     return new Promise((resolve, reject) => {
-        const file = fs.createWriteStream(filePath);
-        https.get(cdnUrl, (response) => {
-            if (response.statusCode === 302 || response.statusCode === 301) {
-                // Follow redirect
+        function fetchUrl(url) {
+            const file = fs.createWriteStream(filePath);
+            const cleanup = (err) => {
                 file.close();
-                fs.unlinkSync(filePath);
-                https.get(response.headers.location, (redirectResponse) => {
-                    redirectResponse.pipe(file);
-                    file.on('finish', () => { file.close(); resolve(localPath); });
-                    file.on('error', reject);
-                }).on('error', reject);
-                return;
-            }
-            response.pipe(file);
-            file.on('finish', () => { file.close(); resolve(localPath); });
-            file.on('error', reject);
-        }).on('error', (err) => {
-            file.close();
-            fs.unlink(filePath, () => {});
-            reject(err);
-        });
+                fs.unlink(filePath, () => {});
+                reject(err);
+            };
+
+            const req = https.get(url, (response) => {
+                if (response.statusCode === 301 || response.statusCode === 302) {
+                    const location = response.headers.location;
+                    file.close();
+                    fs.unlink(filePath, () => {});
+                    if (!location) {
+                        reject(new Error(`Redirect with no Location header from ${url}`));
+                        return;
+                    }
+                    fetchUrl(location);
+                    return;
+                }
+                if (response.statusCode < 200 || response.statusCode >= 300) {
+                    cleanup(new Error(`HTTP ${response.statusCode} downloading ${url}`));
+                    return;
+                }
+                response.pipe(file);
+                file.on('finish', () => { file.close(); resolve(localPath); });
+                file.on('error', cleanup);
+            });
+            req.setTimeout(CDN_TIMEOUT_MS, () => {
+                req.destroy(new Error(`CDN request timed out after ${CDN_TIMEOUT_MS}ms`));
+            });
+            req.on('error', cleanup);
+        }
+
+        fetchUrl(cdnUrl);
     });
 }
 
@@ -238,17 +256,20 @@ async function initializeCdnCache() {
 
     const results = await Promise.allSettled(
         cdnEntries.map(async ([key, info]) => {
-            try {
-                const localPath = await downloadCdnBundle(key, info.path);
-                availableVersions[key] = { ...info, path: localPath };
-                console.log(`  Cached ${key} -> ${localPath}`);
-            } catch (err) {
-                console.warn(`  Failed to cache ${key}: ${err.message} (will use CDN fallback)`);
-            }
+            const localPath = await downloadCdnBundle(key, info.path);
+            availableVersions[key] = { ...info, path: localPath };
+            console.log(`  Cached ${key} -> ${localPath}`);
         })
     );
 
     const failed = results.filter(r => r.status === 'rejected').length;
+    for (const [i, result] of results.entries()) {
+        if (result.status === 'rejected') {
+            const [key] = cdnEntries[i];
+            const reason = result.reason;
+            console.warn(`  Failed to cache ${key}: ${reason instanceof Error ? reason.message : String(reason)} (will use CDN fallback)`);
+        }
+    }
     console.log(`CDN cache ready (${cdnEntries.length - failed}/${cdnEntries.length} versions cached).`);
 }
 
@@ -382,6 +403,16 @@ app.post('/api/version/switch', express.json(), async (req, res) => {
         };
 
         targetVersion = customVersionKey;
+
+        // In E2E mode, cache the bundle locally so subsequent switches use localhost instead of CDN
+        if (process.env.NODE_ENV === 'test' || process.env.E2E_LOCAL_CDN === 'true') {
+            try {
+                const localPath = await downloadCdnBundle(customVersionKey, availableVersions[customVersionKey].path);
+                availableVersions[customVersionKey] = { ...availableVersions[customVersionKey], path: localPath };
+            } catch (err) {
+                console.warn(`Failed to cache custom version ${customVersion}: ${err instanceof Error ? err.message : String(err)}`);
+            }
+        }
     }
 
     if (!targetVersion || (!availableVersions[targetVersion] && targetVersion !== 'custom')) {
