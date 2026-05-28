@@ -441,6 +441,7 @@ declare namespace BrowserUtils {
         redirectPreflightCheck,
         preconnect,
         createGuid,
+        WaitForBridgeRequest,
         invoke,
         invokeAsync,
         addClientCapabilitiesToClaims
@@ -1315,9 +1316,10 @@ export class PublicClientApplication implements IPublicClientApplication {
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (ae-forgotten-export) The symbol "WaitForIframeRequest" needs to be exported by the entry point index.d.ts
     //
     // @internal
-    protected waitForIframeResponse(iframe: HTMLIFrameElement, request: CommonAuthorizationUrlRequest): Promise<string>;
+    protected waitForIframeResponse(iframe: HTMLIFrameElement, request: WaitForIframeRequest): Promise<string>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1534,12 +1536,22 @@ export const version = "5.10.1";
 // @public (undocumented)
 const WaitForBridgeLateResponse = "waitForBridgeLateResponse";
 
+// @internal
+interface WaitForBridgeRequest {
+    // (undocumented)
+    correlationId: string;
+    // (undocumented)
+    state?: string;
+}
+
+// Warning: (ae-incompatible-release-tags) The symbol "waitForBridgeResponse" is marked as @public, but its signature references "WaitForBridgeRequest" which is marked as @internal
 // Warning: (ae-incompatible-release-tags) The symbol "waitForBridgeResponse" is marked as @public, but its signature references "BrowserExperimentalOptions" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "waitForBridgeResponse" is marked as @public, but its signature references "WaitForBridgeRequest" which is marked as @internal
 // Warning: (ae-incompatible-release-tags) The symbol "waitForBridgeResponse" is marked as @public, but its signature references "BrowserExperimentalOptions" which is marked as @internal
 // Warning: (ae-missing-release-tag) "waitForBridgeResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-function waitForBridgeResponse(timeoutMs: number, logger: Logger, request: CommonAuthorizationUrlRequest | CommonEndSessionRequest, performanceClient: IPerformanceClient, experimentalConfig?: BrowserExperimentalOptions): Promise<string>;
+function waitForBridgeResponse(timeoutMs: number, logger: Logger, request: WaitForBridgeRequest, performanceClient: IPerformanceClient, experimentalConfig?: BrowserExperimentalOptions): Promise<string>;
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
