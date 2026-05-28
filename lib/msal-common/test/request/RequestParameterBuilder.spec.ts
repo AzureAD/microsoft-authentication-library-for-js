@@ -55,7 +55,7 @@ describe("RequestParameterBuilder unit tests", () => {
             parameters,
             TEST_CONFIG.LOGIN_HINT
         );
-        RequestParameterBuilder.addClaims(parameters, TEST_CONFIG.CLAIMS, []);
+        RequestParameterBuilder.addClaims(parameters, "", TEST_CONFIG.CLAIMS, []);
         RequestParameterBuilder.addCorrelationId(
             parameters,
             TEST_CONFIG.CORRELATION_ID
@@ -400,7 +400,7 @@ describe("RequestParameterBuilder unit tests", () => {
     it("addClaims sets claims parameter with merged claims when valid claims and capabilities are provided", () => {
         const parameters = new Map<string, string>();
         const claims = JSON.stringify({ userinfo: { given_name: null } });
-        RequestParameterBuilder.addClaims(parameters, claims, ["CP1"]);
+        RequestParameterBuilder.addClaims(parameters, "", claims, ["CP1"]);
 
         const claimsParam = parameters.get(AADServerParamKeys.CLAIMS);
         expect(claimsParam).toBeDefined();
@@ -821,7 +821,7 @@ describe("RequestParameterBuilder unit tests", () => {
             );
 
             RequestParameterBuilder.addClaims(
-                parameters,
+                parameters, "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 false
@@ -841,7 +841,7 @@ describe("RequestParameterBuilder unit tests", () => {
             const parameters = new Map<string, string>();
 
             RequestParameterBuilder.addClaims(
-                parameters,
+                parameters, "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 false
@@ -861,7 +861,7 @@ describe("RequestParameterBuilder unit tests", () => {
             const parameters = new Map<string, string>();
 
             RequestParameterBuilder.addClaims(
-                parameters,
+                parameters, "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 true
@@ -887,7 +887,7 @@ describe("RequestParameterBuilder unit tests", () => {
             );
 
             RequestParameterBuilder.addClaims(
-                parameters,
+                parameters, "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 true
@@ -904,7 +904,7 @@ describe("RequestParameterBuilder unit tests", () => {
             const parameters = new Map<string, string>();
 
             RequestParameterBuilder.addClaims(
-                parameters,
+                parameters, "",
                 undefined,
                 undefined,
                 false
@@ -917,7 +917,7 @@ describe("RequestParameterBuilder unit tests", () => {
             const parameters = new Map<string, string>();
 
             RequestParameterBuilder.addClaims(
-                parameters,
+                parameters, "",
                 undefined,
                 ["CP1"],
                 false

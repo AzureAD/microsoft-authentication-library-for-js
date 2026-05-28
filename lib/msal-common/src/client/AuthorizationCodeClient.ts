@@ -511,6 +511,7 @@ export class AuthorizationCodeClient {
 
         RequestParameterBuilder.addClaims(
             parameters,
+            request.correlationId,
             request.claims,
             this.config.authOptions.clientCapabilities,
             request.skipBrokerClaims

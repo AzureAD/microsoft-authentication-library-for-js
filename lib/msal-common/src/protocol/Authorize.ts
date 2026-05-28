@@ -248,6 +248,7 @@ export function getStandardAuthorizeRequestParameters(
 
     RequestParameterBuilder.addClaims(
         parameters,
+        request.correlationId,
         request.claims,
         authOptions.clientCapabilities,
         request.skipBrokerClaims

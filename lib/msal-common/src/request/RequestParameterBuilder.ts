@@ -205,12 +205,14 @@ export function addSid(parameters: Map<string, string>, sid: string): void {
  * Adds claims to request parameters, conditionally excluding clientCapabilities
  * when skipBrokerClaims is true and a brokered flow is in effect.
  * @param parameters - The request parameters map
+ * @param correlationId - The request correlation id
  * @param claims - The claims string from the request
  * @param clientCapabilities - The client capabilities from configuration
  * @param skipBrokerClaims - When true and BROKER_CLIENT_ID is present, excludes clientCapabilities from claims
  */
 export function addClaims(
     parameters: Map<string, string>,
+    correlationId: string,
     claims?: string,
     clientCapabilities?: Array<string>,
     skipBrokerClaims?: boolean
@@ -232,7 +234,7 @@ export function addClaims(
         try {
             JSON.parse(mergedClaims);
         } catch (e) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.invalidClaims, "");
+            throw createClientConfigurationError(ClientConfigurationErrorCodes.invalidClaims, correlationId);
         }
         parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
     }
