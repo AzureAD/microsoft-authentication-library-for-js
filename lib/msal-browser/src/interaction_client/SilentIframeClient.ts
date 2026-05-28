@@ -454,7 +454,8 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Validate the response - this checks for errors and validates state
         AuthorizeProtocol.validateAuthorizationResponse(
             serverParams,
-            silentRequest.state
+            silentRequest.state,
+            correlationId
         );
 
         // Verify a valid authorization code is present

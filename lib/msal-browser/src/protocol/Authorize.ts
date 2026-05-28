@@ -597,7 +597,11 @@ export async function handleResponseEAR(
     instrumentClientData(response, request.correlationId, performanceClient);
 
     // Validate state & check response for errors
-    AuthorizeProtocol.validateAuthorizationResponse(response, request.state);
+    AuthorizeProtocol.validateAuthorizationResponse(
+        response,
+        request.state,
+        request.correlationId
+    );
 
     if (!response.ear_jwe) {
         throw createBrowserAuthError(BrowserAuthErrorCodes.earJweEmpty, request.correlationId

@@ -64,7 +64,8 @@ export class InteractionHandler {
         try {
             authCodeResponse = AuthorizeProtocol.getAuthorizationCodePayload(
                 response,
-                request.state
+                request.state,
+                request.correlationId
             );
         } catch (e) {
             if (

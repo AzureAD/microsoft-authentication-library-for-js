@@ -289,19 +289,21 @@ export function getAuthorizeUrl(
  * the client to exchange for a token in acquireToken.
  * @param serverParams
  * @param cachedState
+ * @param correlationId
  */
 export function getAuthorizationCodePayload(
     serverParams: AuthorizeResponse,
-    cachedState: string
+    cachedState: string,
+    correlationId: string
 ): AuthorizationCodePayload {
     // Get code response
-    validateAuthorizationResponse(serverParams, cachedState);
+    validateAuthorizationResponse(serverParams, cachedState, correlationId);
 
     // throw when there is no auth code in the response
     if (!serverParams.code) {
         throw createClientAuthError(
             ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse,
-            ""
+            correlationId
         );
     }
 
@@ -312,10 +314,12 @@ export function getAuthorizationCodePayload(
  * Function which validates server authorization code response.
  * @param serverResponseHash
  * @param requestState
+ * @param correlationId
  */
 export function validateAuthorizationResponse(
     serverResponse: AuthorizeResponse,
-    requestState: string
+    requestState: string,
+    correlationId: string
 ): void {
     if (!serverResponse.state || !requestState) {
         throw serverResponse.state
@@ -351,7 +355,7 @@ export function validateAuthorizationResponse(
     }
 
     if (decodedServerResponseState !== decodedRequestState) {
-        throw createClientAuthError(ClientAuthErrorCodes.stateMismatch, "");
+        throw createClientAuthError(ClientAuthErrorCodes.stateMismatch, correlationId);
     }
 
     // Check for error
