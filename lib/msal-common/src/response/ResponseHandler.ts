@@ -202,7 +202,8 @@ export class ResponseHandler {
         if (serverTokenResponse.id_token) {
             idTokenClaims = extractTokenClaims(
                 serverTokenResponse.id_token || "",
-                this.cryptoObj.base64Decode
+                this.cryptoObj.base64Decode,
+                request.correlationId
             );
 
             // token nonce check (TODO: Add a warning if no nonce is given?)

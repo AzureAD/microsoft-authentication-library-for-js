@@ -80,7 +80,7 @@ export async function loadExternalTokens(
 
     try {
         const idTokenClaims = response.id_token
-            ? AuthToken.extractTokenClaims(response.id_token, base64Decode)
+            ? AuthToken.extractTokenClaims(response.id_token, base64Decode, correlationId)
             : undefined;
         const kmsi = AuthToken.isKmsi(idTokenClaims || {});
 

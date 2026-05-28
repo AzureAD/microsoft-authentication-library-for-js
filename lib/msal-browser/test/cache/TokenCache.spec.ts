@@ -115,7 +115,8 @@ describe("TokenCache tests", () => {
             testIdToken = TEST_TOKENS.IDTOKEN_V2;
             testIdTokenClaims = AuthToken.extractTokenClaims(
                 testIdToken,
-                base64Decode
+                base64Decode,
+                ""
             );
             testHomeAccountId = AccountEntityUtils.generateHomeAccountId(
                 testClientInfo,

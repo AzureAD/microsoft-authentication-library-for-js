@@ -83,7 +83,8 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
 
         const decodedToken = AuthToken.extractTokenClaims(
             popToken,
-            base64Decode
+            base64Decode,
+            ""
         );
 
         expect(decodedToken.nonce).toEqual("test-nonce");

@@ -233,7 +233,8 @@ export class SilentFlowClient {
         if (cacheRecord.idToken) {
             idTokenClaims = extractTokenClaims(
                 cacheRecord.idToken.secret,
-                this.config.cryptoInterface.base64Decode
+                this.config.cryptoInterface.base64Decode,
+                request.correlationId
             );
         }
 

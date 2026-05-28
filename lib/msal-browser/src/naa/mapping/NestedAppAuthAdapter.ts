@@ -116,7 +116,8 @@ export class NestedAppAuthAdapter {
         );
         const idTokenClaims = AuthToken.extractTokenClaims(
             response.token.id_token,
-            this.crypto.base64Decode
+            this.crypto.base64Decode,
+            request.correlationId
         );
         const account = this.fromNaaAccountInfo(
             response.account,
@@ -345,7 +346,8 @@ export class NestedAppAuthAdapter {
 
         const idTokenClaims = AuthToken.extractTokenClaims(
             idToken.secret,
-            this.crypto.base64Decode
+            this.crypto.base64Decode,
+            correlationId
         );
 
         const scopes = accessToken.target || request.scopes.join(" ");

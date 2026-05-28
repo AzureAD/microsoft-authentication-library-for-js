@@ -1174,7 +1174,8 @@ describe("PublicClientApplication", () => {
                         homeAccountId: mockAccountInfo.homeAccountId,
                         idTokenClaims: AuthToken.extractTokenClaims(
                             mockAuthenticationResult.idToken,
-                            cryptoProvider.base64Decode
+                            cryptoProvider.base64Decode,
+                            ""
                         ),
                     },
                     await AuthorityFactory.createDiscoveredInstance(
@@ -1195,7 +1196,8 @@ describe("PublicClientApplication", () => {
                         new Logger({}),
                         TEST_CONFIG.CORRELATION_ID,
                         new StubPerformanceClient()
-                    )
+                    ),
+                    ""
                 );
 
             // @ts-ignore

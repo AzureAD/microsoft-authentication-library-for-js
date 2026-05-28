@@ -323,7 +323,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
             const idTokenClaims = AuthToken.extractTokenClaims(
                 idToken?.secret || "",
-                base64Decode
+                base64Decode,
+                this.correlationId
             );
 
             const fullAccount = updateAccountTenantProfileData(
@@ -518,7 +519,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // generate identifiers
         const idTokenClaims = AuthToken.extractTokenClaims(
             response.id_token,
-            base64Decode
+            base64Decode,
+            this.correlationId
         );
 
         const homeAccountIdentifier = this.createHomeAccountIdentifier(

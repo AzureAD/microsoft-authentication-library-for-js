@@ -316,7 +316,8 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: AuthToken.extractTokenClaims(
                     TEST_TOKENS.IDTOKEN_V2,
-                    cryptoInterface.base64Decode
+                    cryptoInterface.base64Decode,
+                    ""
                 ),
             },
             authority
@@ -659,7 +660,8 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
                 homeAccountId,
                 idTokenClaims: AuthToken.extractTokenClaims(
                     TEST_TOKENS.IDTOKEN_V2,
-                    cryptoInterface.base64Decode
+                    cryptoInterface.base64Decode,
+                    ""
                 ),
             },
             authority
@@ -720,7 +722,8 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
                 homeAccountId,
                 idTokenClaims: AuthToken.extractTokenClaims(
                     TEST_TOKENS.IDTOKEN_V2,
-                    cryptoInterface.base64Decode
+                    cryptoInterface.base64Decode,
+                    ""
                 ),
             },
             authority

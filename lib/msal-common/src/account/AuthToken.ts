@@ -16,7 +16,8 @@ import {
  */
 export function extractTokenClaims(
     encodedToken: string,
-    base64Decode: (input: string) => string
+    base64Decode: (input: string) => string,
+    correlationId: string
 ): TokenClaims {
     const jswPayload = getJWSPayload(encodedToken);
 
@@ -26,7 +27,7 @@ export function extractTokenClaims(
         const base64Decoded = base64Decode(jswPayload);
         return JSON.parse(base64Decoded) as TokenClaims;
     } catch (err) {
-        throw createClientAuthError(ClientAuthErrorCodes.tokenParsingError, "");
+        throw createClientAuthError(ClientAuthErrorCodes.tokenParsingError, correlationId);
     }
 }
 

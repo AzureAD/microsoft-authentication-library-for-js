@@ -112,7 +112,8 @@ export function createAccessTokenEntity(
                 // Make sure keyId is present and add it to credential
                 const tokenClaims: TokenClaims | null = extractTokenClaims(
                     accessToken,
-                    base64Decode
+                    base64Decode,
+                    correlationId
                 );
                 if (!tokenClaims?.cnf?.kid) {
                     throw createClientAuthError(ClientAuthErrorCodes.tokenClaimsCnfRequiredForSignedJwt, correlationId);

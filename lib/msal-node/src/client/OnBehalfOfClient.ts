@@ -132,7 +132,8 @@ export class OnBehalfOfClient extends BaseClient {
         if (cachedIdToken) {
             idTokenClaims = AuthToken.extractTokenClaims(
                 cachedIdToken.secret,
-                EncodingUtils.base64Decode
+                EncodingUtils.base64Decode,
+                request.correlationId
             );
             const localAccountId = idTokenClaims.oid || idTokenClaims.sub;
             const accountInfo: AccountInfo = {

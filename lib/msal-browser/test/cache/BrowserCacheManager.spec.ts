@@ -3076,7 +3076,8 @@ describe("BrowserCacheManager tests", () => {
                             homeAccountId: "homeAccountId",
                             idTokenClaims: AuthToken.extractTokenClaims(
                                 TEST_TOKENS.IDTOKEN_V2,
-                                base64Decode
+                                base64Decode,
+                                ""
                             ),
                             clientInfo:
                                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,

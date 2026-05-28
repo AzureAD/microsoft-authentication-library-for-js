@@ -402,7 +402,8 @@ export abstract class CacheManager implements ICacheManager {
         if (idToken) {
             idTokenClaims = extractTokenClaims(
                 idToken.secret,
-                this.cryptoImpl.base64Decode
+                this.cryptoImpl.base64Decode,
+                correlationId
             );
 
             if (
