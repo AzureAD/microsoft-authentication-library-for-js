@@ -605,7 +605,7 @@ export abstract class CacheManager implements ICacheManager {
         storeInCache?: StoreInCache
     ): Promise<void> {
         if (!cacheRecord) {
-            throw createClientAuthError(ClientAuthErrorCodes.invalidCacheRecord, "");
+            throw createClientAuthError(ClientAuthErrorCodes.invalidCacheRecord, correlationId);
         }
 
         try {
@@ -1601,7 +1601,7 @@ export abstract class CacheManager implements ICacheManager {
         if (numAppMetadata < 1) {
             return null;
         } else if (numAppMetadata > 1) {
-            throw createClientAuthError(ClientAuthErrorCodes.multipleMatchingAppMetadata, "");
+            throw createClientAuthError(ClientAuthErrorCodes.multipleMatchingAppMetadata, correlationId);
         }
 
         return appMetadataEntries[0] as AppMetadataEntity;

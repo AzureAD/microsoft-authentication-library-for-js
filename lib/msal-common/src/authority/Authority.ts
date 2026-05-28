@@ -1204,7 +1204,7 @@ export class Authority {
      */
     private validateIssuer(issuer: string): void {
         if (!issuer) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.issuerValidationFailed, "");
+            throw createClientConfigurationError(ClientConfigurationErrorCodes.issuerValidationFailed, this.correlationId);
         }
 
         // Parse with the WHATWG URL API. URL normalizes scheme + host to lowercase per RFC 3986.
@@ -1212,7 +1212,7 @@ export class Authority {
         try {
             issuerUrl = new URL(issuer);
         } catch {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.issuerValidationFailed, "");
+            throw createClientConfigurationError(ClientConfigurationErrorCodes.issuerValidationFailed, this.correlationId);
         }
         const issuerScheme = issuerUrl.protocol;
         const issuerHost = issuerUrl.host;
@@ -1275,7 +1275,7 @@ export class Authority {
         }
 
         // issuer validation fails if none of the above rules are satisfied
-        throw createClientConfigurationError(ClientConfigurationErrorCodes.issuerValidationFailed, "");
+        throw createClientConfigurationError(ClientConfigurationErrorCodes.issuerValidationFailed, this.correlationId);
     }
 
     /**
