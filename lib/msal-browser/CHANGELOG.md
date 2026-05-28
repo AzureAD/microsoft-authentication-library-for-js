@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 19 May 2026 19:29:14 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 28 May 2026 17:16:29 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.11.1
+
+Thu, 28 May 2026 17:16:29 GMT
+
+### Patches
+
+- Respect redirectStartPage in PlatformAuthInteractionClient.acquireTokenRedirect [#8604](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8604) (lalimasharda@microsoft.com)
+- Bump @azure/msal-common to v16.6.3
 
 ## 5.11.0
 
