@@ -244,7 +244,8 @@ export class ResponseHandler {
         if (!!authCodePayload && !!authCodePayload.state) {
             requestStateObj = ProtocolUtils.parseRequestState(
                 this.cryptoObj.base64Decode,
-                authCodePayload.state
+                authCodePayload.state,
+                request.correlationId
             );
         }
 

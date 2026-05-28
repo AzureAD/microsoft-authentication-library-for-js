@@ -463,7 +463,8 @@ export async function handleResponsePlatformBroker(
     );
     const { userRequestState } = ProtocolUtils.parseRequestState(
         browserCrypto.base64Decode,
-        request.state
+        request.state,
+        request.correlationId
     );
     return invokeAsync(
         nativeInteractionClient.acquireToken.bind(nativeInteractionClient),

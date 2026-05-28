@@ -769,7 +769,8 @@ export class PopupClient extends StandardInteractionClient {
                 validRequest.state || "",
                 {
                     interactionType: InteractionType.Popup,
-                }
+                },
+                validRequest.correlationId
             );
 
             // Create logout string and navigate user window to logout.

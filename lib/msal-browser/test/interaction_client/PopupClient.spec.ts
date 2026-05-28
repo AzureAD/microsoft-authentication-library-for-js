@@ -1895,7 +1895,8 @@ describe("PopupClient", () => {
             const testState = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+            ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -1932,7 +1933,8 @@ describe("PopupClient", () => {
             const testState = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+            ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -1969,7 +1971,8 @@ describe("PopupClient", () => {
             const testState = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+            ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -2011,12 +2014,14 @@ describe("PopupClient", () => {
             const testState1 = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState1
+                testLibraryState1,
+            ""
             );
             const testState2 = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState2
+                testLibraryState2,
+            ""
             );
 
             const request1: CommonAuthorizationUrlRequest = {

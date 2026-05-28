@@ -36,11 +36,12 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         const requestState1 = extractBrowserRequestState(
             cryptoInterface,
             //@ts-ignore
-            null
+            null,
+        ""
         );
         expect(requestState1).toBeNull();
 
-        const requestState2 = extractBrowserRequestState(cryptoInterface, "");
+        const requestState2 = extractBrowserRequestState(cryptoInterface, "", "");
         expect(requestState2).toBeNull();
     });
 
@@ -48,23 +49,27 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         const redirectState = ProtocolUtils.setRequestState(
             cryptoInterface,
             undefined,
-            browserRedirectRequestState
+            browserRedirectRequestState,
+        ""
         );
         const popupState = ProtocolUtils.setRequestState(
             cryptoInterface,
             undefined,
-            browserPopupRequestState
+            browserPopupRequestState,
+        ""
         );
         const redirectPlatformState = extractBrowserRequestState(
             cryptoInterface,
-            redirectState
+            redirectState,
+        ""
         );
         expect(redirectPlatformState!.interactionType).toBe(
             InteractionType.Redirect
         );
         const popupPlatformState = extractBrowserRequestState(
             cryptoInterface,
-            popupState
+            popupState,
+        ""
         );
         expect(popupPlatformState!.interactionType).toBe(InteractionType.Popup);
     });

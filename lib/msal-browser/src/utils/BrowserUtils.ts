@@ -115,7 +115,8 @@ export function parseAuthResponseFromUrl(): {
 
     const { libraryState } = ProtocolUtils.parseRequestState(
         base64Decode,
-        state
+        state,
+        ""
     );
 
     const { id, meta } = libraryState;
@@ -265,7 +266,8 @@ export async function waitForBridgeResponse(
 
         const { libraryState } = ProtocolUtils.parseRequestState(
             browserCrypto.base64Decode,
-            request.state || ""
+            request.state || "",
+            request.correlationId
         );
         const channel = new BroadcastChannel(libraryState.id);
         let responseString: string | undefined = undefined;

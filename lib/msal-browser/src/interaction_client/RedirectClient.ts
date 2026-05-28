@@ -592,7 +592,8 @@ export class RedirectClient extends StandardInteractionClient {
                 ResponseHandler.validateInteractionType(
                     response,
                     this.browserCrypto,
-                    InteractionType.Redirect
+                    InteractionType.Redirect,
+                    this.correlationId
                 );
             } catch (e) {
                 if (e instanceof AuthError) {
@@ -871,7 +872,8 @@ export class RedirectClient extends StandardInteractionClient {
                 validLogoutRequest.state || "",
                 {
                     interactionType: InteractionType.Redirect,
-                }
+                },
+                validLogoutRequest.correlationId
             );
 
             // Create logout string and navigate user window to logout.

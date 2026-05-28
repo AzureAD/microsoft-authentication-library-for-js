@@ -349,7 +349,8 @@ export async function initializeAuthorizationRequest(
     const state = ProtocolUtils.setRequestState(
         browserCrypto,
         (request && request.state) || "",
-        browserState
+        browserState,
+        correlationId
     );
 
     const baseRequest: BaseAuthRequest = await invokeAsync(

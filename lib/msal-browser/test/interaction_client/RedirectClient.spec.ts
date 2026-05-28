@@ -556,7 +556,8 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
-                stateString
+                stateString,
+            ""
             ).libraryState.id;
 
             window.sessionStorage.setItem(
@@ -698,7 +699,8 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
-                stateString
+                stateString,
+            ""
             ).libraryState.id;
 
             window.sessionStorage.setItem(
@@ -763,7 +765,8 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
-                stateString
+                stateString,
+            ""
             ).libraryState.id;
 
             window.sessionStorage.setItem(
@@ -801,7 +804,8 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
-                stateString
+                stateString,
+            ""
             ).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -943,7 +947,8 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
-                stateString
+                stateString,
+            ""
             ).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -1100,7 +1105,8 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
-                stateString
+                stateString,
+            ""
             ).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
