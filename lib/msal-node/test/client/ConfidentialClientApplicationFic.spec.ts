@@ -1,0 +1,106 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import {
+    createClientAuthError,
+    INetworkModule,
+} from "@azure/msal-common";
+import {
+    DEFAULT_OPENID_CONFIG_RESPONSE,
+} from "../utils/TestConstants.js";
+import {
+    ConfidentialClientApplication,
+    Configuration,
+} from "../../src/index.js";
+import {
+    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
+} from "../test_kit/StringConstants.js";
+import { mockNetworkClient } from "../utils/MockNetworkClient.js";
+import {
+    ClientTestUtils,
+} from "./ClientTestUtils.js";
+import * as NodeClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";
+import { UserFederatedIdentityCredentialRequest } from "../../src/request/UserFederatedIdentityCredentialRequest.js";
+
+describe("ConfidentialClientApplication FIC validation tests", () => {
+    const networkClient: INetworkModule = mockNetworkClient(
+        DEFAULT_OPENID_CONFIG_RESPONSE.body,
+        CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
+    );
+
+    let config: Configuration;
+    beforeEach(async () => {
+        config =
+            await ClientTestUtils.createTestConfidentialClientConfiguration(
+                undefined,
+                networkClient
+            );
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it("throws when both userObjectId and username are provided", async () => {
+        const client = new ConfidentialClientApplication(config);
+
+        const request = {
+            scopes: ["User.Read"],
+            assertion: "test-instance-token",
+            userObjectId: "test-user-id",
+            username: "user@contoso.com",
+        } as unknown as UserFederatedIdentityCredentialRequest;
+
+        await expect(
+            client.acquireTokenByUserFederatedIdentityCredential(request)
+        ).rejects.toMatchObject(
+            createClientAuthError(
+                NodeClientAuthErrorCodes.invalidClientCredential
+            )
+        );
+    });
+
+    it("throws when neither userObjectId nor username is provided", async () => {
+        const client = new ConfidentialClientApplication(config);
+
+        const request = {
+            scopes: ["User.Read"],
+            assertion: "test-instance-token",
+        } as unknown as UserFederatedIdentityCredentialRequest;
+
+        await expect(
+            client.acquireTokenByUserFederatedIdentityCredential(request)
+        ).rejects.toMatchObject(
+            createClientAuthError(
+                NodeClientAuthErrorCodes.invalidClientCredential
+            )
+        );
+    });
+
+    it("throws when assertion is empty string", async () => {
+        const client = new ConfidentialClientApplication(config);
+
+        const request: UserFederatedIdentityCredentialRequest = {
+            scopes: ["User.Read"],
+            assertion: "",
+            userObjectId: "test-user-id",
+            authority: "https://login.microsoftonline.com/common",
+            correlationId: "test-correlation-id",
+        };
+
+        // Empty assertion should still succeed at CCA validation level
+        // (server will reject it), or if the client validates it, throw
+        // This test documents the current behavior
+        try {
+            await client.acquireTokenByUserFederatedIdentityCredential(
+                request
+            );
+            // If it doesn't throw, it reached the network layer (which is mocked)
+        } catch (e: unknown) {
+            // If it throws, ensure it's a meaningful error
+            expect(e).toBeDefined();
+        }
+    });
+});

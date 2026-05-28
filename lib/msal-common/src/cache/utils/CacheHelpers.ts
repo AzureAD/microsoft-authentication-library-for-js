@@ -71,7 +71,8 @@ export function createAccessTokenEntity(
     refreshOn?: number,
     tokenType?: Constants.AuthenticationScheme,
     userAssertionHash?: string,
-    keyId?: string
+    keyId?: string,
+    extCacheKeyHash?: string
 ): AccessTokenEntity {
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
@@ -94,6 +95,12 @@ export function createAccessTokenEntity(
 
     if (refreshOn) {
         atEntity.refreshOn = refreshOn.toString();
+    }
+
+    // Extended cache key hash for additional cache key isolation (e.g., fmi_path)
+    if (extCacheKeyHash) {
+        atEntity.extCacheKeyHash = extCacheKeyHash;
+        atEntity.credentialType = Constants.CredentialType.ACCESS_TOKEN_EXTENDED;
     }
 
     /*
@@ -195,7 +202,9 @@ export function isAccessTokenEntity(
         entity.hasOwnProperty("target") &&
         (entity["credentialType"] === Constants.CredentialType.ACCESS_TOKEN ||
             entity["credentialType"] ===
-                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME)
+                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME ||
+            entity["credentialType"] ===
+                Constants.CredentialType.ACCESS_TOKEN_EXTENDED)
     );
 }
 

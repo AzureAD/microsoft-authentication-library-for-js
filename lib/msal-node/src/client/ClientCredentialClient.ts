@@ -4,6 +4,7 @@
  */
 
 import {
+    AADServerParamKeys,
     AccessTokenEntity,
     AuthenticationResult,
     Authority,
@@ -118,6 +119,14 @@ export class ClientCredentialClient extends BaseClient {
         let lastCacheOutcome: Constants.CacheOutcome =
             Constants.CacheOutcome.NOT_APPLICABLE;
 
+        // Compute extCacheKeyHash for FMI cache isolation
+        let extCacheKeyHash: string | undefined;
+        if (request.fmiPath) {
+            extCacheKeyHash = await cryptoUtils.hashString(
+                "fmi_path" + request.fmiPath
+            );
+        }
+
         // read the user-supplied cache into memory, if applicable
         let cacheContext;
         if (
@@ -139,7 +148,8 @@ export class ClientCredentialClient extends BaseClient {
                 clientConfiguration.authOptions.clientId,
             new ScopeSet(request.scopes || []),
             cacheManager,
-            request.correlationId
+            request.correlationId,
+            extCacheKeyHash
         );
 
         if (
@@ -212,16 +222,20 @@ export class ClientCredentialClient extends BaseClient {
         id: string,
         scopeSet: ScopeSet,
         cacheManager: CacheManager,
-        correlationId: string
+        correlationId: string,
+        extCacheKeyHash?: string
     ): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: "",
             environment:
                 authority.canonicalAuthorityUrlComponents.HostNameAndPort,
-            credentialType: Constants.CredentialType.ACCESS_TOKEN,
+            credentialType: extCacheKeyHash
+                ? Constants.CredentialType.ACCESS_TOKEN_EXTENDED
+                : Constants.CredentialType.ACCESS_TOKEN,
             clientId: id,
             realm: authority.tenant,
             target: ScopeSet.createSearchScopes(scopeSet.asArray()),
+            extCacheKeyHash: extCacheKeyHash,
         };
 
         const accessTokens = cacheManager.getAccessTokensByFilter(
@@ -250,6 +264,14 @@ export class ClientCredentialClient extends BaseClient {
     ): Promise<AuthenticationResult | null> {
         let serverTokenResponse: ServerAuthorizationTokenResponse;
         let reqTimestamp: number;
+
+        // Compute extCacheKeyHash for FMI cache isolation
+        let extCacheKeyHash: string | undefined;
+        if (request.fmiPath) {
+            extCacheKeyHash = await this.cryptoUtils.hashString(
+                "fmi_path" + request.fmiPath
+            );
+        }
 
         if (this.appTokenProvider) {
             this.logger.info(
@@ -337,7 +359,13 @@ export class ClientCredentialClient extends BaseClient {
             this.authority,
             reqTimestamp,
             request,
-            ApiId.acquireTokenByClientCredential
+            ApiId.acquireTokenByClientCredential,
+            undefined, // authCodePayload
+            undefined, // userAssertionHash
+            undefined, // handlingRefreshTokenResponse
+            undefined, // forceCacheRefreshTokenResponse
+            undefined, // serverRequestId
+            extCacheKeyHash
         );
 
         return tokenResponse;
@@ -405,13 +433,18 @@ export class ClientCredentialClient extends BaseClient {
                 await getClientAssertion(
                     clientAssertion.assertion,
                     this.config.authOptions.clientId,
-                    request.resourceRequestUri
+                    this.authority.tokenEndpoint,
+                    request.fmiPath
                 )
             );
             RequestParameterBuilder.addClientAssertionType(
                 parameters,
                 clientAssertion.assertionType
             );
+        }
+
+        if (request.fmiPath) {
+            parameters.set(AADServerParamKeys.FMI_PATH, request.fmiPath);
         }
 
         if (

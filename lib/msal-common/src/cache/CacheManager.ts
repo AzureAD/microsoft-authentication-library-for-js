@@ -889,6 +889,21 @@ export abstract class CacheManager implements ICacheManager {
             }
         }
 
+        // Extended cache key hash matching (bidirectional isolation)
+        if (
+            entity.credentialType ===
+            Constants.CredentialType.ACCESS_TOKEN_EXTENDED
+        ) {
+            if (!filter.extCacheKeyHash) {
+                return false;
+            }
+            if (entity.extCacheKeyHash !== filter.extCacheKeyHash) {
+                return false;
+            }
+        } else if (filter.extCacheKeyHash) {
+            return false;
+        }
+
         return true;
     }
 
@@ -1883,7 +1898,9 @@ export abstract class CacheManager implements ICacheManager {
         const isNotAccessTokenCredential =
             entity.credentialType !== Constants.CredentialType.ACCESS_TOKEN &&
             entity.credentialType !==
-                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
+                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME &&
+            entity.credentialType !==
+                Constants.CredentialType.ACCESS_TOKEN_EXTENDED;
 
         if (isNotAccessTokenCredential || !entity.target) {
             return false;

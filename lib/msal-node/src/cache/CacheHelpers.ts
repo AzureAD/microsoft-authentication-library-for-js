@@ -31,6 +31,11 @@ export function generateCredentialKey(credential: CredentialEntity): string {
         scheme,
     ];
 
+    // Append extCacheKeyHash for extended cache key isolation (e.g., fmi_path)
+    if (credential.extCacheKeyHash) {
+        credentialKey.push(credential.extCacheKeyHash);
+    }
+
     return credentialKey.join(CACHE.KEY_SEPARATOR).toLowerCase();
 }
 

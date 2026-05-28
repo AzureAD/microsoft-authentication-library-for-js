@@ -33,6 +33,8 @@ import { CommonClientCredentialRequest } from "../request/CommonClientCredential
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest.js";
 import { ClientCredentialClient } from "./ClientCredentialClient.js";
 import { OnBehalfOfClient } from "./OnBehalfOfClient.js";
+import { UserFederatedIdentityCredentialClient } from "./UserFederatedIdentityCredentialClient.js";
+import { UserFederatedIdentityCredentialRequest } from "../request/UserFederatedIdentityCredentialRequest.js";
 import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
 
 /**
@@ -297,6 +299,75 @@ export class ConfidentialClientApplication
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
             }
+            throw e;
+        }
+    }
+
+    /**
+     * Acquires a user-scoped token using the user_fic grant type (Leg 3 of Agent Identity).
+     *
+     * Exchanges a federated identity credential (instance token from Leg 2) for a user-scoped token.
+     * Exactly one of `userObjectId` or `username` must be provided to identify the target user.
+     *
+     * This method always makes a network call. Use `acquireTokenSilent` to retrieve cached FIC tokens.
+     */
+    public async acquireTokenByUserFederatedIdentityCredential(
+        request: UserFederatedIdentityCredentialRequest
+    ): Promise<AuthenticationResult | null> {
+        this.logger.info(
+            "acquireTokenByUserFederatedIdentityCredential called",
+            request.correlationId || ""
+        );
+
+        // Validate that exactly one user identifier is provided
+        if (request.userObjectId && request.username) {
+            throw createClientAuthError(
+                NodeClientAuthErrorCodes.invalidClientCredential
+            );
+        }
+        if (!request.userObjectId && !request.username) {
+            throw createClientAuthError(
+                NodeClientAuthErrorCodes.invalidClientCredential
+            );
+        }
+
+        const baseRequest = await this.initializeBaseRequest(request);
+        const validRequest: UserFederatedIdentityCredentialRequest = {
+            ...request,
+            ...baseRequest,
+            assertion: request.assertion,
+        } as UserFederatedIdentityCredentialRequest;
+
+        const serverTelemetryManager = this.initializeServerTelemetryManager(
+            ApiId.acquireTokenByUserFederatedIdentityCredential,
+            validRequest.correlationId
+        );
+
+        try {
+            const discoveredAuthority = await this.createAuthority(
+                validRequest.authority,
+                validRequest.correlationId,
+                undefined,
+                request.azureCloudOptions
+            );
+            const clientConfig = await this.buildOauthClientConfiguration(
+                discoveredAuthority,
+                validRequest.correlationId,
+                "",
+                serverTelemetryManager
+            );
+            const ficClient =
+                new UserFederatedIdentityCredentialClient(clientConfig);
+            this.logger.verbose(
+                "UserFederatedIdentityCredential client created",
+                validRequest.correlationId
+            );
+            return await ficClient.acquireToken(validRequest);
+        } catch (e) {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(validRequest.correlationId);
+            }
+            serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
     }

@@ -31,6 +31,8 @@ export type CredentialEntity = {
     tokenType?: AuthenticationScheme;
     /** KeyId for PoP and SSH tokens stored in the kid claim */
     keyId?: string;
+    /** Extended cache key hash for additional cache key isolation (e.g., fmi_path) */
+    extCacheKeyHash?: string;
     /** Timestamp when the entry was last updated */
     lastUpdatedAt: string;
 };
