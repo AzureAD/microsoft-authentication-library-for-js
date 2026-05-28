@@ -451,6 +451,7 @@ export class ResponseHandler {
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
                 this.cryptoObj.base64Decode,
+                request.correlationId,
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
                 userAssertionHash,
@@ -697,6 +698,7 @@ export function buildAccountToCache(
                 nativeAccountId: nativeAccountId,
             },
             authority,
+            correlationId,
             base64Decode
         );
 

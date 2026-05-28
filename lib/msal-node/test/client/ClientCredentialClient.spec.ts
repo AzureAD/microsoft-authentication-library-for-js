@@ -678,6 +678,7 @@ describe("ClientCredentialClient unit tests", () => {
                 Date.now() + 60 * 30 * 1000,
                 Date.now() + 60 * 30 * 1000,
                 mockCrypto.base64Decode,
+                "",
                 undefined,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -725,6 +726,7 @@ describe("ClientCredentialClient unit tests", () => {
                 TimeUtils.nowSeconds() + 4600,
                 TimeUtils.nowSeconds() + 4600,
                 mockCrypto.base64Decode,
+                "",
                 TimeUtils.nowSeconds() - 4600, // expired refreshOn value
                 Constants.AuthenticationScheme.BEARER
             );
@@ -880,6 +882,7 @@ describe("ClientCredentialClient unit tests", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 undefined,
                 Constants.AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN
@@ -896,6 +899,7 @@ describe("ClientCredentialClient unit tests", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 undefined,
                 Constants.AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN

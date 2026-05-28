@@ -863,6 +863,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 tokenExpirationSeconds,
                 0,
                 base64Decode,
+                request.correlationId,
                 undefined,
                 request.tokenType as Constants.AuthenticationScheme,
                 undefined,

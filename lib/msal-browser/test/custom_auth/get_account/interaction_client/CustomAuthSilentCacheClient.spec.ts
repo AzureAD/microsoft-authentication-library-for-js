@@ -439,6 +439,7 @@ function createAccessTokenEntity(browserCrypto: ICrypto): AccessTokenEntity {
         expiresOn,
         expiresOn + 0,
         browserCrypto.base64Decode,
+        "",
         undefined,
         TestServerTokenResponse.token_type as Constants.AuthenticationScheme
     );

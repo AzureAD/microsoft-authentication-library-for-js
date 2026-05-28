@@ -397,7 +397,8 @@ async function loadAccessToken(
         scopes.printScopes(),
         expiresOn,
         extendedExpiresOn,
-        base64Decode
+        base64Decode,
+        correlationId
     );
 
     await storage.setAccessTokenCredential(

@@ -1902,6 +1902,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -1915,6 +1916,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2001,6 +2003,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2014,6 +2017,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2027,6 +2031,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2121,6 +2126,7 @@ describe("BrowserCacheManager tests", () => {
                     1000,
                     1000,
                     browserCrypto.base64Decode,
+                    "",
                     500,
                     Constants.AuthenticationScheme.BEARER
                 );
@@ -2197,6 +2203,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2210,6 +2217,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2299,6 +2307,7 @@ describe("BrowserCacheManager tests", () => {
                     1000,
                     1000,
                     browserCrypto.base64Decode,
+                    "",
                     500,
                     Constants.AuthenticationScheme.BEARER
                 );
@@ -2376,6 +2385,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2389,6 +2399,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2402,6 +2413,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -3072,7 +3084,8 @@ describe("BrowserCacheManager tests", () => {
                             msGraphHost: "msGraphHost",
                         },
                         authority
-                    );
+                    ,
+                        "");
 
                     await browserLocalStorage.setAccount(
                         testAccount,
@@ -3305,6 +3318,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3352,6 +3366,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3367,6 +3382,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.POP,
                             "oboAssertion"
@@ -3412,6 +3428,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3427,6 +3444,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.POP,
                             "oboAssertion"
@@ -3500,6 +3518,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3515,6 +3534,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.POP,
                             "oboAssertion"
@@ -3591,6 +3611,7 @@ describe("BrowserCacheManager tests", () => {
                         1000,
                         1000,
                         browserCrypto.base64Decode,
+                        "",
                         500,
                         Constants.AuthenticationScheme.BEARER,
                         "oboAssertion"
@@ -3609,6 +3630,7 @@ describe("BrowserCacheManager tests", () => {
                         1000,
                         1000,
                         browserCrypto.base64Decode,
+                        "",
                         500,
                         Constants.AuthenticationScheme.BEARER
                     );
@@ -4242,6 +4264,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"

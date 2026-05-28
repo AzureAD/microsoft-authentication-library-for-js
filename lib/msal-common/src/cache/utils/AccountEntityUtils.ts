@@ -99,6 +99,7 @@ export function createAccountEntity(
         tenantProfiles?: Array<TenantProfile>;
     },
     authority: Authority,
+    correlationId: string,
     base64Decode?: (input: string) => string
 ): AccountEntity {
     let authorityType;
@@ -125,7 +126,7 @@ export function createAccountEntity(
         (authority && authority.getPreferredCache());
 
     if (!env) {
-        throw createClientAuthError(ClientAuthErrorCodes.invalidCacheEnvironment, "");
+        throw createClientAuthError(ClientAuthErrorCodes.invalidCacheEnvironment, correlationId);
     }
 
     /*

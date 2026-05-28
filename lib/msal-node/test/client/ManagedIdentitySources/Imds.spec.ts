@@ -814,7 +814,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     [MANAGED_IDENTITY_RESOURCE_BASE].toString(), // scopes
                     nowSeconds + 3600, // expiresOn
                     nowSeconds + 3600, // extExpiresOn
-                    mockCrypto.base64Decode, // cryptoUtils
+                    mockCrypto.base64Decode, "", // cryptoUtils
                     expiredRefreshOn // refreshOn
                 );
             jest.spyOn(

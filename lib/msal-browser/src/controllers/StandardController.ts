@@ -1733,6 +1733,7 @@ export class StandardController implements IController {
                     ? TimeUtils.toSecondsFromDate(result.extExpiresOn)
                     : 0,
                 base64Decode,
+                request.correlationId || "",
                 undefined, // refreshOn
                 result.tokenType as Constants.AuthenticationScheme,
                 undefined, // userAssertionHash
