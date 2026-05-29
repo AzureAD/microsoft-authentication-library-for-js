@@ -8,7 +8,19 @@ import { CommonUserFederatedIdentityCredentialRequest } from "./CommonUserFedera
 
 /**
  * Request object for acquireTokenByUserFederatedIdentityCredential.
- * Exactly one of userObjectId or username must be provided.
+ *
+ * Required fields: `scopes`, `assertion`, and exactly one of
+ * `userObjectId` or `username`. Other base-request fields
+ * (`authority`, `correlationId`, etc.) are filled in by the library.
+ *
+ * @example
+ * ```typescript
+ * const request: UserFederatedIdentityCredentialRequest = {
+ *     scopes: ["https://graph.microsoft.com/.default"],
+ *     assertion: instanceTokenFromLeg2,
+ *     username: "user@contoso.com",
+ * };
+ * ```
  * @public
  */
 export type UserFederatedIdentityCredentialRequest = Partial<

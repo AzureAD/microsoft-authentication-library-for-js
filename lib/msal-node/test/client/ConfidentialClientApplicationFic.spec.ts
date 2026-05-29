@@ -55,7 +55,7 @@ describe("ConfidentialClientApplication FIC validation tests", () => {
             client.acquireTokenByUserFederatedIdentityCredential(request)
         ).rejects.toMatchObject(
             createClientAuthError(
-                NodeClientAuthErrorCodes.invalidClientCredential
+                NodeClientAuthErrorCodes.conflictingUserIdentifiers
             )
         );
     });
@@ -72,7 +72,7 @@ describe("ConfidentialClientApplication FIC validation tests", () => {
             client.acquireTokenByUserFederatedIdentityCredential(request)
         ).rejects.toMatchObject(
             createClientAuthError(
-                NodeClientAuthErrorCodes.invalidClientCredential
+                NodeClientAuthErrorCodes.missingUserIdentifier
             )
         );
     });
@@ -158,9 +158,7 @@ describe("ConfidentialClientApplication FIC validation tests", () => {
         await expect(
             client.acquireTokenByUserFederatedIdentityCredential(request)
         ).rejects.toMatchObject(
-            createClientAuthError(
-                NodeClientAuthErrorCodes.invalidClientCredential
-            )
+            createClientAuthError(NodeClientAuthErrorCodes.emptyFicAssertion)
         );
     });
 });

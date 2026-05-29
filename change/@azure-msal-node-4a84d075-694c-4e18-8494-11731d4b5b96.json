@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add Federated Managed Identity (FMI) and User Federated Identity Credential (user_fic) grant type support [#8614](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8614)",
+  "comment": "Add Federated Managed Identity (FMI) and User Federated Identity Credential (user_fic) grant type support. Also fixes a long-standing bug where the tokenEndpoint field on ClientAssertionConfig was incorrectly populated with resourceRequestUri during client-credential flows; it now correctly contains the AAD token endpoint. [#8614](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8614)",
   "packageName": "@azure/msal-node",
   "email": "avdunn@microsoft.com",
   "dependentChangeType": "patch"

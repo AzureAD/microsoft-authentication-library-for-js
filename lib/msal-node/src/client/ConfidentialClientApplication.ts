@@ -323,19 +323,19 @@ export class ConfidentialClientApplication
         // Validate that exactly one user identifier is provided
         if (request.userObjectId && request.username) {
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.invalidClientCredential
+                NodeClientAuthErrorCodes.conflictingUserIdentifiers
             );
         }
         if (!request.userObjectId && !request.username) {
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.invalidClientCredential
+                NodeClientAuthErrorCodes.missingUserIdentifier
             );
         }
 
         // Validate that the assertion is not empty
         if (!request.assertion) {
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.invalidClientCredential
+                NodeClientAuthErrorCodes.emptyFicAssertion
             );
         }
 

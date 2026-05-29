@@ -51,18 +51,26 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
         request: CommonUserFederatedIdentityCredentialRequest,
         authority: Authority
     ): Promise<AuthenticationResult | null> {
+        // Build augmented scopes once for both thumbprint and body
+        const scopeSet = new ScopeSet(request.scopes || []);
+        scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
+        const augmentedScopes = scopeSet.asArray();
+
         const queryParametersString = this.createTokenQueryParameters(request);
         const endpoint = UrlString.appendQueryString(
             authority.tokenEndpoint,
             queryParametersString
         );
-        const requestBody = await this.createTokenRequestBody(request);
+        const requestBody = await this.createTokenRequestBody(
+            request,
+            augmentedScopes
+        );
         const headers: Record<string, string> =
             this.createTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,
-            scopes: request.scopes,
+            scopes: augmentedScopes,
             claims: request.claims,
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
@@ -110,7 +118,8 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
      * Builds the request body for the user_fic grant type
      */
     private async createTokenRequestBody(
-        request: CommonUserFederatedIdentityCredentialRequest
+        request: CommonUserFederatedIdentityCredentialRequest,
+        augmentedScopes: string[]
     ): Promise<string> {
         const parameters = new Map<string, string>();
 
@@ -119,10 +128,7 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
             this.config.authOptions.clientId
         );
 
-        // FIC uses scope augmentation: add openid, offline_access, profile
-        const scopeSet = new ScopeSet(request.scopes || []);
-        scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
-        RequestParameterBuilder.addScopes(parameters, scopeSet.asArray());
+        RequestParameterBuilder.addScopes(parameters, augmentedScopes);
 
         RequestParameterBuilder.addGrantType(
             parameters,
