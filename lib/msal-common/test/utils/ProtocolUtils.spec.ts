@@ -74,4 +74,37 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
         const requestState = ProtocolUtils.parseRequestState(cryptoInterface.base64Decode, `${encodedLibState}${RESOURCE_DELIM}${"test%25u00f1"}`, "");
         expect(requestState.userRequestState).toBe(`${"test%25u00f1"}`);
     });
+
+    describe("correlationId propagation", () => {
+        const correlationId = "protocol-utils-corr-id";
+
+        it("setRequestState propagates correlationId on missing crypto error", () => {
+            try {
+                // @ts-ignore
+                ProtocolUtils.setRequestState(null, userState, undefined, correlationId);
+                throw new Error("Expected setRequestState to throw");
+            } catch (err) {
+                expect(err).toBeInstanceOf(ClientAuthError);
+                expect((err as ClientAuthError).correlationId).toBe(
+                    correlationId
+                );
+            }
+        });
+
+        it("parseRequestState propagates correlationId on invalid state error", () => {
+            try {
+                ProtocolUtils.parseRequestState(
+                    cryptoInterface.base64Decode,
+                    "",
+                    correlationId
+                );
+                throw new Error("Expected parseRequestState to throw");
+            } catch (err) {
+                expect(err).toBeInstanceOf(ClientAuthError);
+                expect((err as ClientAuthError).correlationId).toBe(
+                    correlationId
+                );
+            }
+        });
+    });
 });

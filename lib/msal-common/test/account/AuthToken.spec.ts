@@ -176,4 +176,22 @@ describe("AuthToken.ts Class Unit Tests", () => {
             ).toBe(true);
         });
     });
+
+    describe("checkMaxAge()", () => {
+        it("propagates correlationId when max_age has transpired", () => {
+            const correlationId = "check-max-age-corr-id";
+            try {
+                AuthToken.checkMaxAge(0, 0, correlationId);
+                throw new Error("Expected checkMaxAge to throw");
+            } catch (err) {
+                expect(err).toBeInstanceOf(ClientAuthError);
+                expect((err as ClientAuthError).errorCode).toBe(
+                    ClientAuthErrorCodes.maxAgeTranspired
+                );
+                expect((err as ClientAuthError).correlationId).toBe(
+                    correlationId
+                );
+            }
+        });
+    });
 });

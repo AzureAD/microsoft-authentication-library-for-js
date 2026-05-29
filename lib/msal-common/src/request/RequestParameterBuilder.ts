@@ -229,7 +229,8 @@ export function addClaims(
     ) {
         const mergedClaims = addClientCapabilitiesToClaims(
             claims,
-            configClaims
+            configClaims,
+            correlationId
         );
         try {
             JSON.parse(mergedClaims);
@@ -493,7 +494,8 @@ export function addExtraParameters(
 
 export function addClientCapabilitiesToClaims(
     claims?: string,
-    clientCapabilities?: Array<string>
+    clientCapabilities?: Array<string>,
+    correlationId?: string
 ): string {
     let mergedClaims: object;
 
@@ -504,7 +506,7 @@ export function addClientCapabilitiesToClaims(
         try {
             mergedClaims = JSON.parse(claims);
         } catch (e) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.invalidClaims, "");
+            throw createClientConfigurationError(ClientConfigurationErrorCodes.invalidClaims, correlationId || "");
         }
     }
 

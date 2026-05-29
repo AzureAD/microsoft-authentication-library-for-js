@@ -326,10 +326,12 @@ export function validateAuthorizationResponse(
         throw serverResponse.state
             ? createClientAuthError(
                   ClientAuthErrorCodes.stateNotFound,
+                  correlationId,
                   "Cached State"
               )
             : createClientAuthError(
                   ClientAuthErrorCodes.stateNotFound,
+                  correlationId,
                   "Server State"
               );
     }
@@ -342,6 +344,7 @@ export function validateAuthorizationResponse(
     } catch (e) {
         throw createClientAuthError(
             ClientAuthErrorCodes.invalidState,
+            correlationId,
             serverResponse.state
         );
     }
@@ -351,6 +354,7 @@ export function validateAuthorizationResponse(
     } catch (e) {
         throw createClientAuthError(
             ClientAuthErrorCodes.invalidState,
+            correlationId,
             serverResponse.state
         );
     }

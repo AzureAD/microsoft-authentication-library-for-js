@@ -647,6 +647,25 @@ describe("RequestParameterBuilder unit tests", () => {
                 new ClientConfigurationError(ClientConfigurationErrorCodes.invalidClaims, "")
             );
         });
+
+        it("addClaims propagates correlationId on invalid claims error", () => {
+            const correlationId = "add-claims-corr-id";
+            const parameters = new Map<string, string>();
+            try {
+                RequestParameterBuilder.addClaims(
+                    parameters,
+                    correlationId,
+                    "not-a-valid-JSON-object",
+                    ["CP1"]
+                );
+                throw new Error("Expected addClaims to throw");
+            } catch (err) {
+                expect(err).toBeInstanceOf(ClientConfigurationError);
+                expect((err as ClientConfigurationError).correlationId).toBe(
+                    correlationId
+                );
+            }
+        });
     });
 
     describe("addExtraParameters tests", () => {

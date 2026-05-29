@@ -1800,5 +1800,80 @@ describe("Authorize Protocol Tests", () => {
                 done();
             }
         });
+
+        describe("correlationId propagation", () => {
+            const correlationId = "authorize-corr-id";
+
+            it("propagates correlationId on state mismatch error", () => {
+                const testServerCodeResponse: AuthorizeResponse = {
+                    code: "testCode",
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                };
+
+                try {
+                    AuthorizeProtocol.validateAuthorizationResponse(
+                        testServerCodeResponse,
+                        "differentState",
+                        correlationId
+                    );
+                    throw new Error(
+                        "Expected validateAuthorizationResponse to throw"
+                    );
+                } catch (e) {
+                    expect(e).toBeInstanceOf(ClientAuthError);
+                    expect((e as ClientAuthError).correlationId).toBe(
+                        correlationId
+                    );
+                }
+            });
+
+            it("propagates correlationId on stateNotFound error", () => {
+                const testServerCodeResponse: AuthorizeResponse = {
+                    code: "testCode",
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    state: "",
+                };
+
+                try {
+                    AuthorizeProtocol.validateAuthorizationResponse(
+                        testServerCodeResponse,
+                        TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                        correlationId
+                    );
+                    throw new Error(
+                        "Expected validateAuthorizationResponse to throw"
+                    );
+                } catch (e) {
+                    expect(e).toBeInstanceOf(ClientAuthError);
+                    expect((e as ClientAuthError).correlationId).toBe(
+                        correlationId
+                    );
+                }
+            });
+
+            it("getAuthorizationCodePayload propagates correlationId when code is missing", () => {
+                const testServerCodeResponse: AuthorizeResponse = {
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                };
+
+                try {
+                    AuthorizeProtocol.getAuthorizationCodePayload(
+                        testServerCodeResponse,
+                        TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                        correlationId
+                    );
+                    throw new Error(
+                        "Expected getAuthorizationCodePayload to throw"
+                    );
+                } catch (e) {
+                    expect(e).toBeInstanceOf(ClientAuthError);
+                    expect((e as ClientAuthError).correlationId).toBe(
+                        correlationId
+                    );
+                }
+            });
+        });
     });
 });
