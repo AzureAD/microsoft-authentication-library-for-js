@@ -14,8 +14,15 @@ import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { ClientTestUtils } from "./ClientTestUtils.js";
 import * as NodeClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";
 import { UserFederatedIdentityCredentialRequest } from "../../src/request/UserFederatedIdentityCredentialRequest.js";
+import jwt from "jsonwebtoken";
+
+jest.mock("jsonwebtoken");
 
 describe("ConfidentialClientApplication FIC validation tests", () => {
+    beforeAll(() => {
+        jest.spyOn(jwt, <any>"sign").mockReturnValue("fake_jwt_string");
+    });
+
     const networkClient: INetworkModule = mockNetworkClient(
         DEFAULT_OPENID_CONFIG_RESPONSE.body,
         CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
@@ -68,6 +75,73 @@ describe("ConfidentialClientApplication FIC validation tests", () => {
                 NodeClientAuthErrorCodes.invalidClientCredential
             )
         );
+    });
+
+    describe("per-request clientAssertion resolution", () => {
+        it("resolves a string clientAssertion before passing to internal client", async () => {
+            const { UserFederatedIdentityCredentialClient } = await import(
+                "../../src/client/UserFederatedIdentityCredentialClient.js"
+            );
+            const acquireTokenSpy = jest
+                .spyOn(
+                    UserFederatedIdentityCredentialClient.prototype,
+                    "acquireToken"
+                )
+                .mockResolvedValue(null);
+
+            const client = new ConfidentialClientApplication(config);
+            const request: UserFederatedIdentityCredentialRequest = {
+                scopes: ["User.Read"],
+                assertion: "test-instance-token",
+                userObjectId: "test-user-id",
+                clientAssertion: "string-assertion-value",
+            };
+
+            await client.acquireTokenByUserFederatedIdentityCredential(request);
+
+            expect(acquireTokenSpy).toHaveBeenCalledTimes(1);
+            const resolvedRequest = acquireTokenSpy.mock.calls[0][0];
+            expect(resolvedRequest.clientAssertion).toBeDefined();
+            expect(resolvedRequest.clientAssertion!.assertion).toBe(
+                "string-assertion-value"
+            );
+            expect(resolvedRequest.clientAssertion!.assertionType).toBe(
+                "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+            );
+        });
+
+        it("resolves a callback clientAssertion before passing to internal client", async () => {
+            const { UserFederatedIdentityCredentialClient } = await import(
+                "../../src/client/UserFederatedIdentityCredentialClient.js"
+            );
+            const acquireTokenSpy = jest
+                .spyOn(
+                    UserFederatedIdentityCredentialClient.prototype,
+                    "acquireToken"
+                )
+                .mockResolvedValue(null);
+
+            const assertionCallback = jest
+                .fn()
+                .mockResolvedValue("callback-resolved-assertion");
+            const client = new ConfidentialClientApplication(config);
+            const request: UserFederatedIdentityCredentialRequest = {
+                scopes: ["User.Read"],
+                assertion: "test-instance-token",
+                userObjectId: "test-user-id",
+                clientAssertion: assertionCallback,
+            };
+
+            await client.acquireTokenByUserFederatedIdentityCredential(request);
+
+            expect(assertionCallback).toHaveBeenCalledTimes(1);
+            expect(acquireTokenSpy).toHaveBeenCalledTimes(1);
+            const resolvedRequest = acquireTokenSpy.mock.calls[0][0];
+            expect(resolvedRequest.clientAssertion).toBeDefined();
+            expect(resolvedRequest.clientAssertion!.assertion).toBe(
+                "callback-resolved-assertion"
+            );
+        });
     });
 
     it("throws when assertion is empty string", async () => {
