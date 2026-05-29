@@ -606,6 +606,34 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             expect(acc.dataBoundary).toBeUndefined();
         });
     });
+
+    describe("correlationId propagation", () => {
+        it("createAccountEntity propagates correlationId when no environment is available", () => {
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue("");
+
+            const correlationId = "account-entity-corr-id";
+            try {
+                AccountEntityUtils.createAccountEntity(
+                    {
+                        homeAccountId: "test-home-account-id",
+                        idTokenClaims: ID_TOKEN_CLAIMS,
+                    },
+                    authority,
+                    correlationId,
+                    cryptoInterface.base64Decode
+                );
+                throw new Error("Expected createAccountEntity to throw");
+            } catch (err) {
+                expect(err).toBeInstanceOf(Error);
+                expect(
+                    (err as { correlationId?: string }).correlationId
+                ).toBe(correlationId);
+            }
+        });
+    });
 });
 
 describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
