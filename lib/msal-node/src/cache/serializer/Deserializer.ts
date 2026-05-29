@@ -134,6 +134,7 @@ export class Deserializer {
                         serializedAT.token_type as Constants.AuthenticationScheme,
                     userAssertionHash: serializedAT.userAssertionHash,
                     resource: serializedAT.resource,
+                    extCacheKeyHash: serializedAT.extCacheKeyHash,
                     lastUpdatedAt: Date.now().toString(),
                 };
                 atObjects[key] = accessToken;

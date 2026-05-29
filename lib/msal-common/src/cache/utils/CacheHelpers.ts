@@ -97,12 +97,6 @@ export function createAccessTokenEntity(
         atEntity.refreshOn = refreshOn.toString();
     }
 
-    // Extended cache key hash for additional cache key isolation (e.g., fmi_path)
-    if (extCacheKeyHash) {
-        atEntity.extCacheKeyHash = extCacheKeyHash;
-        atEntity.credentialType = Constants.CredentialType.ACCESS_TOKEN_EXTENDED;
-    }
-
     /*
      * Create Access Token With Auth Scheme instead of regular access token
      * Cast to lower to handle "bearer" from ADFS
@@ -130,6 +124,16 @@ export function createAccessTokenEntity(
             case Constants.AuthenticationScheme.SSH:
                 atEntity.keyId = keyId;
         }
+    }
+
+    /*
+     * Extended cache key hash for additional cache key isolation (e.g., fmi_path).
+     * Applied after auth scheme to take priority when both are present.
+     */
+    if (extCacheKeyHash) {
+        atEntity.extCacheKeyHash = extCacheKeyHash;
+        atEntity.credentialType =
+            Constants.CredentialType.ACCESS_TOKEN_EXTENDED;
     }
 
     return atEntity;

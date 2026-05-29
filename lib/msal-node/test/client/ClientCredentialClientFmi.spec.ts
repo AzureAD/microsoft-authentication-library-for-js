@@ -14,10 +14,7 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
 } from "../test_kit/StringConstants.js";
-import {
-    ClientTestUtils,
-    mockCrypto,
-} from "./ClientTestUtils.js";
+import { ClientTestUtils, mockCrypto } from "./ClientTestUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
@@ -137,7 +134,9 @@ describe("ClientCredentialClient FMI tests", () => {
 
             // hashString should not be called for non-FMI requests with fmi_path prefix
             const fmiHashCalls = hashStringSpy.mock.calls.filter(
-                (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).startsWith("fmi_path")
+                (call: unknown[]) =>
+                    typeof call[0] === "string" &&
+                    (call[0] as string).startsWith("fmi_path")
             );
             expect(fmiHashCalls).toHaveLength(0);
         });
@@ -152,7 +151,9 @@ describe("ClientCredentialClient FMI tests", () => {
                 fmiPath: "test-agent-app-id",
             };
 
-            const result = (await client.acquireToken(request)) as AuthenticationResult;
+            const result = (await client.acquireToken(
+                request
+            )) as AuthenticationResult;
             expect(result).not.toBeNull();
             expect(result.accessToken).toEqual(
                 CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
@@ -171,11 +172,15 @@ describe("ClientCredentialClient FMI tests", () => {
             };
 
             // First call — network
-            const networkResult = (await client.acquireToken(request)) as AuthenticationResult;
+            const networkResult = (await client.acquireToken(
+                request
+            )) as AuthenticationResult;
             expect(networkResult.fromCache).toBe(false);
 
             // Second call — should return from cache
-            const cachedResult = (await client.acquireToken(request)) as AuthenticationResult;
+            const cachedResult = (await client.acquireToken(
+                request
+            )) as AuthenticationResult;
             expect(cachedResult.fromCache).toBe(true);
             expect(cachedResult.accessToken).toBe(networkResult.accessToken);
         });
@@ -190,7 +195,9 @@ describe("ClientCredentialClient FMI tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             };
 
-            const result1 = (await client.acquireToken(standardRequest)) as AuthenticationResult;
+            const result1 = (await client.acquireToken(
+                standardRequest
+            )) as AuthenticationResult;
             expect(result1).not.toBeNull();
             expect(result1.fromCache).toBe(false);
 
@@ -202,7 +209,9 @@ describe("ClientCredentialClient FMI tests", () => {
                 fmiPath: "test-agent-app-id",
             };
 
-            const result2 = (await client.acquireToken(fmiRequest)) as AuthenticationResult;
+            const result2 = (await client.acquireToken(
+                fmiRequest
+            )) as AuthenticationResult;
             expect(result2).not.toBeNull();
             // FMI request goes to network since no atext-type token is cached
             expect(result2.fromCache).toBe(false);
@@ -211,7 +220,9 @@ describe("ClientCredentialClient FMI tests", () => {
 
     describe("Assertion callback context", () => {
         it("passes fmiPath through assertion callback context", async () => {
-            const assertionCallback = jest.fn().mockResolvedValue("test-assertion");
+            const assertionCallback = jest
+                .fn()
+                .mockResolvedValue("test-assertion");
             const configWithAssertion =
                 await ClientTestUtils.createTestClientConfiguration(
                     undefined,
@@ -247,7 +258,9 @@ describe("ClientCredentialClient FMI tests", () => {
         });
 
         it("passes tokenEndpoint to assertion callback", async () => {
-            const assertionCallback = jest.fn().mockResolvedValue("test-assertion");
+            const assertionCallback = jest
+                .fn()
+                .mockResolvedValue("test-assertion");
             const configWithAssertion =
                 await ClientTestUtils.createTestClientConfiguration(
                     undefined,
@@ -300,7 +313,9 @@ describe("ClientCredentialClient FMI tests", () => {
                 },
             };
 
-            const client = new ClientCredentialClient(configWithStringAssertion);
+            const client = new ClientCredentialClient(
+                configWithStringAssertion
+            );
 
             const request: CommonClientCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
@@ -308,7 +323,9 @@ describe("ClientCredentialClient FMI tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             };
 
-            const result = (await client.acquireToken(request)) as AuthenticationResult;
+            const result = (await client.acquireToken(
+                request
+            )) as AuthenticationResult;
             expect(result).not.toBeNull();
             expect(result.accessToken).toEqual(
                 CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token

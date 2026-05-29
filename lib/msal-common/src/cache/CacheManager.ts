@@ -890,10 +890,7 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         // Extended cache key hash matching (bidirectional isolation)
-        if (
-            entity.credentialType ===
-            Constants.CredentialType.ACCESS_TOKEN_EXTENDED
-        ) {
+        if (entity.extCacheKeyHash) {
             if (!filter.extCacheKeyHash) {
                 return false;
             }

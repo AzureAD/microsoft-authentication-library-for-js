@@ -3,24 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import {
-    createClientAuthError,
-    INetworkModule,
-} from "@azure/msal-common";
-import {
-    DEFAULT_OPENID_CONFIG_RESPONSE,
-} from "../utils/TestConstants.js";
+import { createClientAuthError, INetworkModule } from "@azure/msal-common";
+import { DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/TestConstants.js";
 import {
     ConfidentialClientApplication,
     Configuration,
 } from "../../src/index.js";
-import {
-    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
-} from "../test_kit/StringConstants.js";
+import { CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT } from "../test_kit/StringConstants.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
-import {
-    ClientTestUtils,
-} from "./ClientTestUtils.js";
+import { ClientTestUtils } from "./ClientTestUtils.js";
 import * as NodeClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";
 import { UserFederatedIdentityCredentialRequest } from "../../src/request/UserFederatedIdentityCredentialRequest.js";
 
@@ -90,17 +81,12 @@ describe("ConfidentialClientApplication FIC validation tests", () => {
             correlationId: "test-correlation-id",
         };
 
-        // Empty assertion should still succeed at CCA validation level
-        // (server will reject it), or if the client validates it, throw
-        // This test documents the current behavior
-        try {
-            await client.acquireTokenByUserFederatedIdentityCredential(
-                request
-            );
-            // If it doesn't throw, it reached the network layer (which is mocked)
-        } catch (e: unknown) {
-            // If it throws, ensure it's a meaningful error
-            expect(e).toBeDefined();
-        }
+        await expect(
+            client.acquireTokenByUserFederatedIdentityCredential(request)
+        ).rejects.toMatchObject(
+            createClientAuthError(
+                NodeClientAuthErrorCodes.invalidClientCredential
+            )
+        );
     });
 });

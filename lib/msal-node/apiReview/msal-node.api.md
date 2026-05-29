@@ -476,6 +476,7 @@ export type SerializedAccessTokenEntity = {
     token_type?: string;
     userAssertionHash?: string;
     resource?: string;
+    extCacheKeyHash?: string;
 };
 
 // @public
@@ -567,10 +568,13 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
 export { TokenCacheContext }
 
+// Warning: (ae-forgotten-export) The symbol "CommonUserFederatedIdentityCredentialRequest" needs to be exported by the entry point index.d.ts
+//
 // @public
-export type UserFederatedIdentityCredentialRequest = Omit<BaseAuthRequest, "extraQueryParameters" | "extraParameters"> & {
+export type UserFederatedIdentityCredentialRequest = Partial<Omit<CommonUserFederatedIdentityCredentialRequest, "scopes" | "assertion" | "resourceRequestMethod" | "resourceRequestUri" | "clientAssertion">> & {
+    scopes: Array<string>;
     assertion: string;
-    clientAssertion?: ClientAssertion_2;
+    clientAssertion?: string | ClientAssertionCallback;
 } & ({
     userObjectId: string;
     username?: never;

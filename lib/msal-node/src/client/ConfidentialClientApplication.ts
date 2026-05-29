@@ -35,6 +35,7 @@ import { ClientCredentialClient } from "./ClientCredentialClient.js";
 import { OnBehalfOfClient } from "./OnBehalfOfClient.js";
 import { UserFederatedIdentityCredentialClient } from "./UserFederatedIdentityCredentialClient.js";
 import { UserFederatedIdentityCredentialRequest } from "../request/UserFederatedIdentityCredentialRequest.js";
+import { CommonUserFederatedIdentityCredentialRequest } from "../request/CommonUserFederatedIdentityCredentialRequest.js";
 import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
 
 /**
@@ -331,12 +332,32 @@ export class ConfidentialClientApplication
             );
         }
 
+        // Validate that the assertion is not empty
+        if (!request.assertion) {
+            throw createClientAuthError(
+                NodeClientAuthErrorCodes.invalidClientCredential
+            );
+        }
+
+        // If there is a client assertion present in the request, resolve it
+        let clientAssertion: ClientAssertionType | undefined;
+        if (request.clientAssertion) {
+            clientAssertion = {
+                assertion: await getClientAssertion(
+                    request.clientAssertion,
+                    this.config.auth.clientId
+                ),
+                assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE,
+            };
+        }
+
         const baseRequest = await this.initializeBaseRequest(request);
-        const validRequest: UserFederatedIdentityCredentialRequest = {
+        const validRequest: CommonUserFederatedIdentityCredentialRequest = {
             ...request,
             ...baseRequest,
             assertion: request.assertion,
-        } as UserFederatedIdentityCredentialRequest;
+            clientAssertion,
+        } as CommonUserFederatedIdentityCredentialRequest;
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenByUserFederatedIdentityCredential,
@@ -356,8 +377,9 @@ export class ConfidentialClientApplication
                 "",
                 serverTelemetryManager
             );
-            const ficClient =
-                new UserFederatedIdentityCredentialClient(clientConfig);
+            const ficClient = new UserFederatedIdentityCredentialClient(
+                clientConfig
+            );
             this.logger.verbose(
                 "UserFederatedIdentityCredential client created",
                 validRequest.correlationId

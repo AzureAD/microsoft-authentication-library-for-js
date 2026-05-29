@@ -21,7 +21,7 @@ import {
 } from "@azure/msal-common/node";
 import { ApiId } from "../utils/Constants.js";
 import { BaseClient } from "./BaseClient.js";
-import { UserFederatedIdentityCredentialRequest } from "../request/UserFederatedIdentityCredentialRequest.js";
+import { CommonUserFederatedIdentityCredentialRequest } from "../request/CommonUserFederatedIdentityCredentialRequest.js";
 
 /**
  * Client for the user_fic grant type (Leg 3 of Agent Identity).
@@ -39,7 +39,7 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
      * Developers use acquireTokenSilent for cached FIC tokens.
      */
     public async acquireToken(
-        request: UserFederatedIdentityCredentialRequest
+        request: CommonUserFederatedIdentityCredentialRequest
     ): Promise<AuthenticationResult | null> {
         return this.executeTokenRequest(request, this.authority);
     }
@@ -48,7 +48,7 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
      * Makes a network call to the token endpoint
      */
     private async executeTokenRequest(
-        request: UserFederatedIdentityCredentialRequest,
+        request: CommonUserFederatedIdentityCredentialRequest,
         authority: Authority
     ): Promise<AuthenticationResult | null> {
         const queryParametersString = this.createTokenQueryParameters(request);
@@ -110,7 +110,7 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
      * Builds the request body for the user_fic grant type
      */
     private async createTokenRequestBody(
-        request: UserFederatedIdentityCredentialRequest
+        request: CommonUserFederatedIdentityCredentialRequest
     ): Promise<string> {
         const parameters = new Map<string, string>();
 
@@ -177,7 +177,8 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
 
         // Use per-request client assertion if provided, otherwise fall back to app-level
         const clientAssertion: ClientAssertion | undefined =
-            request.clientAssertion || this.config.clientCredentials.clientAssertion;
+            request.clientAssertion ||
+            this.config.clientCredentials.clientAssertion;
 
         if (clientAssertion) {
             RequestParameterBuilder.addClientAssertion(

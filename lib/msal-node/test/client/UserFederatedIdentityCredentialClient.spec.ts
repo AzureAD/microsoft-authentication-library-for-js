@@ -17,7 +17,7 @@ import {
 import { ClientTestUtils } from "./ClientTestUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { UserFederatedIdentityCredentialClient } from "../../src/client/UserFederatedIdentityCredentialClient.js";
-import { UserFederatedIdentityCredentialRequest } from "../../src/request/UserFederatedIdentityCredentialRequest.js";
+import { CommonUserFederatedIdentityCredentialRequest } from "../../src/request/CommonUserFederatedIdentityCredentialRequest.js";
 
 describe("UserFederatedIdentityCredentialClient tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
@@ -46,7 +46,7 @@ describe("UserFederatedIdentityCredentialClient tests", () => {
         it("sends grant_type=user_fic", async () => {
             const client = new UserFederatedIdentityCredentialClient(config);
 
-            const request: UserFederatedIdentityCredentialRequest = {
+            const request: CommonUserFederatedIdentityCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -67,7 +67,7 @@ describe("UserFederatedIdentityCredentialClient tests", () => {
             const client = new UserFederatedIdentityCredentialClient(config);
             const assertionValue = "test-instance-token-assertion";
 
-            const request: UserFederatedIdentityCredentialRequest = {
+            const request: CommonUserFederatedIdentityCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -87,7 +87,7 @@ describe("UserFederatedIdentityCredentialClient tests", () => {
         it("sends client_info=1 in the request body", async () => {
             const client = new UserFederatedIdentityCredentialClient(config);
 
-            const request: UserFederatedIdentityCredentialRequest = {
+            const request: CommonUserFederatedIdentityCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -105,7 +105,7 @@ describe("UserFederatedIdentityCredentialClient tests", () => {
         it("includes client_id in request body", async () => {
             const client = new UserFederatedIdentityCredentialClient(config);
 
-            const request: UserFederatedIdentityCredentialRequest = {
+            const request: CommonUserFederatedIdentityCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -125,7 +125,7 @@ describe("UserFederatedIdentityCredentialClient tests", () => {
         it("includes client_secret when configured", async () => {
             const client = new UserFederatedIdentityCredentialClient(config);
 
-            const request: UserFederatedIdentityCredentialRequest = {
+            const request: CommonUserFederatedIdentityCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -145,7 +145,7 @@ describe("UserFederatedIdentityCredentialClient tests", () => {
         it("returns authentication result on success", async () => {
             const client = new UserFederatedIdentityCredentialClient(config);
 
-            const request: UserFederatedIdentityCredentialRequest = {
+            const request: CommonUserFederatedIdentityCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -168,7 +168,7 @@ describe("UserFederatedIdentityCredentialClient tests", () => {
             const client = new UserFederatedIdentityCredentialClient(config);
             const userObjectId = "00000000-0000-0000-0000-000000000001";
 
-            const request: UserFederatedIdentityCredentialRequest = {
+            const request: CommonUserFederatedIdentityCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -183,16 +183,14 @@ describe("UserFederatedIdentityCredentialClient tests", () => {
             expect(returnVal).toContain(
                 `${AADServerParamKeys.USER_ID}=${userObjectId}`
             );
-            expect(returnVal).not.toContain(
-                `${AADServerParamKeys.USERNAME}=`
-            );
+            expect(returnVal).not.toContain(`${AADServerParamKeys.USERNAME}=`);
         });
 
         it("includes username when username is provided", async () => {
             const client = new UserFederatedIdentityCredentialClient(config);
             const username = "testuser@contoso.com";
 
-            const request: UserFederatedIdentityCredentialRequest = {
+            const request: CommonUserFederatedIdentityCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -207,9 +205,7 @@ describe("UserFederatedIdentityCredentialClient tests", () => {
             expect(returnVal).toContain(
                 `${AADServerParamKeys.USERNAME}=${encodeURIComponent(username)}`
             );
-            expect(returnVal).not.toContain(
-                `${AADServerParamKeys.USER_ID}=`
-            );
+            expect(returnVal).not.toContain(`${AADServerParamKeys.USER_ID}=`);
         });
     });
 
@@ -217,7 +213,7 @@ describe("UserFederatedIdentityCredentialClient tests", () => {
         it("augments scopes with OIDC default scopes (openid, profile, offline_access)", async () => {
             const client = new UserFederatedIdentityCredentialClient(config);
 
-            const request: UserFederatedIdentityCredentialRequest = {
+            const request: CommonUserFederatedIdentityCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: ["User.Read"],
@@ -245,7 +241,7 @@ describe("UserFederatedIdentityCredentialClient tests", () => {
 
             const client = new UserFederatedIdentityCredentialClient(config);
 
-            const request: UserFederatedIdentityCredentialRequest = {
+            const request: CommonUserFederatedIdentityCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -265,7 +261,7 @@ describe("UserFederatedIdentityCredentialClient tests", () => {
         it("stores token in user cache with account info (from client_info response)", async () => {
             const client = new UserFederatedIdentityCredentialClient(config);
 
-            const request: UserFederatedIdentityCredentialRequest = {
+            const request: CommonUserFederatedIdentityCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -273,7 +269,9 @@ describe("UserFederatedIdentityCredentialClient tests", () => {
                 userObjectId: "test-user-object-id",
             };
 
-            const result = (await client.acquireToken(request)) as AuthenticationResult;
+            const result = (await client.acquireToken(
+                request
+            )) as AuthenticationResult;
             expect(result).not.toBeNull();
             // AUTHENTICATION_RESULT_DEFAULT_SCOPES includes client_info,
             // so account should be populated
@@ -287,10 +285,12 @@ describe("UserFederatedIdentityCredentialClient tests", () => {
 
     describe("Client assertion", () => {
         it("uses per-request clientAssertion when provided", async () => {
-            const assertionCallback = jest.fn().mockResolvedValue("per-request-assertion");
+            const assertionCallback = jest
+                .fn()
+                .mockResolvedValue("per-request-assertion");
             const client = new UserFederatedIdentityCredentialClient(config);
 
-            const request: UserFederatedIdentityCredentialRequest = {
+            const request: CommonUserFederatedIdentityCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
