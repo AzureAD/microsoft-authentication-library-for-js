@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "fix: convert CacheError to BrowserAuthError in saveCacheRecord so callers can call setCorrelationId",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -4311,7 +4311,13 @@ describe("BrowserCacheManager tests", () => {
                                     );
                                 })
                                 .catch((e) => {
-                                    expect(e).toBeInstanceOf(CacheError);
+                                    expect(e).toBeInstanceOf(BrowserAuthError);
+                                    expect(e.errorCode).toEqual(
+                                        CacheErrorCodes.cacheQuotaExceeded
+                                    );
+                                    expect(typeof e.setCorrelationId).toBe(
+                                        "function"
+                                    );
                                     measurement.end({ success: false }, e);
                                 })
                         );

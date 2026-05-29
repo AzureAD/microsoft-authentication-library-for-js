@@ -7,6 +7,7 @@ import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 import { AccountInfo } from "../../src/account/AccountInfo.js";
 import * as authorityMetadata from "../../src/authority/AuthorityMetadata.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
+import { CacheError, CacheErrorCodes } from "../../src/error/CacheError.js";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity.js";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity.js";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity.js";
@@ -332,6 +333,39 @@ describe("CacheManager.ts test cases", () => {
                     refreshTokenKey
                 );
             expect(mockCacheRT).toBe(null);
+        });
+
+        it("preserves CacheError errorCode when setAccessTokenCredential throws CacheError", async () => {
+            const at = CacheHelpers.createAccessTokenEntity(
+                TEST_ACCOUNT_INFO.homeAccountId,
+                TEST_ACCOUNT_INFO.environment,
+                TEST_TOKENS.ACCESS_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                TEST_CONFIG.MSAL_TENANT_ID,
+                "User.Read",
+                TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
+                TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
+                mockCrypto.base64Decode
+            );
+            const cacheRecord: CacheRecord = { accessToken: at };
+
+            jest.spyOn(
+                mockCache.cacheManager,
+                "setAccessTokenCredential"
+            ).mockRejectedValue(
+                new CacheError(CacheErrorCodes.cacheQuotaExceeded)
+            );
+
+            await expect(
+                mockCache.cacheManager.saveCacheRecord(
+                    cacheRecord,
+                    TEST_CONFIG.CORRELATION_ID,
+                    true,
+                    0
+                )
+            ).rejects.toMatchObject({
+                errorCode: CacheErrorCodes.cacheQuotaExceeded,
+            });
         });
     });
 

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "fix: re-throw existing CacheError without re-wrapping to preserve original errorCode",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
