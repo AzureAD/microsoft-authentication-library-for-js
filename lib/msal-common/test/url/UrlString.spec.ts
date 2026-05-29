@@ -66,6 +66,38 @@ describe("UrlString.ts Class Unit Tests", () => {
         expect(() => urlObj.validateAsUri()).not.toThrow();
     });
 
+    describe("correlationId propagation", () => {
+        const correlationId = "url-string-corr-id";
+
+        it("constructor propagates correlationId on empty url error", () => {
+            try {
+                new UrlString("", correlationId);
+                throw new Error("Expected UrlString constructor to throw");
+            } catch (err) {
+                expect(err).toBeInstanceOf(ClientConfigurationError);
+                expect((err as ClientConfigurationError).correlationId).toBe(
+                    correlationId
+                );
+            }
+        });
+
+        it("validateAsUri propagates correlationId on insecure uri error", () => {
+            const urlObj = new UrlString(
+                "http://login.microsoft.com/common",
+                correlationId
+            );
+            try {
+                urlObj.validateAsUri();
+                throw new Error("Expected validateAsUri to throw");
+            } catch (err) {
+                expect(err).toBeInstanceOf(ClientConfigurationError);
+                expect((err as ClientConfigurationError).correlationId).toBe(
+                    correlationId
+                );
+            }
+        });
+    });
+
     it("appendQueryString appends the provided query string", () => {
         const baseUrl = "https://localhost/";
         const queryString = "param1=value1&param2=value2";

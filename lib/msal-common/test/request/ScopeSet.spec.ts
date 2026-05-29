@@ -115,6 +115,34 @@ describe("ScopeSet.ts", () => {
         });
     });
 
+    describe("correlationId propagation", () => {
+        const correlationId = "scope-set-corr-id";
+
+        it("ScopeSet constructor propagates correlationId on empty scopes error", () => {
+            try {
+                new ScopeSet([], correlationId);
+                throw new Error("Expected ScopeSet constructor to throw");
+            } catch (err) {
+                expect(err).toBeInstanceOf(ClientConfigurationError);
+                expect((err as ClientConfigurationError).correlationId).toBe(
+                    correlationId
+                );
+            }
+        });
+
+        it("ScopeSet.fromString propagates correlationId on empty scopes error", () => {
+            try {
+                ScopeSet.fromString("", correlationId);
+                throw new Error("Expected ScopeSet.fromString to throw");
+            } catch (err) {
+                expect(err).toBeInstanceOf(ClientConfigurationError);
+                expect((err as ClientConfigurationError).correlationId).toBe(
+                    correlationId
+                );
+            }
+        });
+    });
+
     describe("Set functions", () => {
         let scopes: ScopeSet;
         let testScope: string;

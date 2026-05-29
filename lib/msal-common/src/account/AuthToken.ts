@@ -19,7 +19,7 @@ export function extractTokenClaims(
     base64Decode: (input: string) => string,
     correlationId: string
 ): TokenClaims {
-    const jswPayload = getJWSPayload(encodedToken);
+    const jswPayload = getJWSPayload(encodedToken, correlationId);
 
     // token will be decoded to get the username
     try {
@@ -58,14 +58,14 @@ export function isKmsi(idTokenClaims: TokenClaims): boolean {
  *
  * @param authToken
  */
-export function getJWSPayload(authToken: string): string {
+export function getJWSPayload(authToken: string, correlationId: string): string {
     if (!authToken) {
-        throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "");
+        throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, correlationId);
     }
     const tokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
     const matches = tokenPartsRegex.exec(authToken);
     if (!matches || matches.length < 4) {
-        throw createClientAuthError(ClientAuthErrorCodes.tokenParsingError, "");
+        throw createClientAuthError(ClientAuthErrorCodes.tokenParsingError, correlationId);
     }
     /**
      * const crackedToken = {
