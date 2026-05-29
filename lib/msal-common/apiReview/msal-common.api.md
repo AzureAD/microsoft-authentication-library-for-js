@@ -4738,8 +4738,8 @@ export { UrlUtils }
 // @public (undocumented)
 const userCanceled = "user_canceled";
 
-// Warning: (ae-unresolved-link) The @link reference could not be resolved: The package "@azure/msal-common" does not have an export "uiNotAllowed"
-// Warning: (ae-unresolved-link) The @link reference could not be resolved: The package "@azure/msal-common" does not have an export "uiNotAllowed"
+// Warning: (ae-unresolved-link) The @link reference could not be resolved: This type of declaration is not supported yet by the resolver
+// Warning: (ae-unresolved-link) The @link reference could not be resolved: This type of declaration is not supported yet by the resolver
 //
 // @public @deprecated
 const uxNotAllowed = "ux_not_allowed";
