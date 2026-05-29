@@ -361,7 +361,7 @@ export function getCurrentUri(): string {
  * Gets the homepage url for the current window location.
  */
 export function getHomepage(): string {
-    const currentUrl = new UrlString(window.location.href);
+    const currentUrl = new UrlString(window.location.href, "");
     const urlComponents = currentUrl.getUrlComponents();
     return `${urlComponents.Protocol}//${urlComponents.HostNameAndPort}/`;
 }

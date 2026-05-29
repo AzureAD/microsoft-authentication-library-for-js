@@ -1116,7 +1116,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             );
         }
 
-        const canonicalAuthority = new UrlString(requestAuthority);
+        const canonicalAuthority = new UrlString(requestAuthority, this.correlationId);
         canonicalAuthority.validateAsUri();
         return canonicalAuthority;
     }

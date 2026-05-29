@@ -41,7 +41,8 @@ export async function createDiscoveredInstance(
     performanceClient: IPerformanceClient
 ): Promise<Authority> {
     const authorityUriFinal = Authority.transformCIAMAuthority(
-        formatAuthorityUri(authorityUri)
+        formatAuthorityUri(authorityUri),
+        correlationId
     );
 
     // Initialize authority and perform discovery endpoint check.

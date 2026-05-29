@@ -410,7 +410,7 @@ export abstract class BaseManagedIdentitySource {
         logger: Logger
     ): string => {
         try {
-            return new UrlString(envVariable).urlString;
+            return new UrlString(envVariable, "").urlString;
         } catch (error) {
             logger.info(
                 `[Managed Identity] ${sourceName} managed identity is unavailable because the '${envVariableStringName}' environment variable is malformed.`,

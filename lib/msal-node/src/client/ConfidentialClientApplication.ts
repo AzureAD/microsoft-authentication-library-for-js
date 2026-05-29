@@ -178,7 +178,7 @@ export class ConfidentialClientApplication
          * valid request should not have "common" or "organizations" in lieu of the tenant_id in the authority in the auth configuration
          * example authority: "https://login.microsoftonline.com/TenantId",
          */
-        const authority = new UrlString(validRequest.authority);
+        const authority = new UrlString(validRequest.authority, validRequest.correlationId);
         const tenantId = authority.getUrlComponents().PathSegments[0];
         if (
             Object.values(Constants.AADAuthority).includes(

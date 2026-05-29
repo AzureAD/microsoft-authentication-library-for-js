@@ -749,7 +749,8 @@ export class PopupClient extends StandardInteractionClient {
                         };
                         const absoluteUrl = UrlString.getAbsoluteUrl(
                             mainWindowRedirectUri,
-                            BrowserUtils.getCurrentUri()
+                            BrowserUtils.getCurrentUri(),
+                            this.correlationId
                         );
                         await this.navigationClient.navigateInternal(
                             absoluteUrl,
@@ -811,7 +812,8 @@ export class PopupClient extends StandardInteractionClient {
                 };
                 const absoluteUrl = UrlString.getAbsoluteUrl(
                     mainWindowRedirectUri,
-                    BrowserUtils.getCurrentUri()
+                    BrowserUtils.getCurrentUri(),
+                    this.correlationId
                 );
 
                 this.logger.verbose(

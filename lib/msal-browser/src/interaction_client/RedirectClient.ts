@@ -967,7 +967,8 @@ export class RedirectClient extends StandardInteractionClient {
         const redirectStartPage = requestStartPage || window.location.href;
         return UrlString.getAbsoluteUrl(
             redirectStartPage,
-            BrowserUtils.getCurrentUri()
+            BrowserUtils.getCurrentUri(),
+            this.correlationId
         );
     }
 }

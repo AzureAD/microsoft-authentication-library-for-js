@@ -115,7 +115,7 @@ export class SilentFlowClient {
 
         const requestTenantId =
             request.account.tenantId ||
-            getTenantFromAuthorityString(request.authority);
+            getTenantFromAuthorityString(request.authority, request.correlationId);
         const tokenKeys = this.cacheManager.getTokenKeys();
         const cachedAccessToken = this.cacheManager.getAccessToken(
             request.account,

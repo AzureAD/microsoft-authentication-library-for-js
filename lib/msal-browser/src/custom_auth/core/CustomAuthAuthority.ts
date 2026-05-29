@@ -38,7 +38,7 @@ export class CustomAuthAuthority extends Authority {
         private customAuthProxyDomain?: string
     ) {
         const ciamAuthorityUrl =
-            CustomAuthAuthority.transformCIAMAuthority(authority);
+            CustomAuthAuthority.transformCIAMAuthority(authority, "");
 
         const authorityOptions: AuthorityOptions = {
             protocolMode: config.system.protocolMode,

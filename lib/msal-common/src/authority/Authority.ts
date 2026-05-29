@@ -180,7 +180,7 @@ export class Authority {
      * Sets canonical authority.
      */
     public set canonicalAuthority(url: string) {
-        this._canonicalAuthority = new UrlString(url);
+        this._canonicalAuthority = new UrlString(url, this.correlationId);
         this._canonicalAuthority.validateAsUri();
         this._canonicalAuthorityUrlComponents = null;
     }
@@ -311,7 +311,8 @@ export class Authority {
     private replacePath(urlString: string): string {
         let endpoint = urlString;
         const cachedAuthorityUrl = new UrlString(
-            this.metadata.canonical_authority
+            this.metadata.canonical_authority,
+            this.correlationId
         );
         const cachedAuthorityUrlComponents =
             cachedAuthorityUrl.getUrlComponents();
@@ -326,7 +327,8 @@ export class Authority {
                 this.canReplaceTenant(cachedAuthorityUrlComponents)
             ) {
                 const tenantId = new UrlString(
-                    this.metadata.authorization_endpoint
+                    this.metadata.authorization_endpoint,
+                    this.correlationId
                 ).getUrlComponents().PathSegments[0];
                 /**
                  * Check if AAD canonical authority contains tenant domain name, for example "testdomain.onmicrosoft.com",
@@ -646,7 +648,8 @@ export class Authority {
         metadataEntity: AuthorityMetadataEntity
     ): boolean {
         const cachedAuthorityUrl = new UrlString(
-            metadataEntity.canonical_authority
+            metadataEntity.canonical_authority,
+            this.correlationId
         );
         const cachedParts = cachedAuthorityUrl.getUrlComponents().PathSegments;
 
@@ -750,7 +753,8 @@ export class Authority {
                     userConfiguredAzureRegion;
                 return Authority.replaceWithRegionalInformation(
                     metadata,
-                    userConfiguredAzureRegion
+                    userConfiguredAzureRegion,
+                    this.correlationId
                 );
             }
 
@@ -773,7 +777,8 @@ export class Authority {
                     autodetectedRegionName;
                 return Authority.replaceWithRegionalInformation(
                     metadata,
-                    autodetectedRegionName
+                    autodetectedRegionName,
+                    this.correlationId
                 );
             }
 
@@ -1101,7 +1106,7 @@ export class Authority {
             (authority) => {
                 return (
                     authority &&
-                    UrlString.getDomainFromUrl(authority).toLowerCase() ===
+                    UrlString.getDomainFromUrl(authority, this.correlationId).toLowerCase() ===
                         normalizedHost
                 );
             }
@@ -1389,10 +1394,11 @@ export class Authority {
     static buildRegionalAuthorityString(
         host: string,
         region: string,
+        correlationId: string,
         queryString?: string
     ): string {
         // Create and validate a Url string object with the initial authority string
-        const authorityUrlInstance = new UrlString(host);
+        const authorityUrlInstance = new UrlString(host, correlationId);
         authorityUrlInstance.validateAsUri();
 
         const authorityUrlParts = authorityUrlInstance.getUrlComponents();
@@ -1407,7 +1413,7 @@ export class Authority {
         const url = UrlString.constructAuthorityUriFromObject({
             ...authorityUrlInstance.getUrlComponents(),
             HostNameAndPort: hostNameAndPort,
-        }).urlString;
+        }, correlationId).urlString;
 
         // Add the query string if a query string was provided
         if (queryString) return `${url}?${queryString}`;
@@ -1423,26 +1429,30 @@ export class Authority {
      */
     static replaceWithRegionalInformation(
         metadata: OpenIdConfigResponse,
-        azureRegion: string
+        azureRegion: string,
+        correlationId: string
     ): OpenIdConfigResponse {
         const regionalMetadata = { ...metadata };
         regionalMetadata.authorization_endpoint =
             Authority.buildRegionalAuthorityString(
                 regionalMetadata.authorization_endpoint,
-                azureRegion
+                azureRegion,
+                correlationId
             );
 
         regionalMetadata.token_endpoint =
             Authority.buildRegionalAuthorityString(
                 regionalMetadata.token_endpoint,
-                azureRegion
+                azureRegion,
+                correlationId
             );
 
         if (regionalMetadata.end_session_endpoint) {
             regionalMetadata.end_session_endpoint =
                 Authority.buildRegionalAuthorityString(
                     regionalMetadata.end_session_endpoint,
-                    azureRegion
+                    azureRegion,
+                    correlationId
                 );
         }
 
@@ -1458,9 +1468,9 @@ export class Authority {
      *
      * @param authority
      */
-    static transformCIAMAuthority(authority: string): string {
+    static transformCIAMAuthority(authority: string, correlationId: string): string {
         let ciamAuthority = authority;
-        const authorityUrl = new UrlString(authority);
+        const authorityUrl = new UrlString(authority, correlationId);
         const authorityUrlComponents = authorityUrl.getUrlComponents();
 
         // check if transformation is needed
@@ -1483,9 +1493,10 @@ export class Authority {
  * Extract tenantId from authority
  */
 export function getTenantFromAuthorityString(
-    authority: string
+    authority: string,
+    correlationId: string
 ): string | undefined {
-    const authorityUrl = new UrlString(authority);
+    const authorityUrl = new UrlString(authority, correlationId);
     const authorityUrlComponents = authorityUrl.getUrlComponents();
     /**
      * For credential matching purposes, tenantId is the last path segment of the authority URL:
