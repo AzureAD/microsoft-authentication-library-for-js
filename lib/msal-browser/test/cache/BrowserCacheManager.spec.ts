@@ -1214,7 +1214,8 @@ describe("BrowserCacheManager tests", () => {
         describe("updateOldEntry", () => {
             it("should add lastUpdatedAt to v0 entries that don't have it", async () => {
                 const v0Key = "test-v0-key";
-                const v0Value = { someProperty: "value" };
+                const { lastUpdatedAt, ...v0Value } =
+                    TEST_ACCESS_TOKEN_ENTITY;
                 window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
 
                 await browserCacheManager.updateOldEntry(
@@ -1326,6 +1327,165 @@ describe("BrowserCacheManager tests", () => {
                         TEST_CONFIG.CORRELATION_ID
                     )
                 ).toBeNull();
+            });
+
+            it("should remove invalid entries from storage", async () => {
+                const v0Key = "test-invalid-entry";
+                const invalidValue = {
+                    someProperty: "value",
+                    lastUpdatedAt: Date.now().toString(),
+                };
+                window.localStorage.setItem(
+                    v0Key,
+                    JSON.stringify(invalidValue)
+                );
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                const result = await browserCacheManager.updateOldEntry(
+                    v0Key,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(result).toBeNull();
+                expect(window.localStorage.getItem(v0Key)).toBeNull();
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { invalidCacheCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            });
+
+            it("should remove encrypted entries with mismatched encryption key from storage", async () => {
+                const v0Key = "test-encrypted-mismatch";
+                const encryptedValue = {
+                    id: "different-encryption-id",
+                    nonce: "test-nonce",
+                    data: "encrypted-data",
+                    lastUpdatedAt: Date.now().toString(),
+                };
+                window.localStorage.setItem(
+                    v0Key,
+                    JSON.stringify(encryptedValue)
+                );
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+                const result = await browserCacheManager.updateOldEntry(
+                    v0Key,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(result).toBeNull();
+                expect(window.localStorage.getItem(v0Key)).toBeNull();
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { invalidCacheCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            });
+        });
+
+        describe("removeStaleAccounts", () => {
+            it("should remove encrypted accounts with mismatched encryption key", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Setup an old-schema account with a mismatched encryption key
+                const accountKey = `${TEST_ACCOUNT_ENTITY.homeAccountId}-${TEST_ACCOUNT_ENTITY.environment}-${TEST_ACCOUNT_ENTITY.realm}`;
+                const encryptedAccount = {
+                    id: "different-encryption-id",
+                    nonce: "test-nonce",
+                    data: "encrypted-data",
+                    lastUpdatedAt: Date.now().toString(),
+                };
+                window.localStorage.setItem(
+                    accountKey,
+                    JSON.stringify(encryptedAccount)
+                );
+                // Register the key in v0 account keys
+                window.localStorage.setItem(
+                    "msal.account.keys",
+                    JSON.stringify([accountKey])
+                );
+
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                await browserCacheManager.removeStaleAccounts(
+                    0,
+                    0,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Account should be removed from storage
+                expect(window.localStorage.getItem(accountKey)).toBeNull();
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { oldAcntCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { expiredAcntRemovedCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            });
+
+            it("should not remove encrypted accounts with valid encryption key", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Save account using the current encryption key
+                const accountKey = `${TEST_ACCOUNT_ENTITY.homeAccountId}-${TEST_ACCOUNT_ENTITY.environment}-${TEST_ACCOUNT_ENTITY.realm}`;
+                await browserCacheManager.setUserData(
+                    accountKey,
+                    JSON.stringify(TEST_ACCOUNT_ENTITY),
+                    TEST_CONFIG.CORRELATION_ID,
+                    Date.now().toString(),
+                    false
+                );
+
+                // Register the key in v0 account keys
+                window.localStorage.setItem(
+                    "msal.account.keys",
+                    JSON.stringify([accountKey])
+                );
+
+                await browserCacheManager.removeStaleAccounts(
+                    0,
+                    0,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Account should still be in storage
+                expect(
+                    window.localStorage.getItem(accountKey)
+                ).not.toBeNull();
+            });
+
+            it("should remove unparseable account entries from storage", async () => {
+                const accountKey = "bad-account-key";
+                window.localStorage.setItem(accountKey, "not-valid-json{{{");
+                window.localStorage.setItem(
+                    "msal.account.keys",
+                    JSON.stringify([accountKey])
+                );
+
+                await browserCacheManager.removeStaleAccounts(
+                    0,
+                    0,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(window.localStorage.getItem(accountKey)).toBeNull();
             });
         });
 
