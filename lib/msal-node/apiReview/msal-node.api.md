@@ -140,15 +140,20 @@ export { ClientConfigurationError }
 
 export { ClientConfigurationErrorCodes }
 
+// Warning: (ae-forgotten-export) The symbol "CommonClientCredentialRequest" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest, "resourceRequestMethod" | "resourceRequestUri" | "clientAssertion" | "storeInCache">> & {
     clientAssertion?: string | ClientAssertionCallback;
 };
 
+// Warning: (ae-forgotten-export) The symbol "ClientApplication" needs to be exported by the entry point index.d.ts
+//
 // @public
 export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication {
     constructor(configuration: Configuration);
     acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByUserFederatedIdentityCredential(request: UserFederatedIdentityCredentialRequest): Promise<AuthenticationResult | null>;
     acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null>;
     SetAppTokenProvider(provider: IAppTokenProvider): void;
 }
@@ -189,6 +194,8 @@ class Deserializer {
     static deserializeRefreshTokens(refreshTokens: Record<string, SerializedRefreshTokenEntity>): RefreshTokenCache;
 }
 
+// Warning: (ae-forgotten-export) The symbol "CommonDeviceCodeRequest" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes" | "deviceCodeCallback" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
     scopes: Array<string>;
@@ -402,12 +409,16 @@ export type NodeTelemetryOptions = {
     application?: ApplicationTelemetry;
 };
 
+// Warning: (ae-forgotten-export) The symbol "CommonOnBehalfOfRequest" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion" | "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
     oboAssertion: string;
     scopes: Array<string>;
 };
 
+// Warning: (ae-missing-release-tag) "PromptValue" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
 // @public (undocumented)
 export const PromptValue: {
     LOGIN: string;
@@ -439,6 +450,8 @@ export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scope
     forceCache?: boolean;
 };
 
+// Warning: (ae-missing-release-tag) "ResponseMode" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
 // @public (undocumented)
 export const ResponseMode: {
     readonly QUERY: "query";
@@ -536,6 +549,7 @@ export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" 
 
 // @public
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
+    // Warning: (ae-forgotten-export) The symbol "NodeStorage" needs to be exported by the entry point index.d.ts
     constructor(storage: NodeStorage, logger: Logger, cachePlugin?: ICachePlugin);
     deserialize(cache: string): void;
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
@@ -554,6 +568,20 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
 export { TokenCacheContext }
 
 // @public
+export type UserFederatedIdentityCredentialRequest = Omit<BaseAuthRequest, "extraQueryParameters" | "extraParameters"> & {
+    assertion: string;
+    clientAssertion?: ClientAssertion_2;
+} & ({
+    userObjectId: string;
+    username?: never;
+} | {
+    username: string;
+    userObjectId?: never;
+});
+
+// Warning: (ae-forgotten-export) The symbol "CommonUsernamePasswordRequest" needs to be exported by the entry point index.d.ts
+//
+// @public
 export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "username" | "password" | "storeInCache">> & {
     scopes: Array<string>;
     username: string;
@@ -562,7 +590,14 @@ export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest
 
 export { ValidCacheType }
 
+// Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
 // @public (undocumented)
-export const version = "5.2.4";
+export const version = "5.2.3";
+
+// Warnings were encountered during analysis:
+//
+// src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
+// src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
 
 ```
