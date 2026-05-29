@@ -38,7 +38,10 @@ export class ScopeSet {
 
         // Check if scopes array has at least one member
         if (!filteredInput || !filteredInput.length) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.emptyInputScopesError, "");
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.emptyInputScopesError,
+                ""
+            );
         }
 
         this.scopes = new Set<string>(); // Iterator in constructor not supported by IE11
@@ -139,7 +142,10 @@ export class ScopeSet {
         try {
             newScopes.forEach((newScope) => this.appendScope(newScope));
         } catch (e) {
-            throw createClientAuthError(ClientAuthErrorCodes.cannotAppendScopeSet, "");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.cannotAppendScopeSet,
+                ""
+            );
         }
     }
 
@@ -149,7 +155,10 @@ export class ScopeSet {
      */
     removeScope(scope: string): void {
         if (!scope) {
-            throw createClientAuthError(ClientAuthErrorCodes.cannotRemoveEmptyScope, "");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.cannotRemoveEmptyScope,
+                ""
+            );
         }
         this.scopes.delete(scope.trim());
     }
@@ -170,7 +179,10 @@ export class ScopeSet {
      */
     unionScopeSets(otherScopes: ScopeSet): Set<string> {
         if (!otherScopes) {
-            throw createClientAuthError(ClientAuthErrorCodes.emptyInputScopeSet, "");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.emptyInputScopeSet,
+                ""
+            );
         }
         const unionScopes = new Set<string>(); // Iterator in constructor not supported in IE11
         otherScopes.scopes.forEach((scope) =>
@@ -186,7 +198,10 @@ export class ScopeSet {
      */
     intersectingScopeSets(otherScopes: ScopeSet): boolean {
         if (!otherScopes) {
-            throw createClientAuthError(ClientAuthErrorCodes.emptyInputScopeSet, "");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.emptyInputScopeSet,
+                ""
+            );
         }
 
         // Do not allow OIDC scopes to be the only intersecting scopes

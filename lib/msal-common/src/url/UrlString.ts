@@ -25,7 +25,10 @@ export class UrlString {
         this._urlString = url;
         if (!this._urlString) {
             // Throws error if url is empty
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.urlEmptyError, "");
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlEmptyError,
+                ""
+            );
         }
 
         if (!url.includes("#")) {
@@ -66,12 +69,18 @@ export class UrlString {
         try {
             components = this.getUrlComponents();
         } catch (e) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.urlParseError, "");
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError,
+                ""
+            );
         }
 
         // Throw error if URI or path segments are not parseable.
         if (!components.HostNameAndPort || !components.PathSegments) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.urlParseError, "");
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError,
+                ""
+            );
         }
 
         // Throw error if uri is insecure.
@@ -79,7 +88,10 @@ export class UrlString {
             !components.Protocol ||
             components.Protocol.toLowerCase() !== "https:"
         ) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.authorityUriInsecure, "");
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.authorityUriInsecure,
+                ""
+            );
         }
     }
 
@@ -138,7 +150,10 @@ export class UrlString {
         // If url string does not match regEx, we throw an error
         const match = this.urlString.match(regEx);
         if (!match) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.urlParseError, "");
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError,
+                ""
+            );
         }
 
         // Url component object
@@ -171,7 +186,10 @@ export class UrlString {
         const match = url.match(regEx);
 
         if (!match) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.urlParseError, "");
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError,
+                ""
+            );
         }
 
         return match[2];

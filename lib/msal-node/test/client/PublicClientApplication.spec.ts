@@ -399,7 +399,10 @@ describe("PublicClientApplication", () => {
                 account: mockNativeAccountInfo,
             };
 
-            const testError = new InteractionRequiredAuthError("interaction_required", "");
+            const testError = new InteractionRequiredAuthError(
+                "interaction_required",
+                ""
+            );
             const brokerSpy = jest
                 .spyOn(MockNativeBrokerPlugin.prototype, "acquireTokenSilent")
                 .mockImplementation(() => {
@@ -951,7 +954,10 @@ describe("PublicClientApplication", () => {
                 openBrowser,
             };
 
-            const testError = createClientAuthError(ClientAuthErrorCodes.userCanceled, "");
+            const testError = createClientAuthError(
+                ClientAuthErrorCodes.userCanceled,
+                ""
+            );
             const brokerSpy = jest
                 .spyOn(
                     MockNativeBrokerPlugin.prototype,
@@ -1250,7 +1256,10 @@ describe("PublicClientApplication", () => {
             const request: SignOutRequest = {
                 account: mockNativeAccountInfo,
             };
-            const testError = createClientAuthError(ClientAuthErrorCodes.noAccountFound, "");
+            const testError = createClientAuthError(
+                ClientAuthErrorCodes.noAccountFound,
+                ""
+            );
             const brokerSpy = jest
                 .spyOn(MockNativeBrokerPlugin.prototype, "signOut")
                 .mockImplementation(() => {
@@ -1318,7 +1327,10 @@ describe("PublicClientApplication", () => {
                 },
             });
 
-            const testError = createClientAuthError(ClientAuthErrorCodes.noAccountFound, "");
+            const testError = createClientAuthError(
+                ClientAuthErrorCodes.noAccountFound,
+                ""
+            );
             const brokerSpy = jest
                 .spyOn(MockNativeBrokerPlugin.prototype, "getAllAccounts")
                 .mockImplementation(() => {

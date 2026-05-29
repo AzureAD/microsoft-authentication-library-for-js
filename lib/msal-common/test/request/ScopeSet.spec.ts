@@ -18,11 +18,17 @@ describe("ScopeSet.ts", () => {
         it("Throws error if scopes are null or empty and required", () => {
             // @ts-ignore
             expect(() => new ScopeSet(null)).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.emptyInputScopesError, "")
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.emptyInputScopesError,
+                    ""
+                )
             );
 
             expect(() => new ScopeSet([])).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.emptyInputScopesError, "")
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.emptyInputScopesError,
+                    ""
+                )
             );
         });
 
@@ -66,17 +72,26 @@ describe("ScopeSet.ts", () => {
     describe("fromString Constructor", () => {
         it("Throws error if scopeString is empty, null or undefined if scopes are required", () => {
             expect(() => ScopeSet.fromString("")).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.emptyInputScopesError, "")
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.emptyInputScopesError,
+                    ""
+                )
             );
 
             // @ts-ignore
             expect(() => ScopeSet.fromString(null)).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.emptyInputScopesError, "")
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.emptyInputScopesError,
+                    ""
+                )
             );
 
             // @ts-ignore
             expect(() => ScopeSet.fromString(undefined)).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.emptyInputScopesError, "")
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.emptyInputScopesError,
+                    ""
+                )
             );
         });
 
@@ -194,12 +209,18 @@ describe("ScopeSet.ts", () => {
         it("appendScopes() throws error if given array is null or undefined", () => {
             // @ts-ignore
             expect(() => scopes.appendScopes(null)).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.cannotAppendScopeSet, "")
+                new ClientAuthError(
+                    ClientAuthErrorCodes.cannotAppendScopeSet,
+                    ""
+                )
             );
 
             // @ts-ignore
             expect(() => scopes.appendScopes(undefined)).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.cannotAppendScopeSet, "")
+                new ClientAuthError(
+                    ClientAuthErrorCodes.cannotAppendScopeSet,
+                    ""
+                )
             );
         });
 
@@ -251,16 +272,25 @@ describe("ScopeSet.ts", () => {
         it("removeScopes() throws error if scope is null, undefined or empty", () => {
             // @ts-ignore
             expect(() => scopes.removeScope(null)).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.cannotRemoveEmptyScope, "")
+                new ClientAuthError(
+                    ClientAuthErrorCodes.cannotRemoveEmptyScope,
+                    ""
+                )
             );
 
             // @ts-ignore
             expect(() => scopes.removeScope(undefined)).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.cannotRemoveEmptyScope, "")
+                new ClientAuthError(
+                    ClientAuthErrorCodes.cannotRemoveEmptyScope,
+                    ""
+                )
             );
 
             expect(() => scopes.removeScope("")).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.cannotRemoveEmptyScope, "")
+                new ClientAuthError(
+                    ClientAuthErrorCodes.cannotRemoveEmptyScope,
+                    ""
+                )
             );
         });
 

@@ -1049,7 +1049,10 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     resource: "",
                 })
             ).rejects.toMatchObject(
-                createClientConfigurationError(ClientConfigurationErrorCodes.urlEmptyError, "")
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.urlEmptyError,
+                    ""
+                )
             );
         });
 
@@ -1068,7 +1071,10 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             expect(() => {
                 new ManagedIdentityApplication(badUserAssignedClientIdConfig);
             }).toThrow(
-                createManagedIdentityError(ManagedIdentityErrorCodes.invalidManagedIdentityIdType, "")
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType,
+                    ""
+                )
             );
         });
 

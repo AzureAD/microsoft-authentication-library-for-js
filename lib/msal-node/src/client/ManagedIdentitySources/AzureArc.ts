@@ -226,7 +226,10 @@ export class AzureArc extends BaseManagedIdentitySource {
         if (
             managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
         ) {
-            throw createManagedIdentityError(ManagedIdentityErrorCodes.unableToCreateAzureArc, "");
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.unableToCreateAzureArc,
+                ""
+            );
         }
 
         return new AzureArc(
@@ -307,10 +310,16 @@ export class AzureArc extends BaseManagedIdentitySource {
             const wwwAuthHeader: string =
                 originalResponse.headers["www-authenticate"];
             if (!wwwAuthHeader) {
-                throw createManagedIdentityError(ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing, "");
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing,
+                    ""
+                );
             }
             if (!wwwAuthHeader.includes("Basic realm=")) {
-                throw createManagedIdentityError(ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat, "");
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat,
+                    ""
+                );
             }
 
             const secretFilePath = wwwAuthHeader.split("Basic realm=")[1];
@@ -319,7 +328,10 @@ export class AzureArc extends BaseManagedIdentitySource {
             if (
                 !SUPPORTED_AZURE_ARC_PLATFORMS.hasOwnProperty(process.platform)
             ) {
-                throw createManagedIdentityError(ManagedIdentityErrorCodes.platformNotSupported, "");
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.platformNotSupported,
+                    ""
+                );
             }
 
             // get the expected Windows or Linux file path
@@ -331,7 +343,10 @@ export class AzureArc extends BaseManagedIdentitySource {
             // throw an error if the file in the file path is not a .key file
             const fileName: string = path.basename(secretFilePath);
             if (!fileName.endsWith(".key")) {
-                throw createManagedIdentityError(ManagedIdentityErrorCodes.invalidFileExtension, "");
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidFileExtension,
+                    ""
+                );
             }
 
             /*
@@ -340,7 +355,10 @@ export class AzureArc extends BaseManagedIdentitySource {
              * is running on
              */
             if (expectedSecretFilePath + fileName !== secretFilePath) {
-                throw createManagedIdentityError(ManagedIdentityErrorCodes.invalidFilePath, "");
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidFilePath,
+                    ""
+                );
             }
 
             let secretFileSize;
@@ -348,11 +366,17 @@ export class AzureArc extends BaseManagedIdentitySource {
             try {
                 secretFileSize = await statSync(secretFilePath).size;
             } catch (e) {
-                throw createManagedIdentityError(ManagedIdentityErrorCodes.unableToReadSecretFile, "");
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.unableToReadSecretFile,
+                    ""
+                );
             }
             // throw an error if the secret file's size is greater than 4096 bytes
             if (secretFileSize > AZURE_ARC_SECRET_FILE_MAX_SIZE_BYTES) {
-                throw createManagedIdentityError(ManagedIdentityErrorCodes.invalidSecret, "");
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidSecret,
+                    ""
+                );
             }
 
             // attempt to read the contents of the secret file
@@ -363,7 +387,10 @@ export class AzureArc extends BaseManagedIdentitySource {
                     Constants.EncodingTypes.UTF8
                 );
             } catch (e) {
-                throw createManagedIdentityError(ManagedIdentityErrorCodes.unableToReadSecretFile, "");
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.unableToReadSecretFile,
+                    ""
+                );
             }
             const authHeaderValue = `Basic ${secret}`;
 
@@ -385,7 +412,10 @@ export class AzureArc extends BaseManagedIdentitySource {
                 if (error instanceof AuthError) {
                     throw error;
                 } else {
-                    throw createClientAuthError(ClientAuthErrorCodes.networkError, "");
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.networkError,
+                        ""
+                    );
                 }
             }
         }

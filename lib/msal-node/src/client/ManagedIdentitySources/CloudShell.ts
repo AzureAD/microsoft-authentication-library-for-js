@@ -132,7 +132,10 @@ export class CloudShell extends BaseManagedIdentitySource {
         if (
             managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
         ) {
-            throw createManagedIdentityError(ManagedIdentityErrorCodes.unableToCreateCloudShell, "");
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.unableToCreateCloudShell,
+                ""
+            );
         }
 
         return new CloudShell(

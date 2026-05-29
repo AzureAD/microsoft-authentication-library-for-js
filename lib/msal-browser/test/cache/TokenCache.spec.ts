@@ -332,7 +332,10 @@ describe("TokenCache tests", () => {
             loadExternalTokens(configuration, request, response, options).catch(
                 (e) => {
                     expect(e).toEqual(
-                        createBrowserAuthError(BrowserAuthErrorCodes.unableToLoadToken, "")
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.unableToLoadToken,
+                            ""
+                        )
                     );
                     done();
                 }

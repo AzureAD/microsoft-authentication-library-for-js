@@ -72,7 +72,9 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
     ): Promise<AuthenticationResult> {
         // Auth code payload is required
         if (!request.code) {
-            throw createBrowserAuthError(BrowserAuthErrorCodes.authCodeRequired, this.correlationId
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.authCodeRequired,
+                this.correlationId
             );
         }
 
@@ -178,7 +180,10 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
     logout(): Promise<void> {
         // Synchronous so we must reject
         return Promise.reject(
-            createBrowserAuthError(BrowserAuthErrorCodes.silentLogoutUnsupported, "")
+            createBrowserAuthError(
+                BrowserAuthErrorCodes.silentLogoutUnsupported,
+                ""
+            )
         );
     }
 }

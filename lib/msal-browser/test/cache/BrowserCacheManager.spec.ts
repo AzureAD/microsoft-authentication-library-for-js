@@ -4625,7 +4625,10 @@ describe("BrowserCacheManager tests", () => {
             expect(() =>
                 browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID)
             ).toThrow(
-                new BrowserAuthError(BrowserAuthErrorCodes.noTokenRequestCacheError, "")
+                new BrowserAuthError(
+                    BrowserAuthErrorCodes.noTokenRequestCacheError,
+                    ""
+                )
             );
         });
 
@@ -4662,7 +4665,10 @@ describe("BrowserCacheManager tests", () => {
             expect(() =>
                 browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID)
             ).toThrow(
-                new BrowserAuthError(BrowserAuthErrorCodes.unableToParseTokenRequestCacheError, "")
+                new BrowserAuthError(
+                    BrowserAuthErrorCodes.unableToParseTokenRequestCacheError,
+                    ""
+                )
             );
         });
     });

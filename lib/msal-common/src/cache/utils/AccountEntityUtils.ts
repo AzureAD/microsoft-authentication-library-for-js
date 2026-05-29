@@ -125,7 +125,10 @@ export function createAccountEntity(
         (authority && authority.getPreferredCache());
 
     if (!env) {
-        throw createClientAuthError(ClientAuthErrorCodes.invalidCacheEnvironment, "");
+        throw createClientAuthError(
+            ClientAuthErrorCodes.invalidCacheEnvironment,
+            ""
+        );
     }
 
     /*

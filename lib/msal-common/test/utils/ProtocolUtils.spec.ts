@@ -34,7 +34,12 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     });
 
     it("setRequestState() only creates library state", () => {
-        const requestState = ProtocolUtils.setRequestState(cryptoInterface, "", undefined, "");
+        const requestState = ProtocolUtils.setRequestState(
+            cryptoInterface,
+            "",
+            undefined,
+            ""
+        );
         expect(requestState).toBe(encodedLibState);
     });
 
@@ -47,7 +52,11 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
 
     it("parseRequestState() throws error if given state is null or empty", () => {
         expect(() =>
-            ProtocolUtils.parseRequestState(cryptoInterface.base64Decode, "", "")
+            ProtocolUtils.parseRequestState(
+                cryptoInterface.base64Decode,
+                "",
+                ""
+            )
         ).toThrow(ClientAuthErrorCodes.invalidState);
 
         expect(() =>
@@ -66,12 +75,20 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     });
 
     it("parseRequestState() correctly splits the state by the resource delimiter", () => {
-        const requestState = ProtocolUtils.parseRequestState(cryptoInterface.base64Decode, testState, "");
+        const requestState = ProtocolUtils.parseRequestState(
+            cryptoInterface.base64Decode,
+            testState,
+            ""
+        );
         expect(requestState.userRequestState).toBe(userState);
     });
 
     it("parseRequestState returns user state without decoding", () => {
-        const requestState = ProtocolUtils.parseRequestState(cryptoInterface.base64Decode, `${encodedLibState}${RESOURCE_DELIM}${"test%25u00f1"}`, "");
+        const requestState = ProtocolUtils.parseRequestState(
+            cryptoInterface.base64Decode,
+            `${encodedLibState}${RESOURCE_DELIM}${"test%25u00f1"}`,
+            ""
+        );
         expect(requestState.userRequestState).toBe(`${"test%25u00f1"}`);
     });
 
@@ -81,7 +98,12 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
         it("setRequestState propagates correlationId on missing crypto error", () => {
             try {
                 // @ts-ignore
-                ProtocolUtils.setRequestState(null, userState, undefined, correlationId);
+                ProtocolUtils.setRequestState(
+                    null,
+                    userState,
+                    undefined,
+                    correlationId
+                );
                 throw new Error("Expected setRequestState to throw");
             } catch (err) {
                 expect(err).toBeInstanceOf(ClientAuthError);

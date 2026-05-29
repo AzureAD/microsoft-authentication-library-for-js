@@ -40,21 +40,30 @@ export class ManagedIdentityId {
 
         if (userAssignedClientId) {
             if (userAssignedResourceId || userAssignedObjectId) {
-                throw createManagedIdentityError(ManagedIdentityErrorCodes.invalidManagedIdentityIdType, "");
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType,
+                    ""
+                );
             }
 
             this.id = userAssignedClientId;
             this.idType = ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID;
         } else if (userAssignedResourceId) {
             if (userAssignedClientId || userAssignedObjectId) {
-                throw createManagedIdentityError(ManagedIdentityErrorCodes.invalidManagedIdentityIdType, "");
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType,
+                    ""
+                );
             }
 
             this.id = userAssignedResourceId;
             this.idType = ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID;
         } else if (userAssignedObjectId) {
             if (userAssignedClientId || userAssignedResourceId) {
-                throw createManagedIdentityError(ManagedIdentityErrorCodes.invalidManagedIdentityIdType, "");
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType,
+                    ""
+                );
             }
 
             this.id = userAssignedObjectId;

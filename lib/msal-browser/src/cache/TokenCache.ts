@@ -254,7 +254,10 @@ async function loadAccount(
             "TokenCache - if an account is not provided on the request, clientInfo or idToken must be provided instead.",
             correlationId
         );
-        throw createBrowserAuthError(BrowserAuthErrorCodes.unableToLoadToken, "");
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.unableToLoadToken,
+            ""
+        );
     }
 
     const homeAccountId = AccountEntityUtils.generateHomeAccountId(

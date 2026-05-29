@@ -80,7 +80,11 @@ export function getJWSPayload(authToken: string): string {
 /**
  * Determine if the token's max_age has transpired
  */
-export function checkMaxAge(authTime: number, maxAge: number, correlationId: string): void {
+export function checkMaxAge(
+    authTime: number,
+    maxAge: number,
+    correlationId: string
+): void {
     /*
      * per https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
      * To force an immediate re-authentication: If an app requires that a user re-authenticate prior to access,
@@ -88,6 +92,9 @@ export function checkMaxAge(authTime: number, maxAge: number, correlationId: str
      */
     const fiveMinuteSkew = 300000; // five minutes in milliseconds
     if (maxAge === 0 || Date.now() - fiveMinuteSkew > authTime + maxAge) {
-        throw createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired, correlationId);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.maxAgeTranspired,
+            correlationId
+        );
     }
 }

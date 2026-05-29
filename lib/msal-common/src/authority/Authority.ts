@@ -218,7 +218,10 @@ export class Authority {
         if (this.discoveryComplete()) {
             return this.replacePath(this.metadata.authorization_endpoint);
         } else {
-            throw createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, this.correlationId);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
+            );
         }
     }
 
@@ -229,7 +232,10 @@ export class Authority {
         if (this.discoveryComplete()) {
             return this.replacePath(this.metadata.token_endpoint);
         } else {
-            throw createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, this.correlationId);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
+            );
         }
     }
 
@@ -239,7 +245,10 @@ export class Authority {
                 this.metadata.token_endpoint.replace("/token", "/devicecode")
             );
         } else {
-            throw createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, this.correlationId);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
+            );
         }
     }
 
@@ -250,11 +259,17 @@ export class Authority {
         if (this.discoveryComplete()) {
             // ROPC policies may not have end_session_endpoint set
             if (!this.metadata.end_session_endpoint) {
-                throw createClientAuthError(ClientAuthErrorCodes.endSessionEndpointNotSupported, this.correlationId);
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.endSessionEndpointNotSupported,
+                    this.correlationId
+                );
             }
             return this.replacePath(this.metadata.end_session_endpoint);
         } else {
-            throw createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, this.correlationId);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
+            );
         }
     }
 
@@ -265,7 +280,10 @@ export class Authority {
         if (this.discoveryComplete()) {
             return this.replacePath(this.metadata.issuer);
         } else {
-            throw createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, this.correlationId);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
+            );
         }
     }
 
@@ -276,7 +294,10 @@ export class Authority {
         if (this.discoveryComplete()) {
             return this.replacePath(this.metadata.jwks_uri);
         } else {
-            throw createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, this.correlationId);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
+            );
         }
     }
 
@@ -666,7 +687,10 @@ export class Authority {
                     this.authorityOptions.authorityMetadata
                 ) as OpenIdConfigResponse;
             } catch (e) {
-                throw createClientConfigurationError(ClientConfigurationErrorCodes.invalidAuthorityMetadata, this.correlationId);
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidAuthorityMetadata,
+                    this.correlationId
+                );
             }
         }
 
@@ -818,7 +842,10 @@ export class Authority {
         }
 
         // Metadata could not be obtained from the config, cache, network or hardcoded values
-        throw createClientConfigurationError(ClientConfigurationErrorCodes.untrustedAuthority, this.correlationId);
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.untrustedAuthority,
+            this.correlationId
+        );
     }
 
     private updateCloudDiscoveryMetadataFromLocalSources(
@@ -960,7 +987,10 @@ export class Authority {
                     "Unable to parse the cloud discovery metadata. Throwing Invalid Cloud Discovery Metadata Error.",
                     this.correlationId
                 );
-                throw createClientConfigurationError(ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata, this.correlationId);
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata,
+                    this.correlationId
+                );
             }
         }
 
@@ -1158,7 +1188,10 @@ export class Authority {
         } else if (this.discoveryComplete()) {
             return this.metadata.preferred_cache;
         } else {
-            throw createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, this.correlationId);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
+            );
         }
     }
 
@@ -1204,7 +1237,10 @@ export class Authority {
      */
     private validateIssuer(issuer: string): void {
         if (!issuer) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.issuerValidationFailed, this.correlationId);
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.issuerValidationFailed,
+                this.correlationId
+            );
         }
 
         // Parse with the WHATWG URL API. URL normalizes scheme + host to lowercase per RFC 3986.
@@ -1212,7 +1248,10 @@ export class Authority {
         try {
             issuerUrl = new URL(issuer);
         } catch {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.issuerValidationFailed, this.correlationId);
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.issuerValidationFailed,
+                this.correlationId
+            );
         }
         const issuerScheme = issuerUrl.protocol;
         const issuerHost = issuerUrl.host;
@@ -1275,7 +1314,10 @@ export class Authority {
         }
 
         // issuer validation fails if none of the above rules are satisfied
-        throw createClientConfigurationError(ClientConfigurationErrorCodes.issuerValidationFailed, this.correlationId);
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.issuerValidationFailed,
+            this.correlationId
+        );
     }
 
     /**
@@ -1524,7 +1566,10 @@ export function buildStaticAuthorityOptions(
         try {
             cloudDiscoveryMetadata = JSON.parse(rawCloudDiscoveryMetadata);
         } catch (e) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata, "");
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata,
+                ""
+            );
         }
     }
     return {

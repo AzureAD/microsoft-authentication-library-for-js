@@ -231,7 +231,10 @@ export class ClientCredentialClient extends BaseClient {
         if (accessTokens.length < 1) {
             return null;
         } else if (accessTokens.length > 1) {
-            throw createClientAuthError(ClientAuthErrorCodes.multipleMatchingTokens, "");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingTokens,
+                ""
+            );
         }
         return accessTokens[0] as AccessTokenEntity;
     }
