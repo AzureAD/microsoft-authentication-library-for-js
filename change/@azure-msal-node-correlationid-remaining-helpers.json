@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Pass correlationId to msal-common UrlString/ScopeSet/Authority helpers (extractTokenClaims, UrlString constructor, addScopes, getTenantFromAuthorityString) updated to require it.",
+    "packageName": "@azure/msal-node",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "patch"
+}

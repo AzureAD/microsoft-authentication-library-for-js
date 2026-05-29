@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Thread correlationId through extractTokenClaims, ScopeSet/RequestParameterBuilder.addScopes, and UrlString (constructor + static helpers) and the Authority statics that wrap UrlString (buildRegionalAuthorityString, transformCIAMAuthority, replaceWithRegionalInformation, getTenantFromAuthorityString); breaking API change to attach correlationId to errors thrown from these code paths.",
+    "packageName": "@azure/msal-common",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "patch"
+}
