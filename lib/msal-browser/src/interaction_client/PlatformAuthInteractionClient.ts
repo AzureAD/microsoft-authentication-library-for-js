@@ -72,6 +72,7 @@ import {
     PlatformAuthConstants,
     TemporaryCacheKeys,
 } from "../utils/BrowserConstants.js";
+import { getCurrentUri } from "../utils/BrowserUtils.js";
 import {
     BaseInteractionClient,
     getDiscoveredAuthority,
@@ -388,7 +389,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             noHistory: false,
         };
         const redirectUri = navigateToLoginRequestUrl
-            ? window.location.href
+            ? UrlString.getAbsoluteUrl(
+                  request.redirectStartPage || window.location.href,
+                  getCurrentUri()
+              )
             : getRedirectUri(
                   request.redirectUri,
                   this.config.auth.redirectUri,
