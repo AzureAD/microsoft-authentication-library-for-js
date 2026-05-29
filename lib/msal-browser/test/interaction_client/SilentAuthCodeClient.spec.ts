@@ -93,7 +93,10 @@ describe("SilentAuthCodeClient", () => {
                     code: "",
                 })
             ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.authCodeRequired, "")
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.authCodeRequired,
+                    ""
+                )
             );
         });
 
@@ -264,7 +267,10 @@ describe("SilentAuthCodeClient", () => {
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentAuthCodeClient.logout).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.silentLogoutUnsupported, "")
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.silentLogoutUnsupported,
+                    ""
+                )
             );
         });
     });

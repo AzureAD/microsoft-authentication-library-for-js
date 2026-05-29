@@ -46,7 +46,10 @@ export class CookieStorage implements IWindowStorage<string> {
     }
 
     getUserData(): string | null {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "");
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
 
     setItem(

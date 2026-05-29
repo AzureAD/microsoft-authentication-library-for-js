@@ -158,7 +158,10 @@ describe("Authority.ts Class Unit Tests", () => {
                         new StubPerformanceClient()
                     )
             ).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.authorityUriInsecure, "")
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.authorityUriInsecure,
+                    ""
+                )
             );
             expect(
                 () =>
@@ -172,7 +175,10 @@ describe("Authority.ts Class Unit Tests", () => {
                         new StubPerformanceClient()
                     )
             ).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.urlParseError, "")
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.urlParseError,
+                    ""
+                )
             );
             expect(
                 () =>
@@ -186,7 +192,10 @@ describe("Authority.ts Class Unit Tests", () => {
                         new StubPerformanceClient()
                     )
             ).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.urlEmptyError, "")
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.urlEmptyError,
+                    ""
+                )
             );
         });
     });
@@ -234,7 +243,10 @@ describe("Authority.ts Class Unit Tests", () => {
                     (authority.canonicalAuthority =
                         "http://login.microsoftonline.com/common")
             ).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.authorityUriInsecure, "")
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.authorityUriInsecure,
+                    ""
+                )
             );
             expect(
                 () =>
@@ -244,7 +256,10 @@ describe("Authority.ts Class Unit Tests", () => {
             expect(
                 () => (authority.canonicalAuthority = "This is not a URI")
             ).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.urlParseError, "")
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.urlParseError,
+                    ""
+                )
             );
 
             authority.canonicalAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/${RANDOM_TEST_GUID}`;
@@ -351,22 +366,40 @@ describe("Authority.ts Class Unit Tests", () => {
                     new StubPerformanceClient()
                 );
                 expect(() => authority.authorizationEndpoint).toThrowError(
-                    createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, "")
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endpointResolutionError,
+                        ""
+                    )
                 );
                 expect(() => authority.tokenEndpoint).toThrowError(
-                    createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, "")
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endpointResolutionError,
+                        ""
+                    )
                 );
                 expect(() => authority.endSessionEndpoint).toThrowError(
-                    createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, "")
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endpointResolutionError,
+                        ""
+                    )
                 );
                 expect(() => authority.deviceCodeEndpoint).toThrowError(
-                    createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, "")
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endpointResolutionError,
+                        ""
+                    )
                 );
                 expect(() => authority.selfSignedJwtAudience).toThrowError(
-                    createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, "")
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endpointResolutionError,
+                        ""
+                    )
                 );
                 expect(() => authority.jwksUri).toThrowError(
-                    createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, "")
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endpointResolutionError,
+                        ""
+                    )
                 );
             });
 
@@ -1130,7 +1163,10 @@ describe("Authority.ts Class Unit Tests", () => {
                 await authority.resolveEndpointsAsync();
 
                 expect(() => authority.endSessionEndpoint).toThrowError(
-                    createClientAuthError(ClientAuthErrorCodes.endSessionEndpointNotSupported, "")
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endSessionEndpointNotSupported,
+                        ""
+                    )
                 );
             });
 
@@ -1626,7 +1662,10 @@ describe("Authority.ts Class Unit Tests", () => {
 
             describe("validateIssuer", () => {
                 const issuerValidationFailedError =
-                    createClientConfigurationError(ClientConfigurationErrorCodes.issuerValidationFailed, "");
+                    createClientConfigurationError(
+                        ClientConfigurationErrorCodes.issuerValidationFailed,
+                        ""
+                    );
 
                 const buildAuthority = (
                     authorityUrl: string,
@@ -2915,7 +2954,10 @@ describe("Authority.ts Class Unit Tests", () => {
 
             it("getPreferredCache throws error if discovery is not complete", () => {
                 expect(() => authority.getPreferredCache()).toThrowError(
-                    createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, "")
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endpointResolutionError,
+                        ""
+                    )
                 );
             });
         });
@@ -3233,7 +3275,10 @@ describe("Authority.ts Class Unit Tests", () => {
                     invalidCloudDiscoveryMetadataOptions
                 );
             }).toThrow(
-                createClientConfigurationError(ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata, "")
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata,
+                    ""
+                )
             );
         });
     });

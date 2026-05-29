@@ -411,7 +411,10 @@ export async function getDiscoveredAuthority(
     );
 
     await authority.resolveEndpointsAsync().catch((error) => {
-        throw createClientAuthError(ClientAuthErrorCodes.endpointResolutionError, "");
+        throw createClientAuthError(
+            ClientAuthErrorCodes.endpointResolutionError,
+            ""
+        );
     });
 
     return authority;

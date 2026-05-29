@@ -215,7 +215,10 @@ export async function sendPostRequest<
         if (e instanceof AuthError) {
             throw e;
         } else {
-            throw createClientAuthError(ClientAuthErrorCodes.networkError, correlationId);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.networkError,
+                correlationId
+            );
         }
     }
 

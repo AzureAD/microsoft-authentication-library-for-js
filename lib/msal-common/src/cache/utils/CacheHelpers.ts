@@ -115,7 +115,10 @@ export function createAccessTokenEntity(
                     base64Decode
                 );
                 if (!tokenClaims?.cnf?.kid) {
-                    throw createClientAuthError(ClientAuthErrorCodes.tokenClaimsCnfRequiredForSignedJwt, correlationId);
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.tokenClaimsCnfRequiredForSignedJwt,
+                        correlationId
+                    );
                 }
                 atEntity.keyId = tokenClaims.cnf.kid;
                 break;

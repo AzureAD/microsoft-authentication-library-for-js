@@ -170,7 +170,8 @@ describe("CacheManager.ts test cases", () => {
                 TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
                 TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
                 mockCrypto.base64Decode,
-                "");
+                ""
+            );
 
             const atKey = generateCredentialKey(at);
             const cacheRecord: CacheRecord = {};
@@ -2023,7 +2024,8 @@ describe("CacheManager.ts test cases", () => {
                     "",
                     500,
                     AuthenticationScheme.BEARER,
-                    TEST_TOKENS.ACCESS_TOKEN);
+                    TEST_TOKENS.ACCESS_TOKEN
+                );
 
             const mockedAtEntity2: AccessTokenEntity =
                 CacheHelpers.createAccessTokenEntity(
@@ -2039,7 +2041,8 @@ describe("CacheManager.ts test cases", () => {
                     "",
                     500,
                     AuthenticationScheme.BEARER,
-                    TEST_TOKENS.ACCESS_TOKEN);
+                    TEST_TOKENS.ACCESS_TOKEN
+                );
 
             const accountData = {
                 username: "John Doe",
@@ -2114,7 +2117,8 @@ describe("CacheManager.ts test cases", () => {
                 "",
                 500,
                 AuthenticationScheme.BEARER,
-                TEST_TOKENS.ACCESS_TOKEN);
+                TEST_TOKENS.ACCESS_TOKEN
+            );
 
         const mockedPopAtEntity: AccessTokenEntity =
             CacheHelpers.createAccessTokenEntity(
@@ -2130,7 +2134,8 @@ describe("CacheManager.ts test cases", () => {
                 "",
                 500,
                 AuthenticationScheme.POP,
-                TEST_TOKENS.ACCESS_TOKEN);
+                TEST_TOKENS.ACCESS_TOKEN
+            );
 
         const mockedSshAtEntity: AccessTokenEntity =
             CacheHelpers.createAccessTokenEntity(
@@ -2147,7 +2152,8 @@ describe("CacheManager.ts test cases", () => {
                 500,
                 AuthenticationScheme.SSH,
                 undefined,
-                TEST_SSH_VALUES.SSH_KID);
+                TEST_SSH_VALUES.SSH_KID
+            );
 
         const accountData = {
             username: "John Doe",
@@ -2213,7 +2219,8 @@ describe("CacheManager.ts test cases", () => {
                 500,
                 // @ts-ignore
                 AuthenticationScheme.BEARER.toLowerCase(),
-                TEST_TOKENS.ACCESS_TOKEN);
+                TEST_TOKENS.ACCESS_TOKEN
+            );
 
         const accountData = {
             username: "John Doe",
@@ -2273,7 +2280,8 @@ describe("CacheManager.ts test cases", () => {
                 "",
                 500,
                 AuthenticationScheme.BEARER,
-                TEST_TOKENS.ACCESS_TOKEN);
+                TEST_TOKENS.ACCESS_TOKEN
+            );
 
         const mockedPopAtEntity: AccessTokenEntity =
             CacheHelpers.createAccessTokenEntity(
@@ -2289,7 +2297,8 @@ describe("CacheManager.ts test cases", () => {
                 "",
                 500,
                 AuthenticationScheme.POP,
-                TEST_TOKENS.ACCESS_TOKEN);
+                TEST_TOKENS.ACCESS_TOKEN
+            );
 
         const mockedSshAtEntity: AccessTokenEntity =
             CacheHelpers.createAccessTokenEntity(
@@ -2306,7 +2315,8 @@ describe("CacheManager.ts test cases", () => {
                 500,
                 AuthenticationScheme.SSH,
                 undefined,
-                TEST_SSH_VALUES.SSH_KID);
+                TEST_SSH_VALUES.SSH_KID
+            );
 
         const accountData = {
             username: "John Doe",
@@ -2373,7 +2383,8 @@ describe("CacheManager.ts test cases", () => {
                 500,
                 AuthenticationScheme.BEARER,
                 undefined,
-                undefined);
+                undefined
+            );
 
         const mockedPopAtEntity: AccessTokenEntity =
             CacheHelpers.createAccessTokenEntity(
@@ -2390,7 +2401,8 @@ describe("CacheManager.ts test cases", () => {
                 500,
                 AuthenticationScheme.POP,
                 undefined,
-                TEST_POP_VALUES.KID);
+                TEST_POP_VALUES.KID
+            );
 
         const mockedSshAtEntity: AccessTokenEntity =
             CacheHelpers.createAccessTokenEntity(
@@ -2407,7 +2419,8 @@ describe("CacheManager.ts test cases", () => {
                 500,
                 AuthenticationScheme.SSH,
                 undefined,
-                TEST_SSH_VALUES.SSH_KID);
+                TEST_SSH_VALUES.SSH_KID
+            );
 
         const accountData = {
             username: "John Doe",

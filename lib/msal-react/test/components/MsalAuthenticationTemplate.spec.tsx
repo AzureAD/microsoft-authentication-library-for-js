@@ -650,7 +650,11 @@ describe("MsalAuthenticationTemplate tests", () => {
                     expect(request).toBeDefined();
                     expect(request.account).toBe(testAccount);
                     return Promise.reject(
-                        new InteractionRequiredAuthError("interaction_required", "", "Interaction is required")
+                        new InteractionRequiredAuthError(
+                            "interaction_required",
+                            "",
+                            "Interaction is required"
+                        )
                     );
                 });
 
@@ -700,7 +704,11 @@ describe("MsalAuthenticationTemplate tests", () => {
                     expect(request).toBeDefined();
                     expect(request.account).toBe(testAccount);
                     return Promise.reject(
-                        new InteractionRequiredAuthError("interaction_required", "", "Interaction is required")
+                        new InteractionRequiredAuthError(
+                            "interaction_required",
+                            "",
+                            "Interaction is required"
+                        )
                     );
                 });
 
@@ -749,7 +757,11 @@ describe("MsalAuthenticationTemplate tests", () => {
                     expect(request).toBeDefined();
                     expect(request.account).toBe(testAccount);
                     return Promise.reject(
-                        new InteractionRequiredAuthError("interaction_required", "", "Interaction is required")
+                        new InteractionRequiredAuthError(
+                            "interaction_required",
+                            "",
+                            "Interaction is required"
+                        )
                     );
                 });
 
@@ -849,7 +861,11 @@ describe("MsalAuthenticationTemplate tests", () => {
                     });
 
                     return Promise.reject(
-                        new InteractionRequiredAuthError("interaction_required", "", "Interaction is required")
+                        new InteractionRequiredAuthError(
+                            "interaction_required",
+                            "",
+                            "Interaction is required"
+                        )
                     );
                 });
 

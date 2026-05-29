@@ -89,7 +89,10 @@ export class ConfidentialClientApplication
             (clientAssertionNotEmpty && certificateNotEmpty) ||
             (clientSecretNotEmpty && certificateNotEmpty)
         ) {
-            throw createClientAuthError(NodeClientAuthErrorCodes.invalidClientCredential, "");
+            throw createClientAuthError(
+                NodeClientAuthErrorCodes.invalidClientCredential,
+                ""
+            );
         }
 
         if (this.config.auth.clientSecret) {
@@ -104,7 +107,10 @@ export class ConfidentialClientApplication
         }
 
         if (!certificateNotEmpty) {
-            throw createClientAuthError(NodeClientAuthErrorCodes.invalidClientCredential, "");
+            throw createClientAuthError(
+                NodeClientAuthErrorCodes.invalidClientCredential,
+                ""
+            );
         } else {
             this.clientAssertion = !!this.config.auth.clientCertificate
                 .thumbprintSha256
@@ -185,7 +191,10 @@ export class ConfidentialClientApplication
                 tenantId as Constants.AADAuthority
             )
         ) {
-            throw createClientAuthError(NodeClientAuthErrorCodes.missingTenantIdError, "");
+            throw createClientAuthError(
+                NodeClientAuthErrorCodes.missingTenantIdError,
+                ""
+            );
         }
 
         /*

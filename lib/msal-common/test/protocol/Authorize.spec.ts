@@ -1554,11 +1554,15 @@ describe("Authorize Protocol Tests", () => {
     describe("getAuthorizationCodePayload", () => {
         it("returns valid server code response", () => {
             const authCodePayload =
-                AuthorizeProtocol.getAuthorizationCodePayload({
-                        code: "thisIsATestCode", state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
+                AuthorizeProtocol.getAuthorizationCodePayload(
+                    {
+                        code: "thisIsATestCode",
+                        state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
                         client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                     },
-                    TEST_STATE_VALUES.ENCODED_LIB_STATE, "");
+                    TEST_STATE_VALUES.ENCODED_LIB_STATE,
+                    ""
+                );
             expect(authCodePayload.code).toBe("thisIsATestCode");
             expect(authCodePayload.state).toBe(
                 TEST_STATE_VALUES.ENCODED_LIB_STATE
@@ -1568,11 +1572,15 @@ describe("Authorize Protocol Tests", () => {
         it("throws server error when error is in hash", () => {
             let error: AuthError | null = null;
             try {
-                AuthorizeProtocol.getAuthorizationCodePayload({
-                        error: "error_code", error_description: "msal error description",
+                AuthorizeProtocol.getAuthorizationCodePayload(
+                    {
+                        error: "error_code",
+                        error_description: "msal error description",
                         state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
                     },
-                    TEST_STATE_VALUES.ENCODED_LIB_STATE, "");
+                    TEST_STATE_VALUES.ENCODED_LIB_STATE,
+                    ""
+                );
             } catch (e) {
                 error = e as AuthError;
             }
@@ -1591,7 +1599,11 @@ describe("Authorize Protocol Tests", () => {
             };
 
             try {
-                AuthorizeProtocol.validateAuthorizationResponse(testServerCodeResponse, "differentState", "");
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    "differentState",
+                    ""
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ClientAuthError);
                 // @ts-ignore
@@ -1607,7 +1619,11 @@ describe("Authorize Protocol Tests", () => {
                 state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
             };
 
-            AuthorizeProtocol.validateAuthorizationResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, "");
+            AuthorizeProtocol.validateAuthorizationResponse(
+                testServerCodeResponse,
+                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                ""
+            );
         });
 
         it("Does not throw state mismatch error when Uri encoded characters have different casing", () => {
@@ -1620,7 +1636,11 @@ describe("Authorize Protocol Tests", () => {
             const testAltState =
                 "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ%3d%3d";
 
-            AuthorizeProtocol.validateAuthorizationResponse(testServerCodeResponse, testAltState, "");
+            AuthorizeProtocol.validateAuthorizationResponse(
+                testServerCodeResponse,
+                testAltState,
+                ""
+            );
         });
 
         it("throws interactionRequiredError", (done) => {
@@ -1632,7 +1652,11 @@ describe("Authorize Protocol Tests", () => {
             };
 
             try {
-                AuthorizeProtocol.validateAuthorizationResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, "");
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    ""
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(InteractionRequiredAuthError);
                 done();
@@ -1648,7 +1672,11 @@ describe("Authorize Protocol Tests", () => {
             };
 
             try {
-                AuthorizeProtocol.validateAuthorizationResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, "");
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    ""
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 done();
@@ -1664,7 +1692,11 @@ describe("Authorize Protocol Tests", () => {
             };
 
             try {
-                AuthorizeProtocol.validateAuthorizationResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, "");
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    ""
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 done();
@@ -1680,7 +1712,11 @@ describe("Authorize Protocol Tests", () => {
             };
 
             try {
-                AuthorizeProtocol.validateAuthorizationResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, "");
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    ""
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 done();
@@ -1695,7 +1731,11 @@ describe("Authorize Protocol Tests", () => {
             };
 
             try {
-                AuthorizeProtocol.validateAuthorizationResponse(testServerCodeResponse, "dummy-state-%20%%%30%%%%%40", "");
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    "dummy-state-%20%%%30%%%%%40",
+                    ""
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ClientAuthError);
                 const err = e as ClientAuthError;
@@ -1715,7 +1755,11 @@ describe("Authorize Protocol Tests", () => {
             };
 
             try {
-                AuthorizeProtocol.validateAuthorizationResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, "");
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    ""
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 const serverError = e as ServerError;
@@ -1735,7 +1779,11 @@ describe("Authorize Protocol Tests", () => {
             };
 
             try {
-                AuthorizeProtocol.validateAuthorizationResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, "");
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    ""
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(InteractionRequiredAuthError);
                 const serverError = e as InteractionRequiredAuthError;
@@ -1754,7 +1802,11 @@ describe("Authorize Protocol Tests", () => {
             };
 
             try {
-                AuthorizeProtocol.validateAuthorizationResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, "");
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    ""
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 const serverError = e as ServerError;
@@ -1773,7 +1825,11 @@ describe("Authorize Protocol Tests", () => {
             };
 
             try {
-                AuthorizeProtocol.validateAuthorizationResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, "");
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    ""
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 const serverError = e as ServerError;
@@ -1792,7 +1848,11 @@ describe("Authorize Protocol Tests", () => {
             };
 
             try {
-                AuthorizeProtocol.validateAuthorizationResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, "");
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    ""
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 const serverError = e as ServerError;

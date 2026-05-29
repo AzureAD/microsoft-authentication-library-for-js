@@ -234,7 +234,10 @@ export function addClaims(
         try {
             JSON.parse(mergedClaims);
         } catch (e) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.invalidClaims, correlationId);
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidClaims,
+                correlationId
+            );
         }
         parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
     }
@@ -334,7 +337,10 @@ export function addCodeChallengeParams(
             codeChallengeMethod
         );
     } else {
-        throw createClientConfigurationError(ClientConfigurationErrorCodes.pkceParamsMissing, "");
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.pkceParamsMissing,
+            ""
+        );
     }
 }
 
@@ -504,7 +510,10 @@ export function addClientCapabilitiesToClaims(
         try {
             mergedClaims = JSON.parse(claims);
         } catch (e) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.invalidClaims, "");
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidClaims,
+                ""
+            );
         }
     }
 

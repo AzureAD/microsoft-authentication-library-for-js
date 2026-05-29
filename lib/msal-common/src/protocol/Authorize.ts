@@ -356,7 +356,10 @@ export function validateAuthorizationResponse(
     }
 
     if (decodedServerResponseState !== decodedRequestState) {
-        throw createClientAuthError(ClientAuthErrorCodes.stateMismatch, correlationId);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.stateMismatch,
+            correlationId
+        );
     }
 
     // Check for error

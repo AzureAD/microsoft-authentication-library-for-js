@@ -126,8 +126,9 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: idTokenClaims,
             },
-            authority
-        , "");
+            authority,
+            ""
+        );
 
         expect(
             generateAccountKey(AccountEntityUtils.getAccountInfo(acc))
@@ -166,8 +167,9 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: idTokenClaims,
             },
-            authority
-        , "");
+            authority,
+            ""
+        );
 
         expect(
             generateAccountKey(AccountEntityUtils.getAccountInfo(acc))
@@ -206,8 +208,9 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: idTokenClaims,
             },
-            authority
-        , "");
+            authority,
+            ""
+        );
         expect(
             generateAccountKey(AccountEntityUtils.getAccountInfo(acc))
         ).toEqual(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
@@ -260,8 +263,9 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: idTokenClaims,
             },
-            authority
-        , "");
+            authority,
+            ""
+        );
 
         expect(
             generateAccountKey(AccountEntityUtils.getAccountInfo(acc))
@@ -319,8 +323,9 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                     cryptoInterface.base64Decode
                 ),
             },
-            authority
-        , "");
+            authority,
+            ""
+        );
 
         expect(
             generateAccountKey(AccountEntityUtils.getAccountInfo(acc))
@@ -435,7 +440,8 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                     idTokenClaims: idTokenClaims,
                     clientInfo: encodedClientInfo,
                 },
-                authority, "",
+                authority,
+                "",
                 cryptoInterface.base64Decode
             );
 
@@ -472,7 +478,8 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                     clientInfo:
                         TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 },
-                authority, "",
+                authority,
+                "",
                 cryptoInterface.base64Decode
             );
 
@@ -507,7 +514,8 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                     homeAccountId,
                     idTokenClaims: idTokenClaims,
                 },
-                authority, "",
+                authority,
+                "",
                 cryptoInterface.base64Decode
             );
 
@@ -553,7 +561,8 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                     idTokenClaims: idTokenClaims,
                     clientInfo: encodedClientInfo,
                 },
-                authority, "",
+                authority,
+                "",
                 cryptoInterface.base64Decode
             );
 
@@ -599,7 +608,8 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                     idTokenClaims: idTokenClaims,
                     clientInfo: encodedClientInfo,
                 },
-                authority, "",
+                authority,
+                "",
                 cryptoInterface.base64Decode
             );
 
@@ -628,9 +638,9 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 throw new Error("Expected createAccountEntity to throw");
             } catch (err) {
                 expect(err).toBeInstanceOf(Error);
-                expect(
-                    (err as { correlationId?: string }).correlationId
-                ).toBe(correlationId);
+                expect((err as { correlationId?: string }).correlationId).toBe(
+                    correlationId
+                );
             }
         });
     });
@@ -690,8 +700,9 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
                     cryptoInterface.base64Decode
                 ),
             },
-            authority
-        , "");
+            authority,
+            ""
+        );
 
         expect(
             generateAccountKey(AccountEntityUtils.getAccountInfo(acc))
@@ -751,8 +762,9 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
                     cryptoInterface.base64Decode
                 ),
             },
-            authority
-        , "");
+            authority,
+            ""
+        );
 
         expect(
             generateAccountKey(AccountEntityUtils.getAccountInfo(acc))

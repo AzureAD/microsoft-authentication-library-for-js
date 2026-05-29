@@ -1235,7 +1235,8 @@ describe("ResponseHandler.ts", () => {
                     },
                     environment,
                 },
-                testAuthority, "",
+                testAuthority,
+                "",
                 mockCrypto.base64Decode
             );
             existingAccount.tenantProfiles = [
@@ -1332,7 +1333,8 @@ describe("ResponseHandler.ts", () => {
                     },
                     environment,
                 },
-                testAuthority, "",
+                testAuthority,
+                "",
                 mockCrypto.base64Decode
             );
             existingAccount.tenantProfiles = [
@@ -1376,7 +1378,8 @@ describe("ResponseHandler.ts", () => {
                     idTokenClaims: testIdTokenClaims,
                     environment,
                 },
-                testAuthority, "",
+                testAuthority,
+                "",
                 mockCrypto.base64Decode
             );
             const account2 = AccountEntityUtils.createAccountEntity(
@@ -1385,7 +1388,8 @@ describe("ResponseHandler.ts", () => {
                     idTokenClaims: testIdTokenClaims,
                     environment,
                 },
-                testAuthority, "",
+                testAuthority,
+                "",
                 mockCrypto.base64Decode
             );
 
@@ -1429,7 +1433,8 @@ describe("ResponseHandler.ts", () => {
                     idTokenClaims: testIdTokenClaims,
                     environment: "login.windows.net",
                 },
-                testAuthority, "",
+                testAuthority,
+                "",
                 mockCrypto.base64Decode
             );
             accountWindows.tenantProfiles = [
@@ -1447,7 +1452,8 @@ describe("ResponseHandler.ts", () => {
                     idTokenClaims: testIdTokenClaims,
                     environment: "login.other-cloud.example",
                 },
-                testAuthority, "",
+                testAuthority,
+                "",
                 mockCrypto.base64Decode
             );
 
