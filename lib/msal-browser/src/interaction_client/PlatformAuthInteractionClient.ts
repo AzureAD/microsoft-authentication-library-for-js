@@ -263,7 +263,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         return {
             authority: request.authority,
             correlationId: this.correlationId,
-            scopes: ScopeSet.fromString(request.scope).asArray(),
+            scopes: ScopeSet.fromString(request.scope, this.correlationId).asArray(),
             account: cachedAccount,
             forceRefresh: false,
         };
@@ -641,8 +641,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      */
     generateScopes(requestScopes: string, responseScopes?: string): ScopeSet {
         return responseScopes
-            ? ScopeSet.fromString(responseScopes)
-            : ScopeSet.fromString(requestScopes);
+            ? ScopeSet.fromString(responseScopes, this.correlationId)
+            : ScopeSet.fromString(requestScopes, this.correlationId);
     }
 
     /**
@@ -999,7 +999,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
         const { scopes, claims, ...remainingProperties } = request;
-        const scopeSet = new ScopeSet(scopes || []);
+        const scopeSet = new ScopeSet(scopes || [], this.correlationId);
         scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
 
         const mergedClaims =

@@ -1663,7 +1663,7 @@ describe("CacheManager.ts test cases", () => {
                     {
                         target: ScopeSet.createSearchScopes(
                             testAccessToken.target.split(" ")
-                        ),
+                        , ""),
                     },
                     TEST_CONFIG.CORRELATION_ID
                 )
@@ -1674,7 +1674,7 @@ describe("CacheManager.ts test cases", () => {
                 mockCache.cacheManager.credentialMatchesFilter(
                     testAccessToken,
                     {
-                        target: ScopeSet.createSearchScopes(["wrong_scope"]),
+                        target: ScopeSet.createSearchScopes(["wrong_scope"], ""),
                     },
                     TEST_CONFIG.CORRELATION_ID
                 )

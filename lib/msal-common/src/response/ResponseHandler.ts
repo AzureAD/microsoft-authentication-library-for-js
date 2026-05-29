@@ -414,8 +414,8 @@ export class ResponseHandler {
         if (serverTokenResponse.access_token) {
             // If scopes not returned in server response, use request scopes
             const responseScopes = serverTokenResponse.scope
-                ? ScopeSet.fromString(serverTokenResponse.scope)
-                : new ScopeSet(request.scopes || []);
+                ? ScopeSet.fromString(serverTokenResponse.scope, request.correlationId)
+                : new ScopeSet(request.scopes || [], request.correlationId);
 
             /*
              * Use timestamp calculated before request
@@ -574,7 +574,8 @@ export class ResponseHandler {
                 accessToken = cacheRecord.accessToken.secret;
             }
             responseScopes = ScopeSet.fromString(
-                cacheRecord.accessToken.target
+                cacheRecord.accessToken.target,
+                request.correlationId
             ).asArray();
             // Access token expiresOn cached in seconds, converting to Date for AuthenticationResult
             expiresOn = TimeUtils.toDateFromSeconds(

@@ -328,6 +328,7 @@ export class AuthorizationCodeClient {
         RequestParameterBuilder.addScopes(
             parameters,
             request.scopes,
+            request.correlationId,
             true,
             this.oidcDefaultScopes
         );

@@ -378,8 +378,8 @@ async function loadAccessToken(
     logger.verbose("TokenCache - loading access token", correlationId);
 
     const scopes = response.scope
-        ? ScopeSet.fromString(response.scope)
-        : new ScopeSet(request.scopes);
+        ? ScopeSet.fromString(response.scope, correlationId)
+        : new ScopeSet(request.scopes, correlationId);
     const expiresOn =
         options.expiresOn || response.expires_in + TimeUtils.nowSeconds();
 
@@ -487,7 +487,8 @@ function generateAuthenticationResult(
     if (cacheRecord?.accessToken) {
         accessToken = cacheRecord.accessToken.secret;
         responseScopes = ScopeSet.fromString(
-            cacheRecord.accessToken.target
+            cacheRecord.accessToken.target,
+            request.correlationId || ""
         ).asArray();
         // Access token expiresOn stored in seconds, converting to Date for AuthenticationResult
         expiresOn = TimeUtils.toDateFromSeconds(

@@ -399,6 +399,7 @@ export class RefreshTokenClient {
         RequestParameterBuilder.addScopes(
             parameters,
             request.scopes,
+            request.correlationId,
             true,
             this.config.authOptions.authority.options.OIDCOptions?.defaultScopes
         );

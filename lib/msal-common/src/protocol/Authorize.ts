@@ -60,6 +60,7 @@ export function getStandardAuthorizeRequestParameters(
     RequestParameterBuilder.addScopes(
         parameters,
         requestScopes,
+        request.correlationId,
         true,
         authOptions.authority.options.OIDCOptions?.defaultScopes
     );

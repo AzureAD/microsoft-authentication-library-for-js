@@ -84,6 +84,7 @@ export function addNativeBroker(parameters: Map<string, string>): void {
 export function addScopes(
     parameters: Map<string, string>,
     scopes: string[],
+    correlationId: string,
     addOidcScopes: boolean = true,
     defaultScopes: Array<string> = Constants.OIDC_DEFAULT_SCOPES
 ): void {
@@ -98,7 +99,7 @@ export function addScopes(
     const requestScopes = addOidcScopes
         ? [...(scopes || []), ...defaultScopes]
         : scopes || [];
-    const scopeSet = new ScopeSet(requestScopes);
+    const scopeSet = new ScopeSet(requestScopes, correlationId);
     parameters.set(AADServerParamKeys.SCOPE, scopeSet.printScopes());
 }
 

@@ -26,8 +26,10 @@ import {
 export class ScopeSet {
     // Scopes as a Set of strings
     private scopes: Set<string>;
+    private correlationId: string;
 
-    constructor(inputScopes: Array<string>) {
+    constructor(inputScopes: Array<string>, correlationId: string) {
+        this.correlationId = correlationId;
         // Filter empty string and null/undefined array items
         const scopeArr = inputScopes
             ? StringUtils.trimArrayEntries([...inputScopes])
@@ -38,7 +40,7 @@ export class ScopeSet {
 
         // Check if scopes array has at least one member
         if (!filteredInput || !filteredInput.length) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.emptyInputScopesError, "");
+            throw createClientConfigurationError(ClientConfigurationErrorCodes.emptyInputScopesError, correlationId);
         }
 
         this.scopes = new Set<string>(); // Iterator in constructor not supported by IE11
@@ -51,10 +53,10 @@ export class ScopeSet {
      * @param appClientId
      * @param scopesRequired
      */
-    static fromString(inputScopeString: string): ScopeSet {
+    static fromString(inputScopeString: string, correlationId: string): ScopeSet {
         const scopeString = inputScopeString || "";
         const inputScopes: Array<string> = scopeString.split(" ");
-        return new ScopeSet(inputScopes);
+        return new ScopeSet(inputScopes, correlationId);
     }
 
     /**
@@ -62,14 +64,14 @@ export class ScopeSet {
      * @param inputScopeString
      * @returns
      */
-    static createSearchScopes(inputScopeString: Array<string>): ScopeSet {
+    static createSearchScopes(inputScopeString: Array<string>, correlationId: string): ScopeSet {
         // Handle empty scopes by using default OIDC scopes for cache lookup
         const scopesToUse =
             inputScopeString && inputScopeString.length > 0
                 ? inputScopeString
                 : [...OIDC_DEFAULT_SCOPES];
 
-        const scopeSet = new ScopeSet(scopesToUse);
+        const scopeSet = new ScopeSet(scopesToUse, correlationId);
         if (!scopeSet.containsOnlyOIDCScopes()) {
             scopeSet.removeOIDCScopes();
         } else {
@@ -85,7 +87,7 @@ export class ScopeSet {
      */
     containsScope(scope: string): boolean {
         const lowerCaseScopes = this.printScopesLowerCase().split(" ");
-        const lowerCaseScopesSet = new ScopeSet(lowerCaseScopes);
+        const lowerCaseScopesSet = new ScopeSet(lowerCaseScopes, this.correlationId);
         // compare lowercase scopes
         return scope
             ? lowerCaseScopesSet.scopes.has(scope.toLowerCase())
@@ -139,7 +141,7 @@ export class ScopeSet {
         try {
             newScopes.forEach((newScope) => this.appendScope(newScope));
         } catch (e) {
-            throw createClientAuthError(ClientAuthErrorCodes.cannotAppendScopeSet, "");
+            throw createClientAuthError(ClientAuthErrorCodes.cannotAppendScopeSet, this.correlationId);
         }
     }
 
@@ -149,7 +151,7 @@ export class ScopeSet {
      */
     removeScope(scope: string): void {
         if (!scope) {
-            throw createClientAuthError(ClientAuthErrorCodes.cannotRemoveEmptyScope, "");
+            throw createClientAuthError(ClientAuthErrorCodes.cannotRemoveEmptyScope, this.correlationId);
         }
         this.scopes.delete(scope.trim());
     }
@@ -170,7 +172,7 @@ export class ScopeSet {
      */
     unionScopeSets(otherScopes: ScopeSet): Set<string> {
         if (!otherScopes) {
-            throw createClientAuthError(ClientAuthErrorCodes.emptyInputScopeSet, "");
+            throw createClientAuthError(ClientAuthErrorCodes.emptyInputScopeSet, this.correlationId);
         }
         const unionScopes = new Set<string>(); // Iterator in constructor not supported in IE11
         otherScopes.scopes.forEach((scope) =>
@@ -186,7 +188,7 @@ export class ScopeSet {
      */
     intersectingScopeSets(otherScopes: ScopeSet): boolean {
         if (!otherScopes) {
-            throw createClientAuthError(ClientAuthErrorCodes.emptyInputScopeSet, "");
+            throw createClientAuthError(ClientAuthErrorCodes.emptyInputScopeSet, this.correlationId);
         }
 
         // Do not allow OIDC scopes to be the only intersecting scopes

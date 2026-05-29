@@ -52,7 +52,7 @@ export class OnBehalfOfClient extends BaseClient {
     public async acquireToken(
         request: CommonOnBehalfOfRequest
     ): Promise<AuthenticationResult | null> {
-        this.scopeSet = new ScopeSet(request.scopes || []);
+        this.scopeSet = new ScopeSet(request.scopes || [], request.correlationId);
 
         // generate the user_assertion_hash for OBOAssertion
         this.userAssertionHash = await this.cryptoUtils.hashString(
@@ -226,7 +226,7 @@ export class OnBehalfOfClient extends BaseClient {
         const accessTokenFilter: CredentialFilter = {
             credentialType: credentialType,
             clientId,
-            target: ScopeSet.createSearchScopes(this.scopeSet.asArray()),
+            target: ScopeSet.createSearchScopes(this.scopeSet.asArray(), request.correlationId),
             tokenType: authScheme,
             keyId: request.sshKid,
             userAssertionHash: this.userAssertionHash,
@@ -327,7 +327,7 @@ export class OnBehalfOfClient extends BaseClient {
             this.config.authOptions.clientId
         );
 
-        RequestParameterBuilder.addScopes(parameters, request.scopes);
+        RequestParameterBuilder.addScopes(parameters, request.scopes, request.correlationId);
 
         RequestParameterBuilder.addGrantType(
             parameters,

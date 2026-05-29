@@ -348,7 +348,7 @@ describe("OnBehalfOf unit tests", () => {
                 oboRequest
             )) as AuthenticationResult;
             expect(authResult.scopes).toEqual(
-                ScopeSet.fromString(testAccessTokenEntity.target).asArray()
+                ScopeSet.fromString(testAccessTokenEntity.target, "").asArray()
             );
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.accessToken).toEqual(

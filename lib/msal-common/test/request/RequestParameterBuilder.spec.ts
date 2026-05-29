@@ -38,7 +38,7 @@ describe("RequestParameterBuilder unit tests", () => {
         RequestParameterBuilder.addScopes(
             parameters,
             TEST_CONFIG.DEFAULT_SCOPES
-        );
+        , "");
         RequestParameterBuilder.addClientId(
             parameters,
             TEST_CONFIG.MSAL_CLIENT_ID
@@ -300,7 +300,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes appends oidc scopes by default", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, ["testScope"]);
+        RequestParameterBuilder.addScopes(parameters, ["testScope"], "");
         let requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
@@ -309,7 +309,7 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
 
         const parameters2 = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters2, []);
+        RequestParameterBuilder.addScopes(parameters2, [], "");
         requestQueryString = UrlUtils.mapToQueryString(parameters2);
         expect(
             requestQueryString.includes(
@@ -320,7 +320,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes does not append oidc scopes if flag set to false", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, ["testScope"], false);
+        RequestParameterBuilder.addScopes(parameters, ["testScope"], "", false);
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(`${AADServerParamKeys.SCOPE}=testScope`)
@@ -329,7 +329,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes overrides OIDC_DEFAULT_SCOPES with defaultScopes", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, [], true, [
+        RequestParameterBuilder.addScopes(parameters, [], "", true, [
             "openid",
             "profile",
         ]);
@@ -346,7 +346,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes adds openid scope when in OIDC protocol mode", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, [], true, []);
+        RequestParameterBuilder.addScopes(parameters, [], "", true, []);
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
