@@ -221,7 +221,10 @@ export class ClientCredentialClient extends BaseClient {
             credentialType: Constants.CredentialType.ACCESS_TOKEN,
             clientId: id,
             realm: authority.tenant,
-            target: ScopeSet.createSearchScopes(scopeSet.asArray(), correlationId),
+            target: ScopeSet.createSearchScopes(
+                scopeSet.asArray(),
+                correlationId
+            ),
         };
 
         const accessTokens = cacheManager.getAccessTokensByFilter(
@@ -231,7 +234,10 @@ export class ClientCredentialClient extends BaseClient {
         if (accessTokens.length < 1) {
             return null;
         } else if (accessTokens.length > 1) {
-            throw createClientAuthError(ClientAuthErrorCodes.multipleMatchingTokens, "");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingTokens,
+                ""
+            );
         }
         return accessTokens[0] as AccessTokenEntity;
     }
@@ -355,7 +361,12 @@ export class ClientCredentialClient extends BaseClient {
             this.config.authOptions.clientId
         );
 
-        RequestParameterBuilder.addScopes(parameters, request.scopes, request.correlationId, false);
+        RequestParameterBuilder.addScopes(
+            parameters,
+            request.scopes,
+            request.correlationId,
+            false
+        );
 
         RequestParameterBuilder.addGrantType(
             parameters,

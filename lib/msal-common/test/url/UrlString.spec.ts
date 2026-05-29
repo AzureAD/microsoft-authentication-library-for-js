@@ -20,7 +20,10 @@ describe("UrlString.ts Class Unit Tests", () => {
     it("constructor throws error if uri is empty or null", () => {
         // @ts-ignore
         expect(() => new UrlString(null, "")).toThrowError(
-            createClientConfigurationError(ClientConfigurationErrorCodes.urlEmptyError, "")
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlEmptyError,
+                ""
+            )
         );
         // @ts-ignore
         expect(() => new UrlString(null, "")).toThrowError(
@@ -28,9 +31,14 @@ describe("UrlString.ts Class Unit Tests", () => {
         );
 
         expect(() => new UrlString("", "")).toThrowError(
-            createClientConfigurationError(ClientConfigurationErrorCodes.urlEmptyError, "")
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlEmptyError,
+                ""
+            )
         );
-        expect(() => new UrlString("", "")).toThrowError(ClientConfigurationError);
+        expect(() => new UrlString("", "")).toThrowError(
+            ClientConfigurationError
+        );
     });
 
     it("validateAsUri throws error if uri components could not be extracted", () => {
@@ -42,7 +50,10 @@ describe("UrlString.ts Class Unit Tests", () => {
         );
         let urlObj = new UrlString(TEST_URIS.TEST_REDIR_URI, "");
         expect(() => urlObj.validateAsUri()).toThrowError(
-            createClientConfigurationError(ClientConfigurationErrorCodes.urlParseError, "")
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError,
+                ""
+            )
         );
         expect(() => urlObj.validateAsUri()).toThrowError(
             ClientConfigurationError
@@ -53,7 +64,10 @@ describe("UrlString.ts Class Unit Tests", () => {
         const insecureUrlString = "http://login.microsoft.com/common";
         let urlObj = new UrlString(insecureUrlString, "");
         expect(() => urlObj.validateAsUri()).toThrowError(
-            createClientConfigurationError(ClientConfigurationErrorCodes.authorityUriInsecure, "")
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.authorityUriInsecure,
+                ""
+            )
         );
         expect(() => urlObj.validateAsUri()).toThrowError(
             ClientConfigurationError
@@ -155,7 +169,10 @@ describe("UrlString.ts Class Unit Tests", () => {
     });
 
     it("getUrlComponents returns all path components", () => {
-        const urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS2, "");
+        const urlObj = new UrlString(
+            TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS2,
+            ""
+        );
         expect(urlObj.getUrlComponents()).toEqual({
             Protocol: "https:",
             HostNameAndPort: "login.microsoftonline.com",
@@ -172,7 +189,10 @@ describe("UrlString.ts Class Unit Tests", () => {
             AbsolutePath: "/common/oauth2/v2.0/authorize",
             PathSegments: ["common", "oauth2", "v2.0", "authorize"],
         } as IUri;
-        const urlObj = UrlString.constructAuthorityUriFromObject(urlComponents, "");
+        const urlObj = UrlString.constructAuthorityUriFromObject(
+            urlComponents,
+            ""
+        );
         expect(urlObj.urlString).toBe(TEST_URIS.TEST_AUTH_ENDPT + "/");
     });
 
@@ -193,31 +213,33 @@ describe("UrlString.ts Class Unit Tests", () => {
             expect(UrlString.getDomainFromUrl("domain.com/", "")).toBe(
                 "domain.com"
             );
-            expect(UrlString.getDomainFromUrl("domain.com", "")).toBe("domain.com");
+            expect(UrlString.getDomainFromUrl("domain.com", "")).toBe(
+                "domain.com"
+            );
         });
 
         it("tests domain is returned when provided url is not homepage", () => {
             expect(UrlString.getDomainFromUrl("domain.com/page", "")).toBe(
                 "domain.com"
             );
-            expect(UrlString.getDomainFromUrl("domain.com/index.html", "")).toBe(
-                "domain.com"
-            );
+            expect(
+                UrlString.getDomainFromUrl("domain.com/index.html", "")
+            ).toBe("domain.com");
         });
 
         it("tests domain is returned when provided url includes hash", () => {
-            expect(UrlString.getDomainFromUrl("domain.com#customHash", "")).toBe(
-                "domain.com"
-            );
-            expect(UrlString.getDomainFromUrl("domain.com/#customHash", "")).toBe(
-                "domain.com"
-            );
+            expect(
+                UrlString.getDomainFromUrl("domain.com#customHash", "")
+            ).toBe("domain.com");
+            expect(
+                UrlString.getDomainFromUrl("domain.com/#customHash", "")
+            ).toBe("domain.com");
         });
 
         it("tests domain is returned when provided url includes query string", () => {
-            expect(UrlString.getDomainFromUrl("domain.com?queryString=1", "")).toBe(
-                "domain.com"
-            );
+            expect(
+                UrlString.getDomainFromUrl("domain.com?queryString=1", "")
+            ).toBe("domain.com");
             expect(
                 UrlString.getDomainFromUrl("domain.com/?queryString=1", "")
             ).toBe("domain.com");
@@ -228,7 +250,11 @@ describe("UrlString.ts Class Unit Tests", () => {
         it("Returns url provided if it is already absolute", () => {
             const absoluteUrl = "https://localhost:30662";
             expect(
-                UrlString.getAbsoluteUrl(absoluteUrl, absoluteUrl + "/testPath", "")
+                UrlString.getAbsoluteUrl(
+                    absoluteUrl,
+                    absoluteUrl + "/testPath",
+                    ""
+                )
             ).toBe(absoluteUrl);
         });
 
@@ -238,9 +264,9 @@ describe("UrlString.ts Class Unit Tests", () => {
             expect(UrlString.getAbsoluteUrl("/testPath", basePath, "")).toBe(
                 absoluteUrl
             );
-            expect(UrlString.getAbsoluteUrl("/testPath", basePath + "/", "")).toBe(
-                absoluteUrl
-            );
+            expect(
+                UrlString.getAbsoluteUrl("/testPath", basePath + "/", "")
+            ).toBe(absoluteUrl);
         });
 
         it("Replaces path if relativeUrl provided and baseUrl contains different path", () => {

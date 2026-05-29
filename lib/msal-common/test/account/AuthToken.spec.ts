@@ -82,7 +82,11 @@ describe("AuthToken.ts Class Unit Tests", () => {
     describe("extractIdToken()", () => {
         it("Throws error if rawIdToken is null or empty", () => {
             expect(() =>
-                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode, "")
+                AuthToken.extractTokenClaims(
+                    "",
+                    cryptoInterface.base64Decode,
+                    ""
+                )
             ).toThrow(
                 new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
@@ -97,7 +101,11 @@ describe("AuthToken.ts Class Unit Tests", () => {
 
         it("Throws error if idToken is null or empty", () => {
             expect(() =>
-                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode, "")
+                AuthToken.extractTokenClaims(
+                    "",
+                    cryptoInterface.base64Decode,
+                    ""
+                )
             ).toThrow(
                 new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );

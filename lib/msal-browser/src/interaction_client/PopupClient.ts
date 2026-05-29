@@ -880,7 +880,9 @@ export class PopupClient extends StandardInteractionClient {
         } else {
             // Throw error if request URL is empty.
             this.logger.error("Navigate url is empty", this.correlationId);
-            throw createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri, this.correlationId
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.emptyNavigateUri,
+                this.correlationId
             );
         }
     }
@@ -920,7 +922,9 @@ export class PopupClient extends StandardInteractionClient {
 
             // Popup will be null if popups are blocked
             if (!popupWindow) {
-                throw createBrowserAuthError(BrowserAuthErrorCodes.emptyWindowError, this.correlationId
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.emptyWindowError,
+                    this.correlationId
                 );
             }
             if (popupWindow.focus) {
@@ -934,7 +938,9 @@ export class PopupClient extends StandardInteractionClient {
                 `error opening popup '${(e as AuthError).message}'`,
                 this.correlationId
             );
-            throw createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError, this.correlationId
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.popupWindowError,
+                this.correlationId
             );
         }
     }

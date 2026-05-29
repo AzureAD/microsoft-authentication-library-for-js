@@ -12,7 +12,10 @@ import { IWindowStorage } from "./IWindowStorage.js";
 export class SessionStorage implements IWindowStorage<string> {
     constructor() {
         if (!window.sessionStorage) {
-            throw createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.storageNotSupported, "");
+            throw createBrowserConfigurationAuthError(
+                BrowserConfigurationAuthErrorCodes.storageNotSupported,
+                ""
+            );
         }
     }
 

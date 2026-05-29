@@ -283,7 +283,9 @@ export async function getEARForm(
     performanceClient: IPerformanceClient
 ): Promise<HTMLFormElement> {
     if (!request.earJwk) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.earJwkEmpty, request.correlationId
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.earJwkEmpty,
+            request.correlationId
         );
     }
 
@@ -443,7 +445,9 @@ export async function handleResponsePlatformBroker(
     );
 
     if (!platformAuthProvider) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.nativeConnectionNotEstablished, request.correlationId
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.nativeConnectionNotEstablished,
+            request.correlationId
         );
     }
     const browserCrypto = new CryptoOps(logger, performanceClient);
@@ -605,12 +609,16 @@ export async function handleResponseEAR(
     );
 
     if (!response.ear_jwe) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.earJweEmpty, request.correlationId
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.earJweEmpty,
+            request.correlationId
         );
     }
 
     if (!request.earJwk) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.earJwkEmpty, request.correlationId
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.earJwkEmpty,
+            request.correlationId
         );
     }
 

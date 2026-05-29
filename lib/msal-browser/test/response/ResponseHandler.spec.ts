@@ -131,7 +131,10 @@ describe("ResponseHandler tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 )
             ).toThrowError(
-                createBrowserAuthError(BrowserAuthErrorCodes.hashDoesNotContainKnownProperties, "")
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                    ""
+                )
             );
             expect(() =>
                 ResponseHandler.deserializeResponse(
@@ -141,7 +144,10 @@ describe("ResponseHandler tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 )
             ).toThrowError(
-                createBrowserAuthError(BrowserAuthErrorCodes.hashDoesNotContainKnownProperties, "")
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                    ""
+                )
             );
 
             expect(() =>
@@ -152,7 +158,10 @@ describe("ResponseHandler tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 )
             ).toThrowError(
-                createBrowserAuthError(BrowserAuthErrorCodes.hashDoesNotContainKnownProperties, "")
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                    ""
+                )
             );
 
             expect(() =>
@@ -163,7 +172,10 @@ describe("ResponseHandler tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 )
             ).toThrowError(
-                createBrowserAuthError(BrowserAuthErrorCodes.hashDoesNotContainKnownProperties, "")
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                    ""
+                )
             );
         });
     });

@@ -131,7 +131,10 @@ export class AuthorizationCodeClient {
         authCodePayload?: AuthorizationCodePayload
     ): Promise<AuthenticationResult> {
         if (!request.code) {
-            throw createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade, request.correlationId);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.requestCannotBeMade,
+                request.correlationId
+            );
         }
 
         // Check for new cloud instance
@@ -202,7 +205,10 @@ export class AuthorizationCodeClient {
     getLogoutUri(logoutRequest: CommonEndSessionRequest): string {
         // Throw error if logoutRequest is null/undefined
         if (!logoutRequest) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.logoutRequestEmpty, "");
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.logoutRequestEmpty,
+                ""
+            );
         }
         const queryString = this.createLogoutUrlQueryString(logoutRequest);
 
@@ -314,7 +320,10 @@ export class AuthorizationCodeClient {
         if (!this.includeRedirectUri) {
             // Just validate
             if (!request.redirectUri) {
-                throw createClientConfigurationError(ClientConfigurationErrorCodes.redirectUriEmpty, request.correlationId);
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.redirectUriEmpty,
+                    request.correlationId
+                );
             }
         } else {
             // Validate and include redirect uri
@@ -425,7 +434,10 @@ export class AuthorizationCodeClient {
             if (request.sshJwk) {
                 RequestParameterBuilder.addSshJwk(parameters, request.sshJwk);
             } else {
-                throw createClientConfigurationError(ClientConfigurationErrorCodes.missingSshJwk, request.correlationId);
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    request.correlationId
+                );
             }
         }
 

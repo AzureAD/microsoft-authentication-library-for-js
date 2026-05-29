@@ -814,7 +814,8 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     [MANAGED_IDENTITY_RESOURCE_BASE].toString(), // scopes
                     nowSeconds + 3600, // expiresOn
                     nowSeconds + 3600, // extExpiresOn
-                    mockCrypto.base64Decode, "", // cryptoUtils
+                    mockCrypto.base64Decode,
+                    "", // cryptoUtils
                     expiredRefreshOn // refreshOn
                 );
             jest.spyOn(
@@ -1049,7 +1050,10 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     resource: "",
                 })
             ).rejects.toMatchObject(
-                createClientConfigurationError(ClientConfigurationErrorCodes.urlEmptyError, "")
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.urlEmptyError,
+                    ""
+                )
             );
         });
 
@@ -1068,7 +1072,10 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             expect(() => {
                 new ManagedIdentityApplication(badUserAssignedClientIdConfig);
             }).toThrow(
-                createManagedIdentityError(ManagedIdentityErrorCodes.invalidManagedIdentityIdType, "")
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType,
+                    ""
+                )
             );
         });
 

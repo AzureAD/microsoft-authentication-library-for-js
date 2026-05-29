@@ -110,7 +110,10 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                     managedIdentityRequestParams
                 )
             ).rejects.toMatchObject(
-                createManagedIdentityError(ManagedIdentityErrorCodes.unableToCreateCloudShell, "")
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.unableToCreateCloudShell,
+                    ""
+                )
             );
         });
 

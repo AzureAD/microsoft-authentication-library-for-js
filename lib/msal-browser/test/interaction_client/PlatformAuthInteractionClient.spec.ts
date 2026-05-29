@@ -1169,7 +1169,12 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 .mockImplementationOnce(
                     (message): Promise<PlatformAuthResponse> => {
                         return Promise.reject(
-                            new NativeAuthError("test_native_error_code", "", "test_error_desc", { status: NativeStatusCodes.PERSISTENT_ERROR })
+                            new NativeAuthError(
+                                "test_native_error_code",
+                                "",
+                                "test_error_desc",
+                                { status: NativeStatusCodes.PERSISTENT_ERROR }
+                            )
                         );
                     }
                 )
@@ -1375,7 +1380,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "sendMessage"
             ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.reject(
-                    new NativeAuthError("ContentError", "", "problem getting response from extension")
+                    new NativeAuthError(
+                        "ContentError",
+                        "",
+                        "problem getting response from extension"
+                    )
                 );
             });
             platformAuthInteractionClient
@@ -1465,7 +1474,12 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 .mockImplementationOnce(
                     (message): Promise<PlatformAuthResponse> => {
                         return Promise.reject(
-                            new NativeAuthError("test_native_error_code", "", "test_error_desc", { status: NativeStatusCodes.PERSISTENT_ERROR })
+                            new NativeAuthError(
+                                "test_native_error_code",
+                                "",
+                                "test_error_desc",
+                                { status: NativeStatusCodes.PERSISTENT_ERROR }
+                            )
                         );
                     }
                 )

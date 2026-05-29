@@ -414,7 +414,10 @@ export class ResponseHandler {
         if (serverTokenResponse.access_token) {
             // If scopes not returned in server response, use request scopes
             const responseScopes = serverTokenResponse.scope
-                ? ScopeSet.fromString(serverTokenResponse.scope, request.correlationId)
+                ? ScopeSet.fromString(
+                      serverTokenResponse.scope,
+                      request.correlationId
+                  )
                 : new ScopeSet(request.scopes || [], request.correlationId);
 
             /*

@@ -27,7 +27,10 @@ export class UrlString {
         this.correlationId = correlationId;
         if (!this._urlString) {
             // Throws error if url is empty
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.urlEmptyError, correlationId);
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlEmptyError,
+                correlationId
+            );
         }
 
         if (!url.includes("#")) {
@@ -68,12 +71,18 @@ export class UrlString {
         try {
             components = this.getUrlComponents();
         } catch (e) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.urlParseError, this.correlationId);
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError,
+                this.correlationId
+            );
         }
 
         // Throw error if URI or path segments are not parseable.
         if (!components.HostNameAndPort || !components.PathSegments) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.urlParseError, this.correlationId);
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError,
+                this.correlationId
+            );
         }
 
         // Throw error if uri is insecure.
@@ -81,7 +90,10 @@ export class UrlString {
             !components.Protocol ||
             components.Protocol.toLowerCase() !== "https:"
         ) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.authorityUriInsecure, this.correlationId);
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.authorityUriInsecure,
+                this.correlationId
+            );
         }
     }
 
@@ -124,7 +136,10 @@ export class UrlString {
         ) {
             pathArray[0] = tenantId;
         }
-        return UrlString.constructAuthorityUriFromObject(urlObject, this.correlationId);
+        return UrlString.constructAuthorityUriFromObject(
+            urlObject,
+            this.correlationId
+        );
     }
 
     /**
@@ -140,7 +155,10 @@ export class UrlString {
         // If url string does not match regEx, we throw an error
         const match = this.urlString.match(regEx);
         if (!match) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.urlParseError, this.correlationId);
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError,
+                this.correlationId
+            );
         }
 
         // Url component object
@@ -173,13 +191,20 @@ export class UrlString {
         const match = url.match(regEx);
 
         if (!match) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.urlParseError, correlationId);
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError,
+                correlationId
+            );
         }
 
         return match[2];
     }
 
-    static getAbsoluteUrl(relativeUrl: string, baseUrl: string, correlationId: string): string {
+    static getAbsoluteUrl(
+        relativeUrl: string,
+        baseUrl: string,
+        correlationId: string
+    ): string {
         if (relativeUrl[0] === Constants.FORWARD_SLASH) {
             const url = new UrlString(baseUrl, correlationId);
             const baseComponents = url.getUrlComponents();
@@ -195,7 +220,10 @@ export class UrlString {
         return relativeUrl;
     }
 
-    static constructAuthorityUriFromObject(urlObject: IUri, correlationId: string): UrlString {
+    static constructAuthorityUriFromObject(
+        urlObject: IUri,
+        correlationId: string
+    ): UrlString {
         return new UrlString(
             urlObject.Protocol +
                 "//" +

@@ -97,7 +97,11 @@ export function getRedirectUri(
 ): string {
     logger.verbose("getRedirectUri called", correlationId);
     const redirectUri = requestRedirectUri || clientConfigRedirectUri || "";
-    return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri(), correlationId);
+    return UrlString.getAbsoluteUrl(
+        redirectUri,
+        BrowserUtils.getCurrentUri(),
+        correlationId
+    );
 }
 
 /**

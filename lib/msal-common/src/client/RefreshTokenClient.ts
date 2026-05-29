@@ -176,11 +176,17 @@ export class RefreshTokenClient {
     ): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
-            throw createClientConfigurationError(ClientConfigurationErrorCodes.tokenRequestEmpty, "");
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.tokenRequestEmpty,
+                ""
+            );
         }
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
-            throw createClientAuthError(ClientAuthErrorCodes.noAccountInSilentRequest, request.correlationId);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.noAccountInSilentRequest,
+                request.correlationId
+            );
         }
 
         // try checking if FOCI is enabled for the given application
@@ -253,7 +259,10 @@ export class RefreshTokenClient {
         )(request.account, foci, request.correlationId, undefined);
 
         if (!refreshToken) {
-            throw createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.noTokensFound, request.correlationId);
+            throw createInteractionRequiredAuthError(
+                InteractionRequiredAuthErrorCodes.noTokensFound,
+                request.correlationId
+            );
         }
 
         if (refreshToken.expiresOn) {
@@ -269,7 +278,10 @@ export class RefreshTokenClient {
             );
 
             if (TimeUtils.isTokenExpired(refreshToken.expiresOn, offset)) {
-                throw createInteractionRequiredAuthError(InteractionRequiredAuthErrorCodes.refreshTokenExpired, request.correlationId);
+                throw createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+                    request.correlationId
+                );
             }
         }
         // attach cached RT size to the current measurement
@@ -489,7 +501,10 @@ export class RefreshTokenClient {
             if (request.sshJwk) {
                 RequestParameterBuilder.addSshJwk(parameters, request.sshJwk);
             } else {
-                throw createClientConfigurationError(ClientConfigurationErrorCodes.missingSshJwk, request.correlationId);
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    request.correlationId
+                );
             }
         }
 

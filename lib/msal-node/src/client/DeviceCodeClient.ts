@@ -177,7 +177,11 @@ export class DeviceCodeClient extends BaseClient {
     private createQueryString(request: CommonDeviceCodeRequest): string {
         const parameters = new Map<string, string>();
 
-        RequestParameterBuilder.addScopes(parameters, request.scopes, request.correlationId);
+        RequestParameterBuilder.addScopes(
+            parameters,
+            request.scopes,
+            request.correlationId
+        );
         RequestParameterBuilder.addClientId(
             parameters,
             this.config.authOptions.clientId
@@ -370,7 +374,11 @@ export class DeviceCodeClient extends BaseClient {
     ): string {
         const parameters = new Map<string, string>();
 
-        RequestParameterBuilder.addScopes(parameters, request.scopes, request.correlationId);
+        RequestParameterBuilder.addScopes(
+            parameters,
+            request.scopes,
+            request.correlationId
+        );
         RequestParameterBuilder.addClientId(
             parameters,
             this.config.authOptions.clientId

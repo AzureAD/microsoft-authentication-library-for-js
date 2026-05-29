@@ -52,7 +52,10 @@ export class OnBehalfOfClient extends BaseClient {
     public async acquireToken(
         request: CommonOnBehalfOfRequest
     ): Promise<AuthenticationResult | null> {
-        this.scopeSet = new ScopeSet(request.scopes || [], request.correlationId);
+        this.scopeSet = new ScopeSet(
+            request.scopes || [],
+            request.correlationId
+        );
 
         // generate the user_assertion_hash for OBOAssertion
         this.userAssertionHash = await this.cryptoUtils.hashString(
@@ -104,7 +107,10 @@ export class OnBehalfOfClient extends BaseClient {
                 "SilentFlowClient:acquireCachedToken - No access token found in cache for the given properties.",
                 request.correlationId
             );
-            throw createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.tokenRefreshRequired,
+                ""
+            );
         } else if (
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
@@ -119,7 +125,10 @@ export class OnBehalfOfClient extends BaseClient {
                 `OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`,
                 request.correlationId
             );
-            throw createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, "");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.tokenRefreshRequired,
+                ""
+            );
         }
 
         // fetch the idToken from cache
@@ -226,7 +235,10 @@ export class OnBehalfOfClient extends BaseClient {
         const accessTokenFilter: CredentialFilter = {
             credentialType: credentialType,
             clientId,
-            target: ScopeSet.createSearchScopes(this.scopeSet.asArray(), request.correlationId),
+            target: ScopeSet.createSearchScopes(
+                this.scopeSet.asArray(),
+                request.correlationId
+            ),
             tokenType: authScheme,
             keyId: request.sshKid,
             userAssertionHash: this.userAssertionHash,
@@ -241,7 +253,10 @@ export class OnBehalfOfClient extends BaseClient {
         if (numAccessTokens < 1) {
             return null;
         } else if (numAccessTokens > 1) {
-            throw createClientAuthError(ClientAuthErrorCodes.multipleMatchingTokens, "");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingTokens,
+                ""
+            );
         }
 
         return accessTokens[0] as AccessTokenEntity;
@@ -327,7 +342,11 @@ export class OnBehalfOfClient extends BaseClient {
             this.config.authOptions.clientId
         );
 
-        RequestParameterBuilder.addScopes(parameters, request.scopes, request.correlationId);
+        RequestParameterBuilder.addScopes(
+            parameters,
+            request.scopes,
+            request.correlationId
+        );
 
         RequestParameterBuilder.addGrantType(
             parameters,

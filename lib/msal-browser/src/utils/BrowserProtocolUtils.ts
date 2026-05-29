@@ -32,9 +32,16 @@ export function extractBrowserRequestState(
 
     try {
         const requestStateObj: RequestStateObject =
-            ProtocolUtils.parseRequestState(browserCrypto.base64Decode, state, correlationId);
+            ProtocolUtils.parseRequestState(
+                browserCrypto.base64Decode,
+                state,
+                correlationId
+            );
         return requestStateObj.libraryState.meta as BrowserStateObject;
     } catch (e) {
-        throw createClientAuthError(ClientAuthErrorCodes.invalidState, correlationId);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.invalidState,
+            correlationId
+        );
     }
 }

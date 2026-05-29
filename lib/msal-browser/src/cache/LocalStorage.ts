@@ -59,7 +59,10 @@ export class LocalStorage implements IWindowStorage<string> {
         performanceClient: IPerformanceClient
     ) {
         if (!window.localStorage) {
-            throw createBrowserConfigurationAuthError(BrowserConfigurationAuthErrorCodes.storageNotSupported, "");
+            throw createBrowserConfigurationAuthError(
+                BrowserConfigurationAuthErrorCodes.storageNotSupported,
+                ""
+            );
         }
         this.memoryStorage = new MemoryStorage<string>();
         this.initialized = false;
@@ -161,7 +164,10 @@ export class LocalStorage implements IWindowStorage<string> {
 
     getUserData(key: string): string | null {
         if (!this.initialized) {
-            throw createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "");
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                ""
+            );
         }
         return this.memoryStorage.getItem(key);
     }
@@ -172,7 +178,10 @@ export class LocalStorage implements IWindowStorage<string> {
         correlationId: string
     ): Promise<object | null> {
         if (!this.initialized || !this.encryptionCookie) {
-            throw createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "");
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                ""
+            );
         }
 
         if (data.id !== this.encryptionCookie.id) {
@@ -227,7 +236,10 @@ export class LocalStorage implements IWindowStorage<string> {
         kmsi: boolean
     ): Promise<void> {
         if (!this.initialized || !this.encryptionCookie) {
-            throw createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication, "");
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                ""
+            );
         }
 
         if (kmsi) {

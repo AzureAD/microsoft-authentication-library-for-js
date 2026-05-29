@@ -43,7 +43,10 @@ describe("AuthenticationHeaderParser unit tests", () => {
                 {}
             );
             expect(() => authenticationHeaderParser.getShrNonce()).toThrow(
-                createClientConfigurationError(ClientConfigurationErrorCodes.missingNonceAuthenticationHeader, "")
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingNonceAuthenticationHeader,
+                    ""
+                )
             );
         });
 
@@ -54,7 +57,10 @@ describe("AuthenticationHeaderParser unit tests", () => {
                 headers
             );
             expect(() => authenticationHeaderParser.getShrNonce()).toThrow(
-                createClientConfigurationError(ClientConfigurationErrorCodes.invalidAuthenticationHeader, "")
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidAuthenticationHeader,
+                    ""
+                )
             );
         });
 
@@ -65,7 +71,10 @@ describe("AuthenticationHeaderParser unit tests", () => {
                 headers
             );
             expect(() => authenticationHeaderParser.getShrNonce()).toThrow(
-                createClientConfigurationError(ClientConfigurationErrorCodes.invalidAuthenticationHeader, "")
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidAuthenticationHeader,
+                    ""
+                )
             );
         });
     });

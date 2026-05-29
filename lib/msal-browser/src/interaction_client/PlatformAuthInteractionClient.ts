@@ -263,7 +263,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         return {
             authority: request.authority,
             correlationId: this.correlationId,
-            scopes: ScopeSet.fromString(request.scope, this.correlationId).asArray(),
+            scopes: ScopeSet.fromString(
+                request.scope,
+                this.correlationId
+            ).asArray(),
             account: cachedAccount,
             forceRefresh: false,
         };
@@ -1116,7 +1119,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             );
         }
 
-        const canonicalAuthority = new UrlString(requestAuthority, this.correlationId);
+        const canonicalAuthority = new UrlString(
+            requestAuthority,
+            this.correlationId
+        );
         canonicalAuthority.validateAsUri();
         return canonicalAuthority;
     }

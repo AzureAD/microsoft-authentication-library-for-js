@@ -557,7 +557,7 @@ describe("RedirectClient", () => {
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
                 stateString,
-            ""
+                ""
             ).libraryState.id;
 
             window.sessionStorage.setItem(
@@ -700,7 +700,7 @@ describe("RedirectClient", () => {
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
                 stateString,
-            ""
+                ""
             ).libraryState.id;
 
             window.sessionStorage.setItem(
@@ -766,7 +766,7 @@ describe("RedirectClient", () => {
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
                 stateString,
-            ""
+                ""
             ).libraryState.id;
 
             window.sessionStorage.setItem(
@@ -805,7 +805,7 @@ describe("RedirectClient", () => {
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
                 stateString,
-            ""
+                ""
             ).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -948,7 +948,7 @@ describe("RedirectClient", () => {
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
                 stateString,
-            ""
+                ""
             ).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -1106,7 +1106,7 @@ describe("RedirectClient", () => {
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
                 stateString,
-            ""
+                ""
             ).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -1831,7 +1831,10 @@ describe("RedirectClient", () => {
             await expect(
                 redirectClient.acquireToken(loginRequest)
             ).rejects.toThrow(
-                createClientConfigurationError(ClientConfigurationErrorCodes.missingSshJwk, "")
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    ""
+                )
             );
         });
 
@@ -1850,7 +1853,10 @@ describe("RedirectClient", () => {
             };
 
             await expect(redirectClient.acquireToken(request)).rejects.toThrow(
-                createClientConfigurationError(ClientConfigurationErrorCodes.missingSshKid, "")
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshKid,
+                    ""
+                )
             );
         });
 
@@ -2777,7 +2783,10 @@ describe("RedirectClient", () => {
         });
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
-            const testError = createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri, "");
+            const testError = createBrowserAuthError(
+                BrowserAuthErrorCodes.emptyNavigateUri,
+                ""
+            );
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateExternal"

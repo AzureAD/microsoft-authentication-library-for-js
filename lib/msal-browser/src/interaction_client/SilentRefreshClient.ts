@@ -101,7 +101,10 @@ export class SilentRefreshClient extends StandardInteractionClient {
     logout(): Promise<void> {
         // Synchronous so we must reject
         return Promise.reject(
-            createBrowserAuthError(BrowserAuthErrorCodes.silentLogoutUnsupported, "")
+            createBrowserAuthError(
+                BrowserAuthErrorCodes.silentLogoutUnsupported,
+                ""
+            )
         );
     }
 

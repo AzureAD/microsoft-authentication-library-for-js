@@ -37,8 +37,9 @@ describe("RequestParameterBuilder unit tests", () => {
         );
         RequestParameterBuilder.addScopes(
             parameters,
-            TEST_CONFIG.DEFAULT_SCOPES
-        , "");
+            TEST_CONFIG.DEFAULT_SCOPES,
+            ""
+        );
         RequestParameterBuilder.addClientId(
             parameters,
             TEST_CONFIG.MSAL_CLIENT_ID
@@ -55,7 +56,12 @@ describe("RequestParameterBuilder unit tests", () => {
             parameters,
             TEST_CONFIG.LOGIN_HINT
         );
-        RequestParameterBuilder.addClaims(parameters, "", TEST_CONFIG.CLAIMS, []);
+        RequestParameterBuilder.addClaims(
+            parameters,
+            "",
+            TEST_CONFIG.CLAIMS,
+            []
+        );
         RequestParameterBuilder.addCorrelationId(
             parameters,
             TEST_CONFIG.CORRELATION_ID
@@ -364,7 +370,10 @@ describe("RequestParameterBuilder unit tests", () => {
                 ""
             )
         ).toThrow(
-            new ClientConfigurationError(ClientConfigurationErrorCodes.pkceParamsMissing, "")
+            new ClientConfigurationError(
+                ClientConfigurationErrorCodes.pkceParamsMissing,
+                ""
+            )
         );
     });
 
@@ -377,7 +386,10 @@ describe("RequestParameterBuilder unit tests", () => {
                 AADServerParamKeys.CODE_CHALLENGE_METHOD
             )
         ).toThrow(
-            new ClientConfigurationError(ClientConfigurationErrorCodes.pkceParamsMissing, "")
+            new ClientConfigurationError(
+                ClientConfigurationErrorCodes.pkceParamsMissing,
+                ""
+            )
         );
     });
 
@@ -644,7 +656,10 @@ describe("RequestParameterBuilder unit tests", () => {
                     []
                 )
             ).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.invalidClaims, "")
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidClaims,
+                    ""
+                )
             );
         });
     });
@@ -821,7 +836,8 @@ describe("RequestParameterBuilder unit tests", () => {
             );
 
             RequestParameterBuilder.addClaims(
-                parameters, "",
+                parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 false
@@ -841,7 +857,8 @@ describe("RequestParameterBuilder unit tests", () => {
             const parameters = new Map<string, string>();
 
             RequestParameterBuilder.addClaims(
-                parameters, "",
+                parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 false
@@ -861,7 +878,8 @@ describe("RequestParameterBuilder unit tests", () => {
             const parameters = new Map<string, string>();
 
             RequestParameterBuilder.addClaims(
-                parameters, "",
+                parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 true
@@ -887,7 +905,8 @@ describe("RequestParameterBuilder unit tests", () => {
             );
 
             RequestParameterBuilder.addClaims(
-                parameters, "",
+                parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 true
@@ -904,7 +923,8 @@ describe("RequestParameterBuilder unit tests", () => {
             const parameters = new Map<string, string>();
 
             RequestParameterBuilder.addClaims(
-                parameters, "",
+                parameters,
+                "",
                 undefined,
                 undefined,
                 false
@@ -917,7 +937,8 @@ describe("RequestParameterBuilder unit tests", () => {
             const parameters = new Map<string, string>();
 
             RequestParameterBuilder.addClaims(
-                parameters, "",
+                parameters,
+                "",
                 undefined,
                 ["CP1"],
                 false

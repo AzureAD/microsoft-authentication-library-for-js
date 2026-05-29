@@ -105,17 +105,26 @@ export class SilentFlowClient {
                 CacheOutcome.FORCE_REFRESH_OR_CLAIMS,
                 request.correlationId
             );
-            throw createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, request.correlationId);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.tokenRefreshRequired,
+                request.correlationId
+            );
         }
 
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
-            throw createClientAuthError(ClientAuthErrorCodes.noAccountInSilentRequest, request.correlationId);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.noAccountInSilentRequest,
+                request.correlationId
+            );
         }
 
         const requestTenantId =
             request.account.tenantId ||
-            getTenantFromAuthorityString(request.authority, request.correlationId);
+            getTenantFromAuthorityString(
+                request.authority,
+                request.correlationId
+            );
         const tokenKeys = this.cacheManager.getTokenKeys();
         const cachedAccessToken = this.cacheManager.getAccessToken(
             request.account,
@@ -130,7 +139,10 @@ export class SilentFlowClient {
                 CacheOutcome.NO_CACHED_ACCESS_TOKEN,
                 request.correlationId
             );
-            throw createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, request.correlationId);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.tokenRefreshRequired,
+                request.correlationId
+            );
         } else if (
             TimeUtils.wasClockTurnedBack(cachedAccessToken.cachedAt) ||
             TimeUtils.isTokenExpired(
@@ -143,7 +155,10 @@ export class SilentFlowClient {
                 CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED,
                 request.correlationId
             );
-            throw createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, request.correlationId);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.tokenRefreshRequired,
+                request.correlationId
+            );
         } else if (request.resource) {
             // cached access token must have a resource that matches the request resource for MCP scenarios
             if (cachedAccessToken.resource !== request.resource) {
@@ -151,7 +166,10 @@ export class SilentFlowClient {
                     CacheOutcome.NO_CACHED_ACCESS_TOKEN,
                     request.correlationId
                 );
-                throw createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired, request.correlationId);
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                    request.correlationId
+                );
             }
         } else if (
             cachedAccessToken.refreshOn &&
@@ -242,7 +260,10 @@ export class SilentFlowClient {
         if (request.maxAge || request.maxAge === 0) {
             const authTime = idTokenClaims?.auth_time;
             if (!authTime) {
-                throw createClientAuthError(ClientAuthErrorCodes.authTimeNotFound, request.correlationId);
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.authTimeNotFound,
+                    request.correlationId
+                );
             }
 
             checkMaxAge(authTime, request.maxAge, request.correlationId);

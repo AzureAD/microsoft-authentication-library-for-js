@@ -80,7 +80,11 @@ export async function loadExternalTokens(
 
     try {
         const idTokenClaims = response.id_token
-            ? AuthToken.extractTokenClaims(response.id_token, base64Decode, correlationId)
+            ? AuthToken.extractTokenClaims(
+                  response.id_token,
+                  base64Decode,
+                  correlationId
+              )
             : undefined;
         const kmsi = AuthToken.isKmsi(idTokenClaims || {});
 
@@ -254,7 +258,10 @@ async function loadAccount(
             "TokenCache - if an account is not provided on the request, clientInfo or idToken must be provided instead.",
             correlationId
         );
-        throw createBrowserAuthError(BrowserAuthErrorCodes.unableToLoadToken, "");
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.unableToLoadToken,
+            ""
+        );
     }
 
     const homeAccountId = AccountEntityUtils.generateHomeAccountId(
