@@ -1214,8 +1214,7 @@ describe("BrowserCacheManager tests", () => {
         describe("updateOldEntry", () => {
             it("should add lastUpdatedAt to v0 entries that don't have it", async () => {
                 const v0Key = "test-v0-key";
-                const { lastUpdatedAt, ...v0Value } =
-                    TEST_ACCESS_TOKEN_ENTITY;
+                const { lastUpdatedAt, ...v0Value } = TEST_ACCESS_TOKEN_ENTITY;
                 window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
 
                 await browserCacheManager.updateOldEntry(
@@ -1466,9 +1465,7 @@ describe("BrowserCacheManager tests", () => {
                 );
 
                 // Account should still be in storage
-                expect(
-                    window.localStorage.getItem(accountKey)
-                ).not.toBeNull();
+                expect(window.localStorage.getItem(accountKey)).not.toBeNull();
             });
 
             it("should remove unparseable account entries from storage", async () => {
