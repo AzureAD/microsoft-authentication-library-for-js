@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779924232793,
+  "lastUpdate": 1780354970659,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21529,6 +21529,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.61%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f96b364dcc4ebab05897c030730914ada8e017d9",
+          "message": "Add PCA functions for custom authentication response handling (#8590)\n\nThis pull request introduces new extensibility hooks for customizing how\nMSAL waits for authentication responses from popup windows and iframes,\nand adds a new utility to clear authentication parameters from URLs.\nThese changes make it easier for advanced users to override default\nbehaviors, improve error handling, and enhance the flexibility of the\nauthentication flow.\n\n**Extensibility and Customization:**\n\n* Added optional `waitForPopupResponse` and `waitForIframeResponse`\nhooks to `BrowserSystemOptions`, allowing developers to override or\nextend how MSAL waits for authentication responses from popups and\niframes. These hooks receive relevant context and a default handler,\nenabling full customization or chaining with the built-in logic.\n(`lib/msal-browser/src/config/Configuration.ts`,\n`lib/msal-browser/apiReview/msal-browser.api.md`,\n[[1]](diffhunk://#diff-5912a198ce9530319ffa5d0b77a1e63b28877d5e8d202654b0c374ded0a8c546R172-R215)\n[[2]](diffhunk://#diff-5912a198ce9530319ffa5d0b77a1e63b28877d5e8d202654b0c374ded0a8c546L224-R281)\n[[3]](diffhunk://#diff-d8aa8313e46503e745028509a1ac18093831ea5baeafe63c63ea825727aa3580L316-R316)\n[[4]](diffhunk://#diff-d8aa8313e46503e745028509a1ac18093831ea5baeafe63c63ea825727aa3580R413-R422)\n* Refactored `PopupClient` and `SilentIframeClient` to use the new\nhooks, calling the override if provided or falling back to the default\nbridge response handler.\n(`lib/msal-browser/src/interaction_client/PopupClient.ts`,\n`lib/msal-browser/src/interaction_client/SilentIframeClient.ts`,\n[[1]](diffhunk://#diff-3f43afd5556603a80064728bd701519ec2e22979f09ae6095b7fdea0507ad593L372-R375)\n[[2]](diffhunk://#diff-3f43afd5556603a80064728bd701519ec2e22979f09ae6095b7fdea0507ad593L497-R500)\n[[3]](diffhunk://#diff-3f43afd5556603a80064728bd701519ec2e22979f09ae6095b7fdea0507ad593L626-R623)\n[[4]](diffhunk://#diff-3f43afd5556603a80064728bd701519ec2e22979f09ae6095b7fdea0507ad593L795-R784)\n[[5]](diffhunk://#diff-3f43afd5556603a80064728bd701519ec2e22979f09ae6095b7fdea0507ad593R1030-R1060)\n[[6]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faL300-R305)\n[[7]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faL531-R524)\n[[8]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faL599-R597)\n[[9]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faR618-R649)\n\n**Utility and Error Handling:**\n\n* Introduced `clearAuthResponseFromUrl`, a utility that removes both\nhash and query string from a window's URL, improving cleanup after\nauthentication and error handling. Updated internal code to use this\nutility where appropriate.\n(`lib/msal-browser/src/utils/BrowserUtils.ts`,\n`lib/msal-browser/apiReview/msal-browser.api.md`,\n`lib/msal-browser/src/redirect_bridge/index.ts`,\n[[1]](diffhunk://#diff-78bb6bdde3811910ee513b0902523f82816adfed7fb4e71c34554ba04711956eR159-R173)\n[[2]](diffhunk://#diff-d8aa8313e46503e745028509a1ac18093831ea5baeafe63c63ea825727aa3580R437)\n[[3]](diffhunk://#diff-d8aa8313e46503e745028509a1ac18093831ea5baeafe63c63ea825727aa3580R490-R494)\n[[4]](diffhunk://#diff-32779cae0c41a7eaae4e816c284cefd873f5a1f6f28a9cca9e35f0f493d09f21L40-R40)\n\n**Internal and Typing Improvements:**\n\n* Refactored `BrowserConfiguration.system` to separate out the new hook\ntypes for improved readability and maintainability.\n(`lib/msal-browser/src/config/Configuration.ts`,\n[lib/msal-browser/src/config/Configuration.tsL224-R281](diffhunk://#diff-5912a198ce9530319ffa5d0b77a1e63b28877d5e8d202654b0c374ded0a8c546L224-R281))\n* Updated API review files and added missing exports to ensure type\nsafety and proper documentation.\n(`lib/msal-browser/apiReview/msal-browser.api.md`,\n[lib/msal-browser/apiReview/msal-browser.api.mdL1547-R1567](diffhunk://#diff-d8aa8313e46503e745028509a1ac18093831ea5baeafe63c63ea825727aa3580L1547-R1567))\n\n**Package Metadata:**\n\n* Added a patch change file to document the export of new controllers\nand clients.\n(`change/@azure-msal-browser-ce175d38-4899-4b15-906c-43f14b683904.json`,\n[change/@azure-msal-browser-ce175d38-4899-4b15-906c-43f14b683904.jsonR1-R7](diffhunk://#diff-d84676b3efc2f5cc859b42221011b9dcd21b45832275742a2d91f03d8bf3dfc8R1-R7))\n\n---------\n\nCo-authored-by: Shyla Summers <shylasummers@microsoft.com>\nCo-authored-by: Jo Arroyo <joarroyo@microsoft.com>\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-06-01T15:54:42-07:00",
+          "tree_id": "24bcc4d35cb04d45fd416fdea45bae06551919a6",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f96b364dcc4ebab05897c030730914ada8e017d9"
+        },
+        "date": 1780354967026,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 465253,
+            "range": "±0.63%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 449708,
+            "range": "±0.79%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
