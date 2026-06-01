@@ -61,12 +61,17 @@ export class ClientCredentialClient extends BaseClient {
     public async acquireToken(
         request: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
-        // FMI is not supported with non-Bearer auth schemes (PoP, SSH)
+        /*
+         * FMI is incompatible with PoP/SSH — those schemes store non-bearer tokens as
+         * ACCESS_TOKEN_WITH_AUTH_SCHEME which conflicts with the ACCESS_TOKEN_EXTENDED
+         * type required for FMI cache isolation.
+         */
         if (
             request.fmiPath &&
-            request.authenticationScheme &&
-            request.authenticationScheme !==
-                Constants.AuthenticationScheme.BEARER
+            (request.authenticationScheme ===
+                Constants.AuthenticationScheme.POP ||
+                request.authenticationScheme ===
+                    Constants.AuthenticationScheme.SSH)
         ) {
             throw createClientAuthError(
                 NodeClientAuthErrorCodes.fmiWithNonBearerScheme
@@ -144,7 +149,7 @@ export class ClientCredentialClient extends BaseClient {
         authority: Authority,
         cacheManager: CacheManager,
         serverTelemetryManager?: ServerTelemetryManager | null,
-        precomputedExtCacheKeyHash?: string
+        extCacheKeyHash?: string
     ): Promise<[AuthenticationResult | null, Constants.CacheOutcome]> {
         const clientConfiguration = config as ClientConfiguration;
         const managedIdentityConfiguration =
@@ -152,14 +157,6 @@ export class ClientCredentialClient extends BaseClient {
 
         let lastCacheOutcome: Constants.CacheOutcome =
             Constants.CacheOutcome.NOT_APPLICABLE;
-
-        // Use pre-computed hash if provided, otherwise compute it
-        let extCacheKeyHash: string | undefined = precomputedExtCacheKeyHash;
-        if (!extCacheKeyHash && request.fmiPath) {
-            extCacheKeyHash = await cryptoUtils.hashString(
-                "fmi_path" + request.fmiPath
-            );
-        }
 
         // read the user-supplied cache into memory, if applicable
         let cacheContext;
@@ -295,18 +292,10 @@ export class ClientCredentialClient extends BaseClient {
         request: CommonClientCredentialRequest,
         authority: Authority,
         refreshAccessToken?: boolean,
-        precomputedExtCacheKeyHash?: string
+        extCacheKeyHash?: string
     ): Promise<AuthenticationResult | null> {
         let serverTokenResponse: ServerAuthorizationTokenResponse;
         let reqTimestamp: number;
-
-        // Use pre-computed hash if provided, otherwise compute it
-        let extCacheKeyHash: string | undefined = precomputedExtCacheKeyHash;
-        if (!extCacheKeyHash && request.fmiPath) {
-            extCacheKeyHash = await this.cryptoUtils.hashString(
-                "fmi_path" + request.fmiPath
-            );
-        }
 
         if (this.appTokenProvider) {
             this.logger.info(
