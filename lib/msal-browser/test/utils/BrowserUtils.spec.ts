@@ -148,11 +148,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
                 warning: jest.fn(),
                 error: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const state = btoa(JSON.stringify({ id: "test-id-123" }));
             const request = {
                 state,
@@ -163,7 +158,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 5000,
                 logger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -190,11 +184,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const logger = {
                 verbose: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const state = btoa(JSON.stringify({ id: "test-id-456" }));
             const request = {
                 state,
@@ -207,7 +196,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 5000,
                 logger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -232,11 +220,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const logger = {
                 verbose: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const state = btoa(JSON.stringify({ id: "test-id-789" }));
             const request = {
                 state,
@@ -247,7 +230,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 5000,
                 logger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -277,11 +259,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const logger = {
                 verbose: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const state = btoa(JSON.stringify({ id: "cancel-test-id" }));
             const request = {
                 state,
@@ -291,7 +268,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 10000,
                 logger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -317,11 +293,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const logger = {
                 verbose: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const channelId = "success-test-id";
             const state = btoa(JSON.stringify({ id: channelId }));
             const request = {
@@ -333,7 +304,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 5000,
                 logger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -375,11 +345,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const logger = {
                 verbose: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const state = btoa(JSON.stringify({ id: "timeout-test-id" }));
             const request = {
                 state,
@@ -389,7 +354,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 1000,
                 logger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -415,11 +379,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const logger = {
                 verbose: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const channelId = "pre-timeout-response-test-id";
             const state = btoa(JSON.stringify({ id: channelId }));
             const request = {
@@ -430,7 +389,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 200,
                 logger,
-                browserCrypto,
                 request,
                 performanceClient,
                 { iframeTimeoutTelemetry: true }
@@ -457,11 +415,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const logger = {
                 verbose: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const channelId = "late-response-test-id";
             const state = btoa(JSON.stringify({ id: channelId }));
             const request = {
@@ -472,7 +425,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 10, // short iframe timeout
                 logger,
-                browserCrypto,
                 request,
                 performanceClient,
                 { iframeTimeoutTelemetry: true }
@@ -517,11 +469,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const logger = {
                 verbose: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const state = btoa(JSON.stringify({ id: "late-expiry-test-id" }));
             const request = {
                 state,
@@ -531,7 +478,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 1000,
                 logger,
-                browserCrypto,
                 request,
                 performanceClient,
                 { iframeTimeoutTelemetry: true }
