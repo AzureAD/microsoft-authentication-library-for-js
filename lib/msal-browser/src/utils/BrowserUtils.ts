@@ -9,12 +9,9 @@ import {
     invokeAsync,
     UrlUtils,
     RequestParameterBuilder,
-    ICrypto,
     IPerformanceClient,
     InProgressPerformanceEvent,
     Logger,
-    CommonAuthorizationUrlRequest,
-    CommonEndSessionRequest,
     ProtocolUtils,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
@@ -22,6 +19,7 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
+import { base64Decode } from "../encode/Base64Decode.js";
 import { BrowserCacheLocation, InteractionType } from "./BrowserConstants.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import {
@@ -33,7 +31,6 @@ import {
     BrowserExperimentalOptions,
 } from "../config/Configuration.js";
 import { redirectBridgeEmptyResponse } from "../error/BrowserAuthErrorCodes.js";
-import { base64Decode } from "../encode/Base64Decode.js";
 
 /**
  * Extracts and parses the authentication response from URL (hash and/or query string).
@@ -157,6 +154,21 @@ export function clearHash(contentWindow: Window): void {
 }
 
 /**
+ * Strips both hash and query string from the given window's URL by replacing
+ * with origin + pathname only. Used to remove auth response parameters
+ * (auth code, state, etc.) before the window is closed or navigated away.
+ */
+export function clearAuthResponseFromUrl(contentWindow: Window): void {
+    if (typeof contentWindow.history?.replaceState === "function") {
+        contentWindow.history.replaceState(
+            null,
+            "",
+            `${contentWindow.location.origin}${contentWindow.location.pathname}`
+        );
+    }
+}
+
+/**
  * Replaces current hash with hash from provided url
  */
 export function replaceHash(url: string): void {
@@ -236,11 +248,20 @@ export function cancelPendingBridgeResponse(
     }
 }
 
+/**
+ * Minimal request shape needed by the bridge response listener.
+ *
+ * @internal
+ */
+export interface WaitForBridgeRequest {
+    correlationId: string;
+    state?: string;
+}
+
 export async function waitForBridgeResponse(
     timeoutMs: number,
     logger: Logger,
-    browserCrypto: ICrypto,
-    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+    request: WaitForBridgeRequest,
     performanceClient: IPerformanceClient,
     experimentalConfig?: BrowserExperimentalOptions
 ): Promise<string> {
@@ -262,7 +283,7 @@ export async function waitForBridgeResponse(
         );
 
         const { libraryState } = ProtocolUtils.parseRequestState(
-            browserCrypto.base64Decode,
+            base64Decode,
             request.state || ""
         );
         const channel = new BroadcastChannel(libraryState.id);
