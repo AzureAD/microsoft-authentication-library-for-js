@@ -409,6 +409,9 @@ export class RedirectClient extends StandardInteractionClient {
         parentMeasurement: InProgressPerformanceEvent,
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
+        const originalTitle = document.title;
+        document.title = "Microsoft Authentication";
+
         const serverTelemetryManager = initializeServerTelemetryManager(
             ApiId.handleRedirectPromise,
             this.config.auth.clientId,
@@ -558,13 +561,15 @@ export class RedirectClient extends StandardInteractionClient {
             }
 
             return null;
-        } catch (e) {
-            if (e instanceof AuthError) {
-                (e as AuthError).setCorrelationId(this.correlationId);
-                serverTelemetryManager.cacheFailedRequest(e);
-            }
-            throw e;
-        }
+       } catch (e) {
+           if (e instanceof AuthError) {
+               (e as AuthError).setCorrelationId(this.correlationId);
+               serverTelemetryManager.cacheFailedRequest(e);
+           }
+           throw e;
+       } finally {
+           document.title = originalTitle;
+       }
     }
 
     /**
