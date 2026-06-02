@@ -927,7 +927,18 @@ export class PopupClient extends StandardInteractionClient {
             try {
                 popupWindow.document.title = "Microsoft Authentication";
             } catch (e) {
-                // Cross-origin - title cannot be set
+                if (
+                    typeof DOMException !== "undefined" &&
+                    e instanceof DOMException &&
+                    e.name === "SecurityError"
+                ) {
+                    // Cross-origin - title cannot be set
+                } else {
+                    this.logger.verbose(
+                        "Could not set document.title on popup window",
+                        this.correlationId
+                    );
+                }
             }
             if (popupWindow.focus) {
                 popupWindow.focus();
