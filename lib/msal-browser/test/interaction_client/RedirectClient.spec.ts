@@ -247,6 +247,27 @@ describe("RedirectClient", () => {
                 });
         });
 
+        it("restores URL-based document.title when redirect URI page has no title element", (done) => {
+            document.title =
+                "https://localhost:3000/redirect#code=authCode123&state=abc";
+            browserStorage.setInteractionInProgress(true);
+
+            redirectClient
+                .handleRedirectPromise(
+                    testRequest,
+                    TEST_CONFIG.TEST_VERIFIER,
+                    rootMeasurement,
+                    { hash: "" }
+                )
+                .then(() => {
+                    // Restores to the URL-based title since that was the original value
+                    expect(document.title).toBe(
+                        "https://localhost:3000/redirect#code=authCode123&state=abc"
+                    );
+                    done();
+                });
+        });
+
         it("does nothing if no hash is detected", (done) => {
             browserStorage.setInteractionInProgress(true);
 

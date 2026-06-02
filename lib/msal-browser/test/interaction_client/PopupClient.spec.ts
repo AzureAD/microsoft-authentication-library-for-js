@@ -2365,6 +2365,33 @@ describe("PopupClient", () => {
             ).toBe("Microsoft Authentication");
         });
 
+        it("replaces URL-based document.title on popup window when no title is set", () => {
+            const mockPopupWindow = {
+                ...window,
+                document: {
+                    title: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=test",
+                },
+                focus: jest.fn(),
+            };
+            jest.spyOn(window, "open").mockReturnValue(
+                mockPopupWindow as unknown as Window
+            );
+
+            const popupWindow = popupClient.initiateAuthRequest(
+                "http://localhost/#/code=hello",
+                {
+                    popupName: "name",
+                    popupWindowAttributes: {},
+                    popupWindowParent: window,
+                }
+            );
+
+            expect(
+                (popupWindow as unknown as { document: { title: string } })
+                    .document.title
+            ).toBe("Microsoft Authentication");
+        });
+
         it("does not throw when setting document.title on cross-origin popup fails", () => {
             const mockPopupWindow = {
                 focus: jest.fn(),
