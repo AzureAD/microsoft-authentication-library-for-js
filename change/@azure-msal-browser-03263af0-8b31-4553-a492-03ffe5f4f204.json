@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Set document.title during authentication redirects for accessibility and UX",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
