@@ -561,15 +561,15 @@ export class RedirectClient extends StandardInteractionClient {
             }
 
             return null;
-       } catch (e) {
-           if (e instanceof AuthError) {
-               (e as AuthError).setCorrelationId(this.correlationId);
-               serverTelemetryManager.cacheFailedRequest(e);
-           }
-           throw e;
-       } finally {
-           document.title = originalTitle;
-       }
+        } catch (e) {
+            if (e instanceof AuthError) {
+                (e as AuthError).setCorrelationId(this.correlationId);
+                serverTelemetryManager.cacheFailedRequest(e);
+            }
+            throw e;
+        } finally {
+            document.title = originalTitle;
+        }
     }
 
     /**
