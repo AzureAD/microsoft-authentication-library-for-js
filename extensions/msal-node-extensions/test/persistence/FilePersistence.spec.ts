@@ -85,7 +85,8 @@ describe("Test File Persistence", () => {
         });
 
         test("save() tightens permissions on existing permissive file", async () => {
-            await fs.writeFile(filePath, "old data", { mode: 0o644 });
+            await fs.writeFile(filePath, "old data");
+            await fs.chmod(filePath, 0o644);
             expect(await getFileMode(filePath)).toBe(0o644);
 
             const file = await FilePersistence.create(filePath);
