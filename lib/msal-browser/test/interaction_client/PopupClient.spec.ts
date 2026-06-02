@@ -2339,5 +2339,57 @@ describe("PopupClient", () => {
                 createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
             );
         });
+
+        it("sets document.title on the popup window", () => {
+            const mockPopupWindow = {
+                ...window,
+                document: { title: "" },
+                focus: jest.fn(),
+            };
+            jest.spyOn(window, "open").mockReturnValue(
+                mockPopupWindow as unknown as Window
+            );
+
+            const popupWindow = popupClient.initiateAuthRequest(
+                "http://localhost/#/code=hello",
+                {
+                    popupName: "name",
+                    popupWindowAttributes: {},
+                    popupWindowParent: window,
+                }
+            );
+
+            expect(
+                (popupWindow as unknown as { document: { title: string } })
+                    .document.title
+            ).toBe("Microsoft Authentication");
+        });
+
+        it("does not throw when setting document.title on cross-origin popup fails", () => {
+            const mockPopupWindow = {
+                focus: jest.fn(),
+            };
+            Object.defineProperty(mockPopupWindow, "document", {
+                get() {
+                    throw new DOMException(
+                        "Blocked access to cross-origin frame"
+                    );
+                },
+            });
+            jest.spyOn(window, "open").mockReturnValue(
+                mockPopupWindow as unknown as Window
+            );
+
+            expect(() =>
+                popupClient.initiateAuthRequest(
+                    "http://localhost/#/code=hello",
+                    {
+                        popupName: "name",
+                        popupWindowAttributes: {},
+                        popupWindowParent: window,
+                    }
+                )
+            ).not.toThrow();
+        });
     });
 });

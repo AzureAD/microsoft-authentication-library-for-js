@@ -213,6 +213,40 @@ describe("RedirectClient", () => {
     });
 
     describe("handleRedirectPromise", () => {
+        it("sets document.title during processing and restores original title when no title is set", (done) => {
+            document.title = "";
+            browserStorage.setInteractionInProgress(true);
+
+            redirectClient
+                .handleRedirectPromise(
+                    testRequest,
+                    TEST_CONFIG.TEST_VERIFIER,
+                    rootMeasurement,
+                    { hash: "" }
+                )
+                .then(() => {
+                    expect(document.title).toBe("");
+                    done();
+                });
+        });
+
+        it("sets document.title during processing and restores original title when user has set a title", (done) => {
+            document.title = "My App - Dashboard";
+            browserStorage.setInteractionInProgress(true);
+
+            redirectClient
+                .handleRedirectPromise(
+                    testRequest,
+                    TEST_CONFIG.TEST_VERIFIER,
+                    rootMeasurement,
+                    { hash: "" }
+                )
+                .then(() => {
+                    expect(document.title).toBe("My App - Dashboard");
+                    done();
+                });
+        });
+
         it("does nothing if no hash is detected", (done) => {
             browserStorage.setInteractionInProgress(true);
 
