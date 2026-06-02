@@ -19,6 +19,11 @@ import { isNodeError } from "../utils/TypeGuards.js";
  * If file or directory has not been created, it FilePersistence.create() will create
  * file and any directories in the path recursively.
  */
+/** Owner read/write only (0o600) */
+const FILE_MODE = 0o600;
+/** Owner read/write/execute only (0o700) */
+const DIR_MODE = 0o700;
+
 export class FilePersistence extends BasePersistence implements IPersistence {
     private filePath: string;
     private logger: Logger;
@@ -45,7 +50,11 @@ export class FilePersistence extends BasePersistence implements IPersistence {
 
     public async save(contents: string): Promise<void> {
         try {
-            await fs.writeFile(this.getFilePath(), contents, "utf-8");
+            await fs.writeFile(this.getFilePath(), contents, {
+                encoding: "utf-8",
+                mode: FILE_MODE,
+            });
+            await fs.chmod(this.getFilePath(), FILE_MODE);
         } catch (err) {
             if (isNodeError(err)) {
                 throw PersistenceError.createFileSystemError(
@@ -60,7 +69,10 @@ export class FilePersistence extends BasePersistence implements IPersistence {
 
     public async saveBuffer(contents: Uint8Array): Promise<void> {
         try {
-            await fs.writeFile(this.getFilePath(), contents);
+            await fs.writeFile(this.getFilePath(), contents, {
+                mode: FILE_MODE,
+            });
+            await fs.chmod(this.getFilePath(), FILE_MODE);
         } catch (err) {
             if (isNodeError(err)) {
                 throw PersistenceError.createFileSystemError(
@@ -178,14 +190,18 @@ export class FilePersistence extends BasePersistence implements IPersistence {
     private async createCacheFile(): Promise<void> {
         await this.createFileDirectory();
         // File is created only if it does not exist
-        const fileHandle = await fs.open(this.filePath, "a");
+        const fileHandle = await fs.open(this.filePath, "a", FILE_MODE);
         await fileHandle.close();
+        await fs.chmod(this.filePath, FILE_MODE);
         this.logger.info(`File created at ${this.filePath}`, "");
     }
 
     private async createFileDirectory(): Promise<void> {
         try {
-            await fs.mkdir(dirname(this.filePath), { recursive: true });
+            await fs.mkdir(dirname(this.filePath), {
+                recursive: true,
+                mode: DIR_MODE,
+            });
         } catch (err) {
             if (isNodeError(err)) {
                 if (err.code === Constants.EEXIST_ERROR) {
