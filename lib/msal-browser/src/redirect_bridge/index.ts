@@ -37,13 +37,7 @@ export async function broadcastResponseToMainFrame(
         parsedResponse = parseAuthResponseFromUrl();
     } catch (error) {
         // Clear hash and query string before re-throwing parse errors
-        if (typeof window.history.replaceState === "function") {
-            window.history.replaceState(
-                null,
-                "",
-                `${window.location.origin}${window.location.pathname}`
-            );
-        }
+        BrowserUtils.clearAuthResponseFromUrl(window);
         throw error;
     }
 
