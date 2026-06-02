@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780434592739,
+  "lastUpdate": 1780440557152,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21605,6 +21605,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.64%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3469d151fc0bdac2c51a56da6dbfbf01d334e90e",
+          "message": "Fix/clear stale encrypted cache entries (#8619)\n\nThis pull request improves cache management in the `@azure/msal-browser`\npackage by enhancing the handling of old or invalid cache entries,\nespecially when encryption keys have expired or changed. It ensures that\noutdated, invalid, or mismatched-encryption entries are properly removed\nfrom storage, and adds comprehensive tests to verify this behavior.\n\n**Cache management improvements:**\n\n*\n[`BrowserCacheManager`](diffhunk://#diff-9fe0cda3d1225c92740f98cfd73639c5db18bf24234c273756a855e5b48adae2R239):\nNow removes invalid or unparseable cache entries, as well as encrypted\nentries that can't be decrypted due to expired or mismatched encryption\nkeys. This prevents stale or inaccessible data from lingering in the\ncache.\n[[1]](diffhunk://#diff-9fe0cda3d1225c92740f98cfd73639c5db18bf24234c273756a855e5b48adae2R239)\n[[2]](diffhunk://#diff-9fe0cda3d1225c92740f98cfd73639c5db18bf24234c273756a855e5b48adae2R299)\n[[3]](diffhunk://#diff-9fe0cda3d1225c92740f98cfd73639c5db18bf24234c273756a855e5b48adae2R327-R341)\n\n**Test enhancements:**\n\n*\n[`BrowserCacheManager.spec.ts`](diffhunk://#diff-1f474f3b5ffedcb4da969f60d720532be75a02c6d91e65b7d1e3c107b0a4f13dR1331-R1489):\nAdds new tests to verify that invalid, unparseable, or\nmismatched-encryption cache entries are removed, and that valid entries\nare preserved. This ensures the new cache-clearing logic works as\nintended.\n\n**Release note:**\n\n*\n[`@azure-msal-browser-d996e441-970a-4d44-a25c-fa707e800528.json`](diffhunk://#diff-1dc7b4cd92161b83ca22ad57c49f8cf9d2690ae56beb25806c6e9dac536f896eR1-R7):\nAdds a patch release note describing the change to clear old-schema\ncache entries when the encryption key is expired.\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-06-02T15:39:47-07:00",
+          "tree_id": "72b3bedbe2ca473fab02ebcc18c7f9b355301594",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/3469d151fc0bdac2c51a56da6dbfbf01d334e90e"
+        },
+        "date": 1780440552845,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 382111,
+            "range": "±1.73%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 380037,
+            "range": "±0.59%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
