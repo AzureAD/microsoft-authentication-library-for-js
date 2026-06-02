@@ -236,6 +236,7 @@ export class BrowserCacheManager extends CacheManager {
               )
             : parsedValue;
         if (!decryptedData || !CacheHelpers.isCredentialEntity(decryptedData)) {
+            this.browserStorage.removeItem(key);
             this.performanceClient.incrementFields(
                 { invalidCacheCount: 1 },
                 correlationId
@@ -295,6 +296,7 @@ export class BrowserCacheManager extends CacheManager {
                 | null;
 
             if (!parsedValue) {
+                this.browserStorage.removeItem(accountKey);
                 removeElementFromArray(accountKeysToCheck, accountKey);
                 continue;
             }
@@ -322,6 +324,21 @@ export class BrowserCacheManager extends CacheManager {
                     correlationId
                 );
                 removeElementFromArray(accountKeysToCheck, accountKey);
+            } else if (isEncrypted(parsedValue)) {
+                // Remove accounts encrypted with a different key (session cookie expired/changed)
+                const decrypted = await this.browserStorage.decryptData(
+                    accountKey,
+                    parsedValue,
+                    correlationId
+                );
+                if (!decrypted) {
+                    this.browserStorage.removeItem(accountKey);
+                    this.performanceClient.incrementFields(
+                        { expiredAcntRemovedCount: 1 },
+                        correlationId
+                    );
+                    removeElementFromArray(accountKeysToCheck, accountKey);
+                }
             }
         }
 
