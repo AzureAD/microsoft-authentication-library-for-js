@@ -167,6 +167,30 @@ const msalConfig = {
 For more information on running MSAL in iframes, see
 [Using MSAL in iframed apps](./iframe-usage.md).
 
+## Page Title
+
+Always set a meaningful `<title>` on your redirect bridge page. Without an explicit title, the browser displays the raw redirect URL — which contains authorization codes or tokens — as the tab title and browser history entry.
+
+A good title should:
+
+- Indicate that authentication is in progress (e.g., "Signing in" or "Signing in - Contoso")
+- Be static HTML (not set dynamically after JavaScript loads) so it appears immediately
+
+```html
+<head>
+    <title>Signing in - Contoso</title>
+</head>
+```
+
+This improves:
+
+- **User experience** — Users see a meaningful tab title instead of a long URL with query parameters
+- **Browser history** — History entries show a descriptive name rather than the raw redirect URL
+- **Accessibility** — Screen readers announce the page title when focus moves to the window or tab
+
+> [!NOTE]
+> MSAL sets `document.title` to "Microsoft Authentication" at runtime as a fallback during popup, iframe, and redirect processing. However, this only takes effect after JavaScript executes. Setting a static `<title>` in your redirect page HTML ensures the title is correct immediately, before any scripts run.
+
 ## Angular
 
 1. **Create the redirect bridge component** (`src/app/redirect/redirect.component.ts`):
@@ -235,7 +259,7 @@ Vite requires a multi-page configuration so that `redirect.html` is included as 
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Redirect</title>
+    <title>Signing in</title>
 </head>
 <body>
     <p>Processing authentication...</p>
@@ -283,7 +307,7 @@ Webpack requires a dedicated entry point and an `HtmlWebpackPlugin` instance for
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Redirect</title>
+    <title>Signing in</title>
 </head>
 <body>
     <p>Processing authentication...</p>

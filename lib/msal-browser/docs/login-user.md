@@ -182,6 +182,7 @@ Your `redirectUri` must point to a dedicated page that loads the redirect bridge
 2. **Not include any JavaScript except for bridge script** - The redirect page should only run the bridge script
 3. **Not include routing logic** - Avoid router libraries that might interfere with hash handling
 4. **Be registered in your App Registration** - The URI must match exactly what's registered in Azure portal
+5. **Set a meaningful `<title>`** - Without an explicit title, the browser tab and history entry display the raw redirect URL (which includes authorization codes and tokens). Set a descriptive title such as "Signing in" or your app name to provide a better user experience and improve accessibility for screen reader users
 
 **Example redirect page (when using a bundler such as Vite or Webpack):**
 
@@ -189,7 +190,7 @@ Your `redirectUri` must point to a dedicated page that loads the redirect bridge
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Redirect</title>
+    <title>Signing in - Contoso</title>
 </head>
 <body>
     <p>Processing authentication...</p>
