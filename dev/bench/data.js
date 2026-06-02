@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780354970659,
+  "lastUpdate": 1780434592739,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21567,6 +21567,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.79%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bc0b34037bc45179da7c9ab1270a76ef8494af7d",
+          "message": "fix: inverted username filter in CacheManager (#8621)\n\nThis pull request addresses a bug in the account filtering logic within\nthe `CacheManager` and adds regression tests to ensure correct behavior.\nThe main focus is on ensuring that account filtering by username works\nproperly, even when certain fields (like `upn`) are missing, which is\ncommon for AAD v2 tokens. Additionally, some minor API review and\ndocumentation warning updates are included.\n\n**Bug Fixes and Improvements:**\n\n* **Account Filtering Logic:**\n* Fixed the username matching logic in `CacheManager` to correctly\nhandle cases where the `upn` field is undefined, ensuring that filtering\nby username still works as expected.\n\n**Testing:**\n\n* **Regression and Fallback Tests:**\n* Added tests to verify that accounts are matched by\n`preferred_username` when `upn` is undefined, and that the filter falls\nback to `upn` when `preferred_username` does not match.\n\n**Documentation and API Review:**\n\n* **API Review File Updates:**\n* Updated `msal-common.api.md` to clean up TSDoc warnings and adjust\nline references for parameter tags, reflecting recent changes in the\ncodebase.\n[[1]](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117L1136-R1143)\n[[2]](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117L1172-R1196)\n[[3]](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117L1237-R1241)\n[[4]](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117L4846-R4881)\n\nThese changes improve the reliability of account filtering and\nstrengthen the test suite to prevent regressions in the future.\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-06-02T14:02:18-07:00",
+          "tree_id": "a64267c75823c0c6dc5649593933327607039af1",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/bc0b34037bc45179da7c9ab1270a76ef8494af7d"
+        },
+        "date": 1780434589294,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 379683,
+            "range": "±0.63%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 372058,
+            "range": "±0.64%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
