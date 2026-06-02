@@ -68,7 +68,7 @@
     ]
   },
   "dependencies": {
-    "@azure/msal-common": "16.6.2",
+    "@azure/msal-common": "16.6.3",
     "@azure/msal-node-runtime": "^0.20.0",
     "keytar": "^7.8.0"
   },
