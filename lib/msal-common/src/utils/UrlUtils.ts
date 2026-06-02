@@ -11,8 +11,12 @@ import {
 import { StringUtils } from "./StringUtils.js";
 
 /**
- * Canonicalizes a URL by making it lowercase and ensuring it ends with /
- * Inlined version of UrlString.canonicalizeUri to avoid circular dependency
+ * Canonicalizes a URL for comparison per RFC 3986 standards:
+ * - Only scheme and host are lowercased (case-insensitive per spec)
+ * - Path and query parameters are preserved as-is (case-sensitive per spec)
+ * - Percent-encoding is normalized (e.g., %27 and ' are treated equivalently)
+ * - Strips trailing empty query markers (? or ?/)
+ * - Ensures pathname ends with /
  * @param url - URL to canonicalize
  * @returns Canonicalized URL
  */
@@ -21,19 +25,48 @@ function canonicalizeUrl(url: string): string {
         return url;
     }
 
-    let lowerCaseUrl = url.toLowerCase();
+    try {
+        const urlObj = new URL(url);
 
-    if (StringUtils.endsWith(lowerCaseUrl, "?")) {
-        lowerCaseUrl = lowerCaseUrl.slice(0, -1);
-    } else if (StringUtils.endsWith(lowerCaseUrl, "?/")) {
-        lowerCaseUrl = lowerCaseUrl.slice(0, -2);
+        /*
+         * URL API lowercases scheme and host per RFC 3986
+         * Decode pathname to normalize percent-encoding (e.g., %27 and ' become equivalent)
+         */
+        let pathname;
+        try {
+            pathname = decodeURIComponent(urlObj.pathname);
+        } catch (e) {
+            pathname = urlObj.pathname;
+        }
+
+        if (!pathname.endsWith("/")) {
+            pathname += "/";
+        }
+
+        /*
+         * Normalize query param encoding via URLSearchParams
+         * This ensures percent-encoded and decoded characters are treated equivalently
+         */
+        const normalizedSearch = urlObj.searchParams.toString();
+        const search = normalizedSearch ? `?${normalizedSearch}` : "";
+
+        return urlObj.origin + pathname + search;
+    } catch (e) {
+        // Fallback for malformed URLs - strip trailing ? or ?/ and ensure trailing /
+        let canonicalizedUrl = url;
+
+        if (StringUtils.endsWith(canonicalizedUrl, "?/")) {
+            canonicalizedUrl = canonicalizedUrl.slice(0, -2);
+        } else if (StringUtils.endsWith(canonicalizedUrl, "?")) {
+            canonicalizedUrl = canonicalizedUrl.slice(0, -1);
+        }
+
+        if (!StringUtils.endsWith(canonicalizedUrl, "/")) {
+            canonicalizedUrl += "/";
+        }
+
+        return canonicalizedUrl;
     }
-
-    if (!StringUtils.endsWith(lowerCaseUrl, "/")) {
-        lowerCaseUrl += "/";
-    }
-
-    return lowerCaseUrl;
 }
 
 /**
@@ -102,9 +135,13 @@ export function mapToQueryString(parameters: Map<string, string>): string {
 }
 
 /**
- * Normalizes URLs for comparison by removing hash, canonicalizing,
- * and ensuring consistent URL encoding in query parameters.
- * This fixes redirect loops when URLs contain encoded characters like apostrophes (%27).
+ * Normalizes URLs for comparison per RFC 3986 standards:
+ * - Scheme and host are lowercased (case-insensitive per spec)
+ * - Path and query parameters preserve original casing (case-sensitive per spec)
+ * - Hash/fragment is removed
+ * - Percent-encoding is normalized consistently via the URL API
+ * This ensures that base64-encoded query param values and case-sensitive
+ * path segments are not corrupted during URL comparison.
  * @param url - URL to normalize
  * @returns Normalized URL string for comparison
  */
@@ -117,19 +154,15 @@ export function normalizeUrlForComparison(url: string): string {
     const urlWithoutHash = url.split("#")[0];
 
     try {
-        // Parse the URL to handle encoding consistently
+        // Parse the URL to normalize encoding consistently
         const urlObj = new URL(urlWithoutHash);
 
-        /*
-         * Reconstruct the URL with properly decoded query parameters
-         * This ensures that %27 and ' are treated as equivalent
-         */
+        // Reconstruct and canonicalize per RFC 3986 via canonicalizeUrl
         const normalizedUrl = urlObj.origin + urlObj.pathname + urlObj.search;
 
-        // Apply canonicalization logic inline to avoid circular dependency
         return canonicalizeUrl(normalizedUrl);
     } catch (e) {
-        // Fallback to original logic if URL parsing fails
+        // Fallback for malformed URLs
         return canonicalizeUrl(urlWithoutHash);
     }
 }
