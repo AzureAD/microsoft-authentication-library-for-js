@@ -189,7 +189,7 @@ This improves:
 - **Accessibility** — Screen readers announce the page title when focus moves to the window or tab
 
 > [!NOTE]
-> MSAL sets `document.title` to "Microsoft Authentication" at runtime as a fallback during popup, iframe, and redirect processing. However, this only takes effect after JavaScript executes. Setting a static `<title>` in your redirect page HTML ensures the title is correct immediately, before any scripts run.
+> MSAL overwrites `document.title` to "Microsoft Authentication" at runtime during popup, iframe, and redirect processing. A static `<title>` prevents the tab/history entry from briefly showing the raw redirect URL before JavaScript executes.
 
 ## Angular
 
