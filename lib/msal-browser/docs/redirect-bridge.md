@@ -173,12 +173,12 @@ Always set a meaningful `<title>` on your redirect bridge page. Without an expli
 
 A good title should:
 
-- Indicate that authentication is in progress (e.g., "Signing in" or "Signing in - Contoso")
+- Indicate that authentication is in progress (e.g., "Signing in" or "Signing in - MyApp")
 - Be static HTML (not set dynamically after JavaScript loads) so it appears immediately
 
 ```html
 <head>
-    <title>Signing in - Contoso</title>
+    <title>Signing in</title>
 </head>
 ```
 

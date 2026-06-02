@@ -190,7 +190,7 @@ Your `redirectUri` must point to a dedicated page that loads the redirect bridge
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Signing in - Contoso</title>
+    <title>Signing in</title>
 </head>
 <body>
     <p>Processing authentication...</p>
