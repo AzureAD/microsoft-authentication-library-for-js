@@ -37,17 +37,10 @@ export type UserFederatedIdentityCredentialRequest = Partial<
     scopes: Array<string>;
     /** The federated identity credential (instance token from Leg 2) */
     assertion: string;
+    /** Target user's Object ID — exactly one of userObjectId or username must be provided */
+    userObjectId?: string;
+    /** Target user's UPN — exactly one of userObjectId or username must be provided */
+    username?: string;
     /** An optional per-request client assertion override */
     clientAssertion?: string | ClientAssertionCallback;
-} & (
-        | {
-              /** Target user's Object ID */
-              userObjectId: string;
-              username?: never;
-          }
-        | {
-              /** Target user's UPN */
-              username: string;
-              userObjectId?: never;
-          }
-    );
+};

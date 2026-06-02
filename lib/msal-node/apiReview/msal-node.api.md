@@ -574,14 +574,10 @@ export { TokenCacheContext }
 export type UserFederatedIdentityCredentialRequest = Partial<Omit<CommonUserFederatedIdentityCredentialRequest, "scopes" | "assertion" | "resourceRequestMethod" | "resourceRequestUri" | "clientAssertion">> & {
     scopes: Array<string>;
     assertion: string;
+    userObjectId?: string;
+    username?: string;
     clientAssertion?: string | ClientAssertionCallback;
-} & ({
-    userObjectId: string;
-    username?: never;
-} | {
-    username: string;
-    userObjectId?: never;
-});
+};
 
 // Warning: (ae-forgotten-export) The symbol "CommonUsernamePasswordRequest" needs to be exported by the entry point index.d.ts
 //

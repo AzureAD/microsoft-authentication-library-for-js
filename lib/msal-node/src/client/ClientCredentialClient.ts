@@ -62,9 +62,11 @@ export class ClientCredentialClient extends BaseClient {
         request: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
         /*
-         * FMI is incompatible with PoP/SSH — those schemes store non-bearer tokens as
-         * ACCESS_TOKEN_WITH_AUTH_SCHEME which conflicts with the ACCESS_TOKEN_EXTENDED
-         * type required for FMI cache isolation.
+         * FMI requires ACCESS_TOKEN_EXTENDED for cache-key isolation, but
+         * CacheManager's scheme-aware lookup and binding-key cleanup only fire
+         * on ACCESS_TOKEN_WITH_AUTH_SCHEME — so PoP/SSH tokens stored under FMI
+         * would silently miss those code paths. Other schemes (e.g. mTLS PoP)
+         * are Bearer-shaped and unaffected.
          */
         if (
             request.fmiPath &&
@@ -74,7 +76,7 @@ export class ClientCredentialClient extends BaseClient {
                     Constants.AuthenticationScheme.SSH)
         ) {
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.fmiWithNonBearerScheme
+                NodeClientAuthErrorCodes.fmiWithUnsupportedScheme
             );
         }
 
@@ -90,7 +92,7 @@ export class ClientCredentialClient extends BaseClient {
             return this.executeTokenRequest(
                 request,
                 this.authority,
-                undefined,
+                /* refreshAccessToken */ undefined,
                 extCacheKeyHash
             );
         }
@@ -133,7 +135,7 @@ export class ClientCredentialClient extends BaseClient {
             return this.executeTokenRequest(
                 request,
                 this.authority,
-                undefined,
+                /* refreshAccessToken */ undefined,
                 extCacheKeyHash
             );
         }

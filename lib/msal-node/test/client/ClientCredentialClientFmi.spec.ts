@@ -354,7 +354,7 @@ describe("ClientCredentialClient FMI tests", () => {
             };
             await expect(client.acquireToken(request)).rejects.toMatchObject(
                 createClientAuthError(
-                    NodeClientAuthErrorCodes.fmiWithNonBearerScheme
+                    NodeClientAuthErrorCodes.fmiWithUnsupportedScheme
                 )
             );
         });
@@ -371,7 +371,7 @@ describe("ClientCredentialClient FMI tests", () => {
             };
             await expect(client.acquireToken(request)).rejects.toMatchObject(
                 createClientAuthError(
-                    NodeClientAuthErrorCodes.fmiWithNonBearerScheme
+                    NodeClientAuthErrorCodes.fmiWithUnsupportedScheme
                 )
             );
         });
