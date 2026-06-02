@@ -56,9 +56,35 @@ import {
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
 
+import type { WaitForBridgeRequest } from "../utils/BrowserUtils.js";
+
+/**
+ * Minimal request shape accepted by the iframe-response hook.
+ * Intentionally narrow so subclasses can override without needing
+ * access to internal resolved-request types.
+ *
+ * @internal
+ */
+export type WaitForIframeRequest = WaitForBridgeRequest;
+
+/**
+ * Signature of the iframe-response handler supplied by
+ * {@link PublicClientApplication} to {@link SilentIframeClient} via the
+ * operating context.
+ *
+ * @internal
+ */
+export type WaitForIframeResponseFn = (
+    iframe: HTMLIFrameElement,
+    request: WaitForIframeRequest
+) => Promise<string>;
+
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
     protected nativeStorage: BrowserCacheManager;
+    private readonly waitForIframeResponseHook:
+        | WaitForIframeResponseFn
+        | undefined;
 
     constructor(
         config: BrowserConfiguration,
@@ -71,7 +97,8 @@ export class SilentIframeClient extends StandardInteractionClient {
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
-        platformAuthProvider?: IPlatformAuthHandler
+        platformAuthProvider?: IPlatformAuthHandler,
+        waitForIframeResponseHook?: WaitForIframeResponseFn
     ) {
         super(
             config,
@@ -86,6 +113,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         );
         this.apiId = apiId;
         this.nativeStorage = nativeStorageImpl;
+        this.waitForIframeResponseHook = waitForIframeResponseHook;
     }
 
     /**
@@ -297,19 +325,12 @@ export class SilentIframeClient extends StandardInteractionClient {
         let responseString: string;
         try {
             responseString = await invokeAsync(
-                BrowserUtils.waitForBridgeResponse,
+                this.waitForIframeResponse.bind(this),
                 BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
                 this.logger,
                 this.performanceClient,
                 correlationId
-            )(
-                this.config.system.iframeBridgeTimeout,
-                this.logger,
-                this.browserCrypto,
-                request,
-                this.performanceClient,
-                this.config.experimental
-            );
+            )(iframe, request);
         } finally {
             invoke(
                 removeHiddenIframe,
@@ -596,19 +617,12 @@ export class SilentIframeClient extends StandardInteractionClient {
         let responseString: string;
         try {
             responseString = await invokeAsync(
-                BrowserUtils.waitForBridgeResponse,
+                this.waitForIframeResponse.bind(this),
                 BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
                 this.logger,
                 this.performanceClient,
                 correlationId
-            )(
-                this.config.system.iframeBridgeTimeout,
-                this.logger,
-                this.browserCrypto,
-                request,
-                this.performanceClient,
-                this.config.experimental
-            );
+            )(iframe, request);
         } finally {
             invoke(
                 removeHiddenIframe,
@@ -628,5 +642,21 @@ export class SilentIframeClient extends StandardInteractionClient {
         )(responseString, responseType, this.logger, this.correlationId);
 
         return { serverParams, pkceCodes, silentRequest };
+    }
+
+    protected async waitForIframeResponse(
+        iframe: HTMLIFrameElement,
+        request: WaitForIframeRequest
+    ): Promise<string> {
+        if (this.waitForIframeResponseHook) {
+            return this.waitForIframeResponseHook(iframe, request);
+        }
+        return BrowserUtils.waitForBridgeResponse(
+            this.config.system.iframeBridgeTimeout,
+            this.logger,
+            request,
+            this.performanceClient,
+            this.config.experimental
+        );
     }
 }

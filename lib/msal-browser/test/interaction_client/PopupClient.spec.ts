@@ -1928,7 +1928,6 @@ describe("PopupClient", () => {
             const response = await BrowserUtils.waitForBridgeResponse(
                 5000,
                 clientImpl.logger,
-                clientImpl.browserCrypto,
                 request,
                 clientImpl.performanceClient
             );
@@ -1965,7 +1964,6 @@ describe("PopupClient", () => {
             const response = await BrowserUtils.waitForBridgeResponse(
                 5000,
                 clientImpl.logger,
-                clientImpl.browserCrypto,
                 request,
                 clientImpl.performanceClient
             );
@@ -2006,7 +2004,6 @@ describe("PopupClient", () => {
                 BrowserUtils.waitForBridgeResponse(
                     100,
                     clientImpl.logger,
-                    clientImpl.browserCrypto,
                     request,
                     clientImpl.performanceClient
                 )
@@ -2064,7 +2061,6 @@ describe("PopupClient", () => {
             const promise1 = BrowserUtils.waitForBridgeResponse(
                 5000,
                 clientImpl.logger,
-                clientImpl.browserCrypto,
                 request1,
                 clientImpl.performanceClient
             );
@@ -2072,7 +2068,6 @@ describe("PopupClient", () => {
             const promise2 = BrowserUtils.waitForBridgeResponse(
                 5000,
                 clientImpl.logger,
-                clientImpl.browserCrypto,
                 request2,
                 clientImpl.performanceClient
             );
