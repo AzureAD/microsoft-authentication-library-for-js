@@ -83,6 +83,16 @@ describe("SilentHandler.ts Unit Tests", () => {
                 "local-network-access *"
             );
         });
+
+        it("Sets a title attribute on the iframe for accessibility", async () => {
+            const authFrame = await SilentHandler.initiateCodeRequest(
+                testNavUrl,
+                performanceClient,
+                browserRequestLogger,
+                RANDOM_TEST_GUID
+            );
+            expect(authFrame.title).toBe("Microsoft Authentication");
+        });
     });
 
     describe("waitForBridgeResponse", () => {
