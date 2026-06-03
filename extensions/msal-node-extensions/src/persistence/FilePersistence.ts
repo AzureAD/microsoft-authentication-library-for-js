@@ -52,8 +52,9 @@ export class FilePersistence extends BasePersistence implements IPersistence {
         try {
             // Tighten permissions before writing to close TOCTOU window on existing files
             await fs.chmod(this.getFilePath(), FILE_MODE).catch((err) => {
-                if (!isNodeError(err) || err.code !== Constants.ENOENT_ERROR)
+                if (!isNodeError(err) || err.code !== Constants.ENOENT_ERROR) {
                     throw err;
+                }
             });
             await fs.writeFile(this.getFilePath(), contents, {
                 encoding: "utf-8",
@@ -76,8 +77,9 @@ export class FilePersistence extends BasePersistence implements IPersistence {
         try {
             // Tighten permissions before writing to close TOCTOU window on existing files
             await fs.chmod(this.getFilePath(), FILE_MODE).catch((err) => {
-                if (!isNodeError(err) || err.code !== Constants.ENOENT_ERROR)
+                if (!isNodeError(err) || err.code !== Constants.ENOENT_ERROR) {
                     throw err;
+                }
             });
             await fs.writeFile(this.getFilePath(), contents, {
                 mode: FILE_MODE,
