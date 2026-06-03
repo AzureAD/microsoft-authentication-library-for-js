@@ -499,16 +499,11 @@ export abstract class CacheManager implements ICacheManager {
 
         if (
             !!tenantProfileFilter.username &&
-            !(
-                this.matchUsername(
-                    tenantProfile.username,
-                    tenantProfileFilter.username
-                ) ||
-                !this.matchUsername(
-                    tenantProfile.upn,
-                    tenantProfileFilter.username
-                )
-            )
+            !this.matchUsername(
+                tenantProfile.username,
+                tenantProfileFilter.username
+            ) &&
+            !this.matchUsername(tenantProfile.upn, tenantProfileFilter.username)
         ) {
             return false;
         }
