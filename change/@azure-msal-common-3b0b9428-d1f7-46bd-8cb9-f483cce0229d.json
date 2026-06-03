@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix logger correlation cache LRU eviction when the empty string correlation ID is least recently used",
+  "comment": "Fix logger correlation cache LRU eviction when the empty string correlation ID is least recently used [#8627](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8627)",
   "packageName": "@azure/msal-common",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
