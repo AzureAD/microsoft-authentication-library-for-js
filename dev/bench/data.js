@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780440557152,
+  "lastUpdate": 1780524307700,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21643,6 +21643,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.59%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sameera.gajjarapu@microsoft.com",
+            "name": "Sameera Gajjarapu",
+            "username": "sameerag"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d2378a2784e1178c09a2c9e34a78f5eaa0963a9c",
+          "message": "fix: set document.title during authentication redirects (#8624)\n\n## Description\n\nSets `document.title` to \"Microsoft Authentication\" across all redirect\nscenarios to prevent the browser from displaying raw URLs as the page\ntitle during authentication flows.\n\n## Changes\n\n| Scenario | File | Change |\n|----------|------|--------|\n| **Hidden iframe** | `SilentHandler.ts` | Added `title` attribute for\naccessibility (WCAG H64) |\n| **Popup** | `PopupClient.ts` | Set `document.title` after\n`window.open` (with cross-origin try/catch) |\n| **Redirect bridge** | `redirect_bridge/index.ts` | Set\n`document.title` at start of `broadcastResponseToMainFrame` |\n| **Redirect** | `RedirectClient.ts` | Set title during\n`handleRedirectPromise`, restore original in `finally` |\n\n## Motivation\n\nWhen a user is redirected back to the application after authentication,\nthe browser displays the raw URL (containing auth response parameters)\nas the document title. This is:\n- A poor user experience (confusing title in browser tab/history)\n- An accessibility concern for iframes (WCAG H64 requires iframe\nelements to have a title attribute)\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-06-03T14:57:13-07:00",
+          "tree_id": "7088ea279618400664f8457aa680c659564546b5",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d2378a2784e1178c09a2c9e34a78f5eaa0963a9c"
+        },
+        "date": 1780524304108,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 356528,
+            "range": "±0.77%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 355872,
+            "range": "±0.71%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
           }
         ]
       }
