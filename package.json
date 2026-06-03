@@ -3,6 +3,7 @@
     "private": true,
     "devDependencies": {
         "@angular/compiler": "^19.2.2",
+        "@types/node": "20.19.41",
         "@babel/core": "^7.7.2",
         "@babel/plugin-proposal-class-properties": "^7.7.0",
         "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
