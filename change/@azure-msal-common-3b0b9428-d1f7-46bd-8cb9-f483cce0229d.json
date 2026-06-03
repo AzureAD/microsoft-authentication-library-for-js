@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix logger correlation cache LRU eviction when the empty string correlation ID is least recently used",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}

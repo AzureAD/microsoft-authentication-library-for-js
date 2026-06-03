@@ -93,7 +93,7 @@ function addLogToCache(
         // Remove LRU (first entry) if capacity exceeded
         if (correlationCache.size > CACHE_CAPACITY) {
             const firstKey = correlationCache.keys().next().value;
-            if (firstKey) {
+            if (firstKey !== undefined) {
                 correlationCache.delete(firstKey);
             }
         }
