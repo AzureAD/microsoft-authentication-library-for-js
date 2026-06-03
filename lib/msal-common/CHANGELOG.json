@@ -2,6 +2,27 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 03 Jun 2026 23:26:42 GMT",
+      "version": "16.6.3",
+      "tag": "@azure/msal-common_v16.6.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "nicknamer@users.noreply.github.com",
+            "package": "@azure/msal-common",
+            "commit": "d2378a2784e1178c09a2c9e34a78f5eaa0963a9c",
+            "comment": "Add issuer validation Rule 5: accept issuer hosts explicitly listed in knownAuthorities. Fixes Entra External ID (CIAM) regression where a GUID-based issuer is returned for a name-based authority [#8592](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/8592)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d2378a2784e1178c09a2c9e34a78f5eaa0963a9c",
+            "comment": "Fix inverted boolean in tenantProfileMatchesFilter username check [#8621](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8621)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 19 May 2026 19:29:14 GMT",
       "version": "16.6.2",
       "tag": "@azure/msal-common_v16.6.2",
