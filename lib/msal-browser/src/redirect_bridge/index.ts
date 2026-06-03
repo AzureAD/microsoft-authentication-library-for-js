@@ -32,6 +32,8 @@ import { PREFIX } from "../cache/CacheKeys.js";
 export async function broadcastResponseToMainFrame(
     navigationClient?: NavigationClient
 ): Promise<void> {
+    document.title = "Microsoft Authentication";
+
     let parsedResponse;
     try {
         parsedResponse = parseAuthResponseFromUrl();
