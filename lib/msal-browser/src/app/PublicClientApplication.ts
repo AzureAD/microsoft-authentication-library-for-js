@@ -16,6 +16,9 @@ import {
     AccountInfo,
     AccountFilter,
     Logger,
+    CommonAuthorizationUrlRequest,
+    CommonEndSessionRequest,
+    IPerformanceClient,
 } from "@azure/msal-common/browser";
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
@@ -35,6 +38,22 @@ import { InitializeApplicationRequest } from "../request/InitializeApplicationRe
 import { EventType } from "../event/EventType.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+import { waitForBridgeResponse } from "../utils/BrowserUtils.js";
+import type { WaitForPopupResponseFn } from "../interaction_client/PopupClient.js";
+import type {
+    WaitForIframeResponseFn,
+    WaitForIframeRequest,
+} from "../interaction_client/SilentIframeClient.js";
+
+/**
+ * Auth-response handlers.
+ *
+ * @internal
+ */
+export type AuthResponseHandlers = {
+    waitForPopupResponse: WaitForPopupResponseFn;
+    waitForIframeResponse: WaitForIframeResponseFn;
+};
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -68,7 +87,72 @@ export class PublicClientApplication implements IPublicClientApplication {
     public constructor(configuration: Configuration, controller?: IController) {
         this.controller =
             controller ||
-            new StandardController(new StandardOperatingContext(configuration));
+            new StandardController(
+                new StandardOperatingContext(configuration, {
+                    waitForPopupResponse: this.waitForPopupResponse.bind(this),
+                    waitForIframeResponse:
+                        this.waitForIframeResponse.bind(this),
+                })
+            );
+    }
+
+    /**
+     * Waits for the auth response from a popup window opened by MSAL.
+     *
+     * The default implementation delegates to MSAL's `BroadcastChannel`-based bridge.
+     * Subclasses must return the raw response string (hash/query/fragment), or reject
+     * with an `AuthError` on failure.
+     *
+     * @internal
+     * @param request The in-flight authorization or end-session request.
+     * @param popupWindow The popup window opened by MSAL.
+     * @param popupWindowParent The parent window that opened the popup.
+     */
+    protected async waitForPopupResponse(
+        request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        popupWindow: Window,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        popupWindowParent: Window
+    ): Promise<string> {
+        const controller = this.controller as IController & {
+            getPerformanceClient(): IPerformanceClient;
+        };
+        return waitForBridgeResponse(
+            controller.getConfiguration().system.popupBridgeTimeout,
+            controller.getLogger(),
+            request,
+            controller.getPerformanceClient()
+        );
+    }
+
+    /**
+     * Waits for the auth response from a hidden iframe used by MSAL silent flows.
+     *
+     * The default implementation delegates to MSAL's `BroadcastChannel`-based bridge.
+     * Subclasses must return the raw response string (hash/query/fragment), or reject
+     * with an `AuthError` on failure.
+     *
+     * @internal
+     * @param iframe The hidden iframe MSAL attached to the document.
+     * @param request The in-flight authorization request.
+     */
+    protected async waitForIframeResponse(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        iframe: HTMLIFrameElement,
+        request: WaitForIframeRequest
+    ): Promise<string> {
+        const controller = this.controller as IController & {
+            getPerformanceClient(): IPerformanceClient;
+        };
+        const config = controller.getConfiguration();
+        return waitForBridgeResponse(
+            config.system.iframeBridgeTimeout,
+            controller.getLogger(),
+            request,
+            controller.getPerformanceClient(),
+            config.experimental
+        );
     }
 
     /**

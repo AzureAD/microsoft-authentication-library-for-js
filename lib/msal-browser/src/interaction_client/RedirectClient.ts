@@ -411,6 +411,9 @@ export class RedirectClient extends StandardInteractionClient {
         parentMeasurement: InProgressPerformanceEvent,
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
+        const originalTitle = document.title;
+        document.title = "Microsoft Authentication";
+
         const serverTelemetryManager = initializeServerTelemetryManager(
             ApiId.handleRedirectPromise,
             this.config.auth.clientId,
@@ -568,6 +571,8 @@ export class RedirectClient extends StandardInteractionClient {
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             throw e;
+        } finally {
+            document.title = originalTitle;
         }
     }
 

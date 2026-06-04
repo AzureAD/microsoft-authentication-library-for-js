@@ -127,6 +127,34 @@ describe("broadcastResponseToMainFrame", () => {
     });
 
     describe("Success cases - Popup/Silent flow", () => {
+        it("sets document.title to 'Microsoft Authentication'", async () => {
+            document.title = "";
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
+
+            await broadcastResponseToMainFrame();
+
+            expect(document.title).toBe("Microsoft Authentication");
+        });
+
+        it("overrides existing document.title with 'Microsoft Authentication'", async () => {
+            document.title = "My App - Sign In";
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
+
+            await broadcastResponseToMainFrame();
+
+            expect(document.title).toBe("Microsoft Authentication");
+        });
+
+        it("replaces URL-based document.title when redirect URI has no title set", async () => {
+            document.title =
+                "https://localhost:3000/redirect#code=testCode&state=testState";
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
+
+            await broadcastResponseToMainFrame();
+
+            expect(document.title).toBe("Microsoft Authentication");
+        });
+
         it("broadcasts response for popup flow from hash", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
 

@@ -475,6 +475,77 @@ describe("CacheManager.ts test cases", () => {
                 ).toBe(account2.username);
             });
 
+            it("Matches accounts by username when tenant profile upn is undefined", async () => {
+                // Regression test: when TenantProfile.upn is undefined (the common case for AAD v2 tokens),
+                // the username filter should still correctly filter accounts by preferred_username.
+                const claimsWithoutUpn = {
+                    ...ID_TOKEN_CLAIMS,
+                    oid: "00000000-0000-0000-0000-111111111111",
+                    tid: "00000000-0000-0000-0000-222222222222",
+                    preferred_username: "noUpnUser@microsoft.com",
+                    upn: undefined,
+                };
+                const accountWithoutUpn =
+                    buildAccountFromIdTokenClaims(claimsWithoutUpn);
+                await mockCache.cacheManager.setAccount(accountWithoutUpn);
+
+                // Should match the account by its preferred_username
+                const matchingFilter = {
+                    username: "noUpnUser@microsoft.com",
+                };
+                const matchedAccounts = mockCache.cacheManager.getAllAccounts(
+                    matchingFilter,
+                    RANDOM_TEST_GUID
+                );
+                expect(matchedAccounts).toHaveLength(1);
+                expect(matchedAccounts[0].username).toBe(
+                    "noUpnUser@microsoft.com"
+                );
+
+                // Should NOT match a different username
+                const nonMatchingFilter = {
+                    username: "someOtherUser@microsoft.com",
+                };
+                const nonMatchedAccounts =
+                    mockCache.cacheManager.getAllAccounts(
+                        nonMatchingFilter,
+                        RANDOM_TEST_GUID
+                    );
+                // Should not include the noUpnUser account
+                expect(
+                    nonMatchedAccounts.find(
+                        (a) => a.username === "noUpnUser@microsoft.com"
+                    )
+                ).toBeUndefined();
+            });
+
+            it("Matches accounts by username via upn when preferred_username does not match", async () => {
+                // Test that username filter falls back to upn when preferred_username doesn't match
+                const claimsWithUpn = {
+                    ...ID_TOKEN_CLAIMS,
+                    oid: "00000000-0000-0000-0000-333333333333",
+                    tid: "00000000-0000-0000-0000-444444444444",
+                    preferred_username: "differentName@microsoft.com",
+                    upn: "upnMatch@microsoft.com",
+                };
+                const accountWithUpn =
+                    buildAccountFromIdTokenClaims(claimsWithUpn);
+                await mockCache.cacheManager.setAccount(accountWithUpn);
+
+                // Should match via upn fallback
+                const upnFilter = {
+                    username: "upnMatch@microsoft.com",
+                };
+                const matchedAccounts = mockCache.cacheManager.getAllAccounts(
+                    upnFilter,
+                    RANDOM_TEST_GUID
+                );
+                expect(matchedAccounts).toHaveLength(1);
+                expect(matchedAccounts[0].tenantId).toBe(
+                    "00000000-0000-0000-0000-444444444444"
+                );
+            });
+
             it("Matches accounts by homeAccountId", () => {
                 expect(
                     mockCache.cacheManager.getAllAccounts({}, RANDOM_TEST_GUID)
