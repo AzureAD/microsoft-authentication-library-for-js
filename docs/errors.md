@@ -175,6 +175,22 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ### `platform_broker_error`
 -   An error occurred in the native broker. When this error is thrown, check the `platformBrokerError` property on the error object for detailed information.
 
+### `empty_fic_assertion`
+
+-   The assertion provided to `acquireTokenByUserFederatedIdentityCredential` is empty. A non-empty assertion (typically an instance token from Leg 2 of the agent identity protocol) is required.
+
+### `conflicting_user_identifiers`
+
+-   Both `userObjectId` and `username` were provided to `acquireTokenByUserFederatedIdentityCredential`. Only one user identifier should be specified.
+
+### `missing_user_identifier`
+
+-   Neither `userObjectId` nor `username` was provided to `acquireTokenByUserFederatedIdentityCredential`. Exactly one user identifier is required.
+
+### `fmi_with_unsupported_scheme`
+
+-   An FMI (Federated Managed Identity) request was made with an unsupported authentication scheme. FMI requests using `fmiPath` are not compatible with PoP or SSH authentication schemes due to cache key model constraints. Use the default Bearer scheme instead.
+
 ## Client configuration errors
 
 ### `redirect_uri_empty`
