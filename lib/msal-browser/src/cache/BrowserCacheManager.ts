@@ -90,10 +90,9 @@ const MigrationRemovalReason = {
 type MigrationRemovalReason =
     (typeof MigrationRemovalReason)[keyof typeof MigrationRemovalReason];
 
-type UpdateOldEntryResult = {
-    entry: CredentialEntity | null;
-    removalReason?: MigrationRemovalReason;
-};
+type UpdateOldEntryResult =
+    | { entry: CredentialEntity; removalReason?: undefined }
+    | { entry: null; removalReason: MigrationRemovalReason };
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
