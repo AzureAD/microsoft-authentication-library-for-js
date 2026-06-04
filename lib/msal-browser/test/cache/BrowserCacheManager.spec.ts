@@ -1240,10 +1240,6 @@ describe("BrowserCacheManager tests", () => {
                     lastUpdatedAt: expiredTimestamp,
                 };
                 window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
-                const incrementFieldsSpy = jest.spyOn(
-                    performanceClient,
-                    "incrementFields"
-                );
 
                 await browserCacheManager.updateOldEntry(
                     v0Key,
@@ -1251,10 +1247,6 @@ describe("BrowserCacheManager tests", () => {
                 );
 
                 expect(window.localStorage.getItem(v0Key)).toBeNull();
-                expect(incrementFieldsSpy).toHaveBeenCalledWith(
-                    { expiredCacheRemovedCount: 1 },
-                    TEST_CONFIG.CORRELATION_ID
-                );
             });
 
             it("should remove expired access tokens based on expiresOn", async () => {
@@ -1273,10 +1265,6 @@ describe("BrowserCacheManager tests", () => {
                     lastUpdatedAt: Date.now().toString(),
                 };
                 window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
-                const incrementFieldsSpy = jest.spyOn(
-                    performanceClient,
-                    "incrementFields"
-                );
 
                 await browserCacheManager.updateOldEntry(
                     v0Key,
@@ -1284,10 +1272,6 @@ describe("BrowserCacheManager tests", () => {
                 );
 
                 expect(window.localStorage.getItem(v0Key)).toBeNull();
-                expect(incrementFieldsSpy).toHaveBeenCalledWith(
-                    { expiredCacheRemovedCount: 1 },
-                    TEST_CONFIG.CORRELATION_ID
-                );
             });
 
             it("should return decrypted value if cached entry is encrypted", async () => {
@@ -1315,17 +1299,17 @@ describe("BrowserCacheManager tests", () => {
                         )
                     )
                 ).toBe(true);
-                expect(result).toEqual(TEST_ACCESS_TOKEN_ENTITY);
+                expect(result.entry).toEqual(TEST_ACCESS_TOKEN_ENTITY);
             });
 
             it("should handle missing cache entries gracefully", async () => {
                 const missingKey = "non-existent-key";
-                expect(
-                    await browserCacheManager.updateOldEntry(
-                        missingKey,
-                        TEST_CONFIG.CORRELATION_ID
-                    )
-                ).toBeNull();
+                const result = await browserCacheManager.updateOldEntry(
+                    missingKey,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+                expect(result.entry).toBeNull();
+                expect(result.removalReason).toBe("invalid");
             });
 
             it("should remove invalid entries from storage", async () => {
@@ -1348,12 +1332,9 @@ describe("BrowserCacheManager tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
 
-                expect(result).toBeNull();
+                expect(result.entry).toBeNull();
+                expect(result.removalReason).toBe("invalid");
                 expect(window.localStorage.getItem(v0Key)).toBeNull();
-                expect(incrementFieldsSpy).toHaveBeenCalledWith(
-                    { invalidCacheCount: 1 },
-                    TEST_CONFIG.CORRELATION_ID
-                );
             });
 
             it("should remove encrypted entries with mismatched encryption key from storage", async () => {
@@ -1368,10 +1349,6 @@ describe("BrowserCacheManager tests", () => {
                     v0Key,
                     JSON.stringify(encryptedValue)
                 );
-                const incrementFieldsSpy = jest.spyOn(
-                    performanceClient,
-                    "incrementFields"
-                );
 
                 await browserCacheManager.initialize(
                     TEST_CONFIG.CORRELATION_ID
@@ -1381,12 +1358,9 @@ describe("BrowserCacheManager tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
 
-                expect(result).toBeNull();
+                expect(result.entry).toBeNull();
+                expect(result.removalReason).toBe("decryptFailed");
                 expect(window.localStorage.getItem(v0Key)).toBeNull();
-                expect(incrementFieldsSpy).toHaveBeenCalledWith(
-                    { invalidCacheCount: 1 },
-                    TEST_CONFIG.CORRELATION_ID
-                );
             });
         });
 
@@ -1432,7 +1406,9 @@ describe("BrowserCacheManager tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
                 expect(incrementFieldsSpy).toHaveBeenCalledWith(
-                    { expiredAcntRemovedCount: 1 },
+                    {
+                        decryptFailedAcntCount: 1,
+                    },
                     TEST_CONFIG.CORRELATION_ID
                 );
             });
