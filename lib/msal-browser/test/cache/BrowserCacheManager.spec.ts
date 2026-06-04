@@ -1241,11 +1241,10 @@ describe("BrowserCacheManager tests", () => {
                 };
                 window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
 
-                const result =
-                    await browserCacheManager.updateOldEntry(
-                        v0Key,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
+                const result = await browserCacheManager.updateOldEntry(
+                    v0Key,
+                    TEST_CONFIG.CORRELATION_ID
+                );
 
                 expect(result.entry).toBeNull();
                 expect(result.removalReason).toBe("ttlExpired");
@@ -1269,11 +1268,10 @@ describe("BrowserCacheManager tests", () => {
                 };
                 window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
 
-                const result =
-                    await browserCacheManager.updateOldEntry(
-                        v0Key,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
+                const result = await browserCacheManager.updateOldEntry(
+                    v0Key,
+                    TEST_CONFIG.CORRELATION_ID
+                );
 
                 expect(result.entry).toBeNull();
                 expect(result.removalReason).toBe("expired");
@@ -1479,10 +1477,7 @@ describe("BrowserCacheManager tests", () => {
                     lastUpdatedAt: expiredTimestamp,
                 };
                 const v0Key = `${v0IdToken.homeAccountId}-${v0IdToken.environment}-idtoken-${v0IdToken.clientId}-${v0IdToken.realm}`;
-                window.localStorage.setItem(
-                    v0Key,
-                    JSON.stringify(v0IdToken)
-                );
+                window.localStorage.setItem(v0Key, JSON.stringify(v0IdToken));
                 window.localStorage.setItem(
                     `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
                     JSON.stringify({
@@ -1512,7 +1507,8 @@ describe("BrowserCacheManager tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
 
-                const v0Key = "test-home-test-environment-accesstoken-test-clientid-test-realm";
+                const v0Key =
+                    "test-home-test-environment-accesstoken-test-clientid-test-realm";
                 window.localStorage.setItem(
                     v0Key,
                     JSON.stringify({
@@ -1588,8 +1584,7 @@ describe("BrowserCacheManager tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
 
-                const expiredExpiresOn =
-                    Math.floor(Date.now() / 1000) - 3600; // 1 hour ago
+                const expiredExpiresOn = Math.floor(Date.now() / 1000) - 3600; // 1 hour ago
                 const v0AccessToken = {
                     ...TEST_ACCESS_TOKEN_ENTITY,
                     expiresOn: expiredExpiresOn.toString(),
