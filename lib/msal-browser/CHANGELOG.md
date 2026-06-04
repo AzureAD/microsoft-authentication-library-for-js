@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 19 May 2026 19:29:14 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 04 Jun 2026 00:17:01 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.11.1
+
+Thu, 04 Jun 2026 00:17:01 GMT
+
+### Patches
+
+- Set document.title during authentication redirects for accessibility and UX [#8624](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8624) (sameera.gajjarapu@microsoft.com)
+- Respect redirectStartPage in PlatformAuthInteractionClient.acquireTokenRedirect [#8604](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8604) (lalimasharda@microsoft.com)
+- Add PCA functions for custom authentication response handling [#8590](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8590) (kshabelko@microsoft.com)
+- Clear old-schema cache entries when encryption key is expired [#8619](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8619) (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v16.6.3
 
 ## 5.11.0
 

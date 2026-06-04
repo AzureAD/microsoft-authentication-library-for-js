@@ -2,6 +2,45 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 04 Jun 2026 00:17:01 GMT",
+      "version": "5.11.1",
+      "tag": "@azure/msal-browser_v5.11.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d2378a2784e1178c09a2c9e34a78f5eaa0963a9c",
+            "comment": "Set document.title during authentication redirects for accessibility and UX [#8624](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8624)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d2378a2784e1178c09a2c9e34a78f5eaa0963a9c",
+            "comment": "Respect redirectStartPage in PlatformAuthInteractionClient.acquireTokenRedirect [#8604](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8604)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d2378a2784e1178c09a2c9e34a78f5eaa0963a9c",
+            "comment": "Add PCA functions for custom authentication response handling [#8590](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8590)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d2378a2784e1178c09a2c9e34a78f5eaa0963a9c",
+            "comment": "Clear old-schema cache entries when encryption key is expired [#8619](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8619)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.6.3",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 19 May 2026 19:29:14 GMT",
       "version": "5.11.0",
       "tag": "@azure/msal-browser_v5.11.0",
