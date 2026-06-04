@@ -1912,7 +1912,8 @@ export class StandardController implements IController {
             this.performanceClient,
             this.nativeInternalStorage,
             correlationId,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.operatingContext.getResponseHandlers()?.waitForPopupResponse
         );
     }
 
@@ -1951,7 +1952,8 @@ export class StandardController implements IController {
             this.performanceClient,
             this.nativeInternalStorage,
             correlationId,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.operatingContext.getResponseHandlers()?.waitForIframeResponse
         );
     }
 

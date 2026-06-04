@@ -59,6 +59,19 @@ import {
 } from "./BaseInteractionClient.js";
 import { validateRequestMethod } from "../request/RequestHelpers.js";
 
+/**
+ * Signature of the popup-response handler supplied by
+ * {@link PublicClientApplication} to {@link PopupClient} via the operating
+ * context.
+ *
+ * @internal
+ */
+export type WaitForPopupResponseFn = (
+    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+    popupWindow: Window,
+    popupWindowParent: Window
+) => Promise<string>;
+
 export type PopupParams = {
     popup?: Window | null;
     popupName: string;
@@ -69,6 +82,9 @@ export type PopupParams = {
 export class PopupClient extends StandardInteractionClient {
     private currentWindow: Window | undefined;
     protected nativeStorage: BrowserCacheManager;
+    private readonly waitForPopupResponseHook:
+        | WaitForPopupResponseFn
+        | undefined;
 
     constructor(
         config: BrowserConfiguration,
@@ -80,7 +96,8 @@ export class PopupClient extends StandardInteractionClient {
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
-        platformAuthHandler?: IPlatformAuthHandler
+        platformAuthHandler?: IPlatformAuthHandler,
+        waitForPopupResponseHook?: WaitForPopupResponseFn
     ) {
         super(
             config,
@@ -95,6 +112,7 @@ export class PopupClient extends StandardInteractionClient {
         );
         this.nativeStorage = nativeStorageImpl;
         this.eventHandler = eventHandler;
+        this.waitForPopupResponseHook = waitForPopupResponseHook;
     }
 
     /**
@@ -369,12 +387,10 @@ export class PopupClient extends StandardInteractionClient {
                 );
 
                 // Wait for the redirect bridge response
-                const responseString = await BrowserUtils.waitForBridgeResponse(
-                    this.config.system.popupBridgeTimeout,
-                    this.logger,
-                    this.browserCrypto,
+                const responseString = await this.waitForPopupResponse(
                     request,
-                    this.performanceClient
+                    popupWindow,
+                    popupParams.popupWindowParent
                 );
 
                 const serverParams = invoke(
@@ -494,18 +510,12 @@ export class PopupClient extends StandardInteractionClient {
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
-            BrowserUtils.waitForBridgeResponse,
+            this.waitForPopupResponse.bind(this),
             BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
-        )(
-            this.config.system.popupBridgeTimeout,
-            this.logger,
-            this.browserCrypto,
-            popupRequest,
-            this.performanceClient
-        );
+        )(popupRequest, popupWindow, popupParams.popupWindowParent);
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
@@ -623,18 +633,12 @@ export class PopupClient extends StandardInteractionClient {
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
-            BrowserUtils.waitForBridgeResponse,
+            this.waitForPopupResponse.bind(this),
             BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
-        )(
-            this.config.system.popupBridgeTimeout,
-            this.logger,
-            this.browserCrypto,
-            request,
-            this.performanceClient
-        );
+        )(request, popupWindow, popupParams.popupWindowParent);
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
@@ -792,12 +796,10 @@ export class PopupClient extends StandardInteractionClient {
                 null
             );
 
-            await BrowserUtils.waitForBridgeResponse(
-                this.config.system.popupBridgeTimeout,
-                this.logger,
-                this.browserCrypto,
+            await this.waitForPopupResponse(
                 validRequest,
-                this.performanceClient
+                popupWindow,
+                popupParams.popupWindowParent
             ).catch(() => {
                 // Swallow any errors related to monitoring the window. Server logout is best effort
             });
@@ -922,6 +924,22 @@ export class PopupClient extends StandardInteractionClient {
                     BrowserAuthErrorCodes.emptyWindowError
                 );
             }
+            try {
+                popupWindow.document.title = "Microsoft Authentication";
+            } catch (e) {
+                if (
+                    typeof DOMException !== "undefined" &&
+                    e instanceof DOMException &&
+                    e.name === "SecurityError"
+                ) {
+                    // Cross-origin - title cannot be set
+                } else {
+                    this.logger.verbose(
+                        "Could not set document.title on popup window",
+                        this.correlationId
+                    );
+                }
+            }
             if (popupWindow.focus) {
                 popupWindow.focus();
             }
@@ -1042,5 +1060,25 @@ export class PopupClient extends StandardInteractionClient {
     generateLogoutPopupName(request: CommonEndSessionRequest): string {
         const homeAccountId = request.account && request.account.homeAccountId;
         return `${BrowserConstants.POPUP_NAME_PREFIX}.${this.config.auth.clientId}.${homeAccountId}.${this.correlationId}`;
+    }
+
+    protected async waitForPopupResponse(
+        request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+        popupWindow: Window,
+        popupWindowParent: Window
+    ): Promise<string> {
+        if (this.waitForPopupResponseHook) {
+            return this.waitForPopupResponseHook(
+                request,
+                popupWindow,
+                popupWindowParent
+            );
+        }
+        return BrowserUtils.waitForBridgeResponse(
+            this.config.system.popupBridgeTimeout,
+            this.logger,
+            request,
+            this.performanceClient
+        );
     }
 }

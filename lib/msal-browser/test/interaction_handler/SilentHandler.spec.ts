@@ -83,6 +83,16 @@ describe("SilentHandler.ts Unit Tests", () => {
                 "local-network-access *"
             );
         });
+
+        it("Sets a title attribute on the iframe for accessibility", async () => {
+            const authFrame = await SilentHandler.initiateCodeRequest(
+                testNavUrl,
+                performanceClient,
+                browserRequestLogger,
+                RANDOM_TEST_GUID
+            );
+            expect(authFrame.title).toBe("Microsoft Authentication");
+        });
     });
 
     describe("waitForBridgeResponse", () => {
@@ -120,7 +130,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             const response = await BrowserUtils.waitForBridgeResponse(
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -156,7 +165,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             const response = await BrowserUtils.waitForBridgeResponse(
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -196,7 +204,6 @@ describe("SilentHandler.ts Unit Tests", () => {
                 BrowserUtils.waitForBridgeResponse(
                     100,
                     browserRequestLogger,
-                    browserCrypto,
                     request,
                     performanceClient
                 )
@@ -253,7 +260,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             const promise1 = BrowserUtils.waitForBridgeResponse(
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
-                browserCrypto,
                 request1,
                 performanceClient
             );
@@ -261,7 +267,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             const promise2 = BrowserUtils.waitForBridgeResponse(
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
-                browserCrypto,
                 request2,
                 performanceClient
             );

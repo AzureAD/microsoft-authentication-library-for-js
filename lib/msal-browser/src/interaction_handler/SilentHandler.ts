@@ -114,6 +114,7 @@ function createHiddenIframe(): HTMLIFrameElement {
     const authFrame = document.createElement("iframe");
 
     authFrame.className = "msalSilentIframe";
+    authFrame.title = "Microsoft Authentication";
     authFrame.style.visibility = "hidden";
     authFrame.style.position = "absolute";
     authFrame.style.width = authFrame.style.height = "0";
