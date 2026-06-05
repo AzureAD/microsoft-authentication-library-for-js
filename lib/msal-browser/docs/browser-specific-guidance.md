@@ -22,12 +22,6 @@ Safari ITP can cap script-writable storage (`localStorage` and script-writable c
 
 **Recommendation:** Handle token/cache eviction gracefully in Safari. For many apps, `sessionStorage` plus redirect fallback is the most predictable approach.
 
-### Private Browsing storage behavior
-
-Safari Private Browsing uses ephemeral storage. Tokens and other artifacts are lost on tab close. In addition, `sessionStorage.setItem()` immediately before `location.replace()` may be dropped in Safari Private Browsing.
-
-**Recommendation:** Treat Private Browsing sessions as short-lived and ensure your app can recover with interactive auth.
-
 ### Tracker domain blocking in Safari 17+ Private Browsing
 
 Safari 17+ Private Browsing can block requests to known tracker domains. CDN-hosted assets may be impacted depending on domain reputation.
@@ -44,7 +38,7 @@ Use redirect flows (`loginRedirect`, `acquireTokenRedirect`) as the primary inte
 
 Firefox Tracking Protection can block third-party cookies, especially in Strict mode and Private Browsing. This can break hidden-iframe SSO and renewal paths.
 
-**Impact:** `ssoSilent` and iframe-based silent renewal can fail.
+**Recommendation:** If `ssoSilent` or iframe-based silent renewal fails, fall back to an interactive API (`loginRedirect`, `loginPopup`, `acquireTokenRedirect`, or `acquireTokenPopup`) based on your app's UX requirements.
 
 ### Private Browsing and IndexedDB
 
@@ -56,7 +50,7 @@ In Firefox Private Browsing, `indexedDB.open()` may throw `SecurityError`.
 
 Under Firefox Total Cookie Protection (TCP), `BroadcastChannel` and related storage are partitioned by top-level site for cross-origin embed scenarios.
 
-**Impact:** Cross-origin iframe ↔ popup redirect bridge communication can fail.
+**Impact:** In cross-origin iframe scenarios, `acquireTokenPopup` can fail because popup redirect bridge responses may not reach the embedded app.
 
 ## Chrome and Edge (Chromium)
 
@@ -64,7 +58,7 @@ Under Firefox Total Cookie Protection (TCP), `BroadcastChannel` and related stor
 
 When third-party cookies are blocked (for example in Incognito or user-configured settings), iframe-based SSO/renewal paths are affected.
 
-**Impact:** `ssoSilent` and hidden iframe renewals can fail.
+**Recommendation:** If `ssoSilent` or hidden iframe renewal fails, fall back to an interactive API (`loginRedirect`, `loginPopup`, `acquireTokenRedirect`, or `acquireTokenPopup`) based on your app's UX requirements.
 
 ### Cross-origin iframe storage partitioning (Chrome 115+)
 
@@ -86,9 +80,9 @@ Popup APIs are less reliable on mobile due to popup restrictions and variable we
 
 On managed devices, Microsoft Authenticator and Intune Company Portal can participate in authentication and compliance evaluation. This may introduce additional prompts and policy-driven behavior (for example, conditional access and compliance checks).
 
-### Testing recommendations
+### Debugging tip: isolate managed-device impact
 
-Validate your auth flows in each of the following environments:
+If an auth issue appears only for some users, compare behavior in each of the following environments to quickly determine whether device management policies are a contributing factor:
 
 1. Unmanaged device/browser (no Company Portal, no MDM enrollment)
 2. Intune-enrolled device with Company Portal installed
