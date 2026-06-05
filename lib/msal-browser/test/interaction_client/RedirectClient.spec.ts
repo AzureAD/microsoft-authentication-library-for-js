@@ -213,6 +213,61 @@ describe("RedirectClient", () => {
     });
 
     describe("handleRedirectPromise", () => {
+        it("sets document.title during processing and restores original title when no title is set", (done) => {
+            document.title = "";
+            browserStorage.setInteractionInProgress(true);
+
+            redirectClient
+                .handleRedirectPromise(
+                    testRequest,
+                    TEST_CONFIG.TEST_VERIFIER,
+                    rootMeasurement,
+                    { hash: "" }
+                )
+                .then(() => {
+                    expect(document.title).toBe("");
+                    done();
+                });
+        });
+
+        it("sets document.title during processing and restores original title when user has set a title", (done) => {
+            document.title = "My App - Dashboard";
+            browserStorage.setInteractionInProgress(true);
+
+            redirectClient
+                .handleRedirectPromise(
+                    testRequest,
+                    TEST_CONFIG.TEST_VERIFIER,
+                    rootMeasurement,
+                    { hash: "" }
+                )
+                .then(() => {
+                    expect(document.title).toBe("My App - Dashboard");
+                    done();
+                });
+        });
+
+        it("restores URL-based document.title when redirect URI page has no title element", (done) => {
+            document.title =
+                "https://localhost:3000/redirect#code=authCode123&state=abc";
+            browserStorage.setInteractionInProgress(true);
+
+            redirectClient
+                .handleRedirectPromise(
+                    testRequest,
+                    TEST_CONFIG.TEST_VERIFIER,
+                    rootMeasurement,
+                    { hash: "" }
+                )
+                .then(() => {
+                    // Restores to the URL-based title since that was the original value
+                    expect(document.title).toBe(
+                        "https://localhost:3000/redirect#code=authCode123&state=abc"
+                    );
+                    done();
+                });
+        });
+
         it("does nothing if no hash is detected", (done) => {
             browserStorage.setInteractionInProgress(true);
 
