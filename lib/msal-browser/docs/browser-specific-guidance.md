@@ -28,7 +28,7 @@ Safari Private Browsing uses ephemeral storage. Tokens and other artifacts are l
 
 **Recommendation:** Treat Private Browsing sessions as short-lived and ensure your app can recover with interactive auth.
 
-### Tracker-domain blocking in Safari 17+ Private Browsing
+### Tracker domain blocking in Safari 17+ Private Browsing
 
 Safari 17+ Private Browsing can block requests to known tracker domains. CDN-hosted assets may be impacted depending on domain reputation.
 
@@ -68,7 +68,7 @@ When third-party cookies are blocked (for example in Incognito or user-configure
 
 ### Cross-origin iframe storage partitioning (Chrome 115+)
 
-Storage APIs such as `BroadcastChannel`, `localStorage`, and `IndexedDB` are partitioned by top-level site in cross-origin iframe scenarios.
+Storage APIs including `BroadcastChannel`, `localStorage`, and `IndexedDB` are partitioned by top-level site in cross-origin iframe scenarios.
 
 **Impact:** Popup flows launched from cross-origin iframes can time out because redirect bridge responses do not reach the embedded app.
 
