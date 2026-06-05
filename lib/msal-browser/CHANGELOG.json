@@ -2,6 +2,51 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 04 Jun 2026 23:41:40 GMT",
+      "version": "5.11.1",
+      "tag": "@azure/msal-browser_v5.11.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "485552fe2c6f2e72dff24399451e5d887c5b132f",
+            "comment": "Set document.title during authentication redirects for accessibility and UX [#8624](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8624)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "485552fe2c6f2e72dff24399451e5d887c5b132f",
+            "comment": "Respect redirectStartPage in PlatformAuthInteractionClient.acquireTokenRedirect [#8604](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8604)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "485552fe2c6f2e72dff24399451e5d887c5b132f",
+            "comment": "Add PCA functions for custom authentication response handling [#8590](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8590)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "485552fe2c6f2e72dff24399451e5d887c5b132f",
+            "comment": "Clear old-schema cache entries when encryption key is expired [#8619](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8619)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "485552fe2c6f2e72dff24399451e5d887c5b132f",
+            "comment": "bump msal-common to version 16.6.3 [#8622](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8622)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.6.4",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 19 May 2026 19:29:14 GMT",
       "version": "5.11.0",
       "tag": "@azure/msal-browser_v5.11.0",

@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 04 Jun 2026 23:41:40 GMT",
+      "version": "16.6.4",
+      "tag": "@azure/msal-common_v16.6.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "485552fe2c6f2e72dff24399451e5d887c5b132f",
+            "comment": "Fix inverted boolean in tenantProfileMatchesFilter username check [#8621](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8621)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 28 May 2026 20:48:56 GMT",
       "version": "16.6.3",
       "tag": "@azure/msal-common_v16.6.3",

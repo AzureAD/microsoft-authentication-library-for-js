@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Thu, 28 May 2026 20:48:56 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 04 Jun 2026 23:41:40 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.6.4
+
+Thu, 04 Jun 2026 23:41:40 GMT
+
+### Patches
+
+- Fix inverted boolean in tenantProfileMatchesFilter username check [#8621](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8621) (thomas.norling@microsoft.com)
 
 ## 16.6.3
 

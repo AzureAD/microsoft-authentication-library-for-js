@@ -2,6 +2,27 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Thu, 04 Jun 2026 23:41:41 GMT",
+      "version": "5.2.3",
+      "tag": "@azure/msal-node-extensions_v5.2.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "485552fe2c6f2e72dff24399451e5d887c5b132f",
+            "comment": "bump msal-common to version 16.6.3 [#8622](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8622)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.6.4",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 19 May 2026 19:29:14 GMT",
       "version": "5.2.2",
       "tag": "@azure/msal-node-extensions_v5.2.2",

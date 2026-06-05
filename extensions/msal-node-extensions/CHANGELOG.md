@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node-extensions
 
-<!-- This log was last generated on Tue, 19 May 2026 19:29:14 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 04 Jun 2026 23:41:41 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.2.3
+
+Thu, 04 Jun 2026 23:41:41 GMT
+
+### Patches
+
+- bump msal-common to version 16.6.3 [#8622](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8622) (lalimasharda@microsoft.com)
+- Bump @azure/msal-common to v16.6.4
 
 ## 5.2.2
 
