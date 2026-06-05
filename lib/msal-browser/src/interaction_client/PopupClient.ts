@@ -924,6 +924,22 @@ export class PopupClient extends StandardInteractionClient {
                     BrowserAuthErrorCodes.emptyWindowError
                 );
             }
+            try {
+                popupWindow.document.title = "Microsoft Authentication";
+            } catch (e) {
+                if (
+                    typeof DOMException !== "undefined" &&
+                    e instanceof DOMException &&
+                    e.name === "SecurityError"
+                ) {
+                    // Cross-origin - title cannot be set
+                } else {
+                    this.logger.verbose(
+                        "Could not set document.title on popup window",
+                        this.correlationId
+                    );
+                }
+            }
             if (popupWindow.focus) {
                 popupWindow.focus();
             }
