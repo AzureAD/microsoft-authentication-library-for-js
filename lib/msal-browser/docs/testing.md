@@ -8,6 +8,33 @@ The `loadExternalTokens()` API allows the loading of id, access and refresh toke
 
 The `loadExternalTokens()` API is a public API facilitating apps to custom load tokens to msal js cache.
 
+## Testing across browsers and device management environments
+
+When validating your authentication experience, test across both browser privacy modes and managed-device scenarios.
+
+### Recommended browser test matrix
+
+-   Chrome: normal mode and incognito mode
+-   Safari: normal mode and Private Browsing
+-   Firefox: normal mode and Private Browsing (or strict tracking protection)
+-   Edge (Chromium): normal mode
+
+### Recommended device-management test matrix
+
+For iOS Safari and Android Chrome scenarios, validate with and without management tooling:
+
+1. Unmanaged device/browser (no Company Portal, no device enrollment)
+2. Intune-enrolled device with Company Portal installed
+3. Conditional Access/device compliance scenarios that require managed or compliant devices
+
+### What to verify
+
+-   Interactive redirect flows (`loginRedirect`, `acquireTokenRedirect`) complete successfully in all target environments
+-   `acquireTokenSilent` can refresh tokens using refresh tokens where available
+-   Silent failures (for example due to third-party cookie restrictions) are handled gracefully by falling back to interactive auth
+
+For more browser-specific behavior and recommendations, see [Browser-specific guidance](./browser-specific-guidance.md).
+
 ```js
 await loadExternalTokens(
     config,

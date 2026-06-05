@@ -103,6 +103,12 @@ Concurrent silent requests are permitted. If two or more silent requests are mad
 
 Concurrent interactive requests are **not** permitted. If two or more interactive requests are made concurrently, only the first one will start an interaction, while the rest will fail with [interaction_in_progress](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md#interaction_in_progress) error. We recommend getting familiar with this error and possible remedies to avoid running into it in your applications.
 
+### Browser compatibility considerations
+
+-   In Safari and on many mobile browsers, prefer `acquireTokenRedirect` as the interactive fallback from `acquireTokenSilent` for better reliability.
+-   Do not rely on `ssoSilent` as a default SSO mechanism in browsers where third-party cookies are restricted or blocked.
+-   For browser-by-browser recommendations and known behaviors, see [Browser-specific guidance](./browser-specific-guidance.md).
+
 ### Make one token request per resource
 
 You can only request access tokens for one resource at a time (see [resources and scopes](resources-and-scopes.md)). If needed, you can ask user consent to scopes (permissions) required by more than one resource by using the `extraScopesToConsent` parameter in the request object. Access tokens for previously consented scopes can be acquired silently.

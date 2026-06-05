@@ -107,6 +107,9 @@ These APIs will return an account object or an array of account objects with the
 
 If you already have a session that exists with the authentication server, you can use the ssoSilent() API to make requests for tokens without interaction.
 
+> [!WARNING]
+> `ssoSilent` uses a hidden iframe and depends on IdP session cookies being available in a third-party context. Browsers that block third-party cookies (for example Safari ITP, Firefox tracking protection modes, and Chrome Incognito/user-blocked third-party cookies) can cause `ssoSilent` to fail. Do not use `ssoSilent` as the default SSO path in these environments; always provide an interactive fallback. See [Browser-specific guidance](./browser-specific-guidance.md) for details.
+
 ### With User Hint
 
 If you already have the user's sign-in information, you can pass this into the API to improve performance and ensure that the authorization server will look for the correct account session. You can pass one of the following into the request object in order to successfully obtain a token silently.

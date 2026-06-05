@@ -39,6 +39,9 @@ Starting in v4, if you are using the `localStorage` cache location, auth artifac
 
 This cookie will be automatically removed when the browser instance (not tab) is closed, thus making it impossible to decrypt any auth artifacts after the session has ended. These expired auth artifacts will be removed the next time MSAL is initialized and the user may need to reauthenticate. The `localStorage` location still provides cross-tab cache persistence for all users but will only persist across browser sessions for users who selected "Keep me signed in" (KMSI).
 
+> [!NOTE]
+> Safari ITP may evict script-writable storage (including `localStorage`) after around 7 days without direct user navigation, which can remove cached auth artifacts and require reauthentication. If Safari reliability is a priority, consider `sessionStorage` and ensure your app gracefully falls back to interactive auth when silent token acquisition fails. See [Browser-specific guidance](./browser-specific-guidance.md).
+
 > [!Important] The purpose of this encryption is to reduce the persistence of auth artifacts, **not** to provide additional security. If a bad actor gains access to browser storage they would also have access to the key or have the ability to request tokens on your behalf without the need for cache at all. It is your responsibility to ensure your application is not vulnerable to XSS attacks [see below](#security)
 
 ### Security
