@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add issuer validation Rule 5: accept issuer hosts explicitly listed in knownAuthorities. Fixes Entra External ID (CIAM) regression where a GUID-based issuer is returned for a name-based authority [#8592](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/8592)",
-  "packageName": "@azure/msal-common",
-  "email": "nicknamer@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}
