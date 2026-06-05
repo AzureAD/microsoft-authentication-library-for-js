@@ -25,7 +25,7 @@ For iOS Safari and Android Chrome scenarios, validate with and without managemen
 
 1. Unmanaged device/browser (no Company Portal, no device enrollment)
 2. Intune-enrolled device with Company Portal installed
-3. Conditional Access/device compliance scenarios that require managed or compliant devices
+3. Intune-enrolled device with Conditional Access policies that require managed or compliant devices
 
 ### What to verify
 

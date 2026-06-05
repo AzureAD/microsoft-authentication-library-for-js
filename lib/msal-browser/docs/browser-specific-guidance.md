@@ -12,7 +12,7 @@ Safari's Intelligent Tracking Prevention (ITP) blocks third-party cookies by def
 
 ### Popup blockers and async popup calls
 
-Safari enforces strict popup rules. If `window.open()` is not triggered directly in a synchronous user gesture call stack, popup flows may be blocked. Async gaps before calling `loginPopup()` or `acquireTokenPopup()` can trigger this behavior.
+Safari enforces strict popup rules. If `window.open()` is not triggered directly in a synchronous user gesture call stack, popup flows may be blocked. Async operations (for example awaiting a network call) between a user click and calling `loginPopup()` or `acquireTokenPopup()` can trigger this behavior.
 
 **Recommendation:** Prefer `loginRedirect()` and `acquireTokenRedirect()` on Safari for highest reliability.
 
@@ -24,7 +24,7 @@ Safari ITP can cap script-writable storage (`localStorage` and script-writable c
 
 ### Private Browsing storage behavior
 
-Safari Private Browsing uses ephemeral storage. Tokens and other artifacts are lost on tab close. In addition, `sessionStorage.setItem()` immediately before `location.replace()` may be dropped in Safari PB.
+Safari Private Browsing uses ephemeral storage. Tokens and other artifacts are lost on tab close. In addition, `sessionStorage.setItem()` immediately before `location.replace()` may be dropped in Safari Private Browsing.
 
 **Recommendation:** Treat Private Browsing sessions as short-lived and ensure your app can recover with interactive auth.
 
@@ -54,7 +54,7 @@ In Firefox Private Browsing, `indexedDB.open()` may throw `SecurityError`.
 
 ### Storage partitioning effects
 
-Under Firefox TCP, `BroadcastChannel` and related storage are partitioned by top-level site for cross-origin embed scenarios.
+Under Firefox Total Cookie Protection (TCP), `BroadcastChannel` and related storage are partitioned by top-level site for cross-origin embed scenarios.
 
 **Impact:** Cross-origin iframe ↔ popup redirect bridge communication can fail.
 
