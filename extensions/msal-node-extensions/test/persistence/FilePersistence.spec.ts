@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { promises as fs } from "fs";
 import { FilePersistence } from "../../src";
 import { FileSystemUtils } from "../util/FileSystemUtils";
 
@@ -59,4 +60,38 @@ describe("Test File Persistence", () => {
             expect(await file.reloadNecessary(Date.now())).toBe(false);
         }, 100);
     });
+
+    if (process.platform !== "win32") {
+        const getFileMode = async (path: string): Promise<number> => {
+            const stats = await fs.stat(path);
+            return stats.mode & 0o777;
+        };
+
+        test("create() sets file permissions to 0o600", async () => {
+            await FilePersistence.create(filePath);
+            expect(await getFileMode(filePath)).toBe(0o600);
+        });
+
+        test("save() sets file permissions to 0o600", async () => {
+            const file = await FilePersistence.create(filePath);
+            await file.save("test contents");
+            expect(await getFileMode(filePath)).toBe(0o600);
+        });
+
+        test("saveBuffer() sets file permissions to 0o600", async () => {
+            const file = await FilePersistence.create(filePath);
+            await file.saveBuffer(Buffer.from("test contents"));
+            expect(await getFileMode(filePath)).toBe(0o600);
+        });
+
+        test("save() tightens permissions on existing permissive file", async () => {
+            await fs.writeFile(filePath, "old data");
+            await fs.chmod(filePath, 0o644);
+            expect(await getFileMode(filePath)).toBe(0o644);
+
+            const file = await FilePersistence.create(filePath);
+            await file.save("new data");
+            expect(await getFileMode(filePath)).toBe(0o600);
+        });
+    }
 });
