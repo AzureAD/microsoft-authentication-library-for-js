@@ -22,7 +22,7 @@
         "jest": "^30.0.5",
         "jest-junit": "^16.0.0",
         "nodemon": "^3.1.11",
-        "ts-jest": "^29.4.1"
+        "ts-jest": "^29.4.11"
     },
     "jest-junit": {
         "suiteNameTemplate": "Express Sample Tests",
