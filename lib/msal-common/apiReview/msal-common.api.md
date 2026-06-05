@@ -2683,7 +2683,6 @@ declare namespace InteractionRequiredAuthErrorCodes {
         nativeAccountUnavailable,
         refreshTokenExpired,
         uiNotAllowed,
-        uxNotAllowed,
         interactionRequired,
         consentRequired,
         loginRequired,
@@ -4737,12 +4736,6 @@ export { UrlUtils }
 //
 // @public (undocumented)
 const userCanceled = "user_canceled";
-
-// Warning: (ae-unresolved-link) The @link reference could not be resolved: This type of declaration is not supported yet by the resolver
-// Warning: (ae-unresolved-link) The @link reference could not be resolved: This type of declaration is not supported yet by the resolver
-//
-// @public @deprecated
-const uxNotAllowed = "ux_not_allowed";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

@@ -24,13 +24,6 @@ export const refreshTokenExpired = "refresh_token_expired";
  */
 export const uiNotAllowed = "ui_not_allowed";
 /**
- * Deprecated alias for {@link InteractionRequiredAuthErrorCodes.uiNotAllowed}. UI/UX is not allowed (e.g., blocked by policy), requiring alternate interaction.
- * @deprecated Please use {@link InteractionRequiredAuthErrorCodes.uiNotAllowed}.
- * @public
- */
-export const uxNotAllowed = "ux_not_allowed";
-
-/**
  * Server-originated error code indicating interaction is required to complete the request.
  * @public
  */
