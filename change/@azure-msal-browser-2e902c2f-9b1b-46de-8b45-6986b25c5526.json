@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Respect redirectStartPage in PlatformAuthInteractionClient.acquireTokenRedirect [#8604](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8604)",
-  "packageName": "@azure/msal-browser",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}

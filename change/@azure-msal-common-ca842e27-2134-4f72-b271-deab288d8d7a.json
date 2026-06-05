@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix inverted boolean in tenantProfileMatchesFilter username check [#8621](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8621)",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

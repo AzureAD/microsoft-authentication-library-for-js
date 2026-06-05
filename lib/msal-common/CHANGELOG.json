@@ -2,6 +2,29 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 05 Jun 2026 20:52:21 GMT",
+      "version": "16.7.0",
+      "tag": "@azure/msal-common_v16.7.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "198982749+Copilot@users.noreply.github.com",
+            "package": "@azure/msal-common",
+            "commit": "7588af34d25beca61640567b526de3e8aa682d3d",
+            "comment": "Rename uxNotAllowed error code to uiNotAllowed [#8608](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8608)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "7588af34d25beca61640567b526de3e8aa682d3d",
+            "comment": "Fix inverted boolean in tenantProfileMatchesFilter username check [#8621](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8621)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 28 May 2026 20:48:56 GMT",
       "version": "16.6.3",
       "tag": "@azure/msal-common_v16.6.3",
