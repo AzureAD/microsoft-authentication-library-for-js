@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Rename uxNotAllowed error code to uiNotAllowed [#8608](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8608)",
-  "packageName": "@azure/msal-common",
-  "email": "198982749+Copilot@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}
