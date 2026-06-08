@@ -8,6 +8,7 @@ import {
     ClientConfiguration,
     Constants,
     AADServerParamKeys,
+    CredentialEntity,
 } from "@azure/msal-common";
 import {
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
@@ -18,6 +19,7 @@ import { ClientTestUtils } from "./ClientTestUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
+import { generateCredentialKey } from "../../src/cache/CacheHelpers.js";
 
 describe("ClientCredentialClient FMI tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
@@ -350,6 +352,178 @@ describe("ClientCredentialClient FMI tests", () => {
             expect(returnVal).toContain(
                 `${AADServerParamKeys.CLIENT_ASSERTION}=static-string-assertion`
             );
+        });
+    });
+
+    describe("Cache key collision resistance", () => {
+        /**
+         * These tests verify that credential cache keys remain unique across
+         * all combinations of auth scheme and additionalCacheKeyComponents.
+         * This ensures no cache collisions when FMI is combined with PoP/SSH
+         * or when multiple FMI paths are used on the same CCA instance.
+         */
+
+        function makeEntity(overrides: Partial<CredentialEntity>): CredentialEntity {
+            return {
+                homeAccountId: "",
+                environment: "login.microsoftonline.com",
+                credentialType: Constants.CredentialType.ACCESS_TOKEN,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                realm: TEST_CONFIG.TENANT,
+                target: TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
+                secret: "fake-token",
+                ...overrides,
+            } as CredentialEntity;
+        }
+
+        it("all four Bearer/PoP × FMI/no-FMI combinations produce unique cache keys", () => {
+            const fmiComponents = { fmi_path: "agent-app-id" };
+
+            const bearerPlain = makeEntity({});
+            const bearerFmi = makeEntity({
+                additionalCacheKeyComponents: fmiComponents,
+            });
+            const popPlain = makeEntity({
+                credentialType: Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                tokenType: Constants.AuthenticationScheme.POP,
+            });
+            const popFmi = makeEntity({
+                credentialType: Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                tokenType: Constants.AuthenticationScheme.POP,
+                additionalCacheKeyComponents: fmiComponents,
+            });
+
+            const keys = [
+                generateCredentialKey(bearerPlain),
+                generateCredentialKey(bearerFmi),
+                generateCredentialKey(popPlain),
+                generateCredentialKey(popFmi),
+            ];
+
+            // All four keys must be distinct
+            const uniqueKeys = new Set(keys);
+            expect(uniqueKeys.size).toBe(4);
+        });
+
+        it("different FMI paths produce different cache keys for the same auth scheme", () => {
+            const entity1 = makeEntity({
+                additionalCacheKeyComponents: { fmi_path: "agent-a" },
+            });
+            const entity2 = makeEntity({
+                additionalCacheKeyComponents: { fmi_path: "agent-b" },
+            });
+
+            const key1 = generateCredentialKey(entity1);
+            const key2 = generateCredentialKey(entity2);
+
+            expect(key1).not.toBe(key2);
+        });
+
+        it("same FMI path with different auth schemes produces different cache keys", () => {
+            const fmiComponents = { fmi_path: "same-agent" };
+
+            const bearerFmi = makeEntity({
+                additionalCacheKeyComponents: fmiComponents,
+            });
+            const popFmi = makeEntity({
+                credentialType: Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                tokenType: Constants.AuthenticationScheme.POP,
+                additionalCacheKeyComponents: fmiComponents,
+            });
+            const sshFmi = makeEntity({
+                credentialType: Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                tokenType: Constants.AuthenticationScheme.SSH,
+                additionalCacheKeyComponents: fmiComponents,
+            });
+
+            const keys = [
+                generateCredentialKey(bearerFmi),
+                generateCredentialKey(popFmi),
+                generateCredentialKey(sshFmi),
+            ];
+
+            const uniqueKeys = new Set(keys);
+            expect(uniqueKeys.size).toBe(3);
+        });
+
+        it("multiple additional components produce unique keys vs single component", () => {
+            const singleComponent = makeEntity({
+                additionalCacheKeyComponents: { fmi_path: "agent-a" },
+            });
+            const multiComponent = makeEntity({
+                additionalCacheKeyComponents: {
+                    fmi_path: "agent-a",
+                    another_key: "another_value",
+                },
+            });
+
+            const key1 = generateCredentialKey(singleComponent);
+            const key2 = generateCredentialKey(multiComponent);
+
+            expect(key1).not.toBe(key2);
+        });
+
+        it("hash is stable and deterministic for the same components", () => {
+            const entity1 = makeEntity({
+                additionalCacheKeyComponents: { fmi_path: "agent-a" },
+            });
+            const entity2 = makeEntity({
+                additionalCacheKeyComponents: { fmi_path: "agent-a" },
+            });
+
+            expect(generateCredentialKey(entity1)).toBe(
+                generateCredentialKey(entity2)
+            );
+        });
+
+        it("component key order does not affect the hash (sorted internally)", () => {
+            const entity1 = makeEntity({
+                additionalCacheKeyComponents: {
+                    alpha: "1",
+                    beta: "2",
+                },
+            });
+            const entity2 = makeEntity({
+                additionalCacheKeyComponents: {
+                    beta: "2",
+                    alpha: "1",
+                },
+            });
+
+            expect(generateCredentialKey(entity1)).toBe(
+                generateCredentialKey(entity2)
+            );
+        });
+
+        it("credential key contains scheme and hash as trailing components", () => {
+            const entity = makeEntity({
+                credentialType: Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                tokenType: Constants.AuthenticationScheme.POP,
+                additionalCacheKeyComponents: { fmi_path: "agent-a" },
+            });
+
+            const key = generateCredentialKey(entity);
+
+            // Key should end with -pop-<43-char-hash> (scheme then hash)
+            const popIndex = key.lastIndexOf("-pop-");
+            expect(popIndex).toBeGreaterThan(0);
+
+            // Everything after "-pop-" should be the 43-char Base64URL hash
+            const hashPart = key.substring(popIndex + 5); // skip "-pop-"
+            expect(hashPart.length).toBe(43);
+            // Base64URL charset: [A-Za-z0-9_-], no padding
+            expect(hashPart).toMatch(/^[A-Za-z0-9_-]+$/);
+
+            // Compare to a Bearer+FMI key — should have the hash but no "pop" segment
+            const bearerFmiEntity = makeEntity({
+                additionalCacheKeyComponents: { fmi_path: "agent-a" },
+            });
+            const bearerKey = generateCredentialKey(bearerFmiEntity);
+
+            // Bearer key should NOT contain "-pop-"
+            expect(bearerKey).not.toContain("-pop-");
+            // But should end with the same hash (same components)
+            expect(bearerKey).toMatch(/[a-z0-9_-]{43}$/);
         });
     });
 });
