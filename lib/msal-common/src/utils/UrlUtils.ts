@@ -11,11 +11,11 @@ import {
 import { StringUtils } from "./StringUtils.js";
 
 /**
- * Canonicalizes a URL for comparison per RFC 3986 standards:
+ * Canonicalizes a URL for comparison per MDN & RFC 3986 standards:
  * - Only scheme and host are lowercased (case-insensitive per spec)
  * - Path and query parameters are preserved as-is (case-sensitive per spec)
  * - Percent-encoding is normalized (e.g., %27 and ' are treated equivalently)
- * - Strips trailing empty query markers (? or ?/)
+ * - Strips trailing empty query markers in malformed URLs(? or ?/)
  * - Ensures pathname ends with /
  * @param url - URL to canonicalize
  * @returns Canonicalized URL
@@ -26,12 +26,10 @@ function canonicalizeUrl(url: string): string {
     }
 
     try {
+        // URL API lowercases scheme and host per RFC 3986
         const urlObj = new URL(url);
 
-        /*
-         * URL API lowercases scheme and host per RFC 3986
-         * Decode pathname to normalize percent-encoding (e.g., %27 and ' become equivalent)
-         */
+        // Decode pathname to normalize percent-encoding (e.g., %27 and ' become equivalent)
         let pathname;
         try {
             pathname = decodeURIComponent(urlObj.pathname);
@@ -135,13 +133,13 @@ export function mapToQueryString(parameters: Map<string, string>): string {
 }
 
 /**
- * Normalizes URLs for comparison per RFC 3986 standards:
- * - Scheme and host are lowercased (case-insensitive per spec)
- * - Path and query parameters preserve original casing (case-sensitive per spec)
+ * Normalizes URLs for comparison per MDN & RFC 3986 standards:
  * - Hash/fragment is removed
- * - Percent-encoding is normalized consistently via the URL API
+ * - Scheme and host are lowercased via the URL API (case-insensitive per spec)
+ * - Path and query parameters preserve original casing via the URL API (case-sensitive per spec)
+ * - Encodes special characters via the URL API
  * This ensures that base64-encoded query param values and case-sensitive
- * path segments are not corrupted during URL comparison.
+ * path segments are not corrupted during URL normalization.
  * @param url - URL to normalize
  * @returns Normalized URL string for comparison
  */
@@ -154,7 +152,7 @@ export function normalizeUrlForComparison(url: string): string {
     const urlWithoutHash = url.split("#")[0];
 
     try {
-        // Parse the URL to normalize encoding consistently
+        // Parse the URL to normalize and encode consistently
         const urlObj = new URL(urlWithoutHash);
 
         // Reconstruct and canonicalize per RFC 3986 via canonicalizeUrl
