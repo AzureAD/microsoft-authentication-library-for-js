@@ -72,7 +72,7 @@ export function createAccessTokenEntity(
     tokenType?: Constants.AuthenticationScheme,
     userAssertionHash?: string,
     keyId?: string,
-    additionalCacheKeys?: string[]
+    additionalCacheKeyComponents?: Record<string, string>
 ): AccessTokenEntity {
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
@@ -126,9 +126,12 @@ export function createAccessTokenEntity(
         }
     }
 
-    /* Additional cache key components for cache isolation (e.g., FMI path hash) */
-    if (additionalCacheKeys?.length) {
-        atEntity.additionalCacheKeys = additionalCacheKeys;
+    /* Additional cache key components for cache isolation (e.g., FMI path) */
+    if (
+        additionalCacheKeyComponents &&
+        Object.keys(additionalCacheKeyComponents).length > 0
+    ) {
+        atEntity.additionalCacheKeyComponents = additionalCacheKeyComponents;
     }
 
     return atEntity;

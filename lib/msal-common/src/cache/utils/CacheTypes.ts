@@ -88,7 +88,7 @@ export type CredentialFilter = {
     userAssertionHash?: string;
     tokenType?: AuthenticationScheme;
     keyId?: string;
-    additionalCacheKeys?: string[];
+    additionalCacheKeyComponents?: Record<string, string>;
 };
 
 /**

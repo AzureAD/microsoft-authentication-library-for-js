@@ -60,13 +60,14 @@ export class ClientCredentialClient extends BaseClient {
     public async acquireToken(
         request: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
-        // Compute additional cache keys for FMI cache isolation
-        let additionalCacheKeys: string[] | undefined;
+        // Build additional cache key components for FMI cache isolation
+        let additionalCacheKeyComponents:
+            | Record<string, string>
+            | undefined;
         if (request.fmiPath) {
-            const fmiHash = await this.cryptoUtils.hashString(
-                "fmi_path" + request.fmiPath
-            );
-            additionalCacheKeys = [fmiHash];
+            additionalCacheKeyComponents = {
+                fmi_path: request.fmiPath,
+            };
         }
 
         if (request.skipCache || request.claims) {
@@ -74,7 +75,7 @@ export class ClientCredentialClient extends BaseClient {
                 request,
                 this.authority,
                 /* refreshAccessToken */ undefined,
-                additionalCacheKeys
+                additionalCacheKeyComponents
             );
         }
 
@@ -86,7 +87,7 @@ export class ClientCredentialClient extends BaseClient {
                 this.authority,
                 this.cacheManager,
                 this.serverTelemetryManager,
-                additionalCacheKeys
+                additionalCacheKeyComponents
             );
 
         if (cachedAuthenticationResult) {
@@ -106,7 +107,7 @@ export class ClientCredentialClient extends BaseClient {
                     request,
                     this.authority,
                     refreshAccessToken,
-                    additionalCacheKeys
+                    additionalCacheKeyComponents
                 );
             }
 
@@ -117,7 +118,7 @@ export class ClientCredentialClient extends BaseClient {
                 request,
                 this.authority,
                 /* refreshAccessToken */ undefined,
-                additionalCacheKeys
+                additionalCacheKeyComponents
             );
         }
     }
@@ -132,7 +133,7 @@ export class ClientCredentialClient extends BaseClient {
         authority: Authority,
         cacheManager: CacheManager,
         serverTelemetryManager?: ServerTelemetryManager | null,
-        additionalCacheKeys?: string[]
+        additionalCacheKeyComponents?: Record<string, string>
     ): Promise<[AuthenticationResult | null, Constants.CacheOutcome]> {
         const clientConfiguration = config as ClientConfiguration;
         const managedIdentityConfiguration =
@@ -163,7 +164,7 @@ export class ClientCredentialClient extends BaseClient {
             new ScopeSet(request.scopes || []),
             cacheManager,
             request.correlationId,
-            additionalCacheKeys
+            additionalCacheKeyComponents
         );
 
         if (
@@ -237,7 +238,7 @@ export class ClientCredentialClient extends BaseClient {
         scopeSet: ScopeSet,
         cacheManager: CacheManager,
         correlationId: string,
-        additionalCacheKeys?: string[]
+        additionalCacheKeyComponents?: Record<string, string>
     ): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: "",
@@ -247,7 +248,7 @@ export class ClientCredentialClient extends BaseClient {
             clientId: id,
             realm: authority.tenant,
             target: ScopeSet.createSearchScopes(scopeSet.asArray()),
-            additionalCacheKeys: additionalCacheKeys,
+            additionalCacheKeyComponents: additionalCacheKeyComponents,
         };
 
         const accessTokens = cacheManager.getAccessTokensByFilter(
@@ -273,7 +274,7 @@ export class ClientCredentialClient extends BaseClient {
         request: CommonClientCredentialRequest,
         authority: Authority,
         refreshAccessToken?: boolean,
-        additionalCacheKeys?: string[]
+        additionalCacheKeyComponents?: Record<string, string>
     ): Promise<AuthenticationResult | null> {
         let serverTokenResponse: ServerAuthorizationTokenResponse;
         let reqTimestamp: number;
@@ -370,7 +371,7 @@ export class ClientCredentialClient extends BaseClient {
             undefined, // handlingRefreshTokenResponse
             undefined, // forceCacheRefreshTokenResponse
             undefined, // serverRequestId
-            additionalCacheKeys
+            additionalCacheKeyComponents
         );
 
         return tokenResponse;

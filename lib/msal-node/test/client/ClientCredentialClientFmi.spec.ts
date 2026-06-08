@@ -14,7 +14,7 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
 } from "../test_kit/StringConstants.js";
-import { ClientTestUtils, mockCrypto } from "./ClientTestUtils.js";
+import { ClientTestUtils } from "./ClientTestUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
@@ -100,8 +100,7 @@ describe("ClientCredentialClient FMI tests", () => {
     });
 
     describe("Cache isolation", () => {
-        it("computes additionalCacheKeys hash for FMI cache isolation", async () => {
-            const hashStringSpy = jest.spyOn(mockCrypto, "hashString");
+        it("stores additionalCacheKeyComponents for FMI cache isolation", async () => {
             const client = new ClientCredentialClient(config);
             const fmiPathValue = "test-agent-app-id";
 
@@ -114,14 +113,23 @@ describe("ClientCredentialClient FMI tests", () => {
 
             await client.acquireToken(request);
 
-            // hashString should be called with "fmi_path" + fmiPathValue for cache key isolation
-            expect(hashStringSpy).toHaveBeenCalledWith(
-                "fmi_path" + fmiPathValue
-            );
+            // Verify the cached token has additionalCacheKeyComponents with the raw fmi_path
+            const tokenKeys =
+                config.storageInterface!.getTokenKeys();
+            const accessTokenKeys = tokenKeys.accessToken;
+            expect(accessTokenKeys.length).toBeGreaterThan(0);
+            const cachedToken =
+                config.storageInterface!.getAccessTokenCredential(
+                    accessTokenKeys[0],
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            expect(cachedToken).not.toBeNull();
+            expect(
+                cachedToken!.additionalCacheKeyComponents
+            ).toEqual({ fmi_path: fmiPathValue });
         });
 
-        it("does not compute additionalCacheKeys hash when fmiPath is not set", async () => {
-            const hashStringSpy = jest.spyOn(mockCrypto, "hashString");
+        it("does not store additionalCacheKeyComponents when fmiPath is not set", async () => {
             const client = new ClientCredentialClient(config);
 
             const request: CommonClientCredentialRequest = {
@@ -132,13 +140,19 @@ describe("ClientCredentialClient FMI tests", () => {
 
             await client.acquireToken(request);
 
-            // hashString should not be called for non-FMI requests with fmi_path prefix
-            const fmiHashCalls = hashStringSpy.mock.calls.filter(
-                (call: unknown[]) =>
-                    typeof call[0] === "string" &&
-                    (call[0] as string).startsWith("fmi_path")
-            );
-            expect(fmiHashCalls).toHaveLength(0);
+            const tokenKeys =
+                config.storageInterface!.getTokenKeys();
+            const accessTokenKeys = tokenKeys.accessToken;
+            expect(accessTokenKeys.length).toBeGreaterThan(0);
+            const cachedToken =
+                config.storageInterface!.getAccessTokenCredential(
+                    accessTokenKeys[0],
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            expect(cachedToken).not.toBeNull();
+            expect(
+                cachedToken!.additionalCacheKeyComponents
+            ).toBeUndefined();
         });
 
         it("caches FMI tokens and returns from network (not cache) on first call", async () => {
@@ -213,7 +227,7 @@ describe("ClientCredentialClient FMI tests", () => {
                 fmiRequest
             )) as AuthenticationResult;
             expect(result2).not.toBeNull();
-            // FMI request goes to network since no token with matching additionalCacheKeys is cached
+            // FMI request goes to network since no token with matching additionalCacheKeyComponents is cached
             expect(result2.fromCache).toBe(false);
         });
     });

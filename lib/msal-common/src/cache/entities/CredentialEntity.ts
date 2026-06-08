@@ -31,8 +31,8 @@ export type CredentialEntity = {
     tokenType?: AuthenticationScheme;
     /** KeyId for PoP and SSH tokens stored in the kid claim */
     keyId?: string;
-    /** Additional cache key components for cache isolation (e.g., FMI path hash). Each element is appended as an extra segment in the credential cache key. */
-    additionalCacheKeys?: string[];
+    /** Additional cache key components for cache isolation (e.g., { fmi_path: "..." }). Stored as raw key-value pairs; a combined hash is computed at key-generation time. */
+    additionalCacheKeyComponents?: Record<string, string>;
     /** Timestamp when the entry was last updated */
     lastUpdatedAt: string;
 };

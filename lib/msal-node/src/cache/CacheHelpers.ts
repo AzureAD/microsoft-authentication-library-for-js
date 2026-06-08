@@ -8,7 +8,20 @@ import {
     Constants,
     CredentialEntity,
 } from "@azure/msal-common/node";
+import { createHash } from "crypto";
 import { CACHE } from "../utils/Constants.js";
+
+/**
+ * Computes a combined hash from additional cache key components.
+ * Matches the cross-SDK algorithm: sort keys → concatenate key+value → SHA-256 → Base64URL (no padding).
+ */
+function computeAdditionalCacheKeyHash(
+    components: Record<string, string>
+): string {
+    const sortedKeys = Object.keys(components).sort();
+    const input = sortedKeys.map((k) => k + components[k]).join("");
+    return createHash("sha256").update(input, "utf8").digest("base64url");
+}
 
 export function generateCredentialKey(credential: CredentialEntity): string {
     const familyId =
@@ -31,9 +44,16 @@ export function generateCredentialKey(credential: CredentialEntity): string {
         scheme,
     ];
 
-    // Append additional cache key components for cache isolation (e.g., fmi_path hash)
-    if (credential.additionalCacheKeys?.length) {
-        credentialKey.push(...credential.additionalCacheKeys);
+    // Compute and append a combined hash from additional cache key components (e.g., fmi_path)
+    if (
+        credential.additionalCacheKeyComponents &&
+        Object.keys(credential.additionalCacheKeyComponents).length > 0
+    ) {
+        credentialKey.push(
+            computeAdditionalCacheKeyHash(
+                credential.additionalCacheKeyComponents
+            )
+        );
     }
 
     return credentialKey.join(CACHE.KEY_SEPARATOR).toLowerCase();
