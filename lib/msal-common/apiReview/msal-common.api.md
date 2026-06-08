@@ -2682,7 +2682,7 @@ declare namespace InteractionRequiredAuthErrorCodes {
         noTokensFound,
         nativeAccountUnavailable,
         refreshTokenExpired,
-        uxNotAllowed,
+        uiNotAllowed,
         interactionRequired,
         consentRequired,
         loginRequired,
@@ -4665,6 +4665,9 @@ const tokenRequestEmpty = "token_request_empty";
 // @public
 function toSecondsFromDate(date: Date): number;
 
+// @public
+const uiNotAllowed = "ui_not_allowed";
+
 // Warning: (ae-missing-release-tag) "unexpectedCredentialType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -4763,9 +4766,6 @@ export { UrlUtils }
 // @public (undocumented)
 const userCanceled = "user_canceled";
 
-// @public
-const uxNotAllowed = "ux_not_allowed";
-
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "validateAuthorizationResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -4786,7 +4786,7 @@ export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTok
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "16.6.3";
+export const version = "16.7.0";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

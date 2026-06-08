@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fix: set restrictive file permissions in FilePersistence [#8623](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8623)",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
