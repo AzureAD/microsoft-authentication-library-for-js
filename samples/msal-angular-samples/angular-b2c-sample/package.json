@@ -29,7 +29,7 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular/build": "^21.2.14",
+    "@angular/build": "^21.2.0",
     "@angular/cli": "~21.2.0",
     "@angular/compiler-cli": "^21.2.0",
     "@types/jasmine": "~4.3.0",
