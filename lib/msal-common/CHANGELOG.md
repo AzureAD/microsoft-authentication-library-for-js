@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Thu, 28 May 2026 20:48:56 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 05 Jun 2026 22:24:22 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.7.0
+
+Fri, 05 Jun 2026 22:24:22 GMT
+
+### Minor changes
+
+- Rename uxNotAllowed error code to uiNotAllowed [#8608](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8608) (198982749+Copilot@users.noreply.github.com)
+
+### Patches
+
+- Fix inverted boolean in tenantProfileMatchesFilter username check [#8621](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8621) (thomas.norling@microsoft.com)
 
 ## 16.6.3
 
