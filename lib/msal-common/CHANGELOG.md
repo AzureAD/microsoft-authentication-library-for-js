@@ -1,8 +1,28 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 19 May 2026 19:29:14 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 05 Jun 2026 22:24:22 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.7.0
+
+Fri, 05 Jun 2026 22:24:22 GMT
+
+### Minor changes
+
+- Rename uxNotAllowed error code to uiNotAllowed [#8608](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8608) (198982749+Copilot@users.noreply.github.com)
+
+### Patches
+
+- Fix inverted boolean in tenantProfileMatchesFilter username check [#8621](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8621) (thomas.norling@microsoft.com)
+
+## 16.6.3
+
+Thu, 28 May 2026 20:48:56 GMT
+
+### Patches
+
+- Add issuer validation Rule 5: accept issuer hosts explicitly listed in knownAuthorities. Fixes Entra External ID (CIAM) regression where a GUID-based issuer is returned for a name-based authority [#8592](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/8592) (nicknamer@users.noreply.github.com)
 
 ## 16.6.2
 
