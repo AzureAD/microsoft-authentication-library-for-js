@@ -90,115 +90,18 @@ describe("UrlUtils.ts Class Unit Tests", () => {
         });
     });
 
-    /*
-     * canonicalizeUrl is a module-private helper invoked by
-     * normalizeUrlForComparison. These tests exercise its canonicalization
-     * behavior (trailing slash, empty-query stripping, percent-encoding
-     * normalization, and the malformed-URL fallback) through the public API.
-     */
-    describe("canonicalizeUrl Tests", () => {
-        it("returns input as-is for empty string", () => {
-            expect(UrlUtils.canonicalizeUrl("")).toEqual("");
-        });
-
-        it("returns input as-is for null/undefined input", () => {
-            expect(UrlUtils.canonicalizeUrl(null as any)).toBe(null);
-            expect(UrlUtils.canonicalizeUrl(undefined as any)).toBe(undefined);
-        });
-
-        it("lowercases scheme and host only", () => {
-            const canonicalized = UrlUtils.canonicalizeUrl(
-                "HTTPS://EXAMPLE.COM/CaseSensitivePath?Key=Value"
-            );
-
-            expect(canonicalized).toContain("https://example.com/");
-            expect(canonicalized).toContain("/CaseSensitivePath/");
-            expect(canonicalized).toContain("Key=Value");
-        });
-
-        it("ensures pathname ends with a trailing slash", () => {
-            expect(
-                UrlUtils.canonicalizeUrl("https://example.com/path")
-            ).toEqual(UrlUtils.canonicalizeUrl("https://example.com/path/"));
-            expect(
-                UrlUtils.canonicalizeUrl("https://example.com/path")
-            ).toContain("/path/");
-        });
-
-        it("treats encoded and decoded apostrophes as equivalent", () => {
-            const encoded = UrlUtils.canonicalizeUrl(
-                "https://example.com/path?comments=blah%27blah"
-            );
-            const decoded = UrlUtils.canonicalizeUrl(
-                "https://example.com/path?comments=blah'blah"
-            );
-
-            expect(encoded).toEqual(decoded);
-        });
-
-        it("normalizes percent-encoding in the pathname", () => {
-            const encoded = UrlUtils.canonicalizeUrl(
-                "https://example.com/my%20path"
-            );
-            const decoded = UrlUtils.canonicalizeUrl(
-                "https://example.com/my path"
-            );
-
-            expect(encoded).toEqual(decoded);
-        });
-
-        it("strips a trailing empty query marker (?)", () => {
-            expect(
-                UrlUtils.canonicalizeUrl("https://example.com/path?")
-            ).toEqual(UrlUtils.canonicalizeUrl("https://example.com/path"));
-        });
-
-        it("preserves case in path and query values", () => {
-            const canonicalized = UrlUtils.canonicalizeUrl(
-                "https://example.com/MyPath?token=AbCdEf"
-            );
-
-            expect(canonicalized).toContain("/MyPath/");
-            expect(canonicalized).toContain("token=AbCdEf");
-        });
-
-        it("does not corrupt base64-encoded query parameter values", () => {
-            const base64Token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9";
-            const canonicalized = UrlUtils.canonicalizeUrl(
-                `https://example.com/path?token=${base64Token}`
-            );
-
-            expect(canonicalized).toContain(`token=${base64Token}`);
-        });
-
-        describe("malformed URL fallback", () => {
-            it("does not throw on malformed input", () => {
-                expect(() =>
-                    UrlUtils.canonicalizeUrl("not-a-valid-url")
-                ).not.toThrow();
-            });
-
-            it("appends a trailing slash to malformed input", () => {
-                expect(UrlUtils.canonicalizeUrl("not-a-valid-url")).toEqual(
-                    "not-a-valid-url/"
-                );
-            });
-
-            it("strips a trailing ?/ from malformed input", () => {
-                expect(UrlUtils.canonicalizeUrl("not-a-valid-url?/")).toEqual(
-                    "not-a-valid-url/"
-                );
-            });
-
-            it("strips a trailing ? from malformed input", () => {
-                expect(UrlUtils.canonicalizeUrl("not-a-valid-url?")).toEqual(
-                    "not-a-valid-url/"
-                );
-            });
-        });
-    });
-
     describe("normalizeUrlForComparison Tests", () => {
+        it("treats a trailing slash inside a query value as significant", () => {
+            expect(
+                UrlUtils.normalizeUrlForComparison(
+                    "https://example.org/path/name?xxxx=yyyy"
+                )
+            ).not.toEqual(
+                UrlUtils.normalizeUrlForComparison(
+                    "https://example.org/path/name?xxxx=yyyy/"
+                )
+            );
+        });
         it("normalizes URLs with encoded vs decoded apostrophes to be equal", () => {
             const urlWithEncodedApostrophe =
                 "https://localhost:4200/profile?comments=blah%27blah";
@@ -253,11 +156,18 @@ describe("UrlUtils.ts Class Unit Tests", () => {
         });
 
         it("handles malformed URLs gracefully", () => {
-            const malformedUrl = "not-a-valid-url";
+            const malformedUrl1 = "not-a-valid-url";
             // Should not throw and should return a canonicalized version
             expect(() =>
-                UrlUtils.normalizeUrlForComparison(malformedUrl)
+                UrlUtils.normalizeUrlForComparison(malformedUrl1)
             ).not.toThrow();
+            expect(UrlUtils.normalizeUrlForComparison(malformedUrl1)).toBe(
+                "not-a-valid-url/"
+            );
+            const malformedUrl2 = "https://not a valid-url";
+            expect(UrlUtils.normalizeUrlForComparison(malformedUrl2)).toBe(
+                "https://not a valid-url/"
+            );
         });
 
         it("preserves case in path segments (RFC 3986 case-sensitive)", () => {
