@@ -72,7 +72,7 @@ export function createAccessTokenEntity(
     tokenType?: Constants.AuthenticationScheme,
     userAssertionHash?: string,
     keyId?: string,
-    extCacheKeyHash?: string
+    additionalCacheKeys?: string[]
 ): AccessTokenEntity {
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
@@ -126,14 +126,9 @@ export function createAccessTokenEntity(
         }
     }
 
-    /*
-     * Extended cache key hash for additional cache key isolation (e.g., fmi_path).
-     * Applied after auth scheme to take priority when both are present.
-     */
-    if (extCacheKeyHash) {
-        atEntity.extCacheKeyHash = extCacheKeyHash;
-        atEntity.credentialType =
-            Constants.CredentialType.ACCESS_TOKEN_EXTENDED;
+    /* Additional cache key components for cache isolation (e.g., FMI path hash) */
+    if (additionalCacheKeys?.length) {
+        atEntity.additionalCacheKeys = additionalCacheKeys;
     }
 
     return atEntity;
@@ -206,9 +201,7 @@ export function isAccessTokenEntity(
         entity.hasOwnProperty("target") &&
         (entity["credentialType"] === Constants.CredentialType.ACCESS_TOKEN ||
             entity["credentialType"] ===
-                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME ||
-            entity["credentialType"] ===
-                Constants.CredentialType.ACCESS_TOKEN_EXTENDED)
+                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME)
     );
 }
 

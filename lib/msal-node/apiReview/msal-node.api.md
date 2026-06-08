@@ -476,7 +476,7 @@ export type SerializedAccessTokenEntity = {
     token_type?: string;
     userAssertionHash?: string;
     resource?: string;
-    extCacheKeyHash?: string;
+    additionalCacheKeys?: string[];
 };
 
 // @public

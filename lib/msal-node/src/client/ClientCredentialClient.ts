@@ -37,7 +37,6 @@ import {
 } from "../config/Configuration.js";
 import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest.js";
 import { BaseClient } from "./BaseClient.js";
-import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
 
 /**
  * OAuth2.0 client credential grant
@@ -61,31 +60,13 @@ export class ClientCredentialClient extends BaseClient {
     public async acquireToken(
         request: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
-        /*
-         * FMI requires ACCESS_TOKEN_EXTENDED for cache-key isolation, but
-         * CacheManager's scheme-aware lookup and binding-key cleanup only fire
-         * on ACCESS_TOKEN_WITH_AUTH_SCHEME — so PoP/SSH tokens stored under FMI
-         * would silently miss those code paths. Other schemes (e.g. mTLS PoP)
-         * are Bearer-shaped and unaffected.
-         */
-        if (
-            request.fmiPath &&
-            (request.authenticationScheme ===
-                Constants.AuthenticationScheme.POP ||
-                request.authenticationScheme ===
-                    Constants.AuthenticationScheme.SSH)
-        ) {
-            throw createClientAuthError(
-                NodeClientAuthErrorCodes.fmiWithUnsupportedScheme
-            );
-        }
-
-        // Compute extCacheKeyHash once for FMI cache isolation
-        let extCacheKeyHash: string | undefined;
+        // Compute additional cache keys for FMI cache isolation
+        let additionalCacheKeys: string[] | undefined;
         if (request.fmiPath) {
-            extCacheKeyHash = await this.cryptoUtils.hashString(
+            const fmiHash = await this.cryptoUtils.hashString(
                 "fmi_path" + request.fmiPath
             );
+            additionalCacheKeys = [fmiHash];
         }
 
         if (request.skipCache || request.claims) {
@@ -93,7 +74,7 @@ export class ClientCredentialClient extends BaseClient {
                 request,
                 this.authority,
                 /* refreshAccessToken */ undefined,
-                extCacheKeyHash
+                additionalCacheKeys
             );
         }
 
@@ -105,7 +86,7 @@ export class ClientCredentialClient extends BaseClient {
                 this.authority,
                 this.cacheManager,
                 this.serverTelemetryManager,
-                extCacheKeyHash
+                additionalCacheKeys
             );
 
         if (cachedAuthenticationResult) {
@@ -125,7 +106,7 @@ export class ClientCredentialClient extends BaseClient {
                     request,
                     this.authority,
                     refreshAccessToken,
-                    extCacheKeyHash
+                    additionalCacheKeys
                 );
             }
 
@@ -136,7 +117,7 @@ export class ClientCredentialClient extends BaseClient {
                 request,
                 this.authority,
                 /* refreshAccessToken */ undefined,
-                extCacheKeyHash
+                additionalCacheKeys
             );
         }
     }
@@ -151,7 +132,7 @@ export class ClientCredentialClient extends BaseClient {
         authority: Authority,
         cacheManager: CacheManager,
         serverTelemetryManager?: ServerTelemetryManager | null,
-        extCacheKeyHash?: string
+        additionalCacheKeys?: string[]
     ): Promise<[AuthenticationResult | null, Constants.CacheOutcome]> {
         const clientConfiguration = config as ClientConfiguration;
         const managedIdentityConfiguration =
@@ -182,7 +163,7 @@ export class ClientCredentialClient extends BaseClient {
             new ScopeSet(request.scopes || []),
             cacheManager,
             request.correlationId,
-            extCacheKeyHash
+            additionalCacheKeys
         );
 
         if (
@@ -256,19 +237,17 @@ export class ClientCredentialClient extends BaseClient {
         scopeSet: ScopeSet,
         cacheManager: CacheManager,
         correlationId: string,
-        extCacheKeyHash?: string
+        additionalCacheKeys?: string[]
     ): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: "",
             environment:
                 authority.canonicalAuthorityUrlComponents.HostNameAndPort,
-            credentialType: extCacheKeyHash
-                ? Constants.CredentialType.ACCESS_TOKEN_EXTENDED
-                : Constants.CredentialType.ACCESS_TOKEN,
+            credentialType: Constants.CredentialType.ACCESS_TOKEN,
             clientId: id,
             realm: authority.tenant,
             target: ScopeSet.createSearchScopes(scopeSet.asArray()),
-            extCacheKeyHash: extCacheKeyHash,
+            additionalCacheKeys: additionalCacheKeys,
         };
 
         const accessTokens = cacheManager.getAccessTokensByFilter(
@@ -294,7 +273,7 @@ export class ClientCredentialClient extends BaseClient {
         request: CommonClientCredentialRequest,
         authority: Authority,
         refreshAccessToken?: boolean,
-        extCacheKeyHash?: string
+        additionalCacheKeys?: string[]
     ): Promise<AuthenticationResult | null> {
         let serverTokenResponse: ServerAuthorizationTokenResponse;
         let reqTimestamp: number;
@@ -391,7 +370,7 @@ export class ClientCredentialClient extends BaseClient {
             undefined, // handlingRefreshTokenResponse
             undefined, // forceCacheRefreshTokenResponse
             undefined, // serverRequestId
-            extCacheKeyHash
+            additionalCacheKeys
         );
 
         return tokenResponse;

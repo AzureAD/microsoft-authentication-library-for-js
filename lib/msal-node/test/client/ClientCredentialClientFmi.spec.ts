@@ -8,7 +8,6 @@ import {
     ClientConfiguration,
     Constants,
     AADServerParamKeys,
-    createClientAuthError,
 } from "@azure/msal-common";
 import {
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
@@ -19,7 +18,6 @@ import { ClientTestUtils, mockCrypto } from "./ClientTestUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
-import * as NodeClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";
 
 describe("ClientCredentialClient FMI tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
@@ -102,7 +100,7 @@ describe("ClientCredentialClient FMI tests", () => {
     });
 
     describe("Cache isolation", () => {
-        it("computes extCacheKeyHash for FMI cache isolation", async () => {
+        it("computes additionalCacheKeys hash for FMI cache isolation", async () => {
             const hashStringSpy = jest.spyOn(mockCrypto, "hashString");
             const client = new ClientCredentialClient(config);
             const fmiPathValue = "test-agent-app-id";
@@ -122,7 +120,7 @@ describe("ClientCredentialClient FMI tests", () => {
             );
         });
 
-        it("does not compute extCacheKeyHash when fmiPath is not set", async () => {
+        it("does not compute additionalCacheKeys hash when fmiPath is not set", async () => {
             const hashStringSpy = jest.spyOn(mockCrypto, "hashString");
             const client = new ClientCredentialClient(config);
 
@@ -215,7 +213,7 @@ describe("ClientCredentialClient FMI tests", () => {
                 fmiRequest
             )) as AuthenticationResult;
             expect(result2).not.toBeNull();
-            // FMI request goes to network since no atext-type token is cached
+            // FMI request goes to network since no token with matching additionalCacheKeys is cached
             expect(result2.fromCache).toBe(false);
         });
     });
@@ -338,58 +336,6 @@ describe("ClientCredentialClient FMI tests", () => {
             expect(returnVal).toContain(
                 `${AADServerParamKeys.CLIENT_ASSERTION}=static-string-assertion`
             );
-        });
-    });
-
-    describe("Auth scheme validation", () => {
-        it("rejects FMI request with PoP auth scheme", async () => {
-            const client = new ClientCredentialClient(config);
-            const request: CommonClientCredentialRequest = {
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                fmiPath: "test-agent-app-id",
-                authenticationScheme: Constants.AuthenticationScheme
-                    .POP as "pop",
-            };
-            await expect(client.acquireToken(request)).rejects.toMatchObject(
-                createClientAuthError(
-                    NodeClientAuthErrorCodes.fmiWithUnsupportedScheme
-                )
-            );
-        });
-
-        it("rejects FMI request with SSH auth scheme", async () => {
-            const client = new ClientCredentialClient(config);
-            const request: CommonClientCredentialRequest = {
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                fmiPath: "test-agent-app-id",
-                authenticationScheme: Constants.AuthenticationScheme
-                    .SSH as "ssh-cert",
-            };
-            await expect(client.acquireToken(request)).rejects.toMatchObject(
-                createClientAuthError(
-                    NodeClientAuthErrorCodes.fmiWithUnsupportedScheme
-                )
-            );
-        });
-
-        it("allows FMI request with Bearer auth scheme", async () => {
-            const client = new ClientCredentialClient(config);
-            const request: CommonClientCredentialRequest = {
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                fmiPath: "test-agent-app-id",
-                authenticationScheme: Constants.AuthenticationScheme.BEARER,
-            };
-            const result = (await client.acquireToken(
-                request
-            )) as AuthenticationResult;
-            expect(result).not.toBeNull();
-            expect(result.accessToken).toBeDefined();
         });
     });
 });

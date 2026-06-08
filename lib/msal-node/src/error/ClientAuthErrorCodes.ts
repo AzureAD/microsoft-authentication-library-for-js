@@ -10,7 +10,6 @@ export const invalidClientCredential = "invalid_client_credential";
 export const emptyFicAssertion = "empty_fic_assertion";
 export const conflictingUserIdentifiers = "conflicting_user_identifiers";
 export const missingUserIdentifier = "missing_user_identifier";
-export const fmiWithUnsupportedScheme = "fmi_with_unsupported_scheme";
 export const deviceCodePollingCancelled = "device_code_polling_cancelled";
 export const deviceCodeExpired = "device_code_expired";
 export const deviceCodeUnknownError = "device_code_unknown_error";

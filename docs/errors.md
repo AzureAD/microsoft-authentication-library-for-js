@@ -187,10 +187,6 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Neither `userObjectId` nor `username` was provided to `acquireTokenByUserFederatedIdentityCredential`. Exactly one user identifier is required.
 
-### `fmi_with_unsupported_scheme`
-
--   An FMI (Federated Managed Identity) request was made with an unsupported authentication scheme. FMI requests using `fmiPath` are not compatible with PoP or SSH authentication schemes due to cache key model constraints. Use the default Bearer scheme instead.
-
 ## Client configuration errors
 
 ### `redirect_uri_empty`

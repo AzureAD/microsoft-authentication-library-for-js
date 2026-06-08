@@ -205,7 +205,6 @@ export const CredentialType = {
     ID_TOKEN: "IdToken",
     ACCESS_TOKEN: "AccessToken",
     ACCESS_TOKEN_WITH_AUTH_SCHEME: "AccessToken_With_AuthScheme",
-    ACCESS_TOKEN_EXTENDED: "atext",
     REFRESH_TOKEN: "RefreshToken",
 } as const;
 export type CredentialType =

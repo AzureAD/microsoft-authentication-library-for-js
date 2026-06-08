@@ -114,7 +114,7 @@ export class Serializer {
                 token_type: atEntity.tokenType,
                 userAssertionHash: atEntity.userAssertionHash,
                 resource: atEntity.resource,
-                extCacheKeyHash: atEntity.extCacheKeyHash,
+                additionalCacheKeys: atEntity.additionalCacheKeys,
             };
         });
 

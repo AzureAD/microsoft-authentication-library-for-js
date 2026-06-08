@@ -1861,6 +1861,77 @@ describe("CacheManager.ts test cases", () => {
                 )
             ).toBe(true);
         });
+
+        it("additionalCacheKeys bidirectional isolation", () => {
+            // Entity with additionalCacheKeys should NOT match filter without them
+            const entityWithKeys = {
+                ...testAccessToken,
+                additionalCacheKeys: ["hash123"],
+            };
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithKeys,
+                    {},
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity without additionalCacheKeys should NOT match filter with them
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    testAccessToken,
+                    { additionalCacheKeys: ["hash123"] },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity with additionalCacheKeys should match filter with same keys
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithKeys,
+                    { additionalCacheKeys: ["hash123"] },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+
+            // Entity with different additionalCacheKeys should NOT match
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithKeys,
+                    { additionalCacheKeys: ["differentHash"] },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity with multiple additionalCacheKeys must match all in order
+            const entityWithMultipleKeys = {
+                ...testAccessToken,
+                additionalCacheKeys: ["hash1", "hash2"],
+            };
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithMultipleKeys,
+                    { additionalCacheKeys: ["hash1", "hash2"] },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithMultipleKeys,
+                    { additionalCacheKeys: ["hash1"] },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity without additionalCacheKeys should match filter without them
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    testAccessToken,
+                    {},
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+        });
     });
 
     describe("getAccessTokensByFilter", () => {
