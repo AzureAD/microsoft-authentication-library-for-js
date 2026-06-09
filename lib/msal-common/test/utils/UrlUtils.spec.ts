@@ -1,4 +1,5 @@
 import * as UrlUtils from "../../src/utils/UrlUtils";
+import { ClientConfigurationErrorCodes } from "../../src/error/ClientConfigurationError";
 
 describe("UrlUtils.ts Class Unit Tests", () => {
     describe("stripLeadingHashOrQuery Tests", () => {
@@ -156,19 +157,11 @@ describe("UrlUtils.ts Class Unit Tests", () => {
             );
         });
 
-        it("handles malformed URLs gracefully", () => {
-            const malformedUrl1 = "not-a-valid-url";
-            // Should not throw and should return a canonicalized version
+        it("throws urlParseError for malformed URLs", () => {
+            const malformedUrl = "not-a-valid-url";
             expect(() =>
-                UrlUtils.normalizeUrlForComparison(malformedUrl1)
-            ).not.toThrow();
-            expect(UrlUtils.normalizeUrlForComparison(malformedUrl1)).toBe(
-                "not-a-valid-url/"
-            );
-            const malformedUrl2 = "https://not a valid-url";
-            expect(UrlUtils.normalizeUrlForComparison(malformedUrl2)).toBe(
-                "https://not a valid-url/"
-            );
+                UrlUtils.normalizeUrlForComparison(malformedUrl)
+            ).toThrow(ClientConfigurationErrorCodes.urlParseError);
         });
 
         it("preserves case in path segments (RFC 3986 case-sensitive)", () => {

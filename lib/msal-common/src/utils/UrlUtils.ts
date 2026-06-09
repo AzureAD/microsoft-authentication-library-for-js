@@ -8,6 +8,11 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../error/ClientConfigurationError.js";
+import { Logger } from "../logger/Logger.js";
 
 /**
  * Parses hash string from given string. Returns empty string if no hash symbol is found.
@@ -81,11 +86,17 @@ export function mapToQueryString(parameters: Map<string, string>): string {
  * - Path and query parameters preserve original casing (case-sensitive per spec)
  * - Percent-encoding in pathname is normalized (e.g., %27 and ' are treated equivalently)
  * - Ensures pathname ends with /
- * - Strips trailing empty query markers (? or ?/) for malformed URLs
+ * Throws a urlParseError if the provided URL is malformed and cannot be parsed.
  * @param url - URL to normalize
+ * @param logger - Optional logger used to log parse failures
+ * @param correlationId - Optional correlationId associated with the log entry
  * @returns Normalized URL string for comparison
  */
-export function normalizeUrlForComparison(url: string): string {
+export function normalizeUrlForComparison(
+    url: string,
+    logger?: Logger,
+    correlationId?: string
+): string {
     if (!url) {
         return url;
     }
@@ -112,21 +123,14 @@ export function normalizeUrlForComparison(url: string): string {
 
         urlObj.pathname = pathname;
 
-        return urlObj.toString();
+        return urlObj.href;
     } catch (e) {
-        // Fallback for malformed URLs
-        let normalized = urlWithoutHash;
-
-        if (normalized.endsWith("?/")) {
-            normalized = normalized.slice(0, -2);
-        } else if (normalized.endsWith("?")) {
-            normalized = normalized.slice(0, -1);
-        }
-
-        if (!normalized.endsWith("/")) {
-            normalized += "/";
-        }
-
-        return normalized;
+        logger?.error(
+            `Failed to normalize URL for comparison: '${e}'`,
+            correlationId || ""
+        );
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.urlParseError
+        );
     }
 }

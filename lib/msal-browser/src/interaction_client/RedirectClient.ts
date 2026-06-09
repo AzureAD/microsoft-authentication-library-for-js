@@ -455,9 +455,15 @@ export class RedirectClient extends StandardInteractionClient {
                     true
                 ) || "";
             const loginRequestUrlNormalized =
-                UrlUtils.normalizeUrlForComparison(loginRequestUrl);
+                UrlUtils.normalizeUrlForComparison(
+                    loginRequestUrl,
+                    this.logger,
+                    this.correlationId
+                );
             const currentUrlNormalized = UrlUtils.normalizeUrlForComparison(
-                window.location.href
+                window.location.href,
+                this.logger,
+                this.correlationId
             );
 
             if (
