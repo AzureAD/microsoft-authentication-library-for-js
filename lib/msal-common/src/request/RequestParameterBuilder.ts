@@ -596,14 +596,24 @@ export function addServerTelemetry(
     parameters: Map<string, string>,
     serverTelemetryManager: ServerTelemetryManager
 ): void {
-    parameters.set(
-        AADServerParamKeys.X_CLIENT_CURR_TELEM,
-        serverTelemetryManager.generateCurrentRequestHeaderValue()
-    );
-    parameters.set(
-        AADServerParamKeys.X_CLIENT_LAST_TELEM,
-        serverTelemetryManager.generateLastRequestHeaderValue()
-    );
+    const currentTelemetryHeader =
+        serverTelemetryManager.generateCurrentRequestHeaderValue();
+    const lastTelemetryHeader =
+        serverTelemetryManager.generateLastRequestHeaderValue();
+
+    if (currentTelemetryHeader) {
+        parameters.set(
+            AADServerParamKeys.X_CLIENT_CURR_TELEM,
+            currentTelemetryHeader
+        );
+    }
+
+    if (lastTelemetryHeader) {
+        parameters.set(
+            AADServerParamKeys.X_CLIENT_LAST_TELEM,
+            lastTelemetryHeader
+        );
+    }
 }
 
 /**

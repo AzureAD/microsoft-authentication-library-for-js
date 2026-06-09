@@ -1110,6 +1110,10 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         it("does not set native broker error to server telemetry", async () => {
+            // Enable server telemetry so telemetry data is written to storage
+            //@ts-ignore
+            platformAuthInteractionClient.config.system.serverTelemetryEnabled =
+                true;
             jest.spyOn(
                 PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
@@ -1134,6 +1138,10 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         it("sets native broker error to server telemetry", async () => {
+            // Enable server telemetry so telemetry data is written to storage
+            //@ts-ignore
+            platformAuthInteractionClient.config.system.serverTelemetryEnabled =
+                true;
             jest.spyOn(
                 PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
@@ -1162,6 +1170,10 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         it("resets native broker error in server telemetry", async () => {
+            // Enable server telemetry so telemetry data is written to storage
+            //@ts-ignore
+            platformAuthInteractionClient.config.system.serverTelemetryEnabled =
+                true;
             const sendMessageStub = jest
                 .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
                 .mockImplementation();
@@ -1423,6 +1435,10 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         it("sets native broker error to server telemetry", (done) => {
+            // Enable server telemetry so telemetry data is written to storage
+            //@ts-ignore
+            platformAuthInteractionClient.config.system.serverTelemetryEnabled =
+                true;
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateExternal"
@@ -1458,6 +1474,10 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         it("resets native broker error in server telemetry", async () => {
+            // Enable server telemetry so telemetry data is written to storage
+            //@ts-ignore
+            platformAuthInteractionClient.config.system.serverTelemetryEnabled =
+                true;
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateExternal"
