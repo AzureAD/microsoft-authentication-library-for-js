@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780967744197,
+  "lastUpdate": 1780972366075,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21757,6 +21757,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.69%",
             "unit": "ops/sec",
             "extra": "228 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "343d36e0fc3e15890fcdcc67d11aac7d18793af1",
+          "message": "Disable ServerTelemetryManager by default (#8600)\n\nThis pull request introduces a new configuration option,\n`serverTelemetryEnabled`, to the MSAL Browser library, allowing\ndevelopers to enable or disable server telemetry headers and caching of\nfailed requests. The option is added with a default value of `false` and\nis marked as deprecated for future removal. The PR updates the\nconfiguration logic, documentation, and all interaction clients to\nrespect this flag, and adds tests to verify correct behavior.\n\n**Configuration and API changes:**\n\n* Added the `serverTelemetryEnabled` option to `BrowserSystemOptions` in\nboth the API and implementation, with a default value of `false` and\nmarked as deprecated for future removal. This controls whether MSER\nserver telemetry headers are sent and failed requests are cached.\n[[1]](diffhunk://#diff-d8aa8313e46503e745028509a1ac18093831ea5baeafe63c63ea825727aa3580R414)\n[[2]](diffhunk://#diff-5912a198ce9530319ffa5d0b77a1e63b28877d5e8d202654b0c374ded0a8c546R170-R174)\n[[3]](diffhunk://#diff-5912a198ce9530319ffa5d0b77a1e63b28877d5e8d202654b0c374ded0a8c546R323)\n\n* Updated the documentation (`configuration.md`) to describe the new\n`serverTelemetryEnabled` option, its default value, and its effect. Also\nupdated example configuration usage.\n[[1]](diffhunk://#diff-b50088530c035ffb7feb43ef085da52f5d977cebfec286eb975e5b10a745c63cL56-R57)\n[[2]](diffhunk://#diff-b50088530c035ffb7feb43ef085da52f5d977cebfec286eb975e5b10a745c63cR109)\n\n**Code updates for telemetry behavior:**\n\n* Modified the `initializeServerTelemetryManager` function to accept an\n`enabled` parameter, defaulting to `true`, and return a stub manager\nwhen telemetry is disabled. Updated all interaction clients\n(`PopupClient`, `RedirectClient`, `SilentAuthCodeClient`,\n`SilentCacheClient`, `SilentIframeClient`, `SilentRefreshClient`,\n`PlatformAuthInteractionClient`) to pass the new flag from\nconfiguration.\n[[1]](diffhunk://#diff-a02540a398f90297e64794c775e8d63dbcafac387b4ff712d9bee0c52e36085cR13)\n[[2]](diffhunk://#diff-a02540a398f90297e64794c775e8d63dbcafac387b4ff712d9bee0c52e36085cR112)\n[[3]](diffhunk://#diff-a02540a398f90297e64794c775e8d63dbcafac387b4ff712d9bee0c52e36085cL119-R132)\n[[4]](diffhunk://#diff-3f43afd5556603a80064728bd701519ec2e22979f09ae6095b7fdea0507ad593L301-R303)\n[[5]](diffhunk://#diff-3f43afd5556603a80064728bd701519ec2e22979f09ae6095b7fdea0507ad593L536-R540)\n[[6]](diffhunk://#diff-3f43afd5556603a80064728bd701519ec2e22979f09ae6095b7fdea0507ad593L702-R708)\n[[7]](diffhunk://#diff-06ec3818a1cb128320c6ece84eed04190a54c03a09a455ca2d5c6947e29d5de1L200-R202)\n[[8]](diffhunk://#diff-06ec3818a1cb128320c6ece84eed04190a54c03a09a455ca2d5c6947e29d5de1L417-R421)\n[[9]](diffhunk://#diff-06ec3818a1cb128320c6ece84eed04190a54c03a09a455ca2d5c6947e29d5de1L818-R824)\n[[10]](diffhunk://#diff-4463cecbdd32231efe5a8bc67925fb7bd906c5dc07c997596b1cd68d937d8c43L107-R109)\n[[11]](diffhunk://#diff-51739a89731f71d2af4c0a1237dc3e1ebd783fd84d21804aa2e7c5f2ee5ce281L39-R41)\n[[12]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faL174-R176)\n[[13]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faL345-R349)\n[[14]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faL439-R445)\n[[15]](diffhunk://#diff-2ae98a2162c2240ac97776505160467964916113e1f2813699ef3e1c9dfa5ee4L71-R73)\n[[16]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7L179-R181)\n[[17]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7L371-R375)\n[[18]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7L471-R477)\n\n**Testing and validation:**\n\n* Added and updated unit tests to verify the default value of\n`serverTelemetryEnabled`, its behavior when set to `true`, and that\ntelemetry data is written to storage only when enabled.\n[[1]](diffhunk://#diff-e8c7c7ec06dd00d66c4bf8b0e311d9a1d123410db5f6330cbd3ae0de2cf4a636R74-R92)\n[[2]](diffhunk://#diff-f936803be34376b4fc36745b78ec5110b6e3b420d907b033fa6924453d2815d5R5760-R5762)\n[[3]](diffhunk://#diff-f936803be34376b4fc36745b78ec5110b6e3b420d907b033fa6924453d2815d5R5806-R5808)\n[[4]](diffhunk://#diff-487fd093427294009e88334d1384fbc6c84e560de569161ce0d5c8877c0eed4eR1113-R1116)\n\n**API review and type updates:**\n\n* Updated API review files and error comments to reflect the changes in\nconfiguration and internal types.\n\n---\n\n**Configuration changes:**\n- Added `serverTelemetryEnabled` (default `false`, deprecated) to\n`BrowserSystemOptions` and configuration builder, controlling whether\nserver telemetry headers are sent and failed requests are cached.\n[[1]](diffhunk://#diff-d8aa8313e46503e745028509a1ac18093831ea5baeafe63c63ea825727aa3580R414)\n[[2]](diffhunk://#diff-5912a198ce9530319ffa5d0b77a1e63b28877d5e8d202654b0c374ded0a8c546R170-R174)\n[[3]](diffhunk://#diff-5912a198ce9530319ffa5d0b77a1e63b28877d5e8d202654b0c374ded0a8c546R323)\n- Updated documentation and example usage to include and explain\n`serverTelemetryEnabled`.\n[[1]](diffhunk://#diff-b50088530c035ffb7feb43ef085da52f5d977cebfec286eb975e5b10a745c63cL56-R57)\n[[2]](diffhunk://#diff-b50088530c035ffb7feb43ef085da52f5d977cebfec286eb975e5b10a745c63cR109)\n\n**Telemetry manager updates:**\n- Updated `initializeServerTelemetryManager` to support disabling\ntelemetry, returning a stub manager when disabled; all interaction\nclients now respect this configuration flag.\n[[1]](diffhunk://#diff-a02540a398f90297e64794c775e8d63dbcafac387b4ff712d9bee0c52e36085cR13)\n[[2]](diffhunk://#diff-a02540a398f90297e64794c775e8d63dbcafac387b4ff712d9bee0c52e36085cR112)\n[[3]](diffhunk://#diff-a02540a398f90297e64794c775e8d63dbcafac387b4ff712d9bee0c52e36085cL119-R132)\n[[4]](diffhunk://#diff-3f43afd5556603a80064728bd701519ec2e22979f09ae6095b7fdea0507ad593L301-R303)\n[[5]](diffhunk://#diff-3f43afd5556603a80064728bd701519ec2e22979f09ae6095b7fdea0507ad593L536-R540)\n[[6]](diffhunk://#diff-3f43afd5556603a80064728bd701519ec2e22979f09ae6095b7fdea0507ad593L702-R708)\n[[7]](diffhunk://#diff-06ec3818a1cb128320c6ece84eed04190a54c03a09a455ca2d5c6947e29d5de1L200-R202)\n[[8]](diffhunk://#diff-06ec3818a1cb128320c6ece84eed04190a54c03a09a455ca2d5c6947e29d5de1L417-R421)\n[[9]](diffhunk://#diff-06ec3818a1cb128320c6ece84eed04190a54c03a09a455ca2d5c6947e29d5de1L818-R824)\n[[10]](diffhunk://#diff-4463cecbdd32231efe5a8bc67925fb7bd906c5dc07c997596b1cd68d937d8c43L107-R109)\n[[11]](diffhunk://#diff-51739a89731f71d2af4c0a1237dc3e1ebd783fd84d21804aa2e7c5f2ee5ce281L39-R41)\n[[12]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faL174-R176)\n[[13]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faL345-R349)\n[[14]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faL439-R445)\n[[15]](diffhunk://#diff-2ae98a2162c2240ac97776505160467964916113e1f2813699ef3e1c9dfa5ee4L71-R73)\n[[16]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7L179-R181)\n[[17]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7L371-R375)\n[[18]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7L471-R477)\n\n**Testing:**\n- Added and updated unit tests to verify default and explicit values of\n`serverTelemetryEnabled`, and that telemetry is written to storage only\nwhen enabled.\n[[1]](diffhunk://#diff-e8c7c7ec06dd00d66c4bf8b0e311d9a1d123410db5f6330cbd3ae0de2cf4a636R74-R92)\n[[2]](diffhunk://#diff-f936803be34376b4fc36745b78ec5110b6e3b420d907b033fa6924453d2815d5R5760-R5762)\n[[3]](diffhunk://#diff-f936803be34376b4fc36745b78ec5110b6e3b420d907b033fa6924453d2815d5R5806-R5808)\n[[4]](diffhunk://#diff-487fd093427294009e88334d1384fbc6c84e560de569161ce0d5c8877c0eed4eR1113-R1116)\n\n**API review:**\n- Updated API review files and comments to reflect new configuration and\ntype changes.\n\n---------\n\nCo-authored-by: -g <-g>",
+          "timestamp": "2026-06-09T02:25:23Z",
+          "tree_id": "c6e6a833bc95af3b4965556b5784ddf41cafc31f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/343d36e0fc3e15890fcdcc67d11aac7d18793af1"
+        },
+        "date": 1780972361465,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 397930,
+            "range": "±0.60%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 399826,
+            "range": "±0.48%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
