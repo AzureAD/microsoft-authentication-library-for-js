@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use in-built URL API to perform URL comparisons adhering to correct MDN and RFC standards [#8625](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8625)",
+  "packageName": "@azure/msal-common",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}

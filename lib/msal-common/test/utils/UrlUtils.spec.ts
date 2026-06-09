@@ -1,4 +1,5 @@
 import * as UrlUtils from "../../src/utils/UrlUtils";
+import { ClientConfigurationErrorCodes } from "../../src/error/ClientConfigurationError";
 
 describe("UrlUtils.ts Class Unit Tests", () => {
     describe("stripLeadingHashOrQuery Tests", () => {
@@ -91,6 +92,24 @@ describe("UrlUtils.ts Class Unit Tests", () => {
     });
 
     describe("normalizeUrlForComparison Tests", () => {
+        it("treats a trailing slash inside a query value as significant", () => {
+            expect(
+                UrlUtils.normalizeUrlForComparison(
+                    "https://example.org/path/name?xxxx=yyyy"
+                )
+            ).not.toEqual(
+                UrlUtils.normalizeUrlForComparison(
+                    "https://example.org/path/name?xxxx=yyyy/"
+                )
+            );
+        });
+        it("treats an empty query string as equivalent to no query string", () => {
+            expect(
+                UrlUtils.normalizeUrlForComparison("http://localhost:30661/?")
+            ).toEqual(
+                UrlUtils.normalizeUrlForComparison("http://localhost:30661/")
+            );
+        });
         it("normalizes URLs with encoded vs decoded apostrophes to be equal", () => {
             const urlWithEncodedApostrophe =
                 "https://localhost:4200/profile?comments=blah%27blah";
@@ -144,12 +163,112 @@ describe("UrlUtils.ts Class Unit Tests", () => {
             );
         });
 
-        it("handles malformed URLs gracefully", () => {
+        it("throws urlParseError for malformed URLs", () => {
             const malformedUrl = "not-a-valid-url";
-            // Should not throw and should return a canonicalized version
             expect(() =>
                 UrlUtils.normalizeUrlForComparison(malformedUrl)
+            ).toThrow(ClientConfigurationErrorCodes.urlParseError);
+        });
+
+        it("preserves case in path segments (RFC 3986 case-sensitive)", () => {
+            const url = "https://example.com/MyPath/SubPath?param=value";
+            const normalized = UrlUtils.normalizeUrlForComparison(url);
+
+            expect(normalized).toContain("/MyPath/SubPath/");
+        });
+
+        it("preserves case in query parameter values (RFC 3986 case-sensitive)", () => {
+            const url = "https://example.com/path?token=AbCdEfGh&state=XyZ123";
+            const normalized = UrlUtils.normalizeUrlForComparison(url);
+
+            expect(normalized).toContain("token=AbCdEfGh");
+            expect(normalized).toContain("state=XyZ123");
+        });
+
+        it("lowercases only the scheme and host", () => {
+            const url =
+                "HTTPS://EXAMPLE.COM/CaseSensitivePath?Key=CaseSensitiveValue";
+            const normalized = UrlUtils.normalizeUrlForComparison(url);
+
+            expect(normalized).toContain("https://example.com/");
+            expect(normalized).toContain("/CaseSensitivePath/");
+            expect(normalized).toContain("Key=CaseSensitiveValue");
+        });
+
+        it("does not corrupt base64-encoded query parameter values", () => {
+            const base64Token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9";
+            const url = `https://example.com/path?token=${base64Token}`;
+            const normalized = UrlUtils.normalizeUrlForComparison(url);
+
+            expect(normalized).toContain(`token=${base64Token}`);
+        });
+
+        it("treats URLs with different host casing as equal", () => {
+            const url1 = "https://Example.COM/path?param=value";
+            const url2 = "https://example.com/path?param=value";
+
+            expect(UrlUtils.normalizeUrlForComparison(url1)).toEqual(
+                UrlUtils.normalizeUrlForComparison(url2)
+            );
+        });
+
+        it("treats URLs with different path casing as different", () => {
+            const url1 = "https://example.com/Path";
+            const url2 = "https://example.com/path";
+
+            expect(UrlUtils.normalizeUrlForComparison(url1)).not.toEqual(
+                UrlUtils.normalizeUrlForComparison(url2)
+            );
+        });
+
+        it("treats URLs with different query param value casing as different", () => {
+            const url1 = "https://example.com/path?token=ABC";
+            const url2 = "https://example.com/path?token=abc";
+
+            expect(UrlUtils.normalizeUrlForComparison(url1)).not.toEqual(
+                UrlUtils.normalizeUrlForComparison(url2)
+            );
+        });
+
+        it("normalizes trailing slash on pathname", () => {
+            const url1 = "https://example.com/path";
+            const url2 = "https://example.com/path/";
+
+            expect(UrlUtils.normalizeUrlForComparison(url1)).toEqual(
+                UrlUtils.normalizeUrlForComparison(url2)
+            );
+        });
+    });
+
+    describe("validateUrl Tests", () => {
+        it("does not throw for a well-formed absolute URL", () => {
+            expect(() =>
+                UrlUtils.validateUrl("https://localhost:8081/")
             ).not.toThrow();
+        });
+
+        it("does not throw for an http URL", () => {
+            expect(() =>
+                UrlUtils.validateUrl("http://localhost:30662/")
+            ).not.toThrow();
+        });
+
+        it("throws urlParseError for the literal string 'null'", () => {
+            expect(() => UrlUtils.validateUrl("null")).toThrow(
+                ClientConfigurationErrorCodes.urlParseError
+            );
+        });
+
+        it("throws urlParseError for an empty string", () => {
+            expect(() => UrlUtils.validateUrl("")).toThrow(
+                ClientConfigurationErrorCodes.urlParseError
+            );
+        });
+
+        it("throws urlParseError for a malformed/relative URL", () => {
+            expect(() => UrlUtils.validateUrl("not-a-valid-url")).toThrow(
+                ClientConfigurationErrorCodes.urlParseError
+            );
         });
     });
 });
