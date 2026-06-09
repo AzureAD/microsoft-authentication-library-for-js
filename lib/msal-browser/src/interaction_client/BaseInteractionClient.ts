@@ -10,6 +10,7 @@ import {
     AccountInfo,
     UrlString,
     ServerTelemetryManager,
+    StubServerTelemetryManager,
     ServerTelemetryRequest,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
@@ -108,6 +109,7 @@ export function getRedirectUri(
  * @param browserStorage - Browser cache manager instance for storing telemetry data
  * @param logger - Optional logger instance for verbose logging
  * @param forceRefresh - Optional flag to force refresh of telemetry data
+ * @param enabled - Optional flag to enable or disable server telemetry (default: true for custom_auth flows, false for standard flows)
  * @returns Configured ServerTelemetryManager instance
  */
 export function initializeServerTelemetryManager(
@@ -116,9 +118,18 @@ export function initializeServerTelemetryManager(
     correlationId: string,
     browserStorage: BrowserCacheManager,
     logger: Logger,
-    forceRefresh?: boolean
+    forceRefresh?: boolean,
+    enabled: boolean = true
 ): ServerTelemetryManager {
     logger.verbose("initializeServerTelemetryManager called", correlationId);
+    if (!enabled) {
+        logger.verbose(
+            "Server telemetry is disabled in configuration. Skipping telemetry manager initialization.",
+            correlationId
+        );
+        return new StubServerTelemetryManager();
+    }
+
     const telemetryPayload: ServerTelemetryRequest = {
         clientId: clientId,
         correlationId: correlationId,
