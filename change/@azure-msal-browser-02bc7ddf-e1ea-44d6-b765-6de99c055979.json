@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix silent iframe redirect-bridge listener race condition by registering the response listener before navigating the iframe [#8636](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8636)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
