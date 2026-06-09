@@ -986,9 +986,16 @@ export class RedirectClient extends StandardInteractionClient {
      */
     protected getRedirectStartPage(requestStartPage?: string): string {
         const redirectStartPage = requestStartPage || window.location.href;
-        return UrlString.getAbsoluteUrl(
+        const absoluteRedirectStartPage = UrlString.getAbsoluteUrl(
             redirectStartPage,
             BrowserUtils.getCurrentUri()
         );
+        // Sanity check the URL before it is cached so we never persist a malformed value (e.g. the literal string "null")
+        UrlUtils.validateUrl(
+            absoluteRedirectStartPage,
+            this.logger,
+            this.correlationId
+        );
+        return absoluteRedirectStartPage;
     }
 }

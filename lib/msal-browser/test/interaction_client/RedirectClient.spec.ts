@@ -1886,6 +1886,69 @@ describe("RedirectClient", () => {
             );
         });
 
+        it("throws urlParseError when redirectStartPage is a malformed URL", async () => {
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            const loginRequest: RedirectRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                nonce: "",
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+                redirectStartPage: "not-a-valid-url",
+            };
+
+            await expect(
+                redirectClient.acquireToken(loginRequest)
+            ).rejects.toMatchObject({
+                errorCode: ClientConfigurationErrorCodes.urlParseError,
+            });
+            // Malformed value should never be persisted to the cache
+            expect(
+                window.sessionStorage.getItem(
+                    `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
+                )
+            ).toBeNull();
+        });
+
+        it("caches a well-formed redirectStartPage without throwing", (done) => {
+            const validRedirectStartPage = "https://localhost:8081/home";
+            jest.spyOn(
+                RedirectClient.prototype,
+                "initiateAuthRequest"
+            ).mockImplementation((): Promise<void> => {
+                expect(
+                    window.sessionStorage.getItem(
+                        `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
+                    )
+                ).toEqual(validRedirectStartPage);
+                done();
+                return Promise.resolve();
+            });
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            const loginRequest: RedirectRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                nonce: "",
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+                redirectStartPage: validRedirectStartPage,
+            };
+
+            redirectClient.acquireToken(loginRequest);
+        });
+
         it("navigates to created login url", (done) => {
             jest.spyOn(
                 RedirectClient.prototype,

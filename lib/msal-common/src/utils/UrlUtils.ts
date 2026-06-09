@@ -133,3 +133,27 @@ export function normalizeUrlForComparison(
         );
     }
 }
+
+/**
+ * Validates that the provided value is a well-formed, parseable absolute URL.
+ * Throws a urlParseError if the value cannot be parsed by the URL API (e.g. the
+ * literal string "null", an empty string, or any malformed/relative URL). Use this
+ * to guard against persisting an invalid value (such as a redirect URL) to the cache.
+ * @param url - URL to validate
+ * @param logger - Optional logger used to log validation failures
+ * @param correlationId - Optional correlationId associated with the log entry
+ */
+export function validateUrl(
+    url: string,
+    logger?: Logger,
+    correlationId?: string
+): void {
+    try {
+        new URL(url);
+    } catch (e) {
+        logger?.error(`Failed to validate URL: '${e}'`, correlationId || "");
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.urlParseError
+        );
+    }
+}

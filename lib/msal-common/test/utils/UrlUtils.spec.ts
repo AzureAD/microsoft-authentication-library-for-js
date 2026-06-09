@@ -232,4 +232,36 @@ describe("UrlUtils.ts Class Unit Tests", () => {
             );
         });
     });
+
+    describe("validateUrl Tests", () => {
+        it("does not throw for a well-formed absolute URL", () => {
+            expect(() =>
+                UrlUtils.validateUrl("https://localhost:8081/")
+            ).not.toThrow();
+        });
+
+        it("does not throw for an http URL", () => {
+            expect(() =>
+                UrlUtils.validateUrl("http://localhost:30662/")
+            ).not.toThrow();
+        });
+
+        it("throws urlParseError for the literal string 'null'", () => {
+            expect(() => UrlUtils.validateUrl("null")).toThrow(
+                ClientConfigurationErrorCodes.urlParseError
+            );
+        });
+
+        it("throws urlParseError for an empty string", () => {
+            expect(() => UrlUtils.validateUrl("")).toThrow(
+                ClientConfigurationErrorCodes.urlParseError
+            );
+        });
+
+        it("throws urlParseError for a malformed/relative URL", () => {
+            expect(() => UrlUtils.validateUrl("not-a-valid-url")).toThrow(
+                ClientConfigurationErrorCodes.urlParseError
+            );
+        });
+    });
 });
