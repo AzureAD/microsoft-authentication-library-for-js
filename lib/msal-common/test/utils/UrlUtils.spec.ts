@@ -112,7 +112,6 @@ describe("UrlUtils.ts Class Unit Tests", () => {
             const normalizedEncoded = UrlUtils.normalizeUrlForComparison(
                 urlWithEncodedApostrophe
             );
-            console.log(normalizedEncoded);
             const normalizedDecoded = UrlUtils.normalizeUrlForComparison(
                 urlWithDecodedApostrophe
             );
