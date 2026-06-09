@@ -4439,6 +4439,35 @@ export class StubPerformanceClient implements IPerformanceClient {
     startMeasurement(measureName: string, correlationId?: string | undefined): InProgressPerformanceEvent;
 }
 
+// Warning: (ae-internal-missing-underscore) The name "StubServerTelemetryManager" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export class StubServerTelemetryManager extends ServerTelemetryManager {
+    constructor();
+    // (undocumented)
+    cacheFailedRequest(): void;
+    // (undocumented)
+    clearNativeBrokerErrorCode(): void;
+    // (undocumented)
+    clearTelemetryCache(): void;
+    // (undocumented)
+    generateCurrentRequestHeaderValue(): string;
+    // (undocumented)
+    generateLastRequestHeaderValue(): string;
+    // (undocumented)
+    getNativeBrokerErrorCode(): string | undefined;
+    // (undocumented)
+    getRegionDiscoveryFields(): string;
+    // (undocumented)
+    incrementCacheHits(): number;
+    // (undocumented)
+    setCacheOutcome(): void;
+    // (undocumented)
+    setNativeBrokerErrorCode(): void;
+    // (undocumented)
+    updateRegionDiscoveryMetadata(): void;
+}
+
 // Warning: (ae-missing-release-tag) "SubMeasurement" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -4757,7 +4786,7 @@ export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTok
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "16.6.3";
+export const version = "16.7.0";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

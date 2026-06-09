@@ -68,7 +68,9 @@ export class SilentRefreshClient extends StandardInteractionClient {
             this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
-            this.logger
+            this.logger,
+            undefined,
+            this.config.system.serverTelemetryEnabled
         );
 
         const refreshTokenClient = await this.createRefreshTokenClient({

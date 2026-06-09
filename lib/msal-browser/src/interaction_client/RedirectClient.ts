@@ -197,7 +197,9 @@ export class RedirectClient extends StandardInteractionClient {
             this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
-            this.logger
+            this.logger,
+            undefined,
+            this.config.system.serverTelemetryEnabled
         );
 
         const pkceCodes = await invokeAsync(
@@ -417,7 +419,9 @@ export class RedirectClient extends StandardInteractionClient {
             this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
-            this.logger
+            this.logger,
+            undefined,
+            this.config.system.serverTelemetryEnabled
         );
 
         const navigateToLoginRequestUrl =
@@ -820,7 +824,9 @@ export class RedirectClient extends StandardInteractionClient {
             this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
-            this.logger
+            this.logger,
+            undefined,
+            this.config.system.serverTelemetryEnabled
         );
 
         try {
