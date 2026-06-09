@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780972366075,
+  "lastUpdate": 1781036251763,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21795,6 +21795,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.48%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "198982749+Copilot@users.noreply.github.com",
+            "name": "Copilot",
+            "username": "Copilot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2e5a3bd6db2a480665dd4e549b2e66186e9a8e29",
+          "message": "Add browser-specific guidance across msal-browser docs (#8631)\n\n## Summary\nAdd and refine browser-specific guidance for `@azure/msal-browser`\ndocumentation, with a focus on Safari/ITP behavior and cross-browser\nbest practices.\n\n## Changes\n- Added `lib/msal-browser/docs/browser-specific-guidance.md`\n- Updated `lib/msal-browser/README.md` and `lib/msal-browser/FAQ.md` to\nreference and align with the new guidance\n- Updated documentation pages for initialization, login, acquire token,\ncaching, and testing to improve browser-specific recommendations and\nwording\n\n## Files Updated\n- `lib/msal-browser/FAQ.md`\n- `lib/msal-browser/README.md`\n- `lib/msal-browser/docs/acquire-token.md`\n- `lib/msal-browser/docs/browser-specific-guidance.md`\n- `lib/msal-browser/docs/caching.md`\n- `lib/msal-browser/docs/initialization.md`\n- `lib/msal-browser/docs/login-user.md`\n- `lib/msal-browser/docs/testing.md`\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-06-09T20:09:29Z",
+          "tree_id": "f361f27cb0e4b9e1ecda81c7c12dece5b2c6304d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/2e5a3bd6db2a480665dd4e549b2e66186e9a8e29"
+        },
+        "date": 1781036248467,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 377396,
+            "range": "±0.68%",
+            "unit": "ops/sec",
+            "extra": "238 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 376074,
+            "range": "±0.52%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
           }
         ]
       }
