@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781037816071,
+  "lastUpdate": 1781046800231,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21871,6 +21871,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.80%",
             "unit": "ops/sec",
             "extra": "213 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5c7f98621cbe22854419206fac316b8ace45cae9",
+          "message": "Use in-built URL API to perform URL comparisons adhering to correct MDN and RFC standards (#8625)\n\nThis pull request updates the URL normalization logic in\n`@azure/msal-common` to use the built-in URL API, ensuring compliance\nwith MDN and RFC 3986 standards. The changes improve URL comparison\naccuracy, error handling, and test coverage. Notably, the normalization\nnow properly handles case sensitivity, percent-encoding, and malformed\nURLs, and introduces more comprehensive unit tests to verify these\nbehaviors.\n\n**URL Normalization Improvements:**\n\n* Replaced custom canonicalization logic with the built-in `URL` API in\n`UrlUtils.normalizeUrlForComparison`, ensuring scheme and host are\nlowercased, path and query preserve case, percent-encoding is\nnormalized, and pathnames always end with a slash. Now throws a\n`urlParseError` for malformed URLs and logs errors if a logger is\nprovided.\n[[1]](diffhunk://#diff-e04ca71d63e3d091e36916ba57ccf2832046327b6d550845f6c7415e1e60266fL11-R15)\n[[2]](diffhunk://#diff-e04ca71d63e3d091e36916ba57ccf2832046327b6d550845f6c7415e1e60266fL105-R134)\n* Updated usage in `RedirectClient` to pass logger and correlation ID to\nthe normalization function for better error tracking.\n\n**Testing Enhancements:**\n\n* Significantly expanded unit tests for `normalizeUrlForComparison` to\ncover case sensitivity, percent-encoding, malformed URLs (now expecting\nerrors), and other RFC 3986-compliant behaviors.\n[[1]](diffhunk://#diff-e60f0abf3ed18e817d60b9e031c8a74190fcdc238ad7f9f3c70a3b269b90c3fcR95-R105)\n[[2]](diffhunk://#diff-e60f0abf3ed18e817d60b9e031c8a74190fcdc238ad7f9f3c70a3b269b90c3fcR115)\n[[3]](diffhunk://#diff-e60f0abf3ed18e817d60b9e031c8a74190fcdc238ad7f9f3c70a3b269b90c3fcL147-R233)\n* Added import for `ClientConfigurationErrorCodes` in the test suite to\nvalidate error throwing.\n\n**Release and Documentation:**\n\n* Added a patch changelog entry documenting the standards-compliant URL\ncomparison and referencing the related GitHub issue.",
+          "timestamp": "2026-06-09T16:04:19-07:00",
+          "tree_id": "4662e5325734d83145b0d1699dca875d079eb00f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5c7f98621cbe22854419206fac316b8ace45cae9"
+        },
+        "date": 1781046796739,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 373079,
+            "range": "±0.64%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 365061,
+            "range": "±0.95%",
+            "unit": "ops/sec",
+            "extra": "216 samples"
           }
         ]
       }
