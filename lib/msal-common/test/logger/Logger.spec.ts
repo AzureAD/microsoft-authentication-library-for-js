@@ -683,6 +683,21 @@ describe("Logger.ts Class Unit Tests", () => {
         });
 
         describe("LRU cache behavior", () => {
+            it("should evict empty string correlation ID when it is least recently used", () => {
+                const logger = new Logger(loggerOptions);
+
+                logger.info("emp001", "");
+
+                for (let i = 0; i < 50; i++) {
+                    const hashedMsg = `m${i.toString().padStart(5, "0")}`;
+                    logger.info(hashedMsg, `correlation-${i}`);
+                }
+
+                const correlationIds = getCachedCorrelationIds();
+                expect(correlationIds).toHaveLength(50);
+                expect(correlationIds).not.toContain("");
+            });
+
             it("should maintain LRU order for correlation IDs with hashed messages", () => {
                 const logger = new Logger(loggerOptions);
 
