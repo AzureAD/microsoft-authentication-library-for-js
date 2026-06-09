@@ -4450,6 +4450,35 @@ export class StubPerformanceClient implements IPerformanceClient {
     startMeasurement(measureName: string, correlationId?: string | undefined): InProgressPerformanceEvent;
 }
 
+// Warning: (ae-internal-missing-underscore) The name "StubServerTelemetryManager" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export class StubServerTelemetryManager extends ServerTelemetryManager {
+    constructor();
+    // (undocumented)
+    cacheFailedRequest(): void;
+    // (undocumented)
+    clearNativeBrokerErrorCode(): void;
+    // (undocumented)
+    clearTelemetryCache(): void;
+    // (undocumented)
+    generateCurrentRequestHeaderValue(): string;
+    // (undocumented)
+    generateLastRequestHeaderValue(): string;
+    // (undocumented)
+    getNativeBrokerErrorCode(): string | undefined;
+    // (undocumented)
+    getRegionDiscoveryFields(): string;
+    // (undocumented)
+    incrementCacheHits(): number;
+    // (undocumented)
+    setCacheOutcome(): void;
+    // (undocumented)
+    setNativeBrokerErrorCode(): void;
+    // (undocumented)
+    updateRegionDiscoveryMetadata(): void;
+}
+
 // Warning: (ae-missing-release-tag) "SubMeasurement" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)

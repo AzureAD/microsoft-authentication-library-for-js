@@ -168,6 +168,9 @@ export { StringDict } from "./utils/MsalTypes.js";
 export { RequestStateObject, LibraryStateObject } from "./utils/StateTypes.js";
 export * as ProtocolUtils from "./utils/ProtocolUtils.js";
 export * from "./utils/FunctionWrappers.js";
-export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager.js";
+export {
+    ServerTelemetryManager,
+    StubServerTelemetryManager,
+} from "./telemetry/server/ServerTelemetryManager.js";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest.js";
 export { version } from "./packageMetadata.js";

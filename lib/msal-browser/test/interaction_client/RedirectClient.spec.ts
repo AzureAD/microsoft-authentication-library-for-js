@@ -2830,6 +2830,9 @@ describe("RedirectClient", () => {
         });
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
+            // Enable server telemetry so cacheFailedRequest writes to storage
+            //@ts-ignore
+            redirectClient.config.system.serverTelemetryEnabled = true;
             const testError = createBrowserAuthError(
                 BrowserAuthErrorCodes.emptyNavigateUri
             );

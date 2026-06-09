@@ -177,7 +177,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
-            this.logger
+            this.logger,
+            undefined,
+            this.config.system.serverTelemetryEnabled
         );
 
         try {
@@ -369,7 +371,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     this.config.auth.clientId,
                     this.correlationId,
                     this.browserStorage,
-                    this.logger
+                    this.logger,
+                    undefined,
+                    this.config.system.serverTelemetryEnabled
                 );
                 serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
                 if (isFatalNativeAuthError(e)) {
@@ -472,7 +476,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.config.auth.clientId,
                 this.correlationId,
                 this.browserStorage,
-                this.logger
+                this.logger,
+                undefined,
+                this.config.system.serverTelemetryEnabled
             );
             serverTelemetryManager.clearNativeBrokerErrorCode();
             this.performanceClient?.addFields(

@@ -167,6 +167,11 @@ export type BrowserSystemOptions = SystemOptions & {
      * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
      */
     protocolMode?: ProtocolMode;
+    /**
+     * @deprecated This option will be removed in a future release.
+     * Flag to enable emitting telemetry to the STS. When disabled, failed requests are not cached to browser storage and x-client-current-telemetry, x-client-last-telemetry parameters are not sent to the STS. Defaults to false.
+     */
+    serverTelemetryEnabled?: boolean;
 };
 
 /** @internal */
@@ -315,6 +320,7 @@ export function buildConfiguration(
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
         protocolMode: ProtocolMode.AAD,
+        serverTelemetryEnabled: false,
     };
 
     const providedSystemOptions: Required<BrowserSystemOptions> = {

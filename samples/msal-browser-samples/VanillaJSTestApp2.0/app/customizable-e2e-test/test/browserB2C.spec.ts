@@ -254,16 +254,8 @@ describe("B2C Tests", () => {
                     await BrowserCache.getTelemetryCacheEntry(
                         b2cMsalConfig.auth.clientId
                     );
-                expect(telemetryCacheEntry).toBeDefined();
-                expect(telemetryCacheEntry["cacheHits"]).toEqual(1);
-                // Remove Telemetry Cache entry for next test
-                await BrowserCache.removeTokens([
-                    BrowserCacheUtils.getTelemetryKey(
-                        b2cMsalConfig.auth.clientId
-                    ),
-                ]);
-
-                // Verify we now have an access_token
+                expect(telemetryCacheEntry).toBeNull();
+            // Verify we now have an access_token
                 await BrowserCache.verifyTokenStore({
                     scopes: b2cTokenRequest.scopes,
                 });
@@ -488,16 +480,8 @@ describe("B2C Tests", () => {
                     await BrowserCache.getTelemetryCacheEntry(
                         b2cMsalConfig.auth.clientId
                     );
-                expect(telemetryCacheEntry).toBeDefined();
-                expect(telemetryCacheEntry["cacheHits"]).toEqual(1);
-                // Remove Telemetry Cache entry for next test
-                await BrowserCache.removeTokens([
-                    BrowserCacheUtils.getTelemetryKey(
-                        b2cMsalConfig.auth.clientId
-                    ),
-                ]);
-
-                // Verify we now have an access_token
+                expect(telemetryCacheEntry).toBeNull();
+            // Verify we now have an access_token
                 await BrowserCache.verifyTokenStore({
                     scopes: b2cTokenRequest.scopes,
                 });
@@ -525,3 +509,7 @@ describe("B2C Tests", () => {
         });
     });
 });
+
+
+
+

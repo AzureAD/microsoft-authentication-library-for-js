@@ -583,13 +583,7 @@ describe("AAD-Prod Tests", () => {
                 await BrowserCache.getTelemetryCacheEntry(
                     aadMsalConfig.auth.clientId
                 );
-            expect(telemetryCacheEntry).toBeDefined();
-            expect(telemetryCacheEntry["cacheHits"]).toEqual(1);
-            // Remove Telemetry Cache entry for next test
-            await BrowserCache.removeTokens([
-                BrowserCacheUtils.getTelemetryKey(aadMsalConfig.auth.clientId),
-            ]);
-
+            expect(telemetryCacheEntry).toBeNull();
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
             await BrowserCache.verifyTokenStore({
                 scopes: aadTokenRequest.scopes,
@@ -621,3 +615,7 @@ describe("AAD-Prod Tests", () => {
         });
     });
 });
+
+
+
+

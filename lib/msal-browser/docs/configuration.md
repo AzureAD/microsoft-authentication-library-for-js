@@ -53,7 +53,8 @@ const msalConfig = {
         windowHashTimeout: 60000,
         iframeHashTimeout: 6000,
         loadFrameTimeout: 0,
-        protocolMode: "AAD"
+        protocolMode: "AAD",
+        serverTelemetryEnabled: false,
     },
     telemetry: {
         application: {
@@ -104,7 +105,8 @@ See [Caching in MSAL](./caching.md) for more.
 | `cryptoOptions`            | Config object for crypto operations in the browser.                                                                                                                                                                                                                                                           | See [below](#crypto-config-options.) | See [below](#crypto-config-options.)             |
 | `popupBridgeTimeout`       | Timeout in milliseconds to wait for the popup to send its response via BroadcastChannel. If the user closes the popup without completing authentication, `loginPopup` or `acquireTokenPopup` will reject with a `timed_out` error after this timeout. See [Popup closure detection](./login-user.md#popup-closure-detection-and-interactionstatus). | integer (milliseconds) | `60000` |
 | `iframeBridgeTimeout`      | Timeout in milliseconds to wait for a hidden iframe to send its response via BroadcastChannel during silent token acquisition (`ssoSilent`, `acquireTokenSilent`). If the iframe does not respond within this time, the call will reject with a `timed_out` error. | integer (milliseconds) | `10000` |
-| `protocolMode`               | Enum representing the protocol mode to use. If `"AAD"`, will function on the OIDC-compliant AAD v2 endpoints; if `"OIDC"`, will function on other OIDC-compliant endpoints.   
+| `protocolMode`             | Enum representing the protocol mode to use. If `"AAD"`, will function on the OIDC-compliant AAD v2 endpoints; if `"OIDC"`, will function on other OIDC-compliant endpoints.                                                                                                                             | string                               | `"AAD"`                                          |
+| `serverTelemetryEnabled`   | Enables MSER server telemetry headers and browser cache writes for failed requests. When `false`, MSAL does not send MSER headers and does not persist server telemetry data to browser storage. This option is deprecated and will be removed in a future release.                                         | boolean                              | `false`                                            |
 
 #### Logger Config Options
 
