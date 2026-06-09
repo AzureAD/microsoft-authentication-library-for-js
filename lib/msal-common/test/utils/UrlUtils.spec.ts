@@ -103,6 +103,13 @@ describe("UrlUtils.ts Class Unit Tests", () => {
                 )
             );
         });
+        it("treats an empty query string as equivalent to no query string", () => {
+            expect(
+                UrlUtils.normalizeUrlForComparison("http://localhost:30661/?")
+            ).toEqual(
+                UrlUtils.normalizeUrlForComparison("http://localhost:30661/")
+            );
+        });
         it("normalizes URLs with encoded vs decoded apostrophes to be equal", () => {
             const urlWithEncodedApostrophe =
                 "https://localhost:4200/profile?comments=blah%27blah";

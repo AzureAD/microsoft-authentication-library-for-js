@@ -109,6 +109,11 @@ export function normalizeUrlForComparison(
     try {
         const urlObj = new URL(urlWithoutHash);
 
+        // Treat an empty query string (a bare trailing "?") as equivalent to no query
+        if (!urlObj.search) {
+            urlObj.search = "";
+        }
+
         // Decode the pathname to normalize percent-encoding and ensure trailing slash
         let pathname;
         try {
