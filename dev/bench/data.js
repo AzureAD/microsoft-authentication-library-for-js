@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780704911182,
+  "lastUpdate": 1780967744197,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21719,6 +21719,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.75%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "891ee17bce826ea3d380d7de24819f2a309e5458",
+          "message": "Fix correlation cache empty key eviction (#8627)\n\n## Summary\n- Fix logger correlation cache LRU eviction when the empty string\ncorrelation ID is the oldest key\n- Add a regression test that proves the cache stays capped and evicts\nthe empty correlation ID\n\n## Validation\n- npx jest test/logger/Logger.spec.ts --runInBand\n--testNamePattern=\"should evict empty string correlation ID\" --verbose\n- npx jest test/logger/Logger.spec.ts --runInBand\n- npm run format:check\n- npm run beachball:check\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-06-09T01:07:12Z",
+          "tree_id": "e7f6d23ffba3c3acfd1bc55d096516e5a5ddc7f4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/891ee17bce826ea3d380d7de24819f2a309e5458"
+        },
+        "date": 1780967740251,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 383961,
+            "range": "±0.80%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 372756,
+            "range": "±0.69%",
+            "unit": "ops/sec",
+            "extra": "228 samples"
           }
         ]
       }
