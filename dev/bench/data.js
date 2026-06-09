@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781036251763,
+  "lastUpdate": 1781037816071,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21833,6 +21833,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.52%",
             "unit": "ops/sec",
             "extra": "237 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "eebac5092e602aed3f671d437d226a15afcfdc16",
+          "message": "feat: add per-type migration telemetry counters (#8628)\n\n## Description\n\nAdds granular telemetry counters for cache migration that break down\nremoval reasons by cache type, replacing the previous shared counters.\n\n### Changes\n- **MigrationRemovalReason const object**: Type-safe reason codes\n(invalid, ttlExpired, decryptFailed, expired) replacing magic strings\n- **UpdateOldEntryResult type**: Structured return type from\nupdateOldEntry with data and removalReason fields\n- **14 new per-type counter fields** in PerformanceEvent\n- **Removed old shared counters**: expiredCacheRemovedCount,\ninvalidCacheCount, expiredAcntRemovedCount\n- **Updated tests** for new return types and counter fields\n\n### Motivation\nThe previous shared counters made it impossible to determine which cache\ntypes were affected during migration. The new per-type counters enable\ndashboard breakdowns by cache type and removal reason.\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-06-09T20:34:14Z",
+          "tree_id": "03ba4b685b45d3634fa945c14d2a848828fdd95a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/eebac5092e602aed3f671d437d226a15afcfdc16"
+        },
+        "date": 1781037812242,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 370101,
+            "range": "±0.61%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 359524,
+            "range": "±0.80%",
+            "unit": "ops/sec",
+            "extra": "213 samples"
           }
         ]
       }
