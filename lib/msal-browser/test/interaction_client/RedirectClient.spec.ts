@@ -1492,44 +1492,23 @@ describe("RedirectClient", () => {
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
-        it("navigates to root and caches hash if navigateToLoginRequestUri is true and loginRequestUrl is 'null'", (done) => {
+        it("throws urlParseError if loginRequestUrl is the misconfigured string 'null'", async () => {
             browserStorage.setInteractionInProgress(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 "null"
             );
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateInternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(options.noHistory).toBeTruthy();
-                    expect(options.timeout).toBeGreaterThan(0);
-                    expect(urlNavigate).toEqual("https://localhost:8081/");
-                    expect(
-                        window.sessionStorage.getItem(
-                            `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
-                        )
-                    ).toEqual("https://localhost:8081/");
-                    done();
-                    return Promise.resolve(true);
-                }
-            );
-            redirectClient.handleRedirectPromise(
-                testRequest,
-                TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement,
-                { hash: "" }
-            );
-            expect(
-                window.sessionStorage.getItem(
-                    `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
+            await expect(
+                redirectClient.handleRedirectPromise(
+                    testRequest,
+                    TEST_CONFIG.TEST_VERIFIER,
+                    rootMeasurement,
+                    { hash: "" }
                 )
-            ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+            ).rejects.toMatchObject({
+                errorCode: ClientConfigurationErrorCodes.urlParseError,
+            });
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true and loginRequestUrl contains query string", (done) => {

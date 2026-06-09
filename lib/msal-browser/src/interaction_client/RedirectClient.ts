@@ -528,8 +528,8 @@ export class RedirectClient extends StandardInteractionClient {
                  * The start page is expected to also call handleRedirectPromise which will process the hash in one of the checks above.
                  */
                 let processHashOnRedirect: boolean = true;
-                if (!loginRequestUrl || loginRequestUrl === "null") {
-                    // Redirect to home page if login request url is null (real null or the string null)
+                if (!loginRequestUrl) {
+                    // Redirect to home page if login request url is empty
                     const homepage = BrowserUtils.getHomepage();
                     // Cache the homepage under ORIGIN_URI to ensure cached hash is processed on homepage
                     this.browserStorage.setTemporaryCache(

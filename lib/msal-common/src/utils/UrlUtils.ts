@@ -120,7 +120,6 @@ export function normalizeUrlForComparison(
         if (!pathname.endsWith("/")) {
             pathname += "/";
         }
-
         urlObj.pathname = pathname;
 
         return urlObj.href;
