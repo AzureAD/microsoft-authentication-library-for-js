@@ -121,7 +121,6 @@ export const SilentHandlerInitiateAuthRequest =
 export const SilentHandlerMonitorIframeForHash =
     "silentHandlerMonitorIframeForHash";
 export const SilentHandlerLoadFrame = "silentHandlerLoadFrame";
-export const SilentHandlerLoadFrameSync = "silentHandlerLoadFrameSync";
 
 /**
  * Helper functions in StandardInteractionClient class (msal-browser)
