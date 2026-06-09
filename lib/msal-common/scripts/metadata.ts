@@ -5,8 +5,8 @@
 
 import fs from "fs";
 import https from "https";
-import { isDeepStrictEqual } from "util";
 import yargs from "yargs";
+import { isEqual } from "lodash";
 
 const METADATA_TYPESCRIPT_LOCATION = "src/authority/AuthorityMetadata.ts";
 const AUTHORITY_PLACEHOLDER = "{AUTHORITY}";
@@ -205,7 +205,7 @@ async function checkValidityOfMetadata(originalMetadata: any, url: string) {
     const response = await networkRequestViaHttps(url, {}, 30000) as any;
     const newMetadata = response.body;
 
-    return [isDeepStrictEqual(originalMetadata, newMetadata), newMetadata];
+    return [isEqual(originalMetadata, newMetadata), newMetadata];
 }
 
 function updateMetadataInformation(metadata: any) {
