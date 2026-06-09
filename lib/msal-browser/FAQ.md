@@ -6,6 +6,8 @@
 
 1. [What browsers are supported by MSAL.js?](#what-browsers-are-supported-by-msaljs)
 1. [Does MSAL.js support mobile browsers?](#does-msal-support-mobile-browsers)
+1. [Why does ssoSilent fail in Safari?](#why-does-ssosilent-fail-in-safari)
+1. [Should I use popup or redirect in Safari?](#should-i-use-popup-or-redirect-in-safari)
 1. [I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?](#i-am-moving-from-msaljs-1x-to-msaljs-to-2x-what-should-i-know)
 1. [Does this library work for iframed applications?](#does-this-library-work-for-iframed-applications)
 1. [Will MSAL 2.x support B2C?](#will-msal-2x-support-b2c)
@@ -94,9 +96,14 @@ MSAL.js also supports the following environments:
 
 ### Known Issues with Certain Browsers
 
-There are certain known issues and mitigations documented for the following browsers:
+There are known browser restrictions that can affect specific flows:
 
--   [Browsers that block 3rd Party Cookies (i.e. Safari, Chrome Incognito, Firefox Private)](https://docs.microsoft.com/azure/active-directory/develop/reference-third-party-cookies-spas)
+-   **Safari:** third-party cookie blocking (ITP) can break iframe-based silent SSO (`ssoSilent`), and popup blockers can affect popup APIs.
+-   **Firefox:** tracking protection and private browsing can block third-party cookies and impact hidden iframe silent flows.
+-   **Chrome/Edge Incognito or user-blocked third-party cookies:** iframe-based silent flows can fail for the same reasons.
+-   **Cross-origin iframes (Chromium 115+, Safari 16.1+, Firefox TCP):** storage partitioning can break popup-to-iframe redirect bridge communication.
+
+For practical mitigations and recommended flow choices, see [Browser-specific guidance](./docs/browser-specific-guidance.md).
 
 ## Does MSAL support mobile browsers?
 
@@ -105,6 +112,18 @@ In general, MSAL.js does support mobile browsers. However, since MSAL.js isn't t
 For example, while MSAL's `loginPopup` and `acquireTokenPopup` APIs may work on some mobile browsers, using popup APIs is discouraged on mobile devices as not all browsers will support this flow. We recommend using redirect APIs such as `loginRedirect` and `acquireTokenRedirect` when your application is running on a mobile device.
 
 For problems specific to mobile browsers not listed here, please open an issue with clear instructions to reproduce.
+
+## Why does `ssoSilent` fail in Safari?
+
+`ssoSilent` runs in a hidden iframe and depends on IdP session cookies being available in a third-party context. Safari's Intelligent Tracking Prevention (ITP) blocks third-party cookies by default, so the iframe session lookup often fails.
+
+Use `acquireTokenSilent` first for cache/refresh-token scenarios and always provide an interactive fallback (`loginRedirect` or `acquireTokenRedirect`). See [Browser-specific guidance](./docs/browser-specific-guidance.md).
+
+## Should I use popup or redirect in Safari?
+
+Use redirect where possible. Safari enforces strict popup rules, and popup calls may be blocked when not initiated in a direct synchronous user gesture path.
+
+For the most reliable Safari experience, prefer `loginRedirect`/`acquireTokenRedirect` and treat popup as an optional path with fallback handling. See [Browser-specific guidance](./docs/browser-specific-guidance.md).
 
 ## I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?
 
