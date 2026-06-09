@@ -91,6 +91,7 @@ Select the guide that matches your current MSAL version:
 -   [Request and Response Details](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md)
 -   [Cache Storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md)
 -   [Performance Enhancements](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/performance.md)
+-   [Browser-specific Guidance](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/browser-specific-guidance.md)
 -   [MCP Flows](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-v5/lib/msal-browser/docs/mcp.md)
 
 ## Samples
