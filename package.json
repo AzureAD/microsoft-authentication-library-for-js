@@ -27,25 +27,6 @@
         "typescript": "^4.9.5",
         "vite": "^5.4.14"
     },
-    "overrides": {
-        "basic-ftp": ">=5.2.2",
-        "next": "^15.5.16",
-        "undici": ">=7.24.0",
-        "picomatch": ">=2.3.2",
-        "fast-uri": "^3.1.2",
-        "flatted": ">=3.4.0",
-        "immutable": ">=5.1.5",
-        "path-to-regexp": ">=0.1.13",
-        "socket.io-parser": ">=4.2.6",
-        "express-rate-limit": ">=8.2.2",
-        "@hono/node-server": ">=1.19.10",
-        "@babel/plugin-transform-modules-systemjs": ">=7.29.4",
-        "tmp": ">=0.2.6",
-        "tar": ">=7.5.16",
-        "node-forge": ">=1.4.0",
-        "lodash": ">=4.18.1",
-        "serialize-javascript": ">=7.0.5"
-    },
     "repository": {
         "type": "git",
         "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
