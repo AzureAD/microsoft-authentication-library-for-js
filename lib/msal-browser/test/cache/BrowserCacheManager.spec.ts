@@ -1240,21 +1240,15 @@ describe("BrowserCacheManager tests", () => {
                     lastUpdatedAt: expiredTimestamp,
                 };
                 window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
-                const incrementFieldsSpy = jest.spyOn(
-                    performanceClient,
-                    "incrementFields"
-                );
 
-                await browserCacheManager.updateOldEntry(
+                const result = await browserCacheManager.updateOldEntry(
                     v0Key,
                     TEST_CONFIG.CORRELATION_ID
                 );
 
+                expect(result.entry).toBeNull();
+                expect(result.removalReason).toBe("ttlExpired");
                 expect(window.localStorage.getItem(v0Key)).toBeNull();
-                expect(incrementFieldsSpy).toHaveBeenCalledWith(
-                    { expiredCacheRemovedCount: 1 },
-                    TEST_CONFIG.CORRELATION_ID
-                );
             });
 
             it("should remove expired access tokens based on expiresOn", async () => {
@@ -1273,21 +1267,15 @@ describe("BrowserCacheManager tests", () => {
                     lastUpdatedAt: Date.now().toString(),
                 };
                 window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
-                const incrementFieldsSpy = jest.spyOn(
-                    performanceClient,
-                    "incrementFields"
-                );
 
-                await browserCacheManager.updateOldEntry(
+                const result = await browserCacheManager.updateOldEntry(
                     v0Key,
                     TEST_CONFIG.CORRELATION_ID
                 );
 
+                expect(result.entry).toBeNull();
+                expect(result.removalReason).toBe("expired");
                 expect(window.localStorage.getItem(v0Key)).toBeNull();
-                expect(incrementFieldsSpy).toHaveBeenCalledWith(
-                    { expiredCacheRemovedCount: 1 },
-                    TEST_CONFIG.CORRELATION_ID
-                );
             });
 
             it("should return decrypted value if cached entry is encrypted", async () => {
@@ -1315,17 +1303,17 @@ describe("BrowserCacheManager tests", () => {
                         )
                     )
                 ).toBe(true);
-                expect(result).toEqual(TEST_ACCESS_TOKEN_ENTITY);
+                expect(result.entry).toEqual(TEST_ACCESS_TOKEN_ENTITY);
             });
 
             it("should handle missing cache entries gracefully", async () => {
                 const missingKey = "non-existent-key";
-                expect(
-                    await browserCacheManager.updateOldEntry(
-                        missingKey,
-                        TEST_CONFIG.CORRELATION_ID
-                    )
-                ).toBeNull();
+                const result = await browserCacheManager.updateOldEntry(
+                    missingKey,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+                expect(result.entry).toBeNull();
+                expect(result.removalReason).toBe("invalid");
             });
 
             it("should remove invalid entries from storage", async () => {
@@ -1338,22 +1326,15 @@ describe("BrowserCacheManager tests", () => {
                     v0Key,
                     JSON.stringify(invalidValue)
                 );
-                const incrementFieldsSpy = jest.spyOn(
-                    performanceClient,
-                    "incrementFields"
-                );
 
                 const result = await browserCacheManager.updateOldEntry(
                     v0Key,
                     TEST_CONFIG.CORRELATION_ID
                 );
 
-                expect(result).toBeNull();
+                expect(result.entry).toBeNull();
+                expect(result.removalReason).toBe("invalid");
                 expect(window.localStorage.getItem(v0Key)).toBeNull();
-                expect(incrementFieldsSpy).toHaveBeenCalledWith(
-                    { invalidCacheCount: 1 },
-                    TEST_CONFIG.CORRELATION_ID
-                );
             });
 
             it("should remove encrypted entries with mismatched encryption key from storage", async () => {
@@ -1368,10 +1349,6 @@ describe("BrowserCacheManager tests", () => {
                     v0Key,
                     JSON.stringify(encryptedValue)
                 );
-                const incrementFieldsSpy = jest.spyOn(
-                    performanceClient,
-                    "incrementFields"
-                );
 
                 await browserCacheManager.initialize(
                     TEST_CONFIG.CORRELATION_ID
@@ -1381,12 +1358,9 @@ describe("BrowserCacheManager tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
 
-                expect(result).toBeNull();
+                expect(result.entry).toBeNull();
+                expect(result.removalReason).toBe("decryptFailed");
                 expect(window.localStorage.getItem(v0Key)).toBeNull();
-                expect(incrementFieldsSpy).toHaveBeenCalledWith(
-                    { invalidCacheCount: 1 },
-                    TEST_CONFIG.CORRELATION_ID
-                );
             });
         });
 
@@ -1432,7 +1406,9 @@ describe("BrowserCacheManager tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
                 expect(incrementFieldsSpy).toHaveBeenCalledWith(
-                    { expiredAcntRemovedCount: 1 },
+                    {
+                        decryptFailedAcntCount: 1,
+                    },
                     TEST_CONFIG.CORRELATION_ID
                 );
             });
@@ -1483,6 +1459,164 @@ describe("BrowserCacheManager tests", () => {
                 );
 
                 expect(window.localStorage.getItem(accountKey)).toBeNull();
+            });
+        });
+
+        describe("per-type migration counter telemetry", () => {
+            it("should increment ttlExpiredITCount when id token TTL is expired", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                const expiredTimestamp = (
+                    Date.now() -
+                    8 * 24 * 60 * 60 * 1000
+                ).toString(); // 8 days ago
+                const v0IdToken = {
+                    ...TEST_ID_TOKEN_ENTITY,
+                    lastUpdatedAt: expiredTimestamp,
+                };
+                const v0Key = `${v0IdToken.homeAccountId}-${v0IdToken.environment}-idtoken-${v0IdToken.clientId}-${v0IdToken.realm}`;
+                window.localStorage.setItem(v0Key, JSON.stringify(v0IdToken));
+                window.localStorage.setItem(
+                    `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                    JSON.stringify({
+                        idToken: [v0Key],
+                        accessToken: [],
+                        refreshToken: [],
+                    })
+                );
+
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                await browserCacheManager.migrateExistingCache(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { ttlExpiredITCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            });
+
+            it("should increment invalidATCount when access token is unparseable", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                const v0Key =
+                    "test-home-test-environment-accesstoken-test-clientid-test-realm";
+                window.localStorage.setItem(
+                    v0Key,
+                    JSON.stringify({
+                        lastUpdatedAt: Date.now().toString(),
+                    })
+                );
+                window.localStorage.setItem(
+                    `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                    JSON.stringify({
+                        idToken: [],
+                        accessToken: [v0Key],
+                        refreshToken: [],
+                    })
+                );
+
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                await browserCacheManager.migrateExistingCache(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { invalidATCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            });
+
+            it("should increment decryptFailedRTCount when refresh token decryption fails", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                const v0Key = `${TEST_REFRESH_TOKEN_ENTITY.homeAccountId}-${TEST_REFRESH_TOKEN_ENTITY.environment}-refreshtoken-${TEST_REFRESH_TOKEN_ENTITY.clientId}--`;
+                const encryptedValue = {
+                    id: "different-encryption-id",
+                    nonce: "test-nonce",
+                    data: "encrypted-data",
+                    lastUpdatedAt: Date.now().toString(),
+                };
+                window.localStorage.setItem(
+                    v0Key,
+                    JSON.stringify(encryptedValue)
+                );
+                window.localStorage.setItem(
+                    `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                    JSON.stringify({
+                        idToken: [],
+                        accessToken: [],
+                        refreshToken: [v0Key],
+                    })
+                );
+
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                await browserCacheManager.migrateExistingCache(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { decryptFailedRTCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            });
+
+            it("should increment expiredATCount when access token expiresOn is in the past", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                const expiredExpiresOn = Math.floor(Date.now() / 1000) - 3600; // 1 hour ago
+                const v0AccessToken = {
+                    ...TEST_ACCESS_TOKEN_ENTITY,
+                    expiresOn: expiredExpiresOn.toString(),
+                    lastUpdatedAt: Date.now().toString(),
+                };
+                const v0Key = `${v0AccessToken.homeAccountId}-${v0AccessToken.environment}-accesstoken-${v0AccessToken.clientId}-${v0AccessToken.realm}`;
+                window.localStorage.setItem(
+                    v0Key,
+                    JSON.stringify(v0AccessToken)
+                );
+                window.localStorage.setItem(
+                    `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                    JSON.stringify({
+                        idToken: [],
+                        accessToken: [v0Key],
+                        refreshToken: [],
+                    })
+                );
+
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                await browserCacheManager.migrateExistingCache(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { expiredATCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
             });
         });
 
