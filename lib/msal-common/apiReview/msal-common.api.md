@@ -3222,7 +3222,7 @@ const noNetworkConnectivity = "no_network_connectivity";
 // Warning: (ae-missing-release-tag) "normalizeUrlForComparison" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-function normalizeUrlForComparison(url: string): string;
+function normalizeUrlForComparison(url: string, logger?: Logger, correlationId?: string): string;
 
 // Warning: (ae-missing-release-tag) "NOT_APPLICABLE" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -3579,9 +3579,20 @@ export type PerformanceEvent = {
     migratedATCount?: number;
     migratedITCount?: number;
     migratedRTCount?: number;
-    expiredCacheRemovedCount?: number;
-    expiredAcntRemovedCount?: number;
-    invalidCacheCount?: number;
+    ttlExpiredAcntCount?: number;
+    ttlExpiredITCount?: number;
+    ttlExpiredATCount?: number;
+    ttlExpiredRTCount?: number;
+    decryptFailedAcntCount?: number;
+    decryptFailedITCount?: number;
+    decryptFailedATCount?: number;
+    decryptFailedRTCount?: number;
+    invalidAcntCount?: number;
+    invalidITCount?: number;
+    invalidATCount?: number;
+    invalidRTCount?: number;
+    expiredATCount?: number;
+    expiredRTCount?: number;
     unencryptedCacheCount?: number;
     encryptedCacheCount?: number;
     encryptedCacheExpiredCount?: number;
@@ -4756,7 +4767,8 @@ declare namespace UrlUtils {
         stripLeadingHashOrQuery,
         getDeserializedResponse,
         mapToQueryString,
-        normalizeUrlForComparison
+        normalizeUrlForComparison,
+        validateUrl
     }
 }
 export { UrlUtils }
@@ -4772,6 +4784,11 @@ const userCanceled = "user_canceled";
 //
 // @public
 function validateAuthorizationResponse(serverResponse: AuthorizeResponse, requestState: string): void;
+
+// Warning: (ae-missing-release-tag) "validateUrl" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function validateUrl(url: string, logger?: Logger, correlationId?: string): void;
 
 // Warning: (ae-internal-missing-underscore) The name "ValidCacheType" should be prefixed with an underscore because the declaration is marked as @internal
 //

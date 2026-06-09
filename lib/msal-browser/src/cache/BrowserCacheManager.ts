@@ -78,6 +78,23 @@ import { EncryptedData, isEncrypted } from "./EncryptedData.js";
 type KmsiMap = { [homeAccountId: string]: boolean };
 
 /**
+ * Reason an old-schema cache entry was removed during migration.
+ */
+const MigrationRemovalReason = {
+    Invalid: "invalid",
+    TtlExpired: "ttlExpired",
+    DecryptFailed: "decryptFailed",
+    Expired: "expired",
+} as const;
+
+type MigrationRemovalReason =
+    (typeof MigrationRemovalReason)[keyof typeof MigrationRemovalReason];
+
+type UpdateOldEntryResult =
+    | { entry: CredentialEntity; removalReason?: undefined }
+    | { entry: null; removalReason: MigrationRemovalReason };
+
+/**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
  */
 export class BrowserCacheManager extends CacheManager {
@@ -198,7 +215,7 @@ export class BrowserCacheManager extends CacheManager {
     async updateOldEntry(
         key: string,
         correlationId: string
-    ): Promise<CredentialEntity | null> {
+    ): Promise<UpdateOldEntryResult> {
         const rawValue = this.browserStorage.getItem(key);
         const parsedValue = this.validateAndParseJson(rawValue || "") as
             | CredentialEntity
@@ -207,7 +224,10 @@ export class BrowserCacheManager extends CacheManager {
 
         if (!parsedValue) {
             this.browserStorage.removeItem(key);
-            return null;
+            return {
+                entry: null,
+                removalReason: MigrationRemovalReason.Invalid,
+            };
         }
 
         if (!parsedValue.lastUpdatedAt) {
@@ -221,27 +241,38 @@ export class BrowserCacheManager extends CacheManager {
             )
         ) {
             this.browserStorage.removeItem(key);
-            this.performanceClient.incrementFields(
-                { expiredCacheRemovedCount: 1 },
-                correlationId
-            );
-            return null;
+            return {
+                entry: null,
+                removalReason: MigrationRemovalReason.TtlExpired,
+            };
         }
 
-        const decryptedData = isEncrypted(parsedValue)
+        const wasEncrypted = isEncrypted(parsedValue);
+        const decryptedData = wasEncrypted
             ? await this.browserStorage.decryptData(
                   key,
                   parsedValue,
                   correlationId
               )
             : parsedValue;
-        if (!decryptedData || !CacheHelpers.isCredentialEntity(decryptedData)) {
+
+        if (!decryptedData) {
             this.browserStorage.removeItem(key);
-            this.performanceClient.incrementFields(
-                { invalidCacheCount: 1 },
-                correlationId
-            );
-            return null;
+
+            return {
+                entry: null,
+                removalReason: wasEncrypted
+                    ? MigrationRemovalReason.DecryptFailed
+                    : MigrationRemovalReason.Invalid,
+            };
+        }
+
+        if (!CacheHelpers.isCredentialEntity(decryptedData)) {
+            this.browserStorage.removeItem(key);
+            return {
+                entry: null,
+                removalReason: MigrationRemovalReason.Invalid,
+            };
         }
 
         if (
@@ -254,14 +285,13 @@ export class BrowserCacheManager extends CacheManager {
             )
         ) {
             this.browserStorage.removeItem(key);
-            this.performanceClient.incrementFields(
-                { expiredCacheRemovedCount: 1 },
-                correlationId
-            );
-            return null;
+            return {
+                entry: null,
+                removalReason: MigrationRemovalReason.Expired,
+            };
         }
 
-        return decryptedData;
+        return { entry: decryptedData };
     }
 
     /**
@@ -297,6 +327,10 @@ export class BrowserCacheManager extends CacheManager {
 
             if (!parsedValue) {
                 this.browserStorage.removeItem(accountKey);
+                this.performanceClient.incrementFields(
+                    { invalidAcntCount: 1 },
+                    correlationId
+                );
                 removeElementFromArray(accountKeysToCheck, accountKey);
                 continue;
             }
@@ -323,6 +357,10 @@ export class BrowserCacheManager extends CacheManager {
                     credentialSchema,
                     correlationId
                 );
+                this.performanceClient.incrementFields(
+                    { ttlExpiredAcntCount: 1 },
+                    correlationId
+                );
                 removeElementFromArray(accountKeysToCheck, accountKey);
             } else if (isEncrypted(parsedValue)) {
                 // Remove accounts encrypted with a different key (session cookie expired/changed)
@@ -334,7 +372,9 @@ export class BrowserCacheManager extends CacheManager {
                 if (!decrypted) {
                     this.browserStorage.removeItem(accountKey);
                     this.performanceClient.incrementFields(
-                        { expiredAcntRemovedCount: 1 },
+                        {
+                            decryptFailedAcntCount: 1,
+                        },
                         correlationId
                     );
                     removeElementFromArray(accountKeysToCheck, accountKey);
@@ -389,11 +429,6 @@ export class BrowserCacheManager extends CacheManager {
                 });
             this.setTokenKeys(tokenKeys, correlationId, credentialSchema);
         }
-
-        this.performanceClient.incrementFields(
-            { expiredAcntRemovedCount: 1 },
-            correlationId
-        );
 
         this.browserStorage.removeItem(accountKey);
     }
@@ -459,11 +494,29 @@ export class BrowserCacheManager extends CacheManager {
                 correlationId
             );
 
-            const oldSchemaData = (await this.updateOldEntry(
-                idTokenKey,
-                correlationId
-            )) as IdTokenEntity | null;
+            const result = await this.updateOldEntry(idTokenKey, correlationId);
+            const oldSchemaData = result.entry as IdTokenEntity | null;
             if (!oldSchemaData) {
+                switch (result.removalReason) {
+                    case MigrationRemovalReason.TtlExpired:
+                        this.performanceClient.incrementFields(
+                            { ttlExpiredITCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.DecryptFailed:
+                        this.performanceClient.incrementFields(
+                            { decryptFailedITCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.Invalid:
+                        this.performanceClient.incrementFields(
+                            { invalidITCount: 1 },
+                            correlationId
+                        );
+                        break;
+                }
                 removeElementFromArray(
                     credentialKeysToMigrate.idToken,
                     idTokenKey
@@ -628,11 +681,38 @@ export class BrowserCacheManager extends CacheManager {
                 correlationId
             );
 
-            const oldSchemaData = (await this.updateOldEntry(
+            const result = await this.updateOldEntry(
                 accessTokenKey,
                 correlationId
-            )) as AccessTokenEntity | null;
+            );
+            const oldSchemaData = result.entry as AccessTokenEntity | null;
             if (!oldSchemaData) {
+                switch (result.removalReason) {
+                    case MigrationRemovalReason.TtlExpired:
+                        this.performanceClient.incrementFields(
+                            { ttlExpiredATCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.DecryptFailed:
+                        this.performanceClient.incrementFields(
+                            { decryptFailedATCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.Expired:
+                        this.performanceClient.incrementFields(
+                            { expiredATCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.Invalid:
+                        this.performanceClient.incrementFields(
+                            { invalidATCount: 1 },
+                            correlationId
+                        );
+                        break;
+                }
                 removeElementFromArray(
                     credentialKeysToMigrate.accessToken,
                     accessTokenKey
@@ -732,11 +812,38 @@ export class BrowserCacheManager extends CacheManager {
                 correlationId
             );
 
-            const oldSchemaData = (await this.updateOldEntry(
+            const result = await this.updateOldEntry(
                 refreshTokenKey,
                 correlationId
-            )) as RefreshTokenEntity | null;
+            );
+            const oldSchemaData = result.entry as RefreshTokenEntity | null;
             if (!oldSchemaData) {
+                switch (result.removalReason) {
+                    case MigrationRemovalReason.TtlExpired:
+                        this.performanceClient.incrementFields(
+                            { ttlExpiredRTCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.DecryptFailed:
+                        this.performanceClient.incrementFields(
+                            { decryptFailedRTCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.Expired:
+                        this.performanceClient.incrementFields(
+                            { expiredRTCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.Invalid:
+                        this.performanceClient.incrementFields(
+                            { invalidRTCount: 1 },
+                            correlationId
+                        );
+                        break;
+                }
                 removeElementFromArray(
                     credentialKeysToMigrate.refreshToken,
                     refreshTokenKey
