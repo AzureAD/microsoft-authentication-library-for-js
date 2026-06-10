@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781046800231,
+  "lastUpdate": 1781117728814,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21909,6 +21909,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.95%",
             "unit": "ops/sec",
             "extra": "216 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "772c6b649cc9d9d29e487ee665e6155b6ffe59d7",
+          "message": "Fix silent iframe redirect-bridge listener race condition (#8636)\n\n## Summary\n\nFixes a race condition in the silent-iframe redirect-bridge flow. The\nhidden iframe was navigated **before** its `BroadcastChannel` response\nlistener was registered. If the auth response completed and broadcast in\nthat window, the message was missed and the request failed with a\nspurious `timed_out` error.\n\n## Root cause\n\nIn `SilentIframeClient`, the iframe was created **and navigated** inside\nthe `await`ed `initiate*` helper, and the listener\n(`waitForIframeResponse` → `waitForBridgeResponse`) was only registered\non the next statement, after the `await` resumed. That `await` is an\nevent-loop yield between navigation and listener registration — the\nexact window where a fast response can be lost.\n\nThe popup flows do **not** have this issue: their navigation\n(`window.open` / `form.submit()`) is followed synchronously by\n`waitForPopupResponse` with no `await` in between, so the listener is\nalways registered in the same synchronous turn as navigation.\n\n## Fix\n\nReorder the silent flows to **create the iframe → register the listener\n→ navigate** (`create → listen → navigate`):\n\n- `SilentHandler` `initiate*` helpers now navigate a caller-provided\niframe instead of creating one. `createHiddenIframe` is exported so the\nclient creates the iframe up front.\n- The client registers `waitForIframeResponse` on the created iframe,\nthen calls `initiate*` to navigate, then awaits the response promise.\n- Removed the now-trivial `loadFrameSync` wrapper (inlined `frame.src`)\nand its unused `SilentHandlerLoadFrameSync` telemetry event.\n\nNo public API change (all affected functions are internal/`@hidden`).\nThe `SilentHandlerInitiateAuthRequest` telemetry measurement is\npreserved.\n\n## Tests\n\nAdded regression tests covering all three silent navigation seams (GET,\nPOST, EAR). They drive the **real** `BroadcastChannel` bridge and\nbroadcast the response **at navigation time** (from inside the\nnavigation spy). Because Node's `BroadcastChannel` only delivers to\nchannels that already exist, the flow resolves only if the listener was\nregistered before navigation.\n\nVerified the tests fail on the old order and pass on the new one:\n\n| Order | Result |\n|-------|--------|\n| Fixed (`create → listen → navigate`) | 3 passed (~30–110 ms) |\n| Buggy (`create → navigate → listen`) | 3 failed — `timed_out:\nredirect_bridge_timeout` (~3050 ms each) |\n\nFull `msal-browser` suite passes; lint, format, and API Extractor are\nclean.",
+          "timestamp": "2026-06-10T11:47:30-07:00",
+          "tree_id": "e96a485f4a8482d15e41eb412273e010196b4299",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/772c6b649cc9d9d29e487ee665e6155b6ffe59d7"
+        },
+        "date": 1781117724948,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 474750,
+            "range": "±0.96%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 474250,
+            "range": "±0.73%",
+            "unit": "ops/sec",
+            "extra": "228 samples"
           }
         ]
       }
