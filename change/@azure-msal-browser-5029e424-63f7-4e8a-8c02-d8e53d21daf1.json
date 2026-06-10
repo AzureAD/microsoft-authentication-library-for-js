@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix duplicate redirect flows clearing in-flight interaction state [#8637](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8637)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
