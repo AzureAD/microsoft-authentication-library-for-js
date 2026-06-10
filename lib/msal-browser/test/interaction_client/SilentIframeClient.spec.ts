@@ -1539,6 +1539,56 @@ describe("SilentIframeClient", () => {
                 expect(initiateEarRequestSpy).toHaveBeenCalled();
                 expect(result).toEqual(testAuthResult);
             });
+
+            it("propagates a navigation error without an unhandled rejection", async () => {
+                const raceClient = await buildSilentClient({
+                    iframeBridgeTimeout: 3000,
+                });
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "getAuthCodeRequestUrl"
+                ).mockResolvedValue(testNavUrl);
+                const navError = new Error("navigation failed");
+                jest.spyOn(
+                    SilentHandler,
+                    "initiateCodeRequest"
+                ).mockRejectedValue(navError);
+
+                /*
+                 * The response listener promise is created before navigation. If
+                 * navigation throws, that listener still rejects later (as it
+                 * would on a real bridge timeout) - it must not surface as an
+                 * unhandled rejection. Use a sentinel rejection so we can assert
+                 * specifically that THIS rejection was handled, while acquireToken
+                 * rejects with the navigation error.
+                 */
+                const listenerError = new Error("bridge-listener-sentinel");
+                jest.spyOn(
+                    BrowserUtils,
+                    "waitForBridgeResponse"
+                ).mockImplementation(() => Promise.reject(listenerError));
+
+                const unhandledReasons: unknown[] = [];
+                const onUnhandled = (reason: unknown): void => {
+                    unhandledReasons.push(reason);
+                };
+                process.on("unhandledRejection", onUnhandled);
+                try {
+                    await expect(
+                        raceClient.acquireToken({
+                            redirectUri: TEST_URIS.TEST_REDIR_URI,
+                            loginHint: "testLoginHint",
+                            httpMethod: Constants.HttpMethod.GET,
+                        })
+                    ).rejects.toBe(navError);
+
+                    // Flush macrotasks so any unhandled rejection would surface.
+                    await new Promise((resolve) => setTimeout(resolve, 10));
+                    expect(unhandledReasons).not.toContain(listenerError);
+                } finally {
+                    process.off("unhandledRejection", onUnhandled);
+                }
+            });
         });
 
         describe("storeInCache tests", () => {

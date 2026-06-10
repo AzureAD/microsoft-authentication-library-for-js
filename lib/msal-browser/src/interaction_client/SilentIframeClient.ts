@@ -324,6 +324,14 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.performanceClient,
                 correlationId
             )(iframe, request);
+            responsePromise.catch(() => {
+                /*
+                 * If navigation below throws before responsePromise is awaited,
+                 * the listener still rejects on timeout. Swallow it here so it
+                 * does not surface as an unhandled rejection; the navigation
+                 * error is propagated instead.
+                 */
+            });
 
             await invokeAsync(
                 initiateEarRequest,
@@ -599,6 +607,15 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.performanceClient,
                 correlationId
             )(iframe, request);
+            responsePromise.catch(() => {
+                /*
+                 * If URL creation or navigation below throws before
+                 * responsePromise is awaited, the listener still rejects on
+                 * timeout. Swallow it here so it does not surface as an
+                 * unhandled rejection; the navigation error is propagated
+                 * instead.
+                 */
+            });
 
             if (request.httpMethod === Constants.HttpMethod.POST) {
                 await invokeAsync(
