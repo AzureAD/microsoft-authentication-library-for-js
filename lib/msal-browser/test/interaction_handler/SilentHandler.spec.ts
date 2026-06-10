@@ -52,8 +52,8 @@ describe("SilentHandler.ts Unit Tests", () => {
         it("throws error if requestUrl is empty", async () => {
             await expect(
                 SilentHandler.initiateCodeRequest(
+                    SilentHandler.createHiddenIframe(),
                     "",
-                    performanceClient,
                     browserRequestLogger,
                     RANDOM_TEST_GUID
                 )
@@ -62,35 +62,33 @@ describe("SilentHandler.ts Unit Tests", () => {
             );
         });
 
-        it("Creates a frame", async () => {
+        it("Navigates the provided frame to the request url", async () => {
+            const frame = SilentHandler.createHiddenIframe();
             const authFrame = await SilentHandler.initiateCodeRequest(
+                frame,
                 testNavUrl,
-                performanceClient,
                 browserRequestLogger,
                 RANDOM_TEST_GUID
             );
+            expect(authFrame).toBe(frame);
+        });
+    });
+
+    describe("createHiddenIframe()", () => {
+        it("Creates a frame", () => {
+            const authFrame = SilentHandler.createHiddenIframe();
             expect(authFrame instanceof HTMLIFrameElement).toBe(true);
         });
 
-        it("Sets the allow attribute for local network access on iframe", async () => {
-            const authFrame = await SilentHandler.initiateCodeRequest(
-                testNavUrl,
-                performanceClient,
-                browserRequestLogger,
-                RANDOM_TEST_GUID
-            );
+        it("Sets the allow attribute for local network access on iframe", () => {
+            const authFrame = SilentHandler.createHiddenIframe();
             expect(authFrame.getAttribute("allow")).toBe(
                 "local-network-access *"
             );
         });
 
-        it("Sets a title attribute on the iframe for accessibility", async () => {
-            const authFrame = await SilentHandler.initiateCodeRequest(
-                testNavUrl,
-                performanceClient,
-                browserRequestLogger,
-                RANDOM_TEST_GUID
-            );
+        it("Sets a title attribute on the iframe for accessibility", () => {
+            const authFrame = SilentHandler.createHiddenIframe();
             expect(authFrame.title).toBe("Microsoft Authentication");
         });
     });
