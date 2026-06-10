@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781117728814,
+  "lastUpdate": 1781121719559,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21947,6 +21947,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.73%",
             "unit": "ops/sec",
             "extra": "228 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b8b8da9b0a77a9672b81d4c7b15453455f29c4fd",
+          "message": "Fix duplicate redirect flows clearing in-flight interaction state (#8637)\n\n## Summary\n\nFixes #8633.\n\nCalling `loginRedirect`/`acquireTokenRedirect` a second time before the\nfirst call navigates away cancelled the entire interaction, leaving the\nuser stranded on the redirect handler.\n\n## Root cause\n\nIn `StandardController.acquireTokenRedirect`,\n`setInteractionInProgress(true)` was inside the instrumented `try`\nblock. When a second redirect ran before the first navigated:\n\n1. The first call claimed `interaction_in_progress` and cached its\nrequest.\n2. The second call generated a new `correlationId` and called\n`setInteractionInProgress(true)`, which detected the existing\ninteraction and threw `interaction_in_progress`.\n3. The `catch` block unconditionally called\n`resetRequestCache(correlationId)`, which cleared the temporary cache\n**and** the `interaction_in_progress` flag — both owned by the **first**\n(legitimate) redirect (same `clientId`).\n\nOnce the first redirect navigated and the IdP redirected back, no\ninteraction state remained, so `handleRedirectPromise` silently\nno-opped.\n\nThe popup flow never had this bug because it claims the interaction\noutside its instrumented `try/catch`.\n\n## Fix\n\nRestructure `acquireTokenRedirect` to mirror `acquireTokenPopup`: run\n`redirectPreflightCheck` and `setInteractionInProgress` **before**\n`startMeasurement` and the `try` block. Failures that occur before this\ncall claims ownership of the interaction now reject without:\n\n- resetting the request cache (so a concurrent redirect's state\nsurvives),\n- emitting failure telemetry, or\n- firing `ACQUIRE_TOKEN_FAILURE`.\n\n`enforceResourceParameter` remains inside the instrumented `try` (it\nruns after the interaction is claimed, so failures there belong to this\ncall).\n\n## Behavior change\n\nPreflight failures for the redirect flow (including\n`uninitialized_public_client_application`) are no longer instrumented,\nsince they now throw before the performance measurement starts. This\nmatches the user-facing throw behavior already covered by existing\ntests; only the pre-redirect telemetry event for these specific\npre-claim errors is removed.\n\n## Tests\n\n- Added regression test: `does not clear in-progress interaction state\nwhen a concurrent redirect throws interaction_in_progress`.\n- Updated `instruments initialization error` → `does not emit telemetry\nfor initialization error since preflight checks run before\ninstrumentation starts` to lock in the intended behavior.\n\nFull `msal-browser` suite passes (1675 passed, 3 pre-existing skips).\n`build:all`, `lint`, `format:check`, and `apiExtractor` (no public API\nchange) all pass.",
+          "timestamp": "2026-06-10T19:53:03Z",
+          "tree_id": "78779f4caebf2dff21093e6df600743dfecdf454",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b8b8da9b0a77a9672b81d4c7b15453455f29c4fd"
+        },
+        "date": 1781121715493,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 352834,
+            "range": "±1.42%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 342783,
+            "range": "±0.60%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
           }
         ]
       }
