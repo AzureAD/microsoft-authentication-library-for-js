@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781121719559,
+  "lastUpdate": 1781126068864,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -21985,6 +21985,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.60%",
             "unit": "ops/sec",
             "extra": "215 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+          "message": "Fix migration readme (#8602) (#8638)\n\nFix V3 migration link on V4 migration page\n\nCo-authored-by: Matthias Huygelen <matthias_huygelen@msn.com>",
+          "timestamp": "2026-06-10T21:05:11Z",
+          "tree_id": "e2a89b9ff6ea27bb4b0884758f79c04e2b3af52c",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/faa42ab972f7388b7c4e583b90049006d82dfb79"
+        },
+        "date": 1781126064407,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 363515,
+            "range": "±0.71%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 350956,
+            "range": "±0.95%",
+            "unit": "ops/sec",
+            "extra": "212 samples"
           }
         ]
       }
