@@ -657,6 +657,12 @@ export class StandardController implements IController {
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.verbose("acquireTokenRedirect called", correlationId);
 
+        BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
+        this.browserStorage.setInteractionInProgress(
+            true,
+            INTERACTION_TYPE.SIGNIN
+        );
+
         const atrMeasurement = this.performanceClient.startMeasurement(
             BrowserRootPerformanceEvents.AcquireTokenPreRedirect,
             correlationId
@@ -684,13 +690,7 @@ export class StandardController implements IController {
         };
 
         try {
-            BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
             enforceResourceParameter(this.config.auth.isMcp, request);
-            this.browserStorage.setInteractionInProgress(
-                true,
-                INTERACTION_TYPE.SIGNIN
-            );
-
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_START,
                 correlationId,
