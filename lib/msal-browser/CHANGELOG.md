@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Fri, 05 Jun 2026 22:24:22 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 10 Jun 2026 22:41:33 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.13.0
+
+Wed, 10 Jun 2026 22:41:33 GMT
+
+### Minor changes
+
+- Add per-type migration telemetry counters for cache migration [#8628](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8628) (thomas.norling@microsoft.com)
+- Disable ServerTelemetryManager by default [#8600](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8600) (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v16.8.0
+
+### Patches
+
+- Fix duplicate redirect flows clearing in-flight interaction state [#8637](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8637) (thomas.norling@microsoft.com)
+- add logging support for normalizeUrlForComparison when executing handleRedirectPromise [#8625](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8625/) (lalimasharda@microsoft.com)
+- Fix silent iframe redirect-bridge listener race condition by registering the response listener before navigating the iframe [#8636](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8636) (thomas.norling@microsoft.com)
 
 ## 5.12.0
 
