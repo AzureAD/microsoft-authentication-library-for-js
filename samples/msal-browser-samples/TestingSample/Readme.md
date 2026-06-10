@@ -1,24 +1,28 @@
 # MSAL.js Playwright Testing Example
 
-⚠️ Warning: The ROPC Flow in msal-node should only be used for testing and is not suitable for authenticating users outside of a testing environment ⚠️
+⚠️ Warning: The ROPC Flow should only be used for testing and is not suitable for authenticating users outside of a testing environment ⚠️
 
 ## About this sample
 
 This sample demonstrates how you can run e2e tests against an application that uses msal-browser to obtain tokens and sign users in.
-Using the [ROPC flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth-ropc) in [msal-node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) you can pre-populate local or session storage with tokens without requiring your test to navigate through the Microsoft Entra ID sign-in pages. This allows you to test your application with a real user and real tokens without testing 3rd party sites.
+
+Tokens are acquired by making a direct ROPC (Resource Owner Password Credentials) request to the Microsoft identity platform token endpoint. The raw server response is then injected into the browser's MSAL cache using [`loadExternalTokens`](../../../lib/msal-browser/docs/testing.md) via Playwright's `page.evaluate` API.
+
+Because `loadExternalTokens` runs **inside the browser**, it writes tokens using the same cache key schema as `@azure/msal-browser`, which means the application will recognise the user as already signed in without needing to navigate through the Microsoft Entra ID sign-in pages.
 
 ## Pre-requisites
 
-- Ensure the clientId and authority in `test/browser-test.spec.ts` (msal-node configuration) match what is set in `app/authConfig.js` (msal-browser configuration)
+- Ensure the `clientId` and `authority` in `test/browser-test.spec.ts` match those in `app/authConfig.js`
   - You must use a tenanted authority to use the ROPC flow
-- Implement a function to get a username and password for the test account
-- Ensure the `usernamePasswordRequest` request contains the same scopes your SPA needs tokens for, making several requests if needed.
+- Supply test credentials via `TEST_USERNAME` and `TEST_PASSWORD` environment variables (or update `getCredentials()` in the test file to use your own secrets manager)
+- Ensure the scopes listed in `test/browser-test.spec.ts` cover all the tokens your SPA needs
 
 ## Run the test
 
-```javascript
-// Install dependencies
+```bash
+# Install dependencies (includes @azure/msal-browser whose UMD bundle is served to the browser)
 npm install
-// Run tests using jest and puppeteer
+
+# Run tests using Playwright
 npm test
 ```

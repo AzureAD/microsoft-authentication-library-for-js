@@ -4,7 +4,7 @@
 
 The `loadExternalTokens()` API allows the loading of id, access and refresh tokens to the MSAL cache, which can then be fetched using `acquireTokenSilent()`.
 
-**Note: This is an advanced feature that is intended for testing purposes in the browser environment only. We do not recommend using this in a production app. For E2E testing recommendations, please refer to our [TestingSample](../../../samples/msal-browser-samples/TestingSample) instead.**
+**Note: This is an advanced feature that is intended for testing purposes in the browser environment only. We do not recommend using this in a production app. For E2E testing recommendations and a working sample, please refer to our [TestingSample](../../../samples/msal-browser-samples/TestingSample) instead.**
 
 The `loadExternalTokens()` API is a public API facilitating apps to custom load tokens to msal js cache.
 
@@ -24,6 +24,187 @@ See the type definitions for each, which can be imported from `@azure/msal-brows
 -   [`SilentRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_browser.SilentRequest.html)
 -   [`ExternalTokenResponse`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_browser.ExternalTokenResponse.html)
 -   [`LoadTokenOptions`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_browser.LoadTokenOptions.html)
+
+## E2E Testing with loadExternalTokens
+
+Because `loadExternalTokens()` requires a browser environment (it stores tokens in `sessionStorage` or `localStorage` using the correct browser-side cache key schema), it must be called **inside the browser** rather than in your test runner process.
+
+The recommended approach is to:
+
+1. Obtain a raw token server response **outside** the browser (e.g. via a direct ROPC HTTP request to the token endpoint, using hardcoded test tokens, or by calling your own auth service).
+2. Pass the response into the browser and call `loadExternalTokens()` there, using whatever mechanism your test framework provides.
+3. Reload the page so the application reads the freshly-populated cache and recognises the user as signed in.
+
+### Playwright
+
+Use [`page.evaluate`](https://playwright.dev/docs/api/class-page#page-evaluate) to execute code in the browser context. The `msal` global is available because your application already loads the `@azure/msal-browser` UMD bundle.
+
+```ts
+import { test, expect, type Page } from "@playwright/test";
+
+const msalConfig = {
+    auth: {
+        clientId: "your-client-id",
+        authority: "https://login.microsoftonline.com/your-tenant-id",
+    },
+    cache: { cacheLocation: "sessionStorage" },
+};
+
+const scopes = ["User.Read"];
+
+/**
+ * Obtain a raw token server response via a direct ROPC POST request.
+ * This runs in Node.js (test runner) and does NOT require a browser.
+ *
+ * The returned object is the raw JSON body of the /token response, which
+ * can be passed directly to loadExternalTokens.
+ */
+async function getServerTokenResponse(
+    username: string,
+    password: string
+): Promise<Record<string, unknown>> {
+    const tenantId = msalConfig.auth.authority.split("/").pop();
+    const body = new URLSearchParams({
+        grant_type: "password",
+        client_id: msalConfig.auth.clientId,
+        scope: scopes.join(" "),
+        username,
+        password,
+    });
+    const res = await fetch(
+        `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
+        { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: body.toString() }
+    );
+    return res.json() as Promise<Record<string, unknown>>;
+}
+
+async function loadTokensInBrowser(
+    page: Page,
+    serverResponse: Record<string, unknown>
+): Promise<void> {
+    await page.evaluate(
+        async ([config, request, response]) => {
+            // msal is the global exposed by the @azure/msal-browser UMD bundle
+            await (window as any).msal.loadExternalTokens(config, request, response, {});
+        },
+        [msalConfig, { scopes, authority: msalConfig.auth.authority }, serverResponse]
+    );
+}
+
+let serverResponse: Record<string, unknown>;
+
+test.beforeAll(async () => {
+    serverResponse = await getServerTokenResponse(
+        process.env.TEST_USERNAME!,
+        process.env.TEST_PASSWORD!
+    );
+});
+
+test.beforeEach(async ({ page }) => {
+    await page.goto("http://localhost:3000/");
+    await loadTokensInBrowser(page, serverResponse);
+    await page.reload();
+});
+```
+
+### Puppeteer
+
+Use [`page.evaluate`](https://pptr.dev/api/puppeteer.page.evaluate) in the same way as Playwright. The pattern is identical.
+
+```ts
+import puppeteer, { type Page } from "puppeteer";
+
+const msalConfig = {
+    auth: {
+        clientId: "your-client-id",
+        authority: "https://login.microsoftonline.com/your-tenant-id",
+    },
+    cache: { cacheLocation: "sessionStorage" },
+};
+
+const scopes = ["User.Read"];
+
+// Obtain serverResponse using the same ROPC helper shown in the Playwright
+// section above, then:
+
+async function loadTokensInBrowser(
+    page: Page,
+    serverResponse: Record<string, unknown>
+): Promise<void> {
+    const config = msalConfig;
+    const request = { scopes, authority: msalConfig.auth.authority };
+
+    await page.evaluate(
+        async (config, request, response) => {
+            // msal is the global exposed by the @azure/msal-browser UMD bundle
+            await (window as any).msal.loadExternalTokens(config, request, response, {});
+        },
+        config,
+        request,
+        serverResponse
+    );
+}
+```
+
+### Cypress
+
+In Cypress, use [`cy.window()`](https://docs.cypress.io/api/commands/window) to access the browser's `window` object and call `loadExternalTokens` directly. Token acquisition and cache hydration can be placed in a [custom command](https://docs.cypress.io/api/cypress-api/custom-commands) or in a `before`/`beforeEach` hook.
+
+```ts
+// cypress/support/commands.ts
+import type { SilentRequest, ExternalTokenResponse } from "@azure/msal-browser";
+
+declare global {
+    namespace Cypress {
+        interface Chainable {
+            loadMsalTokens(
+                config: object,
+                request: SilentRequest,
+                response: ExternalTokenResponse
+            ): Chainable<void>;
+        }
+    }
+}
+
+Cypress.Commands.add("loadMsalTokens", (config, request, response) => {
+    cy.window().then(async (win) => {
+        // msal is the global exposed by the @azure/msal-browser UMD bundle
+        await (win as any).msal.loadExternalTokens(config, request, response, {});
+    });
+});
+
+// cypress/e2e/app.cy.ts
+const msalConfig = {
+    auth: {
+        clientId: "your-client-id",
+        authority: "https://login.microsoftonline.com/your-tenant-id",
+    },
+    cache: { cacheLocation: "sessionStorage" },
+};
+
+beforeEach(() => {
+    cy.visit("http://localhost:3000/");
+
+    // Obtain a server response (see ROPC helper in the Playwright section),
+    // or use pre-obtained / hardcoded test tokens:
+    const serverResponse: ExternalTokenResponse = {
+        token_type: "Bearer",
+        scope: "User.Read",
+        expires_in: 3600,
+        access_token: "test-access-token",
+        id_token: "test-id-token",
+        client_info: "test-client-info",
+    };
+
+    cy.loadMsalTokens(
+        msalConfig,
+        { scopes: ["User.Read"], authority: msalConfig.auth.authority },
+        serverResponse
+    );
+
+    cy.reload();
+});
+```
 
 ## Loading tokens
 

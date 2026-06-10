@@ -1,61 +1,122 @@
 import { test, expect, type Page } from "@playwright/test";
-import { PublicClientApplication, CacheKVStore } from "@azure/msal-node";
 
-const config = {
+const msalConfig = {
     auth: {
-        clientId: "Enter_Your_Client_Id_Here", // Add same ClientId here as in app/authConfig.js
+        clientId: "Enter_Your_Client_Id_Here", // Add same clientId here as in app/authConfig.js
         authority:
             "https://login.microsoftonline.com/Enter_the_Tenant_Id_Here", // Add same tenanted authority here as in app/authConfig.js
     },
+    cache: {
+        cacheLocation: "sessionStorage",
+    },
 };
 
-let tokenCache: CacheKVStore;
+const scopes = ["User.Read"];
 
 /**
- * This function populates the session storage with the users' authentication data; 
- * for alternative ways to populate the session and local storage with Playwright, 
- * visit: https://playwright.dev/docs/auth
+ * Obtains tokens from the token endpoint using the Resource Owner Password
+ * Credentials (ROPC) flow. Returns the raw server response which can be
+ * passed directly to loadExternalTokens.
+ *
+ * WARNING: The ROPC flow should only be used for testing purposes and is not
+ * suitable for authenticating real users outside of a test environment.
  */
-async function setSessionStorage(page: Page, tokens: CacheKVStore) {
-    const cacheKeys = Object.keys(tokens);
-    for (let key of cacheKeys) {
-        const value = JSON.stringify(tokenCache[key]);
-        await page.context().addInitScript(
-            (arr: string[]) => {
-                window.sessionStorage.setItem(arr[0], arr[1]);
-            },
-            [key, value]
+async function getServerTokenResponse(
+    username: string,
+    password: string
+): Promise<Record<string, unknown>> {
+    const tenantId = msalConfig.auth.authority.split("/").pop();
+    const tokenEndpoint = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+
+    const body = new URLSearchParams({
+        grant_type: "password",
+        client_id: msalConfig.auth.clientId,
+        scope: scopes.join(" "),
+        username,
+        password,
+    });
+
+    const response = await fetch(tokenEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString(),
+    });
+
+    if (!response.ok) {
+        throw new Error(
+            `Failed to acquire token via ROPC: ${response.status} ${await response.text()}`
         );
     }
-    await page.reload();
+
+    return response.json() as Promise<Record<string, unknown>>;
 }
 
-test.beforeAll(async () => {
-    const pca = new PublicClientApplication(config);
-    const [username, password] = getCredentials(); // Implement an API to get your credentials
-    const usernamePasswordRequest = {
-        scopes: ["user.read"],
-        username: username,
-        password: password,
+/**
+ * Hydrates the browser's MSAL cache by calling loadExternalTokens inside the
+ * browser context via page.evaluate. This ensures the correct browser-side
+ * cache key schema is used, regardless of how the tokens were obtained.
+ *
+ * For alternative ways to populate storage with Playwright, visit:
+ * https://playwright.dev/docs/auth
+ */
+async function loadTokensInBrowser(
+    page: Page,
+    serverResponse: Record<string, unknown>
+): Promise<void> {
+    const silentRequest = {
+        scopes,
+        authority: msalConfig.auth.authority,
     };
 
-    await pca.acquireTokenByUsernamePassword(usernamePasswordRequest);
-    tokenCache = pca.getTokenCache().getKVStore();
+    await page.evaluate(
+        async ([config, request, response]) => {
+            // msal is the global variable exposed by the msal-browser UMD bundle
+            // loaded in index.html. loadExternalTokens writes tokens to the
+            // browser cache (sessionStorage by default) using the correct schema.
+            await (window as Window & { msal: { loadExternalTokens: Function } }).msal.loadExternalTokens(
+                config,
+                request,
+                response,
+                {}
+            );
+        },
+        [msalConfig, silentRequest, serverResponse] as [
+            typeof msalConfig,
+            typeof silentRequest,
+            Record<string, unknown>
+        ]
+    );
+}
+
+function getCredentials(): [string, string] {
+    // Implement a secure way to retrieve test credentials, e.g. from environment
+    // variables or a secrets manager. Never hard-code credentials in test files.
+    const username = process.env.TEST_USERNAME ?? "";
+    const password = process.env.TEST_PASSWORD ?? "";
+    return [username, password];
+}
+
+let serverResponse: Record<string, unknown>;
+
+test.beforeAll(async () => {
+    const [username, password] = getCredentials();
+    serverResponse = await getServerTokenResponse(username, password);
 });
 
 test.beforeEach(async ({ page }) => {
     await page.goto("http://localhost:30662/");
+    // Hydrate the MSAL browser cache with the pre-acquired tokens, then reload
+    // so the app picks them up and recognises the user as signed in.
+    await loadTokensInBrowser(page, serverResponse);
+    await page.reload();
 });
 
 test.describe("Tests", () => {
     test("Tests sign-out button is displayed when user is signed-in", async ({
         page,
     }) => {
-        let signInButton = page.getByRole("button", { name: /Sign In/i });
-        let signOutButton = page.getByRole("button", { name: /Sign Out/i });
-        expect(await signInButton.count()).toBeGreaterThan(0);
-        expect(await signOutButton.count()).toBeLessThanOrEqual(0);
-        await setSessionStorage(page, tokenCache);
+        const signInButton = page.getByRole("button", { name: /Sign In/i });
+        const signOutButton = page.getByRole("button", { name: /Sign Out/i });
         expect(await signInButton.count()).toBeLessThanOrEqual(0);
         expect(await signOutButton.count()).toBeGreaterThan(0);
     });

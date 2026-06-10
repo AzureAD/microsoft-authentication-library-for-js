@@ -15,9 +15,12 @@ let accountId = "";
 // configuration parameters are located at authConfig.js
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 
-// Redirect: once login is successful and redirects with tokens, call Graph API
-myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
-    console.error(err);
+// Initialize must be called before any other MSAL methods
+myMSALObj.initialize().then(() => {
+    // Redirect: once login is successful and redirects with tokens, call Graph API
+    myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
+        console.error(err);
+    });
 });
 
 function handleResponse(resp) {
@@ -51,10 +54,10 @@ async function signIn(method) {
 
 function signOut() {
     const logoutRequest = {
-        account: myMSALObj.getAccount({accountId})
+        account: myMSALObj.getAccountByHomeId(accountId)
     };
 
-    myMSALObj.logout(logoutRequest);
+    myMSALObj.logoutRedirect(logoutRequest);
 }
 
 async function getTokenPopup(request, account) {
