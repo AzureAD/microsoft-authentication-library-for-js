@@ -1296,6 +1296,9 @@ describe("SilentIframeClient", () => {
             it("removes hidden iframe after successful token acquisition", async () => {
                 const iframe = document.createElement("iframe");
                 document.body.appendChild(iframe);
+                jest.spyOn(SilentHandler, "createHiddenIframe").mockReturnValue(
+                    iframe
+                );
                 jest.spyOn(
                     AuthorizeProtocol,
                     "getAuthCodeRequestUrl"
@@ -1322,6 +1325,9 @@ describe("SilentIframeClient", () => {
             it("removes hidden iframe even when waitForBridgeResponse rejects", async () => {
                 const iframe = document.createElement("iframe");
                 document.body.appendChild(iframe);
+                jest.spyOn(SilentHandler, "createHiddenIframe").mockReturnValue(
+                    iframe
+                );
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
                     TEST_STATE_VALUES.TEST_STATE_SILENT
                 );
@@ -1369,6 +1375,219 @@ describe("SilentIframeClient", () => {
 
                 expect(removeIframeSpy).toHaveBeenCalledWith(iframe);
                 expect(document.body.contains(iframe)).toBe(false);
+            });
+        });
+
+        describe("redirect bridge listener race condition (regression)", () => {
+            /*
+             * Regression coverage for the silent-iframe redirect-bridge race.
+             *
+             * The hidden iframe must have its BroadcastChannel response listener
+             * registered BEFORE it is navigated. Otherwise a fast auth response
+             * can be broadcast before the listener exists and is missed, causing
+             * a spurious timeout.
+             *
+             * These tests drive the REAL waitForBridgeResponse (it is deliberately
+             * not mocked) and broadcast the response from inside the navigation
+             * spy - i.e. at the exact moment of navigation. Node's BroadcastChannel
+             * only delivers to channels that already exist when postMessage runs,
+             * so the flow resolves only if the listener was registered first
+             * (create -> listen -> navigate). If the order regresses back to
+             * create -> navigate -> listen, the broadcast is missed and the
+             * acquireToken call rejects with a bridge timeout, failing the test.
+             */
+            const testAuthResult = getTestAuthenticationResult();
+
+            // MSAL derives the bridge channel id from the request state; the
+            // mocked silent state (TEST_STATE_SILENT) encodes RANDOM_TEST_GUID.
+            const broadcastBridgeResponse = (payload: string): void => {
+                const channel = new BroadcastChannel(RANDOM_TEST_GUID);
+                channel.postMessage({ v: 1, payload });
+                channel.close();
+            };
+
+            // Short iframe timeout so a regression fails fast (reject) rather
+            // than hanging until the default bridge timeout.
+            const buildSilentClient = async (
+                system: object
+            ): Promise<SilentIframeClient> => {
+                const racePca = new PublicClientApplication({
+                    auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                    system,
+                });
+                await racePca.initialize();
+                const controller: any = (racePca as any).controller;
+                return new SilentIframeClient(
+                    controller.config,
+                    controller.browserStorage,
+                    controller.browserCrypto,
+                    controller.logger,
+                    controller.eventHandler,
+                    controller.navigationClient,
+                    ApiId.acquireTokenSilent_authCode,
+                    controller.performanceClient,
+                    controller.nativeInternalStorage,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            };
+
+            beforeEach(() => {
+                mockSetRequestState.mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_SILENT
+                );
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER,
+                });
+                jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                    RANDOM_TEST_GUID
+                );
+            });
+
+            it("catches a response broadcast at navigation time - GET auth code flow", async () => {
+                const raceClient = await buildSilentClient({
+                    iframeBridgeTimeout: 3000,
+                });
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "getAuthCodeRequestUrl"
+                ).mockResolvedValue(testNavUrl);
+                jest.spyOn(
+                    InteractionHandler.prototype,
+                    "handleCodeResponse"
+                ).mockResolvedValue(testAuthResult);
+                const initiateCodeRequestSpy = jest
+                    .spyOn(SilentHandler, "initiateCodeRequest")
+                    .mockImplementation(async (frame) => {
+                        broadcastBridgeResponse(
+                            TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+                        );
+                        return frame;
+                    });
+
+                const result = await raceClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    httpMethod: Constants.HttpMethod.GET,
+                });
+
+                expect(initiateCodeRequestSpy).toHaveBeenCalled();
+                expect(result).toEqual(testAuthResult);
+            });
+
+            it("catches a response broadcast at navigation time - POST auth code flow", async () => {
+                const raceClient = await buildSilentClient({
+                    iframeBridgeTimeout: 3000,
+                });
+                jest.spyOn(
+                    InteractionHandler.prototype,
+                    "handleCodeResponse"
+                ).mockResolvedValue(testAuthResult);
+                const initiateCodeFlowWithPostSpy = jest
+                    .spyOn(SilentHandler, "initiateCodeFlowWithPost")
+                    .mockImplementation(async (frame) => {
+                        broadcastBridgeResponse(
+                            TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+                        );
+                        return frame;
+                    });
+
+                const result = await raceClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    httpMethod: Constants.HttpMethod.POST,
+                });
+
+                expect(initiateCodeFlowWithPostSpy).toHaveBeenCalled();
+                expect(result).toEqual(testAuthResult);
+            });
+
+            it("catches a response broadcast at navigation time - EAR flow", async () => {
+                const raceClient = await buildSilentClient({
+                    protocolMode: ProtocolMode.EAR,
+                    iframeBridgeTimeout: 3000,
+                });
+                jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(
+                    validEarJWK
+                );
+                /*
+                 * Broadcast a code response (rather than ear_jwe) so EAR falls
+                 * back to the auth-code path, letting us assert via a mocked
+                 * handleResponseCode without real EAR decryption.
+                 */
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "handleResponseCode"
+                ).mockResolvedValue(testAuthResult);
+                const initiateEarRequestSpy = jest
+                    .spyOn(SilentHandler, "initiateEarRequest")
+                    .mockImplementation(async (frame) => {
+                        broadcastBridgeResponse(
+                            `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
+                        );
+                        return frame;
+                    });
+
+                const result = await raceClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                });
+
+                expect(initiateEarRequestSpy).toHaveBeenCalled();
+                expect(result).toEqual(testAuthResult);
+            });
+
+            it("propagates a navigation error without an unhandled rejection", async () => {
+                const raceClient = await buildSilentClient({
+                    iframeBridgeTimeout: 3000,
+                });
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "getAuthCodeRequestUrl"
+                ).mockResolvedValue(testNavUrl);
+                const navError = new Error("navigation failed");
+                jest.spyOn(
+                    SilentHandler,
+                    "initiateCodeRequest"
+                ).mockRejectedValue(navError);
+
+                /*
+                 * The response listener promise is created before navigation. If
+                 * navigation throws, that listener still rejects later (as it
+                 * would on a real bridge timeout) - it must not surface as an
+                 * unhandled rejection. Use a sentinel rejection so we can assert
+                 * specifically that THIS rejection was handled, while acquireToken
+                 * rejects with the navigation error.
+                 */
+                const listenerError = new Error("bridge-listener-sentinel");
+                jest.spyOn(
+                    BrowserUtils,
+                    "waitForBridgeResponse"
+                ).mockImplementation(() => Promise.reject(listenerError));
+
+                const unhandledReasons: unknown[] = [];
+                const onUnhandled = (reason: unknown): void => {
+                    unhandledReasons.push(reason);
+                };
+                process.on("unhandledRejection", onUnhandled);
+                try {
+                    await expect(
+                        raceClient.acquireToken({
+                            redirectUri: TEST_URIS.TEST_REDIR_URI,
+                            loginHint: "testLoginHint",
+                            httpMethod: Constants.HttpMethod.GET,
+                        })
+                    ).rejects.toBe(navError);
+
+                    // Flush macrotasks so any unhandled rejection would surface.
+                    await new Promise((resolve) => setTimeout(resolve, 10));
+                    expect(unhandledReasons).not.toContain(listenerError);
+                } finally {
+                    process.off("unhandledRejection", onUnhandled);
+                }
             });
         });
 
