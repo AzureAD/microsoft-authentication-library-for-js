@@ -73,11 +73,12 @@ async function loadTokensInBrowser(
             // msal is the global variable exposed by the msal-browser UMD bundle
             // loaded in index.html. loadExternalTokens writes tokens to the
             // browser cache (sessionStorage by default) using the correct schema.
-            await (window as Window & { msal: { loadExternalTokens: Function } }).msal.loadExternalTokens(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (window as any).msal.loadExternalTokens(
                 config,
                 request,
                 response,
-                {}
+                {} // LoadTokenOptions - see testing.md for available options
             );
         },
         [msalConfig, silentRequest, serverResponse] as [
@@ -91,8 +92,13 @@ async function loadTokensInBrowser(
 function getCredentials(): [string, string] {
     // Implement a secure way to retrieve test credentials, e.g. from environment
     // variables or a secrets manager. Never hard-code credentials in test files.
-    const username = process.env.TEST_USERNAME ?? "";
-    const password = process.env.TEST_PASSWORD ?? "";
+    const username = process.env.TEST_USERNAME;
+    const password = process.env.TEST_PASSWORD;
+    if (!username || !password) {
+        throw new Error(
+            "TEST_USERNAME and TEST_PASSWORD environment variables must be set before running tests."
+        );
+    }
     return [username, password];
 }
 

@@ -85,6 +85,7 @@ async function loadTokensInBrowser(
     await page.evaluate(
         async ([config, request, response]) => {
             // msal is the global exposed by the @azure/msal-browser UMD bundle
+            // The fourth argument is LoadTokenOptions (empty object uses defaults)
             await (window as any).msal.loadExternalTokens(config, request, response, {});
         },
         [msalConfig, { scopes, authority: msalConfig.auth.authority }, serverResponse]
@@ -137,6 +138,7 @@ async function loadTokensInBrowser(
     await page.evaluate(
         async (config, request, response) => {
             // msal is the global exposed by the @azure/msal-browser UMD bundle
+            // The fourth argument is LoadTokenOptions (empty object uses defaults)
             await (window as any).msal.loadExternalTokens(config, request, response, {});
         },
         config,
@@ -169,6 +171,7 @@ declare global {
 Cypress.Commands.add("loadMsalTokens", (config, request, response) => {
     cy.window().then(async (win) => {
         // msal is the global exposed by the @azure/msal-browser UMD bundle
+        // The fourth argument is LoadTokenOptions (empty object uses defaults)
         await (win as any).msal.loadExternalTokens(config, request, response, {});
     });
 });
@@ -186,7 +189,10 @@ beforeEach(() => {
     cy.visit("http://localhost:3000/");
 
     // Obtain a server response (see ROPC helper in the Playwright section),
-    // or use pre-obtained / hardcoded test tokens:
+    // or use pre-obtained / hardcoded test tokens.
+    // NOTE: The values below are illustrative placeholders only. Replace them
+    // with tokens obtained via the ROPC helper or another token acquisition
+    // method before running real tests.
     const serverResponse: ExternalTokenResponse = {
         token_type: "Bearer",
         scope: "User.Read",
