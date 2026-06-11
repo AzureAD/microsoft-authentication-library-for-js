@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Fri, 05 Jun 2026 22:24:22 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 10 Jun 2026 22:41:33 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.8.0
+
+Wed, 10 Jun 2026 22:41:33 GMT
+
+### Minor changes
+
+- Add per-type migration telemetry counter fields to PerformanceEvent [#8628](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8628) (thomas.norling@microsoft.com)
+- Disable ServerTelemetryManager by default [#8600](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8600) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Fix logger correlation cache LRU eviction when the empty string correlation ID is least recently used [#8627](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8627) (hemoral@microsoft.com)
+- Use in-built URL API to perform URL comparisons adhering to correct MDN and RFC standards [#8625](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8625) (lalimasharda@microsoft.com)
 
 ## 16.7.0
 
