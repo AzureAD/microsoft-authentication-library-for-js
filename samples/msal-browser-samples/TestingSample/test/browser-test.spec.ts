@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { PublicClientApplication } from "@azure/msal-node";
 
 const msalConfig = {
     auth: {
@@ -14,9 +15,9 @@ const msalConfig = {
 const scopes = ["User.Read"];
 
 /**
- * Obtains tokens from the token endpoint using the Resource Owner Password
- * Credentials (ROPC) flow. Returns the raw server response which can be
- * passed directly to loadExternalTokens.
+ * Obtains tokens using msal-node's Resource Owner Password Credentials (ROPC)
+ * flow. Returns a server-response-shaped object that can be passed directly
+ * to loadExternalTokens.
  *
  * WARNING: The ROPC flow should only be used for testing purposes and is not
  * suitable for authenticating real users outside of a test environment.
@@ -25,30 +26,26 @@ async function getServerTokenResponse(
     username: string,
     password: string
 ): Promise<Record<string, unknown>> {
-    const tenantId = msalConfig.auth.authority.split("/").pop();
-    const tokenEndpoint = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
-
-    const body = new URLSearchParams({
-        grant_type: "password",
-        client_id: msalConfig.auth.clientId,
-        scope: scopes.join(" "),
+    const pca = new PublicClientApplication({ auth: msalConfig.auth });
+    const result = await pca.acquireTokenByUsernamePassword({
+        scopes,
         username,
         password,
     });
-
-    const response = await fetch(tokenEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: body.toString(),
-    });
-
-    if (!response.ok) {
-        throw new Error(
-            `Failed to acquire token via ROPC: ${response.status} ${await response.text()}`
-        );
+    if (!result) {
+        throw new Error("Failed to acquire token via ROPC");
     }
-
-    return response.json() as Promise<Record<string, unknown>>;
+    const now = Math.floor(Date.now() / 1000);
+    const expiresIn = result.expiresOn
+        ? Math.floor(result.expiresOn.getTime() / 1000) - now
+        : 3600;
+    return {
+        token_type: result.tokenType || "Bearer",
+        scope: result.scopes.join(" "),
+        expires_in: expiresIn,
+        access_token: result.accessToken,
+        id_token: result.idToken,
+    };
 }
 
 /**
@@ -70,9 +67,8 @@ async function loadTokensInBrowser(
 
     await page.evaluate(
         async ([config, request, response]) => {
-            // msal is the global variable exposed by the msal-browser UMD bundle
-            // loaded in index.html. loadExternalTokens writes tokens to the
-            // browser cache (sessionStorage by default) using the correct schema.
+            // msal is the global variable exposed by your application's MSAL setup.
+            // loadExternalTokens writes tokens to the browser cache using the correct schema.
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await (window as any).msal.loadExternalTokens(
                 config,

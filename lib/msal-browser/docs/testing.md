@@ -31,21 +31,23 @@ Because `loadExternalTokens()` requires a browser environment (it stores tokens 
 
 The recommended approach is to:
 
-1. Obtain a raw token server response **outside** the browser (e.g. via a direct ROPC HTTP request to the token endpoint, using hardcoded test tokens, or by calling your own auth service).
+1. Obtain a raw token server response **outside** the browser (e.g. via msal-node's ROPC flow, using hardcoded test tokens, or by calling your own auth service).
 2. Pass the response into the browser and call `loadExternalTokens()` there, using whatever mechanism your test framework provides.
 3. Reload the page so the application reads the freshly-populated cache and recognises the user as signed in.
 
 ### Playwright
 
-Use [`page.evaluate`](https://playwright.dev/docs/api/class-page#page-evaluate) to execute code in the browser context. The `msal` global is available because your application already loads the `@azure/msal-browser` UMD bundle.
+Use [`page.evaluate`](https://playwright.dev/docs/api/class-page#page-evaluate) to execute code in the browser context. The `msal` global is available because your application loads `@azure/msal-browser` (either as a module or exposed on `window`).
 
 ```ts
 import { test, expect, type Page } from "@playwright/test";
+import { PublicClientApplication } from "@azure/msal-node";
 
+const tenantId = "your-tenant-id";
 const msalConfig = {
     auth: {
         clientId: "your-client-id",
-        authority: "https://login.microsoftonline.com/your-tenant-id",
+        authority: `https://login.microsoftonline.com/${tenantId}`,
     },
     cache: { cacheLocation: "sessionStorage" },
 };
@@ -53,29 +55,38 @@ const msalConfig = {
 const scopes = ["User.Read"];
 
 /**
- * Obtain a raw token server response via a direct ROPC POST request.
+ * Obtain tokens using msal-node's ROPC flow.
  * This runs in Node.js (test runner) and does NOT require a browser.
  *
- * The returned object is the raw JSON body of the /token response, which
+ * The returned object is mapped to the ExternalTokenResponse format, which
  * can be passed directly to loadExternalTokens.
+ *
+ * WARNING: The ROPC flow should only be used for testing purposes.
  */
 async function getServerTokenResponse(
     username: string,
     password: string
 ): Promise<Record<string, unknown>> {
-    const tenantId = msalConfig.auth.authority.split("/").pop();
-    const body = new URLSearchParams({
-        grant_type: "password",
-        client_id: msalConfig.auth.clientId,
-        scope: scopes.join(" "),
+    const pca = new PublicClientApplication({ auth: msalConfig.auth });
+    const result = await pca.acquireTokenByUsernamePassword({
+        scopes,
         username,
         password,
     });
-    const res = await fetch(
-        `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
-        { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: body.toString() }
-    );
-    return res.json() as Promise<Record<string, unknown>>;
+    if (!result) {
+        throw new Error("Failed to acquire token via ROPC");
+    }
+    const now = Math.floor(Date.now() / 1000);
+    const expiresIn = result.expiresOn
+        ? Math.floor(result.expiresOn.getTime() / 1000) - now
+        : 3600;
+    return {
+        token_type: result.tokenType || "Bearer",
+        scope: result.scopes.join(" "),
+        expires_in: expiresIn,
+        access_token: result.accessToken,
+        id_token: result.idToken,
+    };
 }
 
 async function loadTokensInBrowser(
@@ -84,7 +95,7 @@ async function loadTokensInBrowser(
 ): Promise<void> {
     await page.evaluate(
         async ([config, request, response]) => {
-            // msal is the global exposed by the @azure/msal-browser UMD bundle
+            // msal is the global variable exposed by your application's MSAL setup.
             // The fourth argument is LoadTokenOptions (empty object uses defaults)
             await (window as any).msal.loadExternalTokens(config, request, response, {});
         },
@@ -137,7 +148,7 @@ async function loadTokensInBrowser(
 
     await page.evaluate(
         async (config, request, response) => {
-            // msal is the global exposed by the @azure/msal-browser UMD bundle
+            // msal is the global variable exposed by your application's MSAL setup.
             // The fourth argument is LoadTokenOptions (empty object uses defaults)
             await (window as any).msal.loadExternalTokens(config, request, response, {});
         },
@@ -170,7 +181,7 @@ declare global {
 
 Cypress.Commands.add("loadMsalTokens", (config, request, response) => {
     cy.window().then(async (win) => {
-        // msal is the global exposed by the @azure/msal-browser UMD bundle
+        // msal is the global variable exposed by your application's MSAL setup.
         // The fourth argument is LoadTokenOptions (empty object uses defaults)
         await (win as any).msal.loadExternalTokens(config, request, response, {});
     });

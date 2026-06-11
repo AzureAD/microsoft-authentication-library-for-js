@@ -54,7 +54,7 @@ async function signIn(method) {
 
 function signOut() {
     const logoutRequest = {
-        account: myMSALObj.getAccountByHomeId(accountId)
+        account: myMSALObj.getAccount({ homeAccountId: accountId })
     };
 
     myMSALObj.logoutRedirect(logoutRequest);
