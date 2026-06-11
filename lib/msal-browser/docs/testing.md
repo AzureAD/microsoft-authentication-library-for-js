@@ -100,6 +100,8 @@ async function loadTokensInBrowser(
             // (e.g. window.msal, a dedicated testbed helper, etc.).
             // The fourth argument is LoadTokenOptions (empty object uses defaults)
             await (window as any).msal.loadExternalTokens(config, request, response, {});
+        },
+        [msalConfig, { scopes, authority: msalConfig.auth.authority }, serverResponse]
     );
 }
 
@@ -164,6 +166,10 @@ async function loadTokensInBrowser(
             // (e.g. window.msal, a dedicated testbed helper, etc.).
             // The fourth argument is LoadTokenOptions (empty object uses defaults)
             await (window as any).msal.loadExternalTokens(config, request, response, {});
+        },
+        config,
+        request,
+        serverResponse
     );
 }
 ```
