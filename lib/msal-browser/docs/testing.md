@@ -105,6 +105,10 @@ async function loadTokensInBrowser(
 }
 
 let serverResponse: Record<string, unknown>;
+/**
+ * Reads test credentials from environment variables and throws if either
+ * value is missing.
+ */
 function getCredentials(): [string, string] {
     const username = process.env.TEST_USERNAME;
     const password = process.env.TEST_PASSWORD;
