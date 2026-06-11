@@ -61,9 +61,7 @@ export class ClientCredentialClient extends BaseClient {
         request: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
         // Build additional cache key components for FMI cache isolation
-        let additionalCacheKeyComponents:
-            | Record<string, string>
-            | undefined;
+        let additionalCacheKeyComponents: Record<string, string> | undefined;
         if (request.fmiPath) {
             additionalCacheKeyComponents = {
                 fmi_path: request.fmiPath,

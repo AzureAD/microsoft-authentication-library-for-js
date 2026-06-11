@@ -116,8 +116,7 @@ describe("ClientCredentialClient FMI tests", () => {
             await client.acquireToken(request);
 
             // Verify the cached token has additionalCacheKeyComponents with the raw fmi_path
-            const tokenKeys =
-                config.storageInterface!.getTokenKeys();
+            const tokenKeys = config.storageInterface!.getTokenKeys();
             const accessTokenKeys = tokenKeys.accessToken;
             expect(accessTokenKeys.length).toBeGreaterThan(0);
             const cachedToken =
@@ -126,9 +125,9 @@ describe("ClientCredentialClient FMI tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
             expect(cachedToken).not.toBeNull();
-            expect(
-                cachedToken!.additionalCacheKeyComponents
-            ).toEqual({ fmi_path: fmiPathValue });
+            expect(cachedToken!.additionalCacheKeyComponents).toEqual({
+                fmi_path: fmiPathValue,
+            });
         });
 
         it("does not store additionalCacheKeyComponents when fmiPath is not set", async () => {
@@ -142,8 +141,7 @@ describe("ClientCredentialClient FMI tests", () => {
 
             await client.acquireToken(request);
 
-            const tokenKeys =
-                config.storageInterface!.getTokenKeys();
+            const tokenKeys = config.storageInterface!.getTokenKeys();
             const accessTokenKeys = tokenKeys.accessToken;
             expect(accessTokenKeys.length).toBeGreaterThan(0);
             const cachedToken =
@@ -152,9 +150,7 @@ describe("ClientCredentialClient FMI tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
             expect(cachedToken).not.toBeNull();
-            expect(
-                cachedToken!.additionalCacheKeyComponents
-            ).toBeUndefined();
+            expect(cachedToken!.additionalCacheKeyComponents).toBeUndefined();
         });
 
         it("caches FMI tokens and returns from network (not cache) on first call", async () => {
@@ -363,7 +359,9 @@ describe("ClientCredentialClient FMI tests", () => {
          * or when multiple FMI paths are used on the same CCA instance.
          */
 
-        function makeEntity(overrides: Partial<CredentialEntity>): CredentialEntity {
+        function makeEntity(
+            overrides: Partial<CredentialEntity>
+        ): CredentialEntity {
             return {
                 homeAccountId: "",
                 environment: "login.microsoftonline.com",
@@ -384,11 +382,13 @@ describe("ClientCredentialClient FMI tests", () => {
                 additionalCacheKeyComponents: fmiComponents,
             });
             const popPlain = makeEntity({
-                credentialType: Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                credentialType:
+                    Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
                 tokenType: Constants.AuthenticationScheme.POP,
             });
             const popFmi = makeEntity({
-                credentialType: Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                credentialType:
+                    Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
                 tokenType: Constants.AuthenticationScheme.POP,
                 additionalCacheKeyComponents: fmiComponents,
             });
@@ -426,12 +426,14 @@ describe("ClientCredentialClient FMI tests", () => {
                 additionalCacheKeyComponents: fmiComponents,
             });
             const popFmi = makeEntity({
-                credentialType: Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                credentialType:
+                    Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
                 tokenType: Constants.AuthenticationScheme.POP,
                 additionalCacheKeyComponents: fmiComponents,
             });
             const sshFmi = makeEntity({
-                credentialType: Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                credentialType:
+                    Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
                 tokenType: Constants.AuthenticationScheme.SSH,
                 additionalCacheKeyComponents: fmiComponents,
             });
@@ -497,7 +499,8 @@ describe("ClientCredentialClient FMI tests", () => {
 
         it("credential key contains scheme and hash as trailing components", () => {
             const entity = makeEntity({
-                credentialType: Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                credentialType:
+                    Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
                 tokenType: Constants.AuthenticationScheme.POP,
                 additionalCacheKeyComponents: { fmi_path: "agent-a" },
             });
