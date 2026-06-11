@@ -2,6 +2,21 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 11 Jun 2026 23:52:35 GMT",
+      "version": "5.14.0",
+      "tag": "@azure/msal-browser_v5.14.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "msaljsbuilds@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1e18323985129c85b98741709ad6edd0c53d7916",
+            "comment": "Bump @azure/msal-browser to match @azure/msal-browser-1p"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 10 Jun 2026 22:41:33 GMT",
       "version": "5.13.0",
       "tag": "@azure/msal-browser_v5.13.0",

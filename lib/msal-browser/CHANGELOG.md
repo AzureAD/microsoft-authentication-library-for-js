@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 10 Jun 2026 22:41:33 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 11 Jun 2026 23:52:35 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.14.0
+
+Thu, 11 Jun 2026 23:52:35 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
 
 ## 5.13.0
 
