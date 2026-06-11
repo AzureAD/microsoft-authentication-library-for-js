@@ -37,7 +37,7 @@ The recommended approach is to:
 
 ### Playwright
 
-Use [`page.evaluate`](https://playwright.dev/docs/api/class-page#page-evaluate) to execute code in the browser context. The `msal` global must be accessible on `window` and must include `loadExternalTokens` (for example by exposing the package namespace that contains this function).
+Use [`page.evaluate`](https://playwright.dev/docs/api/class-page#page-evaluate) to execute code in the browser context. The script injected into the browser needs a way to call `loadExternalTokens` — one common approach is to expose your MSAL instance (or the package namespace) on `window`, but any mechanism that makes the function reachable from an injected script works.
 
 ```ts
 import { test, expect, type Page } from "@playwright/test";
@@ -96,11 +96,10 @@ async function loadTokensInBrowser(
 ): Promise<void> {
     await page.evaluate(
         async ([config, request, response]) => {
-            // msal is the global variable exposed by your application's MSAL setup.
+            // Access loadExternalTokens via whatever mechanism your app exposes it
+            // (e.g. window.msal, a dedicated testbed helper, etc.).
             // The fourth argument is LoadTokenOptions (empty object uses defaults)
             await (window as any).msal.loadExternalTokens(config, request, response, {});
-        },
-        [msalConfig, { scopes, authority: msalConfig.auth.authority }, serverResponse]
     );
 }
 
@@ -161,13 +160,10 @@ async function loadTokensInBrowser(
 
     await page.evaluate(
         async (config, request, response) => {
-            // msal is the global variable exposed by your application's MSAL setup.
+            // Access loadExternalTokens via whatever mechanism your app exposes it
+            // (e.g. window.msal, a dedicated testbed helper, etc.).
             // The fourth argument is LoadTokenOptions (empty object uses defaults)
             await (window as any).msal.loadExternalTokens(config, request, response, {});
-        },
-        config,
-        request,
-        serverResponse
     );
 }
 ```
@@ -194,7 +190,8 @@ declare global {
 
 Cypress.Commands.add("loadMsalTokens", (config, request, response) => {
     cy.window().then(async (win) => {
-        // msal is the global variable exposed by your application's MSAL setup.
+        // Access loadExternalTokens via whatever mechanism your app exposes it
+        // (e.g. win.msal, a dedicated testbed helper, etc.).
         // The fourth argument is LoadTokenOptions (empty object uses defaults)
         await (win as any).msal.loadExternalTokens(config, request, response, {});
     });
