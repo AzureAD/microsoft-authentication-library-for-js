@@ -1905,6 +1905,38 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
+        it("does not clear in-progress interaction state when a concurrent redirect throws interaction_in_progress", async () => {
+            /*
+             * Regression test for GitHub issue #8633: a duplicate loginRedirect/acquireTokenRedirect
+             * call that throws interaction_in_progress must not reset the request cache, otherwise it
+             * destroys the temporary cache and interaction_in_progress flag owned by the first in-flight
+             * redirect, causing its redirect handler to silently fail.
+             */
+
+            // Simulate a first redirect that has already claimed the interaction and cached its request.
+            browserStorage.setInteractionInProgress(true);
+            browserStorage.cacheAuthorizeRequest(
+                testRequest,
+                RANDOM_TEST_GUID,
+                TEST_CONFIG.TEST_VERIFIER
+            );
+
+            // A second concurrent redirect must reject without tearing down the first interaction's state.
+            await expect(
+                pca.acquireTokenRedirect({ scopes: ["openid"] })
+            ).rejects.toMatchObject(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.interactionInProgress
+                )
+            );
+
+            // The first interaction's state must survive so its redirect handler can complete.
+            expect(browserStorage.isInteractionInProgress(true)).toBe(true);
+            expect(() =>
+                browserStorage.getCachedRequest(RANDOM_TEST_GUID)
+            ).not.toThrow();
+        });
+
         it("throws error if called in a popup", (done) => {
             Object.defineProperty(window, "location", {
                 configurable: true,
@@ -2351,7 +2383,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
         });
 
-        it("instruments initialization error", (done) => {
+        it("does not emit telemetry for initialization error since preflight checks run before instrumentation starts", async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -2364,20 +2396,21 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 },
             });
-            const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events[0].success).toBe(false);
-                expect(events[0].errorCode).toBe(
-                    "uninitialized_public_client_application"
-                );
-                pca.removePerformanceCallback(callbackId);
-                done();
+            let performanceEventEmitted = false;
+            const callbackId = pca.addPerformanceCallback(() => {
+                performanceEventEmitted = true;
             });
 
-            pca.acquireTokenRedirect({ scopes: [] })
-                .then(() => {
-                    throw new Error("success path should not be reached");
-                })
-                .catch((e) => {});
+            await expect(
+                pca.acquireTokenRedirect({ scopes: [] })
+            ).rejects.toMatchObject(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
+            );
+
+            pca.removePerformanceCallback(callbackId);
+            expect(performanceEventEmitted).toBe(false);
         });
 
         it("throws an error if isMcp is true and resource is not provided in request", async () => {
