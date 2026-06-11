@@ -6,7 +6,7 @@
 
 This sample demonstrates how you can run e2e tests against an application that uses msal-browser to obtain tokens and sign users in.
 
-Tokens are acquired by making a direct ROPC (Resource Owner Password Credentials) request to the Microsoft identity platform token endpoint. The raw server response is then injected into the browser's MSAL cache using [`loadExternalTokens`](../../../lib/msal-browser/docs/testing.md) via Playwright's `page.evaluate` API.
+Tokens are acquired using msal-node's ROPC (Resource Owner Password Credentials) flow. The response is then mapped to `ExternalTokenResponse` and injected into the browser's MSAL cache using [`loadExternalTokens`](../../../lib/msal-browser/docs/testing.md) via Playwright's `page.evaluate` API.
 
 Because `loadExternalTokens` runs **inside the browser**, it writes tokens using the same cache key schema as `@azure/msal-browser`, which means the application will recognise the user as already signed in without needing to navigate through the Microsoft Entra ID sign-in pages.
 
@@ -20,7 +20,7 @@ Because `loadExternalTokens` runs **inside the browser**, it writes tokens using
 ## Run the test
 
 ```bash
-# Install dependencies (includes @azure/msal-browser whose UMD bundle is served to the browser)
+# Install dependencies
 npm install
 
 # Run tests using Playwright

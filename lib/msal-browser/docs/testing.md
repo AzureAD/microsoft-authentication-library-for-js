@@ -37,7 +37,7 @@ The recommended approach is to:
 
 ### Playwright
 
-Use [`page.evaluate`](https://playwright.dev/docs/api/class-page#page-evaluate) to execute code in the browser context. The `msal` global must be accessible on `window` — this is the case when using a UMD build or when your application explicitly exposes it (e.g. `window.msal = myMSALObj`).
+Use [`page.evaluate`](https://playwright.dev/docs/api/class-page#page-evaluate) to execute code in the browser context. The `msal` global must be accessible on `window` and must include `loadExternalTokens` (for example by exposing the package namespace that contains this function).
 
 ```ts
 import { test, expect, type Page } from "@playwright/test";
@@ -105,12 +105,20 @@ async function loadTokensInBrowser(
 }
 
 let serverResponse: Record<string, unknown>;
+function getCredentials(): [string, string] {
+    const username = process.env.TEST_USERNAME;
+    const password = process.env.TEST_PASSWORD;
+    if (!username || !password) {
+        throw new Error(
+            "TEST_USERNAME and TEST_PASSWORD environment variables must be set before running tests."
+        );
+    }
+    return [username, password];
+}
 
 test.beforeAll(async () => {
-    serverResponse = await getServerTokenResponse(
-        process.env.TEST_USERNAME!,
-        process.env.TEST_PASSWORD!
-    );
+    const [username, password] = getCredentials();
+    serverResponse = await getServerTokenResponse(username, password);
 });
 
 test.beforeEach(async ({ page }) => {

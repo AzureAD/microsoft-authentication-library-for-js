@@ -21,6 +21,8 @@ myMSALObj.initialize().then(() => {
     myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
         console.error(err);
     });
+}).catch(err => {
+    console.error(err);
 });
 
 function handleResponse(resp) {

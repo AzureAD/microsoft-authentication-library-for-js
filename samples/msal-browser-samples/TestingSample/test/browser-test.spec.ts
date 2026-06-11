@@ -38,7 +38,7 @@ async function getServerTokenResponse(
     const now = Math.floor(Date.now() / 1000);
     // Default to 3600 seconds (1 hour) if expiresOn is not available
     const expiresIn = result.expiresOn
-        ? Math.floor(result.expiresOn.getTime() / 1000) - now
+        ? Math.max(1, Math.floor(result.expiresOn.getTime() / 1000) - now)
         : 3600;
     return {
         token_type: result.tokenType || "Bearer",
