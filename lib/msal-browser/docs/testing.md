@@ -37,7 +37,7 @@ The recommended approach is to:
 
 ### Playwright
 
-Use [`page.evaluate`](https://playwright.dev/docs/api/class-page#page-evaluate) to execute code in the browser context. The `msal` global is available because your application loads `@azure/msal-browser` (either as a module or exposed on `window`).
+Use [`page.evaluate`](https://playwright.dev/docs/api/class-page#page-evaluate) to execute code in the browser context. The `msal` global must be accessible on `window` — this is the case when using a UMD build or when your application explicitly exposes it (e.g. `window.msal = myMSALObj`).
 
 ```ts
 import { test, expect, type Page } from "@playwright/test";
@@ -77,6 +77,7 @@ async function getServerTokenResponse(
         throw new Error("Failed to acquire token via ROPC");
     }
     const now = Math.floor(Date.now() / 1000);
+    // Default to 3600 seconds (1 hour) if expiresOn is not available
     const expiresIn = result.expiresOn
         ? Math.floor(result.expiresOn.getTime() / 1000) - now
         : 3600;

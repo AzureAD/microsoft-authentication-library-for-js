@@ -36,6 +36,7 @@ async function getServerTokenResponse(
         throw new Error("Failed to acquire token via ROPC");
     }
     const now = Math.floor(Date.now() / 1000);
+    // Default to 3600 seconds (1 hour) if expiresOn is not available
     const expiresIn = result.expiresOn
         ? Math.floor(result.expiresOn.getTime() / 1000) - now
         : 3600;
