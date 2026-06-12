@@ -453,6 +453,52 @@ describe("TokenCache tests", () => {
             expect(blockSpy).toHaveBeenCalled();
         });
 
+        it("initializes storage when cacheLocation is localStorage", async () => {
+            const initializeSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "initialize"
+            );
+            const localStorageConfiguration = buildConfiguration(
+                {
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                    cache: {
+                        cacheLocation: BrowserCacheLocation.LocalStorage,
+                        cacheRetentionDays: 5,
+                    },
+                },
+                true
+            );
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                account: {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    environment: testEnvironment,
+                    tenantId: TEST_CONFIG.TENANT,
+                    username: "username",
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+                    loginHint: "login_hint",
+                },
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            };
+            const response: ExternalTokenResponse = {
+                id_token: testIdToken,
+            };
+
+            const result = await loadExternalTokens(
+                localStorageConfiguration,
+                request,
+                response,
+                {}
+            );
+
+            expect(initializeSpy).toHaveBeenCalledWith(
+                TEST_CONFIG.CORRELATION_ID
+            );
+            expect(result.idToken).toEqual(testIdToken);
+        });
+
         it("loads refresh token with request authority and client info provided in response", async () => {
             const refreshSpy = jest.spyOn(
                 BrowserCacheManager.prototype,
