@@ -502,7 +502,9 @@ describe("TokenCache tests", () => {
             });
 
             expect(pca.getAllAccounts()).toHaveLength(1);
-            expect(account?.homeAccountId).toEqual(result.account.homeAccountId);
+            expect(account?.homeAccountId).toEqual(
+                result.account.homeAccountId
+            );
 
             expect(initializeSpy).toHaveBeenCalledWith(
                 TEST_CONFIG.CORRELATION_ID
