@@ -3,6 +3,6 @@
 ## Supported Environments
 
 - msal-angular supports all modern mainstream browsers (Chrome, Firefox, Safari, Edge)
-- msal-angular supports Angular versions 19+
+- msal-angular supports Angular versions 21+
 
 Never use or suggest APIs or features that are not supported by the environments listed above.
