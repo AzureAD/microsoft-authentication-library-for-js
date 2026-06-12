@@ -2,6 +2,41 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 10 Jun 2026 22:41:33 GMT",
+      "version": "16.8.0",
+      "tag": "@azure/msal-common_v16.8.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Fix logger correlation cache LRU eviction when the empty string correlation ID is least recently used [#8627](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8627)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Use in-built URL API to perform URL comparisons adhering to correct MDN and RFC standards [#8625](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8625)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Add per-type migration telemetry counter fields to PerformanceEvent [#8628](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8628)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Disable ServerTelemetryManager by default [#8600](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8600)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 05 Jun 2026 22:24:22 GMT",
       "version": "16.7.0",
       "tag": "@azure/msal-common_v16.7.0",
