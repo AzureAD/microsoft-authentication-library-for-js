@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781198562044,
+  "lastUpdate": 1781287084984,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22061,6 +22061,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.71%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "198982749+Copilot@users.noreply.github.com",
+            "name": "Copilot",
+            "username": "Copilot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1953a6fcf18150f411e05953a0a4da8147f6c5a3",
+          "message": "Update E2E testing sample and loadExternalTokens documentation (#8639)\n\nUpdates E2E testing sample and accompanying documentation showing how to\nauthenticate without browser UI in tests using `loadExternalTokens`.\n\n## Changes\n\n- **`samples/msal-browser-samples/TestingSample/`** — New end-to-end\nsample: acquires tokens server-side via msal-node's ROPC flow, injects\nthem into the browser cache via `loadExternalTokens`, then asserts the\napp sees the user as signed in without touching the sign-in UI.\n- **`lib/msal-browser/docs/testing.md`** — New doc covering the\n`loadExternalTokens` API and cache-hydration patterns for Playwright,\nPuppeteer, and Cypress. Wording clarifies that exposing `msal` on\n`window` is one approach to reach `loadExternalTokens` from an injected\nscript — not a hard requirement.\n- **`shared-test-utils/src/CredentialGenerators.ts`** — New helpers\n(`buildAccountFromIdTokenClaims`, `buildIdToken`) for constructing test\naccount entities and ID tokens in unit tests.\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2026-06-12T10:50:18-07:00",
+          "tree_id": "88898b88d42522954d361a3c33a0044bc5cb0603",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1953a6fcf18150f411e05953a0a4da8147f6c5a3"
+        },
+        "date": 1781287080040,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 369045,
+            "range": "±0.62%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 368547,
+            "range": "±0.74%",
+            "unit": "ops/sec",
+            "extra": "238 samples"
           }
         ]
       }
