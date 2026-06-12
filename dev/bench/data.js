@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781287084984,
+  "lastUpdate": 1781292672929,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22099,6 +22099,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.74%",
             "unit": "ops/sec",
             "extra": "238 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "198982749+Copilot@users.noreply.github.com",
+            "name": "Copilot",
+            "username": "Copilot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "06f9257cf7646609e6d7edcf165d2cc915d96519",
+          "message": "Initialize `BrowserCacheManager` in `loadExternalTokens` for localStorage-backed cache flows (#8645)\n\n`loadExternalTokens` regressed in v5 when `cacheLocation:\n\"localStorage\"` is configured: it created a fresh `BrowserCacheManager`\nand wrote to cache before initialization, triggering\n`uninitialized_public_client_application`. This change restores correct\nbehavior by initializing cache storage before any authority/cache\noperations.\n\n- **Runtime fix (msal-browser cache bootstrap)**\n- In `lib/msal-browser/src/cache/TokenCache.ts`, `loadExternalTokens`\nnow calls `await storage.initialize(correlationId)` immediately after\nconstructing `BrowserCacheManager`.\n- This ensures localStorage encryption/cookie setup is completed before\naccount/token writes.\n\n- **Regression coverage (localStorage path)**\n- In `lib/msal-browser/test/cache/TokenCache.spec.ts`, added a focused\ntest for `cacheLocation: LocalStorage` that verifies:\n- `BrowserCacheManager.initialize` is invoked with the request\ncorrelation ID.\n- `loadExternalTokens` completes and persisted account data is\nretrievable via initialized localStorage cache access.\n\n- **Versioning metadata**\n- Added a patch changefile for `@azure/msal-browser` documenting the\nregression fix.\n\n```ts\nconst storage = new BrowserCacheManager(\n  browserConfig.auth.clientId,\n  browserConfig.cache,\n  cryptoOps,\n  logger,\n  browserConfig.telemetry.client,\n  new EventHandler(logger),\n  buildStaticAuthorityOptions(browserConfig.auth)\n);\n\nawait storage.initialize(correlationId);\n```\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2026-06-12T12:23:05-07:00",
+          "tree_id": "a9bee17ef728a3ee95a4ad85f05a0713a4b8fc82",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/06f9257cf7646609e6d7edcf165d2cc915d96519"
+        },
+        "date": 1781292668336,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 375256,
+            "range": "±0.59%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 370371,
+            "range": "±0.57%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
