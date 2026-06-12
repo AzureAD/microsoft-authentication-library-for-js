@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Enhance logging functionality by injecting runtime variables into decoded messages [#8644](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8644)      ",
+  "comment": "Enhance logging functionality by injecting runtime variables into decoded messages [#8644](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8644)",
   "packageName": "@azure/msal-common",
   "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"
