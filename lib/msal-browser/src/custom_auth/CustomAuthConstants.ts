@@ -4,7 +4,7 @@
  */
 
 import { Constants } from "@azure/msal-common/browser";
-import { version } from "../packageMetadata.js";
+import { version, name } from "../packageMetadata.js";
 
 export const GrantType = {
     PASSWORD: "password",
@@ -44,7 +44,7 @@ export const CustomHeaderConstants = {
 } as const;
 
 export const DefaultPackageInfo = {
-    SKU: "msal.browser",
+    SKU: name,
     VERSION: version,
     OS: "",
     CPU: "",
