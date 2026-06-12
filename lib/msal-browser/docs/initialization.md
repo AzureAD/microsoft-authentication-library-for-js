@@ -185,6 +185,9 @@ In the browser, there are two ways you can present the login screen to your user
 
 The popup APIs use ES6 Promises that resolve when the authentication flow in the popup concludes and returns to the redirect URI specified, or reject if there are issues in the code or the popup is blocked.
 
+> [!WARNING]
+> Popup flows can be unreliable in Safari and mobile browsers due to popup blocker and gesture constraints, especially when popup calls are made after async operations. For the most reliable cross-browser behavior, prefer redirect flows. For details and browser-specific guidance, see [Browser-specific guidance](./browser-specific-guidance.md).
+
 #### RedirectUri Considerations
 
 When using popup APIs, the `redirectUri` must point to a dedicated page that implements the MSAL redirect bridge. This page handles the authentication response and communicates it back to the main application.
@@ -201,6 +204,9 @@ msalInstance.loginPopup({
 
 -   `loginRedirect`
 -   `acquireTokenRedirect`
+
+> [!TIP]
+> Redirect APIs are generally the most reliable interaction type across browsers, including Safari and mobile browsers. See [Browser-specific guidance](./browser-specific-guidance.md) for recommended patterns.
 
 Note: If you are using `msal-angular` or `msal-react`, redirects are handled differently, and you should see the [`msal-angular` redirect doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/redirects.md) and [`msal-react` FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md#how-do-i-handle-the-redirect-flow-in-a-react-app) for more details.
 

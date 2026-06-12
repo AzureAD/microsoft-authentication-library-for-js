@@ -71,6 +71,25 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system?.allowPlatformBroker).toBe(false);
     });
 
+    it("serverTelemetryEnabled defaults to false", () => {
+        const config = buildConfiguration(
+            { auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID } },
+            true
+        );
+        expect(config.system.serverTelemetryEnabled).toBe(false);
+    });
+
+    it("sets serverTelemetryEnabled to passed in true value", () => {
+        const config = buildConfiguration(
+            {
+                auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                system: { serverTelemetryEnabled: true },
+            },
+            true
+        );
+        expect(config.system.serverTelemetryEnabled).toBe(true);
+    });
+
     it("sets allowPlatformBroker to passed in true value", () => {
         const config: Configuration = buildConfiguration(
             {

@@ -1,8 +1,26 @@
 # Change Log - @azure/msal-node-extensions
 
-<!-- This log was last generated on Tue, 19 May 2026 19:29:14 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 10 Jun 2026 22:41:34 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.2.4
+
+Wed, 10 Jun 2026 22:41:34 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.8.0
+
+## 5.2.3
+
+Fri, 05 Jun 2026 22:24:22 GMT
+
+### Patches
+
+- fix: set restrictive file permissions in FilePersistence [#8623](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8623) (thomas.norling@microsoft.com)
+- bump msal-common to version 16.6.3 [#8622](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8622) (lalimasharda@microsoft.com)
+- Bump @azure/msal-common to v16.7.0
 
 ## 5.2.2
 

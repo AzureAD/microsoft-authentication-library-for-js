@@ -474,11 +474,22 @@ export type PerformanceEvent = {
     migratedRTCount?: number;
 
     /**
-     * Cache telemetry — expired, invalid, and removed counts
+     * Per-type migration outcome counters
      */
-    expiredCacheRemovedCount?: number;
-    expiredAcntRemovedCount?: number;
-    invalidCacheCount?: number;
+    ttlExpiredAcntCount?: number;
+    ttlExpiredITCount?: number;
+    ttlExpiredATCount?: number;
+    ttlExpiredRTCount?: number;
+    decryptFailedAcntCount?: number;
+    decryptFailedITCount?: number;
+    decryptFailedATCount?: number;
+    decryptFailedRTCount?: number;
+    invalidAcntCount?: number;
+    invalidITCount?: number;
+    invalidATCount?: number;
+    invalidRTCount?: number;
+    expiredATCount?: number;
+    expiredRTCount?: number;
 
     /**
      * Encrypted cache telemetry
@@ -542,7 +553,20 @@ export const IntFields: ReadonlySet<string> = new Set([
     "currAccessCount",
     "currIdCount",
     "currRefreshCount",
-    "expiredCacheRemovedCount",
+    "ttlExpiredAcntCount",
+    "ttlExpiredITCount",
+    "ttlExpiredATCount",
+    "ttlExpiredRTCount",
+    "decryptFailedAcntCount",
+    "decryptFailedITCount",
+    "decryptFailedATCount",
+    "decryptFailedRTCount",
+    "invalidAcntCount",
+    "invalidITCount",
+    "invalidATCount",
+    "invalidRTCount",
+    "expiredATCount",
+    "expiredRTCount",
     "upgradedCacheCount",
     "cacheMatchedAccounts",
     "networkRtt",

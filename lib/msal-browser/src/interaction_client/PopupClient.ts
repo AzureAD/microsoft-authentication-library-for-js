@@ -316,7 +316,9 @@ export class PopupClient extends StandardInteractionClient {
             this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
-            this.logger
+            this.logger,
+            undefined,
+            this.config.system.serverTelemetryEnabled
         );
 
         const pkce =
@@ -543,7 +545,9 @@ export class PopupClient extends StandardInteractionClient {
                     this.config.auth.clientId,
                     correlationId,
                     this.browserStorage,
-                    this.logger
+                    this.logger,
+                    undefined,
+                    this.config.system.serverTelemetryEnabled
                 ),
                 requestAuthority: request.authority,
                 requestAzureCloudOptions: request.azureCloudOptions,
@@ -703,7 +707,9 @@ export class PopupClient extends StandardInteractionClient {
             this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
-            this.logger
+            this.logger,
+            undefined,
+            this.config.system.serverTelemetryEnabled
         );
 
         try {
@@ -923,6 +929,22 @@ export class PopupClient extends StandardInteractionClient {
                 throw createBrowserAuthError(
                     BrowserAuthErrorCodes.emptyWindowError
                 );
+            }
+            try {
+                popupWindow.document.title = "Microsoft Authentication";
+            } catch (e) {
+                if (
+                    typeof DOMException !== "undefined" &&
+                    e instanceof DOMException &&
+                    e.name === "SecurityError"
+                ) {
+                    // Cross-origin - title cannot be set
+                } else {
+                    this.logger.verbose(
+                        "Could not set document.title on popup window",
+                        this.correlationId
+                    );
+                }
             }
             if (popupWindow.focus) {
                 popupWindow.focus();

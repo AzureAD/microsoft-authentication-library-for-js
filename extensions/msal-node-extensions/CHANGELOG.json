@@ -2,6 +2,48 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Wed, 10 Jun 2026 22:41:34 GMT",
+      "version": "5.2.4",
+      "tag": "@azure/msal-node-extensions_v5.2.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.8.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 05 Jun 2026 22:24:22 GMT",
+      "version": "5.2.3",
+      "tag": "@azure/msal-node-extensions_v5.2.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "7588af34d25beca61640567b526de3e8aa682d3d",
+            "comment": "fix: set restrictive file permissions in FilePersistence [#8623](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8623)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "7588af34d25beca61640567b526de3e8aa682d3d",
+            "comment": "bump msal-common to version 16.6.3 [#8622](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8622)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.7.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 19 May 2026 19:29:14 GMT",
       "version": "5.2.2",
       "tag": "@azure/msal-node-extensions_v5.2.2",

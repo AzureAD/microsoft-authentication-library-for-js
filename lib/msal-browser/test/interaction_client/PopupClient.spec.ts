@@ -867,6 +867,9 @@ describe("PopupClient", () => {
         });
 
         it("catches error and cleans cache before rethrowing", async () => {
+            // Enable server telemetry so cacheFailedRequest writes to storage
+            //@ts-ignore
+            popupClient.config.system.serverTelemetryEnabled = true;
             const testError: AuthError = new AuthError(
                 "create_login_url_error",
                 "Error in creating a login url"
@@ -1136,6 +1139,9 @@ describe("PopupClient", () => {
         });
 
         it("catches error and cleans cache before rethrowing", async () => {
+            // Enable server telemetry so cacheFailedRequest writes to storage
+            //@ts-ignore
+            popupClient.config.system.serverTelemetryEnabled = true;
             const testError: AuthError = new AuthError(
                 "create_logout_url_error",
                 "Error in creating a logout url"
@@ -2338,6 +2344,85 @@ describe("PopupClient", () => {
             ).toThrow(
                 createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
             );
+        });
+
+        it("sets document.title on the popup window", () => {
+            const mockPopupWindow = {
+                ...window,
+                document: { title: "" },
+                focus: jest.fn(),
+            };
+            jest.spyOn(window, "open").mockReturnValue(
+                mockPopupWindow as unknown as Window
+            );
+
+            const popupWindow = popupClient.initiateAuthRequest(
+                "http://localhost/#/code=hello",
+                {
+                    popupName: "name",
+                    popupWindowAttributes: {},
+                    popupWindowParent: window,
+                }
+            );
+
+            expect(
+                (popupWindow as unknown as { document: { title: string } })
+                    .document.title
+            ).toBe("Microsoft Authentication");
+        });
+
+        it("replaces URL-based document.title on popup window when no title is set", () => {
+            const mockPopupWindow = {
+                ...window,
+                document: {
+                    title: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=test",
+                },
+                focus: jest.fn(),
+            };
+            jest.spyOn(window, "open").mockReturnValue(
+                mockPopupWindow as unknown as Window
+            );
+
+            const popupWindow = popupClient.initiateAuthRequest(
+                "http://localhost/#/code=hello",
+                {
+                    popupName: "name",
+                    popupWindowAttributes: {},
+                    popupWindowParent: window,
+                }
+            );
+
+            expect(
+                (popupWindow as unknown as { document: { title: string } })
+                    .document.title
+            ).toBe("Microsoft Authentication");
+        });
+
+        it("does not throw when setting document.title on cross-origin popup fails", () => {
+            const mockPopupWindow = {
+                focus: jest.fn(),
+            };
+            Object.defineProperty(mockPopupWindow, "document", {
+                get() {
+                    throw new DOMException(
+                        "Blocked access to cross-origin frame"
+                    );
+                },
+            });
+            jest.spyOn(window, "open").mockReturnValue(
+                mockPopupWindow as unknown as Window
+            );
+
+            expect(() =>
+                popupClient.initiateAuthRequest(
+                    "http://localhost/#/code=hello",
+                    {
+                        popupName: "name",
+                        popupWindowAttributes: {},
+                        popupWindowParent: window,
+                    }
+                )
+            ).not.toThrow();
         });
     });
 });

@@ -37,6 +37,7 @@ import {
     BrowserConstants,
 } from "../utils/BrowserConstants.js";
 import {
+    createHiddenIframe,
     initiateCodeRequest,
     initiateCodeFlowWithPost,
     initiateEarRequest,
@@ -199,7 +200,9 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
-            this.logger
+            this.logger,
+            undefined,
+            this.config.system.serverTelemetryEnabled
         );
 
         try {
@@ -307,30 +310,45 @@ export class SilentIframeClient extends StandardInteractionClient {
             earJwk: earJwk,
             codeChallenge: pkceCodes.challenge,
         };
-        const iframe = await invokeAsync(
-            initiateEarRequest,
-            BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(
-            this.config,
-            discoveredAuthority,
-            silentRequest,
-            this.logger,
-            this.performanceClient
-        );
+
+        // Create the iframe, register the response listener, then navigate, so the listener is active before the iframe can respond.
+        const iframe = createHiddenIframe();
 
         const responseType = this.config.auth.OIDCOptions.responseMode;
         let responseString: string;
         try {
-            responseString = await invokeAsync(
+            const responsePromise = invokeAsync(
                 this.waitForIframeResponse.bind(this),
                 BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
                 this.logger,
                 this.performanceClient,
                 correlationId
             )(iframe, request);
+            responsePromise.catch(() => {
+                /*
+                 * If navigation below throws before responsePromise is awaited,
+                 * the listener still rejects on timeout. Swallow it here so it
+                 * does not surface as an unhandled rejection; the navigation
+                 * error is propagated instead.
+                 */
+            });
+
+            await invokeAsync(
+                initiateEarRequest,
+                BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                iframe,
+                this.config,
+                discoveredAuthority,
+                silentRequest,
+                this.logger,
+                this.performanceClient
+            );
+
+            responseString = await responsePromise;
         } finally {
             invoke(
                 removeHiddenIframe,
@@ -363,7 +381,9 @@ export class SilentIframeClient extends StandardInteractionClient {
                     this.config.auth.clientId,
                     correlationId,
                     this.browserStorage,
-                    this.logger
+                    this.logger,
+                    undefined,
+                    this.config.system.serverTelemetryEnabled
                 ),
                 requestAuthority: request.authority,
                 requestAzureCloudOptions: request.azureCloudOptions,
@@ -457,7 +477,9 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.config.auth.clientId,
                 this.correlationId,
                 this.browserStorage,
-                this.logger
+                this.logger,
+                undefined,
+                this.config.system.serverTelemetryEnabled
             ),
             requestAuthority: silentRequest.authority,
             requestAzureCloudOptions: silentRequest.azureCloudOptions,
@@ -571,58 +593,72 @@ export class SilentIframeClient extends StandardInteractionClient {
             codeChallenge: pkceCodes.challenge,
         };
 
-        let iframe: HTMLIFrameElement;
-        if (request.httpMethod === Constants.HttpMethod.POST) {
-            iframe = await invokeAsync(
-                initiateCodeFlowWithPost,
-                BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(
-                this.config,
-                authClient.authority,
-                silentRequest,
-                this.logger,
-                this.performanceClient
-            );
-        } else {
-            // Create authorize request url
-            const navigateUrl = await invokeAsync(
-                Authorize.getAuthCodeRequestUrl,
-                PerformanceEvents.GetAuthCodeUrl,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(
-                this.config,
-                authClient.authority,
-                silentRequest,
-                this.logger,
-                this.performanceClient
-            );
-
-            // Get the frame handle for the silent request
-            iframe = await invokeAsync(
-                initiateCodeRequest,
-                BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(navigateUrl, this.performanceClient, this.logger, correlationId);
-        }
+        // Create the iframe, register the response listener, then navigate, so the listener is active before the iframe can respond.
+        const iframe = createHiddenIframe();
 
         const responseType = this.config.auth.OIDCOptions.responseMode;
         // Wait for response from the redirect bridge.
         let responseString: string;
         try {
-            responseString = await invokeAsync(
+            const responsePromise = invokeAsync(
                 this.waitForIframeResponse.bind(this),
                 BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
                 this.logger,
                 this.performanceClient,
                 correlationId
             )(iframe, request);
+            responsePromise.catch(() => {
+                /*
+                 * If URL creation or navigation below throws before
+                 * responsePromise is awaited, the listener still rejects on
+                 * timeout. Swallow it here so it does not surface as an
+                 * unhandled rejection; the navigation error is propagated
+                 * instead.
+                 */
+            });
+
+            if (request.httpMethod === Constants.HttpMethod.POST) {
+                await invokeAsync(
+                    initiateCodeFlowWithPost,
+                    BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(
+                    iframe,
+                    this.config,
+                    authClient.authority,
+                    silentRequest,
+                    this.logger,
+                    this.performanceClient
+                );
+            } else {
+                // Create authorize request url
+                const navigateUrl = await invokeAsync(
+                    Authorize.getAuthCodeRequestUrl,
+                    PerformanceEvents.GetAuthCodeUrl,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(
+                    this.config,
+                    authClient.authority,
+                    silentRequest,
+                    this.logger,
+                    this.performanceClient
+                );
+
+                // Navigate the iframe to the authorize request url
+                await invokeAsync(
+                    initiateCodeRequest,
+                    BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(iframe, navigateUrl, this.logger, correlationId);
+            }
+
+            responseString = await responsePromise;
         } finally {
             invoke(
                 removeHiddenIframe,

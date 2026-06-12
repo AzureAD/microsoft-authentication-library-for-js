@@ -8,33 +8,11 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
-import { StringUtils } from "./StringUtils.js";
-
-/**
- * Canonicalizes a URL by making it lowercase and ensuring it ends with /
- * Inlined version of UrlString.canonicalizeUri to avoid circular dependency
- * @param url - URL to canonicalize
- * @returns Canonicalized URL
- */
-function canonicalizeUrl(url: string): string {
-    if (!url) {
-        return url;
-    }
-
-    let lowerCaseUrl = url.toLowerCase();
-
-    if (StringUtils.endsWith(lowerCaseUrl, "?")) {
-        lowerCaseUrl = lowerCaseUrl.slice(0, -1);
-    } else if (StringUtils.endsWith(lowerCaseUrl, "?/")) {
-        lowerCaseUrl = lowerCaseUrl.slice(0, -2);
-    }
-
-    if (!StringUtils.endsWith(lowerCaseUrl, "/")) {
-        lowerCaseUrl += "/";
-    }
-
-    return lowerCaseUrl;
-}
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../error/ClientConfigurationError.js";
+import { Logger } from "../logger/Logger.js";
 
 /**
  * Parses hash string from given string. Returns empty string if no hash symbol is found.
@@ -102,34 +80,85 @@ export function mapToQueryString(parameters: Map<string, string>): string {
 }
 
 /**
- * Normalizes URLs for comparison by removing hash, canonicalizing,
- * and ensuring consistent URL encoding in query parameters.
- * This fixes redirect loops when URLs contain encoded characters like apostrophes (%27).
+ * Normalizes URLs for comparison per MDN & RFC 3986 standards:
+ * - Hash/fragment is removed
+ * - Scheme and host are lowercased (case-insensitive per spec)
+ * - Path and query parameters preserve original casing (case-sensitive per spec)
+ * - Percent-encoding in pathname is normalized (e.g., %27 and ' are treated equivalently)
+ * - Ensures pathname ends with /
+ * Throws a urlParseError if the provided URL is malformed and cannot be parsed.
  * @param url - URL to normalize
+ * @param logger - Optional logger used to log parse failures
+ * @param correlationId - Optional correlationId associated with the log entry
  * @returns Normalized URL string for comparison
  */
-export function normalizeUrlForComparison(url: string): string {
+export function normalizeUrlForComparison(
+    url: string,
+    logger?: Logger,
+    correlationId?: string
+): string {
     if (!url) {
         return url;
     }
 
-    // Remove hash first
     const urlWithoutHash = url.split("#")[0];
+    if (!urlWithoutHash) {
+        return urlWithoutHash;
+    }
 
     try {
-        // Parse the URL to handle encoding consistently
         const urlObj = new URL(urlWithoutHash);
 
-        /*
-         * Reconstruct the URL with properly decoded query parameters
-         * This ensures that %27 and ' are treated as equivalent
-         */
-        const normalizedUrl = urlObj.origin + urlObj.pathname + urlObj.search;
+        // Treat an empty query string (a bare trailing "?") as equivalent to no query
+        if (!urlObj.search) {
+            urlObj.search = "";
+        }
 
-        // Apply canonicalization logic inline to avoid circular dependency
-        return canonicalizeUrl(normalizedUrl);
+        // Decode the pathname to normalize percent-encoding and ensure trailing slash
+        let pathname;
+        try {
+            pathname = decodeURIComponent(urlObj.pathname);
+        } catch (e) {
+            pathname = urlObj.pathname;
+        }
+
+        if (!pathname.endsWith("/")) {
+            pathname += "/";
+        }
+        urlObj.pathname = pathname;
+
+        return urlObj.href;
     } catch (e) {
-        // Fallback to original logic if URL parsing fails
-        return canonicalizeUrl(urlWithoutHash);
+        logger?.error(
+            `Failed to normalize URL for comparison: '${e}'`,
+            correlationId || ""
+        );
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.urlParseError
+        );
+    }
+}
+
+/**
+ * Validates that the provided value is a well-formed, parseable absolute URL.
+ * Throws a urlParseError if the value cannot be parsed by the URL API (e.g. the
+ * literal string "null", an empty string, or any malformed/relative URL). Use this
+ * to guard against persisting an invalid value (such as a redirect URL) to the cache.
+ * @param url - URL to validate
+ * @param logger - Optional logger used to log validation failures
+ * @param correlationId - Optional correlationId associated with the log entry
+ */
+export function validateUrl(
+    url: string,
+    logger?: Logger,
+    correlationId?: string
+): void {
+    try {
+        new URL(url);
+    } catch (e) {
+        logger?.error(`Failed to validate URL: '${e}'`, correlationId || "");
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.urlParseError
+        );
     }
 }

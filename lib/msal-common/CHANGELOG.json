@@ -2,6 +2,79 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 10 Jun 2026 22:41:33 GMT",
+      "version": "16.8.0",
+      "tag": "@azure/msal-common_v16.8.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Fix logger correlation cache LRU eviction when the empty string correlation ID is least recently used [#8627](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8627)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Use in-built URL API to perform URL comparisons adhering to correct MDN and RFC standards [#8625](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8625)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Add per-type migration telemetry counter fields to PerformanceEvent [#8628](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8628)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Disable ServerTelemetryManager by default [#8600](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8600)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 05 Jun 2026 22:24:22 GMT",
+      "version": "16.7.0",
+      "tag": "@azure/msal-common_v16.7.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "198982749+Copilot@users.noreply.github.com",
+            "package": "@azure/msal-common",
+            "commit": "7588af34d25beca61640567b526de3e8aa682d3d",
+            "comment": "Rename uxNotAllowed error code to uiNotAllowed [#8608](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8608)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "7588af34d25beca61640567b526de3e8aa682d3d",
+            "comment": "Fix inverted boolean in tenantProfileMatchesFilter username check [#8621](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8621)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 28 May 2026 20:48:56 GMT",
+      "version": "16.6.3",
+      "tag": "@azure/msal-common_v16.6.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "nicknamer@users.noreply.github.com",
+            "package": "@azure/msal-common",
+            "commit": "cf5eb296289e2445aee4031c768905b89ab5da16",
+            "comment": "Add issuer validation Rule 5: accept issuer hosts explicitly listed in knownAuthorities. Fixes Entra External ID (CIAM) regression where a GUID-based issuer is returned for a name-based authority [#8592](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/8592)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 19 May 2026 19:29:14 GMT",
       "version": "16.6.2",
       "tag": "@azure/msal-common_v16.6.2",

@@ -167,40 +167,44 @@ export class ServerTelemetryManager {
      * @param error
      */
     cacheFailedRequest(error: unknown): void {
-        const lastRequests = this.getLastRequests();
-        if (
-            lastRequests.errors.length >=
-            Constants.SERVER_TELEM_MAX_CACHED_ERRORS
-        ) {
-            // Remove a cached error to make room, first in first out
-            lastRequests.failedRequests.shift(); // apiId
-            lastRequests.failedRequests.shift(); // correlationId
-            lastRequests.errors.shift();
-        }
+        try {
+            const lastRequests = this.getLastRequests();
+            if (
+                lastRequests.errors.length >=
+                Constants.SERVER_TELEM_MAX_CACHED_ERRORS
+            ) {
+                // Remove a cached error to make room, first in first out
+                lastRequests.failedRequests.shift(); // apiId
+                lastRequests.failedRequests.shift(); // correlationId
+                lastRequests.errors.shift();
+            }
 
-        lastRequests.failedRequests.push(this.apiId, this.correlationId);
+            lastRequests.failedRequests.push(this.apiId, this.correlationId);
 
-        if (error instanceof Error && !!error && error.toString()) {
-            if (error instanceof AuthError) {
-                if (error.subError) {
-                    lastRequests.errors.push(error.subError);
-                } else if (error.errorCode) {
-                    lastRequests.errors.push(error.errorCode);
+            if (error instanceof Error && !!error && error.toString()) {
+                if (error instanceof AuthError) {
+                    if (error.subError) {
+                        lastRequests.errors.push(error.subError);
+                    } else if (error.errorCode) {
+                        lastRequests.errors.push(error.errorCode);
+                    } else {
+                        lastRequests.errors.push(error.toString());
+                    }
                 } else {
                     lastRequests.errors.push(error.toString());
                 }
             } else {
-                lastRequests.errors.push(error.toString());
+                lastRequests.errors.push(Constants.SERVER_TELEM_UNKNOWN_ERROR);
             }
-        } else {
-            lastRequests.errors.push(Constants.SERVER_TELEM_UNKNOWN_ERROR);
-        }
 
-        this.cacheManager.setServerTelemetry(
-            this.telemetryCacheKey,
-            lastRequests,
-            this.correlationId
-        );
+            this.cacheManager.setServerTelemetry(
+                this.telemetryCacheKey,
+                lastRequests,
+                this.correlationId
+            );
+        } catch {
+            // Ignore telemetry cache failures to avoid masking the original auth error path.
+        }
 
         return;
     }
@@ -368,4 +372,46 @@ export class ServerTelemetryManager {
     static makeExtraSkuString(params: SkuParams): string {
         return makeExtraSkuString(params);
     }
+}
+
+/** @internal */
+export class StubServerTelemetryManager extends ServerTelemetryManager {
+    constructor() {
+        super(
+            { clientId: "", apiId: 0, correlationId: "", forceRefresh: false },
+            {} as unknown as CacheManager
+        );
+    }
+
+    generateCurrentRequestHeaderValue(): string {
+        return "";
+    }
+
+    generateLastRequestHeaderValue(): string {
+        return "";
+    }
+
+    cacheFailedRequest(): void {}
+
+    incrementCacheHits(): number {
+        return 0;
+    }
+
+    clearTelemetryCache(): void {}
+
+    getRegionDiscoveryFields(): string {
+        return "";
+    }
+
+    updateRegionDiscoveryMetadata(): void {}
+
+    setCacheOutcome(): void {}
+
+    setNativeBrokerErrorCode(): void {}
+
+    getNativeBrokerErrorCode(): string | undefined {
+        return undefined;
+    }
+
+    clearNativeBrokerErrorCode(): void {}
 }

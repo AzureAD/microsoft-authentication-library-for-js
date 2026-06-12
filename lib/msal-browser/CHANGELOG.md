@@ -1,8 +1,41 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 19 May 2026 19:29:14 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 10 Jun 2026 22:41:33 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.13.0
+
+Wed, 10 Jun 2026 22:41:33 GMT
+
+### Minor changes
+
+- Add per-type migration telemetry counters for cache migration [#8628](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8628) (thomas.norling@microsoft.com)
+- Disable ServerTelemetryManager by default [#8600](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8600) (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v16.8.0
+
+### Patches
+
+- Fix duplicate redirect flows clearing in-flight interaction state [#8637](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8637) (thomas.norling@microsoft.com)
+- add logging support for normalizeUrlForComparison when executing handleRedirectPromise [#8625](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8625/) (lalimasharda@microsoft.com)
+- Fix silent iframe redirect-bridge listener race condition by registering the response listener before navigating the iframe [#8636](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8636) (thomas.norling@microsoft.com)
+
+## 5.12.0
+
+Fri, 05 Jun 2026 22:24:22 GMT
+
+### Minor changes
+
+- Rename uxNotAllowed error code to uiNotAllowed [#8608](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8608) (198982749+Copilot@users.noreply.github.com)
+- Bump @azure/msal-common to v16.7.0
+
+### Patches
+
+- Set document.title during authentication redirects for accessibility and UX [#8624](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8624) (sameera.gajjarapu@microsoft.com)
+- Respect redirectStartPage in PlatformAuthInteractionClient.acquireTokenRedirect [#8604](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8604) (lalimasharda@microsoft.com)
+- Add PCA functions for custom authentication response handling [#8590](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8590) (kshabelko@microsoft.com)
+- Clear old-schema cache entries when encryption key is expired [#8619](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8619) (thomas.norling@microsoft.com)
+- bump msal-common to version 16.6.3 [#8622](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8622) (lalimasharda@microsoft.com)
 
 ## 5.11.0
 
