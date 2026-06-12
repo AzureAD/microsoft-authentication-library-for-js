@@ -107,6 +107,7 @@ export async function loadExternalTokens(
             new EventHandler(logger),
             buildStaticAuthorityOptions(browserConfig.auth)
         );
+        await storage.initialize(correlationId);
 
         const authorityString =
             request.authority || browserConfig.auth.authority;
