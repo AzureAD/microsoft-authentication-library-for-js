@@ -32,6 +32,11 @@
     "format:fix": "prettier --ignore-path .gitignore --write src"
   },
   "typings": "./dist/azure-msal-angular.d.ts",
+  "beachball": {
+    "disallowedChangeTypes": [
+      "major"
+    ]
+  },
   "devDependencies": {
     "@angular-devkit/build-angular": "^21.2.4",
     "@angular/animations": "^21.2.4",
