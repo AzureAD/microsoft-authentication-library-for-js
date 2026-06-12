@@ -458,7 +458,7 @@ describe("TokenCache tests", () => {
                 BrowserCacheManager.prototype,
                 "initialize"
             );
-            const localStorageConfiguration = buildConfiguration(
+            const localStorageConfig = buildConfiguration(
                 {
                     auth: {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -487,16 +487,36 @@ describe("TokenCache tests", () => {
             };
 
             const result = await loadExternalTokens(
-                localStorageConfiguration,
+                localStorageConfig,
                 request,
                 response,
                 {}
+            );
+            const localStorageCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                    cacheRetentionDays: 5,
+                },
+                cryptoObj,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            await localStorageCacheManager.initialize(TEST_CONFIG.CORRELATION_ID);
+            const accountKey = localStorageCacheManager.generateAccountKey(
+                result.account
+            );
+            const account = await localStorageCacheManager.getAccount(
+                accountKey,
+                TEST_CONFIG.CORRELATION_ID
             );
 
             expect(initializeSpy).toHaveBeenCalledWith(
                 TEST_CONFIG.CORRELATION_ID
             );
             expect(result.idToken).toEqual(testIdToken);
+            expect(account?.homeAccountId).toEqual(result.account.homeAccountId);
         });
 
         it("loads refresh token with request authority and client info provided in response", async () => {
