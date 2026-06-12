@@ -4,6 +4,9 @@
     "version": "1.0.0",
     "description": "A sample Electron application that uses msal-node to acquire tokens using system browser",
     "main": ".webpack/main",
+    "engines": {
+        "node": ">=22.12.0"
+    },
     "scripts": {
         "build": "tsc",
         "start": "electron-forge start",

@@ -4,6 +4,9 @@
   "version": "1.0.1",
   "description": "An electron application implementing msal-node-extensions bundler with webpack",
   "main": ".webpack/main",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
