@@ -500,6 +500,13 @@ export class AuthorizationCodeClient {
             );
         }
 
+        if (request.attributeTokens) {
+            RequestParameterBuilder.addAttributeTokens(
+                parameters,
+                request.attributeTokens
+            );
+        }
+
         // Add hybrid spa parameters if not already provided
         if (
             request.enableSpaAuthorizationCode &&

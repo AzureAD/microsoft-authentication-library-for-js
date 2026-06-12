@@ -546,6 +546,13 @@ export class RefreshTokenClient {
             });
         }
 
+        if (request.attributeTokens) {
+            RequestParameterBuilder.addAttributeTokens(
+                parameters,
+                request.attributeTokens
+            );
+        }
+
         RequestParameterBuilder.instrumentBrokerParams(
             parameters,
             request.correlationId,

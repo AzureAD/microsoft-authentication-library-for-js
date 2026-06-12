@@ -472,6 +472,30 @@ export function addCliData(parameters: Map<string, string>): void {
     parameters.set(AADServerParamKeys.CLI_DATA, "1");
 }
 
+/**
+ * Add attribute_tokens to request body
+ * @param parameters
+ * @param attributeTokens
+ */
+export function addAttributeTokens(
+    parameters: Map<string, string>,
+    attributeTokens?: Array<string>
+): void {
+    if (attributeTokens?.length) {
+        // Sanitize: trim each token and filter out empty strings
+        const sanitized = attributeTokens
+            .map((token) => token.trim())
+            .filter((token) => token.length > 0);
+
+        if (sanitized.length > 0) {
+            parameters.set(
+                AADServerParamKeys.ATTRIBUTE_TOKENS,
+                sanitized.join(" ")
+            );
+        }
+    }
+}
+
 export function addInstanceAware(parameters: Map<string, string>): void {
     if (!parameters.has(AADServerParamKeys.INSTANCE_AWARE)) {
         parameters.set(AADServerParamKeys.INSTANCE_AWARE, "true");

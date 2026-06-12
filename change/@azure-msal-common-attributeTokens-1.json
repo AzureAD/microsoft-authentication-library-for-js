@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add attributeTokens request support to msal-common token requests",
+  "packageName": "@azure/msal-common",
+  "email": "spingale@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -72,6 +72,7 @@ declare namespace AADServerParamKeys {
         CLIENT_ASSERTION_TYPE,
         TOKEN_TYPE,
         REQ_CNF,
+        ATTRIBUTE_TOKENS,
         OBO_ASSERTION,
         REQUESTED_TOKEN_USE,
         ON_BEHALF_OF,
@@ -217,6 +218,13 @@ export type ActiveAccountFilters = {
 //
 // @public
 function addApplicationTelemetry(parameters: Map<string, string>, appTelemetry: ApplicationTelemetry): void;
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "addAttributeTokens" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function addAttributeTokens(parameters: Map<string, string>, attributeTokens?: Array<string>): void;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "addAuthorizationCode" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -534,6 +542,11 @@ export type AppTokenProviderResult = {
     expiresInSeconds: number;
     refreshInSeconds?: number;
 };
+
+// Warning: (ae-missing-release-tag) "ATTRIBUTE_TOKENS" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const ATTRIBUTE_TOKENS = "attribute_tokens";
 
 // Warning: (ae-missing-release-tag) "AuthClientCreateTokenRequestBody" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -979,6 +992,7 @@ export type BaseAuthRequest = {
     azureCloudOptions?: AzureCloudOptions;
     maxAge?: number;
     storeInCache?: StoreInCache;
+    attributeTokens?: Array<string>;
     scenarioId?: string;
     popKid?: string;
     embeddedClientId?: string;
@@ -3952,6 +3966,7 @@ declare namespace RequestParameterBuilder {
         addGrantType,
         addClientInfo,
         addCliData,
+        addAttributeTokens,
         addInstanceAware,
         addExtraParameters,
         addClientCapabilitiesToClaims,
@@ -4931,7 +4946,7 @@ const X_MS_LIB_CAPABILITY_VALUE: string;
 // src/client/AuthorizationCodeClient.ts:222:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:223:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:300:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:532:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:539:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:243:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:328:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:329:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

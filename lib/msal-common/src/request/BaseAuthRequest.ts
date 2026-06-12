@@ -76,6 +76,10 @@ export type BaseAuthRequest = {
      */
     storeInCache?: StoreInCache;
     /**
+     * Attribute tokens to send on token requests as a space-delimited attribute_tokens parameter.
+     */
+    attributeTokens?: Array<string>;
+    /**
      * Scenario id to track custom user prompts
      */
     scenarioId?: string;

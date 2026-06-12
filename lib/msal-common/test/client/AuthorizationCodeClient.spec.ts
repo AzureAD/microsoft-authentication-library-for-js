@@ -2853,6 +2853,86 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(queryString).toContain(`client_id=child_client_id`);
         });
 
+        it("serializes attribute tokens into a single attribute_tokens parameter", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    attributeTokens: ["token-1", "token-2"],
+                });
+
+            expect(queryString).toContain(
+                `attribute_tokens=${encodeURIComponent("token-1 token-2")}`
+            );
+        });
+
+        it("omits attribute_tokens when undefined", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    attributeTokens: undefined,
+                });
+
+            expect(queryString).not.toContain(`attribute_tokens=`);
+        });
+
+        it("omits attribute_tokens when empty array", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    attributeTokens: [],
+                });
+
+            expect(queryString).not.toContain(`attribute_tokens=`);
+        });
+
+        it("sanitizes attribute_tokens with whitespace elements", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    attributeTokens: ["  token-1  ", "   ", "token-2\t"],
+                });
+
+            expect(queryString).toContain(
+                `attribute_tokens=${encodeURIComponent("token-1 token-2")}`
+            );
+        });
+
         it("pick up broker params", async () => {
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
