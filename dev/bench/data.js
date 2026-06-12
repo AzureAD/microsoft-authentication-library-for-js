@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781292672929,
+  "lastUpdate": 1781295016135,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22137,6 +22137,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.57%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "54ade28bb2230672bb28f309bee26f55008983da",
+          "message": "Enhance logging functionality by injecting runtime variables into decoded messages (#8644)\n\n- Shared client logs now can be decoded with runtime variables\n- Only log hash gets captured by the telemetry pipeline - no changes\nhere\n- Minified Build size increase = 1.6Kb (0.6%)",
+          "timestamp": "2026-06-12T13:02:38-07:00",
+          "tree_id": "a7cd3e2233f6781a1d5e74aad015c7e5d83b3918",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/54ade28bb2230672bb28f309bee26f55008983da"
+        },
+        "date": 1781295012694,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 365771,
+            "range": "±0.80%",
+            "unit": "ops/sec",
+            "extra": "209 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 363665,
+            "range": "±0.72%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
           }
         ]
       }
