@@ -593,8 +593,20 @@ export class ResponseHandler {
 
         // for hybrid + native bridge enablement, send back the native account Id
         if (serverTokenResponse?.spa_accountid && !!cacheRecord.account) {
+            // Set on deprecated top-level for downgrade compat
             cacheRecord.account.nativeAccountId =
                 serverTokenResponse?.spa_accountid;
+            // Set on the matching tenant profile (source of truth)
+            const targetTenantId = tid || cacheRecord.account.realm;
+            if (cacheRecord.account.tenantProfiles) {
+                const matchingProfile = cacheRecord.account.tenantProfiles.find(
+                    (tp) => tp.tenantId === targetTenantId
+                );
+                if (matchingProfile) {
+                    matchingProfile.nativeAccountId =
+                        serverTokenResponse.spa_accountid;
+                }
+            }
         }
 
         const accountInfo: AccountInfo | null = cacheRecord.account
@@ -706,6 +718,7 @@ export function buildAccountToCache(
             homeAccountId,
             baseAccount.localAccountId,
             tenantId,
+            nativeAccountId,
             idTokenClaims
         );
         tenantProfiles.push(newTenantProfile);
