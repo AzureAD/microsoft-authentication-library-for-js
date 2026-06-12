@@ -488,6 +488,35 @@ describe("Logger.ts Class Unit Tests", () => {
                 expect(cachedLogs[0].hash).toHaveLength(6);
             });
 
+            it("should cache only the leading hash when variables are appended to a hashed message", () => {
+                const logger = new Logger(loggerOptions);
+                const correlationId = "test-correlation-vars";
+                // The minify plugin emits the hash followed by runtime variables
+                const messageWithVars = "abc123 user-1 popup";
+
+                logger.info(messageWithVars, correlationId);
+
+                const cachedLogs = getLogsFromCache(correlationId);
+
+                // Telemetry must only ever see the hash, never the variables
+                expect(cachedLogs).toHaveLength(1);
+                expect(cachedLogs[0].hash).toBe("abc123");
+                expect(cachedLogs[0].hash).toHaveLength(6);
+            });
+
+            it("should pass the full message including variables to the logger callback", () => {
+                const logger = new Logger(loggerOptions);
+                const correlationId = "test-correlation-vars-callback";
+                const messageWithVars = "abc123 user-1 popup";
+
+                logger.info(messageWithVars, correlationId);
+
+                // The console callback should still receive the appended variables
+                expect(logStore[LogLevel.Info]).toContain(
+                    "abc123 user-1 popup"
+                );
+            });
+
             it("should not cache plain text log messages", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "test-correlation-plain";
