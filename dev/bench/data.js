@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781295016135,
+  "lastUpdate": 1781514766088,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22175,6 +22175,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.72%",
             "unit": "ops/sec",
             "extra": "231 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f34361b77b4f0e22e09eb18c60a9ea82517288b6",
+          "message": "Add package metadata to loggers and fix SKU name (#8647)\n\nThis pull request updates how the package name and version are\nreferenced and propagated throughout the codebase, ensuring that this\nmetadata is consistently sourced from a single location\n(`packageMetadata.js`). The changes primarily affect logger\ninstantiation and default package information, making the codebase more\nmaintainable and reducing the risk of mismatched or hardcoded values.\n\n**Standardization of package metadata usage:**\n\n* Replaced hardcoded or previously imported `SKU` and `version` values\nwith dynamic imports of `name` and `version` from `packageMetadata.js`\nin multiple files, including `TokenCache.ts`, `Configuration.ts`,\n`CustomAuthConstants.ts`, `EventHandler.ts`, `BaseInteractionClient.ts`,\nand `ClientConfiguration.ts`.\n[[1]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fR46)\n[[2]](diffhunk://#diff-5912a198ce9530319ffa5d0b77a1e63b28877d5e8d202654b0c374ded0a8c546R29)\n[[3]](diffhunk://#diff-f98ffa0d9403f1827bd9bbad2ffe5b540194bc8da456e63d52c2958cb53309bbL7-R7)\n[[4]](diffhunk://#diff-d338457b2b1871a93170359c0bcaee6dd015c55d9b3653cb18747d8cc0d3f373R16)\n[[5]](diffhunk://#diff-a02540a398f90297e64794c775e8d63dbcafac387b4ff712d9bee0c52e36085cL33-R33)\n[[6]](diffhunk://#diff-b78446b57ae4f303ceaa8c525fa173cb33f54bc562e5e8639b95d900c0f4da65L14-R14)\n\n**Logger improvements:**\n\n* Updated all logger instantiations to include the package `name` and\n`version` as parameters, ensuring consistent logging metadata across the\nlibrary. This affects logger creation in `TokenCache.ts`,\n`Configuration.ts`, `EventHandler.ts`, `BaseInteractionClient.ts`, and\n`ClientConfiguration.ts`.\n[[1]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL94-R99)\n[[2]](diffhunk://#diff-5912a198ce9530319ffa5d0b77a1e63b28877d5e8d202654b0c374ded0a8c546L350-R355)\n[[3]](diffhunk://#diff-d338457b2b1871a93170359c0bcaee6dd015c55d9b3653cb18747d8cc0d3f373L30-R31)\n[[4]](diffhunk://#diff-a02540a398f90297e64794c775e8d63dbcafac387b4ff712d9bee0c52e36085cL72-R71)\n[[5]](diffhunk://#diff-b78446b57ae4f303ceaa8c525fa173cb33f54bc562e5e8639b95d900c0f4da65L240-R240)\n\n**Default package information:**\n\n* Updated `DefaultPackageInfo.SKU` in `CustomAuthConstants.ts` to use\nthe dynamic `name` instead of a hardcoded string.\n\n**API review and documentation:**\n\n* Adjusted line numbers and references in the API review file\n(`msal-browser.api.md`) to reflect code changes, ensuring documentation\naccuracy.",
+          "timestamp": "2026-06-15T10:04:08+01:00",
+          "tree_id": "445400f96572bd2fa148e129bfb06ed635dd42c8",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f34361b77b4f0e22e09eb18c60a9ea82517288b6"
+        },
+        "date": 1781514761781,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 389114,
+            "range": "±0.64%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 398006,
+            "range": "±0.78%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
