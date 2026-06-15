@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781514766088,
+  "lastUpdate": 1781565839816,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22213,6 +22213,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.78%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e63bd1abc20ee54fbe391a8b2675089fcc7b94d3",
+          "message": "Enforce API Extractor error/none policy and tag internal APIs (#8653)\n\n## Summary\n\nConfigures API Extractor so that every message either **fails the\nbuild** (`error`) or is **silenced** (`none`) — no `warning`-level\nmessages remain, and nothing extraneous is written into the committed\n`*.api.md` reports. This eliminates the line-number \"footer\" churn that\npreviously rewrote the API reports on unrelated edits.\n\n## Rule policy\n\n| Rule | Level | Rationale |\n|---|---|---|\n| `ae-incompatible-release-tags` | error | Real signal — a `@public`\nsymbol leaking an `@internal` type. Fixed at source by tagging the\ninternal helpers `@internal`. |\n| `ae-unresolved-link` | error | Broken `{@link}` references are doc\nbugs. |\n| `ae-unresolved-inheritdoc-*`, `ae-internal-mixed-release-tag` | error\n| Correctness signals (no current violations). |\n| `ae-forgotten-export` | none | Our public types are projections\n(`Partial<Omit<Base, …>>`) of internal base types. Exporting the base to\nsatisfy this rule would place the **entire** base type under semver —\nincluding members the projection deliberately omits. The base types are\nalready shipped and structurally reachable; only their *name* is\nintentionally withheld. |\n| `tsdoc-*`, `ae-missing-release-tag`, `ae-internal-missing-underscore`\n| none | Cosmetic / not enforced; these were the source of the report\nchurn. |\n\n## Source changes\n\n- Tag internal helper functions and types with `@internal` (resolves\n`ae-incompatible-release-tags` with no public-surface change).\n- Fix ambiguous `{@link AuthorityType}` → `{@link AuthorityType:type}`.\n- Mark `BrowserExperimentalOptions` `@public` (it is referenced by the\npublic `Configuration.experimental` field).\n- Regenerate all API reports.\n\nThe source edits are TSDoc-comment-only — no functional or runtime\nchange.\n\n## Validation\n\n- `build:all`, `lint`, `format:check`, `apiExtractor` pass for all\naffected packages.\n- Unit tests pass for msal-common and msal-browser.\n\n> Paired with the 1P PR on the matching branch\n`chore/apiextractor-warning-policy`.",
+          "timestamp": "2026-06-15T16:15:26-07:00",
+          "tree_id": "caa0b9a3928ca0aa1c61932155c6e6a9551803a2",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e63bd1abc20ee54fbe391a8b2675089fcc7b94d3"
+        },
+        "date": 1781565835858,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 375984,
+            "range": "±0.66%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 367530,
+            "range": "±0.79%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
           }
         ]
       }
