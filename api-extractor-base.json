@@ -57,7 +57,8 @@
         "addToApiReportFile": false
       },
       "ae-unresolved-link": {
-        "logLevel": "error"
+        "logLevel": "error",
+        "addToApiReportFile": false
       }
     },
     "tsdocMessageReporting": {
