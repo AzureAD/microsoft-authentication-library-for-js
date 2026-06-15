@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add attributeTokens request parameter support [#8651](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8651)",
+  "packageName": "@azure/msal-common",
+  "email": "spingale@microsoft.com",
+  "dependentChangeType": "patch"
+}
