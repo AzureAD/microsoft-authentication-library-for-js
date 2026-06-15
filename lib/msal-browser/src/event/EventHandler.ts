@@ -13,6 +13,7 @@ import {
 } from "./EventMessage.js";
 import { EventType } from "./EventType.js";
 import { createGuid } from "../utils/BrowserUtils.js";
+import { version, name } from "../packageMetadata.js";
 
 const BROADCAST_CHANNEL_NAME = "msal.broadcast.event";
 
@@ -27,7 +28,7 @@ export class EventHandler {
 
     constructor(logger?: Logger) {
         this.eventCallbacks = new Map();
-        this.logger = logger || new Logger({});
+        this.logger = logger || new Logger({}, name, version);
         if (typeof BroadcastChannel !== "undefined") {
             this.broadcastChannel = new BroadcastChannel(
                 BROADCAST_CHANNEL_NAME
