@@ -258,6 +258,7 @@ export interface WaitForBridgeRequest {
     state?: string;
 }
 
+/** @internal */
 export async function waitForBridgeResponse(
     timeoutMs: number,
     logger: Logger,
@@ -461,9 +462,10 @@ export function preflightCheck(initialized: boolean): void {
 }
 
 /**
- * Helper to validate app enviornment before making redirect request
+ * Helper to validate app environment before making redirect request
  * @param initialized
  * @param config
+ * @internal
  */
 export function redirectPreflightCheck(
     initialized: boolean,
