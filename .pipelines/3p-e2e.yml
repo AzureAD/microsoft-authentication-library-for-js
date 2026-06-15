@@ -51,7 +51,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: dev
+          ref: feat/express-sample-e2e-speedup
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
     parameters:
@@ -86,7 +86,15 @@ extends:
                             - name: "customizable-e2e-test-3"
                               dir: "customizable-e2e-test"
                               testFilter: "browserB2C|browserMCP"
-                            - name: "ExpressSample"
+                            - name: "ExpressSample-1"
+                              dir: "ExpressSample"
+                              testFilter: "schema\\.spec"
+                            - name: "ExpressSample-2"
+                              dir: "ExpressSample"
+                              testFilter: "upgrade\\.spec"
+                            - name: "ExpressSample-3"
+                              dir: "ExpressSample"
+                              testFilter: "downgrade\\.spec"
                             - name: "NativeAuthSample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
