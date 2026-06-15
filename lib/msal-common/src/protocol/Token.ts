@@ -108,6 +108,7 @@ export function createTokenQueryParameters(
  * @param queryString
  * @param headers
  * @param thumbprint
+ * @internal
  */
 export async function executePostToTokenEndpoint(
     tokenEndpoint: string,
@@ -154,6 +155,7 @@ export async function executePostToTokenEndpoint(
  * @param networkClient - Network module instance
  * @param logger - Logger instance
  * @param performanceClient - Performance client instance
+ * @internal
  */
 export async function sendPostRequest<
     T extends ServerAuthorizationTokenResponse

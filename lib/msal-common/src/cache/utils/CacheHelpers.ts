@@ -342,6 +342,7 @@ export function generateAuthorityMetadataExpiresAt(): number {
     );
 }
 
+/** @internal */
 export function updateAuthorityEndpointMetadata(
     authorityMetadata: AuthorityMetadataEntity,
     updatedValues: OpenIdConfigResponse,
@@ -356,6 +357,7 @@ export function updateAuthorityEndpointMetadata(
     authorityMetadata.jwks_uri = updatedValues.jwks_uri;
 }
 
+/** @internal */
 export function updateCloudDiscoveryMetadata(
     authorityMetadata: AuthorityMetadataEntity,
     updatedValues: CloudDiscoveryMetadata,
@@ -369,6 +371,7 @@ export function updateCloudDiscoveryMetadata(
 
 /**
  * Returns whether or not the data needs to be refreshed
+ * @internal
  */
 export function isAuthorityMetadataExpired(
     metadata: AuthorityMetadataEntity
