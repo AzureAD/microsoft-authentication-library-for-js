@@ -11,7 +11,7 @@ import {
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     SKU,
 } from "../utils/Constants.js";
-import { version } from "../packageMetadata.js";
+import { version, name } from "../packageMetadata.js";
 import type { Authority } from "../authority/Authority.js";
 import { AzureCloudInstance } from "../authority/AuthorityOptions.js";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager.js";
@@ -56,6 +56,9 @@ export type ClientConfiguration = {
     serializableCache?: ISerializableTokenCache | null;
 };
 
+/**
+ * @internal
+ */
 export type CommonClientConfiguration = {
     authOptions: Required<AuthOptions>;
     systemOptions: Required<SystemOptions>;
@@ -208,6 +211,7 @@ const DEFAULT_TELEMETRY_OPTIONS: Required<TelemetryOptions> = {
  * @param Configuration
  *
  * @returns Configuration
+ * @internal
  */
 export function buildClientConfiguration({
     authOptions: userAuthOptions,
@@ -237,7 +241,7 @@ export function buildClientConfiguration({
             new DefaultStorageClass(
                 userAuthOptions.clientId,
                 DEFAULT_CRYPTO_IMPLEMENTATION,
-                new Logger(loggerOptions),
+                new Logger(loggerOptions, name, version),
                 new StubPerformanceClient()
             ),
         networkInterface:
