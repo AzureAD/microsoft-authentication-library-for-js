@@ -63,3 +63,8 @@ export const EAR_JWK = "ear_jwk";
 export const EAR_JWE_CRYPTO = "ear_jwe_crypto";
 export const RESOURCE = "resource";
 export const CLI_DATA = "clidata";
+export const USER_FEDERATED_IDENTITY_CREDENTIAL =
+    "user_federated_identity_credential";
+export const USERNAME = "username";
+export const USER_ID = "user_id";
+export const FMI_PATH = "fmi_path";

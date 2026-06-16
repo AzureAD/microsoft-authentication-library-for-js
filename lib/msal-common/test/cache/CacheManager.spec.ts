@@ -1861,6 +1861,101 @@ describe("CacheManager.ts test cases", () => {
                 )
             ).toBe(true);
         });
+
+        it("additionalCacheKeyComponents bidirectional isolation", () => {
+            // Entity with components should NOT match filter without them
+            const entityWithComponents = {
+                ...testAccessToken,
+                additionalCacheKeyComponents: { fmi_path: "agent123" },
+            };
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithComponents,
+                    {},
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity without components should NOT match filter with them
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    testAccessToken,
+                    {
+                        additionalCacheKeyComponents: {
+                            fmi_path: "agent123",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity with components should match filter with same components
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithComponents,
+                    {
+                        additionalCacheKeyComponents: {
+                            fmi_path: "agent123",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+
+            // Entity with different component values should NOT match
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithComponents,
+                    {
+                        additionalCacheKeyComponents: {
+                            fmi_path: "differentAgent",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity with multiple components must match all key-value pairs
+            const entityWithMultipleComponents = {
+                ...testAccessToken,
+                additionalCacheKeyComponents: {
+                    claims_hash: "abc",
+                    fmi_path: "agent123",
+                },
+            };
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithMultipleComponents,
+                    {
+                        additionalCacheKeyComponents: {
+                            claims_hash: "abc",
+                            fmi_path: "agent123",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithMultipleComponents,
+                    {
+                        additionalCacheKeyComponents: {
+                            fmi_path: "agent123",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity without components should match filter without them
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    testAccessToken,
+                    {},
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+        });
     });
 
     describe("getAccessTokensByFilter", () => {

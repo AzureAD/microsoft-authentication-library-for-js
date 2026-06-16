@@ -71,7 +71,8 @@ export function createAccessTokenEntity(
     refreshOn?: number,
     tokenType?: Constants.AuthenticationScheme,
     userAssertionHash?: string,
-    keyId?: string
+    keyId?: string,
+    additionalCacheKeyComponents?: Record<string, string>
 ): AccessTokenEntity {
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
@@ -123,6 +124,14 @@ export function createAccessTokenEntity(
             case Constants.AuthenticationScheme.SSH:
                 atEntity.keyId = keyId;
         }
+    }
+
+    /* Additional cache key components for cache isolation (e.g., FMI path) */
+    if (
+        additionalCacheKeyComponents &&
+        Object.keys(additionalCacheKeyComponents).length > 0
+    ) {
+        atEntity.additionalCacheKeyComponents = additionalCacheKeyComponents;
     }
 
     return atEntity;
