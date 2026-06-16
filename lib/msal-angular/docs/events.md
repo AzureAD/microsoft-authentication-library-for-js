@@ -4,7 +4,7 @@ Before you start here, make sure you understand how to [initialize the applicati
 
 `@azure/msal-angular` uses the event system exposed by `@azure/msal-browser`, which emits events related to auth and MSAL, and can be used for updating UI, showing error messages, and so on.
 
-> :warning: **Do not use events for telemetry.** Events are intended for reacting to auth state changes in your application (e.g. updating UI or showing error messages). They are not a telemetry mechanism: the set of events, their timing, and their payloads are not guaranteed to be stable across versions, and relying on them to collect metrics or measure performance is not supported. For telemetry and performance monitoring, use MSAL's dedicated telemetry APIs instead.
+> :warning: **Do not use events for telemetry.** Events are intended for reacting to auth state changes in your application (e.g. updating UI or showing error messages). They are not a telemetry mechanism: the set of events, their timing, and their payloads are not guaranteed to be stable across versions, and relying on them to collect metrics or measure performance is not supported. For telemetry and performance monitoring, see MSAL Browser's [Performance](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/performance.md) and [telemetry configuration options](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#telemetry-config-options).
 
 ## Consuming events in your app
 
