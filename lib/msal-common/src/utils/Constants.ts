@@ -180,6 +180,7 @@ export const GrantType = {
     REFRESH_TOKEN_GRANT: "refresh_token",
     DEVICE_CODE_GRANT: "device_code",
     JWT_BEARER: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+    USER_FIC: "user_fic",
 } as const;
 export type GrantType = (typeof GrantType)[keyof typeof GrantType];
 

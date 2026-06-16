@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "5.12.0",
+  "version": "5.13.0",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -98,15 +98,14 @@
     "apiExtractor": "api-extractor run"
   },
   "devDependencies": {
-    "@azure/storage-blob": "^12.2.1",
     "@babel/core": "^7.7.2",
     "@babel/plugin-proposal-class-properties": "^7.7.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
     "@babel/preset-env": "^7.7.1",
     "@babel/preset-typescript": "^7.7.2",
-    "@microsoft/api-extractor": "^7.43.4",
+    "@microsoft/api-extractor": "^7.58.7",
     "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-terser": "^0.4.0",
+    "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.3.1",
@@ -124,12 +123,12 @@
     "rollup-msal": "file:../../shared-configs/rollup-msal",
     "shx": "^0.3.2",
     "ssri": "^8.0.1",
-    "ts-jest": "^29.2.5",
+    "ts-jest": "^29.4.11",
     "ts-jest-resolver": "^2.0.1",
     "tslib": "^1.10.0",
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "@azure/msal-common": "16.7.0"
+    "@azure/msal-common": "16.8.0"
   }
 }

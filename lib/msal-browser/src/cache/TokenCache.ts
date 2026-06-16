@@ -43,6 +43,7 @@ import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerforman
 import { ApiId } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { BrowserCacheManager } from "./BrowserCacheManager.js";
+import { name, version } from "../packageMetadata.js";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -91,7 +92,11 @@ export async function loadExternalTokens(
             authorityMetadata: browserConfig.auth.authorityMetadata,
         };
 
-        const logger = new Logger(browserConfig.system.loggerOptions || {});
+        const logger = new Logger(
+            browserConfig.system.loggerOptions || {},
+            name,
+            version
+        );
         const cryptoOps = new CryptoOps(logger, browserConfig.telemetry.client);
         const storage = new BrowserCacheManager(
             browserConfig.auth.clientId,
@@ -102,6 +107,7 @@ export async function loadExternalTokens(
             new EventHandler(logger),
             buildStaticAuthorityOptions(browserConfig.auth)
         );
+        await storage.initialize(correlationId);
 
         const authorityString =
             request.authority || browserConfig.auth.authority;

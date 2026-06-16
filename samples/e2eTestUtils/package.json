@@ -5,7 +5,7 @@
     "private": true,
     "main": "src/index.ts",
     "dependencies": {
-        "@azure/identity": "^4.5.0",
+        "@azure/identity": "^4.13.1",
         "@azure/keyvault-certificates": "^4.10.0",
         "@azure/keyvault-secrets": "^4.8.0",
         "dotenv": "^8.2.0",

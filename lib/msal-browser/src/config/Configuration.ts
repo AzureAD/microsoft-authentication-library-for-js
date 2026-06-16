@@ -26,6 +26,7 @@ import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { NavigationClient } from "../navigation/NavigationClient.js";
 import { FetchClient } from "../network/FetchClient.js";
+import { name, version } from "../packageMetadata.js";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -174,7 +175,11 @@ export type BrowserSystemOptions = SystemOptions & {
     serverTelemetryEnabled?: boolean;
 };
 
-/** @internal */
+/**
+ * Options for configuring experimental features. These features do not follow
+ * semver and may be changed or removed without a major version bump. Use with caution.
+ * @public
+ */
 export type BrowserExperimentalOptions = {
     /**
      * Enables iframe timeout telemetry experiment for silent iframe bridge monitoring.
@@ -347,7 +352,11 @@ export function buildConfiguration(
         userInputSystem?.protocolMode !== ProtocolMode.OIDC &&
         userInputAuth?.OIDCOptions
     ) {
-        const logger = new Logger(providedSystemOptions.loggerOptions);
+        const logger = new Logger(
+            providedSystemOptions.loggerOptions,
+            name,
+            version
+        );
         logger.warning(
             JSON.stringify(
                 createClientConfigurationError(

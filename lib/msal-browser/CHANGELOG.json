@@ -2,6 +2,53 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 10 Jun 2026 22:41:33 GMT",
+      "version": "5.13.0",
+      "tag": "@azure/msal-browser_v5.13.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Add per-type migration telemetry counters for cache migration [#8628](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8628)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Disable ServerTelemetryManager by default [#8600](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8600)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.8.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Fix duplicate redirect flows clearing in-flight interaction state [#8637](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8637)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "add logging support for normalizeUrlForComparison when executing handleRedirectPromise [#8625](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8625/)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Fix silent iframe redirect-bridge listener race condition by registering the response listener before navigating the iframe [#8636](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8636)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 05 Jun 2026 22:24:22 GMT",
       "version": "5.12.0",
       "tag": "@azure/msal-browser_v5.12.0",

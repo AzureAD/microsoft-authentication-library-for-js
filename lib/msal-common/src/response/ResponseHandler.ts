@@ -194,7 +194,8 @@ export class ResponseHandler {
         userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean,
         forceCacheRefreshTokenResponse?: boolean,
-        serverRequestId?: string
+        serverRequestId?: string,
+        additionalCacheKeyComponents?: Record<string, string>
     ): Promise<AuthenticationResult> {
         // create an idToken object (not entity)
         let idTokenClaims: TokenClaims | undefined;
@@ -256,7 +257,8 @@ export class ResponseHandler {
             request,
             idTokenClaims,
             userAssertionHash,
-            authCodePayload
+            authCodePayload,
+            additionalCacheKeyComponents
         );
         let cacheContext;
         try {
@@ -363,7 +365,8 @@ export class ResponseHandler {
         request: BaseAuthRequest,
         idTokenClaims?: TokenClaims,
         userAssertionHash?: string,
-        authCodePayload?: AuthorizationCodePayload
+        authCodePayload?: AuthorizationCodePayload,
+        additionalCacheKeyComponents?: Record<string, string>
     ): CacheRecord {
         const env = authority.getPreferredCache();
         if (!env) {
@@ -449,7 +452,8 @@ export class ResponseHandler {
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
                 userAssertionHash,
-                serverTokenResponse.key_id
+                serverTokenResponse.key_id,
+                additionalCacheKeyComponents
             );
             // Set resource (to be used for MCP scenarios)
             const resource = request.resource || null;
@@ -632,6 +636,7 @@ export class ResponseHandler {
     }
 }
 
+/** @internal */
 export function buildAccountToCache(
     cacheStorage: CacheManager,
     authority: Authority,

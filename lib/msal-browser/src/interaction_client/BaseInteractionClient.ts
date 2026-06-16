@@ -30,8 +30,7 @@ import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
-import { version } from "../packageMetadata.js";
-import { BrowserConstants } from "../utils/BrowserConstants.js";
+import { version, name } from "../packageMetadata.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
@@ -69,7 +68,7 @@ export abstract class BaseInteractionClient {
         this.navigationClient = navigationClient;
         this.platformAuthProvider = platformAuthProvider;
         this.correlationId = correlationId;
-        this.logger = logger.clone(BrowserConstants.MSAL_SKU, version);
+        this.logger = logger.clone(name, version);
         this.performanceClient = performanceClient;
     }
 

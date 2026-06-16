@@ -71,7 +71,8 @@ export function createAccessTokenEntity(
     refreshOn?: number,
     tokenType?: Constants.AuthenticationScheme,
     userAssertionHash?: string,
-    keyId?: string
+    keyId?: string,
+    additionalCacheKeyComponents?: Record<string, string>
 ): AccessTokenEntity {
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
@@ -123,6 +124,14 @@ export function createAccessTokenEntity(
             case Constants.AuthenticationScheme.SSH:
                 atEntity.keyId = keyId;
         }
+    }
+
+    /* Additional cache key components for cache isolation (e.g., FMI path) */
+    if (
+        additionalCacheKeyComponents &&
+        Object.keys(additionalCacheKeyComponents).length > 0
+    ) {
+        atEntity.additionalCacheKeyComponents = additionalCacheKeyComponents;
     }
 
     return atEntity;
@@ -342,6 +351,7 @@ export function generateAuthorityMetadataExpiresAt(): number {
     );
 }
 
+/** @internal */
 export function updateAuthorityEndpointMetadata(
     authorityMetadata: AuthorityMetadataEntity,
     updatedValues: OpenIdConfigResponse,
@@ -356,6 +366,7 @@ export function updateAuthorityEndpointMetadata(
     authorityMetadata.jwks_uri = updatedValues.jwks_uri;
 }
 
+/** @internal */
 export function updateCloudDiscoveryMetadata(
     authorityMetadata: AuthorityMetadataEntity,
     updatedValues: CloudDiscoveryMetadata,
@@ -369,6 +380,7 @@ export function updateCloudDiscoveryMetadata(
 
 /**
  * Returns whether or not the data needs to be refreshed
+ * @internal
  */
 export function isAuthorityMetadataExpired(
     metadata: AuthorityMetadataEntity
