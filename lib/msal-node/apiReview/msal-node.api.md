@@ -149,6 +149,7 @@ export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest
 export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication {
     constructor(configuration: Configuration);
     acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByUserFederatedIdentityCredential(request: UserFederatedIdentityCredentialRequest): Promise<AuthenticationResult | null>;
     acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null>;
     SetAppTokenProvider(provider: IAppTokenProvider): void;
 }
@@ -463,6 +464,7 @@ export type SerializedAccessTokenEntity = {
     token_type?: string;
     userAssertionHash?: string;
     resource?: string;
+    additionalCacheKeyComponents?: Record<string, string>;
 };
 
 // @public
@@ -552,6 +554,15 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
 }
 
 export { TokenCacheContext }
+
+// @public
+export type UserFederatedIdentityCredentialRequest = Partial<Omit<CommonUserFederatedIdentityCredentialRequest, "scopes" | "assertion" | "resourceRequestMethod" | "resourceRequestUri" | "clientAssertion">> & {
+    scopes: Array<string>;
+    assertion: string;
+    userObjectId?: string;
+    username?: string;
+    clientAssertion?: string | ClientAssertionCallback;
+};
 
 // @public
 export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "username" | "password" | "storeInCache">> & {

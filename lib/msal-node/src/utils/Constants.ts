@@ -157,6 +157,7 @@ export const ApiId = {
     acquireTokenByClientCredential: 771,
     acquireTokenByOBO: 772,
     acquireTokenWithManagedIdentity: 773,
+    acquireTokenByUserFederatedIdentityCredential: 774,
     acquireTokenByCode: 871,
     acquireTokenByRefreshToken: 872,
 };
