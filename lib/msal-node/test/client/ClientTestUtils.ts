@@ -554,10 +554,12 @@ export const checkMockedNetworkRequest = (
     }
 
     if (checks.claims !== undefined) {
+        const mergedTestClaims =
+            '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
         expect(
             returnVal.includes(
                 `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                    TEST_CONFIG.CLAIMS
+                    mergedTestClaims
                 )}`
             )
         ).toBe(checks.claims);
