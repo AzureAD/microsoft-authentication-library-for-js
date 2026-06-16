@@ -2,6 +2,55 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 16 Jun 2026 19:46:34 GMT",
+      "version": "5.14.0",
+      "tag": "@azure/msal-browser_v5.14.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "198982749+Copilot@users.noreply.github.com",
+            "package": "@azure/msal-browser",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Initialize BrowserCacheManager in loadExternalTokens for localStorage cache usage [#8642](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8642)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Update API Extractor warning policy and tag internal APIs with @internal [#8653](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8653)"
+          }
+        ],
+        "none": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Resolve transitive CVEs in 3P samples and tooling [#8630](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8630)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Enhance logging functionality by injecting runtime variables into decoded messages [#8644](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8644)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Add package metadata to loggers and fix SKU name [#8647](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8647)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.9.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 10 Jun 2026 22:41:33 GMT",
       "version": "5.13.0",
       "tag": "@azure/msal-browser_v5.13.0",
