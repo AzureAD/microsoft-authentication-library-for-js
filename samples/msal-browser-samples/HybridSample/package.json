@@ -16,7 +16,7 @@
         "dotenv": "^10.0.0",
         "express": "^4.20.0",
         "express-session": "^1.17.2",
-        "hbs": "^4.0.4",
+        "hbs": "^4.2.1",
         "http-errors": "~1.6.3",
         "morgan": "~1.9.1"
     },

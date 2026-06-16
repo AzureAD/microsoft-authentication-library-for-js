@@ -16,13 +16,13 @@
         "express-handlebars": "^7.0.7"
     },
     "devDependencies": {
-        "@types/jest": "^30.0.0",
+        "@types/jest": "^29.5.0",
         "e2e-test-utils": "file:../../e2eTestUtils",
         "env-cmd": "^10.1.0",
-        "jest": "^30.0.5",
+        "jest": "^29.7.0",
         "jest-junit": "^16.0.0",
         "nodemon": "^3.1.11",
-        "ts-jest": "^29.4.1"
+        "ts-jest": "^29.4.11"
     },
     "jest-junit": {
         "suiteNameTemplate": "Express Sample Tests",
