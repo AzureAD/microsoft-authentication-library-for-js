@@ -6,6 +6,7 @@
 export type ClientAssertionConfig = {
     clientId: string;
     tokenEndpoint?: string;
+    fmiPath?: string;
 };
 
 export type ClientAssertionCallback = (
