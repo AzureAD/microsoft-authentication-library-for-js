@@ -2,7 +2,7 @@
 
 Msal Browser (`@azure/msal-browser`) provides event APIs that are available to users of our core library and wrapper libraries. These events are related to auth and what MSAL is doing, and can be used in applications to update UI, show error messages, and so on.
 
-> :warning: **Do not use events for telemetry.** Events are intended for reacting to auth state changes in your application (e.g. updating UI or showing error messages). They are not a telemetry mechanism: the set of events, their timing, and their payloads are not guaranteed to be stable across versions, and relying on them to collect metrics or measure performance is not supported. For telemetry and performance monitoring, use MSAL's dedicated telemetry APIs instead.
+> :warning: **Do not use events for telemetry.** Events are intended for reacting to auth state changes in your application (e.g. updating UI or showing error messages). They are not a telemetry mechanism: the set of events, their timing, and their payloads are not guaranteed to be stable across versions, and relying on them to collect metrics or measure performance is not supported. For telemetry and performance monitoring, see [Performance](./performance.md) and [Telemetry config options](./configuration.md#telemetry-config-options).
 
 ## What events look like
 
