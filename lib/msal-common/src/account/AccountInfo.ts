@@ -4,6 +4,7 @@
  */
 
 import { TokenClaims } from "./TokenClaims.js";
+import { isKmsi } from "./AuthToken.js";
 
 export type DataBoundary = "EU" | "None";
 
@@ -45,6 +46,11 @@ export type AccountInfo = {
     authorityType?: string;
     tenantProfiles?: Map<string, TenantProfile>;
     dataBoundary?: DataBoundary;
+    /**
+     * Indicates whether the user selected "Keep Me Signed In" (KMSI) during authentication.
+     * Derived from the signin_state claim in the ID token.
+     */
+    kmsi?: boolean;
 };
 
 /**
@@ -174,6 +180,7 @@ export function updateAccountTenantProfileData(
             ...claimsSourcedTenantProfile,
             idTokenClaims: idTokenClaims,
             idToken: idTokenSecret,
+            kmsi: isKmsi(idTokenClaims),
         };
 
         return updatedAccountInfo;

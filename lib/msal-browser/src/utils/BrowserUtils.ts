@@ -511,5 +511,4 @@ export function createGuid(): string {
 
 export { invoke };
 export { invokeAsync };
-export const addClientCapabilitiesToClaims =
-    RequestParameterBuilder.addClientCapabilitiesToClaims;
+export const buildMergedClaims = RequestParameterBuilder.buildMergedClaims;

@@ -28,6 +28,9 @@ import {
 } from "../../src/error/ClientAuthError.js";
 import * as RequestParameterBuilder from "../../src/request/RequestParameterBuilder.js";
 
+const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
+    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+
 describe("Authorize Protocol Tests", () => {
     let authOptions: AuthOptions;
     let authority: Authority;
@@ -209,7 +212,7 @@ describe("Authorize Protocol Tests", () => {
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
+                        DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS
                     )}`
                 )
             ).toBe(true);

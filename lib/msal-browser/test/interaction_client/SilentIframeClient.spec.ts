@@ -729,6 +729,7 @@ describe("SilentIframeClient", () => {
                 status: 200,
             };
             const testAccount: AccountInfo = {
+                dataBoundary: undefined,
                 homeAccountId: ID_TOKEN_CLAIMS.sub,
                 environment: "login.windows.net",
                 tenantId: ID_TOKEN_CLAIMS.tid,
@@ -755,6 +756,7 @@ describe("SilentIframeClient", () => {
                 ]),
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
+                kmsi: false,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,

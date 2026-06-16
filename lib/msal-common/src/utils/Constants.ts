@@ -122,6 +122,9 @@ export type AADAuthority = (typeof AADAuthority)[keyof typeof AADAuthority];
 export const ClaimsRequestKeys = {
     ACCESS_TOKEN: "access_token",
     XMS_CC: "xms_cc",
+    ID_TOKEN: "id_token",
+    SIGNIN_STATE: "signin_state",
+    LOGIN_HINT: "login_hint",
 } as const;
 export type ClaimsRequestKeys =
     (typeof ClaimsRequestKeys)[keyof typeof ClaimsRequestKeys];

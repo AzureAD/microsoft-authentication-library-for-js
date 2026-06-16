@@ -18,7 +18,6 @@ import {
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
 import { ClientInfo } from "../account/ClientInfo.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { StringUtils } from "../utils/StringUtils.js";
 
 export function instrumentBrokerParams(
     parameters: Map<string, string>,
@@ -221,23 +220,8 @@ export function addClaims(
             ? undefined
             : clientCapabilities;
 
-    if (
-        !StringUtils.isEmptyObj(claims) ||
-        (configClaims && configClaims.length > 0)
-    ) {
-        const mergedClaims = addClientCapabilitiesToClaims(
-            claims,
-            configClaims
-        );
-        try {
-            JSON.parse(mergedClaims);
-        } catch (e) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaims
-            );
-        }
-        parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
-    }
+    const mergedClaims = buildMergedClaims(claims, configClaims);
+    parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
 }
 
 /**
@@ -493,7 +477,24 @@ export function addExtraParameters(
     });
 }
 
-export function addClientCapabilitiesToClaims(
+/**
+ * Default optional idToken claims requested on all auth requests.
+ * signin_state enables KMSI detection; login_hint enables login hint propagation.
+ */
+const DEFAULT_ID_TOKEN_CLAIMS: Record<string, { essential: false }> = {
+    [Constants.ClaimsRequestKeys.SIGNIN_STATE]: { essential: false },
+    [Constants.ClaimsRequestKeys.LOGIN_HINT]: { essential: false },
+};
+
+/**
+ * Parses claims JSON, merges default optional idToken claims (signin_state, login_hint),
+ * and appends client capabilities (xms_cc) to the access_token section.
+ * Does not overwrite idToken claims already specified by the caller.
+ * @param claims - Existing claims JSON string from the request (may be undefined)
+ * @param clientCapabilities - Client capabilities array from configuration
+ * @returns Merged claims JSON string
+ */
+export function buildMergedClaims(
     claims?: string,
     clientCapabilities?: Array<string>
 ): string {
@@ -504,7 +505,15 @@ export function addClientCapabilitiesToClaims(
         mergedClaims = {};
     } else {
         try {
-            mergedClaims = JSON.parse(claims);
+            const parsed = JSON.parse(claims);
+            if (
+                typeof parsed !== "object" ||
+                parsed === null ||
+                Array.isArray(parsed)
+            ) {
+                throw new Error("Claims must be a JSON object");
+            }
+            mergedClaims = parsed;
         } catch (e) {
             throw createClientConfigurationError(
                 ClientConfigurationErrorCodes.invalidClaims
@@ -512,9 +521,27 @@ export function addClientCapabilitiesToClaims(
         }
     }
 
+    // Add default optional idToken claims
+    if (
+        !Object.prototype.hasOwnProperty.call(
+            mergedClaims,
+            Constants.ClaimsRequestKeys.ID_TOKEN
+        )
+    ) {
+        mergedClaims[Constants.ClaimsRequestKeys.ID_TOKEN] = {};
+    }
+    const idTokenClaims = mergedClaims[Constants.ClaimsRequestKeys.ID_TOKEN];
+    for (const [key, value] of Object.entries(DEFAULT_ID_TOKEN_CLAIMS)) {
+        if (!(key in idTokenClaims)) {
+            idTokenClaims[key] = value;
+        }
+    }
+
+    // Add client capabilities
     if (clientCapabilities && clientCapabilities.length > 0) {
         if (
-            !mergedClaims.hasOwnProperty(
+            !Object.prototype.hasOwnProperty.call(
+                mergedClaims,
                 Constants.ClaimsRequestKeys.ACCESS_TOKEN
             )
         ) {
