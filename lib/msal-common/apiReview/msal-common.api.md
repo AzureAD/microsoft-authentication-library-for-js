@@ -83,7 +83,11 @@ declare namespace AADServerParamKeys {
         EAR_JWK,
         EAR_JWE_CRYPTO,
         RESOURCE,
-        CLI_DATA
+        CLI_DATA,
+        USER_FEDERATED_IDENTITY_CREDENTIAL,
+        USERNAME,
+        USER_ID,
+        FMI_PATH
     }
 }
 export { AADServerParamKeys }
@@ -995,6 +999,7 @@ export type ClientAssertionCallback = (config: ClientAssertionConfig) => Promise
 export type ClientAssertionConfig = {
     clientId: string;
     tokenEndpoint?: string;
+    fmiPath?: string;
 };
 
 declare namespace ClientAssertionUtils {
@@ -1322,7 +1327,7 @@ declare namespace Constants {
 const CONSUMER_UTID = "9188040d-6c67-4c5b-b112-36a304b66dad";
 
 // @public
-function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, refreshOn?: number, tokenType?: Constants_2.AuthenticationScheme, userAssertionHash?: string, keyId?: string): AccessTokenEntity;
+function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, refreshOn?: number, tokenType?: Constants_2.AuthenticationScheme, userAssertionHash?: string, keyId?: string, additionalCacheKeyComponents?: Record<string, string>): AccessTokenEntity;
 
 // @internal
 function createAccountEntity(accountDetails: {
@@ -1385,6 +1390,7 @@ export type CredentialEntity = {
     userAssertionHash?: string;
     tokenType?: AuthenticationScheme;
     keyId?: string;
+    additionalCacheKeyComponents?: Record<string, string>;
     lastUpdatedAt: string;
 };
 
@@ -1400,6 +1406,7 @@ export type CredentialFilter = {
     userAssertionHash?: string;
     tokenType?: AuthenticationScheme;
     keyId?: string;
+    additionalCacheKeyComponents?: Record<string, string>;
 };
 
 // @public
@@ -1565,6 +1572,9 @@ export type ExternalTokenResponse = Pick<ServerAuthorizationTokenResponse, "toke
 function extractTokenClaims(encodedToken: string, base64Decode: (input: string) => string): TokenClaims;
 
 // @public (undocumented)
+const FMI_PATH = "fmi_path";
+
+// @public (undocumented)
 const FOCI = "foci";
 
 // @public (undocumented)
@@ -1601,7 +1611,7 @@ function getAuthorizationCodePayload(serverParams: AuthorizeResponse, cachedStat
 function getAuthorizeUrl(authority: Authority, requestParameters: Map<string, string>): string;
 
 // @public (undocumented)
-export function getClientAssertion(clientAssertion: string | ClientAssertionCallback, clientId: string, tokenEndpoint?: string): Promise<string>;
+export function getClientAssertion(clientAssertion: string | ClientAssertionCallback, clientId: string, tokenEndpoint?: string, fmiPath?: string): Promise<string>;
 
 // @public
 function getDeserializedResponse(responseString: string): AuthorizeResponse | null;
@@ -1630,6 +1640,7 @@ const GrantType: {
     readonly REFRESH_TOKEN_GRANT: "refresh_token";
     readonly DEVICE_CODE_GRANT: "device_code";
     readonly JWT_BEARER: "urn:ietf:params:oauth:grant-type:jwt-bearer";
+    readonly USER_FIC: "user_fic";
 };
 
 // @public (undocumented)
@@ -2800,7 +2811,7 @@ const RESPONSE_TYPE = "response_type";
 export class ResponseHandler {
     constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null);
     static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, idTokenClaims?: TokenClaims, requestState?: RequestStateObject, serverTokenResponse?: ServerAuthorizationTokenResponse, requestId?: string): Promise<AuthenticationResult>;
-    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string): Promise<AuthenticationResult>;
+    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
     validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse, correlationId: string, refreshAccessToken?: boolean): void;
 }
 
@@ -3336,7 +3347,16 @@ declare namespace UrlUtils {
 export { UrlUtils }
 
 // @public (undocumented)
+const USER_FEDERATED_IDENTITY_CREDENTIAL = "user_federated_identity_credential";
+
+// @public (undocumented)
+const USER_ID = "user_id";
+
+// @public (undocumented)
 const userCanceled = "user_canceled";
+
+// @public (undocumented)
+const USERNAME = "username";
 
 // @public
 function validateAuthorizationResponse(serverResponse: AuthorizeResponse, requestState: string): void;
