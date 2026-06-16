@@ -34,6 +34,7 @@ import { ServerError } from "../error/ServerError.js";
  * @param logger
  * @param performanceClient
  * @returns
+ * @internal
  */
 export function getStandardAuthorizeRequestParameters(
     authOptions: AuthOptions,
@@ -272,6 +273,7 @@ export function getStandardAuthorizeRequestParameters(
  * @param authority
  * @param requestParameters
  * @returns
+ * @internal
  */
 export function getAuthorizeUrl(
     authority: Authority,

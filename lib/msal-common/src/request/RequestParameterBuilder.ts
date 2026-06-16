@@ -591,6 +591,7 @@ export function addSshJwk(
 /**
  * add server telemetry fields
  * @param serverTelemetryManager
+ * @internal
  */
 export function addServerTelemetry(
     parameters: Map<string, string>,

@@ -16,31 +16,54 @@
   "messages": {
     "compilerMessageReporting": {
       "default": {
-        "logLevel": "warning",
-        "addToApiReportFile": true
+        "logLevel": "error"
       }
     },
     "extractorMessageReporting": {
       "default": {
-        "logLevel": "warning"
+        "logLevel": "error"
+      },
+      "ae-undocumented": {
+        "logLevel": "none"
       },
       "ae-missing-release-tag": {
-        "logLevel": "warning",
-        "addToApiReportFile": true
+        "logLevel": "none"
       },
       "ae-setter-with-docs": {
-        "logLevel": "warning",
-        "addToApiReportFile": true
+        "logLevel": "none"
+      },
+      "ae-internal-missing-underscore": {
+        "logLevel": "none",
+        "addToApiReportFile": false
+      },
+      "ae-forgotten-export": {
+        "logLevel": "none",
+        "addToApiReportFile": false
+      },
+      "ae-internal-mixed-release-tag": {
+        "logLevel": "error",
+        "addToApiReportFile": false
+      },
+      "ae-unresolved-inheritdoc-reference": {
+        "logLevel": "error",
+        "addToApiReportFile": false
+      },
+      "ae-unresolved-inheritdoc-base": {
+        "logLevel": "error",
+        "addToApiReportFile": false
+      },
+      "ae-incompatible-release-tags": {
+        "logLevel": "error",
+        "addToApiReportFile": false
       },
       "ae-unresolved-link": {
-        "logLevel": "warning",
-        "addToApiReportFile": true
+        "logLevel": "error",
+        "addToApiReportFile": false
       }
     },
     "tsdocMessageReporting": {
       "default": {
-        "logLevel": "warning",
-        "addToApiReportFile": true
+        "logLevel": "none"
       }
     }
   }
