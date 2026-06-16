@@ -893,13 +893,9 @@ export abstract class CacheManager implements ICacheManager {
         const entityComponents = entity.additionalCacheKeyComponents;
         const filterComponents = filter.additionalCacheKeyComponents;
         const entityHasComponents =
-            entityComponents !== null &&
-            entityComponents !== undefined &&
-            Object.keys(entityComponents).length > 0;
+            !!entityComponents && Object.keys(entityComponents).length > 0;
         const filterHasComponents =
-            filterComponents !== null &&
-            filterComponents !== undefined &&
-            Object.keys(filterComponents).length > 0;
+            !!filterComponents && Object.keys(filterComponents).length > 0;
 
         if (entityHasComponents !== filterHasComponents) {
             return false;
