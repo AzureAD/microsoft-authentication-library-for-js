@@ -126,7 +126,7 @@ export class Authority {
     }
 
     /**
-     * Get {@link AuthorityType}
+     * Get {@link AuthorityType:type}
      * @param authorityUri {@link IUri}
      * @private
      */

@@ -632,6 +632,7 @@ export class ResponseHandler {
     }
 }
 
+/** @internal */
 export function buildAccountToCache(
     cacheStorage: CacheManager,
     authority: Authority,

@@ -28,6 +28,7 @@ import { AccountEntity } from "../entities/AccountEntity.js";
 
 /**
  * Generate Account Id key component as per the schema: <home_account_id>-<environment>
+ * @internal
  */
 export function generateAccountId(accountEntity: AccountEntity): string {
     const accountId: Array<string> = [
@@ -39,6 +40,7 @@ export function generateAccountId(accountEntity: AccountEntity): string {
 
 /**
  * Returns the AccountInfo interface for this account.
+ * @internal
  */
 export function getAccountInfo(accountEntity: AccountEntity): AccountInfo {
     const tenantProfiles = accountEntity.tenantProfiles || [];
@@ -78,6 +80,7 @@ export function getAccountInfo(accountEntity: AccountEntity): AccountInfo {
 
 /**
  * Returns true if the account entity is in single tenant format (outdated), false otherwise
+ * @internal
  */
 export function isSingleTenant(accountEntity: AccountEntity): boolean {
     return !accountEntity.tenantProfiles;
@@ -86,6 +89,7 @@ export function isSingleTenant(accountEntity: AccountEntity): boolean {
 /**
  * Build Account cache from IdToken, clientInfo and authority/policy. Associated with AAD.
  * @param accountDetails
+ * @internal
  */
 export function createAccountEntity(
     accountDetails: {
@@ -195,6 +199,7 @@ export function createAccountEntity(
  * @param cloudGraphHostName
  * @param msGraphHost
  * @returns
+ * @internal
  */
 export function createAccountEntityFromAccountInfo(
     accountInfo: AccountInfo,
@@ -275,6 +280,7 @@ export function generateHomeAccountId(
 /**
  * Validates an entity: checks for all expected params
  * @param entity
+ * @internal
  */
 export function isAccountEntity(entity: object): entity is AccountEntity {
     if (!entity) {

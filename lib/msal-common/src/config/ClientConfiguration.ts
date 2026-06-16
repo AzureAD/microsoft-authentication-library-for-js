@@ -56,6 +56,9 @@ export type ClientConfiguration = {
     serializableCache?: ISerializableTokenCache | null;
 };
 
+/**
+ * @internal
+ */
 export type CommonClientConfiguration = {
     authOptions: Required<AuthOptions>;
     systemOptions: Required<SystemOptions>;
@@ -208,6 +211,7 @@ const DEFAULT_TELEMETRY_OPTIONS: Required<TelemetryOptions> = {
  * @param Configuration
  *
  * @returns Configuration
+ * @internal
  */
 export function buildClientConfiguration({
     authOptions: userAuthOptions,

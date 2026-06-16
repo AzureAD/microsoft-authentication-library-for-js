@@ -175,7 +175,11 @@ export type BrowserSystemOptions = SystemOptions & {
     serverTelemetryEnabled?: boolean;
 };
 
-/** @internal */
+/**
+ * Options for configuring experimental features. These features do not follow
+ * semver and may be changed or removed without a major version bump. Use with caution.
+ * @public
+ */
 export type BrowserExperimentalOptions = {
     /**
      * Enables iframe timeout telemetry experiment for silent iframe bridge monitoring.
