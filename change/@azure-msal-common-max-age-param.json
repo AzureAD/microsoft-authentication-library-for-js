@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Send the OIDC max_age parameter on the authorization request when request.maxAge is set, and fix an auth_time seconds/milliseconds unit bug in checkMaxAge [#8659](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8659)",
+  "packageName": "@azure/msal-common",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
