@@ -2,6 +2,29 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Tue, 16 Jun 2026 19:46:35 GMT",
+      "version": "5.4.5",
+      "tag": "@azure/msal-react_v5.4.5",
+      "comments": {
+        "none": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Resolve transitive CVEs in 3P samples and tooling [#8630](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8630)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v5.14.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 10 Jun 2026 22:41:34 GMT",
       "version": "5.4.4",
       "tag": "@azure/msal-react_v5.4.4",
