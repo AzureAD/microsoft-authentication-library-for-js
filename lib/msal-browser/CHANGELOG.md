@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 10 Jun 2026 22:41:33 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 16 Jun 2026 19:46:34 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.14.0
+
+Tue, 16 Jun 2026 19:46:34 GMT
+
+### Minor changes
+
+- Enhance logging functionality by injecting runtime variables into decoded messages [#8644](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8644) (kshabelko@microsoft.com)
+- Add package metadata to loggers and fix SKU name [#8647](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8647) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.9.0
+
+### Patches
+
+- Initialize BrowserCacheManager in loadExternalTokens for localStorage cache usage [#8642](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8642) (198982749+Copilot@users.noreply.github.com)
+- Update API Extractor warning policy and tag internal APIs with @internal [#8653](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8653) (thomas.norling@microsoft.com)
 
 ## 5.13.0
 

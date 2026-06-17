@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Wed, 10 Jun 2026 22:41:33 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 16 Jun 2026 19:46:34 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.9.0
+
+Tue, 16 Jun 2026 19:46:34 GMT
+
+### Minor changes
+
+- Add package metadata to loggers and fix SKU name [#8647](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8647) (kshabelko@microsoft.com)
+- Enhance logging functionality by injecting runtime variables into decoded messages [#8644](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8644) (kshabelko@microsoft.com)
+
+### Patches
+
+- Update API Extractor warning policy and tag internal APIs with @internal [#8653](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8653) (thomas.norling@microsoft.com)
 
 ## 16.8.0
 
