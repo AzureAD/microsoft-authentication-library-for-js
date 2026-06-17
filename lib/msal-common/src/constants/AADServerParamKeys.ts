@@ -20,6 +20,7 @@ export const REFRESH_TOKEN_EXPIRES_IN = "refresh_token_expires_in";
 export const STATE = "state";
 export const NONCE = "nonce";
 export const PROMPT = "prompt";
+export const MAX_AGE = "max_age";
 export const SESSION_STATE = "session_state";
 export const CLIENT_INFO = "client_info";
 export const CODE = "code";

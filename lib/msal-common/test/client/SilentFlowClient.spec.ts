@@ -386,7 +386,7 @@ describe("SilentFlowClient unit tests", () => {
 
             const idTokenClaimsWithAuthTime = {
                 ...ID_TOKEN_CLAIMS,
-                auth_time: Date.now() - ONE_DAY_IN_MS * 2,
+                auth_time: Math.floor((Date.now() - ONE_DAY_IN_MS * 2) / 1000),
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaimsWithAuthTime
@@ -963,7 +963,7 @@ describe("SilentFlowClient unit tests", () => {
 
             const idTokenClaimsWithAuthTime = {
                 ...ID_TOKEN_CLAIMS,
-                auth_time: Date.now() - ONE_DAY_IN_MS * 2,
+                auth_time: Math.floor((Date.now() - ONE_DAY_IN_MS * 2) / 1000),
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaimsWithAuthTime

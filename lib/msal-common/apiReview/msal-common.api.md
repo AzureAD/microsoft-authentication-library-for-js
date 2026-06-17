@@ -41,6 +41,7 @@ declare namespace AADServerParamKeys {
         STATE,
         NONCE,
         PROMPT,
+        MAX_AGE,
         SESSION_STATE,
         CLIENT_INFO_2 as CLIENT_INFO,
         CODE,
@@ -260,6 +261,9 @@ function addLoginHint(parameters: Map<string, string>, loginHint: string): void;
 
 // @public
 function addLogoutHint(parameters: Map<string, string>, logoutHint: string): void;
+
+// @public
+function addMaxAge(parameters: Map<string, string>, maxAge: number): void;
 
 // @public
 function addNativeBroker(parameters: Map<string, string>): void;
@@ -2116,6 +2120,9 @@ const logoutRequestEmpty = "logout_request_empty";
 function mapToQueryString(parameters: Map<string, string>): string;
 
 // @public (undocumented)
+const MAX_AGE = "max_age";
+
+// @public (undocumented)
 const maxAgeTranspired = "max_age_transpired";
 
 // @public (undocumented)
@@ -2739,6 +2746,7 @@ declare namespace RequestParameterBuilder {
         addLibraryInfo,
         addApplicationTelemetry,
         addPrompt,
+        addMaxAge,
         addState,
         addNonce,
         addCodeChallengeParams,

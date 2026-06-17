@@ -547,7 +547,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                auth_time: Date.now() - Constants.ONE_DAY_IN_MS * 2,
+                auth_time: Math.floor(
+                    (Date.now() - Constants.ONE_DAY_IN_MS * 2) / 1000
+                ),
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
@@ -937,7 +939,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                auth_time: Date.now() - Constants.ONE_DAY_IN_MS * 2,
+                auth_time: Math.floor(
+                    (Date.now() - Constants.ONE_DAY_IN_MS * 2) / 1000
+                ),
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims

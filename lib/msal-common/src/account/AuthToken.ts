@@ -87,7 +87,9 @@ export function checkMaxAge(authTime: number, maxAge: number): void {
      * provide a value of 0 for the max_age parameter and the AS will force a fresh login.
      */
     const fiveMinuteSkew = 300000; // five minutes in milliseconds
-    if (maxAge === 0 || Date.now() - fiveMinuteSkew > authTime + maxAge) {
+    // auth_time is expressed in seconds (per OIDC); maxAge is in milliseconds
+    const authTimeMs = authTime * 1000;
+    if (maxAge === 0 || Date.now() - fiveMinuteSkew > authTimeMs + maxAge) {
         throw createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired);
     }
 }

@@ -235,6 +235,10 @@ export function getStandardAuthorizeRequestParameters(
         RequestParameterBuilder.addNonce(parameters, request.nonce);
     }
 
+    if (request.maxAge !== undefined) {
+        RequestParameterBuilder.addMaxAge(parameters, request.maxAge);
+    }
+
     if (request.state) {
         RequestParameterBuilder.addState(parameters, request.state);
     }
