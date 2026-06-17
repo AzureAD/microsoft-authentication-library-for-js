@@ -103,7 +103,7 @@ export const useMsal: () => IMsalContext;
 export function useMsalAuthentication(interactionType: InteractionType, authenticationRequest?: PopupRequest | RedirectRequest | SsoSilentRequest, accountIdentifiers?: AccountIdentifiers): MsalAuthenticationResult;
 
 // @public (undocumented)
-export const version = "5.4.4";
+export const version = "5.4.5";
 
 // @public
 export const withMsal: <P extends WithMsalProps>(Component: React_2.ComponentType<P>) => React_2.FunctionComponent<Subtract<P, WithMsalProps>>;

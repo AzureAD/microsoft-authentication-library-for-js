@@ -2,6 +2,43 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 16 Jun 2026 19:46:34 GMT",
+      "version": "16.9.0",
+      "tag": "@azure/msal-common_v16.9.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Add package metadata to loggers and fix SKU name [#8647](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8647)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Enhance logging functionality by injecting runtime variables into decoded messages [#8644](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8644)"
+          }
+        ],
+        "none": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Resolve transitive CVEs in 3P samples and tooling [#8630](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8630)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Update API Extractor warning policy and tag internal APIs with @internal [#8653](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8653)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 10 Jun 2026 22:41:33 GMT",
       "version": "16.8.0",
       "tag": "@azure/msal-common_v16.8.0",
