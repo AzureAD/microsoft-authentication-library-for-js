@@ -83,6 +83,10 @@ declare namespace AADServerParamKeys {
         EAR_JWE_CRYPTO,
         RESOURCE,
         CLI_DATA,
+        USER_FEDERATED_IDENTITY_CREDENTIAL,
+        USERNAME,
+        USER_ID,
+        FMI_PATH,
     };
 }
 export { AADServerParamKeys };
@@ -1269,6 +1273,7 @@ export type ClientAssertionCallback = (
 export type ClientAssertionConfig = {
     clientId: string;
     tokenEndpoint?: string;
+    fmiPath?: string;
 };
 
 declare namespace ClientAssertionUtils {
@@ -1607,7 +1612,8 @@ function createAccessTokenEntity(
     refreshOn?: number,
     tokenType?: Constants_2.AuthenticationScheme,
     userAssertionHash?: string,
-    keyId?: string
+    keyId?: string,
+    additionalCacheKeyComponents?: Record<string, string>
 ): AccessTokenEntity;
 
 // @internal
@@ -1726,6 +1732,7 @@ export type CredentialEntity = {
     userAssertionHash?: string;
     tokenType?: AuthenticationScheme;
     keyId?: string;
+    additionalCacheKeyComponents?: Record<string, string>;
     lastUpdatedAt: string;
 };
 
@@ -1741,6 +1748,7 @@ export type CredentialFilter = {
     userAssertionHash?: string;
     tokenType?: AuthenticationScheme;
     keyId?: string;
+    additionalCacheKeyComponents?: Record<string, string>;
 };
 
 // @public
@@ -1933,6 +1941,9 @@ function extractTokenClaims(
 ): TokenClaims;
 
 // @public (undocumented)
+const FMI_PATH = "fmi_path";
+
+// @public (undocumented)
 const FOCI = "foci";
 
 // @public (undocumented)
@@ -1988,7 +1999,8 @@ function getAuthorizeUrl(
 export function getClientAssertion(
     clientAssertion: string | ClientAssertionCallback,
     clientId: string,
-    tokenEndpoint?: string
+    tokenEndpoint?: string,
+    fmiPath?: string
 ): Promise<string>;
 
 // @public
@@ -2031,6 +2043,7 @@ const GrantType: {
     readonly REFRESH_TOKEN_GRANT: "refresh_token";
     readonly DEVICE_CODE_GRANT: "device_code";
     readonly JWT_BEARER: "urn:ietf:params:oauth:grant-type:jwt-bearer";
+    readonly USER_FIC: "user_fic";
 };
 
 // @public (undocumented)
@@ -3367,7 +3380,8 @@ export class ResponseHandler {
         userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean,
         forceCacheRefreshTokenResponse?: boolean,
-        serverRequestId?: string
+        serverRequestId?: string,
+        additionalCacheKeyComponents?: Record<string, string>
     ): Promise<AuthenticationResult>;
     validateTokenResponse(
         serverResponse: ServerAuthorizationTokenResponse,
@@ -3996,7 +4010,16 @@ declare namespace UrlUtils {
 export { UrlUtils };
 
 // @public (undocumented)
+const USER_FEDERATED_IDENTITY_CREDENTIAL = "user_federated_identity_credential";
+
+// @public (undocumented)
+const USER_ID = "user_id";
+
+// @public (undocumented)
 const userCanceled = "user_canceled";
+
+// @public (undocumented)
+const USERNAME = "username";
 
 // @public
 function validateAuthorizationResponse(

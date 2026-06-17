@@ -32,7 +32,7 @@ import "dotenv/config"; // process.env now has the values defined in a .env file
 const clientAssertionCallback: msal.ClientAssertionCallback = async (
     config: msal.ClientAssertionConfig
 ): Promise<string> => {
-    // network request that uses config.clientId and (optionally) config.tokenEndpoint
+    // network request that uses config.clientId, (optionally) config.tokenEndpoint, and (optionally) config.fmiPath
     const result: Promise<string> = await Promise.resolve(
         "network request which gets assertion"
     );

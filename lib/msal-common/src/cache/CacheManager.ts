@@ -890,6 +890,34 @@ export abstract class CacheManager implements ICacheManager {
             }
         }
 
+        // Additional cache key components matching (bidirectional isolation)
+        const entityComponents = entity.additionalCacheKeyComponents;
+        const filterComponents = filter.additionalCacheKeyComponents;
+        const entityHasComponents =
+            !!entityComponents && Object.keys(entityComponents).length > 0;
+        const filterHasComponents =
+            !!filterComponents && Object.keys(filterComponents).length > 0;
+
+        if (entityHasComponents !== filterHasComponents) {
+            return false;
+        }
+        if (entityHasComponents && filterHasComponents) {
+            const entityKeys = Object.keys(entityComponents).sort();
+            const filterKeys = Object.keys(filterComponents).sort();
+            if (entityKeys.length !== filterKeys.length) {
+                return false;
+            }
+            for (let i = 0; i < entityKeys.length; i++) {
+                if (
+                    entityKeys[i] !== filterKeys[i] ||
+                    entityComponents[entityKeys[i]] !==
+                        filterComponents[filterKeys[i]]
+                ) {
+                    return false;
+                }
+            }
+        }
+
         return true;
     }
 

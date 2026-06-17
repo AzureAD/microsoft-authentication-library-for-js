@@ -28,4 +28,8 @@ export type CommonClientCredentialRequest = Omit<
      * An assertion string or a callback function that returns an assertion string (both are Base64Url-encoded signed JWTs) used in the Client Credential flow.
      */
     clientAssertion?: ClientAssertion;
+    /**
+     * FMI path to scope the client credentials token to a specific agent identity. Sent as `fmi_path` in the POST body.
+     */
+    fmiPath?: string;
 };
