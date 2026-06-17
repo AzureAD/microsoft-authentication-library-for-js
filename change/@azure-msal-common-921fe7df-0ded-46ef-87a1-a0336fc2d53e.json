@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add package metadata to loggers and fix SKU name [#8647](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8647)",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

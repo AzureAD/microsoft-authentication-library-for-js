@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Resolve transitive CVEs in 3P samples and tooling [#8630](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8630)",
-  "packageName": "@azure/msal-browser",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "none"
-}
