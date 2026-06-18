@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 16 Jun 2026 19:46:34 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 18 Jun 2026 22:44:03 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.10.0
+
+Thu, 18 Jun 2026 22:44:03 GMT
+
+### Minor changes
+
+- Add FMI cache key isolation and FIC grant type support (constants, cache infrastructure, assertion context) [#8614](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8614) (avdunn@microsoft.com)
 
 ## 16.9.0
 
