@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 16 Jun 2026 19:46:35 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 18 Jun 2026 20:46:51 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.3.0
+
+Thu, 18 Jun 2026 20:46:51 GMT
+
+### Minor changes
+
+- Add Federated Managed Identity (FMI) and User Federated Identity Credential (user_fic) grant type support. Also fixes a long-standing bug where the tokenEndpoint field on ClientAssertionConfig was incorrectly populated with resourceRequestUri during client-credential flows; it now correctly contains the AAD token endpoint. [#8614](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8614) (avdunn@microsoft.com)
+- Bump @azure/msal-common to v16.10.0
 
 ## 5.2.5
 
