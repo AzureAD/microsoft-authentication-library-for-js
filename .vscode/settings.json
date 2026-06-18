@@ -42,5 +42,8 @@
             "name": "msal-node-extensions",
             "rootPath": "extensions/msal-node-extensions"
         }
+    ],
+    "githubPullRequests.ignoredPullRequestBranches": [
+        "dev"
     ]
 }
