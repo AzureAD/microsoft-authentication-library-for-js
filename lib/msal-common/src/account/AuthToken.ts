@@ -79,6 +79,7 @@ export function getJWSPayload(authToken: string): string {
 
 /**
  * Determine if the token's max_age has transpired
+ * @deprecated No longer used by MSAL. MSAL no longer validates the `max_age` of returned tokens. This function will be removed in a future major version.
  */
 export function checkMaxAge(authTime: number, maxAge: number): void {
     /*

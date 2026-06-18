@@ -643,7 +643,7 @@ export type AuthorizeResponse = {
     clientdata?: string;
 };
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 const authTimeNotFound = "auth_time_not_found";
 
 declare namespace AuthToken {
@@ -935,7 +935,7 @@ export const CcsCredentialType: {
 // @public (undocumented)
 export type CcsCredentialType = (typeof CcsCredentialType)[keyof typeof CcsCredentialType];
 
-// @public
+// @public @deprecated
 function checkMaxAge(authTime: number, maxAge: number): void;
 
 // @public (undocumented)
@@ -2115,7 +2115,7 @@ const logoutRequestEmpty = "logout_request_empty";
 // @public
 function mapToQueryString(parameters: Map<string, string>): string;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 const maxAgeTranspired = "max_age_transpired";
 
 // @public (undocumented)
