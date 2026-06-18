@@ -178,7 +178,9 @@ describe("RefreshTokenClient unit tests", () => {
 
             await expect(
                 client.acquireToken(dpopRefreshTokenRequest, 0)
-            ).rejects.toMatchObject(createClientAuthError("dpop_not_enabled"));
+            ).rejects.toMatchObject(
+                createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled)
+            );
             expect(clientAssertionSpy).not.toHaveBeenCalled();
             expect(executePostToTokenEndpointSpy).not.toHaveBeenCalled();
         });

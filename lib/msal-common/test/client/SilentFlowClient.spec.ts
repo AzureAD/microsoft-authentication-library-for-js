@@ -147,7 +147,9 @@ describe("SilentFlowClient unit tests", () => {
 
             await expect(
                 client.acquireCachedToken(silentFlowRequest)
-            ).rejects.toMatchObject(createClientAuthError("dpop_not_enabled"));
+            ).rejects.toMatchObject(
+                createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled)
+            );
             expect(getAccessTokenSpy).not.toHaveBeenCalled();
         });
     });

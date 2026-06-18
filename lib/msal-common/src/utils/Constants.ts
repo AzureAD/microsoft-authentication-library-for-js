@@ -258,22 +258,22 @@ export const SERVER_TELEM_OVERFLOW_FALSE: string = "0";
 export const SERVER_TELEM_UNKNOWN_ERROR: string = "unknown_error";
 
 /**
+ * Token type for DPoP-bound access tokens.
+ * @internal
+ */
+export const DPOP_TOKEN_TYPE = "DPoP";
+
+/**
  * Type of the authentication request
  */
 export const AuthenticationScheme = {
     BEARER: "Bearer",
     POP: "pop",
     SSH: "ssh-cert",
-    DPOP: "dpop",
+    DPOP: DPOP_TOKEN_TYPE,
 } as const;
 export type AuthenticationScheme =
     (typeof AuthenticationScheme)[keyof typeof AuthenticationScheme];
-
-/**
- * Token type for DPoP-bound access tokens.
- * @internal
- */
-export const DPOP_TOKEN_TYPE = "DPoP";
 
 /**
  * Constants related to throttling

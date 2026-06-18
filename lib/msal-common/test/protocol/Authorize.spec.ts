@@ -71,7 +71,9 @@ describe("Authorize Protocol Tests", () => {
                     authCodeUrlRequest,
                     new Logger({})
                 )
-            ).toThrow(createClientAuthError("dpop_not_enabled"));
+            ).toThrow(
+                createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled)
+            );
         });
 
         it("Creates an authorization url with default parameters", async () => {

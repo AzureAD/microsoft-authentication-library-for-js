@@ -56,11 +56,6 @@ export type BaseAuthRequest = {
      */
     resourceRequestUri?: string;
     /**
-     * JWK thumbprint for DPoP-bound authorization code requests.
-     * @internal
-     */
-    dpopJkt?: string;
-    /**
      * Proof for DPoP-bound token requests.
      * @internal
      */

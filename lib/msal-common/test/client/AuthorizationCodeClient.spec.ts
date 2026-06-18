@@ -171,7 +171,9 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             await expect(
                 client.acquireToken(codeRequest, 0)
-            ).rejects.toMatchObject(createClientAuthError("dpop_not_enabled"));
+            ).rejects.toMatchObject(
+                createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled)
+            );
             expect(clientAssertionSpy).not.toHaveBeenCalled();
             expect(executePostToTokenEndpointSpy).not.toHaveBeenCalled();
         });

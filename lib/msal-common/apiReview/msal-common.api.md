@@ -404,7 +404,7 @@ const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
     readonly SSH: "ssh-cert";
-    readonly DPOP: "dpop";
+    readonly DPOP: "DPoP";
 };
 
 // @public (undocumented)
@@ -706,7 +706,6 @@ export type BaseAuthRequest = {
     shrOptions?: ShrOptions;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
-    dpopJkt?: string;
     dpopProof?: string;
     sshJwk?: string;
     sshKid?: string;
@@ -1050,6 +1049,9 @@ declare namespace ClientAuthErrorCodes {
         unexpectedCredentialType,
         tokenRefreshRequired,
         tokenClaimsCnfRequiredForSignedJwt,
+        dpopNotEnabled,
+        dpopMissingResourceContext,
+        dpopNonceRetryFailed,
         authorizationCodeMissingFromServerResponse,
         bindingKeyNotRemoved,
         endSessionEndpointNotSupported,
@@ -1312,8 +1314,8 @@ declare namespace Constants {
         SERVER_TELEM_OVERFLOW_TRUE,
         SERVER_TELEM_OVERFLOW_FALSE,
         SERVER_TELEM_UNKNOWN_ERROR,
-        AuthenticationScheme,
         DPOP_TOKEN_TYPE,
+        AuthenticationScheme,
         DEFAULT_THROTTLE_TIME_SECONDS,
         DEFAULT_MAX_THROTTLE_TIME_SECONDS,
         THROTTLING_PREFIX,
@@ -1523,6 +1525,15 @@ const DOMAIN_HINT = "domain_hint";
 
 // @internal
 const DPOP_TOKEN_TYPE = "DPoP";
+
+// @public (undocumented)
+const dpopMissingResourceContext = "dpop_missing_resource_context";
+
+// @public (undocumented)
+const dpopNonceRetryFailed = "dpop_nonce_retry_failed";
+
+// @public (undocumented)
+const dpopNotEnabled = "dpop_not_enabled";
 
 // @public (undocumented)
 const DSTS = "dstsv2";

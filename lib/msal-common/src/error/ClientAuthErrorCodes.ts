@@ -32,6 +32,9 @@ export const unexpectedCredentialType = "unexpected_credential_type";
 export const tokenRefreshRequired = "token_refresh_required";
 export const tokenClaimsCnfRequiredForSignedJwt =
     "token_claims_cnf_required_for_signedjwt";
+export const dpopNotEnabled = "dpop_not_enabled";
+export const dpopMissingResourceContext = "dpop_missing_resource_context";
+export const dpopNonceRetryFailed = "dpop_nonce_retry_failed";
 export const authorizationCodeMissingFromServerResponse =
     "authorization_code_missing_from_server_response";
 export const bindingKeyNotRemoved = "binding_key_not_removed";

@@ -140,6 +140,18 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Cannot generate a POP jwt if the token_claims are not populated.
 
+### `dpop_not_enabled`
+
+-   DPoP token acquisition is not enabled in this package yet. Requests that set `authenticationScheme` to `AuthenticationScheme.DPOP` fail closed with this error.
+
+### `dpop_missing_resource_context`
+
+-   DPoP proof generation did not receive the required resource request method or URI context.
+
+### `dpop_nonce_retry_failed`
+
+-   Retrying a DPoP request with a nonce did not succeed.
+
 ### `authorization_code_missing_from_server_response`
 
 -   Server response does not contain an authorization code to proceed.

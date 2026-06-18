@@ -100,7 +100,7 @@ export class SilentFlowClient {
         let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
 
         if (request.authenticationScheme === AuthenticationScheme.DPOP) {
-            throw createClientAuthError("dpop_not_enabled");
+            throw createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled);
         }
 
         if (request.forceRefresh || !StringUtils.isEmptyObj(request.claims)) {

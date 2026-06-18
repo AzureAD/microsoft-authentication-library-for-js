@@ -43,7 +43,7 @@ export function getStandardAuthorizeRequestParameters(
     performanceClient?: IPerformanceClient
 ): Map<string, string> {
     if (request.authenticationScheme === AuthenticationScheme.DPOP) {
-        throw createClientAuthError("dpop_not_enabled");
+        throw createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled);
     }
 
     // generate the correlationId if not set by the user and add

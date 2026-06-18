@@ -372,7 +372,7 @@ export class AuthorizationCodeClient {
         if (
             request.authenticationScheme === Constants.AuthenticationScheme.DPOP
         ) {
-            throw createClientAuthError("dpop_not_enabled");
+            throw createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled);
         }
 
         if (this.config.clientCredentials.clientSecret) {
