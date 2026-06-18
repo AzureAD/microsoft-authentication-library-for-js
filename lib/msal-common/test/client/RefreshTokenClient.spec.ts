@@ -150,6 +150,27 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
         });
 
+        it("throws dpopNotEnabled before the token network request for DPoP refresh token requests", async () => {
+            const executePostToTokenEndpointSpy = jest
+                .spyOn(TokenProtocol, "executePostToTokenEndpoint")
+                .mockResolvedValue(AUTHENTICATION_RESULT);
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const dpopRefreshTokenRequest: CommonRefreshTokenRequest = {
+                ...refreshTokenRequest,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+            };
+
+            await expect(
+                client.acquireToken(dpopRefreshTokenRequest, 0)
+            ).rejects.toMatchObject(
+                createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled)
+            );
+            expect(executePostToTokenEndpointSpy).not.toHaveBeenCalled();
+        });
+
         it("Adds correlationId to the /token query string", (done) => {
             jest.spyOn(
                 TokenProtocol,

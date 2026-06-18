@@ -45,9 +45,4 @@ export type AuthenticationResult = {
     code?: string;
     fromPlatformBroker?: boolean;
     resource?: string;
-    /**
-     * DPoP proof JWT to attach to resource requests when using DPoP-bound tokens.
-     * @internal
-     */
-    dpopProof?: string;
 };

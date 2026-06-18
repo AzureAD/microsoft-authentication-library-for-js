@@ -434,6 +434,10 @@ export class AuthorizationCodeClient {
                     ClientConfigurationErrorCodes.missingSshJwk
                 );
             }
+        } else if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            throw createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled);
         }
 
         let ccsCred: CcsCredential | undefined = undefined;

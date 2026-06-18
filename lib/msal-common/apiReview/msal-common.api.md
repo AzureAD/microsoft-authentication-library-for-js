@@ -396,7 +396,6 @@ export type AuthenticationResult = {
     code?: string;
     fromPlatformBroker?: boolean;
     resource?: string;
-    dpopProof?: string;
 };
 
 // @public
@@ -404,7 +403,7 @@ const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
     readonly SSH: "ssh-cert";
-    readonly DPOP: "dpop";
+    readonly DPOP: "DPoP";
 };
 
 // @public (undocumented)
@@ -1177,7 +1176,6 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     sid?: string;
     state: string;
     platformBroker?: boolean;
-    dpopJkt?: string;
 };
 
 // @internal (undocumented)
@@ -1315,6 +1313,8 @@ declare namespace Constants {
         SERVER_TELEM_UNKNOWN_ERROR,
         AuthenticationScheme,
         DPOP_TOKEN_TYPE,
+        DPOP_NONCE_CACHE_KEY,
+        DPOP_NONCE_CACHE_VERSION,
         DEFAULT_THROTTLE_TIME_SECONDS,
         DEFAULT_MAX_THROTTLE_TIME_SECONDS,
         THROTTLING_PREFIX,
@@ -1521,6 +1521,12 @@ export type DeviceCodeResponse = {
 
 // @public (undocumented)
 const DOMAIN_HINT = "domain_hint";
+
+// @internal
+const DPOP_NONCE_CACHE_KEY = "dpop-nonce";
+
+// @internal
+const DPOP_NONCE_CACHE_VERSION = 1;
 
 // @internal
 const DPOP_TOKEN_TYPE = "DPoP";

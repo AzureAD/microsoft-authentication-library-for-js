@@ -500,6 +500,10 @@ export class RefreshTokenClient {
                     ClientConfigurationErrorCodes.missingSshJwk
                 );
             }
+        } else if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            throw createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled);
         }
 
         if (

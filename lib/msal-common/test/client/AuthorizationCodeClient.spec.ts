@@ -135,6 +135,35 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(1);
         });
 
+        it("throws dpopNotEnabled before the token network request for DPoP authorization code requests", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const executePostToTokenEndpointSpy = jest
+                .spyOn(TokenProtocol, "executePostToTokenEndpoint")
+                .mockResolvedValue(AUTHENTICATION_RESULT);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const codeRequest: CommonAuthorizationCodeRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["scope"],
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                authority: TEST_CONFIG.validAuthority,
+            };
+
+            await expect(
+                client.acquireToken(codeRequest, 0)
+            ).rejects.toMatchObject(
+                createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled)
+            );
+            expect(executePostToTokenEndpointSpy).not.toHaveBeenCalled();
+        });
+
         it("preventCorsPreflight=true does not add headers other than simpleRequest headers", async () => {
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
             jest.spyOn(
