@@ -173,7 +173,6 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 -   The nested app auth bridge is disabled.
 
 ### `platform_broker_error`
-
 -   An error occurred in the native broker. When this error is thrown, check the `platformBrokerError` property on the error object for detailed information.
 
 ### `empty_fic_assertion`
@@ -283,12 +282,10 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 -   Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.
 
 ### `invalid_request_method_for_EAR`
-
--   The EAR protocol cannot be used with HTTP method `GET`. The `httpMethod` parameter in all requests using `protocolMode: ProtocolMode.EAR` must be either unset or `"POST"`/`HttpMethod.POST`.
+- The EAR protocol cannot be used with HTTP method `GET`. The `httpMethod` parameter in all requests using `protocolMode: ProtocolMode.EAR` must be either unset or `"POST"`/`HttpMethod.POST`.
 
 ### `issuer_validation_failed`
-
--   Issuer returned from OpenID configuration endpoint does not match with the authority configured by the application.
+- Issuer returned from OpenID configuration endpoint does not match with the authority configured by the application.
 
 ## Interaction required errors
 
@@ -602,7 +599,6 @@ This error is thrown when an existing popup interaction is cancelled because a n
 **When This Occurs:**
 
 This error is thrown for the **previous/cancelled** interaction when:
-
 1. A popup interaction is in progress (e.g., `acquireTokenPopup`)
 2. A new popup request is made with `overrideInteractionInProgress: true`
 3. The library cancels the pending interaction and starts the new one
@@ -618,7 +614,7 @@ const promise1 = msalInstance.acquireTokenPopup(request1);
 // App decides to retry with override flag
 const request2 = {
     scopes: ["User.Read"],
-    overrideInteractionInProgress: true, // Override the previous interaction
+    overrideInteractionInProgress: true  // Override the previous interaction
 };
 const promise2 = msalInstance.acquireTokenPopup(request2);
 
@@ -639,6 +635,7 @@ const promise2 = msalInstance.acquireTokenPopup(request2);
 ### `user_cancelled`
 
 -   User cancelled the flow.
+
 
 ### `redirect_bridge_empty_response`
 
@@ -855,8 +852,8 @@ Communication with the redirect page (popup or iframe) timed out while waiting f
 
 **Error Messages**:
 
--   Token acquisition in popup failed due to timeout.
--   Token acquisition in iframe failed due to timeout.
+- Token acquisition in popup failed due to timeout.
+- Token acquisition in iframe failed due to timeout.
 
 This suberror is thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquireTokenPopup` or `loginPopup` when the redirect bridge script fails to send the authentication response back to the main window within the configured timeout period.
 
@@ -885,15 +882,15 @@ Your `redirectUri` page must include the redirect bridge script to enable commun
 ```html
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Redirect</title>
-    </head>
-    <body>
-        <script type="module">
-            import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
-            broadcastResponseToMainFrame().catch(console.error);
-        </script>
-    </body>
+<head>
+    <title>Redirect</title>
+</head>
+<body>
+    <script type="module">
+        import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
+        broadcastResponseToMainFrame().catch(console.error);
+    </script>
+</body>
 </html>
 ```
 
@@ -904,17 +901,15 @@ Copy `msal-redirect-bridge.min.js` from `node_modules/@azure/msal-browser/lib/re
 ```html
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Redirect</title>
-    </head>
-    <body>
-        <script src="/msal-redirect-bridge.min.js"></script>
-        <script>
-            msalRedirectBridge
-                .broadcastResponseToMainFrame()
-                .catch(console.error);
-        </script>
-    </body>
+<head>
+    <title>Redirect</title>
+</head>
+<body>
+    <script src="/msal-redirect-bridge.min.js"></script>
+    <script>
+        msalRedirectBridge.broadcastResponseToMainFrame().catch(console.error);
+    </script>
+</body>
 </html>
 ```
 
@@ -1146,8 +1141,7 @@ const msalConfig = {
 -   The provided token has expired and cannot be used.
 
 #### `access_denied`
-
--   The authentication method verification failed because access was denied.
+- The authentication method verification failed because access was denied.
 
 ## Other
 
