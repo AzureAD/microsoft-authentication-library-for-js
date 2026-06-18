@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add internal DPoP contract plumbing and nonce header parsing [#8662](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8662)",
+  "packageName": "@azure/msal-common",
+  "email": "hectormmg@microsoft.com",
+  "dependentChangeType": "patch"
+}

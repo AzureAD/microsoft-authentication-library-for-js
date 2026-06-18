@@ -70,6 +70,28 @@ export class AuthenticationHeaderParser {
     }
 
     /**
+     * This method reads the DPoP-Nonce value from the standalone DPoP-Nonce response header.
+     * It does not parse WWW-Authenticate or Authentication-Info parameters.
+     * @returns The DPoP nonce string
+     * @internal
+     */
+    getDPoPNonce(): string {
+        // Perform a case-insensitive lookup for the DPoP-Nonce header
+        const headerKey = Object.keys(this.headers).find(
+            (k) => k.toLowerCase() === HeaderNames.DPopNonce.toLowerCase()
+        );
+        const dpopNonce = headerKey ? this.headers[headerKey].trim() : undefined;
+
+        if (dpopNonce) {
+            return dpopNonce;
+        }
+
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.missingNonceAuthenticationHeader
+        );
+    }
+
+    /**
      * Parses an HTTP header's challenge set into a key/value map.
      * @param header
      * @returns

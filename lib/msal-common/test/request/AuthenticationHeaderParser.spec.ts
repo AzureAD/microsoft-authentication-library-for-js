@@ -75,4 +75,89 @@ describe("AuthenticationHeaderParser unit tests", () => {
             );
         });
     });
+
+    describe("getDPoPNonce", () => {
+        beforeEach(() => {
+            headers = {};
+        });
+
+        it("should return the DPoP-Nonce value when the header is present", () => {
+            headers[HeaderNames.DPopNonce] =
+                TEST_AUTHENTICATION_HEADERS.dpopNonce;
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                headers
+            );
+            expect(authenticationHeaderParser.getDPoPNonce()).toStrictEqual(
+                TEST_AUTHENTICATION_HEADERS.dpopNonce
+            );
+        });
+
+        it("should return the DPoP-Nonce value with whitespace trimmed", () => {
+            headers[HeaderNames.DPopNonce] =
+                `  ${TEST_AUTHENTICATION_HEADERS.dpopNonce}  `;
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                headers
+            );
+            expect(authenticationHeaderParser.getDPoPNonce()).toStrictEqual(
+                TEST_AUTHENTICATION_HEADERS.dpopNonce
+            );
+        });
+
+        it("should perform case-insensitive header lookup", () => {
+            headers["dpop-nonce"] = TEST_AUTHENTICATION_HEADERS.dpopNonce;
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                headers
+            );
+            expect(authenticationHeaderParser.getDPoPNonce()).toStrictEqual(
+                TEST_AUTHENTICATION_HEADERS.dpopNonce
+            );
+        });
+
+        it("should perform case-insensitive header lookup for uppercase variant", () => {
+            headers["DPOP-NONCE"] = TEST_AUTHENTICATION_HEADERS.dpopNonce;
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                headers
+            );
+            expect(authenticationHeaderParser.getDPoPNonce()).toStrictEqual(
+                TEST_AUTHENTICATION_HEADERS.dpopNonce
+            );
+        });
+
+        it("should throw an error if DPoP-Nonce header is not present", () => {
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                {}
+            );
+            expect(() => authenticationHeaderParser.getDPoPNonce()).toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingNonceAuthenticationHeader
+                )
+            );
+        });
+
+        it("should not return DPoP nonce from SHR Authentication-Info header", () => {
+            headers[HeaderNames.AuthenticationInfo] =
+                TEST_AUTHENTICATION_HEADERS.authenticationInfo;
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                headers
+            );
+            expect(() => authenticationHeaderParser.getDPoPNonce()).toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingNonceAuthenticationHeader
+                )
+            );
+        });
+
+        it("should not return DPoP nonce from SHR WWW-Authenticate header", () => {
+            headers[HeaderNames.WWWAuthenticate] =
+                TEST_AUTHENTICATION_HEADERS.wwwAuthenticate;
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                headers
+            );
+            expect(() => authenticationHeaderParser.getDPoPNonce()).toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingNonceAuthenticationHeader
+                )
+            );
+        });
+    });
 });
