@@ -527,7 +527,7 @@ export abstract class CacheManager implements ICacheManager {
 
         if (
             !!tenantProfileFilter.nativeAccountId &&
-                tenantProfile.nativeAccountId !==
+            tenantProfile.nativeAccountId !==
                 tenantProfileFilter.nativeAccountId
         ) {
             return false;
