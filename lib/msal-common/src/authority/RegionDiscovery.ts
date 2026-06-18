@@ -137,7 +137,8 @@ export class RegionDiscovery {
     /**
      * Make the call to the IMDS endpoint
      *
-     * @param imdsEndpointUrl
+     * @param version
+     * @param options
      * @returns Promise<NetworkResponse<ImdsComputeResponse>>
      */
     private async getRegionFromIMDS(
