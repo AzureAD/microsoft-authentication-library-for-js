@@ -4,6 +4,7 @@
  */
 
 import { CommonAuthorizationUrlRequest } from "../request/CommonAuthorizationUrlRequest.js";
+import { getMaxAgeSeconds } from "../request/BaseAuthRequest.js";
 import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
@@ -235,8 +236,9 @@ export function getStandardAuthorizeRequestParameters(
         RequestParameterBuilder.addNonce(parameters, request.nonce);
     }
 
-    if (request.maxAge !== undefined) {
-        RequestParameterBuilder.addMaxAge(parameters, request.maxAge);
+    const maxAgeSeconds = getMaxAgeSeconds(request);
+    if (maxAgeSeconds !== undefined) {
+        RequestParameterBuilder.addMaxAge(parameters, maxAgeSeconds);
     }
 
     if (request.state) {

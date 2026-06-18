@@ -42,7 +42,10 @@ import {
 } from "../error/InteractionRequiredAuthError.js";
 import { ServerError } from "../error/ServerError.js";
 import { Logger } from "../logger/Logger.js";
-import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
+import {
+    BaseAuthRequest,
+    getMaxAgeSeconds,
+} from "../request/BaseAuthRequest.js";
 import { ScopeSet } from "../request/ScopeSet.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import * as Constants from "../utils/Constants.js";
@@ -215,7 +218,8 @@ export class ResponseHandler {
             }
 
             // token max_age check
-            if (request.maxAge || request.maxAge === 0) {
+            const maxAgeSeconds = getMaxAgeSeconds(request);
+            if (maxAgeSeconds !== undefined) {
                 const authTime = idTokenClaims.auth_time;
                 if (!authTime) {
                     throw createClientAuthError(
@@ -223,7 +227,7 @@ export class ResponseHandler {
                     );
                 }
 
-                checkMaxAge(authTime, request.maxAge);
+                checkMaxAge(authTime, maxAgeSeconds);
             }
         }
 

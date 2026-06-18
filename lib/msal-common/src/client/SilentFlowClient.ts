@@ -9,6 +9,7 @@ import {
     CommonClientConfiguration,
 } from "../config/ClientConfiguration.js";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
+import { getMaxAgeSeconds } from "../request/BaseAuthRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import {
@@ -248,7 +249,8 @@ export class SilentFlowClient {
         }
 
         // token max_age check
-        if (request.maxAge || request.maxAge === 0) {
+        const maxAgeSeconds = getMaxAgeSeconds(request);
+        if (maxAgeSeconds !== undefined) {
             const authTime = idTokenClaims?.auth_time;
             if (!authTime) {
                 throw createClientAuthError(
@@ -256,7 +258,7 @@ export class SilentFlowClient {
                 );
             }
 
-            checkMaxAge(authTime, request.maxAge);
+            checkMaxAge(authTime, maxAgeSeconds);
         }
 
         return ResponseHandler.generateAuthenticationResult(

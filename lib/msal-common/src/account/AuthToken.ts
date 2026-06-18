@@ -8,6 +8,7 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
 } from "../error/ClientAuthError.js";
+import { nowSeconds } from "../utils/TimeUtils.js";
 
 /**
  * Extract token by decoding the rawToken
@@ -79,17 +80,20 @@ export function getJWSPayload(authToken: string): string {
 
 /**
  * Determine if the token's max_age has transpired
+ * @param authTime - the auth_time claim from the token, in seconds (per OIDC)
+ * @param maxAgeSeconds - maximum allowed age of the authentication, in seconds
  */
-export function checkMaxAge(authTime: number, maxAge: number): void {
+export function checkMaxAge(authTime: number, maxAgeSeconds: number): void {
     /*
      * per https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
      * To force an immediate re-authentication: If an app requires that a user re-authenticate prior to access,
      * provide a value of 0 for the max_age parameter and the AS will force a fresh login.
      */
-    const fiveMinuteSkew = 300000; // five minutes in milliseconds
-    // auth_time is expressed in seconds (per OIDC); maxAge is in milliseconds
-    const authTimeMs = authTime * 1000;
-    if (maxAge === 0 || Date.now() - fiveMinuteSkew > authTimeMs + maxAge) {
+    const fiveMinuteSkewSeconds = 300; // five minutes in seconds
+    if (
+        maxAgeSeconds === 0 ||
+        nowSeconds() - fiveMinuteSkewSeconds > authTime + maxAgeSeconds
+    ) {
         throw createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired);
     }
 }

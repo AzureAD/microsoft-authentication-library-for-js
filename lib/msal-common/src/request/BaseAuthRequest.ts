@@ -69,8 +69,16 @@ export type BaseAuthRequest = {
     azureCloudOptions?: AzureCloudOptions;
     /**
      * Maximum allowed age, in milliseconds, of the user's authentication before a new sign-in is required.
+     * @deprecated Use `maxAgeSeconds` instead. The OIDC `max_age` parameter is expressed in seconds;
+     * `maxAge` (milliseconds) is retained for backwards compatibility and is converted to seconds internally.
+     * If both are provided, `maxAgeSeconds` takes precedence.
      */
     maxAge?: number;
+    /**
+     * Maximum allowed age, in seconds, of the user's authentication before a new sign-in is required.
+     * Sent to the authorization server as the OIDC `max_age` parameter. A value of 0 forces an immediate re-authentication.
+     */
+    maxAgeSeconds?: number;
     /**
      * Object containing boolean values indicating whether to store tokens in the cache or not (default is true)
      */
@@ -147,4 +155,25 @@ function containsResourceParam(params?: StringDict): boolean {
     }
 
     return Object.prototype.hasOwnProperty.call(params, "resource");
+}
+
+/**
+ * Resolves the effective maximum authentication age, in seconds, from a request.
+ * Prefers the seconds-based `maxAgeSeconds`; falls back to the deprecated
+ * millisecond-based `maxAge`, converting it to seconds.
+ * @param request - Auth request
+ * @returns the max age in seconds, or undefined if neither property is set
+ */
+export function getMaxAgeSeconds(
+    request: Pick<BaseAuthRequest, "maxAge" | "maxAgeSeconds">
+): number | undefined {
+    if (request.maxAgeSeconds !== undefined) {
+        return request.maxAgeSeconds;
+    }
+
+    if (request.maxAge !== undefined) {
+        return Math.floor(request.maxAge / 1000);
+    }
+
+    return undefined;
 }

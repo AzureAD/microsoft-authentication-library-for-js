@@ -263,7 +263,7 @@ function addLoginHint(parameters: Map<string, string>, loginHint: string): void;
 function addLogoutHint(parameters: Map<string, string>, logoutHint: string): void;
 
 // @public
-function addMaxAge(parameters: Map<string, string>, maxAge: number): void;
+function addMaxAge(parameters: Map<string, string>, maxAgeSeconds: number): void;
 
 // @public
 function addNativeBroker(parameters: Map<string, string>): void;
@@ -710,6 +710,7 @@ export type BaseAuthRequest = {
     sshKid?: string;
     azureCloudOptions?: AzureCloudOptions;
     maxAge?: number;
+    maxAgeSeconds?: number;
     storeInCache?: StoreInCache;
     scenarioId?: string;
     popKid?: string;
@@ -940,7 +941,7 @@ export const CcsCredentialType: {
 export type CcsCredentialType = (typeof CcsCredentialType)[keyof typeof CcsCredentialType];
 
 // @public
-function checkMaxAge(authTime: number, maxAge: number): void;
+function checkMaxAge(authTime: number, maxAgeSeconds: number): void;
 
 // @public (undocumented)
 const CIAM_AUTH_URL = ".ciamlogin.com";

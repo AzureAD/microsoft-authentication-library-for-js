@@ -985,6 +985,34 @@ describe("SilentFlowClient unit tests", () => {
             );
         });
 
+        it("Throws error if maxAgeSeconds has transpired since the last end-user authentication", async () => {
+            const client = new SilentFlowClient(config, stubPerformanceClient);
+            jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(false);
+
+            const idTokenClaimsWithAuthTime = {
+                ...ID_TOKEN_CLAIMS,
+                auth_time: Math.floor((Date.now() - ONE_DAY_IN_MS * 2) / 1000),
+            };
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaimsWithAuthTime
+            );
+
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                maxAgeSeconds: 3600, // one hour, auth occurred two days ago
+            };
+
+            await expect(
+                client.acquireCachedToken(silentFlowRequest)
+            ).rejects.toMatchObject(
+                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired)
+            );
+        });
+
         it("Throws error if max age is requested and auth time is not included in the token claims", async () => {
             const client = new SilentFlowClient(config, stubPerformanceClient);
             jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(false);

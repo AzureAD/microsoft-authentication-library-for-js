@@ -1268,7 +1268,7 @@ describe("Authorize Protocol Tests", () => {
             expect(queryString.includes("instance_aware")).toBeFalsy();
         });
 
-        it("adds max_age (converted from milliseconds to seconds) when maxAge is set", async () => {
+        it("adds max_age (converted from milliseconds to seconds) when deprecated maxAge is set", async () => {
             const request: CommonAuthorizationUrlRequest = {
                 scopes: ["User.Read"],
                 nonce: RANDOM_TEST_GUID,
@@ -1296,7 +1296,80 @@ describe("Authorize Protocol Tests", () => {
             );
         });
 
-        it("adds max_age=0 when maxAge is 0 to force re-authentication", async () => {
+        it("adds max_age (in seconds) when maxAgeSeconds is set", async () => {
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                prompt: Constants.PromptValue.LOGIN,
+                redirectUri: "localhost",
+                maxAgeSeconds: 3600,
+            };
+
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    request,
+                    new Logger({})
+                );
+            const queryString = UrlUtils.mapToQueryString(params);
+
+            expect(queryString).toContain(`${AADServerParamKeys.MAX_AGE}=3600`);
+        });
+
+        it("prefers maxAgeSeconds over deprecated maxAge", async () => {
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                prompt: Constants.PromptValue.LOGIN,
+                redirectUri: "localhost",
+                maxAgeSeconds: 3600,
+                maxAge: Constants.ONE_DAY_IN_MS,
+            };
+
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    request,
+                    new Logger({})
+                );
+            const queryString = UrlUtils.mapToQueryString(params);
+
+            expect(queryString).toContain(`${AADServerParamKeys.MAX_AGE}=3600`);
+        });
+
+        it("adds max_age=0 when maxAgeSeconds is 0 to force re-authentication", async () => {
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                prompt: Constants.PromptValue.LOGIN,
+                redirectUri: "localhost",
+                maxAgeSeconds: 0,
+            };
+
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    request,
+                    new Logger({})
+                );
+            const queryString = UrlUtils.mapToQueryString(params);
+
+            expect(queryString).toContain(`${AADServerParamKeys.MAX_AGE}=0`);
+        });
+
+        it("adds max_age=0 when deprecated maxAge is 0 to force re-authentication", async () => {
             const request: CommonAuthorizationUrlRequest = {
                 scopes: ["User.Read"],
                 nonce: RANDOM_TEST_GUID,

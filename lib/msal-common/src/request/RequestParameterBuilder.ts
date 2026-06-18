@@ -300,18 +300,13 @@ export function addPrompt(
 
 /**
  * add max_age
- * The maxAge request property is in milliseconds; the OIDC max_age request
- * parameter is expressed in seconds, so it is converted here.
- * @param maxAge - maximum allowed age, in milliseconds, of the user's authentication
+ * @param maxAgeSeconds - maximum allowed age, in seconds, of the user's authentication
  */
 export function addMaxAge(
     parameters: Map<string, string>,
-    maxAge: number
+    maxAgeSeconds: number
 ): void {
-    parameters.set(
-        AADServerParamKeys.MAX_AGE,
-        Math.floor(maxAge / 1000).toString()
-    );
+    parameters.set(AADServerParamKeys.MAX_AGE, maxAgeSeconds.toString());
 }
 
 /**
