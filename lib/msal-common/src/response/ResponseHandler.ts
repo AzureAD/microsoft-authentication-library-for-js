@@ -619,7 +619,10 @@ export class ResponseHandler {
             idToken: cacheRecord?.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,
-            dpopProof: request.dpopProof,
+            ...(request.authenticationScheme ===
+            Constants.AuthenticationScheme.DPOP
+                ? { dpopProof: request.dpopProof }
+                : {}),
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
             extExpiresOn: extExpiresOn,

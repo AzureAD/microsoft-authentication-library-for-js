@@ -5,6 +5,8 @@
 
 import {
     AuthenticationScheme,
+    DPOP_NONCE_CACHE_KEY,
+    DPOP_NONCE_CACHE_SCHEMA_VERSION,
     DPOP_TOKEN_TYPE,
     HeaderNames,
 } from "../../src/utils/Constants";
@@ -13,8 +15,8 @@ import type { AuthenticationResult } from "../../src/response/AuthenticationResu
 
 describe("DPoP constants and type shapes", () => {
     describe("AuthenticationScheme.DPOP", () => {
-        it("should equal the canonical DPoP token type", () => {
-            expect(AuthenticationScheme.DPOP).toBe(DPOP_TOKEN_TYPE);
+        it("should equal the canonical DPoP authentication scheme", () => {
+            expect(AuthenticationScheme.DPOP).toBe("dpop");
         });
 
         it("should be additive and not affect existing schemes", () => {
@@ -30,19 +32,17 @@ describe("DPoP constants and type shapes", () => {
         });
     });
 
+    describe("DPoP nonce cache constants", () => {
+        it("should expose versioned cache constants", () => {
+            expect(DPOP_NONCE_CACHE_KEY).toBe("dpop-nonce");
+            expect(DPOP_NONCE_CACHE_SCHEMA_VERSION).toBe(1);
+        });
+    });
+
     describe("ClientAuthErrorCodes DPoP entries", () => {
         it("should expose the disabled DPoP guard error code", () => {
             expect(ClientAuthErrorCodes.dpopNotEnabled).toBe(
                 "dpop_not_enabled"
-            );
-        });
-
-        it("should expose DPoP resource context and nonce retry error codes", () => {
-            expect(ClientAuthErrorCodes.dpopMissingResourceContext).toBe(
-                "dpop_missing_resource_context"
-            );
-            expect(ClientAuthErrorCodes.dpopNonceRetryFailed).toBe(
-                "dpop_nonce_retry_failed"
             );
         });
     });

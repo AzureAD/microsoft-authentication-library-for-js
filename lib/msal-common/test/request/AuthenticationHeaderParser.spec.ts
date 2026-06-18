@@ -124,6 +124,17 @@ describe("AuthenticationHeaderParser unit tests", () => {
             );
         });
 
+        it("should return the first non-empty DPoP-Nonce value for duplicate case-insensitive headers", () => {
+            headers[HeaderNames.DPopNonce] = "   ";
+            headers["dpop-nonce"] = TEST_AUTHENTICATION_HEADERS.dpopNonce;
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                headers
+            );
+            expect(authenticationHeaderParser.getDPoPNonce()).toStrictEqual(
+                TEST_AUTHENTICATION_HEADERS.dpopNonce
+            );
+        });
+
         it("should throw an error if DPoP-Nonce header is not present", () => {
             const authenticationHeaderParser = new AuthenticationHeaderParser(
                 {}
