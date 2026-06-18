@@ -8,7 +8,7 @@ import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js"
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { AuthOptions } from "../config/ClientConfiguration.js";
-import { PromptValue } from "../utils/Constants.js";
+import { AuthenticationScheme, PromptValue } from "../utils/Constants.js";
 import { AccountInfo } from "../account/AccountInfo.js";
 import { Logger } from "../logger/Logger.js";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo.js";
@@ -42,6 +42,10 @@ export function getStandardAuthorizeRequestParameters(
     logger: Logger,
     performanceClient?: IPerformanceClient
 ): Map<string, string> {
+    if (request.authenticationScheme === AuthenticationScheme.DPOP) {
+        throw createClientAuthError("dpop_not_enabled");
+    }
+
     // generate the correlationId if not set by the user and add
     const correlationId = request.correlationId;
 

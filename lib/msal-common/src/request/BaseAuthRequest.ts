@@ -28,7 +28,7 @@ export type BaseAuthRequest = {
      */
     scopes: Array<string>;
     /**
-     * The type of token retrieved. Defaults to "Bearer". Can also be type "pop", "SSH", or "DPoP".
+     * The type of token retrieved. Defaults to "Bearer". Can also be type "pop" or "SSH".
      */
     authenticationScheme?: AuthenticationScheme;
     /**
@@ -55,6 +55,16 @@ export type BaseAuthRequest = {
      * URI that token will be used for. Used for proof-of-possession flows.
      */
     resourceRequestUri?: string;
+    /**
+     * JWK thumbprint for DPoP-bound authorization code requests.
+     * @internal
+     */
+    dpopJkt?: string;
+    /**
+     * Proof for DPoP-bound token requests.
+     * @internal
+     */
+    dpopProof?: string;
     /**
      * A stringified JSON Web Key representing a public key that can be signed by an SSH certificate.
      */

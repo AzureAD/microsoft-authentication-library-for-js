@@ -369,6 +369,12 @@ export class AuthorizationCodeClient {
             );
         }
 
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            throw createClientAuthError("dpop_not_enabled");
+        }
+
         if (this.config.clientCredentials.clientSecret) {
             RequestParameterBuilder.addClientSecret(
                 parameters,
@@ -434,10 +440,6 @@ export class AuthorizationCodeClient {
                     ClientConfigurationErrorCodes.missingSshJwk
                 );
             }
-        } else if (
-            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
-        ) {
-            throw createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled);
         }
 
         let ccsCred: CcsCredential | undefined = undefined;

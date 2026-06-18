@@ -440,6 +440,12 @@ export class RefreshTokenClient {
             request.refreshToken
         );
 
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            throw createClientAuthError("dpop_not_enabled");
+        }
+
         if (this.config.clientCredentials.clientSecret) {
             RequestParameterBuilder.addClientSecret(
                 parameters,
@@ -500,10 +506,6 @@ export class RefreshTokenClient {
                     ClientConfigurationErrorCodes.missingSshJwk
                 );
             }
-        } else if (
-            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
-        ) {
-            throw createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled);
         }
 
         if (

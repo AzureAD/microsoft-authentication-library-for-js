@@ -127,6 +127,31 @@ describe("SilentFlowClient unit tests", () => {
         });
     });
 
+    describe("DPoP guard", () => {
+        it("throws dpopNotEnabled before reading access tokens from cache", async () => {
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new SilentFlowClient(config, stubPerformanceClient);
+            const getAccessTokenSpy = jest.spyOn(
+                CacheManager.prototype,
+                "getAccessToken"
+            );
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: true,
+                authenticationScheme: AuthenticationScheme.DPOP,
+            };
+
+            await expect(
+                client.acquireCachedToken(silentFlowRequest)
+            ).rejects.toMatchObject(createClientAuthError("dpop_not_enabled"));
+            expect(getAccessTokenSpy).not.toHaveBeenCalled();
+        });
+    });
+
     describe("Success cases", () => {
         it("acquireCachedToken returns correct token even if offline_access is not present in access token entity", async () => {
             const testScopes = [

@@ -154,6 +154,19 @@ describe("RefreshTokenClient unit tests", () => {
             const executePostToTokenEndpointSpy = jest
                 .spyOn(TokenProtocol, "executePostToTokenEndpoint")
                 .mockResolvedValue(AUTHENTICATION_RESULT);
+            const clientAssertionSpy = jest
+                .fn()
+                .mockResolvedValue("signed-client-assertion");
+            if (!config.clientCredentials) {
+                throw new Error(
+                    "configuration clientCredentials not initialized correctly."
+                );
+            }
+            config.clientCredentials.clientAssertion = {
+                assertion: clientAssertionSpy,
+                assertionType:
+                    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            };
             const client = new RefreshTokenClient(
                 config,
                 stubPerformanceClient
@@ -165,9 +178,8 @@ describe("RefreshTokenClient unit tests", () => {
 
             await expect(
                 client.acquireToken(dpopRefreshTokenRequest, 0)
-            ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled)
-            );
+            ).rejects.toMatchObject(createClientAuthError("dpop_not_enabled"));
+            expect(clientAssertionSpy).not.toHaveBeenCalled();
             expect(executePostToTokenEndpointSpy).not.toHaveBeenCalled();
         });
 

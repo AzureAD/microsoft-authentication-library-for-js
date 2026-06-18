@@ -25,6 +25,7 @@ import { InteractionRequiredAuthError } from "../../src/error/InteractionRequire
 import {
     ClientAuthError,
     ClientAuthErrorCodes,
+    createClientAuthError,
 } from "../../src/error/ClientAuthError.js";
 import * as RequestParameterBuilder from "../../src/request/RequestParameterBuilder.js";
 
@@ -49,6 +50,30 @@ describe("Authorize Protocol Tests", () => {
         jest.restoreAllMocks();
     });
     describe("Authorization url creation", () => {
+        it("throws dpopNotEnabled before creating authorization parameters for DPoP requests", () => {
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                responseMode: Constants.ResponseMode.QUERY,
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt: "test-dpop-jkt",
+            };
+
+            expect(() =>
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    authCodeUrlRequest,
+                    new Logger({})
+                )
+            ).toThrow(createClientAuthError("dpop_not_enabled"));
+        });
+
         it("Creates an authorization url with default parameters", async () => {
             const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 authority: TEST_CONFIG.validAuthority,

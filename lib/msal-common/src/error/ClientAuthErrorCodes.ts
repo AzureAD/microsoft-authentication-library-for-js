@@ -45,9 +45,3 @@ export const nestedAppAuthBridgeDisabled = "nested_app_auth_bridge_disabled";
 export const platformBrokerError = "platform_broker_error";
 export const resourceParameterRequired = "resource_parameter_required";
 export const misplacedResourceParam = "misplaced_resource_parameter";
-/** @internal */
-export const dpopMissingResourceContext = "dpop_missing_resource_context";
-/** @internal */
-export const dpopNonceRetryFailed = "dpop_nonce_retry_failed";
-/** @internal */
-export const dpopNotEnabled = "dpop_not_enabled";

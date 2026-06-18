@@ -17,7 +17,7 @@ import {
 } from "../error/ClientAuthError.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { CacheRecord } from "../cache/entities/CacheRecord.js";
-import { CacheOutcome } from "../utils/Constants.js";
+import { AuthenticationScheme, CacheOutcome } from "../utils/Constants.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { StringUtils } from "../utils/StringUtils.js";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
@@ -98,6 +98,10 @@ export class SilentFlowClient {
         request: CommonSilentFlowRequest
     ): Promise<[AuthenticationResult, CacheOutcome]> {
         let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
+
+        if (request.authenticationScheme === AuthenticationScheme.DPOP) {
+            throw createClientAuthError("dpop_not_enabled");
+        }
 
         if (request.forceRefresh || !StringUtils.isEmptyObj(request.claims)) {
             // Must refresh due to present force_refresh flag.

@@ -5,17 +5,15 @@
 
 import {
     AuthenticationScheme,
-    DPOP_NONCE_CACHE_KEY,
-    DPOP_NONCE_CACHE_VERSION,
     DPOP_TOKEN_TYPE,
     HeaderNames,
 } from "../../src/utils/Constants";
-import * as ClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes";
+import type { AuthenticationResult } from "../../src/response/AuthenticationResult";
 
 describe("DPoP constants and type shapes", () => {
     describe("AuthenticationScheme.DPOP", () => {
-        it("should equal 'DPoP'", () => {
-            expect(AuthenticationScheme.DPOP).toBe("DPoP");
+        it("should equal 'dpop'", () => {
+            expect(AuthenticationScheme.DPOP).toBe("dpop");
         });
 
         it("should be additive and not affect existing schemes", () => {
@@ -31,13 +29,13 @@ describe("DPoP constants and type shapes", () => {
         });
     });
 
-    describe("DPoP nonce cache constants", () => {
-        it("should export the DPoP nonce cache key", () => {
-            expect(DPOP_NONCE_CACHE_KEY).toBe("dpop-nonce");
-        });
+    describe("AuthenticationResult.dpopProof", () => {
+        it("should be an optional result shape field", () => {
+            const result: Partial<AuthenticationResult> = {
+                dpopProof: "test-dpop-proof",
+            };
 
-        it("should export the DPoP nonce cache version", () => {
-            expect(DPOP_NONCE_CACHE_VERSION).toBe(1);
+            expect(result.dpopProof).toBe("test-dpop-proof");
         });
     });
 
@@ -49,26 +47,6 @@ describe("DPoP constants and type shapes", () => {
         it("should be additive and not affect existing header names", () => {
             expect(HeaderNames.WWWAuthenticate).toBe("WWW-Authenticate");
             expect(HeaderNames.AuthenticationInfo).toBe("Authentication-Info");
-        });
-    });
-
-    describe("DPoP error codes", () => {
-        it("should export dpopMissingResourceContext", () => {
-            expect(ClientAuthErrorCodes.dpopMissingResourceContext).toBe(
-                "dpop_missing_resource_context"
-            );
-        });
-
-        it("should export dpopNonceRetryFailed", () => {
-            expect(ClientAuthErrorCodes.dpopNonceRetryFailed).toBe(
-                "dpop_nonce_retry_failed"
-            );
-        });
-
-        it("should export dpopNotEnabled", () => {
-            expect(ClientAuthErrorCodes.dpopNotEnabled).toBe(
-                "dpop_not_enabled"
-            );
         });
     });
 });

@@ -264,7 +264,7 @@ export const AuthenticationScheme = {
     BEARER: "Bearer",
     POP: "pop",
     SSH: "ssh-cert",
-    DPOP: "DPoP",
+    DPOP: "dpop",
 } as const;
 export type AuthenticationScheme =
     (typeof AuthenticationScheme)[keyof typeof AuthenticationScheme];
@@ -274,18 +274,6 @@ export type AuthenticationScheme =
  * @internal
  */
 export const DPOP_TOKEN_TYPE = "DPoP";
-
-/**
- * Cache key used to store the latest DPoP nonce.
- * @internal
- */
-export const DPOP_NONCE_CACHE_KEY = "dpop-nonce";
-
-/**
- * Cache schema version for stored DPoP nonce values.
- * @internal
- */
-export const DPOP_NONCE_CACHE_VERSION = 1;
 
 /**
  * Constants related to throttling
