@@ -367,6 +367,8 @@ const AuthClientExecuteTokenRequest = "authClientExecuteTokenRequest";
 // @public
 export class AuthenticationHeaderParser {
     constructor(headers: Record<string, string>);
+    // @internal
+    getDPoPNonce(): string;
     getShrNonce(): string;
 }
 
@@ -394,6 +396,7 @@ export type AuthenticationResult = {
     code?: string;
     fromPlatformBroker?: boolean;
     resource?: string;
+    dpopProof?: string;
 };
 
 // @public
@@ -401,6 +404,7 @@ const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
     readonly SSH: "ssh-cert";
+    readonly DPOP: "dpop";
 };
 
 // @public (undocumented)
@@ -1054,7 +1058,10 @@ declare namespace ClientAuthErrorCodes {
         nestedAppAuthBridgeDisabled,
         platformBrokerError,
         resourceParameterRequired,
-        misplacedResourceParam
+        misplacedResourceParam,
+        dpopMissingResourceContext,
+        dpopNonceRetryFailed,
+        dpopNotEnabled
     }
 }
 export { ClientAuthErrorCodes }
@@ -1170,6 +1177,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     sid?: string;
     state: string;
     platformBroker?: boolean;
+    dpopJkt?: string;
 };
 
 // @internal (undocumented)
@@ -1306,6 +1314,7 @@ declare namespace Constants {
         SERVER_TELEM_OVERFLOW_FALSE,
         SERVER_TELEM_UNKNOWN_ERROR,
         AuthenticationScheme,
+        DPOP_TOKEN_TYPE,
         DEFAULT_THROTTLE_TIME_SECONDS,
         DEFAULT_MAX_THROTTLE_TIME_SECONDS,
         THROTTLING_PREFIX,
@@ -1513,6 +1522,18 @@ export type DeviceCodeResponse = {
 // @public (undocumented)
 const DOMAIN_HINT = "domain_hint";
 
+// @internal
+const DPOP_TOKEN_TYPE = "DPoP";
+
+// @internal (undocumented)
+const dpopMissingResourceContext = "dpop_missing_resource_context";
+
+// @internal (undocumented)
+const dpopNonceRetryFailed = "dpop_nonce_retry_failed";
+
+// @internal (undocumented)
+const dpopNotEnabled = "dpop_not_enabled";
+
 // @public (undocumented)
 const DSTS = "dstsv2";
 
@@ -1665,6 +1686,7 @@ const HeaderNames: {
     readonly AuthenticationInfo: "Authentication-Info";
     readonly X_MS_REQUEST_ID: "x-ms-request-id";
     readonly X_MS_HTTP_VERSION: "x-ms-httpver";
+    readonly DPopNonce: "DPoP-Nonce";
 };
 
 // @public (undocumented)

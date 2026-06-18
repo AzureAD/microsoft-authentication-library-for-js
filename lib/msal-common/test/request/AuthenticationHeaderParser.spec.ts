@@ -93,8 +93,9 @@ describe("AuthenticationHeaderParser unit tests", () => {
         });
 
         it("should return the DPoP-Nonce value with whitespace trimmed", () => {
-            headers[HeaderNames.DPopNonce] =
-                `  ${TEST_AUTHENTICATION_HEADERS.dpopNonce}  `;
+            headers[
+                HeaderNames.DPopNonce
+            ] = `  ${TEST_AUTHENTICATION_HEADERS.dpopNonce}  `;
             const authenticationHeaderParser = new AuthenticationHeaderParser(
                 headers
             );

@@ -983,6 +983,18 @@ const msalConfig = {
 
 -   A resource was found both directly in the `resource` parameter and in `extraQueryParameters` or `extraParameters`. Please only include the resource in one location. See the MCP documentation for [msal-browser](../lib/msal-browser/docs/mcp.md) or [msal-node](../lib/msal-node/docs/mcp.md).
 
+### `dpop_missing_resource_context`
+
+-   A DPoP request was made without the required resource context. Ensure the resource server URI is provided when using DPoP-bound access tokens.
+
+### `dpop_nonce_retry_failed`
+
+-   The DPoP nonce refresh retry was exhausted. The authorization server returned a new nonce, but re-sending the request with the updated nonce still failed.
+
+### `dpop_not_enabled`
+
+-   DPoP is not yet enabled in this build. This is an internal guard that prevents DPoP request paths from reaching the network before the feature is fully enabled.
+
 ## Browser configuration errors
 
 ### `storage_not_supported`

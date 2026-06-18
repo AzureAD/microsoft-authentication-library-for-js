@@ -80,7 +80,9 @@ export class AuthenticationHeaderParser {
         const headerKey = Object.keys(this.headers).find(
             (k) => k.toLowerCase() === HeaderNames.DPopNonce.toLowerCase()
         );
-        const dpopNonce = headerKey ? this.headers[headerKey].trim() : undefined;
+        const dpopNonce = headerKey
+            ? this.headers[headerKey].trim()
+            : undefined;
 
         if (dpopNonce) {
             return dpopNonce;
