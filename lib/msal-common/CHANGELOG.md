@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 16 Jun 2026 19:46:34 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 19 Jun 2026 00:29:53 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.10.0
+
+Fri, 19 Jun 2026 00:29:53 GMT
+
+### Minor changes
+
+- Add FMI cache key isolation and FIC grant type support (constants, cache infrastructure, assertion context) [#8614](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8614) (avdunn@microsoft.com)
+- Add NativeAccountId property to TenantProfile and deprecate top-level AccountEntity property [#8649](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8649) (lalimasharda@microsoft.com)
 
 ## 16.9.0
 

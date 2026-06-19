@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-angular
 
-<!-- This log was last generated on Tue, 16 Jun 2026 19:46:36 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 19 Jun 2026 00:29:53 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.2.9
+
+Fri, 19 Jun 2026 00:29:53 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.15.0
 
 ## 5.2.8
 

@@ -2,6 +2,27 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 19 Jun 2026 00:29:53 GMT",
+      "version": "16.10.0",
+      "tag": "@azure/msal-common_v16.10.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "avdunn@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "e5eb6fdd21721d43ea68057a11347700be1aee9c",
+            "comment": "Add FMI cache key isolation and FIC grant type support (constants, cache infrastructure, assertion context) [#8614](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8614)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "e5eb6fdd21721d43ea68057a11347700be1aee9c",
+            "comment": "Add NativeAccountId property to TenantProfile and deprecate top-level AccountEntity property [#8649](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8649)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 16 Jun 2026 19:46:34 GMT",
       "version": "16.9.0",
       "tag": "@azure/msal-common_v16.9.0",
