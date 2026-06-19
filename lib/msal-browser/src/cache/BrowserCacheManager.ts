@@ -606,6 +606,7 @@ export class BrowserCacheManager extends CacheManager {
                         account.homeAccountId,
                         account.localAccountId,
                         tenantId,
+                        account.nativeAccountId,
                         claims
                     );
                     tenantProfiles.push(newTenantProfile);

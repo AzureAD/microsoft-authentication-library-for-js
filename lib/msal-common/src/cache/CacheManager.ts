@@ -526,6 +526,14 @@ export abstract class CacheManager implements ICacheManager {
             return false;
         }
 
+        if (
+            !!tenantProfileFilter.nativeAccountId &&
+            tenantProfile.nativeAccountId !==
+                tenantProfileFilter.nativeAccountId
+        ) {
+            return false;
+        }
+
         return true;
     }
 
@@ -768,16 +776,6 @@ export abstract class CacheManager implements ICacheManager {
             }
 
             if (
-                !!accountFilter.nativeAccountId &&
-                !this.matchNativeAccountId(
-                    entity,
-                    accountFilter.nativeAccountId
-                )
-            ) {
-                return;
-            }
-
-            if (
                 !!accountFilter.authorityType &&
                 !this.matchAuthorityType(entity, accountFilter.authorityType)
             ) {
@@ -791,6 +789,7 @@ export abstract class CacheManager implements ICacheManager {
                 username: accountFilter?.username,
                 loginHint: accountFilter?.loginHint,
                 upn: accountFilter?.upn,
+                nativeAccountId: accountFilter?.nativeAccountId,
             };
 
             const matchingTenantProfiles = entity.tenantProfiles?.filter(
@@ -1847,21 +1846,6 @@ export abstract class CacheManager implements ICacheManager {
         realm: string
     ): boolean {
         return !!(entity.realm?.toLowerCase() === realm.toLowerCase());
-    }
-
-    /**
-     * helper to match nativeAccountId
-     * @param entity
-     * @param nativeAccountId
-     * @returns boolean indicating the match result
-     */
-    private matchNativeAccountId(
-        entity: AccountEntity,
-        nativeAccountId: string
-    ): boolean {
-        return !!(
-            entity.nativeAccountId && nativeAccountId === entity.nativeAccountId
-        );
     }
 
     /**
