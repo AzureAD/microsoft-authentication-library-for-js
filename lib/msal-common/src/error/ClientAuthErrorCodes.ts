@@ -15,14 +15,6 @@ export const invalidState = "invalid_state";
 export const stateMismatch = "state_mismatch";
 export const stateNotFound = "state_not_found";
 export const nonceMismatch = "nonce_mismatch";
-/**
- * @deprecated No longer thrown. MSAL no longer validates the `max_age` of returned tokens. This error code will be removed in a future major version.
- */
-export const authTimeNotFound = "auth_time_not_found";
-/**
- * @deprecated No longer thrown. MSAL no longer validates the `max_age` of returned tokens. This error code will be removed in a future major version.
- */
-export const maxAgeTranspired = "max_age_transpired";
 export const multipleMatchingTokens = "multiple_matching_tokens";
 export const multipleMatchingAppMetadata = "multiple_matching_appMetadata";
 export const requestCannotBeMade = "request_cannot_be_made";

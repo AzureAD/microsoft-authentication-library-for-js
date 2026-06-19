@@ -76,19 +76,3 @@ export function getJWSPayload(authToken: string): string {
 
     return matches[2];
 }
-
-/**
- * Determine if the token's max_age has transpired
- * @deprecated No longer used by MSAL. MSAL no longer validates the `max_age` of returned tokens. This function will be removed in a future major version.
- */
-export function checkMaxAge(authTime: number, maxAge: number): void {
-    /*
-     * per https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
-     * To force an immediate re-authentication: If an app requires that a user re-authenticate prior to access,
-     * provide a value of 0 for the max_age parameter and the AS will force a fresh login.
-     */
-    const fiveMinuteSkew = 300000; // five minutes in milliseconds
-    if (maxAge === 0 || Date.now() - fiveMinuteSkew > authTime + maxAge) {
-        throw createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired);
-    }
-}

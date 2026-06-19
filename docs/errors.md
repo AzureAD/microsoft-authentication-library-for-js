@@ -76,14 +76,6 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Nonce mismatch error.
 
-### `auth_time_not_found`
-
--   **Deprecated:** No longer thrown. MSAL no longer validates token `max_age` and this error code will be removed in a future major version. Previously thrown when `maxAge` was requested but the ID token was missing the `auth_time` claim.
-
-### `max_age_transpired`
-
--   **Deprecated:** No longer thrown. MSAL no longer validates token `max_age` and this error code will be removed in a future major version. Previously thrown when `maxAge` was set to 0, or too much time had elapsed since the last end-user authentication.
-
 ### `multiple_matching_tokens`
 
 -   The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements such as authority or account.
