@@ -69,11 +69,15 @@ export function createAccessTokenEntity(
     extExpiresOn: number,
     base64Decode: (input: string) => string,
     refreshOn?: number,
-    tokenType?: Constants.AuthenticationScheme,
+    tokenType?: Constants.AuthenticationScheme | "DPoP",
     userAssertionHash?: string,
     keyId?: string,
     additionalCacheKeyComponents?: Record<string, string>
 ): AccessTokenEntity {
+    const normalizedTokenType =
+        tokenType === Constants.DPOP_TOKEN_TYPE
+            ? Constants.AuthenticationScheme.DPOP
+            : tokenType;
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
         credentialType: Constants.CredentialType.ACCESS_TOKEN,
@@ -85,7 +89,7 @@ export function createAccessTokenEntity(
         clientId: clientId,
         realm: tenantId,
         target: scopes,
-        tokenType: tokenType || Constants.AuthenticationScheme.BEARER,
+        tokenType: normalizedTokenType || Constants.AuthenticationScheme.BEARER,
         lastUpdatedAt: Date.now().toString(), // Set the last updated time to now
     };
 

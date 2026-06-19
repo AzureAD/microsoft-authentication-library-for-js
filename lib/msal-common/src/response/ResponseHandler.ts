@@ -53,6 +53,10 @@ import { AuthenticationResult } from "./AuthenticationResult.js";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
 
+type DpopAuthenticationResult = AuthenticationResult & {
+    dpopProof?: string;
+};
+
 /**
  * Class that handles response parsing.
  * @internal
@@ -609,8 +613,15 @@ export class ResponseHandler {
                   cacheRecord.idToken?.secret
               )
             : null;
+        const dpopProof =
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP &&
+            "dpopProof" in request &&
+            typeof request.dpopProof === "string"
+                ? request.dpopProof
+                : undefined;
 
-        return {
+        const result: DpopAuthenticationResult = {
             authority: authority.canonicalAuthority,
             uniqueId: uid,
             tenantId: tid,
@@ -619,10 +630,7 @@ export class ResponseHandler {
             idToken: cacheRecord?.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,
-            ...(request.authenticationScheme ===
-            Constants.AuthenticationScheme.DPOP
-                ? { dpopProof: request.dpopProof }
-                : {}),
+            ...(dpopProof !== undefined ? { dpopProof: dpopProof } : {}),
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
             extExpiresOn: extExpiresOn,
@@ -637,6 +645,7 @@ export class ResponseHandler {
             code: serverTokenResponse?.spa_code,
             fromPlatformBroker: false,
         };
+        return result;
     }
 }
 

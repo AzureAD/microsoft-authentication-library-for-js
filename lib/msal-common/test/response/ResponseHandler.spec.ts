@@ -33,7 +33,10 @@ import {
 } from "../../src/response/ResponseHandler.js";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse.js";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
-import { AuthenticationScheme } from "../../src/utils/Constants.js";
+import {
+    AuthenticationScheme,
+    DPOP_TOKEN_TYPE,
+} from "../../src/utils/Constants.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { mockCrypto, MockStorageClass } from "../client/ClientTestUtils.js";
 import {
@@ -701,6 +704,41 @@ describe("ResponseHandler.ts", () => {
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
             expect(result.accessToken).toBe(testResponse.access_token);
+        });
+
+        it("normalizes DPoP token type before caching", async () => {
+            const testRequest: BaseAuthRequest & { dpopProof: string } = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                authenticationScheme: AuthenticationScheme.DPOP,
+                dpopProof: "test-dpop-proof",
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                token_type: DPOP_TOKEN_TYPE,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+            const timestamp = TimeUtils.nowSeconds();
+            const result = await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest,
+                0
+            );
+
+            expect(result.tokenType).toBe(AuthenticationScheme.DPOP);
+            expect(result).toHaveProperty("dpopProof", "test-dpop-proof");
         });
 
         it("sets default value if requestId not provided", async () => {

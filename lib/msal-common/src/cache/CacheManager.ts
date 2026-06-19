@@ -670,13 +670,17 @@ export abstract class CacheManager implements ICacheManager {
         correlationId: string,
         kmsi: boolean
     ): Promise<void> {
+        const tokenType =
+            credential.tokenType === Constants.DPOP_TOKEN_TYPE
+                ? Constants.AuthenticationScheme.DPOP
+                : credential.tokenType;
         const accessTokenFilter: CredentialFilter = {
             clientId: credential.clientId,
             credentialType: credential.credentialType,
             environment: credential.environment,
             homeAccountId: credential.homeAccountId,
             realm: credential.realm,
-            tokenType: credential.tokenType,
+            tokenType: tokenType,
         };
 
         const tokenKeys = this.getTokenKeys();
@@ -1931,7 +1935,11 @@ export abstract class CacheManager implements ICacheManager {
         entity: CredentialEntity,
         tokenType: Constants.AuthenticationScheme
     ): boolean {
-        return !!(entity.tokenType && entity.tokenType === tokenType);
+        const entityTokenType =
+            entity.tokenType === Constants.DPOP_TOKEN_TYPE
+                ? Constants.AuthenticationScheme.DPOP
+                : entity.tokenType;
+        return !!(entityTokenType && entityTokenType === tokenType);
     }
 
     /**

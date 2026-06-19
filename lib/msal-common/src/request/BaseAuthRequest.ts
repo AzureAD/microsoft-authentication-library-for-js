@@ -56,11 +56,6 @@ export type BaseAuthRequest = {
      */
     resourceRequestUri?: string;
     /**
-     * Proof for DPoP-bound token requests.
-     * @internal
-     */
-    dpopProof?: string;
-    /**
      * A stringified JSON Web Key representing a public key that can be signed by an SSH certificate.
      */
     sshJwk?: string;

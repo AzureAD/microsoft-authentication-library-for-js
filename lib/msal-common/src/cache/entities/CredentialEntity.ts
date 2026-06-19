@@ -28,7 +28,7 @@ export type CredentialEntity = {
     /** Matches the SHA 256 hash of the obo_assertion for the OBO flow */
     userAssertionHash?: string;
     /** Matches the authentication scheme for which the token was issued (i.e. Bearer or pop) */
-    tokenType?: AuthenticationScheme;
+    tokenType?: AuthenticationScheme | "DPoP";
     /** KeyId for PoP and SSH tokens stored in the kid claim */
     keyId?: string;
     /** Additional cache key components for cache isolation (e.g., { fmi_path: "..." }). Stored as raw key-value pairs; a combined hash is computed at key-generation time. */

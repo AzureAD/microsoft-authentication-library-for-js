@@ -7,7 +7,7 @@ import { AuthenticationScheme } from "../utils/Constants.js";
 
 /**
  * Deserialized response object from server authorization code request.
- * - token_type: Indicates the token type value. Can be either Bearer or pop.
+ * - token_type: Indicates the token type value. Can be Bearer, pop, ssh-cert, or DPoP.
  * - scope: The scopes that the access_token is valid for.
  * - expires_in: How long the access token is valid (in seconds).
  * - refresh_in: Duration afer which a token should be renewed, regardless of expiration.
@@ -29,7 +29,7 @@ import { AuthenticationScheme } from "../utils/Constants.js";
 export type ServerAuthorizationTokenResponse = {
     status?: number;
     // Success
-    token_type?: AuthenticationScheme;
+    token_type?: AuthenticationScheme | "DPoP";
     scope?: string;
     expires_in?: number;
     refresh_in?: number;

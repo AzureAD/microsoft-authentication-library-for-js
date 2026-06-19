@@ -144,6 +144,14 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   DPoP token acquisition is not enabled in this package yet. Requests that set `authenticationScheme` to `AuthenticationScheme.DPOP` fail closed with this error.
 
+### `dpop_missing_resource_context`
+
+-   DPoP token acquisition requires resource context before generating a proof.
+
+### `dpop_nonce_retry_failed`
+
+-   DPoP nonce retry failed after receiving a server nonce challenge.
+
 ### `authorization_code_missing_from_server_response`
 
 -   Server response does not contain an authorization code to proceed.

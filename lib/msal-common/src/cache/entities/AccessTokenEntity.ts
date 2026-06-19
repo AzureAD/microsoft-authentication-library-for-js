@@ -23,7 +23,7 @@ export type AccessTokenEntity = CredentialEntity & {
     /** Used for proactive refresh */
     refreshOn?: string;
     /** Matches the authentication scheme for which the token was issued (i.e. Bearer or pop) */
-    tokenType?: AuthenticationScheme;
+    tokenType?: AuthenticationScheme | "DPoP";
     /** Matches the resource passed into the request for MCP flows */
     resource?: string;
 };

@@ -25,6 +25,7 @@ import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerfo
 import {
     AuthenticationScheme,
     CredentialType,
+    DPOP_TOKEN_TYPE,
 } from "../../src/utils/Constants.js";
 import {
     generateAccountKey,
@@ -1856,6 +1857,19 @@ describe("CacheManager.ts test cases", () => {
                     sshToken[0],
                     {
                         tokenType: AuthenticationScheme.SSH,
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    {
+                        ...sshToken[0],
+                        tokenType: DPOP_TOKEN_TYPE,
+                    },
+                    {
+                        tokenType: AuthenticationScheme.DPOP,
                     },
                     TEST_CONFIG.CORRELATION_ID
                 )

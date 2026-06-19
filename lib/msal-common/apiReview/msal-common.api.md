@@ -106,7 +106,7 @@ export type AccessTokenEntity = CredentialEntity & {
     expiresOn: string;
     extendedExpiresOn?: string;
     refreshOn?: string;
-    tokenType?: AuthenticationScheme;
+    tokenType?: AuthenticationScheme | "DPoP";
     resource?: string;
 };
 
@@ -382,7 +382,6 @@ export type AuthenticationResult = {
     idToken: string;
     idTokenClaims: object;
     accessToken: string;
-    dpopProof?: string;
     fromCache: boolean;
     expiresOn: Date | null;
     extExpiresOn?: Date;
@@ -706,7 +705,6 @@ export type BaseAuthRequest = {
     shrOptions?: ShrOptions;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
-    dpopProof?: string;
     sshJwk?: string;
     sshKid?: string;
     azureCloudOptions?: AzureCloudOptions;
@@ -1050,6 +1048,8 @@ declare namespace ClientAuthErrorCodes {
         tokenRefreshRequired,
         tokenClaimsCnfRequiredForSignedJwt,
         dpopNotEnabled,
+        dpopMissingResourceContext,
+        dpopNonceRetryFailed,
         authorizationCodeMissingFromServerResponse,
         bindingKeyNotRemoved,
         endSessionEndpointNotSupported,
@@ -1337,7 +1337,7 @@ declare namespace Constants {
 const CONSUMER_UTID = "9188040d-6c67-4c5b-b112-36a304b66dad";
 
 // @public
-function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, refreshOn?: number, tokenType?: Constants_2.AuthenticationScheme, userAssertionHash?: string, keyId?: string, additionalCacheKeyComponents?: Record<string, string>): AccessTokenEntity;
+function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, refreshOn?: number, tokenType?: Constants_2.AuthenticationScheme | "DPoP", userAssertionHash?: string, keyId?: string, additionalCacheKeyComponents?: Record<string, string>): AccessTokenEntity;
 
 // @internal
 function createAccountEntity(accountDetails: {
@@ -1398,7 +1398,7 @@ export type CredentialEntity = {
     realm?: string;
     target?: string;
     userAssertionHash?: string;
-    tokenType?: AuthenticationScheme;
+    tokenType?: AuthenticationScheme | "DPoP";
     keyId?: string;
     additionalCacheKeyComponents?: Record<string, string>;
     lastUpdatedAt: string;
@@ -1531,6 +1531,12 @@ const DPOP_NONCE_CACHE_SCHEMA_VERSION: number;
 
 // @internal
 const DPOP_TOKEN_TYPE = "DPoP";
+
+// @public (undocumented)
+const dpopMissingResourceContext = "dpop_missing_resource_context";
+
+// @public (undocumented)
+const dpopNonceRetryFailed = "dpop_nonce_retry_failed";
 
 // @public (undocumented)
 const dpopNotEnabled = "dpop_not_enabled";
@@ -2913,7 +2919,7 @@ const SERVER_TELEM_VALUE_SEPARATOR: string;
 // @public
 export type ServerAuthorizationTokenResponse = {
     status?: number;
-    token_type?: AuthenticationScheme;
+    token_type?: AuthenticationScheme | "DPoP";
     scope?: string;
     expires_in?: number;
     refresh_in?: number;

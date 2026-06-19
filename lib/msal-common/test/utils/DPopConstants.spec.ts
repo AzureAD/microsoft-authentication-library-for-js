@@ -11,7 +11,6 @@ import {
     HeaderNames,
 } from "../../src/utils/Constants";
 import { ClientAuthErrorCodes } from "../../src/error/ClientAuthError";
-import type { AuthenticationResult } from "../../src/response/AuthenticationResult";
 
 describe("DPoP constants and type shapes", () => {
     describe("AuthenticationScheme.DPOP", () => {
@@ -40,20 +39,16 @@ describe("DPoP constants and type shapes", () => {
     });
 
     describe("ClientAuthErrorCodes DPoP entries", () => {
-        it("should expose the disabled DPoP guard error code", () => {
+        it("should expose DPoP error codes", () => {
             expect(ClientAuthErrorCodes.dpopNotEnabled).toBe(
                 "dpop_not_enabled"
             );
-        });
-    });
-
-    describe("AuthenticationResult.dpopProof", () => {
-        it("should be an optional result shape field", () => {
-            const result: Partial<AuthenticationResult> = {
-                dpopProof: "test-dpop-proof",
-            };
-
-            expect(result.dpopProof).toBe("test-dpop-proof");
+            expect(ClientAuthErrorCodes.dpopMissingResourceContext).toBe(
+                "dpop_missing_resource_context"
+            );
+            expect(ClientAuthErrorCodes.dpopNonceRetryFailed).toBe(
+                "dpop_nonce_retry_failed"
+            );
         });
     });
 
