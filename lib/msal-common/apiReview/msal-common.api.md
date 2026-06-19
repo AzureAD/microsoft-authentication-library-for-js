@@ -382,6 +382,7 @@ export type AuthenticationResult = {
     idToken: string;
     idTokenClaims: object;
     accessToken: string;
+    dpopProof?: string;
     fromCache: boolean;
     expiresOn: Date | null;
     extExpiresOn?: Date;
@@ -1166,7 +1167,6 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     responseMode: ResponseMode;
     account?: AccountInfo;
     earJwk?: string;
-    dpopJkt?: string;
     codeChallenge?: string;
     codeChallengeMethod?: string;
     domainHint?: string;

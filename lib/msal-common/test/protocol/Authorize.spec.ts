@@ -62,7 +62,6 @@ describe("Authorize Protocol Tests", () => {
                 codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.DPOP,
-                dpopJkt: "test-dpop-jkt",
             };
 
             expect(() =>

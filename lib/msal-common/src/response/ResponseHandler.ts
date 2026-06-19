@@ -53,10 +53,6 @@ import { AuthenticationResult } from "./AuthenticationResult.js";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
 
-type DpopAuthenticationResult = AuthenticationResult & {
-    dpopProof?: string;
-};
-
 /**
  * Class that handles response parsing.
  * @internal
@@ -321,12 +317,19 @@ export class ResponseHandler {
                     );
                 }
             }
+            const storeInCache =
+                cacheRecord.accessToken?.tokenType ===
+                Constants.AuthenticationScheme.DPOP
+                    ? request.storeInCache
+                        ? { ...request.storeInCache, accessToken: false }
+                        : { accessToken: false }
+                    : request.storeInCache;
             await this.cacheStorage.saveCacheRecord(
                 cacheRecord,
                 request.correlationId,
                 isKmsi(idTokenClaims || {}),
                 apiId,
-                request.storeInCache
+                storeInCache
             );
         } finally {
             if (
@@ -614,6 +617,8 @@ export class ResponseHandler {
               )
             : null;
         const dpopProof =
+            cacheRecord.accessToken?.tokenType ===
+                Constants.AuthenticationScheme.DPOP &&
             request.authenticationScheme ===
                 Constants.AuthenticationScheme.DPOP &&
             "dpopProof" in request &&
@@ -621,7 +626,7 @@ export class ResponseHandler {
                 ? request.dpopProof
                 : undefined;
 
-        const result: DpopAuthenticationResult = {
+        const result: AuthenticationResult = {
             authority: authority.canonicalAuthority,
             uniqueId: uid,
             tenantId: tid,

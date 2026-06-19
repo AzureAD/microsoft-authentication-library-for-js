@@ -62,6 +62,8 @@ Once you have determined the authorization service and resource server support a
 
 *Note: While this document shows how to add an `shrNonce` to the `SignedHttpRequest`, the server nonce acquisition pattern is out of scope. Please review the [SHR Server Nonce dcoumentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/shr-server-nonce.md#acquiring-a-server-nonce) for more information on acquiring server-generated nonces.*
 
+*Note: `AuthenticationScheme.DPOP` is exposed for DPoP contract compatibility, but DPoP token acquisition is not currently enabled. Requests that set `authenticationScheme` to `AuthenticationScheme.DPOP` fail with `dpop_not_enabled` and no DPoP access token or `AuthenticationResult.dpopProof` is returned until support is enabled.*
+
 ### Acquire Token Redirect Request Example
 
 ```typescript
