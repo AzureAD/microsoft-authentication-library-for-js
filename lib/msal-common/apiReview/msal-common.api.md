@@ -743,7 +743,7 @@ function buildMergedClaims(claims?: string, clientCapabilities?: Array<string>):
 export function buildStaticAuthorityOptions(authOptions: Partial<AuthorityOptions>): StaticAuthorityOptions;
 
 // @public
-export function buildTenantProfile(homeAccountId: string, localAccountId: string, tenantId: string, idTokenClaims?: TokenClaims): TenantProfile;
+export function buildTenantProfile(homeAccountId: string, localAccountId: string, tenantId: string, nativeAccountId?: string, idTokenClaims?: TokenClaims): TenantProfile;
 
 // @public (undocumented)
 const CACHE_ACCOUNT_TYPE_ADFS: string;
@@ -3155,7 +3155,7 @@ export type SystemOptions = {
 export function tenantIdMatchesHomeTenant(tenantId?: string, homeAccountId?: string): boolean;
 
 // @public
-export type TenantProfile = Pick<AccountInfo, "tenantId" | "localAccountId" | "name" | "username" | "loginHint" | "upn"> & {
+export type TenantProfile = Pick<AccountInfo, "tenantId" | "localAccountId" | "name" | "username" | "loginHint" | "upn" | "nativeAccountId"> & {
     isHomeTenant?: boolean;
 };
 

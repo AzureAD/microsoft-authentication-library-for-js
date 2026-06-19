@@ -225,6 +225,7 @@ export class NestedAppAuthAdapter {
             homeAccountId,
             localAccountId,
             tenantId,
+            fromAccount.platformBrokerId,
             effectiveIdTokenClaims
         );
         tenantProfiles.set(tenantId, tenantProfile);
@@ -239,6 +240,7 @@ export class NestedAppAuthAdapter {
             loginHint,
             idToken: idToken,
             idTokenClaims: effectiveIdTokenClaims,
+            nativeAccountId: fromAccount.platformBrokerId,
             tenantProfiles,
         };
 

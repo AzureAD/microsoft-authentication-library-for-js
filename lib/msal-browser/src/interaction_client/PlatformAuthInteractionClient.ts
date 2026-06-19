@@ -751,6 +751,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
          */
         if (accountInfo.nativeAccountId !== response.account.id) {
             accountInfo.nativeAccountId = response.account.id;
+            // Also update the matching tenant profile (source of truth)
+            const targetTenantId = tid || accountInfo.tenantId;
+            const tenantProfile =
+                accountInfo.tenantProfiles?.get(targetTenantId);
+            if (tenantProfile) {
+                tenantProfile.nativeAccountId = response.account.id;
+            }
         }
 
         // generate PoP token as needed
