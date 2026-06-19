@@ -230,6 +230,7 @@ describe("CustomAuthAccountData", () => {
             const mockRefreshTokenExpiredError =
                 new InteractionRequiredAuthError(
                     errorCode,
+                    correlationId,
                     errorMessage,
                     subError
                 );
@@ -304,8 +305,8 @@ describe("CustomAuthAccountData", () => {
             const errorMessage = "50142";
             const mockMSALServerError = new ServerError(
                 errorCode,
+                correlationId,
                 errorMessage,
-                "",
                 "50142"
             );
             (mockCacheClient.acquireToken as jest.Mock).mockRejectedValue(

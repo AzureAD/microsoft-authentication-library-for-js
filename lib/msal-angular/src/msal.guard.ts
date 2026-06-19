@@ -132,6 +132,7 @@ export class MsalGuard {
     ) {
       throw new BrowserConfigurationAuthError(
         "invalid_interaction_type",
+        "",
         "Invalid interaction type provided to MSAL Guard. InteractionType.Popup or InteractionType.Redirect must be provided in the MsalGuardConfiguration"
       );
     }

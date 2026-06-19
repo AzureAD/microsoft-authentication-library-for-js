@@ -208,6 +208,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                     );
                     throw createNativeAuthError(
                         errorResponse.error.code,
+                        correlationId,
                         errorResponse.error.description,
                         {
                             error: parseInt(errorResponse.error.errorCode),
@@ -221,6 +222,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         }
         throw createAuthError(
             AuthErrorCodes.unexpectedError,
+            correlationId,
             "Response missing expected properties."
         );
     }

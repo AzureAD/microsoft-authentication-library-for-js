@@ -257,6 +257,7 @@ describe("PerformanceClient.spec.ts", () => {
 
         const publicError = new AuthError(
             "public_test_error",
+            "",
             "This error will be thrown to caller"
         );
         const runtimeError = new TypeError("This error caused publicError");
@@ -306,6 +307,7 @@ describe("PerformanceClient.spec.ts", () => {
 
         const publicError = new AuthError(
             "public_test_error",
+            "",
             "This error will be thrown to caller"
         );
         const runtimeError = new TypeError("This error caused publicError");
@@ -586,6 +588,7 @@ describe("PerformanceClient.spec.ts", () => {
             const correlationId = "test-correlation-id";
             const error = new ServerError(
                 "test-error-code",
+                "",
                 undefined,
                 undefined,
                 "70011"
@@ -615,7 +618,7 @@ describe("PerformanceClient.spec.ts", () => {
             const correlationId = "test-correlation-id";
             const error = new InteractionRequiredAuthError(
                 "test-error-code",
-                undefined,
+                "",
                 undefined,
                 undefined,
                 undefined,
@@ -648,6 +651,7 @@ describe("PerformanceClient.spec.ts", () => {
             const correlationId = "test-correlation-id";
             const error = new ServerError(
                 "test-error-code",
+                "",
                 undefined,
                 undefined,
                 "70011"
@@ -686,7 +690,7 @@ describe("PerformanceClient.spec.ts", () => {
             const correlationId = "test-correlation-id";
             const error = new InteractionRequiredAuthError(
                 "test-error-code",
-                undefined,
+                "",
                 undefined,
                 undefined,
                 undefined,
@@ -1025,6 +1029,7 @@ describe("PerformanceClient.spec.ts", () => {
             const correlationId = "test-correlation-id";
             const error = new AuthError(
                 "test error code",
+                "",
                 "test error message",
                 "test sub error code"
             );
@@ -1094,11 +1099,13 @@ describe("PerformanceClient.spec.ts", () => {
             const correlationId = "test-correlation-id";
             const error = new AuthError(
                 "test error code",
+                "",
                 "test error message",
                 "test sub error code"
             );
             const secondError = new AuthError(
                 "test error code 2",
+                "",
                 "test error message 2",
                 "test sub error code 2"
             );
@@ -1170,6 +1177,7 @@ describe("PerformanceClient.spec.ts", () => {
             const correlationId = "test-correlation-id";
             const error = new AuthError(
                 "test error code",
+                "",
                 "test error message",
                 "test sub error code"
             );

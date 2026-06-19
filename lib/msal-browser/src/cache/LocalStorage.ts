@@ -60,7 +60,8 @@ export class LocalStorage implements IWindowStorage<string> {
     ) {
         if (!window.localStorage) {
             throw createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.storageNotSupported
+                BrowserConfigurationAuthErrorCodes.storageNotSupported,
+                ""
             );
         }
         this.memoryStorage = new MemoryStorage<string>();
@@ -164,7 +165,8 @@ export class LocalStorage implements IWindowStorage<string> {
     getUserData(key: string): string | null {
         if (!this.initialized) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                ""
             );
         }
         return this.memoryStorage.getItem(key);
@@ -177,7 +179,8 @@ export class LocalStorage implements IWindowStorage<string> {
     ): Promise<object | null> {
         if (!this.initialized || !this.encryptionCookie) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                ""
             );
         }
 
@@ -234,7 +237,8 @@ export class LocalStorage implements IWindowStorage<string> {
     ): Promise<void> {
         if (!this.initialized || !this.encryptionCookie) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                ""
             );
         }
 

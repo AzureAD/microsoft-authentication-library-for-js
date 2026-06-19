@@ -44,7 +44,8 @@ export class AuthenticationHeaderParser {
                 return authenticationInfoChallenges.nextnonce;
             }
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidAuthenticationHeader
+                ClientConfigurationErrorCodes.invalidAuthenticationHeader,
+                ""
             );
         }
 
@@ -59,13 +60,15 @@ export class AuthenticationHeaderParser {
                 return wwwAuthenticateChallenges.nonce;
             }
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidAuthenticationHeader
+                ClientConfigurationErrorCodes.invalidAuthenticationHeader,
+                ""
             );
         }
 
         // If neither header is present, throw missing headers error
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.missingNonceAuthenticationHeader
+            ClientConfigurationErrorCodes.missingNonceAuthenticationHeader,
+            ""
         );
     }
 

@@ -181,7 +181,8 @@ export class ManagedIdentityClient {
             );
         if (!source) {
             throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.unableToCreateSource
+                ManagedIdentityErrorCodes.unableToCreateSource,
+                ""
             );
         }
         return source;

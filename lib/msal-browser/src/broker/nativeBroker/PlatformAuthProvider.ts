@@ -128,7 +128,8 @@ export function isPlatformAuthAllowed(
         config.experimental.allowPlatformBrokerWithDOM
     ) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidPlatformBrokerConfiguration
+            ClientConfigurationErrorCodes.invalidPlatformBrokerConfiguration,
+            ""
         );
     }
 

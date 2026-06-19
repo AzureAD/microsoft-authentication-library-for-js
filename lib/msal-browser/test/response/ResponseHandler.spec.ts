@@ -85,7 +85,7 @@ describe("ResponseHandler tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 )
             ).toThrowError(
-                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError, "")
             );
 
             expect(() =>
@@ -96,7 +96,7 @@ describe("ResponseHandler tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 )
             ).toThrowError(
-                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError, "")
             );
 
             expect(() =>
@@ -107,7 +107,7 @@ describe("ResponseHandler tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 )
             ).toThrowError(
-                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError, "")
             );
 
             expect(() =>
@@ -118,7 +118,7 @@ describe("ResponseHandler tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 )
             ).toThrowError(
-                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError, "")
             );
         });
 
@@ -132,7 +132,8 @@ describe("ResponseHandler tests", () => {
                 )
             ).toThrowError(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                    ""
                 )
             );
             expect(() =>
@@ -144,7 +145,8 @@ describe("ResponseHandler tests", () => {
                 )
             ).toThrowError(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                    ""
                 )
             );
 
@@ -157,7 +159,8 @@ describe("ResponseHandler tests", () => {
                 )
             ).toThrowError(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                    ""
                 )
             );
 
@@ -170,7 +173,8 @@ describe("ResponseHandler tests", () => {
                 )
             ).toThrowError(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                    ""
                 )
             );
         });

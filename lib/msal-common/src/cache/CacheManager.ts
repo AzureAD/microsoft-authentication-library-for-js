@@ -402,7 +402,8 @@ export abstract class CacheManager implements ICacheManager {
         if (idToken) {
             idTokenClaims = extractTokenClaims(
                 idToken.secret,
-                this.cryptoImpl.base64Decode
+                this.cryptoImpl.base64Decode,
+                correlationId
             );
 
             if (
@@ -601,7 +602,8 @@ export abstract class CacheManager implements ICacheManager {
     ): Promise<void> {
         if (!cacheRecord) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.invalidCacheRecord
+                ClientAuthErrorCodes.invalidCacheRecord,
+                correlationId
             );
         }
 
@@ -680,7 +682,10 @@ export abstract class CacheManager implements ICacheManager {
         };
 
         const tokenKeys = this.getTokenKeys();
-        const currentScopes = ScopeSet.fromString(credential.target);
+        const currentScopes = ScopeSet.fromString(
+            credential.target,
+            correlationId
+        );
 
         tokenKeys.accessToken.forEach((key) => {
             if (
@@ -702,7 +707,10 @@ export abstract class CacheManager implements ICacheManager {
                     correlationId
                 )
             ) {
-                const tokenScopeSet = ScopeSet.fromString(tokenEntity.target);
+                const tokenScopeSet = ScopeSet.fromString(
+                    tokenEntity.target,
+                    correlationId
+                );
                 if (tokenScopeSet.intersectingScopeSets(currentScopes)) {
                     this.removeAccessToken(key, correlationId);
                 }
@@ -865,7 +873,10 @@ export abstract class CacheManager implements ICacheManager {
          * idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
          * Resource specific refresh tokens case will be added when the support is deemed necessary
          */
-        if (!!filter.target && !this.matchTarget(entity, filter.target)) {
+        if (
+            !!filter.target &&
+            !this.matchTarget(entity, filter.target, correlationId)
+        ) {
             return false;
         }
 
@@ -1317,7 +1328,10 @@ export abstract class CacheManager implements ICacheManager {
             "CacheManager - getAccessToken called",
             correlationId
         );
-        const scopes = ScopeSet.createSearchScopes(request.scopes);
+        const scopes = ScopeSet.createSearchScopes(
+            request.scopes,
+            correlationId
+        );
         const authScheme =
             request.authenticationScheme ||
             Constants.AuthenticationScheme.BEARER;
@@ -1627,7 +1641,8 @@ export abstract class CacheManager implements ICacheManager {
             return null;
         } else if (numAppMetadata > 1) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.multipleMatchingAppMetadata
+                ClientAuthErrorCodes.multipleMatchingAppMetadata,
+                correlationId
             );
         }
 
@@ -1907,7 +1922,11 @@ export abstract class CacheManager implements ICacheManager {
      * @param entity
      * @param target
      */
-    private matchTarget(entity: CredentialEntity, target: ScopeSet): boolean {
+    private matchTarget(
+        entity: CredentialEntity,
+        target: ScopeSet,
+        correlationId: string
+    ): boolean {
         const isNotAccessTokenCredential =
             entity.credentialType !== Constants.CredentialType.ACCESS_TOKEN &&
             entity.credentialType !==
@@ -1917,7 +1936,10 @@ export abstract class CacheManager implements ICacheManager {
             return false;
         }
 
-        const entityScopeSet: ScopeSet = ScopeSet.fromString(entity.target);
+        const entityScopeSet: ScopeSet = ScopeSet.fromString(
+            entity.target,
+            correlationId
+        );
 
         return entityScopeSet.containsScopeSet(target);
     }
@@ -1982,72 +2004,141 @@ export abstract class CacheManager implements ICacheManager {
 /** @internal */
 export class DefaultStorageClass extends CacheManager {
     async setAccount(): Promise<void> {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     getAccount(): AccountEntity {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     async setIdTokenCredential(): Promise<void> {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     getIdTokenCredential(): IdTokenEntity {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     async setAccessTokenCredential(): Promise<void> {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     getAccessTokenCredential(): AccessTokenEntity {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     async setRefreshTokenCredential(): Promise<void> {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     getRefreshTokenCredential(): RefreshTokenEntity {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     setAppMetadata(): void {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     getAppMetadata(): AppMetadataEntity {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     setServerTelemetry(): void {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     getServerTelemetry(): ServerTelemetryEntity {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     setAuthorityMetadata(): void {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     getAuthorityMetadata(): AuthorityMetadataEntity | null {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     getAuthorityMetadataKeys(): Array<string> {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     setThrottlingCache(): void {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     getThrottlingCache(): ThrottlingEntity {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     removeItem(): boolean {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     getKeys(): string[] {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     getAccountKeys(): string[] {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     getTokenKeys(): TokenKeys {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     generateCredentialKey(): string {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
     generateAccountKey(): string {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     }
 }

@@ -120,7 +120,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 loggerOptions.piiLoggingEnabled || false
             );
         } catch (e) {
-            const wrappedError = this.wrapError(e);
+            const wrappedError = this.wrapError(e, "");
             if (wrappedError) {
                 throw wrappedError;
             }
@@ -155,7 +155,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 try {
                     result.CheckError();
                 } catch (e) {
-                    const wrappedError = this.wrapError(e);
+                    const wrappedError = this.wrapError(e, correlationId);
                     if (wrappedError) {
                         reject(wrappedError);
                         return;
@@ -176,7 +176,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     resultCallback
                 );
             } catch (e) {
-                const wrappedError = this.wrapError(e);
+                const wrappedError = this.wrapError(e, correlationId);
                 if (wrappedError) {
                     reject(wrappedError);
                 }
@@ -209,7 +209,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     try {
                         result.CheckError();
                     } catch (e) {
-                        const wrappedError = this.wrapError(e);
+                        const wrappedError = this.wrapError(
+                            e,
+                            request.correlationId
+                        );
                         if (wrappedError) {
                             reject(wrappedError);
                             return;
@@ -238,7 +241,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                         );
                     }
                 } catch (e) {
-                    const wrappedError = this.wrapError(e);
+                    const wrappedError = this.wrapError(
+                        e,
+                        request.correlationId
+                    );
                     if (wrappedError) {
                         reject(wrappedError);
                     }
@@ -274,7 +280,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     try {
                         result.CheckError();
                     } catch (e) {
-                        const wrappedError = this.wrapError(e);
+                        const wrappedError = this.wrapError(
+                            e,
+                            request.correlationId
+                        );
                         if (wrappedError) {
                             reject(wrappedError);
                             return;
@@ -360,7 +369,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                             break;
                     }
                 } catch (e) {
-                    const wrappedError = this.wrapError(e);
+                    const wrappedError = this.wrapError(
+                        e,
+                        request.correlationId
+                    );
                     if (wrappedError) {
                         reject(wrappedError);
                     }
@@ -377,7 +389,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
         const account = await this.getAccount(request);
         if (!account) {
-            throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.noAccountFound,
+                request.correlationId
+            );
         }
 
         return new Promise((resolve, reject) => {
@@ -385,7 +400,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 try {
                     result.CheckError();
                 } catch (e) {
-                    const wrappedError = this.wrapError(e);
+                    const wrappedError = this.wrapError(
+                        e,
+                        request.correlationId
+                    );
                     if (wrappedError) {
                         reject(wrappedError);
                         return;
@@ -402,7 +420,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     resultCallback
                 );
             } catch (e) {
-                const wrappedError = this.wrapError(e);
+                const wrappedError = this.wrapError(e, request.correlationId);
                 if (wrappedError) {
                     reject(wrappedError);
                 }
@@ -437,7 +455,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 try {
                     result.CheckError();
                 } catch (e) {
-                    const wrappedError = this.wrapError(e);
+                    const wrappedError = this.wrapError(e, correlationId);
                     if (wrappedError) {
                         reject(wrappedError);
                         return;
@@ -453,7 +471,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     resultCallback
                 );
             } catch (e) {
-                const wrappedError = this.wrapError(e);
+                const wrappedError = this.wrapError(e, correlationId);
                 if (wrappedError) {
                     reject(wrappedError);
                 }
@@ -534,7 +552,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 })
             );
         } catch (e) {
-            const wrappedError = this.wrapError(e);
+            const wrappedError = this.wrapError(e, request.correlationId);
             if (wrappedError) {
                 throw wrappedError;
             }
@@ -657,7 +675,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         );
     }
 
-    private wrapError(error: unknown): PlatformBrokerError | Object | null {
+    private wrapError(
+        error: unknown,
+        correlationId: string
+    ): PlatformBrokerError | Object | null {
         if (
             error &&
             typeof error === "object" &&
@@ -668,6 +689,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
             const msalNodeRuntimeError = new PlatformBrokerError(
                 ErrorStatus[errorStatus],
+                correlationId,
                 errorContext,
                 errorCode,
                 errorTag
@@ -680,29 +702,34 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 case ErrorStatus.AccountUnusable:
                     wrappedError = new InteractionRequiredAuthError(
                         ErrorCodes.INTERATION_REQUIRED_ERROR_CODE,
+                        correlationId,
                         msalNodeRuntimeError.message
                     );
                     break;
                 case ErrorStatus.NoNetwork:
                 case ErrorStatus.NetworkTemporarilyUnavailable:
                     wrappedError = createClientAuthError(
-                        ClientAuthErrorCodes.noNetworkConnectivity
+                        ClientAuthErrorCodes.noNetworkConnectivity,
+                        correlationId
                     );
                     break;
                 case ErrorStatus.ServerTemporarilyUnavailable:
                     wrappedError = new ServerError(
                         ErrorCodes.SERVER_UNAVAILABLE,
+                        correlationId,
                         msalNodeRuntimeError.message
                     );
                     break;
                 case ErrorStatus.UserCanceled:
                     wrappedError = createClientAuthError(
-                        ClientAuthErrorCodes.userCanceled
+                        ClientAuthErrorCodes.userCanceled,
+                        correlationId
                     );
                     break;
                 case ErrorStatus.AuthorityUntrusted:
                     wrappedError = createClientConfigurationError(
-                        ClientConfigurationErrorCodes.untrustedAuthority
+                        ClientConfigurationErrorCodes.untrustedAuthority,
+                        correlationId
                     );
                     break;
                 case ErrorStatus.UserSwitched:
@@ -710,12 +737,14 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     return null;
                 case ErrorStatus.AccountNotFound:
                     wrappedError = createClientAuthError(
-                        ClientAuthErrorCodes.noAccountFound
+                        ClientAuthErrorCodes.noAccountFound,
+                        correlationId
                     );
                     break;
                 default:
                     wrappedError = createClientAuthError(
-                        ClientAuthErrorCodes.platformBrokerError
+                        ClientAuthErrorCodes.platformBrokerError,
+                        correlationId
                     );
             }
 

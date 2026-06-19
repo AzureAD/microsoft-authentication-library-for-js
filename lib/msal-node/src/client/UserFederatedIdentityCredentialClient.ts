@@ -52,7 +52,10 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
         authority: Authority
     ): Promise<AuthenticationResult | null> {
         // Build augmented scopes once for both thumbprint and body
-        const scopeSet = new ScopeSet(request.scopes || []);
+        const scopeSet = new ScopeSet(
+            request.scopes || [],
+            request.correlationId
+        );
         scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
         const augmentedScopes = scopeSet.asArray();
 
@@ -128,7 +131,11 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
             this.config.authOptions.clientId
         );
 
-        RequestParameterBuilder.addScopes(parameters, augmentedScopes);
+        RequestParameterBuilder.addScopes(
+            parameters,
+            augmentedScopes,
+            request.correlationId
+        );
 
         RequestParameterBuilder.addGrantType(
             parameters,
@@ -208,6 +215,7 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
         ) {
             RequestParameterBuilder.addClaims(
                 parameters,
+                request.correlationId,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );
