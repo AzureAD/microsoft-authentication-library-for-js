@@ -10,7 +10,7 @@ describe("JoseHeaderError.ts Class Unit Tests", () => {
         const code =
             JoseHeaderErrorCodes[key as keyof typeof JoseHeaderErrorCodes];
         it(`JoseHeaderError object can be created for code ${code}`, () => {
-            const err: JoseHeaderError = createJoseHeaderError(code);
+            const err: JoseHeaderError = createJoseHeaderError(code, "");
 
             const message = getDefaultErrorMessage(code);
             expect(message).toBeTruthy();
@@ -25,4 +25,13 @@ describe("JoseHeaderError.ts Class Unit Tests", () => {
             expect(err.stack?.includes("JoseHeaderError.spec.ts")).toBe(true);
         });
     }
+
+    it("createJoseHeaderError sets correlationId when provided", () => {
+        const correlationId = "jose-header-corr-id";
+        const err = createJoseHeaderError(
+            JoseHeaderErrorCodes.missingKidError,
+            correlationId
+        );
+        expect(err.correlationId).toBe(correlationId);
+    });
 });

@@ -68,6 +68,7 @@ export function createAccessTokenEntity(
     expiresOn: number,
     extExpiresOn: number,
     base64Decode: (input: string) => string,
+    correlationId: string,
     refreshOn?: number,
     tokenType?: Constants.AuthenticationScheme,
     userAssertionHash?: string,
@@ -112,11 +113,13 @@ export function createAccessTokenEntity(
                 // Make sure keyId is present and add it to credential
                 const tokenClaims: TokenClaims | null = extractTokenClaims(
                     accessToken,
-                    base64Decode
+                    base64Decode,
+                    correlationId
                 );
                 if (!tokenClaims?.cnf?.kid) {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.tokenClaimsCnfRequiredForSignedJwt
+                        ClientAuthErrorCodes.tokenClaimsCnfRequiredForSignedJwt,
+                        correlationId
                     );
                 }
                 atEntity.keyId = tokenClaims.cnf.kid;

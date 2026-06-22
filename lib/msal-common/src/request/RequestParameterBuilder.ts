@@ -83,6 +83,7 @@ export function addNativeBroker(parameters: Map<string, string>): void {
 export function addScopes(
     parameters: Map<string, string>,
     scopes: string[],
+    correlationId: string,
     addOidcScopes: boolean = true,
     defaultScopes: Array<string> = Constants.OIDC_DEFAULT_SCOPES
 ): void {
@@ -97,7 +98,7 @@ export function addScopes(
     const requestScopes = addOidcScopes
         ? [...(scopes || []), ...defaultScopes]
         : scopes || [];
-    const scopeSet = new ScopeSet(requestScopes);
+    const scopeSet = new ScopeSet(requestScopes, correlationId);
     parameters.set(AADServerParamKeys.SCOPE, scopeSet.printScopes());
 }
 
@@ -204,12 +205,14 @@ export function addSid(parameters: Map<string, string>, sid: string): void {
  * Adds claims to request parameters, conditionally excluding clientCapabilities
  * when skipBrokerClaims is true and a brokered flow is in effect.
  * @param parameters - The request parameters map
+ * @param correlationId - The request correlation id
  * @param claims - The claims string from the request
  * @param clientCapabilities - The client capabilities from configuration
  * @param skipBrokerClaims - When true and BROKER_CLIENT_ID is present, excludes clientCapabilities from claims
  */
 export function addClaims(
     parameters: Map<string, string>,
+    correlationId: string,
     claims?: string,
     clientCapabilities?: Array<string>,
     skipBrokerClaims?: boolean
@@ -220,7 +223,7 @@ export function addClaims(
             ? undefined
             : clientCapabilities;
 
-    const mergedClaims = buildMergedClaims(claims, configClaims);
+    const mergedClaims = buildMergedClaims(claims, configClaims, correlationId);
     parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
 }
 
@@ -319,7 +322,8 @@ export function addCodeChallengeParams(
         );
     } else {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.pkceParamsMissing
+            ClientConfigurationErrorCodes.pkceParamsMissing,
+            ""
         );
     }
 }
@@ -496,7 +500,8 @@ const DEFAULT_ID_TOKEN_CLAIMS: Record<string, { essential: false }> = {
  */
 export function buildMergedClaims(
     claims?: string,
-    clientCapabilities?: Array<string>
+    clientCapabilities?: Array<string>,
+    correlationId: string = ""
 ): string {
     let mergedClaims: object;
 
@@ -516,7 +521,8 @@ export function buildMergedClaims(
             mergedClaims = parsed;
         } catch (e) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaims
+                ClientConfigurationErrorCodes.invalidClaims,
+                correlationId
             );
         }
     }
@@ -624,24 +630,14 @@ export function addServerTelemetry(
     parameters: Map<string, string>,
     serverTelemetryManager: ServerTelemetryManager
 ): void {
-    const currentTelemetryHeader =
-        serverTelemetryManager.generateCurrentRequestHeaderValue();
-    const lastTelemetryHeader =
-        serverTelemetryManager.generateLastRequestHeaderValue();
-
-    if (currentTelemetryHeader) {
-        parameters.set(
-            AADServerParamKeys.X_CLIENT_CURR_TELEM,
-            currentTelemetryHeader
-        );
-    }
-
-    if (lastTelemetryHeader) {
-        parameters.set(
-            AADServerParamKeys.X_CLIENT_LAST_TELEM,
-            lastTelemetryHeader
-        );
-    }
+    parameters.set(
+        AADServerParamKeys.X_CLIENT_CURR_TELEM,
+        serverTelemetryManager.generateCurrentRequestHeaderValue()
+    );
+    parameters.set(
+        AADServerParamKeys.X_CLIENT_LAST_TELEM,
+        serverTelemetryManager.generateLastRequestHeaderValue()
+    );
 }
 
 /**

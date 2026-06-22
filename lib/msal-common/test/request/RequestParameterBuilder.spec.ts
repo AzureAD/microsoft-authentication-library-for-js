@@ -44,7 +44,8 @@ describe("RequestParameterBuilder unit tests", () => {
         );
         RequestParameterBuilder.addScopes(
             parameters,
-            TEST_CONFIG.DEFAULT_SCOPES
+            TEST_CONFIG.DEFAULT_SCOPES,
+            ""
         );
         RequestParameterBuilder.addClientId(
             parameters,
@@ -62,7 +63,12 @@ describe("RequestParameterBuilder unit tests", () => {
             parameters,
             TEST_CONFIG.LOGIN_HINT
         );
-        RequestParameterBuilder.addClaims(parameters, TEST_CONFIG.CLAIMS, []);
+        RequestParameterBuilder.addClaims(
+            parameters,
+            "",
+            TEST_CONFIG.CLAIMS,
+            []
+        );
         RequestParameterBuilder.addCorrelationId(
             parameters,
             TEST_CONFIG.CORRELATION_ID
@@ -307,7 +313,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes appends oidc scopes by default", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, ["testScope"]);
+        RequestParameterBuilder.addScopes(parameters, ["testScope"], "");
         let requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
@@ -316,7 +322,7 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
 
         const parameters2 = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters2, []);
+        RequestParameterBuilder.addScopes(parameters2, [], "");
         requestQueryString = UrlUtils.mapToQueryString(parameters2);
         expect(
             requestQueryString.includes(
@@ -327,7 +333,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes does not append oidc scopes if flag set to false", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, ["testScope"], false);
+        RequestParameterBuilder.addScopes(parameters, ["testScope"], "", false);
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(`${AADServerParamKeys.SCOPE}=testScope`)
@@ -336,7 +342,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes overrides OIDC_DEFAULT_SCOPES with defaultScopes", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, [], true, [
+        RequestParameterBuilder.addScopes(parameters, [], "", true, [
             "openid",
             "profile",
         ]);
@@ -353,7 +359,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes adds openid scope when in OIDC protocol mode", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, [], true, []);
+        RequestParameterBuilder.addScopes(parameters, [], "", true, []);
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
@@ -372,7 +378,8 @@ describe("RequestParameterBuilder unit tests", () => {
             )
         ).toThrow(
             new ClientConfigurationError(
-                ClientConfigurationErrorCodes.pkceParamsMissing
+                ClientConfigurationErrorCodes.pkceParamsMissing,
+                ""
             )
         );
     });
@@ -387,7 +394,8 @@ describe("RequestParameterBuilder unit tests", () => {
             )
         ).toThrow(
             new ClientConfigurationError(
-                ClientConfigurationErrorCodes.pkceParamsMissing
+                ClientConfigurationErrorCodes.pkceParamsMissing,
+                ""
             )
         );
     });
@@ -411,7 +419,7 @@ describe("RequestParameterBuilder unit tests", () => {
     it("addClaims sets claims parameter with merged claims when valid claims and capabilities are provided", () => {
         const parameters = new Map<string, string>();
         const claims = JSON.stringify({ userinfo: { given_name: null } });
-        RequestParameterBuilder.addClaims(parameters, claims, ["CP1"]);
+        RequestParameterBuilder.addClaims(parameters, "", claims, ["CP1"]);
 
         const claimsParam = parameters.get(AADServerParamKeys.CLAIMS);
         expect(claimsParam).toBeDefined();
@@ -662,7 +670,8 @@ describe("RequestParameterBuilder unit tests", () => {
                 RequestParameterBuilder.buildMergedClaims(testClaims, [])
             ).toThrow(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.invalidClaims
+                    ClientConfigurationErrorCodes.invalidClaims,
+                    ""
                 )
             );
         });
@@ -841,6 +850,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 false
@@ -861,6 +871,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 false
@@ -881,6 +892,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 true
@@ -907,6 +919,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 true
@@ -924,6 +937,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 undefined,
                 undefined,
                 false
@@ -939,6 +953,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 undefined,
                 ["CP1"],
                 false

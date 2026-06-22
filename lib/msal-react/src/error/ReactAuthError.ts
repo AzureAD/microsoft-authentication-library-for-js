@@ -17,23 +17,33 @@ export const ReactAuthErrorMessage = {
 };
 
 export class ReactAuthError extends AuthError {
-    constructor(errorCode: string, errorMessage?: string) {
-        super(errorCode, errorMessage);
+    constructor(
+        errorCode: string,
+        correlationId: string,
+        errorMessage?: string
+    ) {
+        super(errorCode, correlationId, errorMessage);
 
         Object.setPrototypeOf(this, ReactAuthError.prototype);
         this.name = "ReactAuthError";
     }
 
-    static createInvalidInteractionTypeError(): ReactAuthError {
+    static createInvalidInteractionTypeError(
+        correlationId?: string
+    ): ReactAuthError {
         return new ReactAuthError(
             ReactAuthErrorMessage.invalidInteractionType.code,
+            correlationId || "",
             ReactAuthErrorMessage.invalidInteractionType.desc
         );
     }
 
-    static createUnableToFallbackToInteractionError(): ReactAuthError {
+    static createUnableToFallbackToInteractionError(
+        correlationId?: string
+    ): ReactAuthError {
         return new ReactAuthError(
             ReactAuthErrorMessage.unableToFallbackToInteraction.code,
+            correlationId || "",
             ReactAuthErrorMessage.unableToFallbackToInteraction.desc
         );
     }

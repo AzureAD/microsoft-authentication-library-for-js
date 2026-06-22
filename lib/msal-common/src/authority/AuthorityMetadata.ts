@@ -146,7 +146,8 @@ export function getAliasesFromStaticSources(
     const canonicalAuthority = staticAuthorityOptions.canonicalAuthority;
     if (canonicalAuthority) {
         const authorityHost = new UrlString(
-            canonicalAuthority
+            canonicalAuthority,
+            correlationId
         ).getUrlComponents().HostNameAndPort;
         staticAliases =
             getAliasesFromMetadata(

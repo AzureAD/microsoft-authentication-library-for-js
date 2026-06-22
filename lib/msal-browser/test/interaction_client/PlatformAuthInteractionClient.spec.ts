@@ -1147,7 +1147,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "sendMessage"
             ).mockImplementation((message): Promise<PlatformAuthResponse> => {
                 return Promise.reject(
-                    new NativeAuthError("test_native_error_code")
+                    new NativeAuthError("test_native_error_code", "")
                 );
             });
             try {
@@ -1183,6 +1183,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         return Promise.reject(
                             new NativeAuthError(
                                 "test_native_error_code",
+                                "",
                                 "test_error_desc",
                                 { status: NativeStatusCodes.PERSISTENT_ERROR }
                             )
@@ -1393,6 +1394,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 return Promise.reject(
                     new NativeAuthError(
                         "ContentError",
+                        "",
                         "problem getting response from extension"
                     )
                 );
@@ -1462,7 +1464,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "sendMessage"
             ).mockImplementation((message): Promise<PlatformAuthResponse> => {
                 return Promise.reject(
-                    new NativeAuthError("test_native_error_code")
+                    new NativeAuthError("test_native_error_code", "")
                 );
             });
             platformAuthInteractionClient.acquireTokenRedirect(
@@ -1494,6 +1496,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         return Promise.reject(
                             new NativeAuthError(
                                 "test_native_error_code",
+                                "",
                                 "test_error_desc",
                                 { status: NativeStatusCodes.PERSISTENT_ERROR }
                             )

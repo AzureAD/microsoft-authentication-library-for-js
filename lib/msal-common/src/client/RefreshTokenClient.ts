@@ -177,13 +177,15 @@ export class RefreshTokenClient {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.tokenRequestEmpty
+                ClientConfigurationErrorCodes.tokenRequestEmpty,
+                ""
             );
         }
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.noAccountInSilentRequest
+                ClientAuthErrorCodes.noAccountInSilentRequest,
+                request.correlationId
             );
         }
 
@@ -258,7 +260,8 @@ export class RefreshTokenClient {
 
         if (!refreshToken) {
             throw createInteractionRequiredAuthError(
-                InteractionRequiredAuthErrorCodes.noTokensFound
+                InteractionRequiredAuthErrorCodes.noTokensFound,
+                request.correlationId
             );
         }
 
@@ -276,7 +279,8 @@ export class RefreshTokenClient {
 
             if (TimeUtils.isTokenExpired(refreshToken.expiresOn, offset)) {
                 throw createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+                    request.correlationId
                 );
             }
         }
@@ -407,6 +411,7 @@ export class RefreshTokenClient {
         RequestParameterBuilder.addScopes(
             parameters,
             request.scopes,
+            request.correlationId,
             true,
             this.config.authOptions.authority.options.OIDCOptions?.defaultScopes
         );
@@ -497,7 +502,8 @@ export class RefreshTokenClient {
                 RequestParameterBuilder.addSshJwk(parameters, request.sshJwk);
             } else {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    request.correlationId
                 );
             }
         }
@@ -554,6 +560,7 @@ export class RefreshTokenClient {
 
         RequestParameterBuilder.addClaims(
             parameters,
+            request.correlationId,
             request.claims,
             this.config.authOptions.clientCapabilities,
             request.skipBrokerClaims
