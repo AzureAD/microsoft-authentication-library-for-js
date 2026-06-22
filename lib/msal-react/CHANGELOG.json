@@ -2,6 +2,27 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Mon, 22 Jun 2026 18:35:11 GMT",
+      "version": "5.5.0",
+      "tag": "@azure/msal-react_v5.5.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "6d53ace26af88554bb7fa862b72c58594e67ec73",
+            "comment": "Match the updated msal-browser AuthError signature [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v5.15.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 16 Jun 2026 19:46:35 GMT",
       "version": "5.4.5",
       "tag": "@azure/msal-react_v5.4.5",

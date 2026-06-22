@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 16 Jun 2026 19:46:34 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 22 Jun 2026 18:35:10 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.10.0
+
+Mon, 22 Jun 2026 18:35:10 GMT
+
+### Minor changes
+
+- Deprecate the max_age request parameter and stop validating the auth_time of returned tokens. maxAge is now a no-op; the unused checkMaxAge helper and the auth_time_not_found/max_age_transpired error codes have been removed [#8664](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8664) (rginsburg@microsoft.com)
+- Add NativeAccountId property to TenantProfile and deprecate top-level AccountEntity property [#8649](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8649) (lalimasharda@microsoft.com)
+- Make correlationId a required parameter on AuthError and all derived error classes [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609) (sameera.gajjarapu@microsoft.com)
+- Add FMI cache key isolation and FIC grant type support (constants, cache infrastructure, assertion context) [#8614](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8614) (avdunn@microsoft.com)
 
 ## 16.9.0
 

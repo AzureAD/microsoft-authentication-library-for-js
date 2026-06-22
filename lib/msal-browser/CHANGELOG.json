@@ -2,6 +2,33 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 22 Jun 2026 18:35:10 GMT",
+      "version": "5.15.0",
+      "tag": "@azure/msal-browser_v5.15.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6d53ace26af88554bb7fa862b72c58594e67ec73",
+            "comment": "Add NativeAccountId property to TenantProfile and deprecate top-level AccountEntity property [#8649](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8649)"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6d53ace26af88554bb7fa862b72c58594e67ec73",
+            "comment": "Make correlationId a required parameter on AuthError and all derived error classes [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.10.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 16 Jun 2026 19:46:34 GMT",
       "version": "5.14.0",
       "tag": "@azure/msal-browser_v5.14.0",
