@@ -85,7 +85,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 // @ts-ignore
                 client.acquireToken({ code: null }, null)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade)
+                createClientAuthError(
+                    ClientAuthErrorCodes.requestCannotBeMade,
+                    ""
+                )
             );
             // @ts-ignore
             expect(config.storageInterface.getKeys().length).toBe(1);
@@ -125,7 +128,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 // @ts-ignore
                 client.acquireToken(codeRequest, null)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade)
+                createClientAuthError(
+                    ClientAuthErrorCodes.requestCannotBeMade,
+                    ""
+                )
             );
             // @ts-ignore
             expect(config.storageInterface.getKeys().length).toBe(1);
@@ -1536,7 +1542,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 })
             ).rejects.toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    ""
                 )
             );
         });

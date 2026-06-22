@@ -73,7 +73,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         // Auth code payload is required
         if (!request.code) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.authCodeRequired
+                BrowserAuthErrorCodes.authCodeRequired,
+                this.correlationId
             );
         }
 
@@ -168,7 +169,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             );
         } catch (e) {
             if (e instanceof AuthError) {
-                (e as AuthError).setCorrelationId(this.correlationId);
+                (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             throw e;
@@ -182,7 +183,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         // Synchronous so we must reject
         return Promise.reject(
             createBrowserAuthError(
-                BrowserAuthErrorCodes.silentLogoutUnsupported
+                BrowserAuthErrorCodes.silentLogoutUnsupported,
+                ""
             )
         );
     }

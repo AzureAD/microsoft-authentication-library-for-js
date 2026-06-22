@@ -13,7 +13,8 @@ export class SessionStorage implements IWindowStorage<string> {
     constructor() {
         if (!window.sessionStorage) {
             throw createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.storageNotSupported
+                BrowserConfigurationAuthErrorCodes.storageNotSupported,
+                ""
             );
         }
     }

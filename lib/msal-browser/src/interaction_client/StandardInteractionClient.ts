@@ -120,7 +120,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 validLogoutRequest.postLogoutRedirectUri =
                     UrlString.getAbsoluteUrl(
                         logoutRequest.postLogoutRedirectUri,
-                        BrowserUtils.getCurrentUri()
+                        BrowserUtils.getCurrentUri(),
+                        validLogoutRequest.correlationId
                     );
             } else if (this.config.auth.postLogoutRedirectUri === null) {
                 this.logger.verbose(
@@ -135,7 +136,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 validLogoutRequest.postLogoutRedirectUri =
                     UrlString.getAbsoluteUrl(
                         this.config.auth.postLogoutRedirectUri,
-                        BrowserUtils.getCurrentUri()
+                        BrowserUtils.getCurrentUri(),
+                        validLogoutRequest.correlationId
                     );
             } else {
                 this.logger.verbose(
@@ -145,7 +147,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 validLogoutRequest.postLogoutRedirectUri =
                     UrlString.getAbsoluteUrl(
                         BrowserUtils.getCurrentUri(),
-                        BrowserUtils.getCurrentUri()
+                        BrowserUtils.getCurrentUri(),
+                        validLogoutRequest.correlationId
                     );
             }
         } else {
@@ -349,7 +352,8 @@ export async function initializeAuthorizationRequest(
     const state = ProtocolUtils.setRequestState(
         browserCrypto,
         (request && request.state) || "",
-        browserState
+        browserState,
+        correlationId
     );
 
     const baseRequest: BaseAuthRequest = await invokeAsync(

@@ -284,7 +284,8 @@ describe("BaseInteractionClient", () => {
                 .catch((error) => {
                     expect(error).toStrictEqual(
                         createClientConfigurationError(
-                            ClientConfigurationErrorCodes.authorityMismatch
+                            ClientConfigurationErrorCodes.authorityMismatch,
+                            ""
                         )
                     );
                 });

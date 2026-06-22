@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Match the updated msal-browser AuthError signature [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)",
+    "packageName": "@azure/msal-react",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "patch"
+}

@@ -106,20 +106,25 @@ export class SilentFlowClient {
                 request.correlationId
             );
             throw createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
+                ClientAuthErrorCodes.tokenRefreshRequired,
+                request.correlationId
             );
         }
 
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.noAccountInSilentRequest
+                ClientAuthErrorCodes.noAccountInSilentRequest,
+                request.correlationId
             );
         }
 
         const requestTenantId =
             request.account.tenantId ||
-            getTenantFromAuthorityString(request.authority);
+            getTenantFromAuthorityString(
+                request.authority,
+                request.correlationId
+            );
         const tokenKeys = this.cacheManager.getTokenKeys();
         const cachedAccessToken = this.cacheManager.getAccessToken(
             request.account,
@@ -135,7 +140,8 @@ export class SilentFlowClient {
                 request.correlationId
             );
             throw createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
+                ClientAuthErrorCodes.tokenRefreshRequired,
+                request.correlationId
             );
         } else if (
             TimeUtils.wasClockTurnedBack(cachedAccessToken.cachedAt) ||
@@ -150,7 +156,8 @@ export class SilentFlowClient {
                 request.correlationId
             );
             throw createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
+                ClientAuthErrorCodes.tokenRefreshRequired,
+                request.correlationId
             );
         } else if (request.resource) {
             // cached access token must have a resource that matches the request resource for MCP scenarios
@@ -160,7 +167,8 @@ export class SilentFlowClient {
                     request.correlationId
                 );
                 throw createClientAuthError(
-                    ClientAuthErrorCodes.tokenRefreshRequired
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                    request.correlationId
                 );
             }
         } else if (
@@ -243,7 +251,8 @@ export class SilentFlowClient {
         if (cacheRecord.idToken) {
             idTokenClaims = extractTokenClaims(
                 cacheRecord.idToken.secret,
-                this.config.cryptoInterface.base64Decode
+                this.config.cryptoInterface.base64Decode,
+                request.correlationId
             );
         }
 

@@ -177,7 +177,8 @@ describe("PopupClient", () => {
 
             await expect(popupClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    ""
                 )
             );
         });
@@ -198,7 +199,8 @@ describe("PopupClient", () => {
 
             await expect(popupClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshKid
+                    ClientConfigurationErrorCodes.missingSshKid,
+                    ""
                 )
             );
         });
@@ -672,7 +674,8 @@ describe("PopupClient", () => {
                 .catch((e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashEmptyError
+                            BrowserAuthErrorCodes.hashEmptyError,
+                            ""
                         )
                     );
                     done();
@@ -692,7 +695,8 @@ describe("PopupClient", () => {
                 .catch((e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                            ""
                         )
                     );
                     done();
@@ -1034,7 +1038,8 @@ describe("PopupClient", () => {
                     pca.acquireTokenPopup(validRequest)
                 ).rejects.toThrow(
                     createClientConfigurationError(
-                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
+                        ""
                     )
                 );
             });
@@ -1911,7 +1916,8 @@ describe("PopupClient", () => {
             const testState = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+                ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -1947,7 +1953,8 @@ describe("PopupClient", () => {
             const testState = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+                ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -1983,7 +1990,8 @@ describe("PopupClient", () => {
             const testState = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+                ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -2002,6 +2010,7 @@ describe("PopupClient", () => {
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.timedOut,
+                    "",
                     "redirect_bridge_timeout"
                 )
             );
@@ -2027,12 +2036,14 @@ describe("PopupClient", () => {
             const testState1 = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState1
+                testLibraryState1,
+                ""
             );
             const testState2 = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState2
+                testLibraryState2,
+                ""
             );
 
             const request1: CommonAuthorizationUrlRequest = {
@@ -2147,7 +2158,7 @@ describe("PopupClient", () => {
                     popupWindowParent: window,
                 })
             ).toThrow(
-                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri, "")
             );
             expect(() =>
                 popupClient.initiateAuthRequest("", {
@@ -2159,7 +2170,7 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(
-                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri, "")
             );
             //@ts-ignore
             expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(
@@ -2317,7 +2328,10 @@ describe("PopupClient", () => {
                     }
                 )
             ).toThrow(
-                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.popupWindowError,
+                    ""
+                )
             );
         });
 
@@ -2342,7 +2356,10 @@ describe("PopupClient", () => {
                     }
                 )
             ).toThrow(
-                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.popupWindowError,
+                    ""
+                )
             );
         });
 

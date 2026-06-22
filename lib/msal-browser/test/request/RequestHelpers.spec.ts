@@ -82,7 +82,8 @@ describe("RequestHelpers tests", () => {
                 )
             ).rejects.toThrowError(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    ""
                 )
             );
         });

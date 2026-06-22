@@ -72,6 +72,7 @@ export type TenantProfileFilter = Pick<
     | "isHomeTenant"
     | "username"
     | "upn"
+    | "nativeAccountId"
 >;
 
 /**

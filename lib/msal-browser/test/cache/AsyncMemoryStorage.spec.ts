@@ -46,7 +46,8 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
 
                     if (item === DB_UNAVAILABLE) {
                         throw createBrowserAuthError(
-                            BrowserAuthErrorCodes.databaseUnavailable
+                            BrowserAuthErrorCodes.databaseUnavailable,
+                            ""
                         );
                     }
 
@@ -57,7 +58,8 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
 
                     if (payload === DB_UNAVAILABLE) {
                         throw createBrowserAuthError(
-                            BrowserAuthErrorCodes.databaseUnavailable
+                            BrowserAuthErrorCodes.databaseUnavailable,
+                            ""
                         );
                     }
 
@@ -70,7 +72,8 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
 
                     if (item === DB_UNAVAILABLE) {
                         throw createBrowserAuthError(
-                            BrowserAuthErrorCodes.databaseUnavailable
+                            BrowserAuthErrorCodes.databaseUnavailable,
+                            ""
                         );
                     }
 

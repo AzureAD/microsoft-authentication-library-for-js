@@ -46,14 +46,15 @@ export interface INetworkModule {
 }
 
 export const StubbedNetworkModule: INetworkModule = {
+    // Module-level singleton: no per-request correlationId available
     sendGetRequestAsync: () => {
         return Promise.reject(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
     },
     sendPostRequestAsync: () => {
         return Promise.reject(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
     },
 };

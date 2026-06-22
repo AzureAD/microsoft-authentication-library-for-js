@@ -63,6 +63,16 @@ export class MockCache {
         const accountWithNativeAccountId =
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
         accountWithNativeAccountId.nativeAccountId = "mocked_native_account_id";
+        // Also set nativeAccountId on the matching tenant profile (source of truth)
+        if (accountWithNativeAccountId.tenantProfiles) {
+            const matchingProfile =
+                accountWithNativeAccountId.tenantProfiles.find(
+                    (tp) => tp.tenantId === accountWithNativeAccountId.realm
+                );
+            if (matchingProfile) {
+                matchingProfile.nativeAccountId = "mocked_native_account_id";
+            }
+        }
 
         await this.cacheManager.setAccount(accountWithNativeAccountId);
     }
