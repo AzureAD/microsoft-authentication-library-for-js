@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-angular
 
-<!-- This log was last generated on Tue, 16 Jun 2026 19:46:36 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 22 Jun 2026 23:07:22 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.3.0
+
+Mon, 22 Jun 2026 23:07:22 GMT
+
+### Minor changes
+
+- Pass correlationId to errors to match the updated msal-browser error signature [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609) (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-browser to v5.15.0
 
 ## 5.2.8
 
