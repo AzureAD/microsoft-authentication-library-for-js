@@ -20,7 +20,7 @@ import { CacheRecord } from "../cache/entities/CacheRecord.js";
 import { CacheOutcome } from "../utils/Constants.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { StringUtils } from "../utils/StringUtils.js";
-import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
+import { extractTokenClaims } from "../account/AuthToken.js";
 import { TokenClaims } from "../account/TokenClaims.js";
 import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
@@ -254,19 +254,6 @@ export class SilentFlowClient {
                 this.config.cryptoInterface.base64Decode,
                 request.correlationId
             );
-        }
-
-        // token max_age check
-        if (request.maxAge || request.maxAge === 0) {
-            const authTime = idTokenClaims?.auth_time;
-            if (!authTime) {
-                throw createClientAuthError(
-                    ClientAuthErrorCodes.authTimeNotFound,
-                    request.correlationId
-                );
-            }
-
-            checkMaxAge(authTime, request.maxAge, request.correlationId);
         }
 
         return ResponseHandler.generateAuthenticationResult(
