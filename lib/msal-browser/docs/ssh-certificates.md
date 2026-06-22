@@ -20,7 +20,7 @@ In order to acquire an SSH certificate, the following parameters need to be adde
 
 | Parameter |    Value    | Description |
 |-----------|-------------|-------------|
-| `authenticationScheme`| `ssh-cert` (`AuthenticationScheme.SSH`)| The request's authentication scheme tells MSAL what kind of credential to request. The options are `Bearer`, `pop`, `ssh-cert`, and `dpop`. MSAL provides the `AuthenticationScheme` enum which lists these options. DPoP token acquisition is not currently enabled; requests that set `AuthenticationScheme.DPOP` fail with `dpop_not_enabled`. |
+| `authenticationScheme`| `ssh-cert` (`AuthenticationScheme.SSH`)| The request's authentication scheme tells MSAL what kind of credential to request. The options are `Bearer`, `pop`, and `ssh-cert`. MSAL provides the `AuthenticationScheme` enum which lists these options. |
 | `sshJwk` | A stringified RSA Public Key in JSON Web Key format | The SSH JWK is the serialized (stringified) version of the public key component of the RSA key that the application generates.|
 | `sshKid` | A string that uniquely identifes the `sshJwk` RSA key. | The SSH Key ID is used to uniquely identify and match the SSH certificate that MSAL obtains on behalf of the application. 
 
