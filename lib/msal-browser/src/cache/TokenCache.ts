@@ -81,7 +81,11 @@ export async function loadExternalTokens(
 
     try {
         const idTokenClaims = response.id_token
-            ? AuthToken.extractTokenClaims(response.id_token, base64Decode)
+            ? AuthToken.extractTokenClaims(
+                  response.id_token,
+                  base64Decode,
+                  correlationId
+              )
             : undefined;
         const kmsi = AuthToken.isKmsi(idTokenClaims || {});
 
@@ -260,7 +264,10 @@ async function loadAccount(
             "TokenCache - if an account is not provided on the request, clientInfo or idToken must be provided instead.",
             correlationId
         );
-        throw createBrowserAuthError(BrowserAuthErrorCodes.unableToLoadToken);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.unableToLoadToken,
+            ""
+        );
     }
 
     const homeAccountId = AccountEntityUtils.generateHomeAccountId(
@@ -384,8 +391,8 @@ async function loadAccessToken(
     logger.verbose("TokenCache - loading access token", correlationId);
 
     const scopes = response.scope
-        ? ScopeSet.fromString(response.scope)
-        : new ScopeSet(request.scopes);
+        ? ScopeSet.fromString(response.scope, correlationId)
+        : new ScopeSet(request.scopes, correlationId);
     const expiresOn =
         options.expiresOn || response.expires_in + TimeUtils.nowSeconds();
 
@@ -403,7 +410,8 @@ async function loadAccessToken(
         scopes.printScopes(),
         expiresOn,
         extendedExpiresOn,
-        base64Decode
+        base64Decode,
+        correlationId
     );
 
     await storage.setAccessTokenCredential(
@@ -492,7 +500,8 @@ function generateAuthenticationResult(
     if (cacheRecord?.accessToken) {
         accessToken = cacheRecord.accessToken.secret;
         responseScopes = ScopeSet.fromString(
-            cacheRecord.accessToken.target
+            cacheRecord.accessToken.target,
+            request.correlationId || ""
         ).asArray();
         // Access token expiresOn stored in seconds, converting to Date for AuthenticationResult
         expiresOn = TimeUtils.toDateFromSeconds(

@@ -72,6 +72,7 @@ export type TenantProfileFilter = Pick<
     | "isHomeTenant"
     | "username"
     | "upn"
+    | "nativeAccountId"
 >;
 
 /**
@@ -88,6 +89,7 @@ export type CredentialFilter = {
     userAssertionHash?: string;
     tokenType?: AuthenticationScheme;
     keyId?: string;
+    additionalCacheKeyComponents?: Record<string, string>;
 };
 
 /**

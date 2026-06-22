@@ -21,7 +21,7 @@ describe("AuthToken.ts Class Unit Tests", () => {
     describe("getJWSPayload", () => {
         it("getJWSPayload returns a correctly crackedToken.", () => {
             const sampleJwt = `${TEST_TOKENS.SAMPLE_JWT_HEADER}.${TEST_TOKENS.SAMPLE_JWT_PAYLOAD}.${TEST_TOKENS.SAMPLE_JWT_SIG}`;
-            const decodedJwt = AuthToken.getJWSPayload(sampleJwt);
+            const decodedJwt = AuthToken.getJWSPayload(sampleJwt, "");
 
             expect(decodedJwt).toEqual(TEST_TOKENS.SAMPLE_JWT_PAYLOAD);
         });
@@ -29,7 +29,7 @@ describe("AuthToken.ts Class Unit Tests", () => {
         it("decodeJwt throws error when given a null token string", (done) => {
             try {
                 // @ts-ignore
-                AuthToken.getJWSPayload(null);
+                AuthToken.getJWSPayload(null, "");
             } catch (err) {
                 expect(err instanceof ClientAuthError).toBe(true);
                 expect(err instanceof AuthError).toBe(true);
@@ -46,7 +46,7 @@ describe("AuthToken.ts Class Unit Tests", () => {
 
         it("decodeJwt throws error when given a empty token string", (done) => {
             try {
-                AuthToken.getJWSPayload("");
+                AuthToken.getJWSPayload("", "");
             } catch (err) {
                 expect(err instanceof ClientAuthError).toBe(true);
                 expect(err instanceof AuthError).toBe(true);
@@ -63,7 +63,7 @@ describe("AuthToken.ts Class Unit Tests", () => {
 
         it("decodeJwt throws error when given a malformed token string", (done) => {
             try {
-                AuthToken.getJWSPayload(TEST_TOKENS.SAMPLE_MALFORMED_JWT);
+                AuthToken.getJWSPayload(TEST_TOKENS.SAMPLE_MALFORMED_JWT, "");
             } catch (err) {
                 expect(err instanceof ClientAuthError).toBe(true);
                 expect(err instanceof AuthError).toBe(true);
@@ -82,31 +82,39 @@ describe("AuthToken.ts Class Unit Tests", () => {
     describe("extractIdToken()", () => {
         it("Throws error if rawIdToken is null or empty", () => {
             expect(() =>
-                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
+                AuthToken.extractTokenClaims(
+                    "",
+                    cryptoInterface.base64Decode,
+                    ""
+                )
             ).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
 
             expect(() =>
                 // @ts-ignore
-                AuthToken.extractTokenClaims(null, cryptoInterface)
+                AuthToken.extractTokenClaims(null, cryptoInterface, "")
             ).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
         });
 
         it("Throws error if idToken is null or empty", () => {
             expect(() =>
-                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
+                AuthToken.extractTokenClaims(
+                    "",
+                    cryptoInterface.base64Decode,
+                    ""
+                )
             ).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
 
             expect(() =>
                 // @ts-ignore
-                AuthToken.extractTokenClaims(null, cryptoInterface)
+                AuthToken.extractTokenClaims(null, cryptoInterface, "")
             ).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
         });
 
@@ -114,10 +122,11 @@ describe("AuthToken.ts Class Unit Tests", () => {
             expect(() =>
                 AuthToken.extractTokenClaims(
                     "not-a-real-token",
-                    cryptoInterface.base64Decode
+                    cryptoInterface.base64Decode,
+                    ""
                 )
             ).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.tokenParsingError)
+                new ClientAuthError(ClientAuthErrorCodes.tokenParsingError, "")
             );
         });
 
@@ -125,9 +134,41 @@ describe("AuthToken.ts Class Unit Tests", () => {
             expect(
                 AuthToken.extractTokenClaims(
                     TEST_TOKENS.IDTOKEN_V2,
-                    cryptoInterface.base64Decode
+                    cryptoInterface.base64Decode,
+                    ""
                 )
             ).toEqual(ID_TOKEN_CLAIMS);
+        });
+
+        it("Propagates the provided correlationId onto the thrown error", () => {
+            const correlationId = "auth-token-corr-id";
+            try {
+                AuthToken.extractTokenClaims(
+                    "",
+                    cryptoInterface.base64Decode,
+                    correlationId
+                );
+                throw new Error("Expected extractTokenClaims to throw");
+            } catch (err) {
+                expect(err).toBeInstanceOf(ClientAuthError);
+                expect((err as ClientAuthError).correlationId).toBe(
+                    correlationId
+                );
+            }
+
+            try {
+                AuthToken.extractTokenClaims(
+                    "not-a-real-token",
+                    cryptoInterface.base64Decode,
+                    correlationId
+                );
+                throw new Error("Expected extractTokenClaims to throw");
+            } catch (err) {
+                expect(err).toBeInstanceOf(ClientAuthError);
+                expect((err as ClientAuthError).correlationId).toBe(
+                    correlationId
+                );
+            }
         });
     });
 

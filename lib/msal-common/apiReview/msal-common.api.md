@@ -83,7 +83,11 @@ declare namespace AADServerParamKeys {
         EAR_JWK,
         EAR_JWE_CRYPTO,
         RESOURCE,
-        CLI_DATA
+        CLI_DATA,
+        USER_FEDERATED_IDENTITY_CREDENTIAL,
+        USERNAME,
+        USER_ID,
+        FMI_PATH
     }
 }
 export { AADServerParamKeys }
@@ -195,7 +199,7 @@ function addCcsOid(parameters: Map<string, string>, clientInfo: ClientInfo): voi
 function addCcsUpn(parameters: Map<string, string>, loginHint: string): void;
 
 // @public
-function addClaims(parameters: Map<string, string>, claims?: string, clientCapabilities?: Array<string>, skipBrokerClaims?: boolean): void;
+function addClaims(parameters: Map<string, string>, correlationId: string, claims?: string, clientCapabilities?: Array<string>, skipBrokerClaims?: boolean): void;
 
 // @public
 function addCliData(parameters: Map<string, string>): void;
@@ -297,7 +301,7 @@ function addResponseMode(parameters: Map<string, string>, responseMode?: Constan
 function addResponseType(parameters: Map<string, string>, responseType: Constants_2.OAuthResponseType): void;
 
 // @public
-function addScopes(parameters: Map<string, string>, scopes: string[], addOidcScopes?: boolean, defaultScopes?: Array<string>): void;
+function addScopes(parameters: Map<string, string>, scopes: string[], correlationId: string, addOidcScopes?: boolean, defaultScopes?: Array<string>): void;
 
 // @internal
 function addServerTelemetry(parameters: Map<string, string>, serverTelemetryManager: ServerTelemetryManager): void;
@@ -404,13 +408,11 @@ type AuthenticationScheme = (typeof AuthenticationScheme)[keyof typeof Authentic
 
 // @public
 export class AuthError extends Error {
-    constructor(errorCode?: string, errorMessage?: string, suberror?: string);
+    constructor(errorCode: string, correlationId: string, errorMessage?: string, suberror?: string);
     correlationId: string;
     errorCode: string;
     errorMessage: string;
     platformBrokerError?: PlatformBrokerError;
-    // (undocumented)
-    setCorrelationId(correlationId: string): void;
     subError: string;
 }
 
@@ -439,7 +441,7 @@ export class Authority {
     // (undocumented)
     get authorityType(): AuthorityType;
     get authorizationEndpoint(): string;
-    static buildRegionalAuthorityString(host: string, region: string, queryString?: string): string;
+    static buildRegionalAuthorityString(host: string, region: string, correlationId: string, queryString?: string): string;
     // (undocumented)
     protected cacheManager: ICacheManager;
     get canonicalAuthority(): string;
@@ -468,12 +470,12 @@ export class Authority {
     get protocolMode(): ProtocolMode;
     // (undocumented)
     regionDiscoveryMetadata: RegionDiscoveryMetadata;
-    static replaceWithRegionalInformation(metadata: OpenIdConfigResponse, azureRegion: string): OpenIdConfigResponse;
+    static replaceWithRegionalInformation(metadata: OpenIdConfigResponse, azureRegion: string, correlationId: string): OpenIdConfigResponse;
     resolveEndpointsAsync(): Promise<void>;
     get selfSignedJwtAudience(): string;
     get tenant(): string;
     get tokenEndpoint(): string;
-    static transformCIAMAuthority(authority: string): string;
+    static transformCIAMAuthority(authority: string, correlationId: string): string;
 }
 
 // @public (undocumented)
@@ -738,7 +740,7 @@ export function buildClientInfoFromHomeAccountId(homeAccountId: string): ClientI
 export function buildStaticAuthorityOptions(authOptions: Partial<AuthorityOptions>): StaticAuthorityOptions;
 
 // @public
-export function buildTenantProfile(homeAccountId: string, localAccountId: string, tenantId: string, idTokenClaims?: TokenClaims): TenantProfile;
+export function buildTenantProfile(homeAccountId: string, localAccountId: string, tenantId: string, nativeAccountId?: string, idTokenClaims?: TokenClaims): TenantProfile;
 
 // @public (undocumented)
 const CACHE_ACCOUNT_TYPE_ADFS: string;
@@ -932,7 +934,7 @@ export const CcsCredentialType: {
 export type CcsCredentialType = (typeof CcsCredentialType)[keyof typeof CcsCredentialType];
 
 // @public
-function checkMaxAge(authTime: number, maxAge: number): void;
+function checkMaxAge(authTime: number, maxAge: number, correlationId: string): void;
 
 // @public (undocumented)
 const CIAM_AUTH_URL = ".ciamlogin.com";
@@ -995,6 +997,7 @@ export type ClientAssertionCallback = (config: ClientAssertionConfig) => Promise
 export type ClientAssertionConfig = {
     clientId: string;
     tokenEndpoint?: string;
+    fmiPath?: string;
 };
 
 declare namespace ClientAssertionUtils {
@@ -1006,7 +1009,7 @@ export { ClientAssertionUtils }
 
 // @public
 export class ClientAuthError extends AuthError {
-    constructor(errorCode: string, additionalMessage?: string);
+    constructor(errorCode: string, correlationId: string, additionalMessage?: string);
 }
 
 declare namespace ClientAuthErrorCodes {
@@ -1072,7 +1075,7 @@ export type ClientConfiguration = {
 
 // @public
 export class ClientConfigurationError extends AuthError {
-    constructor(errorCode: string);
+    constructor(errorCode: string, correlationId: string);
 }
 
 declare namespace ClientConfigurationErrorCodes {
@@ -1322,7 +1325,7 @@ declare namespace Constants {
 const CONSUMER_UTID = "9188040d-6c67-4c5b-b112-36a304b66dad";
 
 // @public
-function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, refreshOn?: number, tokenType?: Constants_2.AuthenticationScheme, userAssertionHash?: string, keyId?: string): AccessTokenEntity;
+function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, correlationId: string, refreshOn?: number, tokenType?: Constants_2.AuthenticationScheme, userAssertionHash?: string, keyId?: string, additionalCacheKeyComponents?: Record<string, string>): AccessTokenEntity;
 
 // @internal
 function createAccountEntity(accountDetails: {
@@ -1334,22 +1337,22 @@ function createAccountEntity(accountDetails: {
     environment?: string;
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
-}, authority: Authority, base64Decode?: (input: string) => string): AccountEntity;
+}, authority: Authority, correlationId: string, base64Decode?: (input: string) => string): AccountEntity;
 
 // @internal
 function createAccountEntityFromAccountInfo(accountInfo: AccountInfo, cloudGraphHostName?: string, msGraphHost?: string): AccountEntity;
 
 // @public (undocumented)
-export function createAuthError(code: string, additionalMessage?: string): AuthError;
+export function createAuthError(code: string, correlationId: string, additionalMessage?: string): AuthError;
 
 // @public
 export function createCacheError(e: unknown): CacheError;
 
 // @public (undocumented)
-export function createClientAuthError(errorCode: string, additionalMessage?: string): ClientAuthError;
+export function createClientAuthError(errorCode: string, correlationId: string, additionalMessage?: string): ClientAuthError;
 
 // @public (undocumented)
-export function createClientConfigurationError(errorCode: string): ClientConfigurationError;
+export function createClientConfigurationError(errorCode: string, correlationId: string): ClientConfigurationError;
 
 // @internal
 function createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, logger: Logger, correlationId: string, performanceClient: IPerformanceClient): Promise<Authority>;
@@ -1358,7 +1361,7 @@ function createDiscoveredInstance(authorityUri: string, networkClient: INetworkM
 function createIdTokenEntity(homeAccountId: string, environment: string, idToken: string, clientId: string, tenantId: string): IdTokenEntity;
 
 // @public
-export function createInteractionRequiredAuthError(errorCode: string, errorMessage?: string): InteractionRequiredAuthError;
+export function createInteractionRequiredAuthError(errorCode: string, correlationId: string, errorMessage?: string): InteractionRequiredAuthError;
 
 // @public
 export function createNetworkError(error: AuthError, httpStatus?: number, responseHeaders?: Record<string, string>, additionalError?: Error): NetworkError;
@@ -1385,6 +1388,7 @@ export type CredentialEntity = {
     userAssertionHash?: string;
     tokenType?: AuthenticationScheme;
     keyId?: string;
+    additionalCacheKeyComponents?: Record<string, string>;
     lastUpdatedAt: string;
 };
 
@@ -1400,6 +1404,7 @@ export type CredentialFilter = {
     userAssertionHash?: string;
     tokenType?: AuthenticationScheme;
     keyId?: string;
+    additionalCacheKeyComponents?: Record<string, string>;
 };
 
 // @public
@@ -1562,7 +1567,10 @@ export type ExternalTokenResponse = Pick<ServerAuthorizationTokenResponse, "toke
 };
 
 // @public
-function extractTokenClaims(encodedToken: string, base64Decode: (input: string) => string): TokenClaims;
+function extractTokenClaims(encodedToken: string, base64Decode: (input: string) => string, correlationId: string): TokenClaims;
+
+// @public (undocumented)
+const FMI_PATH = "fmi_path";
 
 // @public (undocumented)
 const FOCI = "foci";
@@ -1586,7 +1594,7 @@ function generateAuthorityMetadataExpiresAt(): number;
 function generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, correlationId: string, idTokenClaims?: TokenClaims): string;
 
 // @public
-function generateLibraryState(cryptoObj: ICrypto, meta?: Record<string, string>): string;
+function generateLibraryState(cryptoObj: ICrypto, correlationId: string, meta?: Record<string, string>): string;
 
 // @internal
 function getAccountInfo(accountEntity: AccountEntity): AccountInfo;
@@ -1595,19 +1603,19 @@ function getAccountInfo(accountEntity: AccountEntity): AccountInfo;
 const GetAuthCodeUrl = "getAuthCodeUrl";
 
 // @public
-function getAuthorizationCodePayload(serverParams: AuthorizeResponse, cachedState: string): AuthorizationCodePayload;
+function getAuthorizationCodePayload(serverParams: AuthorizeResponse, cachedState: string, correlationId: string): AuthorizationCodePayload;
 
 // @internal
 function getAuthorizeUrl(authority: Authority, requestParameters: Map<string, string>): string;
 
 // @public (undocumented)
-export function getClientAssertion(clientAssertion: string | ClientAssertionCallback, clientId: string, tokenEndpoint?: string): Promise<string>;
+export function getClientAssertion(clientAssertion: string | ClientAssertionCallback, clientId: string, tokenEndpoint?: string, fmiPath?: string): Promise<string>;
 
 // @public
 function getDeserializedResponse(responseString: string): AuthorizeResponse | null;
 
 // @public
-function getJWSPayload(authToken: string): string;
+function getJWSPayload(authToken: string, correlationId: string): string;
 
 // @public (undocumented)
 export function getRequestThumbprint(clientId: string, request: BaseAuthRequest, homeAccountId?: string): RequestThumbprint;
@@ -1630,6 +1638,7 @@ const GrantType: {
     readonly REFRESH_TOKEN_GRANT: "refresh_token";
     readonly DEVICE_CODE_GRANT: "device_code";
     readonly JWT_BEARER: "urn:ietf:params:oauth:grant-type:jwt-bearer";
+    readonly USER_FIC: "user_fic";
 };
 
 // @public (undocumented)
@@ -1838,7 +1847,7 @@ const interactionRequired = "interaction_required";
 
 // @public
 export class InteractionRequiredAuthError extends AuthError {
-    constructor(errorCode?: string, errorMessage?: string, subError?: string, timestamp?: string, traceId?: string, correlationId?: string, claims?: string, errorNo?: string);
+    constructor(errorCode: string, correlationId: string, errorMessage?: string, subError?: string, timestamp?: string, traceId?: string, claims?: string, errorNo?: string);
     claims: string;
     readonly errorNo?: string;
     timestamp: string;
@@ -2272,7 +2281,7 @@ const OPENID_SCOPE = "openid";
 const openIdConfigError = "openid_config_error";
 
 // @public
-function parseRequestState(base64Decode: (input: string) => string, state: string): RequestStateObject;
+function parseRequestState(base64Decode: (input: string) => string, state: string, correlationId: string): RequestStateObject;
 
 // @public
 const PasswordGrantConstants: {
@@ -2541,7 +2550,7 @@ const pkceParamsMissing = "pkce_params_missing";
 
 // @public
 export class PlatformBrokerError extends AuthError {
-    constructor(errorStatus: string, errorContext: string, errorCode: number, errorTag: number);
+    constructor(errorStatus: string, correlationId: string, errorContext: string, errorCode: number, errorTag: number);
     statusCode: number;
     tag: string;
 }
@@ -2800,7 +2809,7 @@ const RESPONSE_TYPE = "response_type";
 export class ResponseHandler {
     constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null);
     static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, idTokenClaims?: TokenClaims, requestState?: RequestStateObject, serverTokenResponse?: ServerAuthorizationTokenResponse, requestId?: string): Promise<AuthenticationResult>;
-    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string): Promise<AuthenticationResult>;
+    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
     validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse, correlationId: string, refreshAccessToken?: boolean): void;
 }
 
@@ -2825,15 +2834,15 @@ const SCOPE = "scope";
 
 // @public
 export class ScopeSet {
-    constructor(inputScopes: Array<string>);
+    constructor(inputScopes: Array<string>, correlationId: string);
     appendScope(newScope: string): void;
     appendScopes(newScopes: Array<string>): void;
     asArray(): Array<string>;
     containsOnlyOIDCScopes(): boolean;
     containsScope(scope: string): boolean;
     containsScopeSet(scopeSet: ScopeSet): boolean;
-    static createSearchScopes(inputScopeString: Array<string>): ScopeSet;
-    static fromString(inputScopeString: string): ScopeSet;
+    static createSearchScopes(inputScopeString: Array<string>, correlationId: string): ScopeSet;
+    static fromString(inputScopeString: string, correlationId: string): ScopeSet;
     getScopeCount(): number;
     intersectingScopeSets(otherScopes: ScopeSet): boolean;
     printScopes(): string;
@@ -2915,7 +2924,7 @@ export type ServerDeviceCodeResponse = {
 
 // @public
 export class ServerError extends AuthError {
-    constructor(errorCode?: string, errorMessage?: string, subError?: string, errorNo?: string, status?: number);
+    constructor(errorCode: string, correlationId: string, errorMessage?: string, subError?: string, errorNo?: string, status?: number);
     readonly errorNo?: string;
     readonly status?: number;
 }
@@ -2965,7 +2974,7 @@ export type ServerTelemetryRequest = {
 const SESSION_STATE = "session_state";
 
 // @public
-function setRequestState(cryptoObj: ICrypto, userState?: string, meta?: Record<string, string>): string;
+function setRequestState(cryptoObj: ICrypto, userState: string | undefined, meta: Record<string, string> | undefined, correlationId: string): string;
 
 // @public (undocumented)
 const SetUserData = "setUserData";
@@ -3140,7 +3149,7 @@ export type SystemOptions = {
 export function tenantIdMatchesHomeTenant(tenantId?: string, homeAccountId?: string): boolean;
 
 // @public
-export type TenantProfile = Pick<AccountInfo, "tenantId" | "localAccountId" | "name" | "username" | "loginHint" | "upn"> & {
+export type TenantProfile = Pick<AccountInfo, "tenantId" | "localAccountId" | "name" | "username" | "loginHint" | "upn" | "nativeAccountId"> & {
     isHomeTenant?: boolean;
 };
 
@@ -3307,15 +3316,15 @@ const urlParseError = "url_parse_error";
 
 // @public
 export class UrlString {
-    constructor(url: string);
+    constructor(url: string, correlationId: string);
     static appendQueryString(url: string, queryString: string): string;
     static canonicalizeUri(url: string): string;
     // (undocumented)
-    static constructAuthorityUriFromObject(urlObject: IUri): UrlString;
+    static constructAuthorityUriFromObject(urlObject: IUri, correlationId: string): UrlString;
     // (undocumented)
-    static getAbsoluteUrl(relativeUrl: string, baseUrl: string): string;
+    static getAbsoluteUrl(relativeUrl: string, baseUrl: string, correlationId: string): string;
     // (undocumented)
-    static getDomainFromUrl(url: string): string;
+    static getDomainFromUrl(url: string, correlationId: string): string;
     getUrlComponents(): IUri;
     static removeHashFromUrl(url: string): string;
     replaceTenantPath(tenantId: string): UrlString;
@@ -3336,10 +3345,19 @@ declare namespace UrlUtils {
 export { UrlUtils }
 
 // @public (undocumented)
+const USER_FEDERATED_IDENTITY_CREDENTIAL = "user_federated_identity_credential";
+
+// @public (undocumented)
+const USER_ID = "user_id";
+
+// @public (undocumented)
 const userCanceled = "user_canceled";
 
+// @public (undocumented)
+const USERNAME = "username";
+
 // @public
-function validateAuthorizationResponse(serverResponse: AuthorizeResponse, requestState: string): void;
+function validateAuthorizationResponse(serverResponse: AuthorizeResponse, requestState: string, correlationId: string): void;
 
 // @public
 function validateUrl(url: string, logger?: Logger, correlationId?: string): void;
@@ -3351,7 +3369,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.8.0";
+export const version = "16.9.0";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;

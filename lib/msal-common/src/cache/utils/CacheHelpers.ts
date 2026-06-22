@@ -68,10 +68,12 @@ export function createAccessTokenEntity(
     expiresOn: number,
     extExpiresOn: number,
     base64Decode: (input: string) => string,
+    correlationId: string,
     refreshOn?: number,
     tokenType?: Constants.AuthenticationScheme,
     userAssertionHash?: string,
-    keyId?: string
+    keyId?: string,
+    additionalCacheKeyComponents?: Record<string, string>
 ): AccessTokenEntity {
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
@@ -111,11 +113,13 @@ export function createAccessTokenEntity(
                 // Make sure keyId is present and add it to credential
                 const tokenClaims: TokenClaims | null = extractTokenClaims(
                     accessToken,
-                    base64Decode
+                    base64Decode,
+                    correlationId
                 );
                 if (!tokenClaims?.cnf?.kid) {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.tokenClaimsCnfRequiredForSignedJwt
+                        ClientAuthErrorCodes.tokenClaimsCnfRequiredForSignedJwt,
+                        correlationId
                     );
                 }
                 atEntity.keyId = tokenClaims.cnf.kid;
@@ -123,6 +127,14 @@ export function createAccessTokenEntity(
             case Constants.AuthenticationScheme.SSH:
                 atEntity.keyId = keyId;
         }
+    }
+
+    /* Additional cache key components for cache isolation (e.g., FMI path) */
+    if (
+        additionalCacheKeyComponents &&
+        Object.keys(additionalCacheKeyComponents).length > 0
+    ) {
+        atEntity.additionalCacheKeyComponents = additionalCacheKeyComponents;
     }
 
     return atEntity;

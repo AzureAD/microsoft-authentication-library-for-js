@@ -149,7 +149,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 } as any)
             ).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.resourceParameterRequired
+                    ClientAuthErrorCodes.resourceParameterRequired,
+                    ""
                 )
             );
         });
@@ -178,7 +179,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 } as any)
             ).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.misplacedResourceParam
+                    ClientAuthErrorCodes.misplacedResourceParam,
+                    ""
                 )
             );
         });
@@ -207,7 +209,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 } as any)
             ).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.misplacedResourceParam
+                    ClientAuthErrorCodes.misplacedResourceParam,
+                    ""
                 )
             );
         });
@@ -452,7 +455,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 "fromNaaTokenResponse"
             ).mockImplementation(() => {
                 throw createClientAuthError(
-                    ClientAuthErrorCodes.nullOrEmptyToken
+                    ClientAuthErrorCodes.nullOrEmptyToken,
+                    ""
                 );
             });
 
@@ -465,7 +469,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             await expect(() =>
                 pca.acquireTokenSilent(testRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+                createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
         });
 
@@ -487,7 +491,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             await expect(() =>
                 pca.acquireTokenSilent(testRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+                createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
         });
 

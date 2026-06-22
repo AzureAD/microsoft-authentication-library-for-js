@@ -169,7 +169,8 @@ describe("CacheManager.ts test cases", () => {
                 "User.Read",
                 TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
                 TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
-                mockCrypto.base64Decode
+                mockCrypto.base64Decode,
+                ""
             );
 
             const atKey = generateCredentialKey(at);
@@ -1733,7 +1734,8 @@ describe("CacheManager.ts test cases", () => {
                     testAccessToken,
                     {
                         target: ScopeSet.createSearchScopes(
-                            testAccessToken.target.split(" ")
+                            testAccessToken.target.split(" "),
+                            ""
                         ),
                     },
                     TEST_CONFIG.CORRELATION_ID
@@ -1745,7 +1747,10 @@ describe("CacheManager.ts test cases", () => {
                 mockCache.cacheManager.credentialMatchesFilter(
                     testAccessToken,
                     {
-                        target: ScopeSet.createSearchScopes(["wrong_scope"]),
+                        target: ScopeSet.createSearchScopes(
+                            ["wrong_scope"],
+                            ""
+                        ),
                     },
                     TEST_CONFIG.CORRELATION_ID
                 )
@@ -1857,6 +1862,101 @@ describe("CacheManager.ts test cases", () => {
                     {
                         tokenType: AuthenticationScheme.SSH,
                     },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+        });
+
+        it("additionalCacheKeyComponents bidirectional isolation", () => {
+            // Entity with components should NOT match filter without them
+            const entityWithComponents = {
+                ...testAccessToken,
+                additionalCacheKeyComponents: { fmi_path: "agent123" },
+            };
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithComponents,
+                    {},
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity without components should NOT match filter with them
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    testAccessToken,
+                    {
+                        additionalCacheKeyComponents: {
+                            fmi_path: "agent123",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity with components should match filter with same components
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithComponents,
+                    {
+                        additionalCacheKeyComponents: {
+                            fmi_path: "agent123",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+
+            // Entity with different component values should NOT match
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithComponents,
+                    {
+                        additionalCacheKeyComponents: {
+                            fmi_path: "differentAgent",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity with multiple components must match all key-value pairs
+            const entityWithMultipleComponents = {
+                ...testAccessToken,
+                additionalCacheKeyComponents: {
+                    claims_hash: "abc",
+                    fmi_path: "agent123",
+                },
+            };
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithMultipleComponents,
+                    {
+                        additionalCacheKeyComponents: {
+                            claims_hash: "abc",
+                            fmi_path: "agent123",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithMultipleComponents,
+                    {
+                        additionalCacheKeyComponents: {
+                            fmi_path: "agent123",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity without components should match filter without them
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    testAccessToken,
+                    {},
                     TEST_CONFIG.CORRELATION_ID
                 )
             ).toBe(true);
@@ -2091,6 +2191,7 @@ describe("CacheManager.ts test cases", () => {
                     4600,
                     4600,
                     mockCrypto.base64Decode,
+                    "",
                     500,
                     AuthenticationScheme.BEARER,
                     TEST_TOKENS.ACCESS_TOKEN
@@ -2107,6 +2208,7 @@ describe("CacheManager.ts test cases", () => {
                     4600,
                     4600,
                     mockCrypto.base64Decode,
+                    "",
                     500,
                     AuthenticationScheme.BEARER,
                     TEST_TOKENS.ACCESS_TOKEN
@@ -2182,6 +2284,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN
@@ -2198,6 +2301,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.POP,
                 TEST_TOKENS.ACCESS_TOKEN
@@ -2214,6 +2318,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.SSH,
                 undefined,
@@ -2280,6 +2385,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 // @ts-ignore
                 AuthenticationScheme.BEARER.toLowerCase(),
@@ -2341,6 +2447,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN
@@ -2357,6 +2464,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.POP,
                 TEST_TOKENS.ACCESS_TOKEN
@@ -2373,6 +2481,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.SSH,
                 undefined,
@@ -2440,6 +2549,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.BEARER,
                 undefined,
@@ -2457,6 +2567,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.POP,
                 undefined,
@@ -2474,6 +2585,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.SSH,
                 undefined,

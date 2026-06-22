@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update API Extractor warning policy and tag internal APIs with @internal [#8653](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8653)",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

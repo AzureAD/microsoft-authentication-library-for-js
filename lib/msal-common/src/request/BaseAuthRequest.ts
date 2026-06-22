@@ -130,13 +130,15 @@ export function enforceResourceParameter(
             containsResourceParam(request.extraQueryParameters))
     ) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.misplacedResourceParam
+            ClientAuthErrorCodes.misplacedResourceParam,
+            request.correlationId || ""
         );
     }
 
     if (!request.resource) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.resourceParameterRequired
+            ClientAuthErrorCodes.resourceParameterRequired,
+            request.correlationId || ""
         );
     }
 }

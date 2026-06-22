@@ -18,7 +18,12 @@ export class NetworkError extends AuthError {
         httpStatus?: number,
         responseHeaders?: Record<string, string>
     ) {
-        super(error.errorCode, error.errorMessage, error.subError);
+        super(
+            error.errorCode,
+            error.correlationId,
+            error.errorMessage,
+            error.subError
+        );
 
         Object.setPrototypeOf(this, NetworkError.prototype);
         this.name = "NetworkError";

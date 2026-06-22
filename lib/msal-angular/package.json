@@ -70,7 +70,7 @@
     "zone.js": "~0.15.0"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^5.13.0",
+    "@azure/msal-browser": "^5.14.0",
     "rxjs": "^7.4.0"
   }
 }

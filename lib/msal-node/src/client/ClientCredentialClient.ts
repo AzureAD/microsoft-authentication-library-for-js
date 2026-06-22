@@ -4,6 +4,7 @@
  */
 
 import {
+    AADServerParamKeys,
     AccessTokenEntity,
     AuthenticationResult,
     Authority,
@@ -59,8 +60,21 @@ export class ClientCredentialClient extends BaseClient {
     public async acquireToken(
         request: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
+        // Build additional cache key components for FMI cache isolation
+        let additionalCacheKeyComponents: Record<string, string> | undefined;
+        if (request.fmiPath) {
+            additionalCacheKeyComponents = {
+                fmi_path: request.fmiPath,
+            };
+        }
+
         if (request.skipCache || request.claims) {
-            return this.executeTokenRequest(request, this.authority);
+            return this.executeTokenRequest(
+                request,
+                this.authority,
+                /* refreshAccessToken */ undefined,
+                additionalCacheKeyComponents
+            );
         }
 
         const [cachedAuthenticationResult, lastCacheOutcome] =
@@ -70,7 +84,8 @@ export class ClientCredentialClient extends BaseClient {
                 this.cryptoUtils,
                 this.authority,
                 this.cacheManager,
-                this.serverTelemetryManager
+                this.serverTelemetryManager,
+                additionalCacheKeyComponents
             );
 
         if (cachedAuthenticationResult) {
@@ -89,14 +104,20 @@ export class ClientCredentialClient extends BaseClient {
                 await this.executeTokenRequest(
                     request,
                     this.authority,
-                    refreshAccessToken
+                    refreshAccessToken,
+                    additionalCacheKeyComponents
                 );
             }
 
             // return the cached token
             return cachedAuthenticationResult;
         } else {
-            return this.executeTokenRequest(request, this.authority);
+            return this.executeTokenRequest(
+                request,
+                this.authority,
+                /* refreshAccessToken */ undefined,
+                additionalCacheKeyComponents
+            );
         }
     }
 
@@ -109,7 +130,8 @@ export class ClientCredentialClient extends BaseClient {
         cryptoUtils: ICrypto,
         authority: Authority,
         cacheManager: CacheManager,
-        serverTelemetryManager?: ServerTelemetryManager | null
+        serverTelemetryManager?: ServerTelemetryManager | null,
+        additionalCacheKeyComponents?: Record<string, string>
     ): Promise<[AuthenticationResult | null, Constants.CacheOutcome]> {
         const clientConfiguration = config as ClientConfiguration;
         const managedIdentityConfiguration =
@@ -137,9 +159,10 @@ export class ClientCredentialClient extends BaseClient {
             authority,
             managedIdentityConfiguration.managedIdentityId?.id ||
                 clientConfiguration.authOptions.clientId,
-            new ScopeSet(request.scopes || []),
+            new ScopeSet(request.scopes || [], request.correlationId),
             cacheManager,
-            request.correlationId
+            request.correlationId,
+            additionalCacheKeyComponents
         );
 
         if (
@@ -212,7 +235,8 @@ export class ClientCredentialClient extends BaseClient {
         id: string,
         scopeSet: ScopeSet,
         cacheManager: CacheManager,
-        correlationId: string
+        correlationId: string,
+        additionalCacheKeyComponents?: Record<string, string>
     ): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: "",
@@ -221,7 +245,11 @@ export class ClientCredentialClient extends BaseClient {
             credentialType: Constants.CredentialType.ACCESS_TOKEN,
             clientId: id,
             realm: authority.tenant,
-            target: ScopeSet.createSearchScopes(scopeSet.asArray()),
+            target: ScopeSet.createSearchScopes(
+                scopeSet.asArray(),
+                correlationId
+            ),
+            additionalCacheKeyComponents: additionalCacheKeyComponents,
         };
 
         const accessTokens = cacheManager.getAccessTokensByFilter(
@@ -232,7 +260,8 @@ export class ClientCredentialClient extends BaseClient {
             return null;
         } else if (accessTokens.length > 1) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.multipleMatchingTokens
+                ClientAuthErrorCodes.multipleMatchingTokens,
+                correlationId
             );
         }
         return accessTokens[0] as AccessTokenEntity;
@@ -246,7 +275,8 @@ export class ClientCredentialClient extends BaseClient {
     private async executeTokenRequest(
         request: CommonClientCredentialRequest,
         authority: Authority,
-        refreshAccessToken?: boolean
+        refreshAccessToken?: boolean,
+        additionalCacheKeyComponents?: Record<string, string>
     ): Promise<AuthenticationResult | null> {
         let serverTokenResponse: ServerAuthorizationTokenResponse;
         let reqTimestamp: number;
@@ -337,7 +367,13 @@ export class ClientCredentialClient extends BaseClient {
             this.authority,
             reqTimestamp,
             request,
-            ApiId.acquireTokenByClientCredential
+            ApiId.acquireTokenByClientCredential,
+            undefined, // authCodePayload
+            undefined, // userAssertionHash
+            undefined, // handlingRefreshTokenResponse
+            undefined, // forceCacheRefreshTokenResponse
+            undefined, // serverRequestId
+            additionalCacheKeyComponents
         );
 
         return tokenResponse;
@@ -357,7 +393,12 @@ export class ClientCredentialClient extends BaseClient {
             this.config.authOptions.clientId
         );
 
-        RequestParameterBuilder.addScopes(parameters, request.scopes, false);
+        RequestParameterBuilder.addScopes(
+            parameters,
+            request.scopes,
+            request.correlationId,
+            false
+        );
 
         RequestParameterBuilder.addGrantType(
             parameters,
@@ -405,13 +446,18 @@ export class ClientCredentialClient extends BaseClient {
                 await getClientAssertion(
                     clientAssertion.assertion,
                     this.config.authOptions.clientId,
-                    request.resourceRequestUri
+                    this.authority.tokenEndpoint,
+                    request.fmiPath
                 )
             );
             RequestParameterBuilder.addClientAssertionType(
                 parameters,
                 clientAssertion.assertionType
             );
+        }
+
+        if (request.fmiPath) {
+            parameters.set(AADServerParamKeys.FMI_PATH, request.fmiPath);
         }
 
         if (
@@ -421,6 +467,7 @@ export class ClientCredentialClient extends BaseClient {
         ) {
             RequestParameterBuilder.addClaims(
                 parameters,
+                request.correlationId,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );

@@ -60,7 +60,10 @@ export function getDeserializedResponse(
             return deserializedHash;
         }
     } catch (e) {
-        throw createClientAuthError(ClientAuthErrorCodes.hashNotDeserialized);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.hashNotDeserialized,
+            ""
+        );
     }
 
     return null;
@@ -134,7 +137,8 @@ export function normalizeUrlForComparison(
             correlationId || ""
         );
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.urlParseError
+            ClientConfigurationErrorCodes.urlParseError,
+            correlationId || ""
         );
     }
 }
@@ -158,7 +162,8 @@ export function validateUrl(
     } catch (e) {
         logger?.error(`Failed to validate URL: '${e}'`, correlationId || "");
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.urlParseError
+            ClientConfigurationErrorCodes.urlParseError,
+            correlationId || ""
         );
     }
 }

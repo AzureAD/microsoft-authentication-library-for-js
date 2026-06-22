@@ -33,6 +33,9 @@ import { CommonClientCredentialRequest } from "../request/CommonClientCredential
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest.js";
 import { ClientCredentialClient } from "./ClientCredentialClient.js";
 import { OnBehalfOfClient } from "./OnBehalfOfClient.js";
+import { UserFederatedIdentityCredentialClient } from "./UserFederatedIdentityCredentialClient.js";
+import { UserFederatedIdentityCredentialRequest } from "../request/UserFederatedIdentityCredentialRequest.js";
+import { CommonUserFederatedIdentityCredentialRequest } from "../request/CommonUserFederatedIdentityCredentialRequest.js";
 import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
 
 /**
@@ -90,7 +93,8 @@ export class ConfidentialClientApplication
             (clientSecretNotEmpty && certificateNotEmpty)
         ) {
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.invalidClientCredential
+                NodeClientAuthErrorCodes.invalidClientCredential,
+                ""
             );
         }
 
@@ -107,7 +111,8 @@ export class ConfidentialClientApplication
 
         if (!certificateNotEmpty) {
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.invalidClientCredential
+                NodeClientAuthErrorCodes.invalidClientCredential,
+                ""
             );
         } else {
             this.clientAssertion = !!this.config.auth.clientCertificate
@@ -182,7 +187,10 @@ export class ConfidentialClientApplication
          * valid request should not have "common" or "organizations" in lieu of the tenant_id in the authority in the auth configuration
          * example authority: "https://login.microsoftonline.com/TenantId",
          */
-        const authority = new UrlString(validRequest.authority);
+        const authority = new UrlString(
+            validRequest.authority,
+            validRequest.correlationId
+        );
         const tenantId = authority.getUrlComponents().PathSegments[0];
         if (
             Object.values(Constants.AADAuthority).includes(
@@ -190,7 +198,8 @@ export class ConfidentialClientApplication
             )
         ) {
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.missingTenantIdError
+                NodeClientAuthErrorCodes.missingTenantIdError,
+                validRequest.correlationId
             );
         }
 
@@ -245,7 +254,7 @@ export class ConfidentialClientApplication
             return await clientCredentialClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(validRequest.correlationId);
+                e.correlationId = validRequest.correlationId;
             }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
@@ -295,8 +304,101 @@ export class ConfidentialClientApplication
             return await oboClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(validRequest.correlationId);
+                e.correlationId = validRequest.correlationId;
             }
+            throw e;
+        }
+    }
+
+    /**
+     * Acquires a user-scoped token using the user_fic grant type (Leg 3 of Agent Identity).
+     *
+     * Exchanges a federated identity credential (instance token from Leg 2) for a user-scoped token.
+     * Exactly one of `userObjectId` or `username` must be provided to identify the target user.
+     *
+     * This method always makes a network call. Use `acquireTokenSilent` to retrieve cached FIC tokens.
+     */
+    public async acquireTokenByUserFederatedIdentityCredential(
+        request: UserFederatedIdentityCredentialRequest
+    ): Promise<AuthenticationResult | null> {
+        this.logger.info(
+            "acquireTokenByUserFederatedIdentityCredential called",
+            request.correlationId || ""
+        );
+
+        // Validate that exactly one user identifier is provided
+        if (request.userObjectId && request.username) {
+            throw createClientAuthError(
+                NodeClientAuthErrorCodes.conflictingUserIdentifiers,
+                request.correlationId || ""
+            );
+        }
+        if (!request.userObjectId && !request.username) {
+            throw createClientAuthError(
+                NodeClientAuthErrorCodes.missingUserIdentifier,
+                request.correlationId || ""
+            );
+        }
+
+        // Validate that the assertion is not empty
+        if (!request.assertion) {
+            throw createClientAuthError(
+                NodeClientAuthErrorCodes.emptyFicAssertion,
+                request.correlationId || ""
+            );
+        }
+
+        // If there is a client assertion present in the request, resolve it
+        let clientAssertion: ClientAssertionType | undefined;
+        if (request.clientAssertion) {
+            clientAssertion = {
+                assertion: await getClientAssertion(
+                    request.clientAssertion,
+                    this.config.auth.clientId
+                ),
+                assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE,
+            };
+        }
+
+        const baseRequest = await this.initializeBaseRequest(request);
+        const validRequest: CommonUserFederatedIdentityCredentialRequest = {
+            ...request,
+            ...baseRequest,
+            assertion: request.assertion,
+            clientAssertion,
+        } as CommonUserFederatedIdentityCredentialRequest;
+
+        const serverTelemetryManager = this.initializeServerTelemetryManager(
+            ApiId.acquireTokenByUserFederatedIdentityCredential,
+            validRequest.correlationId
+        );
+
+        try {
+            const discoveredAuthority = await this.createAuthority(
+                validRequest.authority,
+                validRequest.correlationId,
+                undefined,
+                request.azureCloudOptions
+            );
+            const clientConfig = await this.buildOauthClientConfiguration(
+                discoveredAuthority,
+                validRequest.correlationId,
+                "",
+                serverTelemetryManager
+            );
+            const ficClient = new UserFederatedIdentityCredentialClient(
+                clientConfig
+            );
+            this.logger.verbose(
+                "UserFederatedIdentityCredential client created",
+                validRequest.correlationId
+            );
+            return await ficClient.acquireToken(validRequest);
+        } catch (e) {
+            if (e instanceof AuthError) {
+                e.correlationId = validRequest.correlationId;
+            }
+            serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
     }

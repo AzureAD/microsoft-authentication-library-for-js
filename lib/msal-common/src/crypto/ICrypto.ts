@@ -96,33 +96,63 @@ export interface ICrypto {
 
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     createNewGuid: (): string => {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     },
     base64Decode: (): string => {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     },
     base64Encode: (): string => {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     },
     base64UrlEncode: (): string => {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     },
     encodeKid: (): string => {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     },
     async getPublicKeyThumbprint(): Promise<string> {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     },
     async removeTokenBindingKey(): Promise<void> {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     },
     async clearKeystore(): Promise<boolean> {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     },
     async signJwt(): Promise<string> {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     },
     async hashString(): Promise<string> {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     },
 };

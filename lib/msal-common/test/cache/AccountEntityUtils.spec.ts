@@ -126,7 +126,8 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: idTokenClaims,
             },
-            authority
+            authority,
+            ""
         );
 
         expect(
@@ -166,7 +167,8 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: idTokenClaims,
             },
-            authority
+            authority,
+            ""
         );
 
         expect(
@@ -206,7 +208,8 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: idTokenClaims,
             },
-            authority
+            authority,
+            ""
         );
         expect(
             generateAccountKey(AccountEntityUtils.getAccountInfo(acc))
@@ -260,7 +263,8 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: idTokenClaims,
             },
-            authority
+            authority,
+            ""
         );
 
         expect(
@@ -316,10 +320,12 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: AuthToken.extractTokenClaims(
                     TEST_TOKENS.IDTOKEN_V2,
-                    cryptoInterface.base64Decode
+                    cryptoInterface.base64Decode,
+                    ""
                 ),
             },
-            authority
+            authority,
+            ""
         );
 
         expect(
@@ -436,6 +442,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                     clientInfo: encodedClientInfo,
                 },
                 authority,
+                "",
                 cryptoInterface.base64Decode
             );
 
@@ -473,6 +480,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                         TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 },
                 authority,
+                "",
                 cryptoInterface.base64Decode
             );
 
@@ -508,6 +516,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                     idTokenClaims: idTokenClaims,
                 },
                 authority,
+                "",
                 cryptoInterface.base64Decode
             );
 
@@ -554,6 +563,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                     clientInfo: encodedClientInfo,
                 },
                 authority,
+                "",
                 cryptoInterface.base64Decode
             );
 
@@ -600,6 +610,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                     clientInfo: encodedClientInfo,
                 },
                 authority,
+                "",
                 cryptoInterface.base64Decode
             );
 
@@ -659,10 +670,12 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
                 homeAccountId,
                 idTokenClaims: AuthToken.extractTokenClaims(
                     TEST_TOKENS.IDTOKEN_V2,
-                    cryptoInterface.base64Decode
+                    cryptoInterface.base64Decode,
+                    ""
                 ),
             },
-            authority
+            authority,
+            ""
         );
 
         expect(
@@ -720,10 +733,12 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
                 homeAccountId,
                 idTokenClaims: AuthToken.extractTokenClaims(
                     TEST_TOKENS.IDTOKEN_V2,
-                    cryptoInterface.base64Decode
+                    cryptoInterface.base64Decode,
+                    ""
                 ),
             },
-            authority
+            authority,
+            ""
         );
 
         expect(

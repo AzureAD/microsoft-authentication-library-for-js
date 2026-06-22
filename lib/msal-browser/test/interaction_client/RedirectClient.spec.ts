@@ -611,7 +611,8 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
-                stateString
+                stateString,
+                RANDOM_TEST_GUID
             ).libraryState.id;
 
             window.sessionStorage.setItem(
@@ -753,7 +754,8 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
-                stateString
+                stateString,
+                RANDOM_TEST_GUID
             ).libraryState.id;
 
             window.sessionStorage.setItem(
@@ -818,7 +820,8 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
-                stateString
+                stateString,
+                RANDOM_TEST_GUID
             ).libraryState.id;
 
             window.sessionStorage.setItem(
@@ -856,7 +859,8 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
-                stateString
+                stateString,
+                RANDOM_TEST_GUID
             ).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -998,7 +1002,8 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
-                stateString
+                stateString,
+                RANDOM_TEST_GUID
             ).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -1155,7 +1160,8 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto.base64Decode,
-                stateString
+                stateString,
+                RANDOM_TEST_GUID
             ).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -1860,7 +1866,8 @@ describe("RedirectClient", () => {
                 redirectClient.acquireToken(loginRequest)
             ).rejects.toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    ""
                 )
             );
         });
@@ -1881,7 +1888,8 @@ describe("RedirectClient", () => {
 
             await expect(redirectClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshKid
+                    ClientConfigurationErrorCodes.missingSshKid,
+                    ""
                 )
             );
         });
@@ -2876,7 +2884,8 @@ describe("RedirectClient", () => {
             //@ts-ignore
             redirectClient.config.system.serverTelemetryEnabled = true;
             const testError = createBrowserAuthError(
-                BrowserAuthErrorCodes.emptyNavigateUri
+                BrowserAuthErrorCodes.emptyNavigateUri,
+                ""
             );
             jest.spyOn(
                 NavigationClient.prototype,
