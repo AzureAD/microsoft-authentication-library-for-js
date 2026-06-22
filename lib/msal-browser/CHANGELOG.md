@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 16 Jun 2026 19:46:34 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 22 Jun 2026 20:35:28 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.15.0
+
+Mon, 22 Jun 2026 20:35:28 GMT
+
+### Minor changes
+
+- Add NativeAccountId property to TenantProfile and deprecate top-level AccountEntity property [#8649](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8649) (lalimasharda@microsoft.com)
+- Make correlationId a required parameter on AuthError and all derived error classes [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609) (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v16.10.0
 
 ## 5.14.0
 
