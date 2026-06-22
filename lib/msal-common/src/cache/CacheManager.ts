@@ -1937,7 +1937,10 @@ export abstract class CacheManager implements ICacheManager {
         entity: CredentialEntity,
         tokenType: Constants.AuthenticationScheme
     ): boolean {
-        return !!(entity.tokenType && entity.tokenType === tokenType);
+        return !!(
+            entity.tokenType &&
+            entity.tokenType.toLowerCase() === tokenType.toLowerCase()
+        );
     }
 
     /**

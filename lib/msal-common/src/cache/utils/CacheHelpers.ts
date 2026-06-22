@@ -126,6 +126,9 @@ export function createAccessTokenEntity(
                 break;
             case Constants.AuthenticationScheme.SSH:
                 atEntity.keyId = keyId;
+                break;
+            case Constants.AuthenticationScheme.DPOP:
+                break;
         }
     }
 

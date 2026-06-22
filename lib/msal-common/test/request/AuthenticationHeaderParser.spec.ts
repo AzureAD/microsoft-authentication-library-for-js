@@ -95,6 +95,17 @@ describe("AuthenticationHeaderParser unit tests", () => {
             );
         });
 
+        it("should return the DPoP-Nonce header value when header name is lower-case", () => {
+            headers[HeaderNames.DPopNonce.toLowerCase()] =
+                TEST_AUTHENTICATION_HEADERS.dpopNonce;
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                headers
+            );
+            expect(authenticationHeaderParser.getDPoPNonce()).toStrictEqual(
+                TEST_AUTHENTICATION_HEADERS.dpopNonce
+            );
+        });
+
         it("should return null when DPoP-Nonce header is absent", () => {
             const authenticationHeaderParser = new AuthenticationHeaderParser(
                 {}

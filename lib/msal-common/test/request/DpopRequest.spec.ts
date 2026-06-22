@@ -12,24 +12,22 @@ import {
 } from "../../src/utils/Constants";
 import { CommonAuthorizationUrlRequest } from "../../src/request/CommonAuthorizationUrlRequest";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
-import {
-    ClientConfigurationErrorCodes,
-} from "../../src/error/ClientConfigurationError";
+import { ClientConfigurationErrorCodes } from "../../src/error/ClientConfigurationError";
 import { ResponseMode } from "../../src/utils/Constants";
 
 describe("DPoP constants and request/result shape (UT-01)", () => {
     describe("AuthenticationScheme constants", () => {
         it("should include DPOP scheme additive to existing schemes", () => {
-            expect(AuthenticationScheme.DPOP).toBe("dpop");
+            expect(AuthenticationScheme.DPOP).toBe("DPoP");
             expect(AuthenticationScheme.BEARER).toBe("Bearer");
             expect(AuthenticationScheme.POP).toBe("pop");
             expect(AuthenticationScheme.SSH).toBe("ssh-cert");
         });
 
-        it("DPOP token type should be distinct from POP scheme", () => {
+        it("DPOP token type should match the DPOP authentication scheme", () => {
             expect(DPOP_TOKEN_TYPE).toBe("DPoP");
             expect(DPOP_TOKEN_TYPE).not.toBe(AuthenticationScheme.POP);
-            expect(DPOP_TOKEN_TYPE).not.toBe(AuthenticationScheme.DPOP);
+            expect(DPOP_TOKEN_TYPE).toBe(AuthenticationScheme.DPOP);
         });
     });
 
@@ -46,9 +44,9 @@ describe("DPoP constants and request/result shape (UT-01)", () => {
 
     describe("DPoP error codes", () => {
         it("should include dpopMissingResourceContext error code", () => {
-            expect(ClientConfigurationErrorCodes.dpopMissingResourceContext).toBe(
-                "dpop_missing_resource_context"
-            );
+            expect(
+                ClientConfigurationErrorCodes.dpopMissingResourceContext
+            ).toBe("dpop_missing_resource_context");
         });
 
         it("should include dpopNonceRetryFailed error code", () => {
@@ -107,7 +105,7 @@ describe("DPoP constants and request/result shape (UT-01)", () => {
             expect(result.dpopProof).toBe("dpop-proof-jwt");
         });
 
-        it("dpopProof should be optional for ****** (type check)", () => {
+        it("dpopProof should be optional for Bearer results (type check)", () => {
             const bearerResult: AuthenticationResult = {
                 authority: "https://login.microsoftonline.com/common/",
                 uniqueId: "unique-id",

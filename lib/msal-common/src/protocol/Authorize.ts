@@ -248,6 +248,10 @@ export function getStandardAuthorizeRequestParameters(
         );
     }
 
+    if (request.dpopJkt) {
+        RequestParameterBuilder.addDpopJkt(parameters, request.dpopJkt);
+    }
+
     RequestParameterBuilder.addClaims(
         parameters,
         request.correlationId,

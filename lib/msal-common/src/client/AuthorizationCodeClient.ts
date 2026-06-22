@@ -439,6 +439,13 @@ export class AuthorizationCodeClient {
                     request.correlationId
                 );
             }
+        } else if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.dpopMissingResourceContext,
+                request.correlationId
+            );
         }
 
         let ccsCred: CcsCredential | undefined = undefined;

@@ -65,6 +65,7 @@ declare namespace AADServerParamKeys {
         CLIENT_ASSERTION_TYPE,
         TOKEN_TYPE,
         REQ_CNF,
+        DPOP_JKT,
         OBO_ASSERTION,
         REQUESTED_TOKEN_USE,
         ON_BEHALF_OF,
@@ -238,6 +239,9 @@ function addDeviceCode(parameters: Map<string, string>, code: string): void;
 function addDomainHint(parameters: Map<string, string>, domainHint: string): void;
 
 // @public
+function addDpopJkt(parameters: Map<string, string>, dpopJkt: string): void;
+
+// @public
 function addEARParameters(parameters: Map<string, string>, jwk: string): void;
 
 // @public
@@ -367,6 +371,7 @@ const AuthClientExecuteTokenRequest = "authClientExecuteTokenRequest";
 // @public
 export class AuthenticationHeaderParser {
     constructor(headers: Record<string, string>);
+    getDPoPNonce(): string | null;
     getShrNonce(): string;
 }
 
@@ -394,6 +399,7 @@ export type AuthenticationResult = {
     code?: string;
     fromPlatformBroker?: boolean;
     resource?: string;
+    dpopProof?: string;
 };
 
 // @public
@@ -401,6 +407,7 @@ const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
     readonly SSH: "ssh-cert";
+    readonly DPOP: "DPoP";
 };
 
 // @public (undocumented)
@@ -1094,7 +1101,9 @@ declare namespace ClientConfigurationErrorCodes {
         authorityMismatch,
         invalidRequestMethodForEAR,
         invalidPlatformBrokerConfiguration,
-        issuerValidationFailed
+        issuerValidationFailed,
+        dpopMissingResourceContext,
+        dpopNonceRetryFailed
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1159,6 +1168,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     sid?: string;
     state: string;
     platformBroker?: boolean;
+    dpopJkt?: string;
 };
 
 // @internal (undocumented)
@@ -1295,6 +1305,9 @@ declare namespace Constants {
         SERVER_TELEM_OVERFLOW_FALSE,
         SERVER_TELEM_UNKNOWN_ERROR,
         AuthenticationScheme,
+        DPOP_TOKEN_TYPE,
+        DPOP_NONCE_CACHE_VERSION,
+        DPOP_NONCE_CACHE_KEY,
         DEFAULT_THROTTLE_TIME_SECONDS,
         DEFAULT_MAX_THROTTLE_TIME_SECONDS,
         THROTTLING_PREFIX,
@@ -1503,6 +1516,24 @@ export type DeviceCodeResponse = {
 const DOMAIN_HINT = "domain_hint";
 
 // @public (undocumented)
+const DPOP_JKT = "dpop_jkt";
+
+// @public
+const DPOP_NONCE_CACHE_KEY = "dpop-nonce";
+
+// @public
+const DPOP_NONCE_CACHE_VERSION = "1.0";
+
+// @public
+const DPOP_TOKEN_TYPE: "DPoP";
+
+// @public (undocumented)
+const dpopMissingResourceContext = "dpop_missing_resource_context";
+
+// @public (undocumented)
+const dpopNonceRetryFailed = "dpop_nonce_retry_failed";
+
+// @public (undocumented)
 const DSTS = "dstsv2";
 
 // @public (undocumented)
@@ -1654,6 +1685,7 @@ const HeaderNames: {
     readonly AuthenticationInfo: "Authentication-Info";
     readonly X_MS_REQUEST_ID: "x-ms-request-id";
     readonly X_MS_HTTP_VERSION: "x-ms-httpver";
+    readonly DPopNonce: "DPoP-Nonce";
 };
 
 // @public (undocumented)
@@ -2747,6 +2779,7 @@ declare namespace RequestParameterBuilder {
         addPassword,
         addPopToken,
         addSshJwk,
+        addDpopJkt,
         addServerTelemetry,
         addThrottling,
         addLogoutHint,

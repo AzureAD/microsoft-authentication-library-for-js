@@ -257,6 +257,14 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Invalid authentication header provided.
 
+### `dpop_missing_resource_context`
+
+-   DPoP token acquisition is not supported without the resource context and proof generation required to bind the access token to a DPoP key.
+
+### `dpop_nonce_retry_failed`
+
+-   DPoP nonce retry failed after a resource returned a `DPoP-Nonce` challenge.
+
 ### `cannot_set_OIDCOptions`
 
 -   Cannot set OIDCOptions parameter. Please change the protocol mode to OIDC or use a non-Microsoft authority.

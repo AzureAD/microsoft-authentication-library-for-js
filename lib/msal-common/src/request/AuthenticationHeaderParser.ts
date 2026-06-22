@@ -78,11 +78,32 @@ export class AuthenticationHeaderParser {
      * @returns The DPoP nonce string, or null if the header is absent.
      */
     getDPoPNonce(): string | null {
-        const dpopNonce = this.headers[HeaderNames.DPopNonce];
+        const dpopNonce = this.getHeaderValue(HeaderNames.DPopNonce);
         if (dpopNonce) {
             return dpopNonce;
         }
         return null;
+    }
+
+    /**
+     * Gets a header value using HTTP case-insensitive header name matching.
+     * @param headerName
+     * @returns
+     */
+    private getHeaderValue(headerName: string): string | undefined {
+        const headerValue = this.headers[headerName];
+        if (headerValue) {
+            return headerValue;
+        }
+
+        const lowerCaseHeaderName = headerName.toLowerCase();
+        const matchingHeaderName = Object.keys(this.headers).find(
+            (key) => key.toLowerCase() === lowerCaseHeaderName
+        );
+
+        return matchingHeaderName
+            ? this.headers[matchingHeaderName]
+            : undefined;
     }
 
     /**

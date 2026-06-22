@@ -595,6 +595,19 @@ export function addSshJwk(
 }
 
 /**
+ * add dpop_jkt to authorize request parameters
+ * @param dpopJkt
+ */
+export function addDpopJkt(
+    parameters: Map<string, string>,
+    dpopJkt: string
+): void {
+    if (dpopJkt) {
+        parameters.set(AADServerParamKeys.DPOP_JKT, dpopJkt);
+    }
+}
+
+/**
  * add server telemetry fields
  * @param serverTelemetryManager
  * @internal

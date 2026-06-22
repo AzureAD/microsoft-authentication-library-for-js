@@ -44,6 +44,7 @@ export const CLIENT_ASSERTION = "client_assertion";
 export const CLIENT_ASSERTION_TYPE = "client_assertion_type";
 export const TOKEN_TYPE = "token_type";
 export const REQ_CNF = "req_cnf";
+export const DPOP_JKT = "dpop_jkt";
 export const OBO_ASSERTION = "assertion";
 export const REQUESTED_TOKEN_USE = "requested_token_use";
 export const ON_BEHALF_OF = "on_behalf_of";

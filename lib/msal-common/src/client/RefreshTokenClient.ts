@@ -506,6 +506,13 @@ export class RefreshTokenClient {
                     request.correlationId
                 );
             }
+        } else if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.dpopMissingResourceContext,
+                request.correlationId
+            );
         }
 
         if (

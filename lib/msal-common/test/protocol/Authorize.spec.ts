@@ -1219,6 +1219,30 @@ describe("Authorize Protocol Tests", () => {
             expect(queryString).toContain(`client_id=child_client_id`);
         });
 
+        it("adds dpop_jkt when provided", async () => {
+            const dpopJkt = "test-dpop-jkt-thumbprint";
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                prompt: Constants.PromptValue.LOGIN,
+                redirectUri: "localhost",
+                dpopJkt,
+            };
+
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    request,
+                    new Logger({})
+                );
+
+            expect(params.get(AADServerParamKeys.DPOP_JKT)).toBe(dpopJkt);
+        });
+
         it("pick up instance_aware config param when set to true", async () => {
             authOptions.instanceAware = true;
 
