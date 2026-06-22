@@ -639,15 +639,11 @@ export type AuthorizeResponse = {
     clientdata?: string;
 };
 
-// @public (undocumented)
-const authTimeNotFound = "auth_time_not_found";
-
 declare namespace AuthToken {
     export {
         extractTokenClaims,
         isKmsi,
-        getJWSPayload,
-        checkMaxAge
+        getJWSPayload
     }
 }
 export { AuthToken }
@@ -934,9 +930,6 @@ export const CcsCredentialType: {
 // @public (undocumented)
 export type CcsCredentialType = (typeof CcsCredentialType)[keyof typeof CcsCredentialType];
 
-// @public
-function checkMaxAge(authTime: number, maxAge: number, correlationId: string): void;
-
 // @public (undocumented)
 const CIAM_AUTH_URL = ".ciamlogin.com";
 
@@ -1030,8 +1023,6 @@ declare namespace ClientAuthErrorCodes {
         stateMismatch,
         stateNotFound,
         nonceMismatch,
-        authTimeNotFound,
-        maxAgeTranspired,
         multipleMatchingTokens,
         multipleMatchingAppMetadata,
         requestCannotBeMade,
@@ -2116,9 +2107,6 @@ const logoutRequestEmpty = "logout_request_empty";
 
 // @public
 function mapToQueryString(parameters: Map<string, string>): string;
-
-// @public (undocumented)
-const maxAgeTranspired = "max_age_transpired";
 
 // @public (undocumented)
 const methodNotImplemented = "method_not_implemented";
