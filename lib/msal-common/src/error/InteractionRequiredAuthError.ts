@@ -61,21 +61,20 @@ export class InteractionRequiredAuthError extends AuthError {
     readonly errorNo?: string;
 
     constructor(
-        errorCode?: string,
+        errorCode: string,
+        correlationId: string,
         errorMessage?: string,
         subError?: string,
         timestamp?: string,
         traceId?: string,
-        correlationId?: string,
         claims?: string,
         errorNo?: string
     ) {
-        super(errorCode, errorMessage, subError);
+        super(errorCode, correlationId, errorMessage, subError);
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
 
         this.timestamp = timestamp || "";
         this.traceId = traceId || "";
-        this.correlationId = correlationId || "";
         this.claims = claims || "";
         this.name = "InteractionRequiredAuthError";
         this.errorNo = errorNo;
@@ -117,7 +116,12 @@ export function isInteractionRequiredError(
  */
 export function createInteractionRequiredAuthError(
     errorCode: string,
+    correlationId: string,
     errorMessage?: string
 ): InteractionRequiredAuthError {
-    return new InteractionRequiredAuthError(errorCode, errorMessage);
+    return new InteractionRequiredAuthError(
+        errorCode,
+        correlationId,
+        errorMessage
+    );
 }

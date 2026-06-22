@@ -174,10 +174,16 @@ const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
     async sendGetRequestAsync<T>(): Promise<T> {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     },
     async sendPostRequestAsync<T>(): Promise<T> {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
     },
 };
 

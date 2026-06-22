@@ -11,7 +11,7 @@ describe("BrowserAuthError Unit Tests", () => {
         const code =
             BrowserAuthErrorCodes[key as keyof typeof BrowserAuthErrorCodes];
         it(`BrowserAuthError object can be created for code ${code}`, () => {
-            const err: BrowserAuthError = createBrowserAuthError(code);
+            const err: BrowserAuthError = createBrowserAuthError(code, "");
 
             const message = getDefaultErrorMessage(code);
             expect(message).toBeTruthy();
@@ -26,4 +26,13 @@ describe("BrowserAuthError Unit Tests", () => {
             expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
         });
     }
+
+    it("createBrowserAuthError sets correlationId when provided", () => {
+        const TEST_CORRELATION_ID = "test-correlation-id";
+        const err = createBrowserAuthError(
+            BrowserAuthErrorCodes.emptyNavigateUri,
+            TEST_CORRELATION_ID
+        );
+        expect(err.correlationId).toBe(TEST_CORRELATION_ID);
+    });
 });

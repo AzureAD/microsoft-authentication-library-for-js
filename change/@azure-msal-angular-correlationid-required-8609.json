@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Pass correlationId to errors to match the updated msal-browser error signature [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)",
+    "packageName": "@azure/msal-angular",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "patch"
+}

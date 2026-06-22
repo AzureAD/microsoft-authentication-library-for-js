@@ -16,13 +16,15 @@ import { LibraryStateObject, RequestStateObject } from "./StateTypes.js";
  * @param cryptoObj
  * @param userState
  * @param meta
+ * @param correlationId
  */
 export function setRequestState(
     cryptoObj: ICrypto,
-    userState?: string,
-    meta?: Record<string, string>
+    userState: string | undefined,
+    meta: Record<string, string> | undefined,
+    correlationId: string
 ): string {
-    const libraryState = generateLibraryState(cryptoObj, meta);
+    const libraryState = generateLibraryState(cryptoObj, correlationId, meta);
     return userState
         ? `${libraryState}${RESOURCE_DELIM}${userState}`
         : libraryState;
@@ -31,14 +33,19 @@ export function setRequestState(
 /**
  * Generates the state value used by the common library.
  * @param cryptoObj
+ * @param correlationId
  * @param meta
  */
 export function generateLibraryState(
     cryptoObj: ICrypto,
+    correlationId: string,
     meta?: Record<string, string>
 ): string {
     if (!cryptoObj) {
-        throw createClientAuthError(ClientAuthErrorCodes.noCryptoObject);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.noCryptoObject,
+            correlationId
+        );
     }
 
     // Create a state object containing a unique id and the timestamp of the request creation
@@ -59,17 +66,25 @@ export function generateLibraryState(
  * Parses the state into the RequestStateObject, which contains the LibraryState info and the state passed by the user.
  * @param base64Decode
  * @param state
+ * @param correlationId
  */
 export function parseRequestState(
     base64Decode: (input: string) => string,
-    state: string
+    state: string,
+    correlationId: string
 ): RequestStateObject {
     if (!base64Decode) {
-        throw createClientAuthError(ClientAuthErrorCodes.noCryptoObject);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.noCryptoObject,
+            correlationId
+        );
     }
 
     if (!state) {
-        throw createClientAuthError(ClientAuthErrorCodes.invalidState);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.invalidState,
+            correlationId
+        );
     }
 
     try {
@@ -89,6 +104,9 @@ export function parseRequestState(
             libraryState: libraryStateObj,
         };
     } catch (e) {
-        throw createClientAuthError(ClientAuthErrorCodes.invalidState);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.invalidState,
+            correlationId
+        );
     }
 }

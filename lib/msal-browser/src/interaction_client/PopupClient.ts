@@ -434,7 +434,7 @@ export class PopupClient extends StandardInteractionClient {
             popupParams.popup?.close();
 
             if (e instanceof AuthError) {
-                (e as AuthError).setCorrelationId(this.correlationId);
+                (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             throw e;
@@ -759,7 +759,8 @@ export class PopupClient extends StandardInteractionClient {
                         };
                         const absoluteUrl = UrlString.getAbsoluteUrl(
                             mainWindowRedirectUri,
-                            BrowserUtils.getCurrentUri()
+                            BrowserUtils.getCurrentUri(),
+                            this.correlationId
                         );
                         await this.navigationClient.navigateInternal(
                             absoluteUrl,
@@ -779,7 +780,8 @@ export class PopupClient extends StandardInteractionClient {
                 validRequest.state || "",
                 {
                     interactionType: InteractionType.Popup,
-                }
+                },
+                validRequest.correlationId
             );
 
             // Create logout string and navigate user window to logout.
@@ -818,7 +820,8 @@ export class PopupClient extends StandardInteractionClient {
                 };
                 const absoluteUrl = UrlString.getAbsoluteUrl(
                     mainWindowRedirectUri,
-                    BrowserUtils.getCurrentUri()
+                    BrowserUtils.getCurrentUri(),
+                    this.correlationId
                 );
 
                 this.logger.verbose(
@@ -844,7 +847,7 @@ export class PopupClient extends StandardInteractionClient {
             popupParams.popup?.close();
 
             if (e instanceof AuthError) {
-                (e as AuthError).setCorrelationId(this.correlationId);
+                (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             this.eventHandler.emitEvent(
@@ -886,7 +889,8 @@ export class PopupClient extends StandardInteractionClient {
             // Throw error if request URL is empty.
             this.logger.error("Navigate url is empty", this.correlationId);
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.emptyNavigateUri
+                BrowserAuthErrorCodes.emptyNavigateUri,
+                this.correlationId
             );
         }
     }
@@ -927,7 +931,8 @@ export class PopupClient extends StandardInteractionClient {
             // Popup will be null if popups are blocked
             if (!popupWindow) {
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.emptyWindowError
+                    BrowserAuthErrorCodes.emptyWindowError,
+                    this.correlationId
                 );
             }
             try {
@@ -958,7 +963,8 @@ export class PopupClient extends StandardInteractionClient {
                 this.correlationId
             );
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.popupWindowError
+                BrowserAuthErrorCodes.popupWindowError,
+                this.correlationId
             );
         }
     }

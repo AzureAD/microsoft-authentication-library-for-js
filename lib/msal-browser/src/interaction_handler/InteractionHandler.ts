@@ -64,7 +64,8 @@ export class InteractionHandler {
         try {
             authCodeResponse = AuthorizeProtocol.getAuthorizationCodePayload(
                 response,
-                request.state
+                request.state,
+                request.correlationId
             );
         } catch (e) {
             if (
@@ -73,7 +74,8 @@ export class InteractionHandler {
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.userCancelled
+                    BrowserAuthErrorCodes.userCancelled,
+                    request.correlationId
                 );
             } else {
                 throw e;

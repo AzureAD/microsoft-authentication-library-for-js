@@ -23,7 +23,8 @@ export type BrowserStateObject = {
  */
 export function extractBrowserRequestState(
     browserCrypto: ICrypto,
-    state: string
+    state: string,
+    correlationId: string
 ): BrowserStateObject | null {
     if (!state) {
         return null;
@@ -31,9 +32,16 @@ export function extractBrowserRequestState(
 
     try {
         const requestStateObj: RequestStateObject =
-            ProtocolUtils.parseRequestState(browserCrypto.base64Decode, state);
+            ProtocolUtils.parseRequestState(
+                browserCrypto.base64Decode,
+                state,
+                correlationId
+            );
         return requestStateObj.libraryState.meta as BrowserStateObject;
     } catch (e) {
-        throw createClientAuthError(ClientAuthErrorCodes.invalidState);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.invalidState,
+            correlationId
+        );
     }
 }
