@@ -785,6 +785,7 @@ export const TEST_AUTHENTICATION_HEADERS = {
     invalidAuthenticationInfo: `PoP test_challenge="test_challenge"`,
     wwwAuthenticate: `PoP nonce="eyJhbGciOiJIUzI1NiIsImtpZCI6IktJRCIsInR5cCI6IkpXVCJ9.eyJ0cyI6IjE2MjU2NzI1MjkifQ.rA5ho63Lbdwo8eqZ_gUtQxY3HaseL0InIVwdgf7L_fc", error="nonce_malformed"`,
     invalidWwwAuthenticate: `PoP test_challenge="test_challenge`,
+    dpopNonce: "testDPoPNonce1234567890",
 };
 
 export const TEST_CRYPTO_ALGORITHMS = {

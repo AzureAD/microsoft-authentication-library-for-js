@@ -29,3 +29,5 @@ export const invalidRequestMethodForEAR = "invalid_request_method_for_EAR";
 export const invalidPlatformBrokerConfiguration =
     "invalid_platform_broker_configuration";
 export const issuerValidationFailed = "issuer_validation_failed";
+export const dpopMissingResourceContext = "dpop_missing_resource_context";
+export const dpopNonceRetryFailed = "dpop_nonce_retry_failed";

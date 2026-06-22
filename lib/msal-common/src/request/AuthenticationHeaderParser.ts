@@ -73,6 +73,19 @@ export class AuthenticationHeaderParser {
     }
 
     /**
+     * This method returns the standalone DPoP-Nonce header value when present.
+     * Unlike getShrNonce(), this method does not parse WWW-Authenticate or Authentication-Info challenge parameters.
+     * @returns The DPoP nonce string, or null if the header is absent.
+     */
+    getDPoPNonce(): string | null {
+        const dpopNonce = this.headers[HeaderNames.DPopNonce];
+        if (dpopNonce) {
+            return dpopNonce;
+        }
+        return null;
+    }
+
+    /**
      * Parses an HTTP header's challenge set into a key/value map.
      * @param header
      * @returns

@@ -73,4 +73,8 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
      * Indicates whether this authorization request is being initiated by a platform authentication broker instead of a standard web flow.
      */
     platformBroker?: boolean;
+    /**
+     * The JWK Thumbprint of the DPoP key to be bound to the authorization code. Used in DPoP flows.
+     */
+    dpopJkt?: string;
 };

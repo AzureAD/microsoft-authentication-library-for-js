@@ -45,4 +45,8 @@ export type AuthenticationResult = {
     code?: string;
     fromPlatformBroker?: boolean;
     resource?: string;
+    /**
+     * DPoP proof JWT string. Present only when the token was acquired using DPoP (Demonstrating Proof of Possession).
+     */
+    dpopProof?: string;
 };

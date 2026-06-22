@@ -78,4 +78,61 @@ describe("AuthenticationHeaderParser unit tests", () => {
             );
         });
     });
+
+    describe("getDPoPNonce", () => {
+        beforeEach(() => {
+            headers = {};
+        });
+
+        it("should return the DPoP-Nonce header value when present", () => {
+            headers[HeaderNames.DPopNonce] =
+                TEST_AUTHENTICATION_HEADERS.dpopNonce;
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                headers
+            );
+            expect(authenticationHeaderParser.getDPoPNonce()).toStrictEqual(
+                TEST_AUTHENTICATION_HEADERS.dpopNonce
+            );
+        });
+
+        it("should return null when DPoP-Nonce header is absent", () => {
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                {}
+            );
+            expect(authenticationHeaderParser.getDPoPNonce()).toBeNull();
+        });
+
+        it("should return null when only SHR headers are present (Authentication-Info)", () => {
+            headers[HeaderNames.AuthenticationInfo] =
+                TEST_AUTHENTICATION_HEADERS.authenticationInfo;
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                headers
+            );
+            expect(authenticationHeaderParser.getDPoPNonce()).toBeNull();
+        });
+
+        it("should return null when only SHR headers are present (WWW-Authenticate)", () => {
+            headers[HeaderNames.WWWAuthenticate] =
+                TEST_AUTHENTICATION_HEADERS.wwwAuthenticate;
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                headers
+            );
+            expect(authenticationHeaderParser.getDPoPNonce()).toBeNull();
+        });
+
+        it("should return DPoP nonce even when SHR headers are also present", () => {
+            headers[HeaderNames.DPopNonce] =
+                TEST_AUTHENTICATION_HEADERS.dpopNonce;
+            headers[HeaderNames.WWWAuthenticate] =
+                TEST_AUTHENTICATION_HEADERS.wwwAuthenticate;
+            headers[HeaderNames.AuthenticationInfo] =
+                TEST_AUTHENTICATION_HEADERS.authenticationInfo;
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                headers
+            );
+            expect(authenticationHeaderParser.getDPoPNonce()).toStrictEqual(
+                TEST_AUTHENTICATION_HEADERS.dpopNonce
+            );
+        });
+    });
 });

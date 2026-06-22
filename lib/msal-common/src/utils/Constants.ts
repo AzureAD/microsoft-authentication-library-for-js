@@ -94,6 +94,7 @@ export const HeaderNames = {
     AuthenticationInfo: "Authentication-Info",
     X_MS_REQUEST_ID: "x-ms-request-id",
     X_MS_HTTP_VERSION: "x-ms-httpver",
+    DPopNonce: "DPoP-Nonce",
 } as const;
 export type HeaderNames = (typeof HeaderNames)[keyof typeof HeaderNames];
 
@@ -263,9 +264,25 @@ export const AuthenticationScheme = {
     BEARER: "Bearer",
     POP: "pop",
     SSH: "ssh-cert",
+    DPOP: "dpop",
 } as const;
 export type AuthenticationScheme =
     (typeof AuthenticationScheme)[keyof typeof AuthenticationScheme];
+
+/**
+ * DPoP token type string used in token_type response field
+ */
+export const DPOP_TOKEN_TYPE = "DPoP";
+
+/**
+ * DPoP nonce cache version key
+ */
+export const DPOP_NONCE_CACHE_VERSION = "1.0";
+
+/**
+ * DPoP nonce cache key prefix
+ */
+export const DPOP_NONCE_CACHE_KEY = "dpop-nonce";
 
 /**
  * Constants related to throttling
