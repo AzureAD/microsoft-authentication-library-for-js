@@ -1025,7 +1025,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         const mergedClaims = RequestParameterBuilder.buildMergedClaims(
             claims,
-            configClaims && configClaims.length ? configClaims : undefined
+            configClaims?.length ? configClaims : undefined
         );
 
         const validatedRequest: PlatformAuthRequest = {
