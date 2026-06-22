@@ -275,6 +275,13 @@ export type AuthenticationScheme =
 export const DPOP_TOKEN_TYPE = "DPoP";
 
 /**
+ * Token type values returned in token responses and stored with access-token cache entries.
+ */
+export type AuthenticationSchemeTokenType =
+    | AuthenticationScheme
+    | typeof DPOP_TOKEN_TYPE;
+
+/**
  * DPoP nonce cache version key
  */
 export const DPOP_NONCE_CACHE_VERSION = "1.0";

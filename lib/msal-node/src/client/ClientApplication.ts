@@ -602,16 +602,12 @@ export abstract class ClientApplication {
         const correlationId =
             authRequest.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.verbose("initializeRequestScopes called", correlationId);
-        if (
-            authRequest.authenticationScheme ===
-            Constants.AuthenticationScheme.DPOP
-        ) {
+        if (isDpopTokenRequest(authRequest)) {
             throw createClientConfigurationError(
                 ClientConfigurationErrorCodes.dpopMissingResourceContext,
                 correlationId
             );
         }
-
         // Default authenticationScheme to Bearer, log that POP isn't supported yet
         if (
             authRequest.authenticationScheme &&
@@ -703,4 +699,12 @@ export abstract class ClientApplication {
     clearCache(): void {
         this.storage.clear();
     }
+}
+
+function isDpopTokenRequest(authRequest: Partial<BaseAuthRequest>): boolean {
+    return (
+        authRequest.authenticationScheme?.toLowerCase() ===
+            Constants.AuthenticationScheme.DPOP ||
+        !!(authRequest as Partial<CommonAuthorizationUrlRequest>).dpopJkt
+    );
 }

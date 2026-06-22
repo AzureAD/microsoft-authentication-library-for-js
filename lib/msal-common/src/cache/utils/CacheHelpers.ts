@@ -74,12 +74,12 @@ export function createAccessTokenEntity(
     base64Decode: (input: string) => string,
     correlationId: string,
     refreshOn?: number,
-    tokenType?: Constants.AuthenticationScheme,
+    tokenType?: Constants.AuthenticationSchemeTokenType,
     userAssertionHash?: string,
     keyId?: string,
     additionalCacheKeyComponents?: Record<string, string>
 ): AccessTokenEntity {
-    const accessTokenType = tokenType || Constants.AuthenticationScheme.BEARER;
+    const accessTokenType = getCanonicalAccessTokenType(tokenType);
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
         credentialType: Constants.CredentialType.ACCESS_TOKEN,
@@ -123,7 +123,7 @@ export function createAccessTokenEntity(
     ) {
         atEntity.credentialType =
             Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
-        switch (atEntity.tokenType) {
+        switch (accessTokenType) {
             case Constants.AuthenticationScheme.POP:
                 // Make sure keyId is present and add it to credential
                 const tokenClaims: TokenClaims | null = extractTokenClaims(
@@ -154,6 +154,27 @@ export function createAccessTokenEntity(
     }
 
     return atEntity;
+}
+
+function getCanonicalAccessTokenType(
+    tokenType?: Constants.AuthenticationSchemeTokenType
+): Constants.AuthenticationSchemeTokenType {
+    if (!tokenType) {
+        return Constants.AuthenticationScheme.BEARER;
+    }
+
+    switch (tokenType.toLowerCase()) {
+        case Constants.AuthenticationScheme.BEARER.toLowerCase():
+            return Constants.AuthenticationScheme.BEARER;
+        case Constants.AuthenticationScheme.POP:
+            return Constants.AuthenticationScheme.POP;
+        case Constants.AuthenticationScheme.SSH:
+            return Constants.AuthenticationScheme.SSH;
+        case Constants.AuthenticationScheme.DPOP:
+            return Constants.DPOP_TOKEN_TYPE;
+        default:
+            return tokenType;
+    }
 }
 
 /**

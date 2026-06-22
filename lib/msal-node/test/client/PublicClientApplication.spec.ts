@@ -1388,6 +1388,36 @@ describe("PublicClientApplication", () => {
         });
     });
 
+    test("getAuthCodeUrl rejects unsupported DPoP token type casing", async () => {
+        const request: AuthorizationUrlRequest & {
+            authenticationScheme: string;
+        } = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            authenticationScheme: CommonConstants.DPOP_TOKEN_TYPE,
+        };
+
+        const authApp = new PublicClientApplication(appConfig);
+        await expect(authApp.getAuthCodeUrl(request)).rejects.toMatchObject({
+            errorCode: ClientConfigurationErrorCodes.dpopMissingResourceContext,
+        });
+    });
+
+    test("getAuthCodeUrl rejects orphan dpopJkt", async () => {
+        const request: AuthorizationUrlRequest & {
+            dpopJkt: string;
+        } = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            dpopJkt: "test-dpop-jkt-thumbprint",
+        };
+
+        const authApp = new PublicClientApplication(appConfig);
+        await expect(authApp.getAuthCodeUrl(request)).rejects.toMatchObject({
+            errorCode: ClientConfigurationErrorCodes.dpopMissingResourceContext,
+        });
+    });
+
     test("acquireToken default authority", async () => {
         // No authority set in app configuration or request, should default to common authority
         const config: Configuration = {
@@ -2195,6 +2225,28 @@ describe("MCP flow tests", () => {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
                 authenticationScheme: CommonConstants.AuthenticationScheme.DPOP,
+            };
+            const authApp = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONSTANTS.CLIENT_ID,
+                    authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
+                },
+            });
+            await expect(
+                authApp.acquireTokenByRefreshToken(request)
+            ).rejects.toMatchObject({
+                errorCode:
+                    ClientConfigurationErrorCodes.dpopMissingResourceContext,
+            });
+        });
+
+        test("rejects unsupported DPoP token type casing", async () => {
+            const request: RefreshTokenRequest & {
+                authenticationScheme: string;
+            } = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+                authenticationScheme: CommonConstants.DPOP_TOKEN_TYPE,
             };
             const authApp = new PublicClientApplication({
                 auth: {

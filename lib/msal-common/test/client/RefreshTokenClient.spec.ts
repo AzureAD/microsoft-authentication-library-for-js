@@ -33,6 +33,7 @@ import { RefreshTokenClient } from "../../src/client/RefreshTokenClient.js";
 import { CommonRefreshTokenRequest } from "../../src/request/CommonRefreshTokenRequest.js";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity.js";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity.js";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import {
     AccountInfo,
@@ -533,6 +534,29 @@ describe("RefreshTokenClient unit tests", () => {
 
             await expect(
                 client.acquireToken(refreshTokenRequest, 0)
+            ).rejects.toMatchObject({
+                errorCode:
+                    ClientConfigurationErrorCodes.dpopMissingResourceContext,
+            });
+        });
+
+        it("throws missing DPoP resource context error when the token request has token_type set to DPoP", async () => {
+            const refreshTokenRequest: Omit<
+                CommonRefreshTokenRequest,
+                "authenticationScheme"
+            > & { authenticationScheme: string } = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme: Constants.DPOP_TOKEN_TYPE,
+            };
+
+            await expect(
+                client.acquireToken(
+                    refreshTokenRequest as CommonRefreshTokenRequest,
+                    0
+                )
             ).rejects.toMatchObject({
                 errorCode:
                     ClientConfigurationErrorCodes.dpopMissingResourceContext,
@@ -1596,6 +1620,53 @@ describe("RefreshTokenClient unit tests", () => {
                     ""
                 )
             );
+        });
+
+        it("Throws missing DPoP resource context error for a silent DPoP cache hit", async () => {
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            await config.storageInterface!.setAccount(
+                testAccountEntity,
+                TEST_CONFIG.CORRELATION_ID,
+                true,
+                0
+            );
+            const cachedDpopAccessToken: AccessTokenEntity = {
+                homeAccountId: testAccountEntity.homeAccountId,
+                environment: testAccountEntity.environment,
+                credentialType:
+                    Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                secret: TEST_TOKENS.ACCESS_TOKEN,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                realm: testAccountEntity.realm,
+                target: TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
+                cachedAt: TimeUtils.nowSeconds().toString(),
+                expiresOn: (TimeUtils.nowSeconds() + 3600).toString(),
+                extendedExpiresOn: (TimeUtils.nowSeconds() + 3600).toString(),
+                tokenType: Constants.DPOP_TOKEN_TYPE,
+                lastUpdatedAt: Date.now().toString(),
+            };
+            await config.storageInterface!.setAccessTokenCredential(
+                cachedDpopAccessToken,
+                TEST_CONFIG.CORRELATION_ID,
+                true
+            );
+
+            const tokenRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: AccountEntityUtils.getAccountInfo(testAccountEntity),
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+            };
+            const client = new SilentFlowClient(config, stubPerformanceClient);
+            await expect(
+                client.acquireCachedToken(tokenRequest)
+            ).rejects.toMatchObject({
+                errorCode:
+                    ClientConfigurationErrorCodes.dpopMissingResourceContext,
+            });
         });
 
         it("Throws error if cached RT is expired", async () => {

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationScheme } from "../utils/Constants.js";
+import { AuthenticationSchemeTokenType } from "../utils/Constants.js";
 
 /**
  * Deserialized response object from server authorization code request.
@@ -29,7 +29,7 @@ import { AuthenticationScheme } from "../utils/Constants.js";
 export type ServerAuthorizationTokenResponse = {
     status?: number;
     // Success
-    token_type?: AuthenticationScheme;
+    token_type?: AuthenticationSchemeTokenType;
     scope?: string;
     expires_in?: number;
     refresh_in?: number;

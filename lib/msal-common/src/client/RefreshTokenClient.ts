@@ -506,9 +506,7 @@ export class RefreshTokenClient {
                     request.correlationId
                 );
             }
-        } else if (
-            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
-        ) {
+        } else if (isDpopTokenRequest(request.authenticationScheme)) {
             throw createClientConfigurationError(
                 ClientConfigurationErrorCodes.dpopMissingResourceContext,
                 request.correlationId
@@ -575,4 +573,11 @@ export class RefreshTokenClient {
 
         return UrlUtils.mapToQueryString(parameters);
     }
+}
+
+function isDpopTokenRequest(authenticationScheme?: string): boolean {
+    return (
+        authenticationScheme?.toLowerCase() ===
+        Constants.AuthenticationScheme.DPOP
+    );
 }

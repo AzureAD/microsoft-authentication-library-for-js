@@ -17,6 +17,7 @@ export type AuthorizationUrlRequest = Partial<
         | "resourceRequestMethod"
         | "resourceRequestUri"
         | "authenticationScheme"
+        | "dpopJkt"
         | "storeInCache"
     >
 > & {

@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { CredentialType, AuthenticationScheme } from "../../utils/Constants.js";
+import {
+    CredentialType,
+    AuthenticationSchemeTokenType,
+} from "../../utils/Constants.js";
 
 /**
  * Credential Cache Type
@@ -27,8 +30,8 @@ export type CredentialEntity = {
     target?: string;
     /** Matches the SHA 256 hash of the obo_assertion for the OBO flow */
     userAssertionHash?: string;
-    /** Matches the authentication scheme for which the token was issued (i.e. Bearer or pop) */
-    tokenType?: AuthenticationScheme;
+    /** Matches the token type for which the token was issued (i.e. Bearer, pop, ssh-cert, or DPoP) */
+    tokenType?: AuthenticationSchemeTokenType;
     /** KeyId for PoP and SSH tokens stored in the kid claim */
     keyId?: string;
     /** Additional cache key components for cache isolation (e.g., { fmi_path: "..." }). Stored as raw key-value pairs; a combined hash is computed at key-generation time. */

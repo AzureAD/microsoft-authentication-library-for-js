@@ -18,6 +18,7 @@ import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js
 import { AccountFilter } from "../../src/cache/utils/CacheTypes.js";
 import {
     CacheHelpers,
+    ClientConfigurationErrorCodes,
     CommonSilentFlowRequest,
     ScopeSet,
 } from "../../src/index.js";
@@ -1917,7 +1918,7 @@ describe("CacheManager.ts test cases", () => {
                 extendedExpiresOn: "4600",
                 expiresOn: "4600",
                 tokenType:
-                    DPOP_TOKEN_TYPE.toUpperCase() as AuthenticationScheme,
+                    DPOP_TOKEN_TYPE.toUpperCase() as AccessTokenEntity["tokenType"],
                 lastUpdatedAt: Date.now().toString(),
             };
             await mockCache.cacheManager.setAccessTokenCredential(
@@ -1933,6 +1934,49 @@ describe("CacheManager.ts test cases", () => {
                     TEST_CONFIG.CORRELATION_ID
                 )
             ).toBe(true);
+        });
+
+        it("createAccessTokenEntity throws when the token response token_type is DPoP", () => {
+            expect(() =>
+                CacheHelpers.createAccessTokenEntity(
+                    "uid.utid",
+                    "login.microsoftonline.com",
+                    "access_token",
+                    CACHE_MOCKS.MOCK_CLIENT_ID,
+                    TEST_CONFIG.TENANT,
+                    TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
+                    4600,
+                    4600,
+                    mockCrypto.base64Decode,
+                    TEST_CONFIG.CORRELATION_ID,
+                    500,
+                    DPOP_TOKEN_TYPE,
+                    TEST_TOKENS.ACCESS_TOKEN
+                )
+            ).toThrow(ClientConfigurationErrorCodes.dpopMissingResourceContext);
+        });
+
+        it("createAccessTokenEntity normalizes PoP token_type casing before requiring key binding", () => {
+            const popAccessToken = CacheHelpers.createAccessTokenEntity(
+                "uid.utid",
+                "login.microsoftonline.com",
+                TEST_TOKENS.POP_TOKEN,
+                CACHE_MOCKS.MOCK_CLIENT_ID,
+                TEST_CONFIG.TENANT,
+                TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
+                4600,
+                4600,
+                mockCrypto.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                500,
+                "POP" as AccessTokenEntity["tokenType"],
+                TEST_TOKENS.ACCESS_TOKEN
+            );
+
+            expect(popAccessToken.tokenType).toBe(AuthenticationScheme.POP);
+            expect(popAccessToken.keyId).toBe(
+                "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y"
+            );
         });
 
         it("additionalCacheKeyComponents bidirectional isolation", () => {

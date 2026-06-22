@@ -1935,7 +1935,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchTokenType(
         entity: CredentialEntity,
-        tokenType: Constants.AuthenticationScheme
+        tokenType: Constants.AuthenticationSchemeTokenType
     ): boolean {
         return !!(
             entity.tokenType &&

@@ -107,7 +107,7 @@ export type AccessTokenEntity = CredentialEntity & {
     expiresOn: string;
     extendedExpiresOn?: string;
     refreshOn?: string;
-    tokenType?: AuthenticationScheme;
+    tokenType?: AuthenticationSchemeTokenType;
     resource?: string;
 };
 
@@ -412,6 +412,9 @@ const AuthenticationScheme: {
 
 // @public (undocumented)
 type AuthenticationScheme = (typeof AuthenticationScheme)[keyof typeof AuthenticationScheme];
+
+// @public
+type AuthenticationSchemeTokenType = AuthenticationScheme | typeof DPOP_TOKEN_TYPE;
 
 // @public
 export class AuthError extends Error {
@@ -1306,6 +1309,7 @@ declare namespace Constants {
         SERVER_TELEM_UNKNOWN_ERROR,
         AuthenticationScheme,
         DPOP_TOKEN_TYPE,
+        AuthenticationSchemeTokenType,
         DPOP_NONCE_CACHE_VERSION,
         DPOP_NONCE_CACHE_KEY,
         DEFAULT_THROTTLE_TIME_SECONDS,
@@ -1329,7 +1333,7 @@ declare namespace Constants {
 const CONSUMER_UTID = "9188040d-6c67-4c5b-b112-36a304b66dad";
 
 // @public
-function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, correlationId: string, refreshOn?: number, tokenType?: Constants_2.AuthenticationScheme, userAssertionHash?: string, keyId?: string, additionalCacheKeyComponents?: Record<string, string>): AccessTokenEntity;
+function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, correlationId: string, refreshOn?: number, tokenType?: Constants_2.AuthenticationSchemeTokenType, userAssertionHash?: string, keyId?: string, additionalCacheKeyComponents?: Record<string, string>): AccessTokenEntity;
 
 // @internal
 function createAccountEntity(accountDetails: {
@@ -1390,7 +1394,7 @@ export type CredentialEntity = {
     realm?: string;
     target?: string;
     userAssertionHash?: string;
-    tokenType?: AuthenticationScheme;
+    tokenType?: AuthenticationSchemeTokenType;
     keyId?: string;
     additionalCacheKeyComponents?: Record<string, string>;
     lastUpdatedAt: string;
@@ -1406,7 +1410,7 @@ export type CredentialFilter = {
     realm?: string;
     target?: ScopeSet;
     userAssertionHash?: string;
-    tokenType?: AuthenticationScheme;
+    tokenType?: AuthenticationSchemeTokenType;
     keyId?: string;
     additionalCacheKeyComponents?: Record<string, string>;
 };
@@ -2909,7 +2913,7 @@ const SERVER_TELEM_VALUE_SEPARATOR: string;
 // @public
 export type ServerAuthorizationTokenResponse = {
     status?: number;
-    token_type?: AuthenticationScheme;
+    token_type?: AuthenticationSchemeTokenType;
     scope?: string;
     expires_in?: number;
     refresh_in?: number;

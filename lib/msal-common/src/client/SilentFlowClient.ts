@@ -15,6 +15,10 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../error/ClientConfigurationError.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { CacheRecord } from "../cache/entities/CacheRecord.js";
 import { CacheOutcome } from "../utils/Constants.js";
@@ -159,6 +163,14 @@ export class SilentFlowClient {
                 ClientAuthErrorCodes.tokenRefreshRequired,
                 request.correlationId
             );
+        } else if (
+            isDpopTokenRequest(request.authenticationScheme) ||
+            isDpopTokenRequest(cachedAccessToken.tokenType)
+        ) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.dpopMissingResourceContext,
+                request.correlationId
+            );
         } else if (request.resource) {
             // cached access token must have a resource that matches the request resource for MCP scenarios
             if (cachedAccessToken.resource !== request.resource) {
@@ -266,4 +278,8 @@ export class SilentFlowClient {
             idTokenClaims
         );
     }
+}
+
+function isDpopTokenRequest(tokenType?: string): boolean {
+    return tokenType?.toLowerCase() === "dpop";
 }

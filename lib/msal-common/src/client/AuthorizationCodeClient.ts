@@ -439,9 +439,7 @@ export class AuthorizationCodeClient {
                     request.correlationId
                 );
             }
-        } else if (
-            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
-        ) {
+        } else if (isDpopTokenRequest(request.authenticationScheme)) {
             throw createClientConfigurationError(
                 ClientConfigurationErrorCodes.dpopMissingResourceContext,
                 request.correlationId
@@ -616,4 +614,11 @@ export class AuthorizationCodeClient {
         );
         this.authority = cloudInstanceAuthority;
     }
+}
+
+function isDpopTokenRequest(authenticationScheme?: string): boolean {
+    return (
+        authenticationScheme?.toLowerCase() ===
+        Constants.AuthenticationScheme.DPOP
+    );
 }

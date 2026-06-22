@@ -4,6 +4,7 @@
  */
 
 import { StaticAuthorityOptions } from "../../src/authority/AuthorityOptions.js";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity.js";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
 import { Logger } from "../../src/logger/Logger.js";
@@ -208,7 +209,7 @@ export class MockCache {
         await this.cacheManager.setAccessTokenCredential(sshAtWithAuthScheme);
 
         // DPoP token
-        const dpopAtWithAuthScheme = {
+        const dpopAtWithAuthScheme: AccessTokenEntity = {
             environment: "login.microsoftonline.com",
             credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
             secret: "a DPoP token",
@@ -219,7 +220,7 @@ export class MockCache {
             homeAccountId: "uid.utid",
             extendedExpiresOn: "4600",
             expiresOn: "4600",
-            tokenType: DPOP_TOKEN_TYPE as AuthenticationScheme,
+            tokenType: DPOP_TOKEN_TYPE,
             lastUpdatedAt: Date.now().toString(),
         };
         await this.cacheManager.setAccessTokenCredential(dpopAtWithAuthScheme);
