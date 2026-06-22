@@ -15,8 +15,12 @@ export { ClientAuthErrorCodes }; // Allow importing as "ClientAuthErrorCodes";
  * Error thrown when there is an error in the client code running on the browser.
  */
 export class ClientAuthError extends AuthError {
-    constructor(errorCode: string, additionalMessage?: string) {
-        super(errorCode, additionalMessage);
+    constructor(
+        errorCode: string,
+        correlationId: string,
+        additionalMessage?: string
+    ) {
+        super(errorCode, correlationId, additionalMessage);
         this.name = "ClientAuthError";
 
         Object.setPrototypeOf(this, ClientAuthError.prototype);
@@ -25,7 +29,8 @@ export class ClientAuthError extends AuthError {
 
 export function createClientAuthError(
     errorCode: string,
+    correlationId: string,
     additionalMessage?: string
 ): ClientAuthError {
-    return new ClientAuthError(errorCode, additionalMessage);
+    return new ClientAuthError(errorCode, correlationId, additionalMessage);
 }

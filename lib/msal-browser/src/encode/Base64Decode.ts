@@ -38,7 +38,8 @@ export function base64DecToArr(base64String: string): Uint8Array {
             break;
         default:
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.invalidBase64String
+                BrowserAuthErrorCodes.invalidBase64String,
+                ""
             );
     }
     const binString = atob(encodedString);

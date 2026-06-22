@@ -183,7 +183,8 @@ export class CryptoOps implements ICrypto {
         const keyFound = await this.cache.containsKey(kid, correlationId);
         if (keyFound) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.bindingKeyNotRemoved
+                ClientAuthErrorCodes.bindingKeyNotRemoved,
+                correlationId
             );
         }
     }
@@ -242,7 +243,8 @@ export class CryptoOps implements ICrypto {
 
         if (!cachedKeyPair) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.cryptoKeyNotFound
+                BrowserAuthErrorCodes.cryptoKeyNotFound,
+                correlationId || ""
             );
         }
 

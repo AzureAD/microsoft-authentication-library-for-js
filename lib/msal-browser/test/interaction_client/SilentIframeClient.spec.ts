@@ -238,6 +238,7 @@ describe("SilentIframeClient", () => {
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.timedOut,
+                    "",
                     "redirect_bridge_timeout"
                 )
             );
@@ -254,6 +255,7 @@ describe("SilentIframeClient", () => {
                     expect(e).toMatchObject(
                         createBrowserAuthError(
                             BrowserAuthErrorCodes.timedOut,
+                            "",
                             "redirect_bridge_timeout"
                         )
                     );
@@ -678,7 +680,8 @@ describe("SilentIframeClient", () => {
                 .catch((e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashEmptyError
+                            BrowserAuthErrorCodes.hashEmptyError,
+                            ""
                         )
                     );
                     done();
@@ -696,7 +699,8 @@ describe("SilentIframeClient", () => {
                 .catch((e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                            ""
                         )
                     );
                     done();
@@ -1355,6 +1359,7 @@ describe("SilentIframeClient", () => {
                 ).mockRejectedValue(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.timedOut,
+                        "",
                         "redirect_bridge_timeout"
                     )
                 );
@@ -1770,7 +1775,8 @@ describe("SilentIframeClient", () => {
                     })
                 ).rejects.toThrow(
                     createClientConfigurationError(
-                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
+                        ""
                     )
                 );
             });
@@ -1949,6 +1955,7 @@ describe("SilentIframeClient", () => {
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.timedOut,
+                    "",
                     "redirect_bridge_timeout"
                 )
             );
@@ -1980,7 +1987,8 @@ describe("SilentIframeClient", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentIframeClient.logout).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.silentLogoutUnsupported
+                    BrowserAuthErrorCodes.silentLogoutUnsupported,
+                    ""
                 )
             );
         });

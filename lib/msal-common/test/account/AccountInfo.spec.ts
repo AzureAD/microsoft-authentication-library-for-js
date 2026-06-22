@@ -58,6 +58,7 @@ describe("AccountInfo Unit Tests", () => {
                     TEST_ACCOUNT_INFO.homeAccountId,
                     TEST_ACCOUNT_INFO.localAccountId,
                     TEST_ACCOUNT_INFO.tenantId,
+                    undefined,
                     idTokenClaims
                 );
                 expect(tenantProfile.tenantId).toEqual(idTokenClaims.tid);
@@ -74,6 +75,7 @@ describe("AccountInfo Unit Tests", () => {
                     TEST_ACCOUNT_INFO.homeAccountId,
                     TEST_ACCOUNT_INFO.localAccountId,
                     TEST_ACCOUNT_INFO.tenantId,
+                    undefined,
                     idTokenClaims
                 );
                 expect(tenantProfile.tenantId).toEqual(idTokenClaims.tfp);
@@ -89,6 +91,7 @@ describe("AccountInfo Unit Tests", () => {
                     TEST_ACCOUNT_INFO.homeAccountId,
                     TEST_ACCOUNT_INFO.localAccountId,
                     TEST_ACCOUNT_INFO.tenantId,
+                    undefined,
                     idTokenClaims
                 );
                 expect(tenantProfile.tenantId).toEqual(idTokenClaims.acr);
@@ -101,6 +104,7 @@ describe("AccountInfo Unit Tests", () => {
                     TEST_ACCOUNT_INFO.homeAccountId,
                     TEST_ACCOUNT_INFO.localAccountId,
                     TEST_ACCOUNT_INFO.tenantId,
+                    undefined,
                     idTokenClaims
                 );
                 expect(tenantProfile.tenantId).toEqual("");
@@ -128,6 +132,7 @@ describe("AccountInfo Unit Tests", () => {
                     TEST_ACCOUNT_INFO.homeAccountId,
                     TEST_ACCOUNT_INFO.localAccountId,
                     TEST_ACCOUNT_INFO.tenantId,
+                    undefined,
                     idTokenClaims
                 );
                 expect(tenantProfile.localAccountId).toEqual(idTokenClaims.oid);
@@ -145,6 +150,7 @@ describe("AccountInfo Unit Tests", () => {
                     TEST_ACCOUNT_INFO.homeAccountId,
                     TEST_ACCOUNT_INFO.localAccountId,
                     TEST_ACCOUNT_INFO.tenantId,
+                    undefined,
                     idTokenClaims
                 );
                 expect(tenantProfile.localAccountId).toEqual(idTokenClaims.sub);
@@ -159,6 +165,7 @@ describe("AccountInfo Unit Tests", () => {
                     TEST_ACCOUNT_INFO.homeAccountId,
                     TEST_ACCOUNT_INFO.localAccountId,
                     TEST_ACCOUNT_INFO.tenantId,
+                    undefined,
                     idTokenClaims
                 );
                 expect(tenantProfile.localAccountId).toEqual("");
@@ -185,6 +192,7 @@ describe("AccountInfo Unit Tests", () => {
                     TEST_ACCOUNT_INFO.homeAccountId,
                     TEST_ACCOUNT_INFO.localAccountId,
                     TEST_ACCOUNT_INFO.tenantId,
+                    undefined,
                     idTokenClaims
                 );
                 expect(tenantProfile.name).toEqual(idTokenClaims.name);
@@ -199,6 +207,7 @@ describe("AccountInfo Unit Tests", () => {
                     TEST_ACCOUNT_INFO.homeAccountId,
                     TEST_ACCOUNT_INFO.localAccountId,
                     TEST_ACCOUNT_INFO.tenantId,
+                    undefined,
                     idTokenClaims
                 );
                 expect(tenantProfile.name).toBeUndefined();
@@ -215,6 +224,7 @@ describe("AccountInfo Unit Tests", () => {
                     HOME_ACCOUNT_ID,
                     TEST_ACCOUNT_INFO.localAccountId,
                     TEST_ACCOUNT_INFO.tenantId,
+                    undefined,
                     idTokenClaims
                 );
                 expect(tenantProfile.isHomeTenant).toBe(true);
@@ -226,6 +236,7 @@ describe("AccountInfo Unit Tests", () => {
                     HOME_ACCOUNT_ID,
                     TEST_ACCOUNT_INFO.localAccountId,
                     TEST_ACCOUNT_INFO.tenantId,
+                    undefined,
                     idTokenClaims
                 );
                 expect(tenantProfile.isHomeTenant).toBe(false);
@@ -237,6 +248,7 @@ describe("AccountInfo Unit Tests", () => {
                     HOME_ACCOUNT_ID,
                     TEST_ACCOUNT_INFO.localAccountId,
                     TEST_ACCOUNT_INFO.tenantId,
+                    undefined,
                     idTokenClaims
                 );
                 expect(tenantProfile.isHomeTenant).toBe(false);

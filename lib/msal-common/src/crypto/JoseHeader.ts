@@ -38,12 +38,18 @@ export class JoseHeader {
     static getShrHeaderString(shrHeaderOptions: JoseHeaderOptions): string {
         // KeyID is required on the SHR header
         if (!shrHeaderOptions.kid) {
-            throw createJoseHeaderError(JoseHeaderErrorCodes.missingKidError);
+            throw createJoseHeaderError(
+                JoseHeaderErrorCodes.missingKidError,
+                ""
+            );
         }
 
         // Alg is required on the SHR header
         if (!shrHeaderOptions.alg) {
-            throw createJoseHeaderError(JoseHeaderErrorCodes.missingAlgError);
+            throw createJoseHeaderError(
+                JoseHeaderErrorCodes.missingAlgError,
+                ""
+            );
         }
 
         const shrHeader = new JoseHeader({

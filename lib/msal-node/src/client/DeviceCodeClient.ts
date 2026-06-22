@@ -177,7 +177,11 @@ export class DeviceCodeClient extends BaseClient {
     private createQueryString(request: CommonDeviceCodeRequest): string {
         const parameters = new Map<string, string>();
 
-        RequestParameterBuilder.addScopes(parameters, request.scopes);
+        RequestParameterBuilder.addScopes(
+            parameters,
+            request.scopes,
+            request.correlationId
+        );
         RequestParameterBuilder.addClientId(
             parameters,
             this.config.authOptions.clientId
@@ -197,6 +201,7 @@ export class DeviceCodeClient extends BaseClient {
         ) {
             RequestParameterBuilder.addClaims(
                 parameters,
+                request.correlationId,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );
@@ -208,21 +213,24 @@ export class DeviceCodeClient extends BaseClient {
     /**
      * Breaks the polling with specific conditions
      * @param deviceCodeExpirationTime - expiration time for the device code request
+     * @param correlationId - correlation id of the request
      * @param userSpecifiedTimeout - developer provided timeout, to be compared against deviceCodeExpirationTime
      * @param userSpecifiedCancelFlag - boolean indicating the developer would like to cancel the request
      */
     private continuePolling(
         deviceCodeExpirationTime: number,
+        correlationId: string,
         userSpecifiedTimeout?: number,
         userSpecifiedCancelFlag?: boolean
     ): boolean {
         if (userSpecifiedCancelFlag) {
             this.logger.error(
                 "Token request cancelled by setting DeviceCodeRequest.cancel = true",
-                ""
+                correlationId
             );
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.deviceCodePollingCancelled
+                NodeClientAuthErrorCodes.deviceCodePollingCancelled,
+                correlationId
             );
         } else if (
             userSpecifiedTimeout &&
@@ -231,24 +239,26 @@ export class DeviceCodeClient extends BaseClient {
         ) {
             this.logger.error(
                 `User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`,
-                ""
+                correlationId
             );
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.userTimeoutReached
+                NodeClientAuthErrorCodes.userTimeoutReached,
+                correlationId
             );
         } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
             if (userSpecifiedTimeout) {
                 this.logger.verbose(
                     `User specified timeout ignored as the device code has expired before the timeout elapsed. The user specified timeout was set for ${userSpecifiedTimeout}`,
-                    ""
+                    correlationId
                 );
             }
             this.logger.error(
                 `Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`,
-                ""
+                correlationId
             );
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.deviceCodeExpired
+                NodeClientAuthErrorCodes.deviceCodeExpired,
+                correlationId
             );
         }
         return true;
@@ -289,6 +299,7 @@ export class DeviceCodeClient extends BaseClient {
         while (
             this.continuePolling(
                 deviceCodeExpirationTime,
+                request.correlationId,
                 userSpecifiedTimeout,
                 request.cancel
             )
@@ -328,6 +339,7 @@ export class DeviceCodeClient extends BaseClient {
                     );
                     throw createAuthError(
                         AuthErrorCodes.postRequestFailed,
+                        request.correlationId,
                         response.body.error
                     );
                 }
@@ -349,7 +361,8 @@ export class DeviceCodeClient extends BaseClient {
             request.correlationId
         );
         throw createClientAuthError(
-            NodeClientAuthErrorCodes.deviceCodeUnknownError
+            NodeClientAuthErrorCodes.deviceCodeUnknownError,
+            request.correlationId
         );
     }
 
@@ -364,7 +377,11 @@ export class DeviceCodeClient extends BaseClient {
     ): string {
         const parameters = new Map<string, string>();
 
-        RequestParameterBuilder.addScopes(parameters, request.scopes);
+        RequestParameterBuilder.addScopes(
+            parameters,
+            request.scopes,
+            request.correlationId
+        );
         RequestParameterBuilder.addClientId(
             parameters,
             this.config.authOptions.clientId
@@ -405,6 +422,7 @@ export class DeviceCodeClient extends BaseClient {
         ) {
             RequestParameterBuilder.addClaims(
                 parameters,
+                request.correlationId,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );
