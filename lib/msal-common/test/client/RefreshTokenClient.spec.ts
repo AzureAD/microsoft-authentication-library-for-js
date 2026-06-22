@@ -522,6 +522,23 @@ describe("RefreshTokenClient unit tests", () => {
             client.acquireToken(refreshTokenRequest, 0);
         });
 
+        it("throws missing DPoP resource context error when the token request has Authentication Scheme set to DPoP", async () => {
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+            };
+
+            await expect(
+                client.acquireToken(refreshTokenRequest, 0)
+            ).rejects.toMatchObject({
+                errorCode:
+                    ClientConfigurationErrorCodes.dpopMissingResourceContext,
+            });
+        });
+
         it("acquires a token", async () => {
             jest.spyOn(
                 TokenProtocol,

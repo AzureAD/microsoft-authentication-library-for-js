@@ -11,6 +11,7 @@ import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerfo
 import {
     AuthenticationScheme,
     CredentialType,
+    DPOP_TOKEN_TYPE,
 } from "../../src/utils/Constants.js";
 import { MockStorageClass } from "../client/ClientTestUtils.js";
 import {
@@ -205,6 +206,23 @@ export class MockCache {
             lastUpdatedAt: Date.now().toString(),
         };
         await this.cacheManager.setAccessTokenCredential(sshAtWithAuthScheme);
+
+        // DPoP token
+        const dpopAtWithAuthScheme = {
+            environment: "login.microsoftonline.com",
+            credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+            secret: "a DPoP token",
+            realm: "microsoft",
+            target: "scope1 scope2 scope3",
+            clientId: "mock_client_id",
+            cachedAt: "1000",
+            homeAccountId: "uid.utid",
+            extendedExpiresOn: "4600",
+            expiresOn: "4600",
+            tokenType: DPOP_TOKEN_TYPE as AuthenticationScheme,
+            lastUpdatedAt: Date.now().toString(),
+        };
+        await this.cacheManager.setAccessTokenCredential(dpopAtWithAuthScheme);
 
         // userAssertionHash
         const atWithUserAssertionHash = {

@@ -26,6 +26,10 @@ import {
     ClientAuthError,
     ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError.js";
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../../src/error/ClientConfigurationError.js";
 import * as RequestParameterBuilder from "../../src/request/RequestParameterBuilder.js";
 
 describe("Authorize Protocol Tests", () => {
@@ -1230,6 +1234,7 @@ describe("Authorize Protocol Tests", () => {
                 responseMode: Constants.ResponseMode.FRAGMENT,
                 prompt: Constants.PromptValue.LOGIN,
                 redirectUri: "localhost",
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
                 dpopJkt,
             };
 
@@ -1241,6 +1246,60 @@ describe("Authorize Protocol Tests", () => {
                 );
 
             expect(params.get(AADServerParamKeys.DPOP_JKT)).toBe(dpopJkt);
+        });
+
+        it("throws when dpop_jkt is provided without DPoP authentication scheme", async () => {
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                prompt: Constants.PromptValue.LOGIN,
+                redirectUri: "localhost",
+                dpopJkt: "test-dpop-jkt-thumbprint",
+            };
+
+            expect(() =>
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    request,
+                    new Logger({})
+                )
+            ).toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.dpopMissingResourceContext,
+                    RANDOM_TEST_GUID
+                )
+            );
+        });
+
+        it("throws when DPoP authentication scheme is provided without dpop_jkt", async () => {
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                prompt: Constants.PromptValue.LOGIN,
+                redirectUri: "localhost",
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+            };
+
+            expect(() =>
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    request,
+                    new Logger({})
+                )
+            ).toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.dpopMissingResourceContext,
+                    RANDOM_TEST_GUID
+                )
+            );
         });
 
         it("pick up instance_aware config param when set to true", async () => {

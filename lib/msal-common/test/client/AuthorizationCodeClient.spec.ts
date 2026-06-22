@@ -1548,6 +1548,37 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
         });
 
+        it("Throws missing DPoP resource context error when the token request has Authentication Scheme set to DPoP", async () => {
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+            };
+
+            await expect(
+                client.acquireToken(authCodeRequest, 0, {
+                    code: authCodeRequest.code,
+                    nonce: "123523",
+                    state: TEST_CONFIG.STATE,
+                })
+            ).rejects.toMatchObject({
+                errorCode:
+                    ClientConfigurationErrorCodes.dpopMissingResourceContext,
+            });
+        });
+
         it("properly handles expiration timestamps as strings", async () => {
             jest.spyOn(
                 Authority.prototype,

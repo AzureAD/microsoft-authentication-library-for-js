@@ -304,6 +304,25 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(Object.keys(requestQueryString)).toHaveLength(0);
     });
 
+    it("Adds dpop_jkt correctly for DPoP authorize requests", () => {
+        const parameters = new Map<string, string>();
+        const dpopJkt = "test-dpop-jkt-thumbprint";
+        RequestParameterBuilder.addDpopJkt(parameters, dpopJkt);
+        const requestQueryString = UrlUtils.mapToQueryString(parameters);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.DPOP_JKT}=${dpopJkt}`
+            )
+        ).toBe(true);
+    });
+
+    it("Does not add dpop_jkt for DPoP authorize requests if dpop_jkt is undefined or empty", () => {
+        const parameters = new Map<string, string>();
+        RequestParameterBuilder.addDpopJkt(parameters, "");
+        const requestQueryString = UrlUtils.mapToQueryString(parameters);
+        expect(Object.keys(requestQueryString)).toHaveLength(0);
+    });
+
     it("addScopes appends oidc scopes by default", () => {
         const parameters = new Map<string, string>();
         RequestParameterBuilder.addScopes(parameters, ["testScope"], "");

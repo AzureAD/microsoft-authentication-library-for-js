@@ -25,6 +25,7 @@ import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerfo
 import {
     AuthenticationScheme,
     CredentialType,
+    DPOP_TOKEN_TYPE,
 } from "../../src/utils/Constants.js";
 import {
     generateAccountKey,
@@ -1861,6 +1862,73 @@ describe("CacheManager.ts test cases", () => {
                     sshToken[0],
                     {
                         tokenType: AuthenticationScheme.SSH,
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+
+            const dpopToken = mockCache.cacheManager.getAccessTokensByFilter(
+                {
+                    credentialType:
+                        CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                    tokenType: AuthenticationScheme.DPOP,
+                },
+                RANDOM_TEST_GUID
+            );
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    dpopToken[0],
+                    {
+                        tokenType: AuthenticationScheme.BEARER,
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    dpopToken[0],
+                    {
+                        tokenType: AuthenticationScheme.POP,
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    dpopToken[0],
+                    {
+                        tokenType: AuthenticationScheme.DPOP,
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+        });
+
+        it("tokenType filter matches DPoP token type case-insensitively", async () => {
+            const dpopAtWithAuthScheme: AccessTokenEntity = {
+                environment: "login.microsoftonline.com",
+                credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                secret: "a DPoP token",
+                realm: "microsoft",
+                target: "scope1 scope2 scope3",
+                clientId: "mock_client_id",
+                cachedAt: "1000",
+                homeAccountId: "uid.utid",
+                extendedExpiresOn: "4600",
+                expiresOn: "4600",
+                tokenType:
+                    DPOP_TOKEN_TYPE.toUpperCase() as AuthenticationScheme,
+                lastUpdatedAt: Date.now().toString(),
+            };
+            await mockCache.cacheManager.setAccessTokenCredential(
+                dpopAtWithAuthScheme
+            );
+
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    dpopAtWithAuthScheme,
+                    {
+                        tokenType: AuthenticationScheme.DPOP,
                     },
                     TEST_CONFIG.CORRELATION_ID
                 )

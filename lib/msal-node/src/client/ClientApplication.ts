@@ -33,6 +33,8 @@ import {
     Constants,
     ClientAuthError,
     StubPerformanceClient,
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -600,6 +602,16 @@ export abstract class ClientApplication {
         const correlationId =
             authRequest.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.verbose("initializeRequestScopes called", correlationId);
+        if (
+            authRequest.authenticationScheme ===
+            Constants.AuthenticationScheme.DPOP
+        ) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.dpopMissingResourceContext,
+                correlationId
+            );
+        }
+
         // Default authenticationScheme to Bearer, log that POP isn't supported yet
         if (
             authRequest.authenticationScheme &&

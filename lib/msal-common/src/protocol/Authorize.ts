@@ -8,7 +8,7 @@ import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js"
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { AuthOptions } from "../config/ClientConfiguration.js";
-import { PromptValue } from "../utils/Constants.js";
+import { AuthenticationScheme, PromptValue } from "../utils/Constants.js";
 import { AccountInfo } from "../account/AccountInfo.js";
 import { Logger } from "../logger/Logger.js";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo.js";
@@ -21,6 +21,10 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../error/ClientConfigurationError.js";
 import {
     InteractionRequiredAuthError,
     isInteractionRequiredError,
@@ -248,7 +252,24 @@ export function getStandardAuthorizeRequestParameters(
         );
     }
 
+    if (
+        request.authenticationScheme === AuthenticationScheme.DPOP &&
+        !request.dpopJkt
+    ) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.dpopMissingResourceContext,
+            request.correlationId
+        );
+    }
+
     if (request.dpopJkt) {
+        if (request.authenticationScheme !== AuthenticationScheme.DPOP) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.dpopMissingResourceContext,
+                request.correlationId
+            );
+        }
+
         RequestParameterBuilder.addDpopJkt(parameters, request.dpopJkt);
     }
 

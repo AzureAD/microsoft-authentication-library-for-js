@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Reject unsupported DPoP requests in msal-node instead of downgrading to Bearer [#8670](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8670)",
+  "packageName": "@azure/msal-node",
+  "email": "hectormmg@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}

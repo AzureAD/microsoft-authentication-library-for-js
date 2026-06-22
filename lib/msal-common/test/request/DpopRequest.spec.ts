@@ -18,16 +18,16 @@ import { ResponseMode } from "../../src/utils/Constants";
 describe("DPoP constants and request/result shape (UT-01)", () => {
     describe("AuthenticationScheme constants", () => {
         it("should include DPOP scheme additive to existing schemes", () => {
-            expect(AuthenticationScheme.DPOP).toBe("DPoP");
+            expect(AuthenticationScheme.DPOP).toBe("dpop");
             expect(AuthenticationScheme.BEARER).toBe("Bearer");
             expect(AuthenticationScheme.POP).toBe("pop");
             expect(AuthenticationScheme.SSH).toBe("ssh-cert");
         });
 
-        it("DPOP token type should match the DPOP authentication scheme", () => {
+        it("DPOP token type should be separate from the DPOP authentication scheme", () => {
             expect(DPOP_TOKEN_TYPE).toBe("DPoP");
             expect(DPOP_TOKEN_TYPE).not.toBe(AuthenticationScheme.POP);
-            expect(DPOP_TOKEN_TYPE).toBe(AuthenticationScheme.DPOP);
+            expect(DPOP_TOKEN_TYPE).not.toBe(AuthenticationScheme.DPOP);
         });
     });
 

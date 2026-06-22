@@ -11,6 +11,10 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../../error/ClientAuthError.js";
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../../error/ClientConfigurationError.js";
 import * as Constants from "../../utils/Constants.js";
 import * as TimeUtils from "../../utils/TimeUtils.js";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity.js";
@@ -75,6 +79,7 @@ export function createAccessTokenEntity(
     keyId?: string,
     additionalCacheKeyComponents?: Record<string, string>
 ): AccessTokenEntity {
+    const accessTokenType = tokenType || Constants.AuthenticationScheme.BEARER;
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
         credentialType: Constants.CredentialType.ACCESS_TOKEN,
@@ -86,7 +91,7 @@ export function createAccessTokenEntity(
         clientId: clientId,
         realm: tenantId,
         target: scopes,
-        tokenType: tokenType || Constants.AuthenticationScheme.BEARER,
+        tokenType: accessTokenType,
         lastUpdatedAt: Date.now().toString(), // Set the last updated time to now
     };
 
@@ -96,6 +101,16 @@ export function createAccessTokenEntity(
 
     if (refreshOn) {
         atEntity.refreshOn = refreshOn.toString();
+    }
+
+    if (
+        accessTokenType.toLowerCase() ===
+        Constants.DPOP_TOKEN_TYPE.toLowerCase()
+    ) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.dpopMissingResourceContext,
+            correlationId
+        );
     }
 
     /*
@@ -126,8 +141,6 @@ export function createAccessTokenEntity(
                 break;
             case Constants.AuthenticationScheme.SSH:
                 atEntity.keyId = keyId;
-                break;
-            case Constants.AuthenticationScheme.DPOP:
                 break;
         }
     }

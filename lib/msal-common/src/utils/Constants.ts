@@ -264,7 +264,7 @@ export const AuthenticationScheme = {
     BEARER: "Bearer",
     POP: "pop",
     SSH: "ssh-cert",
-    DPOP: "DPoP",
+    DPOP: "dpop",
 } as const;
 export type AuthenticationScheme =
     (typeof AuthenticationScheme)[keyof typeof AuthenticationScheme];
@@ -272,7 +272,7 @@ export type AuthenticationScheme =
 /**
  * DPoP token type string used in token_type response field
  */
-export const DPOP_TOKEN_TYPE = AuthenticationScheme.DPOP;
+export const DPOP_TOKEN_TYPE = "DPoP";
 
 /**
  * DPoP nonce cache version key

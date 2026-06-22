@@ -28,7 +28,8 @@ export type BaseAuthRequest = {
      */
     scopes: Array<string>;
     /**
-     * The type of token retrieved. Defaults to "Bearer". Can also be type "pop" or "SSH".
+     * The type of token retrieved. Defaults to "Bearer". Can also be type "pop", "ssh-cert", or "dpop".
+     * DPoP token acquisition currently fails closed until DPoP proof and resource binding support is available.
      */
     authenticationScheme?: AuthenticationScheme;
     /**

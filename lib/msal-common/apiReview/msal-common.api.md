@@ -407,7 +407,7 @@ const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
     readonly SSH: "ssh-cert";
-    readonly DPOP: "DPoP";
+    readonly DPOP: "dpop";
 };
 
 // @public (undocumented)
@@ -1525,7 +1525,7 @@ const DPOP_NONCE_CACHE_KEY = "dpop-nonce";
 const DPOP_NONCE_CACHE_VERSION = "1.0";
 
 // @public
-const DPOP_TOKEN_TYPE: "DPoP";
+const DPOP_TOKEN_TYPE = "DPoP";
 
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";

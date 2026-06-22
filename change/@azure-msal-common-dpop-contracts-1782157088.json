@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add internal DPoP contract plumbing: AuthenticationScheme.DPOP, DPOP_TOKEN_TYPE, HeaderNames.DPopNonce, DPoP nonce cache constants, dpop error codes, dpopJkt request field, dpopProof result field, and getDPoPNonce() header parser [#8670](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8670)",
+  "comment": "Add internal DPoP contract plumbing with separate dpop request scheme and DPoP token type values [#8670](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8670)",
   "packageName": "@azure/msal-common",
   "email": "hectormmg@users.noreply.github.com",
   "dependentChangeType": "patch"

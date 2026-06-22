@@ -62,6 +62,7 @@ import { LoopbackClient } from "../../src/network/LoopbackClient.js";
 import {
     createClientAuthError,
     ClientAuthErrorCodes,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common/node";
 import {
     AUTHENTICATION_RESULT,
@@ -179,7 +180,12 @@ describe("PublicClientApplication", () => {
     });
 
     test("exports a class", () => {
-        const authApp = new PublicClientApplication(appConfig);
+        const authApp = new PublicClientApplication({
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
+            },
+        });
         expect(authApp).toBeInstanceOf(PublicClientApplication);
     });
 
@@ -1367,6 +1373,21 @@ describe("PublicClientApplication", () => {
         expect(url).toContain(encodeURIComponent(request.scopes.join(" ")));
     });
 
+    test("getAuthCodeUrl rejects unsupported DPoP authentication scheme", async () => {
+        const request: AuthorizationUrlRequest & {
+            authenticationScheme: string;
+        } = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            authenticationScheme: CommonConstants.AuthenticationScheme.DPOP,
+        };
+
+        const authApp = new PublicClientApplication(appConfig);
+        await expect(authApp.getAuthCodeUrl(request)).rejects.toMatchObject({
+            errorCode: ClientConfigurationErrorCodes.dpopMissingResourceContext,
+        });
+    });
+
     test("acquireToken default authority", async () => {
         // No authority set in app configuration or request, should default to common authority
         const config: Configuration = {
@@ -2167,6 +2188,28 @@ describe("MCP flow tests", () => {
     });
 
     describe("acquireTokenByRefreshToken", () => {
+        test("rejects unsupported DPoP authentication scheme", async () => {
+            const request: RefreshTokenRequest & {
+                authenticationScheme: string;
+            } = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+                authenticationScheme: CommonConstants.AuthenticationScheme.DPOP,
+            };
+            const authApp = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONSTANTS.CLIENT_ID,
+                    authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
+                },
+            });
+            await expect(
+                authApp.acquireTokenByRefreshToken(request)
+            ).rejects.toMatchObject({
+                errorCode:
+                    ClientConfigurationErrorCodes.dpopMissingResourceContext,
+            });
+        });
+
         test("throws resource_parameter_required when isMcp is true and no resource provided", async () => {
             const request: RefreshTokenRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,

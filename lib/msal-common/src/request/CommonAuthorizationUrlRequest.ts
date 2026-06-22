@@ -74,7 +74,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
      */
     platformBroker?: boolean;
     /**
-     * The JWK Thumbprint of the DPoP key to be bound to the authorization code. Used in DPoP flows.
+     * The JWK Thumbprint of the DPoP key to be bound to the authorization code. Must only be set when authenticationScheme is "dpop".
      */
     dpopJkt?: string;
 };
