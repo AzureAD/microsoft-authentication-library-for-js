@@ -197,6 +197,14 @@ export class ResponseHandler {
         serverRequestId?: string,
         additionalCacheKeyComponents?: Record<string, string>
     ): Promise<AuthenticationResult> {
+        if (
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP ||
+            serverTokenResponse.token_type === Constants.DPOP_TOKEN_TYPE
+        ) {
+            throw createClientAuthError(ClientAuthErrorCodes.dpopNotEnabled);
+        }
+
         // create an idToken object (not entity)
         let idTokenClaims: TokenClaims | undefined;
         if (serverTokenResponse.id_token) {
@@ -319,7 +327,8 @@ export class ResponseHandler {
             }
             const storeInCache =
                 cacheRecord.accessToken?.tokenType ===
-                Constants.AuthenticationScheme.DPOP
+                    Constants.AuthenticationScheme.DPOP ||
+                cacheRecord.accessToken?.tokenType === Constants.DPOP_TOKEN_TYPE
                     ? request.storeInCache
                         ? { ...request.storeInCache, accessToken: false }
                         : { accessToken: false }
@@ -617,14 +626,27 @@ export class ResponseHandler {
               )
             : null;
         const dpopProof =
-            cacheRecord.accessToken?.tokenType ===
-                Constants.AuthenticationScheme.DPOP &&
+            (cacheRecord.accessToken?.tokenType ===
+                Constants.AuthenticationScheme.DPOP ||
+                cacheRecord.accessToken?.tokenType ===
+                    Constants.DPOP_TOKEN_TYPE) &&
             request.authenticationScheme ===
                 Constants.AuthenticationScheme.DPOP &&
             "dpopProof" in request &&
             typeof request.dpopProof === "string"
                 ? request.dpopProof
                 : undefined;
+        if (
+            (cacheRecord.accessToken?.tokenType ===
+                Constants.AuthenticationScheme.DPOP ||
+                cacheRecord.accessToken?.tokenType ===
+                    Constants.DPOP_TOKEN_TYPE) &&
+            dpopProof === undefined
+        ) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.dpopMissingResourceContext
+            );
+        }
 
         const result: AuthenticationResult = {
             authority: authority.canonicalAuthority,

@@ -6,6 +6,7 @@ import { Authority } from "../../src/authority/Authority.js";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
+import { CacheRecord } from "../../src/cache/entities/CacheRecord.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
 import {
@@ -35,6 +36,7 @@ import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAutho
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 import {
     AuthenticationScheme,
+    CredentialType,
     DPOP_TOKEN_TYPE,
 } from "../../src/utils/Constants.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
@@ -706,12 +708,11 @@ describe("ResponseHandler.ts", () => {
             expect(result.accessToken).toBe(testResponse.access_token);
         });
 
-        it("normalizes DPoP token type, returns dpopProof, and skips access token cache persistence", async () => {
+        it("throws dpopNotEnabled for DPoP token responses", async () => {
             const testRequest: BaseAuthRequest & { dpopProof: string } = {
                 authority: testAuthority.canonicalAuthority,
                 correlationId: "CORRELATION_ID",
                 scopes: ["openid", "profile", "User.Read", "email"],
-                authenticationScheme: AuthenticationScheme.DPOP,
                 dpopProof: "test-dpop-proof",
             };
             const testResponse: ServerAuthorizationTokenResponse = {
@@ -733,22 +734,20 @@ describe("ResponseHandler.ts", () => {
                 "saveCacheRecord"
             );
             const timestamp = TimeUtils.nowSeconds();
-            const result = await responseHandler.handleServerTokenResponse(
-                testResponse,
-                testAuthority,
-                timestamp,
-                testRequest,
-                0
-            );
+            await expect(
+                responseHandler.handleServerTokenResponse(
+                    testResponse,
+                    testAuthority,
+                    timestamp,
+                    testRequest,
+                    0
+                )
+            ).rejects.toThrow(ClientAuthErrorCodes.dpopNotEnabled);
 
-            expect(result.tokenType).toBe(AuthenticationScheme.DPOP);
-            expect(result.dpopProof).toBe("test-dpop-proof");
-            expect(saveCacheRecordSpy.mock.calls[0][4]).toEqual({
-                accessToken: false,
-            });
+            expect(saveCacheRecordSpy).not.toHaveBeenCalled();
         });
 
-        it("does not return dpopProof for non-DPoP token responses", async () => {
+        it("throws dpopNotEnabled for DPoP requests", async () => {
             const testRequest: BaseAuthRequest & { dpopProof: string } = {
                 authority: testAuthority.canonicalAuthority,
                 correlationId: "CORRELATION_ID",
@@ -771,16 +770,57 @@ describe("ResponseHandler.ts", () => {
                 null
             );
             const timestamp = TimeUtils.nowSeconds();
-            const result = await responseHandler.handleServerTokenResponse(
-                testResponse,
-                testAuthority,
-                timestamp,
-                testRequest,
-                0
-            );
+            await expect(
+                responseHandler.handleServerTokenResponse(
+                    testResponse,
+                    testAuthority,
+                    timestamp,
+                    testRequest,
+                    0
+                )
+            ).rejects.toThrow(ClientAuthErrorCodes.dpopNotEnabled);
+        });
 
-            expect(result.tokenType).toBe(AuthenticationScheme.BEARER);
-            expect(result.dpopProof).toBeUndefined();
+        it("throws dpopMissingResourceContext for DPoP cache records without a proof", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                authenticationScheme: AuthenticationScheme.DPOP,
+            };
+            const cacheRecord: CacheRecord = {
+                accessToken: {
+                    homeAccountId: "uid.utid",
+                    environment: testAuthority.hostnameAndPort,
+                    credentialType: CredentialType.ACCESS_TOKEN,
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    secret: TEST_TOKENS.ACCESS_TOKEN,
+                    realm: testAuthority.tenant,
+                    target: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                    cachedAt: TimeUtils.nowSeconds().toString(),
+                    expiresOn: (
+                        TimeUtils.nowSeconds() +
+                        TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
+                    ).toString(),
+                    extendedExpiresOn: (
+                        TimeUtils.nowSeconds() +
+                        TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
+                    ).toString(),
+                    tokenType: AuthenticationScheme.DPOP,
+                    lastUpdatedAt: TimeUtils.nowSeconds().toString(),
+                },
+            };
+
+            await expect(
+                ResponseHandler.generateAuthenticationResult(
+                    cryptoInterface,
+                    testAuthority,
+                    cacheRecord,
+                    false,
+                    testRequest,
+                    stubPerformanceClient
+                )
+            ).rejects.toThrow(ClientAuthErrorCodes.dpopMissingResourceContext);
         });
 
         it("sets default value if requestId not provided", async () => {

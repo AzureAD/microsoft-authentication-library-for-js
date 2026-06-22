@@ -28,6 +28,11 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
      */
     earJwk?: string;
     /**
+     * JWK thumbprint used to bind a DPoP authorization request to a proof key.
+     * @internal
+     */
+    dpopJkt?: string;
+    /**
      * Used to secure authorization code grant via Proof of Key for Code Exchange (PKCE). For more information, see the PKCE RCF:https://tools.ietf.org/html/rfc7636
      */
     codeChallenge?: string;

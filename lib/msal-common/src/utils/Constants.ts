@@ -264,18 +264,6 @@ export const SERVER_TELEM_UNKNOWN_ERROR: string = "unknown_error";
 export const DPOP_TOKEN_TYPE = "DPoP";
 
 /**
- * Cache key for DPoP nonce entries.
- * @internal
- */
-export const DPOP_NONCE_CACHE_KEY = "dpop-nonce";
-
-/**
- * Schema version for DPoP nonce cache entries.
- * @internal
- */
-export const DPOP_NONCE_CACHE_SCHEMA_VERSION: number = 1;
-
-/**
  * Type of the authentication request
  */
 export const AuthenticationScheme = {

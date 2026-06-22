@@ -135,6 +135,18 @@ describe("AuthenticationHeaderParser unit tests", () => {
             );
         });
 
+        it("should throw an error if DPoP-Nonce header is present but blank", () => {
+            headers[HeaderNames.DPopNonce] = "   ";
+            const authenticationHeaderParser = new AuthenticationHeaderParser(
+                headers
+            );
+            expect(() => authenticationHeaderParser.getDPoPNonce()).toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidAuthenticationHeader
+                )
+            );
+        });
+
         it("should throw an error if DPoP-Nonce header is not present", () => {
             const authenticationHeaderParser = new AuthenticationHeaderParser(
                 {}

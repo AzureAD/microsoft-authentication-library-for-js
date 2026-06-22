@@ -77,15 +77,21 @@ export class AuthenticationHeaderParser {
      */
     getDPoPNonce(): string {
         // Perform a case-insensitive lookup for the DPoP-Nonce header
-        const dpopNonce = Object.keys(this.headers)
-            .filter(
-                (k) => k.toLowerCase() === HeaderNames.DPopNonce.toLowerCase()
-            )
+        const dpopNonceHeaders = Object.keys(this.headers).filter(
+            (k) => k.toLowerCase() === HeaderNames.DPopNonce.toLowerCase()
+        );
+        const dpopNonce = dpopNonceHeaders
             .map((k) => this.headers[k].trim())
             .find((value) => value);
 
         if (dpopNonce) {
             return dpopNonce;
+        }
+
+        if (dpopNonceHeaders.length > 0) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidAuthenticationHeader
+            );
         }
 
         throw createClientConfigurationError(

@@ -1050,7 +1050,6 @@ declare namespace ClientAuthErrorCodes {
         tokenClaimsCnfRequiredForSignedJwt,
         dpopNotEnabled,
         dpopMissingResourceContext,
-        dpopNonceRetryFailed,
         authorizationCodeMissingFromServerResponse,
         bindingKeyNotRemoved,
         endSessionEndpointNotSupported,
@@ -1167,6 +1166,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     responseMode: ResponseMode;
     account?: AccountInfo;
     earJwk?: string;
+    dpopJkt?: string;
     codeChallenge?: string;
     codeChallengeMethod?: string;
     domainHint?: string;
@@ -1313,8 +1313,6 @@ declare namespace Constants {
         SERVER_TELEM_OVERFLOW_FALSE,
         SERVER_TELEM_UNKNOWN_ERROR,
         DPOP_TOKEN_TYPE,
-        DPOP_NONCE_CACHE_KEY,
-        DPOP_NONCE_CACHE_SCHEMA_VERSION,
         AuthenticationScheme,
         DEFAULT_THROTTLE_TIME_SECONDS,
         DEFAULT_MAX_THROTTLE_TIME_SECONDS,
@@ -1524,19 +1522,10 @@ export type DeviceCodeResponse = {
 const DOMAIN_HINT = "domain_hint";
 
 // @internal
-const DPOP_NONCE_CACHE_KEY = "dpop-nonce";
-
-// @internal
-const DPOP_NONCE_CACHE_SCHEMA_VERSION: number;
-
-// @internal
 const DPOP_TOKEN_TYPE = "DPoP";
 
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";
-
-// @public (undocumented)
-const dpopNonceRetryFailed = "dpop_nonce_retry_failed";
 
 // @public (undocumented)
 const dpopNotEnabled = "dpop_not_enabled";

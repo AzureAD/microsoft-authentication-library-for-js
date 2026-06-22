@@ -5,8 +5,6 @@
 
 import {
     AuthenticationScheme,
-    DPOP_NONCE_CACHE_KEY,
-    DPOP_NONCE_CACHE_SCHEMA_VERSION,
     DPOP_TOKEN_TYPE,
     HeaderNames,
 } from "../../src/utils/Constants";
@@ -31,13 +29,6 @@ describe("DPoP constants and type shapes", () => {
         });
     });
 
-    describe("DPoP nonce cache constants", () => {
-        it("should expose versioned cache constants", () => {
-            expect(DPOP_NONCE_CACHE_KEY).toBe("dpop-nonce");
-            expect(DPOP_NONCE_CACHE_SCHEMA_VERSION).toBe(1);
-        });
-    });
-
     describe("ClientAuthErrorCodes DPoP entries", () => {
         it("should expose DPoP error codes", () => {
             expect(ClientAuthErrorCodes.dpopNotEnabled).toBe(
@@ -45,9 +36,6 @@ describe("DPoP constants and type shapes", () => {
             );
             expect(ClientAuthErrorCodes.dpopMissingResourceContext).toBe(
                 "dpop_missing_resource_context"
-            );
-            expect(ClientAuthErrorCodes.dpopNonceRetryFailed).toBe(
-                "dpop_nonce_retry_failed"
             );
         });
     });
