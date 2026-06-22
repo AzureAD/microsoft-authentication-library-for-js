@@ -9,6 +9,7 @@ describe("ServerError.ts Class Unit Tests", () => {
         const TEST_ERROR_STATUS: number = HTTP_BAD_REQUEST;
         const err: ServerError = new ServerError(
             TEST_ERROR_CODE,
+            "",
             TEST_ERROR_MSG,
             undefined,
             undefined,
@@ -27,7 +28,7 @@ describe("ServerError.ts Class Unit Tests", () => {
     });
 
     it("Values are set as expected when no info was provided to ServerError", () => {
-        const err: ServerError = new ServerError();
+        const err: ServerError = new ServerError("", "");
 
         expect(err instanceof ServerError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
@@ -39,5 +40,11 @@ describe("ServerError.ts Class Unit Tests", () => {
         expect(err.name).toBe("ServerError");
         expect(err.stack?.includes("ServerError.spec.ts")).toBe(true);
         expect(err.status).toBeUndefined();
+    });
+
+    it("ServerError constructor sets correlationId when provided", () => {
+        const correlationId = "server-error-corr-id";
+        const err = new ServerError("code", correlationId, "msg");
+        expect(err.correlationId).toBe(correlationId);
     });
 });

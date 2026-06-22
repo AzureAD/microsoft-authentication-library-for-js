@@ -135,7 +135,8 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
         if (postLogoutRedirectUri) {
             const absoluteRedirectUri = UrlString.getAbsoluteUrl(
                 postLogoutRedirectUri,
-                getCurrentUri()
+                getCurrentUri(),
+                correlationId
             );
 
             this.logger.verbose(

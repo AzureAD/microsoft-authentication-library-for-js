@@ -76,7 +76,10 @@ function generateCodeVerifier(
         const pkceCodeVerifierB64: string = urlEncodeArr(buffer);
         return pkceCodeVerifierB64;
     } catch (e) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.pkceNotCreated);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.pkceNotCreated,
+            correlationId
+        );
     }
 }
 
@@ -102,6 +105,9 @@ async function generateCodeChallengeFromVerifier(
         // encode hash as base64
         return urlEncodeArr(new Uint8Array(pkceHashedCodeVerifier));
     } catch (e) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.pkceNotCreated);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.pkceNotCreated,
+            correlationId
+        );
     }
 }

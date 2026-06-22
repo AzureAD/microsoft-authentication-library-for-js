@@ -42,6 +42,10 @@ export type AccountEntity = {
     lastModificationApp?: string;
     cloudGraphHostName?: string;
     msGraphHost?: string;
+    /**
+     * @deprecated Use tenantProfiles[].nativeAccountId instead. Kept for cache downgrade compatibility.
+     * Will be removed at the next ACCOUNT_SCHEMA_VERSION bump.
+     */
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
     /** Timestamp when the entry was last updated */

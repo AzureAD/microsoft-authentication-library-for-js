@@ -26,13 +26,19 @@ describe("ClientInfo.ts Class Unit Tests", () => {
         it("Throws error if clientInfo is null or empty", () => {
             // @ts-ignore
             expect(() => buildClientInfo(null, cryptoInterface)).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.clientInfoEmptyError)
+                new ClientAuthError(
+                    ClientAuthErrorCodes.clientInfoEmptyError,
+                    ""
+                )
             );
 
             expect(() =>
                 buildClientInfo("", cryptoInterface.base64Decode)
             ).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.clientInfoEmptyError)
+                new ClientAuthError(
+                    ClientAuthErrorCodes.clientInfoEmptyError,
+                    ""
+                )
             );
         });
 
@@ -44,7 +50,8 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                 )
             ).toThrow(
                 new ClientAuthError(
-                    ClientAuthErrorCodes.clientInfoDecodingError
+                    ClientAuthErrorCodes.clientInfoDecodingError,
+                    ""
                 )
             );
         });
@@ -142,7 +149,8 @@ describe("ClientInfo.ts Class Unit Tests", () => {
             );
             expect(() => buildClientInfoFromHomeAccountId("")).toThrowError(
                 createClientAuthError(
-                    ClientAuthErrorCodes.clientInfoDecodingError
+                    ClientAuthErrorCodes.clientInfoDecodingError,
+                    ""
                 )
             );
         });

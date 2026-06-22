@@ -176,7 +176,7 @@ export class RedirectClient extends StandardInteractionClient {
             }
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
+                e.correlationId = this.correlationId;
             }
             window.removeEventListener("pageshow", handleBackButton);
             throw e;
@@ -260,7 +260,7 @@ export class RedirectClient extends StandardInteractionClient {
             }
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
+                e.correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             throw e;
@@ -341,6 +341,7 @@ export class RedirectClient extends StandardInteractionClient {
                 reject(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.timedOut,
+                        "",
                         "failed_to_redirect"
                     )
                 );
@@ -388,6 +389,7 @@ export class RedirectClient extends StandardInteractionClient {
                 reject(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.timedOut,
+                        "",
                         "failed_to_redirect"
                     )
                 );
@@ -530,7 +532,9 @@ export class RedirectClient extends StandardInteractionClient {
                 let processHashOnRedirect: boolean = true;
                 if (!loginRequestUrl) {
                     // Redirect to home page if login request url is empty
-                    const homepage = BrowserUtils.getHomepage();
+                    const homepage = BrowserUtils.getHomepage(
+                        this.correlationId
+                    );
                     // Cache the homepage under ORIGIN_URI to ensure cached hash is processed on homepage
                     this.browserStorage.setTemporaryCache(
                         TemporaryCacheKeys.ORIGIN_URI,
@@ -573,7 +577,7 @@ export class RedirectClient extends StandardInteractionClient {
             return null;
         } catch (e) {
             if (e instanceof AuthError) {
-                (e as AuthError).setCorrelationId(this.correlationId);
+                (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             throw e;
@@ -613,7 +617,8 @@ export class RedirectClient extends StandardInteractionClient {
                 ResponseHandler.validateInteractionType(
                     response,
                     this.browserCrypto,
-                    InteractionType.Redirect
+                    InteractionType.Redirect,
+                    this.correlationId
                 );
             } catch (e) {
                 if (e instanceof AuthError) {
@@ -669,7 +674,10 @@ export class RedirectClient extends StandardInteractionClient {
     ): Promise<AuthenticationResult> {
         const state = serverParams.state;
         if (!state) {
-            throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.noStateInHash,
+                request.correlationId
+            );
         }
 
         const { authority, azureCloudOptions, extraQueryParameters, account } =
@@ -812,7 +820,8 @@ export class RedirectClient extends StandardInteractionClient {
                 this.correlationId
             );
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.emptyNavigateUri
+                BrowserAuthErrorCodes.emptyNavigateUri,
+                this.correlationId
             );
         }
     }
@@ -894,7 +903,8 @@ export class RedirectClient extends StandardInteractionClient {
                 validLogoutRequest.state || "",
                 {
                     interactionType: InteractionType.Redirect,
-                }
+                },
+                validLogoutRequest.correlationId
             );
 
             // Create logout string and navigate user window to logout.
@@ -955,7 +965,7 @@ export class RedirectClient extends StandardInteractionClient {
             }
         } catch (e) {
             if (e instanceof AuthError) {
-                (e as AuthError).setCorrelationId(this.correlationId);
+                (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             this.eventHandler.emitEvent(
@@ -988,7 +998,8 @@ export class RedirectClient extends StandardInteractionClient {
         const redirectStartPage = requestStartPage || window.location.href;
         const absoluteRedirectStartPage = UrlString.getAbsoluteUrl(
             redirectStartPage,
-            BrowserUtils.getCurrentUri()
+            BrowserUtils.getCurrentUri(),
+            this.correlationId
         );
         // Sanity check the URL before it is cached so we never persist a malformed value (e.g. the literal string "null")
         UrlUtils.validateUrl(

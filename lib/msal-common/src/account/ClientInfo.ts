@@ -31,7 +31,10 @@ export function buildClientInfo(
     base64Decode: (input: string) => string
 ): ClientInfo {
     if (!rawClientInfo) {
-        throw createClientAuthError(ClientAuthErrorCodes.clientInfoEmptyError);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.clientInfoEmptyError,
+            ""
+        );
     }
 
     try {
@@ -39,7 +42,8 @@ export function buildClientInfo(
         return JSON.parse(decodedClientInfo) as ClientInfo;
     } catch (e) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.clientInfoDecodingError
+            ClientAuthErrorCodes.clientInfoDecodingError,
+            ""
         );
     }
 }
@@ -53,7 +57,8 @@ export function buildClientInfoFromHomeAccountId(
 ): ClientInfo {
     if (!homeAccountId) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.clientInfoDecodingError
+            ClientAuthErrorCodes.clientInfoDecodingError,
+            ""
         );
     }
     const clientInfoParts: string[] = homeAccountId.split(

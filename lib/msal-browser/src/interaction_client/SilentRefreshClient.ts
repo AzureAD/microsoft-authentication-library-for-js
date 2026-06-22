@@ -90,7 +90,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
             request.correlationId
         )(silentRequest, ApiId.acquireTokenSilent_silentFlow).catch(
             (e: AuthError) => {
-                (e as AuthError).setCorrelationId(this.correlationId);
+                (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
                 throw e;
             }
@@ -104,7 +104,8 @@ export class SilentRefreshClient extends StandardInteractionClient {
         // Synchronous so we must reject
         return Promise.reject(
             createBrowserAuthError(
-                BrowserAuthErrorCodes.silentLogoutUnsupported
+                BrowserAuthErrorCodes.silentLogoutUnsupported,
+                ""
             )
         );
     }

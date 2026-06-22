@@ -1236,6 +1236,7 @@ describe("ResponseHandler.ts", () => {
                     environment,
                 },
                 testAuthority,
+                "",
                 mockCrypto.base64Decode
             );
             existingAccount.tenantProfiles = [
@@ -1333,6 +1334,7 @@ describe("ResponseHandler.ts", () => {
                     environment,
                 },
                 testAuthority,
+                "",
                 mockCrypto.base64Decode
             );
             existingAccount.tenantProfiles = [
@@ -1377,6 +1379,7 @@ describe("ResponseHandler.ts", () => {
                     environment,
                 },
                 testAuthority,
+                "",
                 mockCrypto.base64Decode
             );
             const account2 = AccountEntityUtils.createAccountEntity(
@@ -1386,6 +1389,7 @@ describe("ResponseHandler.ts", () => {
                     environment,
                 },
                 testAuthority,
+                "",
                 mockCrypto.base64Decode
             );
 
@@ -1430,6 +1434,7 @@ describe("ResponseHandler.ts", () => {
                     environment: "login.windows.net",
                 },
                 testAuthority,
+                "",
                 mockCrypto.base64Decode
             );
             accountWindows.tenantProfiles = [
@@ -1448,6 +1453,7 @@ describe("ResponseHandler.ts", () => {
                     environment: "login.other-cloud.example",
                 },
                 testAuthority,
+                "",
                 mockCrypto.base64Decode
             );
 

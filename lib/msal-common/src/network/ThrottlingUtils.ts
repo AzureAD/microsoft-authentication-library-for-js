@@ -45,6 +45,7 @@ export class ThrottlingUtils {
             }
             throw new ServerError(
                 value.errorCodes?.join(" ") || "",
+                correlationId,
                 value.errorMessage,
                 value.subError
             );

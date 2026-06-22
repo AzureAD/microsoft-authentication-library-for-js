@@ -298,7 +298,8 @@ describe("CustomAuthSilentCacheClient", () => {
             );
 
             const mockNoTokensFoundError = createInteractionRequiredAuthError(
-                InteractionRequiredAuthErrorCodes.noTokensFound
+                InteractionRequiredAuthErrorCodes.noTokensFound,
+                ""
             );
 
             commonSilentFlowRequest.forceRefresh = true;
@@ -321,7 +322,8 @@ describe("CustomAuthSilentCacheClient", () => {
 
             const mockRefreshTokenExpiredError =
                 createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+                    ""
                 );
 
             commonSilentFlowRequest.forceRefresh = true;
@@ -443,6 +445,7 @@ function createAccessTokenEntity(browserCrypto: ICrypto): AccessTokenEntity {
         expiresOn,
         expiresOn + 0,
         browserCrypto.base64Decode,
+        "",
         undefined,
         TestServerTokenResponse.token_type as Constants.AuthenticationScheme
     );

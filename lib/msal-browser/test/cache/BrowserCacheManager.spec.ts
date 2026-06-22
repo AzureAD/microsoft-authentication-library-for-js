@@ -2193,6 +2193,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2206,6 +2207,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2292,6 +2294,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2305,6 +2308,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2318,6 +2322,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2412,6 +2417,7 @@ describe("BrowserCacheManager tests", () => {
                     1000,
                     1000,
                     browserCrypto.base64Decode,
+                    "",
                     500,
                     Constants.AuthenticationScheme.BEARER
                 );
@@ -2488,6 +2494,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2501,6 +2508,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2590,6 +2598,7 @@ describe("BrowserCacheManager tests", () => {
                     1000,
                     1000,
                     browserCrypto.base64Decode,
+                    "",
                     500,
                     Constants.AuthenticationScheme.BEARER
                 );
@@ -2667,6 +2676,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2680,6 +2690,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2693,6 +2704,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -3355,14 +3367,16 @@ describe("BrowserCacheManager tests", () => {
                             homeAccountId: "homeAccountId",
                             idTokenClaims: AuthToken.extractTokenClaims(
                                 TEST_TOKENS.IDTOKEN_V2,
-                                base64Decode
+                                base64Decode,
+                                ""
                             ),
                             clientInfo:
                                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                             cloudGraphHostName: "cloudGraphHost",
                             msGraphHost: "msGraphHost",
                         },
-                        authority
+                        authority,
+                        ""
                     );
 
                     await browserLocalStorage.setAccount(
@@ -3596,6 +3610,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3643,6 +3658,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3658,6 +3674,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.POP,
                             "oboAssertion"
@@ -3703,6 +3720,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3718,6 +3736,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.POP,
                             "oboAssertion"
@@ -3791,6 +3810,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3806,6 +3826,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.POP,
                             "oboAssertion"
@@ -3882,6 +3903,7 @@ describe("BrowserCacheManager tests", () => {
                         1000,
                         1000,
                         browserCrypto.base64Decode,
+                        "",
                         500,
                         Constants.AuthenticationScheme.BEARER,
                         "oboAssertion"
@@ -3900,6 +3922,7 @@ describe("BrowserCacheManager tests", () => {
                         1000,
                         1000,
                         browserCrypto.base64Decode,
+                        "",
                         500,
                         Constants.AuthenticationScheme.BEARER
                     );
@@ -4533,6 +4556,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -4917,7 +4941,8 @@ describe("BrowserCacheManager tests", () => {
                 browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID)
             ).toThrow(
                 new BrowserAuthError(
-                    BrowserAuthErrorCodes.noTokenRequestCacheError
+                    BrowserAuthErrorCodes.noTokenRequestCacheError,
+                    ""
                 )
             );
         });
@@ -4956,7 +4981,8 @@ describe("BrowserCacheManager tests", () => {
                 browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID)
             ).toThrow(
                 new BrowserAuthError(
-                    BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
+                    BrowserAuthErrorCodes.unableToParseTokenRequestCacheError,
+                    ""
                 )
             );
         });

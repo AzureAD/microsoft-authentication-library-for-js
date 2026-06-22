@@ -239,7 +239,8 @@ export async function getAuthCodeRequestUrl(
 ): Promise<string> {
     if (!request.codeChallenge) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.pkceParamsMissing
+            ClientConfigurationErrorCodes.pkceParamsMissing,
+            request.correlationId
         );
     }
 
@@ -282,7 +283,10 @@ export async function getEARForm(
     performanceClient: IPerformanceClient
 ): Promise<HTMLFormElement> {
     if (!request.earJwk) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.earJwkEmpty);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.earJwkEmpty,
+            request.correlationId
+        );
     }
 
     const parameters = await getStandardParameters(
@@ -442,7 +446,8 @@ export async function handleResponsePlatformBroker(
 
     if (!platformAuthProvider) {
         throw createBrowserAuthError(
-            BrowserAuthErrorCodes.nativeConnectionNotEstablished
+            BrowserAuthErrorCodes.nativeConnectionNotEstablished,
+            request.correlationId
         );
     }
     const browserCrypto = new CryptoOps(logger, performanceClient);
@@ -462,7 +467,8 @@ export async function handleResponsePlatformBroker(
     );
     const { userRequestState } = ProtocolUtils.parseRequestState(
         browserCrypto.base64Decode,
-        request.state
+        request.state,
+        request.correlationId
     );
     return invokeAsync(
         nativeInteractionClient.acquireToken.bind(nativeInteractionClient),
@@ -596,14 +602,24 @@ export async function handleResponseEAR(
     instrumentClientData(response, request.correlationId, performanceClient);
 
     // Validate state & check response for errors
-    AuthorizeProtocol.validateAuthorizationResponse(response, request.state);
+    AuthorizeProtocol.validateAuthorizationResponse(
+        response,
+        request.state,
+        request.correlationId
+    );
 
     if (!response.ear_jwe) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.earJweEmpty);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.earJweEmpty,
+            request.correlationId
+        );
     }
 
     if (!request.earJwk) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.earJwkEmpty);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.earJwkEmpty,
+            request.correlationId
+        );
     }
 
     const decryptedData = JSON.parse(

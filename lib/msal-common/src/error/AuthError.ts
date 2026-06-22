@@ -40,7 +40,12 @@ export class AuthError extends Error {
      */
     platformBrokerError?: PlatformBrokerError;
 
-    constructor(errorCode?: string, errorMessage?: string, suberror?: string) {
+    constructor(
+        errorCode: string,
+        correlationId: string,
+        errorMessage?: string,
+        suberror?: string
+    ) {
         const message =
             errorMessage ||
             (errorCode ? getDefaultErrorMessage(errorCode) : "");
@@ -51,20 +56,19 @@ export class AuthError extends Error {
         this.errorCode = errorCode || "";
         this.errorMessage = message || "";
         this.subError = suberror || "";
-        this.name = "AuthError";
-    }
-
-    setCorrelationId(correlationId: string): void {
         this.correlationId = correlationId;
+        this.name = "AuthError";
     }
 }
 
 export function createAuthError(
     code: string,
+    correlationId: string,
     additionalMessage?: string
 ): AuthError {
     return new AuthError(
         code,
+        correlationId,
         additionalMessage || getDefaultErrorMessage(code)
     );
 }

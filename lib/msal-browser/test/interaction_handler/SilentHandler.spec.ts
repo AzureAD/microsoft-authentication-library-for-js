@@ -58,7 +58,10 @@ describe("SilentHandler.ts Unit Tests", () => {
                     RANDOM_TEST_GUID
                 )
             ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.emptyNavigateUri,
+                    ""
+                )
             );
         });
 
@@ -105,7 +108,8 @@ describe("SilentHandler.ts Unit Tests", () => {
             const testState = ProtocolUtils.setRequestState(
                 browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+                ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -140,7 +144,8 @@ describe("SilentHandler.ts Unit Tests", () => {
             const testState = ProtocolUtils.setRequestState(
                 browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+                ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -175,7 +180,8 @@ describe("SilentHandler.ts Unit Tests", () => {
             const testState = ProtocolUtils.setRequestState(
                 browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+                ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -194,6 +200,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.timedOut,
+                    "",
                     "redirect_bridge_timeout"
                 )
             );
@@ -218,12 +225,14 @@ describe("SilentHandler.ts Unit Tests", () => {
             const testState1 = ProtocolUtils.setRequestState(
                 browserCrypto,
                 "",
-                testLibraryState1
+                testLibraryState1,
+                ""
             );
             const testState2 = ProtocolUtils.setRequestState(
                 browserCrypto,
                 "",
-                testLibraryState2
+                testLibraryState2,
+                ""
             );
 
             const request1: CommonAuthorizationUrlRequest = {
