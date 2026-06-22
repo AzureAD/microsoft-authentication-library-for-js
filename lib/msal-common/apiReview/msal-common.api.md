@@ -735,7 +735,7 @@ export function buildClientInfo(rawClientInfo: string, base64Decode: (input: str
 export function buildClientInfoFromHomeAccountId(homeAccountId: string): ClientInfo;
 
 // @public
-function buildMergedClaims(claims?: string, clientCapabilities?: Array<string>): string;
+function buildMergedClaims(claims?: string, clientCapabilities?: Array<string>, correlationId?: string): string;
 
 // @public (undocumented)
 export function buildStaticAuthorityOptions(authOptions: Partial<AuthorityOptions>): StaticAuthorityOptions;
