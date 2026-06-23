@@ -106,7 +106,7 @@ export type AccessTokenEntity = CredentialEntity & {
     expiresOn: string;
     extendedExpiresOn?: string;
     refreshOn?: string;
-    tokenType?: AuthenticationScheme;
+    tokenType?: TokenType;
     resource?: string;
 };
 
@@ -398,6 +398,7 @@ export type AuthenticationResult = {
 const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
+    readonly DPOP: "dpop";
     readonly SSH: "ssh-cert";
 };
 
@@ -1047,7 +1048,9 @@ declare namespace ClientAuthErrorCodes {
         nestedAppAuthBridgeDisabled,
         platformBrokerError,
         resourceParameterRequired,
-        misplacedResourceParam
+        misplacedResourceParam,
+        dpopResourceRequestMethodRequired,
+        dpopResourceRequestUriRequired
     }
 }
 export { ClientAuthErrorCodes }
@@ -1213,6 +1216,7 @@ const consentRequired = "consent_required";
 
 declare namespace Constants {
     export {
+        getTokenTypeFromAuthenticationScheme,
         SKU,
         DEFAULT_AUTHORITY,
         DEFAULT_AUTHORITY_HOST,
@@ -1299,6 +1303,8 @@ declare namespace Constants {
         SERVER_TELEM_OVERFLOW_FALSE,
         SERVER_TELEM_UNKNOWN_ERROR,
         AuthenticationScheme,
+        DPOP_TOKEN_TYPE,
+        TokenType,
         DEFAULT_THROTTLE_TIME_SECONDS,
         DEFAULT_MAX_THROTTLE_TIME_SECONDS,
         THROTTLING_PREFIX,
@@ -1320,7 +1326,7 @@ declare namespace Constants {
 const CONSUMER_UTID = "9188040d-6c67-4c5b-b112-36a304b66dad";
 
 // @public
-function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, correlationId: string, refreshOn?: number, tokenType?: Constants_2.AuthenticationScheme, userAssertionHash?: string, keyId?: string, additionalCacheKeyComponents?: Record<string, string>): AccessTokenEntity;
+function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, correlationId: string, refreshOn?: number, tokenType?: Constants_2.TokenType, userAssertionHash?: string, keyId?: string, additionalCacheKeyComponents?: Record<string, string>): AccessTokenEntity;
 
 // @internal
 function createAccountEntity(accountDetails: {
@@ -1381,7 +1387,7 @@ export type CredentialEntity = {
     realm?: string;
     target?: string;
     userAssertionHash?: string;
-    tokenType?: AuthenticationScheme;
+    tokenType?: TokenType;
     keyId?: string;
     additionalCacheKeyComponents?: Record<string, string>;
     lastUpdatedAt: string;
@@ -1397,7 +1403,7 @@ export type CredentialFilter = {
     realm?: string;
     target?: ScopeSet;
     userAssertionHash?: string;
-    tokenType?: AuthenticationScheme;
+    tokenType?: AuthenticationScheme | TokenType;
     keyId?: string;
     additionalCacheKeyComponents?: Record<string, string>;
 };
@@ -1505,6 +1511,56 @@ export type DeviceCodeResponse = {
 
 // @public (undocumented)
 const DOMAIN_HINT = "domain_hint";
+
+// @public (undocumented)
+const DPOP_TOKEN_TYPE = "DPoP";
+
+// @public (undocumented)
+export type DpopProof = {
+    header: DpopProofHeader;
+    payload: DpopProofClaims;
+};
+
+// @public (undocumented)
+export type DpopProofClaims = {
+    jti: string;
+    htm: string;
+    htu: string;
+    iat: number;
+    ath?: string;
+};
+
+// @public (undocumented)
+export type DpopProofGenerationOptions = {
+    correlationId: string;
+    resourceRequestMethod?: string;
+    resourceRequestUri?: string;
+    alg: string;
+    jwk: Record<string, unknown>;
+    accessToken?: string;
+    jti?: string;
+    iat?: number;
+};
+
+// @public (undocumented)
+export class DpopProofGenerator {
+    constructor(cryptoUtils: Pick<ICrypto, "createNewGuid" | "hashString">);
+    // (undocumented)
+    generateProof(options: DpopProofGenerationOptions): Promise<DpopProof>;
+}
+
+// @public (undocumented)
+export type DpopProofHeader = {
+    typ: typeof DPOP_PROOF_JWT_TYPE;
+    alg: string;
+    jwk: Record<string, unknown>;
+};
+
+// @public (undocumented)
+const dpopResourceRequestMethodRequired = "dpop_resource_request_method_required";
+
+// @public (undocumented)
+const dpopResourceRequestUriRequired = "dpop_resource_request_uri_required";
 
 // @public (undocumented)
 const DSTS = "dstsv2";
@@ -1620,6 +1676,9 @@ function getStandardAuthorizeRequestParameters(authOptions: AuthOptions, request
 
 // @public
 export function getTenantIdFromIdTokenClaims(idTokenClaims?: TokenClaims): string | null;
+
+// @public (undocumented)
+function getTokenTypeFromAuthenticationScheme(authenticationScheme: AuthenticationScheme): TokenType;
 
 // @public (undocumented)
 const GRANT_TYPE = "grant_type";
@@ -2880,7 +2939,7 @@ const SERVER_TELEM_VALUE_SEPARATOR: string;
 // @public
 export type ServerAuthorizationTokenResponse = {
     status?: number;
-    token_type?: AuthenticationScheme;
+    token_type?: TokenType;
     scope?: string;
     expires_in?: number;
     refresh_in?: number;
@@ -3269,6 +3328,17 @@ const tokenRefreshRequired = "token_refresh_required";
 
 // @public (undocumented)
 const tokenRequestEmpty = "token_request_empty";
+
+// @public
+const TokenType: {
+    readonly BEARER: "Bearer";
+    readonly POP: "pop";
+    readonly DPOP: "DPoP";
+    readonly SSH: "ssh-cert";
+};
+
+// @public (undocumented)
+type TokenType = (typeof TokenType)[keyof typeof TokenType];
 
 // @public
 function toSecondsFromDate(date: Date): number;

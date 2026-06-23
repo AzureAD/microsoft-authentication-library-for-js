@@ -11,7 +11,7 @@ import { AppMetadataEntity } from "../entities/AppMetadataEntity.js";
 import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity.js";
 import { ThrottlingEntity } from "../entities/ThrottlingEntity.js";
 import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity.js";
-import { AuthenticationScheme } from "../../utils/Constants.js";
+import { AuthenticationScheme, TokenType } from "../../utils/Constants.js";
 import { ScopeSet } from "../../request/ScopeSet.js";
 import { AccountInfo } from "../../account/AccountInfo.js";
 
@@ -87,7 +87,7 @@ export type CredentialFilter = {
     realm?: string;
     target?: ScopeSet;
     userAssertionHash?: string;
-    tokenType?: AuthenticationScheme;
+    tokenType?: AuthenticationScheme | TokenType;
     keyId?: string;
     additionalCacheKeyComponents?: Record<string, string>;
 };

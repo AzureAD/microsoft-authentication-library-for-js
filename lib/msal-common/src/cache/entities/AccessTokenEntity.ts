@@ -4,7 +4,7 @@
  */
 
 import { CredentialEntity } from "./CredentialEntity.js";
-import { AuthenticationScheme } from "../../utils/Constants.js";
+import { TokenType } from "../../utils/Constants.js";
 
 /**
  * Access token cache type
@@ -23,7 +23,7 @@ export type AccessTokenEntity = CredentialEntity & {
     /** Used for proactive refresh */
     refreshOn?: string;
     /** Matches the authentication scheme for which the token was issued (i.e. Bearer or pop) */
-    tokenType?: AuthenticationScheme;
+    tokenType?: TokenType;
     /** Matches the resource passed into the request for MCP flows */
     resource?: string;
 };

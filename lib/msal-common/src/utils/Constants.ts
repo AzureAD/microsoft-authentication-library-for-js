@@ -264,10 +264,40 @@ export const SERVER_TELEM_UNKNOWN_ERROR: string = "unknown_error";
 export const AuthenticationScheme = {
     BEARER: "Bearer",
     POP: "pop",
+    DPOP: "dpop",
     SSH: "ssh-cert",
 } as const;
 export type AuthenticationScheme =
     (typeof AuthenticationScheme)[keyof typeof AuthenticationScheme];
+
+export const DPOP_TOKEN_TYPE = "DPoP";
+
+/**
+ * Token type values returned by the token endpoint and stored in cache.
+ * Note: DPoP request authentication scheme uses "dpop" while the RFC 9449 token type is "DPoP".
+ */
+export const TokenType = {
+    BEARER: AuthenticationScheme.BEARER,
+    POP: AuthenticationScheme.POP,
+    DPOP: DPOP_TOKEN_TYPE,
+    SSH: AuthenticationScheme.SSH,
+} as const;
+export type TokenType = (typeof TokenType)[keyof typeof TokenType];
+
+export function getTokenTypeFromAuthenticationScheme(
+    authenticationScheme: AuthenticationScheme
+): TokenType {
+    switch (authenticationScheme) {
+        case AuthenticationScheme.DPOP:
+            return DPOP_TOKEN_TYPE;
+        case AuthenticationScheme.BEARER:
+            return TokenType.BEARER;
+        case AuthenticationScheme.POP:
+            return TokenType.POP;
+        case AuthenticationScheme.SSH:
+            return TokenType.SSH;
+    }
+}
 
 /**
  * Constants related to throttling

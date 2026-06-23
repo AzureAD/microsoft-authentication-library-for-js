@@ -167,6 +167,14 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ### `platform_broker_error`
 -   An error occurred in the native broker. When this error is thrown, check the `platformBrokerError` property on the error object for detailed information.
 
+### `dpop_resource_request_method_required`
+
+-   A DPoP proof requires the HTTP method for the target request. Set `resourceRequestMethod` before generating the proof.
+
+### `dpop_resource_request_uri_required`
+
+-   A DPoP proof requires the target request URI. Set `resourceRequestUri` before generating the proof.
+
 ### `empty_fic_assertion`
 
 -   The assertion provided to `acquireTokenByUserFederatedIdentityCredential` is empty. A non-empty assertion (typically an instance token from Leg 2 of the agent identity protocol) is required.

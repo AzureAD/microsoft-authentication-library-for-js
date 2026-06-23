@@ -43,3 +43,7 @@ export const nestedAppAuthBridgeDisabled = "nested_app_auth_bridge_disabled";
 export const platformBrokerError = "platform_broker_error";
 export const resourceParameterRequired = "resource_parameter_required";
 export const misplacedResourceParam = "misplaced_resource_parameter";
+export const dpopResourceRequestMethodRequired =
+    "dpop_resource_request_method_required";
+export const dpopResourceRequestUriRequired =
+    "dpop_resource_request_uri_required";

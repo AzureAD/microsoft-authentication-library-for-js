@@ -70,7 +70,7 @@ export function createAccessTokenEntity(
     base64Decode: (input: string) => string,
     correlationId: string,
     refreshOn?: number,
-    tokenType?: Constants.AuthenticationScheme,
+    tokenType?: Constants.TokenType,
     userAssertionHash?: string,
     keyId?: string,
     additionalCacheKeyComponents?: Record<string, string>

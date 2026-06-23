@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add DPoP common contract and proof primitives [#8674](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8674)",
+  "packageName": "@azure/msal-common",
+  "email": "hectormmg@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}
