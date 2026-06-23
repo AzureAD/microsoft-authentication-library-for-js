@@ -1786,13 +1786,13 @@ export interface ILoggerCallback {
 }
 
 // @public (undocumented)
-const IMDS_ENDPOINT = "http://169.254.169.254/metadata/instance/compute/location";
+const IMDS_ENDPOINT = "http://169.254.169.254/metadata/instance/compute";
 
 // @public (undocumented)
 const IMDS_TIMEOUT = 2000;
 
 // @public (undocumented)
-const IMDS_VERSION = "2020-06-01";
+const IMDS_VERSION = "2021-02-01";
 
 // @public (undocumented)
 export interface INativeBrokerPlugin {
