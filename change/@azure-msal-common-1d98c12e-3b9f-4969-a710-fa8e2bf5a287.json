@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add default idToken claims (signin_state, login_hint) and kmsi on AccountInfo [#8656](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8656)",
-  "packageName": "@azure/msal-common",
-  "email": "thnorlin@microsoft.com",
-  "dependentChangeType": "patch"
-}
