@@ -66,6 +66,9 @@ import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import * as TokenProtocol from "../../src/protocol/Token.js";
 
+const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
+    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+
 const testAccountEntity: AccountEntity = {
     homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
     localAccountId: ID_TOKEN_CLAIMS.oid,
@@ -641,7 +644,7 @@ describe("RefreshTokenClient unit tests", () => {
             expect(
                 result.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
+                        DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS
                     )}`
                 )
             ).toBe(true);
@@ -1470,7 +1473,7 @@ describe("RefreshTokenClient unit tests", () => {
             expect(
                 result.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
+                        DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS
                     )}`
                 )
             ).toBe(true);

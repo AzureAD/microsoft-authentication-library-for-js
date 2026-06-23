@@ -1023,13 +1023,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const scopeSet = new ScopeSet(scopes || [], this.correlationId);
         scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
 
-        const mergedClaims =
-            configClaims && configClaims.length
-                ? RequestParameterBuilder.addClientCapabilitiesToClaims(
-                      claims,
-                      configClaims
-                  )
-                : claims;
+        const mergedClaims = RequestParameterBuilder.buildMergedClaims(
+            claims,
+            configClaims?.length ? configClaims : undefined
+        );
 
         const validatedRequest: PlatformAuthRequest = {
             ...remainingProperties,

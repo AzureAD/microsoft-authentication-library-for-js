@@ -175,6 +175,7 @@ export type AccountInfo = {
     authorityType?: string;
     tenantProfiles?: Map<string, TenantProfile>;
     dataBoundary?: DataBoundary;
+    kmsi?: boolean;
 };
 
 // @public (undocumented)
@@ -210,9 +211,6 @@ function addClientAssertion(parameters: Map<string, string>, clientAssertion: st
 
 // @public
 function addClientAssertionType(parameters: Map<string, string>, clientAssertionType: string): void;
-
-// @public (undocumented)
-function addClientCapabilitiesToClaims(claims?: string, clientCapabilities?: Array<string>): string;
 
 // @public
 function addClientId(parameters: Map<string, string>, clientId: string): void;
@@ -742,6 +740,9 @@ export function buildClientInfo(rawClientInfo: string, base64Decode: (input: str
 // @public
 export function buildClientInfoFromHomeAccountId(homeAccountId: string): ClientInfo;
 
+// @public
+function buildMergedClaims(claims?: string, clientCapabilities?: Array<string>, correlationId?: string): string;
+
 // @public (undocumented)
 export function buildStaticAuthorityOptions(authOptions: Partial<AuthorityOptions>): StaticAuthorityOptions;
 
@@ -949,6 +950,9 @@ const CLAIMS = "claims";
 const ClaimsRequestKeys: {
     readonly ACCESS_TOKEN: "access_token";
     readonly XMS_CC: "xms_cc";
+    readonly ID_TOKEN: "id_token";
+    readonly SIGNIN_STATE: "signin_state";
+    readonly LOGIN_HINT: "login_hint";
 };
 
 // @public (undocumented)
@@ -1818,13 +1822,13 @@ export interface ILoggerCallback {
 }
 
 // @public (undocumented)
-const IMDS_ENDPOINT = "http://169.254.169.254/metadata/instance/compute/location";
+const IMDS_ENDPOINT = "http://169.254.169.254/metadata/instance/compute";
 
 // @public (undocumented)
 const IMDS_TIMEOUT = 2000;
 
 // @public (undocumented)
-const IMDS_VERSION = "2020-06-01";
+const IMDS_VERSION = "2021-02-01";
 
 // @public (undocumented)
 export interface INativeBrokerPlugin {
@@ -2778,7 +2782,7 @@ declare namespace RequestParameterBuilder {
         addCliData,
         addInstanceAware,
         addExtraParameters,
-        addClientCapabilitiesToClaims,
+        buildMergedClaims,
         addUsername,
         addPassword,
         addPopToken,
