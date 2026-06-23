@@ -2030,19 +2030,29 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     claims: existingClaims,
                 });
 
-            expect(nativeRequest.claims).toEqual(existingClaims);
             const parsedClaims = JSON.parse(nativeRequest.claims || "");
+            expect(parsedClaims.userinfo).toEqual({
+                given_name: { essential: true },
+            });
+            expect(parsedClaims.id_token).toEqual({
+                signin_state: { essential: false },
+                login_hint: { essential: false },
+            });
             expect(parsedClaims.access_token).toBeUndefined();
         });
 
-        it("returns empty claims JSON when no claims or client capabilities are provided", async () => {
+        it("returns default idToken claims when no claims or client capabilities are provided", async () => {
             const nativeRequest =
                 // @ts-ignore
                 await platformAuthInteractionClient.initializePlatformRequest({
                     scopes: ["User.Read"],
                 });
 
-            expect(nativeRequest.claims).toBeUndefined();
+            const parsedClaims = JSON.parse(nativeRequest.claims || "{}");
+            expect(parsedClaims.id_token).toEqual({
+                signin_state: { essential: false },
+                login_hint: { essential: false },
+            });
         });
 
         it("does not add xms_cc when client capabilities array is empty", async () => {
@@ -2096,8 +2106,14 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     }
                 );
 
-            expect(nativeRequest.claims).toEqual(existingClaims);
             const parsedClaims = JSON.parse(nativeRequest.claims || "");
+            expect(parsedClaims.userinfo).toEqual({
+                given_name: { essential: true },
+            });
+            expect(parsedClaims.id_token).toEqual({
+                signin_state: { essential: false },
+                login_hint: { essential: false },
+            });
             expect(parsedClaims.access_token).toBeUndefined();
         });
 
@@ -2156,12 +2172,16 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     }
                 );
 
-            expect(nativeRequest.claims).toEqual(existingClaims);
             const parsedClaims = JSON.parse(nativeRequest.claims || "");
             // Verify existing claims are preserved
             expect(parsedClaims.userinfo).toBeDefined();
             expect(parsedClaims.userinfo.given_name).toEqual({
                 essential: true,
+            });
+            // Verify default idToken claims are added
+            expect(parsedClaims.id_token).toEqual({
+                signin_state: { essential: false },
+                login_hint: { essential: false },
             });
             // Verify broker's client capabilities are NOT added
             expect(parsedClaims.access_token).toBeUndefined();

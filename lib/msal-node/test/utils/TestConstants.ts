@@ -290,6 +290,7 @@ export const mockAccountInfo: AccountInfo = {
         ],
     ]),
     dataBoundary: undefined,
+    kmsi: false,
 };
 
 export const mockNativeAccountInfo: AccountInfo = {

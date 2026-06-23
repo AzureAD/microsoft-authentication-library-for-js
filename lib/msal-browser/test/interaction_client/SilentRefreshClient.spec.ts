@@ -337,4 +337,175 @@ describe("SilentRefreshClient", () => {
             );
         });
     });
+
+    describe("KMSI cache encryption transition", () => {
+        let localStoragePca: PublicClientApplication;
+        let localStorageCacheManager: BrowserCacheManager;
+        let localStorageSilentRefreshClient: SilentRefreshClient;
+
+        beforeEach(async () => {
+            localStoragePca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                cache: {
+                    cacheLocation: "localStorage",
+                },
+            });
+
+            await localStoragePca.initialize();
+
+            const controller = (localStoragePca as any).controller;
+            localStorageCacheManager = controller.browserStorage;
+
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            // @ts-ignore
+            localStorageSilentRefreshClient = new SilentRefreshClient(
+                controller.config,
+                controller.browserStorage,
+                controller.browserCrypto,
+                controller.logger,
+                controller.eventHandler,
+                controller.navigationClient,
+                controller.performanceClient
+            );
+
+            jest.spyOn(Date, "now").mockReturnValue(Date.now());
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+            window.localStorage.clear();
+        });
+
+        it("transitions cache from encrypted to plaintext when KMSI becomes true", async () => {
+            const rtEntity = {
+                secret: TEST_TOKENS.REFRESH_TOKEN,
+                credentialType: Constants.CredentialType.REFRESH_TOKEN,
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                environment: "login.windows.net",
+                realm: testIdTokenClaims.tid || "",
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                lastUpdatedAt: Date.now().toString(),
+            };
+            const accountEntity = {} as AccountEntity;
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getAccount"
+            ).mockReturnValue(accountEntity);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getAllAccounts"
+            ).mockReturnValue([testAccount]);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getRefreshToken"
+            ).mockReturnValue(rtEntity);
+            jest.spyOn(
+                FetchClient.prototype,
+                "sendPostRequestAsync"
+            ).mockResolvedValue(TEST_TOKEN_RESPONSE);
+
+            // First call: no signin_state in token claims, KMSI=false, tokens stored encrypted
+            await localStorageSilentRefreshClient.acquireToken({
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                account: testAccount,
+                forceRefresh: true,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+            });
+
+            // Verify all cache entries are stored encrypted in localStorage
+            const tokenKeys = localStorageCacheManager.getTokenKeys();
+            const preAccountKeys = localStorageCacheManager.getAccountKeys();
+
+            // Helper to assert an entry is encrypted
+            const assertEncrypted = (key: string) => {
+                const raw = localStorage.getItem(key) || "";
+                const parsed = JSON.parse(raw);
+                expect(parsed).toHaveProperty("data");
+                expect(parsed).toHaveProperty("nonce");
+            };
+
+            expect(tokenKeys.idToken.length).toBeGreaterThan(0);
+            assertEncrypted(tokenKeys.idToken[0]);
+
+            expect(tokenKeys.accessToken.length).toBeGreaterThan(0);
+            assertEncrypted(
+                tokenKeys.accessToken[tokenKeys.accessToken.length - 1]
+            );
+
+            expect(tokenKeys.refreshToken.length).toBeGreaterThan(0);
+            assertEncrypted(tokenKeys.refreshToken[0]);
+
+            expect(preAccountKeys.length).toBeGreaterThan(0);
+            assertEncrypted(preAccountKeys[0]);
+
+            // Build an idToken JWT with signin_state: ["kmsi"]
+            const header = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9"; // {"typ":"JWT","alg":"RS256"}
+            const payload = Buffer.from(
+                JSON.stringify({
+                    ...testIdTokenClaims,
+                    signin_state: ["kmsi"],
+                })
+            ).toString("base64");
+            const kmsiIdToken = `${header}.${payload}.signature`;
+
+            // Second call: token response includes signin_state, KMSI=true
+            const kmsiTokenResponse = {
+                ...TEST_TOKEN_RESPONSE,
+                body: {
+                    ...TEST_TOKEN_RESPONSE.body,
+                    id_token: kmsiIdToken,
+                },
+            };
+            jest.spyOn(
+                FetchClient.prototype,
+                "sendPostRequestAsync"
+            ).mockResolvedValue(kmsiTokenResponse);
+
+            await localStorageSilentRefreshClient.acquireToken({
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                account: testAccount,
+                forceRefresh: true,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+            });
+
+            // Verify all cache entries are now stored as plaintext in localStorage
+            const updatedTokenKeys = localStorageCacheManager.getTokenKeys();
+            const accountKeys = localStorageCacheManager.getAccountKeys();
+
+            // Helper to assert an entry is plaintext (not encrypted)
+            const assertPlaintext = (key: string) => {
+                const raw = localStorage.getItem(key) || "";
+                const parsed = JSON.parse(raw);
+                expect(parsed).not.toHaveProperty("nonce");
+                expect(parsed).not.toHaveProperty("data");
+            };
+
+            // Verify idToken is plaintext
+            expect(updatedTokenKeys.idToken.length).toBeGreaterThan(0);
+            assertPlaintext(updatedTokenKeys.idToken[0]);
+
+            // Verify accessToken is plaintext
+            expect(updatedTokenKeys.accessToken.length).toBeGreaterThan(0);
+            assertPlaintext(
+                updatedTokenKeys.accessToken[
+                    updatedTokenKeys.accessToken.length - 1
+                ]
+            );
+
+            // Verify refreshToken is plaintext
+            expect(updatedTokenKeys.refreshToken.length).toBeGreaterThan(0);
+            assertPlaintext(updatedTokenKeys.refreshToken[0]);
+
+            // Verify account is plaintext
+            expect(accountKeys.length).toBeGreaterThan(0);
+            assertPlaintext(accountKeys[0]);
+        });
+    });
 });

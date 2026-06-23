@@ -118,7 +118,16 @@ describe("JS Runtime Nested App Auth", () => {
             const bridgeRequest = JSON.parse(
                 mockBridge.getBridgeRequests().at(-1)!
             ) as BridgeRequestEnvelope;
-            expect(bridgeRequest.tokenParams?.claims).toBe(claims);
+            const parsedBridgeClaims = JSON.parse(
+                bridgeRequest.tokenParams?.claims || "{}"
+            );
+            expect(parsedBridgeClaims.access_token).toEqual({
+                nbf: { essential: true, value: "1752302923" },
+            });
+            expect(parsedBridgeClaims.id_token).toEqual({
+                signin_state: { essential: false },
+                login_hint: { essential: false },
+            });
         }
 
         // Validate error scenario

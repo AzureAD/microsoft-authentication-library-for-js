@@ -37,6 +37,9 @@ import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import * as TokenProtocol from "../../src/protocol/Token.js";
 import * as AuthorityFactory from "../../src/authority/AuthorityFactory.js";
 
+const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
+    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+
 describe("AuthorizationCodeClient unit tests", () => {
     let stubPerformanceClient: StubPerformanceClient;
     beforeEach(async () => {
@@ -1227,7 +1230,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
+                        DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS
                     )}`
                 )
             ).toBe(true);
@@ -1419,7 +1422,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
+                        DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS
                     )}`
                 )
             ).toBe(true);
