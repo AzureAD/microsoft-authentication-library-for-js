@@ -296,6 +296,10 @@ export function getTokenTypeFromAuthenticationScheme(
             return TokenType.POP;
         case AuthenticationScheme.SSH:
             return TokenType.SSH;
+        default:
+            throw new Error(
+                `Unexpected authentication scheme: ${authenticationScheme}`
+            );
     }
 }
 

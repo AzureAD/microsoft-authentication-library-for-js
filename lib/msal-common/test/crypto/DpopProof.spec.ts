@@ -25,7 +25,7 @@ describe("DpopProofGenerator Unit Tests", () => {
         const proof = await generator.generateProof({
             correlationId: TEST_CONFIG.CORRELATION_ID,
             resourceRequestMethod: "post",
-            resourceRequestUri: `${TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS}#section`,
+            resourceRequestUri: `${TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS}#section#second`,
             alg: TEST_CRYPTO_ALGORITHMS.rsa,
             jwk: testJwk,
             accessToken: TEST_TOKENS.ACCESS_TOKEN,

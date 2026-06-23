@@ -8,10 +8,8 @@ import * as ClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
 import type { ICrypto } from "./ICrypto.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 
-const DPOP_PROOF_JWT_TYPE = "dpop+jwt";
-
 export type DpopProofHeader = {
-    typ: typeof DPOP_PROOF_JWT_TYPE;
+    typ: "dpop+jwt";
     alg: string;
     jwk: Record<string, unknown>;
 };
@@ -68,7 +66,7 @@ export class DpopProofGenerator {
 
         return {
             header: {
-                typ: DPOP_PROOF_JWT_TYPE,
+                typ: "dpop+jwt",
                 alg: options.alg,
                 jwk: options.jwk,
             },

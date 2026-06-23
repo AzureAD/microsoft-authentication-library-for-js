@@ -1551,7 +1551,7 @@ export class DpopProofGenerator {
 
 // @public (undocumented)
 export type DpopProofHeader = {
-    typ: typeof DPOP_PROOF_JWT_TYPE;
+    typ: "dpop+jwt";
     alg: string;
     jwk: Record<string, unknown>;
 };

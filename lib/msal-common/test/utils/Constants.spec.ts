@@ -51,4 +51,12 @@ describe("Constants Unit Tests", () => {
         expect(generator).toBeInstanceOf(DpopProofGenerator);
         expect(proofOptions.alg).toBe(TEST_CRYPTO_ALGORITHMS.rsa);
     });
+
+    it("Throws on unexpected authentication scheme values", () => {
+        expect(() =>
+            Constants.getTokenTypeFromAuthenticationScheme(
+                "invalid" as Constants.AuthenticationScheme
+            )
+        ).toThrowError("Unexpected authentication scheme: invalid");
+    });
 });
