@@ -25,6 +25,18 @@ describe("DpopProof primitives", () => {
         );
     });
 
+    it("preserves path and query casing while excluding hash fragments", () => {
+        const context = buildDpopResourceRequestContext(
+            "get",
+            "https://GRAPH.microsoft.com/v1.0/Me?Filter=Name#hash-fragment",
+            "test-correlation-id"
+        );
+
+        expect(context.normalizedUri).toBe(
+            "https://graph.microsoft.com/v1.0/Me?Filter=Name"
+        );
+    });
+
     it("throws deterministic errors when DPoP resource context is missing", () => {
         expect(() =>
             buildDpopResourceRequestContext(

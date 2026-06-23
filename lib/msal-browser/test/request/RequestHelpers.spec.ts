@@ -160,7 +160,7 @@ describe("RequestHelpers tests", () => {
                 method: "get",
                 uri: "HTTPS://graph.microsoft.com/v1.0/me",
                 normalizedMethod: "GET",
-                normalizedUri: "https://graph.microsoft.com/v1.0/me/",
+                normalizedUri: "https://graph.microsoft.com/v1.0/me",
             });
         });
     });

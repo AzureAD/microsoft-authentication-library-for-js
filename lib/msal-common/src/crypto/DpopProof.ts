@@ -61,7 +61,18 @@ export function buildDpopResourceRequestContext(
         );
     }
 
-    const url = new UrlString(resourceRequestUri, correlationId).getUrlComponents();
+    let normalizedUrl: URL;
+    try {
+        normalizedUrl = new URL(resourceRequestUri);
+    } catch (e) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidDpopResourceRequest,
+            correlationId
+        );
+    }
+
+    const parsedUrl = new UrlString(resourceRequestUri, correlationId);
+    const url = parsedUrl.getUrlComponents();
     if (!url.Protocol || !url.HostNameAndPort || !url.AbsolutePath) {
         throw createClientConfigurationError(
             ClientConfigurationErrorCodes.invalidDpopResourceRequest,
@@ -69,11 +80,19 @@ export function buildDpopResourceRequestContext(
         );
     }
 
+    /*
+     * RFC 9449/3986 normalization requirements:
+     * - scheme + authority are case-insensitive and normalized to lowercase
+     * - path + query are case-sensitive and preserved as provided
+     * - hash fragment is excluded from htu
+     */
+    const normalizedUri = `${normalizedUrl.protocol.toLowerCase()}//${normalizedUrl.host.toLowerCase()}${normalizedUrl.pathname}${normalizedUrl.search}`;
+
     return {
         method: resourceRequestMethod,
         uri: resourceRequestUri,
         normalizedMethod: resourceRequestMethod.toUpperCase(),
-        normalizedUri: `${url.Protocol.toLowerCase()}//${url.HostNameAndPort.toLowerCase()}${url.AbsolutePath}${url.QueryString ? `?${url.QueryString}` : ""}`,
+        normalizedUri,
     };
 }
 

@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add PCA DPoP request validation and authorize dpop_jkt support in msal-browser [#0000](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/0000)",
+  "comment": "Add PCA DPoP request validation and authorize dpop_jkt support in msal-browser [#8673](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8673)",
   "packageName": "@azure/msal-browser",
   "email": "msaljs@example.com",
   "dependentChangeType": "patch"
