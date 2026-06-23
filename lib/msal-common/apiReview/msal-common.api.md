@@ -65,6 +65,7 @@ declare namespace AADServerParamKeys {
         CLIENT_ASSERTION_TYPE,
         TOKEN_TYPE,
         REQ_CNF,
+        DPOP_JKT,
         OBO_ASSERTION,
         REQUESTED_TOKEN_USE,
         ON_BEHALF_OF,
@@ -236,6 +237,12 @@ function addDeviceCode(parameters: Map<string, string>, code: string): void;
 function addDomainHint(parameters: Map<string, string>, domainHint: string): void;
 
 // @public
+function addDpopJkt(parameters: Map<string, string>, dpopJkt?: string): void;
+
+// @public
+function addDpopTokenType(parameters: Map<string, string>): void;
+
+// @public
 function addEARParameters(parameters: Map<string, string>, jwk: string): void;
 
 // @public
@@ -392,12 +399,14 @@ export type AuthenticationResult = {
     code?: string;
     fromPlatformBroker?: boolean;
     resource?: string;
+    dpopProof?: string;
 };
 
 // @public
 const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
+    readonly DPOP: "dpop";
     readonly SSH: "ssh-cert";
 };
 
@@ -694,6 +703,8 @@ export type BaseAuthRequest = {
     shrOptions?: ShrOptions;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
+    dpopResourceRequest?: DpopResourceRequestContext;
+    dpopJkt?: string;
     sshJwk?: string;
     sshKid?: string;
     azureCloudOptions?: AzureCloudOptions;
@@ -729,6 +740,9 @@ export function buildClientInfo(rawClientInfo: string, base64Decode: (input: str
 
 // @public
 export function buildClientInfoFromHomeAccountId(homeAccountId: string): ClientInfo;
+
+// @public (undocumented)
+export function buildDpopResourceRequestContext(resourceRequestMethod: string | undefined, resourceRequestUri: string | undefined, correlationId: string): DpopResourceRequestContext;
 
 // @public
 function buildMergedClaims(claims?: string, clientCapabilities?: Array<string>, correlationId?: string): string;
@@ -1098,7 +1112,10 @@ declare namespace ClientConfigurationErrorCodes {
         authorityMismatch,
         invalidRequestMethodForEAR,
         invalidPlatformBrokerConfiguration,
-        issuerValidationFailed
+        issuerValidationFailed,
+        missingDpopResourceRequestMethod,
+        missingDpopResourceRequestUri,
+        invalidDpopResourceRequest
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1213,6 +1230,7 @@ const consentRequired = "consent_required";
 
 declare namespace Constants {
     export {
+        mapTokenTypeToAuthenticationScheme,
         SKU,
         DEFAULT_AUTHORITY,
         DEFAULT_AUTHORITY_HOST,
@@ -1299,6 +1317,8 @@ declare namespace Constants {
         SERVER_TELEM_OVERFLOW_FALSE,
         SERVER_TELEM_UNKNOWN_ERROR,
         AuthenticationScheme,
+        DPOP_TOKEN_TYPE,
+        TokenType,
         DEFAULT_THROTTLE_TIME_SECONDS,
         DEFAULT_MAX_THROTTLE_TIME_SECONDS,
         THROTTLING_PREFIX,
@@ -1505,6 +1525,61 @@ export type DeviceCodeResponse = {
 
 // @public (undocumented)
 const DOMAIN_HINT = "domain_hint";
+
+// @public (undocumented)
+const DPOP_JKT = "dpop_jkt";
+
+// @public (undocumented)
+export const DPOP_JWT_TYPE = "dpop+jwt";
+
+// @public (undocumented)
+const DPOP_TOKEN_TYPE = "DPoP";
+
+// @public (undocumented)
+export type DpopProof<TClaims extends DpopTokenClaims | DpopResourceClaims> = {
+    header: DpopProofHeader;
+    claims: TClaims;
+};
+
+// @internal (undocumented)
+export class DpopProofGenerator {
+    constructor(cryptoUtils: ICrypto);
+    // (undocumented)
+    generateResourceProof(algorithm: string, jwk: DpopProofJwk, resourceRequestContext: DpopResourceRequestContext, accessToken: string): Promise<DpopProof<DpopResourceClaims>>;
+    // (undocumented)
+    generateTokenProof(algorithm: string, jwk: DpopProofJwk, resourceRequestContext: DpopResourceRequestContext): DpopProof<DpopTokenClaims>;
+}
+
+// @public (undocumented)
+export type DpopProofHeader = {
+    typ: typeof DPOP_JWT_TYPE;
+    alg: string;
+    jwk: DpopProofJwk;
+};
+
+// @public (undocumented)
+export type DpopProofJwk = Record<string, string>;
+
+// @public (undocumented)
+export type DpopResourceClaims = DpopTokenClaims & {
+    ath: string;
+};
+
+// @public (undocumented)
+export type DpopResourceRequestContext = {
+    method: string;
+    uri: string;
+    normalizedMethod: string;
+    normalizedUri: string;
+};
+
+// @public (undocumented)
+export type DpopTokenClaims = {
+    jti: string;
+    htm: string;
+    htu: string;
+    iat: number;
+};
 
 // @public (undocumented)
 const DSTS = "dstsv2";
@@ -1898,6 +1973,9 @@ const invalidCloudDiscoveryMetadata = "invalid_cloud_discovery_metadata";
 const invalidCodeChallengeMethod = "invalid_code_challenge_method";
 
 // @public (undocumented)
+const invalidDpopResourceRequest = "invalid_dpop_resource_request";
+
+// @public (undocumented)
 const invalidPlatformBrokerConfiguration = "invalid_platform_broker_configuration";
 
 // @public (undocumented)
@@ -2105,6 +2183,9 @@ const LOGOUT_HINT = "logout_hint";
 // @public (undocumented)
 const logoutRequestEmpty = "logout_request_empty";
 
+// @public (undocumented)
+function mapTokenTypeToAuthenticationScheme(tokenType?: TokenType, defaultAuthenticationScheme?: AuthenticationScheme): AuthenticationScheme;
+
 // @public
 function mapToQueryString(parameters: Map<string, string>): string;
 
@@ -2113,6 +2194,12 @@ const methodNotImplemented = "method_not_implemented";
 
 // @public (undocumented)
 const misplacedResourceParam = "misplaced_resource_parameter";
+
+// @public (undocumented)
+const missingDpopResourceRequestMethod = "missing_dpop_resource_request_method";
+
+// @public (undocumented)
+const missingDpopResourceRequestUri = "missing_dpop_resource_request_uri";
 
 // @public (undocumented)
 const missingNonceAuthenticationHeader = "missing_nonce_authentication_header";
@@ -2750,6 +2837,8 @@ declare namespace RequestParameterBuilder {
         addUsername,
         addPassword,
         addPopToken,
+        addDpopTokenType,
+        addDpopJkt,
         addSshJwk,
         addServerTelemetry,
         addThrottling,
@@ -2776,6 +2865,7 @@ export type RequestThumbprint = {
     authenticationScheme?: AuthenticationScheme;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
+    dpopJkt?: string;
     shrClaims?: string;
     sshKid?: string;
     shrOptions?: ShrOptions;
@@ -2880,7 +2970,7 @@ const SERVER_TELEM_VALUE_SEPARATOR: string;
 // @public
 export type ServerAuthorizationTokenResponse = {
     status?: number;
-    token_type?: AuthenticationScheme;
+    token_type?: TokenType;
     scope?: string;
     expires_in?: number;
     refresh_in?: number;
@@ -3269,6 +3359,9 @@ const tokenRefreshRequired = "token_refresh_required";
 
 // @public (undocumented)
 const tokenRequestEmpty = "token_request_empty";
+
+// @public (undocumented)
+type TokenType = AuthenticationScheme | typeof DPOP_TOKEN_TYPE | string;
 
 // @public
 function toSecondsFromDate(date: Date): number;
