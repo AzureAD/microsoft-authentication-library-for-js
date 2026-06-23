@@ -2780,6 +2780,7 @@ export type RequestThumbprint = {
     sshKid?: string;
     shrOptions?: ShrOptions;
     embeddedClientId?: string;
+    resource?: string;
 };
 
 // @public (undocumented)
