@@ -203,6 +203,26 @@ describe("Authorize Protocol Tests", () => {
                     )
                 ).toEqual(validRequest.correlationId);
             });
+
+            it("Adds dpop_jkt when present in request", async () => {
+                const form = await Authorize.getEARForm(
+                    document,
+                    config,
+                    authority,
+                    {
+                        ...validRequest,
+                        dpopJkt: "test-dpop-jkt",
+                    },
+                    logger,
+                    performanceClient
+                );
+
+                expect(
+                    (form.elements.namedItem(
+                        AADServerParamKeys.DPOP_JKT
+                    ) as HTMLInputElement).value
+                ).toEqual("test-dpop-jkt");
+            });
         });
 
         describe("handleResponseEAR Tests", () => {

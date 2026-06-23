@@ -87,6 +87,82 @@ describe("RequestHelpers tests", () => {
                 )
             );
         });
+
+        it("should throw an error if DPoP authentication scheme is used without resourceRequestMethod", async () => {
+            const request: Partial<BaseAuthRequest> & {
+                correlationId: string;
+            } = {
+                correlationId: "test-correlation-id",
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            await expect(
+                RequestHelpers.initializeBaseRequest(
+                    request,
+                    mockConfig,
+                    mockPerformanceClient,
+                    mockLogger,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toThrowError(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingDpopResourceRequestMethod,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+        });
+
+        it("should throw an error if DPoP authentication scheme is used without resourceRequestUri", async () => {
+            const request: Partial<BaseAuthRequest> & {
+                correlationId: string;
+            } = {
+                correlationId: "test-correlation-id",
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "GET",
+            };
+
+            await expect(
+                RequestHelpers.initializeBaseRequest(
+                    request,
+                    mockConfig,
+                    mockPerformanceClient,
+                    mockLogger,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toThrowError(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingDpopResourceRequestUri,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+        });
+
+        it("should normalize DPoP resource request context", async () => {
+            const request: Partial<BaseAuthRequest> & {
+                correlationId: string;
+            } = {
+                correlationId: "test-correlation-id",
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "get",
+                resourceRequestUri: "HTTPS://graph.microsoft.com/v1.0/me",
+            };
+
+            const result = await RequestHelpers.initializeBaseRequest(
+                request,
+                mockConfig,
+                mockPerformanceClient,
+                mockLogger,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            expect(result.dpopResourceRequest).toEqual({
+                method: "get",
+                uri: "HTTPS://graph.microsoft.com/v1.0/me",
+                normalizedMethod: "GET",
+                normalizedUri: "https://graph.microsoft.com/v1.0/me/",
+            });
+        });
     });
 
     describe("initializeSilentRequest", () => {

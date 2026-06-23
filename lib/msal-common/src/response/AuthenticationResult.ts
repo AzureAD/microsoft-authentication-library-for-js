@@ -45,4 +45,5 @@ export type AuthenticationResult = {
     code?: string;
     fromPlatformBroker?: boolean;
     resource?: string;
+    dpopProof?: string;
 };

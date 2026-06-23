@@ -264,10 +264,32 @@ export const SERVER_TELEM_UNKNOWN_ERROR: string = "unknown_error";
 export const AuthenticationScheme = {
     BEARER: "Bearer",
     POP: "pop",
+    DPOP: "dpop",
     SSH: "ssh-cert",
 } as const;
 export type AuthenticationScheme =
     (typeof AuthenticationScheme)[keyof typeof AuthenticationScheme];
+
+export const DPOP_TOKEN_TYPE = "DPoP";
+export type TokenType = AuthenticationScheme | typeof DPOP_TOKEN_TYPE | string;
+
+export function mapTokenTypeToAuthenticationScheme(
+    tokenType?: TokenType,
+    defaultAuthenticationScheme: AuthenticationScheme = AuthenticationScheme.BEARER
+): AuthenticationScheme {
+    if (!tokenType) {
+        return defaultAuthenticationScheme;
+    }
+
+    if (
+        tokenType === DPOP_TOKEN_TYPE ||
+        tokenType === AuthenticationScheme.DPOP
+    ) {
+        return AuthenticationScheme.DPOP;
+    }
+
+    return tokenType as AuthenticationScheme;
+}
 
 /**
  * Constants related to throttling

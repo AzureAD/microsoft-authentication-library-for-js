@@ -26,6 +26,7 @@ import {
 import { UrlString } from "../url/UrlString.js";
 import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
+import { buildDpopResourceRequestContext } from "../crypto/DpopProof.js";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import {
@@ -428,6 +429,18 @@ export class AuthorizationCodeClient {
 
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             RequestParameterBuilder.addPopToken(parameters, reqCnfData);
+        } else if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            request.dpopResourceRequest =
+                request.dpopResourceRequest ||
+                buildDpopResourceRequestContext(
+                    request.resourceRequestMethod,
+                    request.resourceRequestUri,
+                    request.correlationId
+                );
+
+            RequestParameterBuilder.addDpopTokenType(parameters);
         } else if (
             request.authenticationScheme === Constants.AuthenticationScheme.SSH
         ) {

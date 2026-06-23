@@ -288,6 +288,35 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(Object.keys(requestQueryString)).toHaveLength(0);
     });
 
+    it("Adds token type with RFC casing for DPoP requests", () => {
+        const parameters = new Map<string, string>();
+        RequestParameterBuilder.addDpopTokenType(parameters);
+        const requestQueryString = UrlUtils.mapToQueryString(parameters);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.TOKEN_TYPE}=${Constants.DPOP_TOKEN_TYPE}`
+            )
+        ).toBe(true);
+    });
+
+    it("Adds dpop_jkt on authorize requests when provided", () => {
+        const parameters = new Map<string, string>();
+        RequestParameterBuilder.addDpopJkt(parameters, "test-jkt");
+        const requestQueryString = UrlUtils.mapToQueryString(parameters);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.DPOP_JKT}=test-jkt`
+            )
+        ).toBe(true);
+    });
+
+    it("Does not add dpop_jkt if value is undefined or empty", () => {
+        const parameters = new Map<string, string>();
+        RequestParameterBuilder.addDpopJkt(parameters, "");
+        const requestQueryString = UrlUtils.mapToQueryString(parameters);
+        expect(Object.keys(requestQueryString)).toHaveLength(0);
+    });
+
     it("Adds token type and req_cnf correctly for SSH certificates", () => {
         const parameters = new Map<string, string>();
         RequestParameterBuilder.addSshJwk(parameters, TEST_SSH_VALUES.SSH_JWK);

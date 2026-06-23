@@ -443,7 +443,10 @@ export class ResponseHandler {
                 this.cryptoObj.base64Decode,
                 request.correlationId,
                 refreshOnSeconds,
-                serverTokenResponse.token_type,
+                Constants.mapTokenTypeToAuthenticationScheme(
+                    serverTokenResponse.token_type,
+                    request.authenticationScheme
+                ),
                 userAssertionHash,
                 serverTokenResponse.key_id,
                 additionalCacheKeyComponents

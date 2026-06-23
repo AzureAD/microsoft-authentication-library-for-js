@@ -105,6 +105,17 @@ export {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     SignedHttpRequestParameters,
 } from "./crypto/ICrypto.js";
+export {
+    DPOP_JWT_TYPE,
+    DpopProofGenerator,
+    DpopProofHeader,
+    DpopTokenClaims,
+    DpopResourceClaims,
+    DpopProof,
+    DpopProofJwk,
+    DpopResourceRequestContext,
+    buildDpopResourceRequestContext,
+} from "./crypto/DpopProof.js";
 
 export * as AuthorizeProtocol from "./protocol/Authorize.js";
 export * as TokenProtocol from "./protocol/Token.js";

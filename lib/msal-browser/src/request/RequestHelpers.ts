@@ -12,6 +12,7 @@ import {
     IPerformanceClient,
     Logger,
     ProtocolMode,
+    buildDpopResourceRequestContext,
     createClientConfigurationError,
     invokeAsync,
 } from "@azure/msal-common/browser";
@@ -72,6 +73,16 @@ export async function initializeBaseRequest(
                     ""
                 );
             }
+        } else if (
+            validatedRequest.authenticationScheme ===
+            Constants.AuthenticationScheme.DPOP
+        ) {
+            validatedRequest.dpopResourceRequest =
+                buildDpopResourceRequestContext(
+                    validatedRequest.resourceRequestMethod,
+                    validatedRequest.resourceRequestUri,
+                    correlationId
+                );
         }
         logger.verbose(
             `Authentication Scheme set to "'${validatedRequest.authenticationScheme}'" as configured in Auth request`,

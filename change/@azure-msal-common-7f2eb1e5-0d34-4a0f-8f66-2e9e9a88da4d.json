@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add DPoP authentication scheme contracts, token type mapping, and proof primitives in msal-common [#0000](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/0000)",
+  "packageName": "@azure/msal-common",
+  "email": "msaljs@example.com",
+  "dependentChangeType": "patch"
+}

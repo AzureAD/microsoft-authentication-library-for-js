@@ -1551,6 +1551,78 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
         });
 
+        it("Sends RFC-cased DPoP token_type when authentication scheme is dpop", async () => {
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            const returnVal = (await (
+                client as unknown as {
+                    createTokenRequestBody: (
+                        request: CommonAuthorizationCodeRequest
+                    ) => Promise<string>;
+                }
+            ).createTokenRequestBody(authCodeRequest)) as string;
+
+            expect(
+                returnVal.includes(
+                    `${AADServerParamKeys.TOKEN_TYPE}=${Constants.DPOP_TOKEN_TYPE}`
+                )
+            ).toBe(true);
+        });
+
+        it("Throws deterministic DPoP resource context validation errors", async () => {
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            await expect(
+                (
+                    client as unknown as {
+                        createTokenRequestBody: (
+                            request: CommonAuthorizationCodeRequest
+                        ) => Promise<string>;
+                    }
+                ).createTokenRequestBody(authCodeRequest)
+            ).rejects.toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingDpopResourceRequestMethod,
+                    RANDOM_TEST_GUID
+                )
+            );
+        });
+
         it("properly handles expiration timestamps as strings", async () => {
             jest.spyOn(
                 Authority.prototype,

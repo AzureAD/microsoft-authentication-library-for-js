@@ -927,6 +927,58 @@ describe("RefreshTokenClient unit tests", () => {
             );
         });
 
+        it("adds RFC-cased DPoP token_type for DPoP refresh token requests", async () => {
+            const dpopRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            const requestBody = (await (
+                client as unknown as {
+                    createTokenRequestBody: (
+                        request: CommonRefreshTokenRequest
+                    ) => Promise<string>;
+                }
+            ).createTokenRequestBody(dpopRequest)) as string;
+
+            expect(
+                requestBody.includes(
+                    `${AADServerParamKeys.TOKEN_TYPE}=${Constants.DPOP_TOKEN_TYPE}`
+                )
+            ).toBe(true);
+        });
+
+        it("throws deterministic DPoP context validation errors for refresh token requests", async () => {
+            const dpopRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            await expect(
+                (
+                    client as unknown as {
+                        createTokenRequestBody: (
+                            request: CommonRefreshTokenRequest
+                        ) => Promise<string>;
+                    }
+                ).createTokenRequestBody(dpopRequest)
+            ).rejects.toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingDpopResourceRequestMethod,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+        });
+
         it("does not add claims if none are provided", async () => {
             jest.spyOn(
                 TokenProtocol,

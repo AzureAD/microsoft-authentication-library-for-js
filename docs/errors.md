@@ -249,6 +249,18 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Missing sshKid in SSH certificate request. A string that uniquely identifies the public SSH key is required when using the SSH authentication scheme.
 
+### `missing_dpop_resource_request_method`
+
+-   Missing `resourceRequestMethod` in DPoP request. An HTTP method is required to build DPoP proof claims and cache partitioning context.
+
+### `missing_dpop_resource_request_uri`
+
+-   Missing `resourceRequestUri` in DPoP request. A target resource URI is required to build DPoP proof claims and cache partitioning context.
+
+### `invalid_dpop_resource_request`
+
+-   Invalid DPoP resource request context. The provided resource request URI could not be normalized for DPoP proof generation.
+
 ### `missing_nonce_authentication_header`
 
 -   Unable to find an authentication header containing server nonce. Either the Authentication-Info or WWW-Authenticate headers must be present in order to obtain a server nonce.

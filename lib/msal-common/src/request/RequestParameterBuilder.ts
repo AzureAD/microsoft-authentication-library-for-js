@@ -606,6 +606,25 @@ export function addPopToken(
 }
 
 /**
+ * add DPoP token type to query params
+ */
+export function addDpopTokenType(parameters: Map<string, string>): void {
+    parameters.set(AADServerParamKeys.TOKEN_TYPE, Constants.DPOP_TOKEN_TYPE);
+}
+
+/**
+ * add dpop_jkt to authorize query params
+ */
+export function addDpopJkt(
+    parameters: Map<string, string>,
+    dpopJkt?: string
+): void {
+    if (dpopJkt) {
+        parameters.set(AADServerParamKeys.DPOP_JKT, dpopJkt);
+    }
+}
+
+/**
  * add SSH JWK and key ID to query params
  */
 export function addSshJwk(

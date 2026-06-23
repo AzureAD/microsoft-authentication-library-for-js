@@ -6,6 +6,7 @@
 import { ShrOptions } from "../crypto/SignedHttpRequest.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import { AuthenticationScheme } from "../utils/Constants.js";
+import { buildDpopResourceRequestContext } from "../crypto/DpopProof.js";
 
 /**
  * Type representing a unique request thumbprint.
@@ -19,6 +20,7 @@ export type RequestThumbprint = {
     authenticationScheme?: AuthenticationScheme;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
+    dpopJkt?: string;
     shrClaims?: string;
     sshKid?: string;
     shrOptions?: ShrOptions;
@@ -30,6 +32,16 @@ export function getRequestThumbprint(
     request: BaseAuthRequest,
     homeAccountId?: string
 ): RequestThumbprint {
+    const dpopResourceRequestContext =
+        request.authenticationScheme === AuthenticationScheme.DPOP
+            ? request.dpopResourceRequest ||
+              buildDpopResourceRequestContext(
+                  request.resourceRequestMethod,
+                  request.resourceRequestUri,
+                  request.correlationId
+              )
+            : undefined;
+
     return {
         clientId: clientId,
         authority: request.authority,
@@ -37,8 +49,13 @@ export function getRequestThumbprint(
         homeAccountIdentifier: homeAccountId,
         claims: request.claims,
         authenticationScheme: request.authenticationScheme,
-        resourceRequestMethod: request.resourceRequestMethod,
-        resourceRequestUri: request.resourceRequestUri,
+        resourceRequestMethod:
+            dpopResourceRequestContext?.normalizedMethod ||
+            request.resourceRequestMethod,
+        resourceRequestUri:
+            dpopResourceRequestContext?.normalizedUri ||
+            request.resourceRequestUri,
+        dpopJkt: request.dpopJkt,
         shrClaims: request.shrClaims,
         sshKid: request.sshKid,
         embeddedClientId:

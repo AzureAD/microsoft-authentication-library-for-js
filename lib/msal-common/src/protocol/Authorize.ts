@@ -240,6 +240,8 @@ export function getStandardAuthorizeRequestParameters(
         RequestParameterBuilder.addState(parameters, request.state);
     }
 
+    RequestParameterBuilder.addDpopJkt(parameters, request.dpopJkt);
+
     if (request.embeddedClientId) {
         RequestParameterBuilder.addBrokerParameters(
             parameters,

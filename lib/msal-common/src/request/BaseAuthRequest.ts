@@ -8,6 +8,7 @@ import type { AzureCloudOptions } from "../config/ClientConfiguration.js";
 import { StringDict } from "../utils/MsalTypes.js";
 import { StoreInCache } from "./StoreInCache.js";
 import { ShrOptions } from "../crypto/SignedHttpRequest.js";
+import type { DpopResourceRequestContext } from "../crypto/DpopProof.js";
 import { createClientAuthError } from "../error/ClientAuthError.js";
 import * as ClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
 
@@ -28,7 +29,7 @@ export type BaseAuthRequest = {
      */
     scopes: Array<string>;
     /**
-     * The type of token retrieved. Defaults to "Bearer". Can also be type "pop" or "SSH".
+     * The type of token retrieved. Defaults to "Bearer". Can also be type "pop", "dpop" or "ssh-cert".
      */
     authenticationScheme?: AuthenticationScheme;
     /**
@@ -55,6 +56,14 @@ export type BaseAuthRequest = {
      * URI that token will be used for. Used for proof-of-possession flows.
      */
     resourceRequestUri?: string;
+    /**
+     * DPoP resource request context containing raw and normalized request information.
+     */
+    dpopResourceRequest?: DpopResourceRequestContext;
+    /**
+     * RFC7638 JWK thumbprint to be sent as dpop_jkt on /authorize requests.
+     */
+    dpopJkt?: string;
     /**
      * A stringified JSON Web Key representing a public key that can be signed by an SSH certificate.
      */

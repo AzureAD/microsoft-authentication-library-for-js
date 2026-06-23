@@ -19,6 +19,7 @@ import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
+import { buildDpopResourceRequestContext } from "../crypto/DpopProof.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import {
@@ -495,6 +496,18 @@ export class RefreshTokenClient {
 
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             RequestParameterBuilder.addPopToken(parameters, reqCnfData);
+        } else if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            request.dpopResourceRequest =
+                request.dpopResourceRequest ||
+                buildDpopResourceRequestContext(
+                    request.resourceRequestMethod,
+                    request.resourceRequestUri,
+                    request.correlationId
+                );
+
+            RequestParameterBuilder.addDpopTokenType(parameters);
         } else if (
             request.authenticationScheme === Constants.AuthenticationScheme.SSH
         ) {
