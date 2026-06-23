@@ -1,7 +1,0 @@
-{
-    "type": "minor",
-    "comment": "Make correlationId a required parameter on AuthError and all derived error classes [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)",
-    "packageName": "@azure/msal-browser",
-    "email": "sameera.gajjarapu@microsoft.com",
-    "dependentChangeType": "patch"
-}
