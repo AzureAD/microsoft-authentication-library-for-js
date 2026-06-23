@@ -33,9 +33,8 @@ export const AUTHORIZATION_PENDING = "authorization_pending";
 export const NOT_APPLICABLE = "N/A";
 export const NOT_AVAILABLE = "Not Available";
 export const FORWARD_SLASH = "/";
-export const IMDS_ENDPOINT =
-    "http://169.254.169.254/metadata/instance/compute/location";
-export const IMDS_VERSION = "2020-06-01";
+export const IMDS_ENDPOINT = "http://169.254.169.254/metadata/instance/compute";
+export const IMDS_VERSION = "2021-02-01";
 export const IMDS_TIMEOUT = 2000;
 export const AZURE_REGION_AUTO_DISCOVER_FLAG = "TryAutoDetect";
 export const REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX = "login.microsoft.com";
