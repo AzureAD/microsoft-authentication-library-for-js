@@ -76,14 +76,6 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Nonce mismatch error.
 
-### `auth_time_not_found`
-
--   Max Age was requested and the ID token is missing the auth_time variable. auth_time is an optional claim and is not enabled by default - it must be enabled. See https://aka.ms/msaljs/optional-claims for more information.
-
-### `max_age_transpired`
-
--   Max Age is set to 0, or too much time has elapsed since the last end-user authentication.
-
 ### `multiple_matching_tokens`
 
 -   The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements such as authority or account.
