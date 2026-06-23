@@ -297,9 +297,7 @@ export function getTokenTypeFromAuthenticationScheme(
         case AuthenticationScheme.SSH:
             return TokenType.SSH;
         default:
-            throw new Error(
-                `Unexpected authentication scheme: ${authenticationScheme}`
-            );
+            throw new Error("Unexpected authentication scheme provided");
     }
 }
 

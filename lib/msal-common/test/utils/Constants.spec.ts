@@ -57,6 +57,6 @@ describe("Constants Unit Tests", () => {
             Constants.getTokenTypeFromAuthenticationScheme(
                 "invalid" as Constants.AuthenticationScheme
             )
-        ).toThrowError("Unexpected authentication scheme: invalid");
+        ).toThrowError("Unexpected authentication scheme provided");
     });
 });

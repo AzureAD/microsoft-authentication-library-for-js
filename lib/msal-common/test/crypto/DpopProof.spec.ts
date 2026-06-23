@@ -82,6 +82,20 @@ describe("DpopProofGenerator Unit Tests", () => {
                 ClientAuthErrorCodes.dpopResourceRequestMethodRequired
             )
         );
+
+        await expect(
+            generator.generateProof({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                resourceRequestMethod: "",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+                alg: TEST_CRYPTO_ALGORITHMS.rsa,
+                jwk: testJwk,
+            })
+        ).rejects.toThrowError(
+            getDefaultErrorMessage(
+                ClientAuthErrorCodes.dpopResourceRequestMethodRequired
+            )
+        );
     });
 
     it("Throws when the resource request uri is missing", async () => {
@@ -89,6 +103,20 @@ describe("DpopProofGenerator Unit Tests", () => {
             generator.generateProof({
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 resourceRequestMethod: "get",
+                alg: TEST_CRYPTO_ALGORITHMS.rsa,
+                jwk: testJwk,
+            })
+        ).rejects.toThrowError(
+            getDefaultErrorMessage(
+                ClientAuthErrorCodes.dpopResourceRequestUriRequired
+            )
+        );
+
+        await expect(
+            generator.generateProof({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                resourceRequestMethod: "get",
+                resourceRequestUri: "",
                 alg: TEST_CRYPTO_ALGORITHMS.rsa,
                 jwk: testJwk,
             })
