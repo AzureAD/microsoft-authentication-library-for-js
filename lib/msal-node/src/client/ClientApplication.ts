@@ -124,6 +124,13 @@ export abstract class ClientApplication {
      */
     async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
         this.logger.info("getAuthCodeUrl called", request.correlationId || "");
+        if ((request as Partial<CommonAuthorizationUrlRequest>).dpopJkt) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.dpopMissingResourceContext,
+                request.correlationId || this.cryptoProvider.createNewGuid()
+            );
+        }
+
         const validRequest: CommonAuthorizationUrlRequest = {
             ...request,
             ...(await this.initializeBaseRequest(request)),
@@ -602,22 +609,25 @@ export abstract class ClientApplication {
         const correlationId =
             authRequest.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.verbose("initializeRequestScopes called", correlationId);
-        if (isDpopTokenRequest(authRequest)) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.dpopMissingResourceContext,
-                correlationId
-            );
-        }
         // Default authenticationScheme to Bearer, log that POP isn't supported yet
-        if (
-            authRequest.authenticationScheme &&
-            authRequest.authenticationScheme ===
-                Constants.AuthenticationScheme.POP
-        ) {
-            this.logger.verbose(
-                "Authentication Scheme 'pop' is not supported yet, setting Authentication Scheme to 'Bearer' for request",
-                correlationId
-            );
+        const authenticationScheme = authRequest.authenticationScheme;
+        if (authenticationScheme) {
+            if (
+                authenticationScheme.toLowerCase() ===
+                Constants.AuthenticationScheme.DPOP
+            ) {
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.dpopMissingResourceContext,
+                    correlationId
+                );
+            } else if (
+                authenticationScheme === Constants.AuthenticationScheme.POP
+            ) {
+                this.logger.verbose(
+                    "Authentication Scheme 'pop' is not supported yet, setting Authentication Scheme to 'Bearer' for request",
+                    correlationId
+                );
+            }
         }
 
         authRequest.authenticationScheme =
@@ -699,12 +709,4 @@ export abstract class ClientApplication {
     clearCache(): void {
         this.storage.clear();
     }
-}
-
-function isDpopTokenRequest(authRequest: Partial<BaseAuthRequest>): boolean {
-    return (
-        authRequest.authenticationScheme?.toLowerCase() ===
-            Constants.AuthenticationScheme.DPOP ||
-        !!(authRequest as Partial<CommonAuthorizationUrlRequest>).dpopJkt
-    );
 }
