@@ -5811,13 +5811,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     RefreshTokenClient.prototype,
                     "acquireTokenByRefreshToken"
                 )
-                .mockImplementation(async (request: CommonSilentFlowRequest) => {
-                    await new Promise((resolve) => setTimeout(resolve, 50));
-                    return {
-                        ...baseTokenResponse,
-                        accessToken: `token-for(${request.resource})`,
-                    };
-                });
+                .mockImplementation(
+                    async (request: CommonSilentFlowRequest) => {
+                        await new Promise((resolve) => setTimeout(resolve, 50));
+                        return {
+                            ...baseTokenResponse,
+                            accessToken: `token-for(${request.resource})`,
+                        };
+                    }
+                );
 
             const requestA: SilentRequest = {
                 scopes: ["mcp.invoke"],
