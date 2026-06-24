@@ -94,7 +94,7 @@ const authCodeOrNativeAccountIdRequired = "auth_code_or_nativeAccountId_required
 // @public (undocumented)
 const authCodeRequired = "auth_code_required";
 
-// @public
+// @public (undocumented)
 export type AuthCodeUrlRequest = Partial<CommonAuthorizationUrlRequest> & {
     codeChallenge: string;
 };
