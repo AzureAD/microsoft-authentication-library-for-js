@@ -94,6 +94,11 @@ const authCodeOrNativeAccountIdRequired = "auth_code_or_nativeAccountId_required
 // @public (undocumented)
 const authCodeRequired = "auth_code_required";
 
+// @public
+export type AuthCodeUrlRequest = Partial<CommonAuthorizationUrlRequest> & {
+    codeChallenge: string;
+};
+
 export { AuthenticationHeaderParser }
 
 // @public (undocumented)
@@ -411,6 +416,8 @@ export { ClientConfigurationError }
 
 export { ClientConfigurationErrorCodes }
 
+export { CommonAuthorizationUrlRequest }
+
 // @public
 export type Configuration = {
     auth: BrowserAuthOptions;
@@ -548,6 +555,9 @@ const failedToParseHeaders = "failed_to_parse_headers";
 
 // @public (undocumented)
 const failedToParseResponse = "failed_to_parse_response";
+
+// @public
+export function getAuthCodeUrl(config: Configuration, request: AuthCodeUrlRequest, performanceClient?: IPerformanceClient): Promise<string>;
 
 // @public
 function getCurrentUri(): string;
