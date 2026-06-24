@@ -6,6 +6,7 @@
 import { INetworkModule } from "../network/INetworkModule.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
 import { IMDSBadResponse } from "../response/IMDSBadResponse.js";
+import { ImdsComputeResponse } from "../response/ImdsComputeResponse.js";
 import * as Constants from "../utils/Constants.js";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata.js";
 import { ImdsOptions } from "./ImdsOptions.js";
@@ -69,9 +70,12 @@ export class RegionDiscovery {
                 if (
                     localIMDSVersionResponse.status === Constants.HTTP_SUCCESS
                 ) {
-                    autodetectedRegionName = localIMDSVersionResponse.body;
-                    regionDiscoveryMetadata.region_source =
-                        Constants.RegionDiscoverySources.IMDS;
+                    autodetectedRegionName =
+                        localIMDSVersionResponse.body?.location;
+                    if (autodetectedRegionName) {
+                        regionDiscoveryMetadata.region_source =
+                            Constants.RegionDiscoverySources.IMDS;
+                    }
                 }
 
                 // If the response using the local IMDS version failed, try to fetch the current version of IMDS and retry.
@@ -104,9 +108,11 @@ export class RegionDiscovery {
                         Constants.HTTP_SUCCESS
                     ) {
                         autodetectedRegionName =
-                            currentIMDSVersionResponse.body;
-                        regionDiscoveryMetadata.region_source =
-                            Constants.RegionDiscoverySources.IMDS;
+                            currentIMDSVersionResponse.body?.location;
+                        if (autodetectedRegionName) {
+                            regionDiscoveryMetadata.region_source =
+                                Constants.RegionDiscoverySources.IMDS;
+                        }
                     }
                 }
             } catch (e) {
@@ -131,15 +137,16 @@ export class RegionDiscovery {
     /**
      * Make the call to the IMDS endpoint
      *
-     * @param imdsEndpointUrl
-     * @returns Promise<NetworkResponse<string>>
+     * @param version
+     * @param options
+     * @returns Promise<NetworkResponse<ImdsComputeResponse>>
      */
     private async getRegionFromIMDS(
         version: string,
         options: ImdsOptions
-    ): Promise<NetworkResponse<string>> {
-        return this.networkInterface.sendGetRequestAsync<string>(
-            `${Constants.IMDS_ENDPOINT}?api-version=${version}&format=text`,
+    ): Promise<NetworkResponse<ImdsComputeResponse>> {
+        return this.networkInterface.sendGetRequestAsync<ImdsComputeResponse>(
+            `${Constants.IMDS_ENDPOINT}?api-version=${version}`,
             options,
             Constants.IMDS_TIMEOUT
         );

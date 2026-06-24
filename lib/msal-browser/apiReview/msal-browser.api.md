@@ -70,9 +70,6 @@ const AcquireTokenRedirect = "acquireTokenRedirect";
 // @public
 const AcquireTokenSilent = "acquireTokenSilent";
 
-// @public (undocumented)
-const addClientCapabilitiesToClaims: typeof RequestParameterBuilder.addClientCapabilitiesToClaims;
-
 // @public
 export const ApiId: {
     readonly acquireTokenRedirect: 861;
@@ -162,7 +159,7 @@ export type BrokerConnectionEvent = {
 
 // @public
 export class BrowserAuthError extends AuthError {
-    constructor(errorCode: string, subError?: string);
+    constructor(errorCode: string, correlationId: string, subError?: string);
 }
 
 declare namespace BrowserAuthErrorCodes {
@@ -262,7 +259,7 @@ export type BrowserConfiguration = {
 
 // @public
 export class BrowserConfigurationAuthError extends AuthError {
-    constructor(errorCode: string, errorMessage?: string);
+    constructor(errorCode: string, correlationId: string, errorMessage?: string);
 }
 
 declare namespace BrowserConfigurationAuthErrorCodes {
@@ -364,10 +361,13 @@ declare namespace BrowserUtils {
         WaitForBridgeRequest,
         invoke,
         invokeAsync,
-        addClientCapabilitiesToClaims
+        buildMergedClaims
     }
 }
 export { BrowserUtils }
+
+// @public (undocumented)
+const buildMergedClaims: typeof RequestParameterBuilder.buildMergedClaims;
 
 // @public (undocumented)
 export const CacheLookupPolicy: {
@@ -553,7 +553,7 @@ const failedToParseResponse = "failed_to_parse_response";
 function getCurrentUri(): string;
 
 // @public
-function getHomepage(): string;
+function getHomepage(correlationId?: string): string;
 
 // @public (undocumented)
 const getRequestFailed = "get_request_failed";
@@ -1100,7 +1100,7 @@ const uninitializedPublicClientApplication = "uninitialized_public_client_applic
 const userCancelled = "user_cancelled";
 
 // @public (undocumented)
-export const version = "5.14.0";
+export const version = "5.15.0";
 
 // @public (undocumented)
 const WaitForBridgeLateResponse = "waitForBridgeLateResponse";

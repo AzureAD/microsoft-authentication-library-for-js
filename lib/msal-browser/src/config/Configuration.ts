@@ -360,7 +360,8 @@ export function buildConfiguration(
         logger.warning(
             JSON.stringify(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.cannotSetOIDCOptions
+                    ClientConfigurationErrorCodes.cannotSetOIDCOptions,
+                    ""
                 )
             ),
             ""
@@ -374,7 +375,8 @@ export function buildConfiguration(
         providedSystemOptions?.allowPlatformBroker
     ) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.cannotAllowPlatformBroker
+            ClientConfigurationErrorCodes.cannotAllowPlatformBroker,
+            ""
         );
     }
 

@@ -29,6 +29,10 @@ Finally, if neither the `oid` or `sub` claim is present in the ID Token claims, 
 
 We add the `claims` retrieved from the idToken with an account. Please note that client credential grant flow, referenced [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow) does not have an idToken and hence, this property will not be populated for that particular flow.
 
+### kmsi
+
+The `kmsi` property is an optional boolean that indicates whether the Keep Me Signed In (KMSI) flag is set for the account. It is derived from the `signin_state` claim in the ID token — specifically, `kmsi` is `true` when `signin_state` contains `"kmsi"` or `"dvc_dmjd"` (domain-joined device). If the `signin_state` claim is not present, `kmsi` defaults to `false`.
+
 ## Account retrieval APIs
 
 For detailed usage examples of account retrieval APIs, please visit the platform specific documentation on accounts:

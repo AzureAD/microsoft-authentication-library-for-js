@@ -135,12 +135,14 @@ export class HttpClient implements INetworkModule {
             if (error instanceof Error && error.name === "AbortError") {
                 throw createAuthError(
                     ClientAuthErrorCodes.networkError,
+                    "",
                     "Request timeout"
                 );
             }
 
             const baseAuthError: AuthError = createAuthError(
                 ClientAuthErrorCodes.networkError,
+                "",
                 `Network request failed: ${
                     error instanceof Error ? error.message : "unknown"
                 }`
@@ -167,6 +169,7 @@ export class HttpClient implements INetworkModule {
         } catch (error) {
             throw createAuthError(
                 ClientAuthErrorCodes.tokenParsingError,
+                "",
                 `Failed to parse response: ${
                     error instanceof Error ? error.message : "unknown"
                 }`

@@ -125,7 +125,7 @@ export class PopTokenGenerator {
         } = request;
 
         const resourceUrlString = resourceRequestUri
-            ? new UrlString(resourceRequestUri)
+            ? new UrlString(resourceRequestUri, request.correlationId)
             : undefined;
         const resourceUrlComponents = resourceUrlString?.getUrlComponents();
         return this.cryptoUtils.signJwt(

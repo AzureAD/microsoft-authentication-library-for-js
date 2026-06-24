@@ -18,7 +18,6 @@ import {
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
 import { ClientInfo } from "../account/ClientInfo.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { StringUtils } from "../utils/StringUtils.js";
 
 export function instrumentBrokerParams(
     parameters: Map<string, string>,
@@ -84,6 +83,7 @@ export function addNativeBroker(parameters: Map<string, string>): void {
 export function addScopes(
     parameters: Map<string, string>,
     scopes: string[],
+    correlationId: string,
     addOidcScopes: boolean = true,
     defaultScopes: Array<string> = Constants.OIDC_DEFAULT_SCOPES
 ): void {
@@ -98,7 +98,7 @@ export function addScopes(
     const requestScopes = addOidcScopes
         ? [...(scopes || []), ...defaultScopes]
         : scopes || [];
-    const scopeSet = new ScopeSet(requestScopes);
+    const scopeSet = new ScopeSet(requestScopes, correlationId);
     parameters.set(AADServerParamKeys.SCOPE, scopeSet.printScopes());
 }
 
@@ -205,12 +205,14 @@ export function addSid(parameters: Map<string, string>, sid: string): void {
  * Adds claims to request parameters, conditionally excluding clientCapabilities
  * when skipBrokerClaims is true and a brokered flow is in effect.
  * @param parameters - The request parameters map
+ * @param correlationId - The request correlation id
  * @param claims - The claims string from the request
  * @param clientCapabilities - The client capabilities from configuration
  * @param skipBrokerClaims - When true and BROKER_CLIENT_ID is present, excludes clientCapabilities from claims
  */
 export function addClaims(
     parameters: Map<string, string>,
+    correlationId: string,
     claims?: string,
     clientCapabilities?: Array<string>,
     skipBrokerClaims?: boolean
@@ -221,23 +223,8 @@ export function addClaims(
             ? undefined
             : clientCapabilities;
 
-    if (
-        !StringUtils.isEmptyObj(claims) ||
-        (configClaims && configClaims.length > 0)
-    ) {
-        const mergedClaims = addClientCapabilitiesToClaims(
-            claims,
-            configClaims
-        );
-        try {
-            JSON.parse(mergedClaims);
-        } catch (e) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaims
-            );
-        }
-        parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
-    }
+    const mergedClaims = buildMergedClaims(claims, configClaims, correlationId);
+    parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
 }
 
 /**
@@ -335,7 +322,8 @@ export function addCodeChallengeParams(
         );
     } else {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.pkceParamsMissing
+            ClientConfigurationErrorCodes.pkceParamsMissing,
+            ""
         );
     }
 }
@@ -493,9 +481,27 @@ export function addExtraParameters(
     });
 }
 
-export function addClientCapabilitiesToClaims(
+/**
+ * Default optional idToken claims requested on all auth requests.
+ * signin_state enables KMSI detection; login_hint enables login hint propagation.
+ */
+const DEFAULT_ID_TOKEN_CLAIMS: Record<string, { essential: false }> = {
+    [Constants.ClaimsRequestKeys.SIGNIN_STATE]: { essential: false },
+    [Constants.ClaimsRequestKeys.LOGIN_HINT]: { essential: false },
+};
+
+/**
+ * Parses claims JSON, merges default optional idToken claims (signin_state, login_hint),
+ * and appends client capabilities (xms_cc) to the access_token section.
+ * Does not overwrite idToken claims already specified by the caller.
+ * @param claims - Existing claims JSON string from the request (may be undefined)
+ * @param clientCapabilities - Client capabilities array from configuration
+ * @returns Merged claims JSON string
+ */
+export function buildMergedClaims(
     claims?: string,
-    clientCapabilities?: Array<string>
+    clientCapabilities?: Array<string>,
+    correlationId: string = ""
 ): string {
     let mergedClaims: object;
 
@@ -504,17 +510,44 @@ export function addClientCapabilitiesToClaims(
         mergedClaims = {};
     } else {
         try {
-            mergedClaims = JSON.parse(claims);
+            const parsed = JSON.parse(claims);
+            if (
+                typeof parsed !== "object" ||
+                parsed === null ||
+                Array.isArray(parsed)
+            ) {
+                throw new Error("Claims must be a JSON object");
+            }
+            mergedClaims = parsed;
         } catch (e) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaims
+                ClientConfigurationErrorCodes.invalidClaims,
+                correlationId
             );
         }
     }
 
+    // Add default optional idToken claims
+    if (
+        !Object.prototype.hasOwnProperty.call(
+            mergedClaims,
+            Constants.ClaimsRequestKeys.ID_TOKEN
+        )
+    ) {
+        mergedClaims[Constants.ClaimsRequestKeys.ID_TOKEN] = {};
+    }
+    const idTokenClaims = mergedClaims[Constants.ClaimsRequestKeys.ID_TOKEN];
+    for (const [key, value] of Object.entries(DEFAULT_ID_TOKEN_CLAIMS)) {
+        if (!(key in idTokenClaims)) {
+            idTokenClaims[key] = value;
+        }
+    }
+
+    // Add client capabilities
     if (clientCapabilities && clientCapabilities.length > 0) {
         if (
-            !mergedClaims.hasOwnProperty(
+            !Object.prototype.hasOwnProperty.call(
+                mergedClaims,
                 Constants.ClaimsRequestKeys.ACCESS_TOKEN
             )
         ) {
@@ -597,24 +630,14 @@ export function addServerTelemetry(
     parameters: Map<string, string>,
     serverTelemetryManager: ServerTelemetryManager
 ): void {
-    const currentTelemetryHeader =
-        serverTelemetryManager.generateCurrentRequestHeaderValue();
-    const lastTelemetryHeader =
-        serverTelemetryManager.generateLastRequestHeaderValue();
-
-    if (currentTelemetryHeader) {
-        parameters.set(
-            AADServerParamKeys.X_CLIENT_CURR_TELEM,
-            currentTelemetryHeader
-        );
-    }
-
-    if (lastTelemetryHeader) {
-        parameters.set(
-            AADServerParamKeys.X_CLIENT_LAST_TELEM,
-            lastTelemetryHeader
-        );
-    }
+    parameters.set(
+        AADServerParamKeys.X_CLIENT_CURR_TELEM,
+        serverTelemetryManager.generateCurrentRequestHeaderValue()
+    );
+    parameters.set(
+        AADServerParamKeys.X_CLIENT_LAST_TELEM,
+        serverTelemetryManager.generateLastRequestHeaderValue()
+    );
 }
 
 /**

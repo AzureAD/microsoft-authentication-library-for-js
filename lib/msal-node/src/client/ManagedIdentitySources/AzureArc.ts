@@ -227,7 +227,8 @@ export class AzureArc extends BaseManagedIdentitySource {
             managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
         ) {
             throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.unableToCreateAzureArc
+                ManagedIdentityErrorCodes.unableToCreateAzureArc,
+                ""
             );
         }
 
@@ -310,12 +311,14 @@ export class AzureArc extends BaseManagedIdentitySource {
                 originalResponse.headers["www-authenticate"];
             if (!wwwAuthHeader) {
                 throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing
+                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing,
+                    ""
                 );
             }
             if (!wwwAuthHeader.includes("Basic realm=")) {
                 throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat
+                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat,
+                    ""
                 );
             }
 
@@ -326,7 +329,8 @@ export class AzureArc extends BaseManagedIdentitySource {
                 !SUPPORTED_AZURE_ARC_PLATFORMS.hasOwnProperty(process.platform)
             ) {
                 throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.platformNotSupported
+                    ManagedIdentityErrorCodes.platformNotSupported,
+                    ""
                 );
             }
 
@@ -340,7 +344,8 @@ export class AzureArc extends BaseManagedIdentitySource {
             const fileName: string = path.basename(secretFilePath);
             if (!fileName.endsWith(".key")) {
                 throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidFileExtension
+                    ManagedIdentityErrorCodes.invalidFileExtension,
+                    ""
                 );
             }
 
@@ -351,7 +356,8 @@ export class AzureArc extends BaseManagedIdentitySource {
              */
             if (expectedSecretFilePath + fileName !== secretFilePath) {
                 throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidFilePath
+                    ManagedIdentityErrorCodes.invalidFilePath,
+                    ""
                 );
             }
 
@@ -361,13 +367,15 @@ export class AzureArc extends BaseManagedIdentitySource {
                 secretFileSize = await statSync(secretFilePath).size;
             } catch (e) {
                 throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.unableToReadSecretFile
+                    ManagedIdentityErrorCodes.unableToReadSecretFile,
+                    ""
                 );
             }
             // throw an error if the secret file's size is greater than 4096 bytes
             if (secretFileSize > AZURE_ARC_SECRET_FILE_MAX_SIZE_BYTES) {
                 throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidSecret
+                    ManagedIdentityErrorCodes.invalidSecret,
+                    ""
                 );
             }
 
@@ -380,7 +388,8 @@ export class AzureArc extends BaseManagedIdentitySource {
                 );
             } catch (e) {
                 throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.unableToReadSecretFile
+                    ManagedIdentityErrorCodes.unableToReadSecretFile,
+                    ""
                 );
             }
             const authHeaderValue = `Basic ${secret}`;
@@ -404,7 +413,8 @@ export class AzureArc extends BaseManagedIdentitySource {
                     throw error;
                 } else {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.networkError
+                        ClientAuthErrorCodes.networkError,
+                        ""
                     );
                 }
             }

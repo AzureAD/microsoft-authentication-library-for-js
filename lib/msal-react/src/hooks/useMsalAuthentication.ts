@@ -136,7 +136,9 @@ export function useMsalAuthentication(
 
                     default:
                         const invalidTypeError =
-                            ReactAuthError.createInvalidInteractionTypeError();
+                            ReactAuthError.createInvalidInteractionTypeError(
+                                loginRequest?.correlationId
+                            );
                         if (mounted.current) {
                             setResponse([null, invalidTypeError]);
                         }
@@ -228,7 +230,9 @@ export function useMsalAuthentication(
                             return login(fallbackInteractionType, tokenRequest);
                         } else {
                             const fallbackError =
-                                ReactAuthError.createUnableToFallbackToInteractionError();
+                                ReactAuthError.createUnableToFallbackToInteractionError(
+                                    correlationId
+                                );
                             logger.error(
                                 "useMsalAuthentication - Interaction required but is already in progress. Please try again, if needed, after interaction completes.",
                                 correlationId
