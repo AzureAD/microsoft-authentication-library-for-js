@@ -275,7 +275,8 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 )
             ).rejects.toMatchObject(
                 createManagedIdentityError(
-                    ManagedIdentityErrorCodes.unableToCreateAzureArc
+                    ManagedIdentityErrorCodes.unableToCreateAzureArc,
+                    ""
                 )
             );
         });
@@ -303,7 +304,8 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 )
             ).rejects.toMatchObject(
                 createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidFileExtension
+                    ManagedIdentityErrorCodes.invalidFileExtension,
+                    ""
                 )
             );
         });
@@ -326,7 +328,8 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 )
             ).rejects.toMatchObject(
                 createManagedIdentityError(
-                    ManagedIdentityErrorCodes.platformNotSupported
+                    ManagedIdentityErrorCodes.platformNotSupported,
+                    ""
                 )
             );
 
@@ -358,7 +361,8 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 )
             ).rejects.toMatchObject(
                 createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidFilePath
+                    ManagedIdentityErrorCodes.invalidFilePath,
+                    ""
                 )
             );
         });
@@ -381,7 +385,8 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 )
             ).rejects.toMatchObject(
                 createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidSecret
+                    ManagedIdentityErrorCodes.invalidSecret,
+                    ""
                 )
             );
         });
@@ -407,7 +412,8 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 )
             ).rejects.toMatchObject(
                 createManagedIdentityError(
-                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing
+                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing,
+                    ""
                 )
             );
         });
@@ -435,7 +441,8 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 )
             ).rejects.toMatchObject(
                 createManagedIdentityError(
-                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat
+                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat,
+                    ""
                 )
             );
         });
@@ -458,7 +465,8 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 )
             ).rejects.toMatchObject(
                 createManagedIdentityError(
-                    ManagedIdentityErrorCodes.unableToReadSecretFile
+                    ManagedIdentityErrorCodes.unableToReadSecretFile,
+                    ""
                 )
             );
 
@@ -483,7 +491,8 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 )
             ).rejects.toMatchObject(
                 createManagedIdentityError(
-                    ManagedIdentityErrorCodes.unableToReadSecretFile
+                    ManagedIdentityErrorCodes.unableToReadSecretFile,
+                    ""
                 )
             );
         });
@@ -502,7 +511,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     managedIdentityNetworkErrorClient400.sendGetRequestAsync()
                 );
 
-            let serverError: ServerError = new ServerError();
+            let serverError: ServerError = new ServerError("", "");
             try {
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams

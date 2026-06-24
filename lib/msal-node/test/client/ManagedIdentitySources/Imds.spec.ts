@@ -36,8 +36,10 @@ import {
 } from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     DEFAULT_MANAGED_IDENTITY_ID,
+    ManagedIdentityHeaders,
     ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
+    Constants as NodeConstants,
 } from "../../../src/utils/Constants.js";
 import {
     AccessTokenEntity,
@@ -62,6 +64,11 @@ import { NodeStorage } from "../../../src/cache/NodeStorage.js";
 import { CacheKVStore } from "../../../src/cache/serializer/SerializerTypes.js";
 import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
 import { ImdsRetryPolicy } from "../../../src/retry/ImdsRetryPolicy.js";
+import { version as packageVersion } from "../../../src/packageMetadata.js";
+
+const EXPECTED_SKU = NodeConstants.MSAL_SKU;
+const UUID_REGEX =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     // IMDS doesn't need environment variables because there is a default IMDS endpoint
@@ -115,6 +122,17 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
                 )
             ).toBe(false);
+
+            const headers = sendGetRequestAsyncSpy.mock.lastCall[1].headers;
+            expect(headers[ManagedIdentityHeaders.CLIENT_SKU]).toBe(
+                EXPECTED_SKU
+            );
+            expect(headers[ManagedIdentityHeaders.CLIENT_VER]).toBe(
+                packageVersion
+            );
+            expect(headers[ManagedIdentityHeaders.CLIENT_REQUEST_ID]).toMatch(
+                UUID_REGEX
+            );
         });
 
         test("acquires a User Assigned Object Id token", async () => {
@@ -169,6 +187,17 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 )
             ).toEqual(MANAGED_IDENTITY_RESOURCE_ID);
 
+            const headers = sendGetRequestAsyncSpy.mock.lastCall[1].headers;
+            expect(headers[ManagedIdentityHeaders.CLIENT_SKU]).toBe(
+                EXPECTED_SKU
+            );
+            expect(headers[ManagedIdentityHeaders.CLIENT_VER]).toBe(
+                packageVersion
+            );
+            expect(headers[ManagedIdentityHeaders.CLIENT_REQUEST_ID]).toMatch(
+                UUID_REGEX
+            );
+
             jest.restoreAllMocks();
         });
     });
@@ -185,6 +214,11 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
 
         test("acquires a token", async () => {
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
@@ -193,6 +227,17 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+            );
+
+            const headers = sendGetRequestAsyncSpy.mock.lastCall[1].headers;
+            expect(headers[ManagedIdentityHeaders.CLIENT_SKU]).toBe(
+                EXPECTED_SKU
+            );
+            expect(headers[ManagedIdentityHeaders.CLIENT_VER]).toBe(
+                packageVersion
+            );
+            expect(headers[ManagedIdentityHeaders.CLIENT_REQUEST_ID]).toMatch(
+                UUID_REGEX
             );
         });
 
@@ -409,7 +454,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeBeforeNetworkRequest = new Date();
 
-                let serverError: ServerError = new ServerError();
+                let serverError: ServerError = new ServerError("", "");
                 try {
                     await managedIdentityApplication.acquireToken(
                         managedIdentityRequestParams
@@ -463,7 +508,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeBeforeNetworkRequest = new Date();
 
-                let serverError: ServerError = new ServerError();
+                let serverError: ServerError = new ServerError("", "");
                 try {
                     await managedIdentityApplication.acquireToken(
                         managedIdentityRequestParams
@@ -557,7 +602,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         managedIdentityNetworkErrorClient400.sendGetRequestAsync()
                     );
 
-                let serverError: ServerError = new ServerError();
+                let serverError: ServerError = new ServerError("", "");
                 try {
                     await managedIdentityApplication.acquireToken(
                         managedIdentityRequestParams
@@ -596,7 +641,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         managedIdentityNetworkErrorClientDefault500.sendGetRequestAsync()
                     );
 
-                let serverError: ServerError = new ServerError();
+                let serverError: ServerError = new ServerError("", "");
                 try {
                     await managedIdentityApplicationNoRetry.acquireToken(
                         managedIdentityRequestParams
@@ -769,7 +814,8 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     [MANAGED_IDENTITY_RESOURCE_BASE].toString(), // scopes
                     nowSeconds + 3600, // expiresOn
                     nowSeconds + 3600, // extExpiresOn
-                    mockCrypto.base64Decode, // cryptoUtils
+                    mockCrypto.base64Decode,
+                    "", // cryptoUtils
                     expiredRefreshOn // refreshOn
                 );
             jest.spyOn(
@@ -1005,7 +1051,8 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 })
             ).rejects.toMatchObject(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.urlEmptyError
+                    ClientConfigurationErrorCodes.urlEmptyError,
+                    ""
                 )
             );
         });
@@ -1026,7 +1073,8 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 new ManagedIdentityApplication(badUserAssignedClientIdConfig);
             }).toThrow(
                 createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType,
+                    ""
                 )
             );
         });
@@ -1038,7 +1086,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     managedIdentityNetworkErrorClient400.sendGetRequestAsync()
                 );
 
-            let serverError: ServerError = new ServerError();
+            let serverError: ServerError = new ServerError("", "");
             try {
                 await systemAssignedManagedIdentityApplication.acquireToken(
                     managedIdentityRequestParams

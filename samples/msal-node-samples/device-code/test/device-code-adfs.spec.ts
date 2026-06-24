@@ -35,8 +35,8 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/ADFS.json");
 
-describe.skip("Device Code ADFS 2019 Tests", () => {
-    jest.setTimeout(45000);
+describe("Device Code ADFS 2019 Tests", () => {
+    jest.setTimeout(90000);
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -86,7 +86,7 @@ describe.skip("Device Code ADFS 2019 Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(5000);
+            page.setDefaultTimeout(30000);
         });
 
         afterEach(async () => {
@@ -112,7 +112,18 @@ describe.skip("Device Code ADFS 2019 Tests", () => {
                     username,
                     accountPwd
                 );
-                await page.waitForSelector("#message");
+                // ADFS chains multiple redirects (ADFS → AAD → device auth success)
+                // which can briefly detach the current frame between navigations.
+                // Retry until the success page settles.
+                for (let i = 0; i < 5; i++) {
+                    try {
+                        await page.waitForSelector("#message", { timeout: 15000 });
+                        break;
+                    } catch (e) {
+                        if (i >= 4 || !String(e).includes("detached")) throw e;
+                        await new Promise((r) => setTimeout(r, 1000));
+                    }
+                }
                 await screenshot.takeScreenshot(
                     page,
                     "SuccessfulDeviceCodeMessage"

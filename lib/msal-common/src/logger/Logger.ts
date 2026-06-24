@@ -93,7 +93,7 @@ function addLogToCache(
         // Remove LRU (first entry) if capacity exceeded
         if (correlationCache.size > CACHE_CAPACITY) {
             const firstKey = correlationCache.keys().next().value;
-            if (firstKey) {
+            if (firstKey !== undefined) {
                 correlationCache.delete(firstKey);
             }
         }
@@ -147,25 +147,40 @@ export function getCachedCorrelationIds(): string[] {
 }
 
 /**
- * Checks if a string is already a hashed logging string (6 alphanumeric characters)
+ * Extracts the leading minification hash from a log message, if present.
+ *
+ * Minified messages are produced by the logger-minify rollup plugin and are
+ * either a bare 6-character alphanumeric hash, or that hash followed by a space
+ * and runtime variables appended for local (console) logging, e.g.
+ * "abc123 user-1 popup". Only the leading hash is returned so that telemetry
+ * never captures the appended variables. Returns null when the message is not
+ * a minified message.
  */
-function isHashedString(str: string): boolean {
-    if (str.length !== 6) {
-        return false;
+function getMessageHash(str: string): string | null {
+    if (str.length < 6) {
+        return null;
     }
 
-    for (let i = 0; i < str.length; i++) {
+    /*
+     * If the message is longer than the hash, the hash must be delimited by a
+     * space (the separator the plugin inserts before appended variables).
+     */
+    if (str.length > 6 && str[6] !== " ") {
+        return null;
+    }
+
+    for (let i = 0; i < 6; i++) {
         const char = str[i];
         const isAlphaNumeric =
             (char >= "a" && char <= "z") ||
             (char >= "A" && char <= "Z") ||
             (char >= "0" && char <= "9");
         if (!isAlphaNumeric) {
-            return false;
+            return null;
         }
     }
 
-    return true;
+    return str.substring(0, 6);
 }
 
 /**
@@ -241,11 +256,11 @@ export class Logger {
         options: LoggerMessageOptions
     ): void {
         const correlationId = options.correlationId;
-        const isHashedInput = isHashedString(logMessage);
+        const messageHash = getMessageHash(logMessage);
 
-        if (isHashedInput) {
+        if (messageHash) {
             const loggedMessage: LoggedMessage = {
-                hash: logMessage,
+                hash: messageHash,
                 level: options.logLevel,
                 containsPii: options.containsPii || false,
                 milliseconds: 0, // Will be calculated in addLogToCache

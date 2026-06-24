@@ -16,6 +16,7 @@ import { RefreshTokenEntity } from "../entities/RefreshTokenEntity.js";
 import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity.js";
 import { StoreInCache } from "../../request/StoreInCache.js";
 
+/** @internal */
 export interface ICacheManager {
     /**
      * fetch the account entity from the platform cache

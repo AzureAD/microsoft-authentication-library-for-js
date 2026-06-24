@@ -3,50 +3,50 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AuthenticationScheme,
-    CredentialType,
-} from "../../src/utils/Constants.js";
-import { AccountEntity } from "../../src/cache/entities/AccountEntity.js";
-import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity.js";
-import { CacheRecord } from "../../src/cache/entities/CacheRecord.js";
-import { AccountFilter } from "../../src/cache/utils/CacheTypes.js";
-import {
-    TEST_CONFIG,
-    TEST_TOKENS,
-    ID_TOKEN_CLAIMS,
-    CACHE_MOCKS,
-    TEST_POP_VALUES,
-    TEST_SSH_VALUES,
-    TEST_CRYPTO_VALUES,
-    TEST_ACCOUNT_INFO,
-    TEST_TOKEN_LIFETIMES,
-    ID_TOKEN_ALT_CLAIMS,
-    GUEST_ID_TOKEN_CLAIMS,
-    RANDOM_TEST_GUID,
-} from "../test_kit/StringConstants.js";
-import { AccountInfo } from "../../src/account/AccountInfo.js";
-import { MockCache } from "./MockCache.js";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
-import {
-    generateAccountKey,
-    generateCredentialKey,
-    mockCrypto,
-} from "../client/ClientTestUtils.js";
-import { TestError } from "../test_kit/TestErrors.js";
+import { AccountInfo } from "../../src/account/AccountInfo.js";
+import * as authorityMetadata from "../../src/authority/AuthorityMetadata.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
-import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity.js";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity.js";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity.js";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity.js";
-import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity.js";
+import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity.js";
+import { CacheRecord } from "../../src/cache/entities/CacheRecord.js";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity.js";
+import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
+import { AccountFilter } from "../../src/cache/utils/CacheTypes.js";
 import {
     CacheHelpers,
     CommonSilentFlowRequest,
     ScopeSet,
 } from "../../src/index.js";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
-import * as authorityMetadata from "../../src/authority/AuthorityMetadata.js";
+import {
+    AuthenticationScheme,
+    CredentialType,
+} from "../../src/utils/Constants.js";
+import {
+    generateAccountKey,
+    generateCredentialKey,
+    mockCrypto,
+} from "../client/ClientTestUtils.js";
+import {
+    CACHE_MOCKS,
+    GUEST_ID_TOKEN_CLAIMS,
+    ID_TOKEN_ALT_CLAIMS,
+    ID_TOKEN_CLAIMS,
+    RANDOM_TEST_GUID,
+    TEST_ACCOUNT_INFO,
+    TEST_CONFIG,
+    TEST_CRYPTO_VALUES,
+    TEST_POP_VALUES,
+    TEST_SSH_VALUES,
+    TEST_TOKEN_LIFETIMES,
+    TEST_TOKENS,
+} from "../test_kit/StringConstants.js";
+import { TestError } from "../test_kit/TestErrors.js";
+import { MockCache } from "./MockCache.js";
 
 describe("CacheManager.ts test cases", () => {
     const mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockCrypto, {
@@ -169,7 +169,8 @@ describe("CacheManager.ts test cases", () => {
                 "User.Read",
                 TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
                 TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
-                mockCrypto.base64Decode
+                mockCrypto.base64Decode,
+                ""
             );
 
             const atKey = generateCredentialKey(at);
@@ -475,6 +476,77 @@ describe("CacheManager.ts test cases", () => {
                 ).toBe(account2.username);
             });
 
+            it("Matches accounts by username when tenant profile upn is undefined", async () => {
+                // Regression test: when TenantProfile.upn is undefined (the common case for AAD v2 tokens),
+                // the username filter should still correctly filter accounts by preferred_username.
+                const claimsWithoutUpn = {
+                    ...ID_TOKEN_CLAIMS,
+                    oid: "00000000-0000-0000-0000-111111111111",
+                    tid: "00000000-0000-0000-0000-222222222222",
+                    preferred_username: "noUpnUser@microsoft.com",
+                    upn: undefined,
+                };
+                const accountWithoutUpn =
+                    buildAccountFromIdTokenClaims(claimsWithoutUpn);
+                await mockCache.cacheManager.setAccount(accountWithoutUpn);
+
+                // Should match the account by its preferred_username
+                const matchingFilter = {
+                    username: "noUpnUser@microsoft.com",
+                };
+                const matchedAccounts = mockCache.cacheManager.getAllAccounts(
+                    matchingFilter,
+                    RANDOM_TEST_GUID
+                );
+                expect(matchedAccounts).toHaveLength(1);
+                expect(matchedAccounts[0].username).toBe(
+                    "noUpnUser@microsoft.com"
+                );
+
+                // Should NOT match a different username
+                const nonMatchingFilter = {
+                    username: "someOtherUser@microsoft.com",
+                };
+                const nonMatchedAccounts =
+                    mockCache.cacheManager.getAllAccounts(
+                        nonMatchingFilter,
+                        RANDOM_TEST_GUID
+                    );
+                // Should not include the noUpnUser account
+                expect(
+                    nonMatchedAccounts.find(
+                        (a) => a.username === "noUpnUser@microsoft.com"
+                    )
+                ).toBeUndefined();
+            });
+
+            it("Matches accounts by username via upn when preferred_username does not match", async () => {
+                // Test that username filter falls back to upn when preferred_username doesn't match
+                const claimsWithUpn = {
+                    ...ID_TOKEN_CLAIMS,
+                    oid: "00000000-0000-0000-0000-333333333333",
+                    tid: "00000000-0000-0000-0000-444444444444",
+                    preferred_username: "differentName@microsoft.com",
+                    upn: "upnMatch@microsoft.com",
+                };
+                const accountWithUpn =
+                    buildAccountFromIdTokenClaims(claimsWithUpn);
+                await mockCache.cacheManager.setAccount(accountWithUpn);
+
+                // Should match via upn fallback
+                const upnFilter = {
+                    username: "upnMatch@microsoft.com",
+                };
+                const matchedAccounts = mockCache.cacheManager.getAllAccounts(
+                    upnFilter,
+                    RANDOM_TEST_GUID
+                );
+                expect(matchedAccounts).toHaveLength(1);
+                expect(matchedAccounts[0].tenantId).toBe(
+                    "00000000-0000-0000-0000-444444444444"
+                );
+            });
+
             it("Matches accounts by homeAccountId", () => {
                 expect(
                     mockCache.cacheManager.getAllAccounts({}, RANDOM_TEST_GUID)
@@ -765,6 +837,30 @@ describe("CacheManager.ts test cases", () => {
             expect(reversedResultAccount?.tenantId).toBe(
                 GUEST_ID_TOKEN_CLAIMS.tid
             );
+        });
+
+        it("returns first inserted account when multiple accounts have idTokenClaims", () => {
+            const filter = {
+                homeAccountId: multiTenantAccount.homeAccountId,
+            };
+
+            // Verify insertion order: home tenant first, guest tenant second
+            const allAccounts = mockCache.cacheManager.getAllAccounts(
+                filter,
+                RANDOM_TEST_GUID
+            );
+            expect(allAccounts).toHaveLength(2);
+            expect(allAccounts[0].tenantId).toBe(ID_TOKEN_CLAIMS.tid);
+            expect(allAccounts[1].tenantId).toBe(GUEST_ID_TOKEN_CLAIMS.tid);
+
+            // getAccountInfoFilteredBy should return the first (home) account
+            const resultAccount =
+                mockCache.cacheManager.getAccountInfoFilteredBy(
+                    filter,
+                    RANDOM_TEST_GUID
+                );
+            expect(resultAccount).not.toBeNull();
+            expect(resultAccount?.tenantId).toBe(ID_TOKEN_CLAIMS.tid);
         });
 
         it("returns account matching filter with isHomeTenant = true", () => {
@@ -1638,7 +1734,8 @@ describe("CacheManager.ts test cases", () => {
                     testAccessToken,
                     {
                         target: ScopeSet.createSearchScopes(
-                            testAccessToken.target.split(" ")
+                            testAccessToken.target.split(" "),
+                            ""
                         ),
                     },
                     TEST_CONFIG.CORRELATION_ID
@@ -1650,7 +1747,10 @@ describe("CacheManager.ts test cases", () => {
                 mockCache.cacheManager.credentialMatchesFilter(
                     testAccessToken,
                     {
-                        target: ScopeSet.createSearchScopes(["wrong_scope"]),
+                        target: ScopeSet.createSearchScopes(
+                            ["wrong_scope"],
+                            ""
+                        ),
                     },
                     TEST_CONFIG.CORRELATION_ID
                 )
@@ -1762,6 +1862,101 @@ describe("CacheManager.ts test cases", () => {
                     {
                         tokenType: AuthenticationScheme.SSH,
                     },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+        });
+
+        it("additionalCacheKeyComponents bidirectional isolation", () => {
+            // Entity with components should NOT match filter without them
+            const entityWithComponents = {
+                ...testAccessToken,
+                additionalCacheKeyComponents: { fmi_path: "agent123" },
+            };
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithComponents,
+                    {},
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity without components should NOT match filter with them
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    testAccessToken,
+                    {
+                        additionalCacheKeyComponents: {
+                            fmi_path: "agent123",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity with components should match filter with same components
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithComponents,
+                    {
+                        additionalCacheKeyComponents: {
+                            fmi_path: "agent123",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+
+            // Entity with different component values should NOT match
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithComponents,
+                    {
+                        additionalCacheKeyComponents: {
+                            fmi_path: "differentAgent",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity with multiple components must match all key-value pairs
+            const entityWithMultipleComponents = {
+                ...testAccessToken,
+                additionalCacheKeyComponents: {
+                    claims_hash: "abc",
+                    fmi_path: "agent123",
+                },
+            };
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithMultipleComponents,
+                    {
+                        additionalCacheKeyComponents: {
+                            claims_hash: "abc",
+                            fmi_path: "agent123",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    entityWithMultipleComponents,
+                    {
+                        additionalCacheKeyComponents: {
+                            fmi_path: "agent123",
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(false);
+
+            // Entity without components should match filter without them
+            expect(
+                mockCache.cacheManager.credentialMatchesFilter(
+                    testAccessToken,
+                    {},
                     TEST_CONFIG.CORRELATION_ID
                 )
             ).toBe(true);
@@ -1996,6 +2191,7 @@ describe("CacheManager.ts test cases", () => {
                     4600,
                     4600,
                     mockCrypto.base64Decode,
+                    "",
                     500,
                     AuthenticationScheme.BEARER,
                     TEST_TOKENS.ACCESS_TOKEN
@@ -2012,6 +2208,7 @@ describe("CacheManager.ts test cases", () => {
                     4600,
                     4600,
                     mockCrypto.base64Decode,
+                    "",
                     500,
                     AuthenticationScheme.BEARER,
                     TEST_TOKENS.ACCESS_TOKEN
@@ -2087,6 +2284,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN
@@ -2103,6 +2301,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.POP,
                 TEST_TOKENS.ACCESS_TOKEN
@@ -2119,6 +2318,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.SSH,
                 undefined,
@@ -2185,6 +2385,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 // @ts-ignore
                 AuthenticationScheme.BEARER.toLowerCase(),
@@ -2246,6 +2447,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN
@@ -2262,6 +2464,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.POP,
                 TEST_TOKENS.ACCESS_TOKEN
@@ -2278,6 +2481,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.SSH,
                 undefined,
@@ -2345,6 +2549,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.BEARER,
                 undefined,
@@ -2362,6 +2567,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.POP,
                 undefined,
@@ -2379,6 +2585,7 @@ describe("CacheManager.ts test cases", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 500,
                 AuthenticationScheme.SSH,
                 undefined,

@@ -13,7 +13,7 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             ];
         it(`ClientConfigurationError object can be created for code ${code}`, () => {
             const err: ClientConfigurationError =
-                createClientConfigurationError(code);
+                createClientConfigurationError(code, "");
 
             const message = getDefaultErrorMessage(code);
             expect(message).toBeTruthy();
@@ -30,4 +30,12 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             ).toBe(true);
         });
     }
+
+    it("createClientConfigurationError sets correlationId when provided", () => {
+        const TEST_CORRELATION_ID = "test-correlation-id";
+        const code = ClientConfigurationErrorCodes.redirectUriEmpty;
+        const err = createClientConfigurationError(code, TEST_CORRELATION_ID);
+        expect(err.correlationId).toBe(TEST_CORRELATION_ID);
+        expect(err.errorCode).toBe(code);
+    });
 });

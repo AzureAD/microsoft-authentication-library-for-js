@@ -5,44 +5,45 @@
 
 import {
     AccessTokenEntity,
-    ICrypto,
-    IdTokenEntity,
-    Logger,
-    ScopeSet,
+    AccountEntity,
+    AccountEntityUtils,
     Authority,
     AuthorityFactory,
     AuthorityOptions,
-    ExternalTokenResponse,
-    AccountEntity,
     AuthToken,
-    RefreshTokenEntity,
-    CacheRecord,
-    TokenClaims,
-    CacheHelpers,
     buildAccountToCache,
-    TimeUtils,
-    AccountEntityUtils,
     buildStaticAuthorityOptions,
+    CacheHelpers,
+    CacheRecord,
+    ExternalTokenResponse,
+    ICrypto,
+    IdTokenEntity,
     invokeAsync,
     IPerformanceClient,
+    Logger,
+    RefreshTokenEntity,
+    ScopeSet,
     StubPerformanceClient,
+    TimeUtils,
+    TokenClaims,
 } from "@azure/msal-common/browser";
 import { buildConfiguration, Configuration } from "../config/Configuration.js";
-import type { SilentRequest } from "../request/SilentRequest.js";
-import { BrowserCacheManager } from "./BrowserCacheManager.js";
-import {
-    createBrowserAuthError,
-    BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError.js";
-import type { AuthenticationResult } from "../response/AuthenticationResult.js";
-import { base64Decode } from "../encode/Base64Decode.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
+import { base64Decode } from "../encode/Base64Decode.js";
+import {
+    BrowserAuthErrorCodes,
+    createBrowserAuthError,
+} from "../error/BrowserAuthError.js";
 import { EventHandler } from "../event/EventHandler.js";
-import * as BrowserUtils from "../utils/BrowserUtils.js";
-import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
+import type { SilentRequest } from "../request/SilentRequest.js";
+import type { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
+import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { ApiId } from "../utils/BrowserConstants.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { BrowserCacheManager } from "./BrowserCacheManager.js";
+import { name, version } from "../packageMetadata.js";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -80,7 +81,11 @@ export async function loadExternalTokens(
 
     try {
         const idTokenClaims = response.id_token
-            ? AuthToken.extractTokenClaims(response.id_token, base64Decode)
+            ? AuthToken.extractTokenClaims(
+                  response.id_token,
+                  base64Decode,
+                  correlationId
+              )
             : undefined;
         const kmsi = AuthToken.isKmsi(idTokenClaims || {});
 
@@ -91,7 +96,11 @@ export async function loadExternalTokens(
             authorityMetadata: browserConfig.auth.authorityMetadata,
         };
 
-        const logger = new Logger(browserConfig.system.loggerOptions || {});
+        const logger = new Logger(
+            browserConfig.system.loggerOptions || {},
+            name,
+            version
+        );
         const cryptoOps = new CryptoOps(logger, browserConfig.telemetry.client);
         const storage = new BrowserCacheManager(
             browserConfig.auth.clientId,
@@ -102,6 +111,7 @@ export async function loadExternalTokens(
             new EventHandler(logger),
             buildStaticAuthorityOptions(browserConfig.auth)
         );
+        await storage.initialize(correlationId);
 
         const authorityString =
             request.authority || browserConfig.auth.authority;
@@ -132,7 +142,8 @@ export async function loadExternalTokens(
             logger,
             cryptoOps,
             authority,
-            idTokenClaims
+            idTokenClaims,
+            performanceClient
         );
 
         const idToken = await invokeAsync(
@@ -231,7 +242,8 @@ async function loadAccount(
     logger: Logger,
     cryptoObj: ICrypto,
     authority: Authority,
-    idTokenClaims?: TokenClaims
+    idTokenClaims?: TokenClaims,
+    performanceClient?: IPerformanceClient
 ): Promise<AccountEntity> {
     logger.verbose("TokenCache - loading account", correlationId);
 
@@ -252,7 +264,10 @@ async function loadAccount(
             "TokenCache - if an account is not provided on the request, clientInfo or idToken must be provided instead.",
             correlationId
         );
-        throw createBrowserAuthError(BrowserAuthErrorCodes.unableToLoadToken);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.unableToLoadToken,
+            ""
+        );
     }
 
     const homeAccountId = AccountEntityUtils.generateHomeAccountId(
@@ -278,7 +293,8 @@ async function loadAccount(
         claimsTenantId,
         undefined, // authCodePayload
         undefined, // nativeAccountId
-        logger
+        logger,
+        performanceClient
     );
 
     await storage.setAccount(
@@ -375,8 +391,8 @@ async function loadAccessToken(
     logger.verbose("TokenCache - loading access token", correlationId);
 
     const scopes = response.scope
-        ? ScopeSet.fromString(response.scope)
-        : new ScopeSet(request.scopes);
+        ? ScopeSet.fromString(response.scope, correlationId)
+        : new ScopeSet(request.scopes, correlationId);
     const expiresOn =
         options.expiresOn || response.expires_in + TimeUtils.nowSeconds();
 
@@ -394,7 +410,8 @@ async function loadAccessToken(
         scopes.printScopes(),
         expiresOn,
         extendedExpiresOn,
-        base64Decode
+        base64Decode,
+        correlationId
     );
 
     await storage.setAccessTokenCredential(
@@ -483,7 +500,8 @@ function generateAuthenticationResult(
     if (cacheRecord?.accessToken) {
         accessToken = cacheRecord.accessToken.secret;
         responseScopes = ScopeSet.fromString(
-            cacheRecord.accessToken.target
+            cacheRecord.accessToken.target,
+            request.correlationId || ""
         ).asArray();
         // Access token expiresOn stored in seconds, converting to Date for AuthenticationResult
         expiresOn = TimeUtils.toDateFromSeconds(

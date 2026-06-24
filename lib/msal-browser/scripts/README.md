@@ -10,14 +10,29 @@ The MSAL Browser library hashes logging strings to reduce bundle size. When runn
 
 The script expects log files where each MSAL log entry follows this format:
 ```
-[timestamp] : [correlation-id] : @azure/[module]@[version] : [LogLevel] - [hash]
+[timestamp] : [correlation-id] : @azure/[module]@[version] : [LogLevel] - [hash][ values...]
 ```
+
+The `[hash]` is a 6-character code. It may be followed by one or more
+space-separated runtime values when the log message originally contained
+interpolated variables (the library appends these after the hash so they stay
+visible in console logs while keeping the bundle small). The decoder injects
+those values back into the message's placeholders, so **do not strip the
+trailing tokens** — removing them prevents variable injection during decode.
 
 Example:
 ```
 [Tue, 07 Oct 2025 16:50:29 GMT] : [] : @azure/msal-browser@4.13.1 : Verbose - 0hoqeo
 [Tue, 07 Oct 2025 16:50:30 GMT] : [abc-123] : @azure/msal-common@15.7.0 : Info - 1atvtd
+[Thu, 11 Jun 2026 21:02:51 GMT] : [019eb87e] : @azure/msal-common@16.6.1 : Verbose - 1q3g2x 69f988bf-86f1-41af-91ab-2d7cd746hg47 {tenantid}
 ```
+
+In the third line, `1q3g2x` is the hash and the two trailing tokens are runtime
+values injected into the decoded message's `${...}` placeholders.
+
+The package/SKU token before `@[version]` may also be a SKU name such as
+`msal.js.browser` (and msal-common messages can appear under that browser SKU
+header); the decoder normalizes these automatically.
 
 Non-MSAL log lines are preserved unchanged in the output.
 

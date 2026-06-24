@@ -32,8 +32,17 @@ const INVALID_METHOD_ERROR = -2147186943;
 export class NativeAuthError extends AuthError {
     ext: OSError | undefined;
 
-    constructor(errorCode: string, description?: string, ext?: OSError) {
-        super(errorCode, description || getDefaultErrorMessage(errorCode));
+    constructor(
+        errorCode: string,
+        correlationId: string,
+        description?: string,
+        ext?: OSError
+    ) {
+        super(
+            errorCode,
+            correlationId,
+            description || getDefaultErrorMessage(errorCode)
+        );
 
         Object.setPrototypeOf(this, NativeAuthError.prototype);
         this.name = "NativeAuthError";
@@ -48,8 +57,7 @@ export function isFatalNativeAuthError(error: NativeAuthError): boolean {
     if (
         error.ext &&
         error.ext.status &&
-        (error.ext.status === NativeStatusCodes.PERSISTENT_ERROR ||
-            error.ext.status === NativeStatusCodes.DISABLED)
+        error.ext.status === NativeStatusCodes.DISABLED
     ) {
         return true;
     }
@@ -80,32 +88,56 @@ export function isFatalNativeAuthError(error: NativeAuthError): boolean {
  */
 export function createNativeAuthError(
     code: string,
+    correlationId: string,
     description?: string,
     ext?: OSError
 ): AuthError {
+    let error: AuthError;
     if (ext && ext.status) {
         switch (ext.status) {
             case NativeStatusCodes.ACCOUNT_UNAVAILABLE:
-                return createInteractionRequiredAuthError(
+                error = createInteractionRequiredAuthError(
                     InteractionRequiredAuthErrorCodes.nativeAccountUnavailable,
+                    correlationId,
                     getDefaultErrorMessage(code)
                 );
+                break;
             case NativeStatusCodes.USER_INTERACTION_REQUIRED:
-                return new InteractionRequiredAuthError(code, description);
+                error = new InteractionRequiredAuthError(
+                    code,
+                    correlationId,
+                    description
+                );
+                break;
             case NativeStatusCodes.USER_CANCEL:
-                return createBrowserAuthError(
-                    BrowserAuthErrorCodes.userCancelled
+                error = createBrowserAuthError(
+                    BrowserAuthErrorCodes.userCancelled,
+                    correlationId
                 );
+                break;
             case NativeStatusCodes.NO_NETWORK:
-                return createBrowserAuthError(
-                    BrowserAuthErrorCodes.noNetworkConnectivity
+                error = createBrowserAuthError(
+                    BrowserAuthErrorCodes.noNetworkConnectivity,
+                    correlationId
                 );
-            case NativeStatusCodes.UX_NOT_ALLOWED:
-                return createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.uxNotAllowed
+                break;
+            case NativeStatusCodes.UI_NOT_ALLOWED:
+                error = createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.uiNotAllowed,
+                    correlationId
+                );
+                break;
+            default:
+                error = new NativeAuthError(
+                    code,
+                    correlationId,
+                    description,
+                    ext
                 );
         }
+        return error;
     }
 
-    return new NativeAuthError(code, description, ext);
+    error = new NativeAuthError(code, correlationId, description, ext);
+    return error;
 }

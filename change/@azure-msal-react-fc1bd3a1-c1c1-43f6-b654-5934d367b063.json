@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Extend peer dependency range to support React 16 (16.8+) and React 17 [#8461](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8461)",
-  "packageName": "@azure/msal-react",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

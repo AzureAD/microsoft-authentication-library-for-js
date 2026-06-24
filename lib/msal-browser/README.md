@@ -91,6 +91,7 @@ Select the guide that matches your current MSAL version:
 -   [Request and Response Details](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md)
 -   [Cache Storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md)
 -   [Performance Enhancements](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/performance.md)
+-   [Browser-specific Guidance](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/browser-specific-guidance.md)
 -   [MCP Flows](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-v5/lib/msal-browser/docs/mcp.md)
 
 ## Samples
@@ -107,7 +108,6 @@ We also provide samples for addin/plugin scenarios:
 
 -   [Office Addin-in using MSAL.js](https://github.com/OfficeDev/PnP-OfficeAddins/blob/main/Samples/auth/Office-Add-in-Microsoft-Graph-React/)
 -   [Teams Tab using MSAL.js](https://github.com/pnp/teams-dev-samples/tree/main/samples/tab-sso/src/nodejs)
--   [Chromium Extension using MSAL.js](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/ChromiumExtensionSample)
 
 ## Build and Test
 

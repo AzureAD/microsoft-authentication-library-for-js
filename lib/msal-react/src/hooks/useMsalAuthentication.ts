@@ -60,6 +60,7 @@ export function useMsalAuthentication(
     // Used to prevent state updates after unmount
     const mounted = useRef(true);
     useEffect(() => {
+        mounted.current = true;
         return () => {
             mounted.current = false;
         };
@@ -128,12 +129,16 @@ export function useMsalAuthentication(
                             callbackRequest?.correlationId || ""
                         );
                         return instance.ssoSilent(
-                            loginRequest as SsoSilentRequest
+                            !!loginRequest
+                                ? (loginRequest as SsoSilentRequest)
+                                : {}
                         );
 
                     default:
                         const invalidTypeError =
-                            ReactAuthError.createInvalidInteractionTypeError();
+                            ReactAuthError.createInvalidInteractionTypeError(
+                                loginRequest?.correlationId
+                            );
                         if (mounted.current) {
                             setResponse([null, invalidTypeError]);
                         }
@@ -225,7 +230,9 @@ export function useMsalAuthentication(
                             return login(fallbackInteractionType, tokenRequest);
                         } else {
                             const fallbackError =
-                                ReactAuthError.createUnableToFallbackToInteractionError();
+                                ReactAuthError.createUnableToFallbackToInteractionError(
+                                    correlationId
+                                );
                             logger.error(
                                 "useMsalAuthentication - Interaction required but is already in progress. Please try again, if needed, after interaction completes.",
                                 correlationId

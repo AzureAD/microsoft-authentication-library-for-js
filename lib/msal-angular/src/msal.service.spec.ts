@@ -16,7 +16,7 @@ let broadcastService: MsalBroadcastService;
 
 const msalInstance = new PublicClientApplication({
   auth: {
-    clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
+    clientId: "0845a021-afdf-4126-abdd-099c5e6948e1",
     redirectUri: "http://localhost:4200",
   },
 });
@@ -71,7 +71,7 @@ describe("MsalService", () => {
     });
 
     it("failure", (done) => {
-      const sampleError = new AuthError("123", "message");
+      const sampleError = new AuthError("123", "", "message");
 
       spyOn(PublicClientApplication.prototype, "loginPopup").and.returnValue(
         new Promise((resolve, reject) => {
@@ -174,7 +174,7 @@ describe("MsalService", () => {
     });
 
     it("failure", (done) => {
-      const sampleError = new AuthError("123", "message");
+      const sampleError = new AuthError("123", "", "message");
 
       spyOn(PublicClientApplication.prototype, "ssoSilent").and.returnValue(
         new Promise((resolve, reject) => {
@@ -232,7 +232,7 @@ describe("MsalService", () => {
     });
 
     it("failure", (done) => {
-      const sampleError = new AuthError("123", "message");
+      const sampleError = new AuthError("123", "", "message");
 
       spyOn(
         PublicClientApplication.prototype,
@@ -313,7 +313,7 @@ describe("MsalService", () => {
     });
 
     it("failure", (done) => {
-      const sampleError = new AuthError("123", "message");
+      const sampleError = new AuthError("123", "", "message");
 
       spyOn(
         PublicClientApplication.prototype,
@@ -381,7 +381,7 @@ describe("MsalService", () => {
     });
 
     it("failure and also resets inProgress event to none", (done) => {
-      const sampleError = new AuthError("123", "message");
+      const sampleError = new AuthError("123", "", "message");
 
       //@ts-ignore
       broadcastService._inProgress.next(InteractionStatus.Startup);

@@ -366,7 +366,7 @@ describe("Storage tests for msal-node: ", () => {
         expect(newInMemoryCache.accounts[ACCOUNT_KEY]).toBeUndefined;
     });
 
-    it("should remove all keys from the cache when clear() is called", () => {
+    it("clear() removes all cache entries except authority metadata", () => {
         const nodeStorage = new NodeStorage(
             logger,
             clientId,
@@ -374,14 +374,44 @@ describe("Storage tests for msal-node: ", () => {
         );
         nodeStorage.setInMemoryCache(inMemoryCache);
 
+        const host = "login.microsoftonline.com";
+        const authorityMetadataKey = `authority-metadata-${clientId}-${host}`;
+        const authorityMetadata: AuthorityMetadataEntity = {
+            aliases: [host],
+            preferred_cache: host,
+            preferred_network: host,
+            canonical_authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
+            authorization_endpoint:
+                DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint,
+            token_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint,
+            end_session_endpoint:
+                DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint,
+            issuer: DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer,
+            jwks_uri: DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri,
+            aliasesFromNetwork: false,
+            endpointsFromNetwork: false,
+            expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
+        };
+        nodeStorage.setAuthorityMetadata(
+            authorityMetadataKey,
+            authorityMetadata
+        );
+
         nodeStorage.clear();
 
-        expect(nodeStorage.getAccount(ACCOUNT_KEY)).toBeNull();
-
+        // Token/account/appMetadata entries should be cleared
         const newInMemoryCache = nodeStorage.getInMemoryCache();
         Object.values(newInMemoryCache).forEach((cacheSection) => {
             expect(cacheSection).toEqual({});
         });
+
+        // Authority metadata should be preserved
+        expect(nodeStorage.getAuthorityMetadata(authorityMetadataKey)).toEqual(
+            authorityMetadata
+        );
+        expect(nodeStorage.getAuthorityMetadataKeys()).toContain(
+            authorityMetadataKey
+        );
     });
 
     describe("Getters and Setters", () => {

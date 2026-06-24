@@ -2,7 +2,7 @@
 
 If you are new to MSAL, you should start [here](initialization.md).
 
-If you are coming from MSAL v2, you should check [this guide](v2-migration.md) first to migrate to MSAL v3. If you are coming from MSAL v3, you should check [this guide](v4-migration.md) first to migrate to MSAL v4 and then follow next steps.
+If you are coming from MSAL v2, you should check [this guide](v2-migration.md) first to migrate to MSAL v3. If you are coming from MSAL v3, you should check [this guide](v3-migration.md) first to migrate to MSAL v4 and then follow next steps.
 
 If you are coming from MSAL v4, you can follow this guide to update your code to use MSAL v5.
 
@@ -325,10 +325,12 @@ MSAL Browser v5 introduces built-in support for Cross-Origin-Opener-Policy (COOP
 
 When COOP headers are present on the authentication service response (e.g., `Cross-Origin-Opener-Policy: same-origin`), traditional popup and silent iframe authentication flows will fail because the authentication window cannot communicate back to the main application window. MSAL v5 solves this by introducing a redirect bridge pattern.
 
-**All authentication flows** (`acquireTokenSilent()`, `ssoSilent()`, `loginPopup()`, and `loginRedirect()`) now use the redirect bridge. The redirect bridge handles the authentication response differently based on the flow:
+**All authentication flows** (`acquireTokenSilent()`, `ssoSilent()`, `loginPopup()`, `loginRedirect()`, and `logoutPopup()`) now use the redirect bridge. The redirect bridge handles the authentication response differently based on the flow:
 
 - **Popup and silent flows**: The redirect bridge broadcasts the authentication response to the main application window using the BroadcastChannel API
 - **Redirect flow**: The redirect bridge caches the authentication response in `sessionStorage` and navigates back to your application's page that initiated the redirect. On the destination page, `handleRedirectPromise` picks up the cached response automatically. This avoids appending auth parameters to the URL, which would otherwise cause issues for single-page applications that use hash-based routing (e.g., `/#/dashboard`). If `sessionStorage` is unavailable (quota exceeded, restricted storage), the bridge still navigates to your application but `handleRedirectPromise` will return `null` and your app should handle re-authentication.
+- **`logoutPopup()`**: The redirect bridge broadcasts the logout completion back to the main window and closes the popup. For this to work, `postLogoutRedirectUri` must point to a page that implements the redirect bridge. The simplest approach is to set `postLogoutRedirectUri` to the same value as `redirectUri`. See the [Redirect Bridge — Logout section](./redirect-bridge.md#logout-and-the-redirect-bridge) for details.
+- **`logoutRedirect()`**: The redirect bridge is optional. If present on the `postLogoutRedirectUri` page, it will navigate the user back to the origin page. Otherwise, the user stays on the `postLogoutRedirectUri` page after logout.
 
 #### How It Works
 
@@ -370,10 +372,14 @@ The setup varies by build system — see the **[Redirect Bridge — Framework-Sp
 
 > [!CAUTION]
 > **Do NOT load the redirect bridge page from a CDN** (e.g., jsdelivr, unpkg,
-> cdnjs). The bridge receives the raw authentication response and loading it
-> from a third-party CDN creates a supply-chain and token-theft risk. Always
-> bundle the redirect bridge with your application or serve it from your own
-> infrastructure. See the [Redirect Bridge guide](./redirect-bridge.md) for details.
+> cdnjs). The bridge receives the raw authentication response — including
+> authorization codes and tokens — and loading it from a third-party CDN
+> creates a supply-chain and token-theft risk. Always bundle the redirect
+> bridge with your application and serve it **from the same origin** as your
+> application. The bridge page should also be served with
+> `Cache-Control: no-store` to prevent intermediaries from caching the
+> authentication response. See the [Redirect Bridge guide](./redirect-bridge.md) for
+> details.
 
 ##### 2. Update your MSAL configuration
 

@@ -49,6 +49,7 @@ export class PlatformBrokerError extends AuthError {
 
     constructor(
         errorStatus: string,
+        correlationId: string,
         errorContext: string,
         errorCode: number,
         errorTag: number
@@ -58,7 +59,7 @@ export class PlatformBrokerError extends AuthError {
             ? `${errorContext} (Error Code: ${errorCode}, Tag: ${tagString})`
             : `(Error Code: ${errorCode}, Tag: ${tagString})`;
 
-        super(errorStatus, enhancedErrorContext);
+        super(errorStatus, correlationId, enhancedErrorContext);
         this.name = "PlatformBrokerError";
         this.statusCode = errorCode;
         this.tag = tagString;

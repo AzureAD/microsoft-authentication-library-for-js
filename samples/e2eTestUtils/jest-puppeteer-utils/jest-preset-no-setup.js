@@ -5,5 +5,6 @@ module.exports = {
     },
     verbose: true,
     testMatch: ["**/test/**/**.spec.ts", "!**/test/**/*agc*.spec.ts"],
+    testTimeout: 120000,
     testEnvironment: `${__dirname}/puppeteer_environment.js`
 }

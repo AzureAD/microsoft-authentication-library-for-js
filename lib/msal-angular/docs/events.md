@@ -4,6 +4,8 @@ Before you start here, make sure you understand how to [initialize the applicati
 
 `@azure/msal-angular` uses the event system exposed by `@azure/msal-browser`, which emits events related to auth and MSAL, and can be used for updating UI, showing error messages, and so on.
 
+> :warning: **Do not use events for telemetry.** Events are intended for reacting to auth state changes in your application (e.g. updating UI or showing error messages). They are not a telemetry mechanism: the set of events, their timing, and their payloads are not guaranteed to be stable across versions, and relying on them to collect metrics or measure performance is not supported. For telemetry and performance monitoring, see MSAL Browser's [Performance](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/performance.md) and [telemetry configuration options](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#telemetry-config-options).
+
 ## Consuming events in your app
 
 Events in `@azure/msal-angular` are managed by the `MsalBroadcastService`, and are available by subscribing to the `msalSubject$` observable on the `MsalBroadcastService`. 
@@ -105,7 +107,15 @@ An example of error handling can also be found on our [MSAL Angular B2C Sample](
 
 ## Syncing logged in state across tabs and windows
 
-If you would like to update your UI when a user logs in or out of your app in a different tab or window you can subscribe to the `ACCOUNT_ADDED` and `ACCOUNT_REMOVED` events. The payload will be the `AccountInfo` object that was added or removed.
+If you would like to update your UI when a user logs in or out of your app or changes the active account in a different tab or window you can subscribe to the `LOGIN_SUCCESS`, `LOGOUT_SUCCESS`, and `ACTIVE_ACCOUNT_CHANGED` events.
+
+> Note: Cross-tab/window event syncing in `@azure/msal-browser` is only enabled when `cache.cacheLocation` is set to `localStorage`. If you are using the default `sessionStorage` cache location, these events will not be received from other tabs or windows.
+>
+> Note: For `logoutRedirect()`, `LOGOUT_SUCCESS` is only emitted/broadcast when the logout request includes an `account`. If your app relies on `LOGOUT_SUCCESS` to sync logout state across tabs or windows, pass the account you are logging out, for example `logoutRedirect({ account })`.
+
+- `LOGIN_SUCCESS` payloads contain the `AccountInfo` object for the account that signed in.
+- `LOGOUT_SUCCESS` payloads contain the logout request (`EndSessionRequest` or `EndSessionPopupRequest`).
+- `ACTIVE_ACCOUNT_CHANGED` does not include a payload (`null`).
 
 ```javascript
 import { MsalService, MsalBroadcastService } from '@azure/msal-angular';
@@ -121,19 +131,17 @@ export class AppComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.authService.instance.enableAccountStorageEvents(); // Register the storage listener that will be emitting the events
     this.msalBroadcastService.msalSubject$
       .pipe(
-        // Optional filtering of events
-        filter((msg: EventMessage) => msg.eventType === EventType.ACCOUNT_ADDED || msg.eventType === EventType.ACCOUNT_REMOVED), 
+        filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS || msg.eventType === EventType.LOGOUT_SUCCESS || msg.eventType === EventType.ACTIVE_ACCOUNT_CHANGED), 
         takeUntil(this._destroying$)
       )
       .subscribe((result: EventMessage) => {
-        if (this.authService.msalInstance.getAllAccounts().length === 0) {
+        if (this.authService.instance.getAllAccounts().length === 0) {
           // Account logged out in a different tab, redirect to homepage
           window.location.pathname = "/";
         } else {
-          // Update UI to show user is signed in. result.payload contains the account that was logged in
+          // Update UI to show user is signed in
         }
       });
   }

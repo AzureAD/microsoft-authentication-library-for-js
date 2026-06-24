@@ -64,6 +64,7 @@ export type { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest.
 export type { ClientCredentialRequest } from "./request/ClientCredentialRequest.js";
 export type { DeviceCodeRequest } from "./request/DeviceCodeRequest.js";
 export type { OnBehalfOfRequest } from "./request/OnBehalfOfRequest.js";
+export type { UserFederatedIdentityCredentialRequest } from "./request/UserFederatedIdentityCredentialRequest.js";
 export type { UsernamePasswordRequest } from "./request/UsernamePasswordRequest.js";
 export type { RefreshTokenRequest } from "./request/RefreshTokenRequest.js";
 export type { SilentFlowRequest } from "./request/SilentFlowRequest.js";

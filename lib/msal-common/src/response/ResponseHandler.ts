@@ -3,55 +3,51 @@
  * Licensed under the MIT License.
  */
 
-import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
-import { ICrypto } from "../crypto/ICrypto.js";
-import {
-    ClientAuthErrorCodes,
-    createClientAuthError,
-} from "../error/ClientAuthError.js";
-import { Logger } from "../logger/Logger.js";
-import { ServerError } from "../error/ServerError.js";
-import { ScopeSet } from "../request/ScopeSet.js";
-import { AuthenticationResult } from "./AuthenticationResult.js";
-import { AccountEntity } from "../cache/entities/AccountEntity.js";
-import { Authority } from "../authority/Authority.js";
-import { IdTokenEntity } from "../cache/entities/IdTokenEntity.js";
-import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity.js";
-import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity.js";
-import {
-    InteractionRequiredAuthError,
-    isInteractionRequiredError,
-} from "../error/InteractionRequiredAuthError.js";
-import { CacheRecord } from "../cache/entities/CacheRecord.js";
-import { CacheManager } from "../cache/CacheManager.js";
-import * as ProtocolUtils from "../utils/ProtocolUtils.js";
-import * as Constants from "../utils/Constants.js";
-import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
-import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity.js";
-import { ICachePlugin } from "../cache/interface/ICachePlugin.js";
-import { TokenCacheContext } from "../cache/persistence/TokenCacheContext.js";
-import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache.js";
-import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
-import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
-import {
-    checkMaxAge,
-    extractTokenClaims,
-    isKmsi,
-} from "../account/AuthToken.js";
-import {
-    TokenClaims,
-    getTenantIdFromIdTokenClaims,
-} from "../account/TokenClaims.js";
 import {
     AccountInfo,
     buildTenantProfile,
     updateAccountTenantProfileData,
 } from "../account/AccountInfo.js";
-import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
-import * as TimeUtils from "../utils/TimeUtils.js";
+import { extractTokenClaims, isKmsi } from "../account/AuthToken.js";
+import {
+    TokenClaims,
+    getTenantIdFromIdTokenClaims,
+} from "../account/TokenClaims.js";
+import { Authority } from "../authority/Authority.js";
+import { CacheManager } from "../cache/CacheManager.js";
+import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity.js";
+import { AccountEntity } from "../cache/entities/AccountEntity.js";
+import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity.js";
+import { CacheRecord } from "../cache/entities/CacheRecord.js";
+import { IdTokenEntity } from "../cache/entities/IdTokenEntity.js";
+import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity.js";
+import { ICachePlugin } from "../cache/interface/ICachePlugin.js";
+import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache.js";
+import { TokenCacheContext } from "../cache/persistence/TokenCacheContext.js";
 import * as AccountEntityUtils from "../cache/utils/AccountEntityUtils.js";
+import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
+import { ICrypto } from "../crypto/ICrypto.js";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError.js";
+import {
+    InteractionRequiredAuthError,
+    isInteractionRequiredError,
+} from "../error/InteractionRequiredAuthError.js";
+import { ServerError } from "../error/ServerError.js";
+import { Logger } from "../logger/Logger.js";
+import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
+import { ScopeSet } from "../request/ScopeSet.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import * as Constants from "../utils/Constants.js";
+import * as ProtocolUtils from "../utils/ProtocolUtils.js";
 import { RequestStateObject } from "../utils/StateTypes.js";
+import * as TimeUtils from "../utils/TimeUtils.js";
+import { AuthenticationResult } from "./AuthenticationResult.js";
+import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
+import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
 
 /**
  * Class that handles response parsing.
@@ -117,7 +113,8 @@ export class ResponseHandler {
                 ? serverResponse.error_codes[0]
                 : undefined;
             const serverError = new ServerError(
-                serverResponse.error,
+                serverResponse.error || "",
+                serverResponse.correlation_id || "",
                 errString,
                 serverResponse.suberror,
                 serverErrorNo,
@@ -164,12 +161,12 @@ export class ResponseHandler {
                 )
             ) {
                 throw new InteractionRequiredAuthError(
-                    serverResponse.error,
+                    serverResponse.error || "",
+                    serverResponse.correlation_id || "",
                     serverResponse.error_description,
                     serverResponse.suberror,
                     serverResponse.timestamp || "",
                     serverResponse.trace_id || "",
-                    serverResponse.correlation_id || "",
                     serverResponse.claims || "",
                     serverErrorNo
                 );
@@ -194,35 +191,26 @@ export class ResponseHandler {
         userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean,
         forceCacheRefreshTokenResponse?: boolean,
-        serverRequestId?: string
+        serverRequestId?: string,
+        additionalCacheKeyComponents?: Record<string, string>
     ): Promise<AuthenticationResult> {
         // create an idToken object (not entity)
         let idTokenClaims: TokenClaims | undefined;
         if (serverTokenResponse.id_token) {
             idTokenClaims = extractTokenClaims(
                 serverTokenResponse.id_token || "",
-                this.cryptoObj.base64Decode
+                this.cryptoObj.base64Decode,
+                request.correlationId
             );
 
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (authCodePayload && authCodePayload.nonce) {
                 if (idTokenClaims.nonce !== authCodePayload.nonce) {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.nonceMismatch
+                        ClientAuthErrorCodes.nonceMismatch,
+                        request.correlationId
                     );
                 }
-            }
-
-            // token max_age check
-            if (request.maxAge || request.maxAge === 0) {
-                const authTime = idTokenClaims.auth_time;
-                if (!authTime) {
-                    throw createClientAuthError(
-                        ClientAuthErrorCodes.authTimeNotFound
-                    );
-                }
-
-                checkMaxAge(authTime, request.maxAge);
             }
         }
 
@@ -241,7 +229,8 @@ export class ResponseHandler {
         if (!!authCodePayload && !!authCodePayload.state) {
             requestStateObj = ProtocolUtils.parseRequestState(
                 this.cryptoObj.base64Decode,
-                authCodePayload.state
+                authCodePayload.state,
+                request.correlationId
             );
         }
 
@@ -256,7 +245,8 @@ export class ResponseHandler {
             request,
             idTokenClaims,
             userAssertionHash,
-            authCodePayload
+            authCodePayload,
+            additionalCacheKeyComponents
         );
         let cacheContext;
         try {
@@ -363,12 +353,14 @@ export class ResponseHandler {
         request: BaseAuthRequest,
         idTokenClaims?: TokenClaims,
         userAssertionHash?: string,
-        authCodePayload?: AuthorizationCodePayload
+        authCodePayload?: AuthorizationCodePayload,
+        additionalCacheKeyComponents?: Record<string, string>
     ): CacheRecord {
         const env = authority.getPreferredCache();
         if (!env) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.invalidCacheEnvironment
+                ClientAuthErrorCodes.invalidCacheEnvironment,
+                request.correlationId
             );
         }
 
@@ -398,7 +390,8 @@ export class ResponseHandler {
                 claimsTenantId,
                 authCodePayload,
                 undefined, // nativeAccountId
-                this.logger
+                this.logger,
+                this.performanceClient
             );
         }
 
@@ -407,8 +400,11 @@ export class ResponseHandler {
         if (serverTokenResponse.access_token) {
             // If scopes not returned in server response, use request scopes
             const responseScopes = serverTokenResponse.scope
-                ? ScopeSet.fromString(serverTokenResponse.scope)
-                : new ScopeSet(request.scopes || []);
+                ? ScopeSet.fromString(
+                      serverTokenResponse.scope,
+                      request.correlationId
+                  )
+                : new ScopeSet(request.scopes || [], request.correlationId);
 
             /*
              * Use timestamp calculated before request
@@ -445,10 +441,12 @@ export class ResponseHandler {
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
                 this.cryptoObj.base64Decode,
+                request.correlationId,
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
                 userAssertionHash,
-                serverTokenResponse.key_id
+                serverTokenResponse.key_id,
+                additionalCacheKeyComponents
             );
             // Set resource (to be used for MCP scenarios)
             const resource = request.resource || null;
@@ -552,7 +550,8 @@ export class ResponseHandler {
 
                 if (!keyId) {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.keyIdMissing
+                        ClientAuthErrorCodes.keyIdMissing,
+                        request.correlationId
                     );
                 }
 
@@ -565,7 +564,8 @@ export class ResponseHandler {
                 accessToken = cacheRecord.accessToken.secret;
             }
             responseScopes = ScopeSet.fromString(
-                cacheRecord.accessToken.target
+                cacheRecord.accessToken.target,
+                request.correlationId
             ).asArray();
             // Access token expiresOn cached in seconds, converting to Date for AuthenticationResult
             expiresOn = TimeUtils.toDateFromSeconds(
@@ -592,8 +592,20 @@ export class ResponseHandler {
 
         // for hybrid + native bridge enablement, send back the native account Id
         if (serverTokenResponse?.spa_accountid && !!cacheRecord.account) {
+            // Set on deprecated top-level for downgrade compat
             cacheRecord.account.nativeAccountId =
                 serverTokenResponse?.spa_accountid;
+            // Set on the matching tenant profile (source of truth)
+            const targetTenantId = tid || cacheRecord.account.realm;
+            if (cacheRecord.account.tenantProfiles) {
+                const matchingProfile = cacheRecord.account.tenantProfiles.find(
+                    (tp) => tp.tenantId === targetTenantId
+                );
+                if (matchingProfile) {
+                    matchingProfile.nativeAccountId =
+                        serverTokenResponse.spa_accountid;
+                }
+            }
         }
 
         const accountInfo: AccountInfo | null = cacheRecord.account
@@ -631,6 +643,7 @@ export class ResponseHandler {
     }
 }
 
+/** @internal */
 export function buildAccountToCache(
     cacheStorage: CacheManager,
     authority: Authority,
@@ -643,20 +656,39 @@ export function buildAccountToCache(
     claimsTenantId?: string | null,
     authCodePayload?: AuthorizationCodePayload,
     nativeAccountId?: string,
-    logger?: Logger
+    logger?: Logger,
+    performanceClient?: IPerformanceClient
 ): AccountEntity {
     logger?.verbose("setCachedAccount called", correlationId);
 
-    // Check if base account is already cached
-    const accountKeys = cacheStorage.getAccountKeys();
-    const baseAccountKey = accountKeys.find((accountKey: string) => {
-        return accountKey.startsWith(homeAccountId);
-    });
+    /*
+     * Check if base account is already cached. Filter by homeAccountId (identifies
+     * the user's home identity) and environment (identifies the cloud) — the two
+     * tenant-agnostic properties that uniquely locate a base AccountEntity.
+     */
+    const accountEnvironment = environment || authority.getPreferredCache();
+    const matchedAccounts = cacheStorage.getAccountsFilteredBy(
+        { homeAccountId, environment: accountEnvironment },
+        correlationId
+    );
+    performanceClient?.addFields(
+        { cacheMatchedAccounts: matchedAccounts.length },
+        correlationId
+    );
 
-    let cachedAccount: AccountEntity | null = null;
-    if (baseAccountKey) {
-        cachedAccount = cacheStorage.getAccount(baseAccountKey, correlationId);
+    if (matchedAccounts.length > 1) {
+        /*
+         * Base accounts are expected to be unique for a given homeAccountId in normal cache usage.
+         * If multiple matches exist, ignore the cache hit rather than arbitrarily choosing one.
+         */
+        logger?.warning(
+            "Multiple base accounts matched homeAccountId. Ignoring cached account and creating a new base account.",
+            correlationId
+        );
     }
+
+    const cachedAccount =
+        matchedAccounts.length === 1 ? matchedAccounts[0] : null;
 
     const baseAccount =
         cachedAccount ||
@@ -671,6 +703,7 @@ export function buildAccountToCache(
                 nativeAccountId: nativeAccountId,
             },
             authority,
+            correlationId,
             base64Decode
         );
 
@@ -686,6 +719,7 @@ export function buildAccountToCache(
             homeAccountId,
             baseAccount.localAccountId,
             tenantId,
+            nativeAccountId,
             idTokenClaims
         );
         tenantProfiles.push(newTenantProfile);

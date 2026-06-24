@@ -26,6 +26,7 @@ import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { NavigationClient } from "../navigation/NavigationClient.js";
 import { FetchClient } from "../network/FetchClient.js";
+import { name, version } from "../packageMetadata.js";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -90,6 +91,13 @@ export type BrowserAuthOptions = {
      * Flag on whether a resource parameter is required for token requests. Used for MCP flows.
      */
     isMcp?: boolean;
+    /**
+     * If set to true, MSAL will make a background SSO verification call after successful interactive authentication.
+     * This adds an extra network call, so it is recommended to leave this set to false unless your application has a specific need for it.
+     * Additional network calls may occur after interactive authentication flows such as acquireTokenPopup and handleRedirectPromise.
+     * This is a boolean flag and defaults to false if not specified.
+     */
+    verifySSO?: boolean;
 };
 
 /** @internal */
@@ -160,6 +168,27 @@ export type BrowserSystemOptions = SystemOptions & {
      * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
      */
     protocolMode?: ProtocolMode;
+    /**
+     * @deprecated This option will be removed in a future release.
+     * Flag to enable emitting telemetry to the STS. When disabled, failed requests are not cached to browser storage and x-client-current-telemetry, x-client-last-telemetry parameters are not sent to the STS. Defaults to false.
+     */
+    serverTelemetryEnabled?: boolean;
+};
+
+/**
+ * Options for configuring experimental features. These features do not follow
+ * semver and may be changed or removed without a major version bump. Use with caution.
+ * @public
+ */
+export type BrowserExperimentalOptions = {
+    /**
+     * Enables iframe timeout telemetry experiment for silent iframe bridge monitoring.
+     */
+    iframeTimeoutTelemetry?: boolean;
+    /**
+     * Flag to enable native broker support through DOM APIs in Edge
+     */
+    allowPlatformBrokerWithDOM?: boolean;
 };
 
 /**
@@ -193,6 +222,10 @@ export type Configuration = {
      */
     system?: BrowserSystemOptions;
     /**
+     * This is where you can configure experimental features. These do not follow semver and may be changed or removed without a major version bump. Use with caution.
+     */
+    experimental?: BrowserExperimentalOptions;
+    /**
      * This is where you can configure telemetry data and options
      */
     telemetry?: BrowserTelemetryOptions;
@@ -203,6 +236,7 @@ export type BrowserConfiguration = {
     auth: InternalAuthOptions;
     cache: Required<CacheOptions>;
     system: Required<BrowserSystemOptions>;
+    experimental: Required<BrowserExperimentalOptions>;
     telemetry: Required<BrowserTelemetryOptions>;
 };
 
@@ -220,6 +254,7 @@ export function buildConfiguration(
         auth: userInputAuth,
         cache: userInputCache,
         system: userInputSystem,
+        experimental: userInputExperimental,
         telemetry: userInputTelemetry,
     }: Configuration,
     isBrowserEnvironment: boolean
@@ -251,6 +286,7 @@ export function buildConfiguration(
         },
         instanceAware: false,
         isMcp: false,
+        verifySSO: false,
     };
 
     // Default cache options for browser
@@ -289,6 +325,7 @@ export function buildConfiguration(
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
         protocolMode: ProtocolMode.AAD,
+        serverTelemetryEnabled: false,
     };
 
     const providedSystemOptions: Required<BrowserSystemOptions> = {
@@ -305,16 +342,26 @@ export function buildConfiguration(
         client: new StubPerformanceClient(),
     };
 
+    const DEFAULT_EXPERIMENTAL_OPTIONS: Required<BrowserExperimentalOptions> = {
+        iframeTimeoutTelemetry: false,
+        allowPlatformBrokerWithDOM: false,
+    };
+
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
     if (
         userInputSystem?.protocolMode !== ProtocolMode.OIDC &&
         userInputAuth?.OIDCOptions
     ) {
-        const logger = new Logger(providedSystemOptions.loggerOptions);
+        const logger = new Logger(
+            providedSystemOptions.loggerOptions,
+            name,
+            version
+        );
         logger.warning(
             JSON.stringify(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.cannotSetOIDCOptions
+                    ClientConfigurationErrorCodes.cannotSetOIDCOptions,
+                    ""
                 )
             ),
             ""
@@ -328,7 +375,8 @@ export function buildConfiguration(
         providedSystemOptions?.allowPlatformBroker
     ) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.cannotAllowPlatformBroker
+            ClientConfigurationErrorCodes.cannotAllowPlatformBroker,
+            ""
         );
     }
 
@@ -343,6 +391,10 @@ export function buildConfiguration(
         },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
         system: providedSystemOptions,
+        experimental: {
+            ...DEFAULT_EXPERIMENTAL_OPTIONS,
+            ...userInputExperimental,
+        },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
 

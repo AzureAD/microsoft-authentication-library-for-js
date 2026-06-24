@@ -2,6 +2,468 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 23 Jun 2026 22:19:29 GMT",
+      "version": "5.15.0",
+      "tag": "@azure/msal-browser_v5.15.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thnorlin@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Request idToken claims (signin_state, login_hint) by default and add kmsi on AccountInfo [#8656](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8656)"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Make correlationId a required parameter on AuthError and all derived error classes [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Add NativeAccountId property to TenantProfile and deprecate top-level AccountEntity property [#8649](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8649)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.10.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 16 Jun 2026 19:46:34 GMT",
+      "version": "5.14.0",
+      "tag": "@azure/msal-browser_v5.14.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "198982749+Copilot@users.noreply.github.com",
+            "package": "@azure/msal-browser",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Initialize BrowserCacheManager in loadExternalTokens for localStorage cache usage [#8642](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8642)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Update API Extractor warning policy and tag internal APIs with @internal [#8653](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8653)"
+          }
+        ],
+        "none": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Resolve transitive CVEs in 3P samples and tooling [#8630](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8630)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Enhance logging functionality by injecting runtime variables into decoded messages [#8644](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8644)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Add package metadata to loggers and fix SKU name [#8647](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8647)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.9.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 10 Jun 2026 22:41:33 GMT",
+      "version": "5.13.0",
+      "tag": "@azure/msal-browser_v5.13.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Add per-type migration telemetry counters for cache migration [#8628](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8628)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Disable ServerTelemetryManager by default [#8600](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8600)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.8.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Fix duplicate redirect flows clearing in-flight interaction state [#8637](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8637)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "add logging support for normalizeUrlForComparison when executing handleRedirectPromise [#8625](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8625/)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "faa42ab972f7388b7c4e583b90049006d82dfb79",
+            "comment": "Fix silent iframe redirect-bridge listener race condition by registering the response listener before navigating the iframe [#8636](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8636)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 05 Jun 2026 22:24:22 GMT",
+      "version": "5.12.0",
+      "tag": "@azure/msal-browser_v5.12.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "198982749+Copilot@users.noreply.github.com",
+            "package": "@azure/msal-browser",
+            "commit": "7588af34d25beca61640567b526de3e8aa682d3d",
+            "comment": "Rename uxNotAllowed error code to uiNotAllowed [#8608](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8608)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.7.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7588af34d25beca61640567b526de3e8aa682d3d",
+            "comment": "Set document.title during authentication redirects for accessibility and UX [#8624](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8624)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7588af34d25beca61640567b526de3e8aa682d3d",
+            "comment": "Respect redirectStartPage in PlatformAuthInteractionClient.acquireTokenRedirect [#8604](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8604)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7588af34d25beca61640567b526de3e8aa682d3d",
+            "comment": "Add PCA functions for custom authentication response handling [#8590](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8590)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7588af34d25beca61640567b526de3e8aa682d3d",
+            "comment": "Clear old-schema cache entries when encryption key is expired [#8619](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8619)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7588af34d25beca61640567b526de3e8aa682d3d",
+            "comment": "bump msal-common to version 16.6.3 [#8622](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8622)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 19 May 2026 19:29:14 GMT",
+      "version": "5.11.0",
+      "tag": "@azure/msal-browser_v5.11.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "738ade62dfbadf845fdf8afbc6d21564f00ac0bb",
+            "comment": "Add allowPlatformBrokerWithDOM experimental config flag for DOM-based platform brokering [#8589](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8589)"
+          },
+          {
+            "author": "shen.jian@live.com",
+            "package": "@azure/msal-browser",
+            "commit": "738ade62dfbadf845fdf8afbc6d21564f00ac0bb",
+            "comment": "Custom Auth: add `requestInterceptor` configuration option that lets apps attach additional `x-*` headers to custom-auth backend requests (e.g., for fraud/bot-detection vendors). Headers without the `x-` prefix and headers starting with reserved prefixes (`x-client-`, `x-ms-`, `x-broker-`, `x-app-`) are filtered out. [#8587](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8587)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.6.2",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "738ade62dfbadf845fdf8afbc6d21564f00ac0bb",
+            "comment": "Fix logoutHint to check account loginHint before falling back to idTokenClaims [#8591](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8591)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 11 May 2026 21:48:15 GMT",
+      "version": "5.10.1",
+      "tag": "@azure/msal-browser_v5.10.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.6.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 07 May 2026 19:01:04 GMT",
+      "version": "5.10.0",
+      "tag": "@azure/msal-browser_v5.10.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "yongdiwang@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b4e498cf6e52136ad1123691138a66f8e9a1a87c",
+            "comment": "Add native auth e2e sample app"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b4e498cf6e52136ad1123691138a66f8e9a1a87c",
+            "comment": "Remove duplicate typings in the build output [#8557](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8557)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.6.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "-g",
+            "package": "@azure/msal-browser",
+            "commit": "b4e498cf6e52136ad1123691138a66f8e9a1a87c",
+            "comment": "Stop looking in localStorage for temporary cache [#8579](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8579)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 28 Apr 2026 21:30:31 GMT",
+      "version": "5.9.0",
+      "tag": "@azure/msal-browser_v5.9.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "msaljsbuilds@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e8982c73cd3d294098dc6a189948af853b7ee877",
+            "comment": "Bump @azure/msal-browser to match @azure/msal-browser-1p"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.5.2",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "jiashen@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7ca7202caaa8f335bf5cec4359de7f664b335d2b",
+            "comment": "Use client_info=\"1\" string value in native auth token requests [#8562](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8562)"
+          },
+          {
+            "author": "198982749+Copilot@users.noreply.github.com",
+            "package": "@azure/msal-browser",
+            "commit": "7ca7202caaa8f335bf5cec4359de7f664b335d2b",
+            "comment": "Fix CookieStorage.getItem and getKeys throwing URIError when unrelated cookies contain invalid percent-encoded sequences [#7531](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/7531)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 21 Apr 2026 22:41:19 GMT",
+      "version": "5.8.0",
+      "tag": "@azure/msal-browser_v5.8.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "yongdiwang@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4ff5911eacefacd2d2cd4f13b6a3a39fd3a3a68c",
+            "comment": "Add flat username (alias) attribute support in sign-up flow [#8536](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8536)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4ff5911eacefacd2d2cd4f13b6a3a39fd3a3a68c",
+            "comment": "Update cache schema version to fix bug when upgrading from v4 to v5 [#8545](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8545)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4ff5911eacefacd2d2cd4f13b6a3a39fd3a3a68c",
+            "comment": "Improved account filtering when login hint is provided [#8478](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8478)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4ff5911eacefacd2d2cd4f13b6a3a39fd3a3a68c",
+            "comment": "Add CJS build for redirect-bridge subpath export [#8541](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8541)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.5.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 16 Apr 2026 22:44:53 GMT",
+      "version": "5.7.0",
+      "tag": "@azure/msal-browser_v5.7.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86735c62f6ab31d7c8341f76b291e4b20c31bd99",
+            "comment": "Verify if an app is SSO Capable with 24h TTL cached. Add SsoCapable performance event."
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86735c62f6ab31d7c8341f76b291e4b20c31bd99",
+            "comment": "Fix MsalAuthenticationTemplate passing in undefined SsoSilentRequest [#8520](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8520)"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86735c62f6ab31d7c8341f76b291e4b20c31bd99",
+            "comment": "Attach cached ssoCapable value to ssoSilent and acquireTokenSilent telemetry. Refactor verifySsoCapability to accept request instead of account."
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86735c62f6ab31d7c8341f76b291e4b20c31bd99",
+            "comment": "Add Platform broker telemetry [#8488](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8488)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86735c62f6ab31d7c8341f76b291e4b20c31bd99",
+            "comment": "Enable waitForBridgeLateResponse Telemetry [#8509](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8509)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86735c62f6ab31d7c8341f76b291e4b20c31bd99",
+            "comment": "Add missing client capabilities in platform broker flows [#8428](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8428)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86735c62f6ab31d7c8341f76b291e4b20c31bd99",
+            "comment": "Implement redirect bridge for logout flows and update postLogoutRedirectUri in samples [#8489](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8489)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86735c62f6ab31d7c8341f76b291e4b20c31bd99",
+            "comment": "Add support for client data telemetry with CLI_DATA parameter [#8378](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8378)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.5.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 01 Apr 2026 20:08:59 GMT",
+      "version": "5.6.3",
+      "tag": "@azure/msal-browser_v5.6.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9bde6b8cdb52d3716067590f6cce486f3614e808",
+            "comment": "Track online/offline status change [#8411](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8411)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9bde6b8cdb52d3716067590f6cce486f3614e808",
+            "comment": "Experimental iframe timeout debugging telemetry [#8470](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8470)"
+          },
+          {
+            "author": "ruijungao@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9bde6b8cdb52d3716067590f6cce486f3614e808",
+            "comment": "Thread performanceClient through buildAccountToCache callers for telemetry [#8471](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8471)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.4.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 27 Mar 2026 16:35:28 GMT",
+      "version": "5.6.2",
+      "tag": "@azure/msal-browser_v5.6.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "37a2a06ebe722298cd53d124911973286dddd90b",
+            "comment": "Remove hidden iframe after receiving response from the redirect bridge [#8459](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8459)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "37a2a06ebe722298cd53d124911973286dddd90b",
+            "comment": "Cache auth response in sessionStorage and navigate to origin URL without appending auth parameters [#8467](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8467)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 19 Mar 2026 23:46:44 GMT",
       "version": "5.6.1",
       "tag": "@azure/msal-browser_v5.6.1",

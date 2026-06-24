@@ -30,14 +30,63 @@ This guide provides framework-specific instructions for setting up the redirect 
 > also fail if the bridge page is missing or not implemented correctly.
 
 > [!CAUTION]
-> **Do NOT load the redirect bridge page from a CDN** (e.g., jsdelivr, unpkg,
-> cdnjs). The redirect bridge receives the raw authentication response —
+> **Do NOT host the redirect bridge page or any of its assets (including the
+> bridge JavaScript module) on a third-party CDN or other third-party
+> origin.** The redirect bridge receives the raw authentication response —
 > including authorization codes and tokens — directly from the identity
-> provider. Loading this page from a third-party CDN creates a **supply-chain
-> and token-theft risk**: a compromised CDN asset could intercept the
-> authentication response before it reaches your application. Always bundle the
-> redirect bridge with your application or serve it from your own
-> infrastructure.
+> provider. Hosting any part of the bridge on a third-party origin creates a
+> **supply-chain and token-theft risk**: a compromised bridge asset could
+> intercept the authentication response before it reaches your application.
+> Always bundle the redirect bridge with your application and serve the page
+> and its assets **from the same origin** as your application.
+>
+> Because the bridge page carries sensitive authentication material in the URL,
+> it **must not be cached** by any intermediary. Serve the redirect bridge page
+> with `Cache-Control: no-store` to prevent CDNs, reverse proxies, and browser
+> disk caches from retaining the page — and the authorization codes or tokens
+> in its URL — after the response has been processed.
+>
+> **Note:** In Safari Private Browsing, privacy protections or content-blocking
+> features may restrict requests to some third-party domains and can interfere
+> with CDN-hosted scripts. If the redirect bridge is hosted on a CDN, this can
+> lead to authentication failures that may be difficult to diagnose. Bundling
+> the redirect bridge with your application and serving it from the same origin
+> helps avoid this class of issue.
+
+## Logout and the Redirect Bridge
+
+### `logoutPopup()` — redirect bridge is **required**
+
+When using `logoutPopup()`, the `postLogoutRedirectUri` **must** point to a page that implements the redirect bridge (calls `broadcastResponseToMainFrame()`). After ESTS completes the sign-out, it redirects the popup to the `postLogoutRedirectUri`. The redirect bridge on that page broadcasts the response back to the main window and closes the popup. Without the bridge, the popup will remain open after logout because COOP headers prevent the main window from closing it directly.
+
+The simplest configuration is to set `postLogoutRedirectUri` to the same value as `redirectUri`:
+
+```javascript
+const msalConfig = {
+    auth: {
+        clientId: "{your-client-id}",
+        redirectUri: "/redirect",
+        postLogoutRedirectUri: "/redirect", // Must host the redirect bridge
+    },
+};
+```
+
+> [!IMPORTANT]
+> If your `postLogoutRedirectUri` differs from your `redirectUri`, you must
+> ensure both pages implement the redirect bridge **and** both URIs are
+> registered in your [Entra ID app registration](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app#add-a-redirect-uri)
+> as redirect URIs.
+>
+> **Note:** For applications that support personal Microsoft accounts (MSA),
+> the `postLogoutRedirectUri` **must** be registered as a redirect URI in your
+> app registration. If it is not registered, MSA will not redirect back after
+> sign-out and the user will see a generic "close this tab" page instead. See
+> [Send a sign-out request](https://learn.microsoft.com/entra/identity-platform/v2-protocols-oidc#send-a-sign-out-request)
+> for details.
+
+### `logoutRedirect()` — redirect bridge is **optional**
+
+For `logoutRedirect()`, hosting the redirect bridge on the `postLogoutRedirectUri` page is optional. The redirect flow navigates the entire browser window, so there is no popup to close. If the redirect bridge is present on the `postLogoutRedirectUri` page, it will navigate the user back to the origin page. If not, ESTS will redirect the user directly to the `postLogoutRedirectUri` page and the user stays there.
 
 ## Cross-Origin Iframe Limitation
 
@@ -118,6 +167,30 @@ const msalConfig = {
 For more information on running MSAL in iframes, see
 [Using MSAL in iframed apps](./iframe-usage.md).
 
+## Page Title
+
+Always set a meaningful `<title>` on your redirect bridge page. Without an explicit title, the browser displays the raw redirect URL — which contains authorization codes or tokens — as the tab title and browser history entry.
+
+A good title should:
+
+- Indicate that authentication is in progress (e.g., "Signing in" or "Signing in - MyApp")
+- Be static HTML (not set dynamically after JavaScript loads) so it appears immediately
+
+```html
+<head>
+    <title>Signing in</title>
+</head>
+```
+
+This improves:
+
+- **User experience** — Users see a meaningful tab title instead of a long URL with query parameters
+- **Browser history** — History entries show a descriptive name rather than the raw redirect URL
+- **Accessibility** — Screen readers announce the page title when focus moves to the window or tab
+
+> [!NOTE]
+> MSAL overwrites `document.title` to "Microsoft Authentication" at runtime during popup, iframe, and redirect processing. A static `<title>` prevents the tab/history entry from briefly showing the raw redirect URL before JavaScript executes.
+
 ## Angular
 
 1. **Create the redirect bridge component** (`src/app/redirect/redirect.component.ts`):
@@ -186,7 +259,7 @@ Vite requires a multi-page configuration so that `redirect.html` is included as 
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Redirect</title>
+    <title>Signing in</title>
 </head>
 <body>
     <p>Processing authentication...</p>
@@ -234,7 +307,7 @@ Webpack requires a dedicated entry point and an `HtmlWebpackPlugin` instance for
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Redirect</title>
+    <title>Signing in</title>
 </head>
 <body>
     <p>Processing authentication...</p>

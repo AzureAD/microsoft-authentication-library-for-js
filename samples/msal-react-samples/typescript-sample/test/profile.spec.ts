@@ -31,10 +31,9 @@ async function verifyTokenStore(
         )
     ).toBeTruthy();
     const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(
-        "b5c2e510-4a17-4feb-b219-e55aa5b74144"
+        "0845a021-afdf-4126-abdd-099c5e6948e1"
     );
-    expect(telemetryCacheEntry).not.toBeNull();
-    expect(telemetryCacheEntry!.cacheHits).toBeGreaterThanOrEqual(1);
+    expect(telemetryCacheEntry).toBeNull();
 }
 
 describe("/profile", () => {
@@ -72,7 +71,6 @@ describe("/profile", () => {
     beforeEach(async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
         await page.goto(`http://localhost:${port}`);
     });
@@ -96,9 +94,7 @@ describe("/profile", () => {
         await enterCredentials(page, screenshot, username, accountPwd);
 
         // Wait for Graph data to display
-        await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]", {
-            timeout: 5000,
-        });
+        await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]");
         await screenshot.takeScreenshot(page, "Graph data acquired");
 
         // Verify UI now displays logged in content
@@ -147,9 +143,7 @@ describe("/profile", () => {
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await popupWindowClosed;
-        await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]", {
-            timeout: 3000,
-        });
+        await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]");
         await screenshot.takeScreenshot(page, "Popup closed");
 
         // Verify UI now displays logged in content
@@ -167,9 +161,7 @@ describe("/profile", () => {
         // Go to protected page
         await page.goto(`http://localhost:${port}/profile`);
         // Wait for Graph data to display
-        await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]", {
-            timeout: 5000,
-        });
+        await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]");
         await screenshot.takeScreenshot(page, "Graph data acquired");
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);

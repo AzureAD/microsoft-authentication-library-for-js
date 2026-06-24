@@ -116,7 +116,10 @@ export class ClientAssertion {
             return this.jwt;
         }
 
-        throw createClientAuthError(NodeClientAuthErrorCodes.invalidAssertion);
+        throw createClientAuthError(
+            NodeClientAuthErrorCodes.invalidAssertion,
+            ""
+        );
     }
 
     /**

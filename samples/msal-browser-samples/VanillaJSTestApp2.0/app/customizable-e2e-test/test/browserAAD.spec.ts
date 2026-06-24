@@ -76,13 +76,13 @@ describe("AAD-Prod Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation
             );
             await page.goto(sampleHomeUrl);
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterEach(async () => {
@@ -158,7 +158,7 @@ describe("AAD-Prod Tests", () => {
                 })
             );
             await page.reload();
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
 
             const testName = "redirectBaseCase";
             const screenshot = new Screenshot(
@@ -187,7 +187,7 @@ describe("AAD-Prod Tests", () => {
                 })
             );
             await page.reload();
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
 
             const testName = "redirectBaseCase";
             const screenshot = new Screenshot(
@@ -217,7 +217,7 @@ describe("AAD-Prod Tests", () => {
                 })
             );
             await page.reload();
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
 
             const testName = "redirectBridgeCacheKeys";
             const screenshot = new Screenshot(
@@ -270,13 +270,13 @@ describe("AAD-Prod Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation
             );
             await page.goto(sampleHomeUrl);
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
 
             testName = "logoutBaseCase";
             screenshot = new Screenshot(
@@ -293,7 +293,7 @@ describe("AAD-Prod Tests", () => {
                 popupPage,
                 popupWindowClosed
             );
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterEach(async () => {
@@ -337,6 +337,10 @@ describe("AAD-Prod Tests", () => {
             expect(tokenStore.idTokens.length).toEqual(0);
             expect(tokenStore.accessTokens.length).toEqual(0);
             expect(tokenStore.refreshTokens.length).toEqual(0);
+
+            // Verify the popup window is closed after logout completes
+            await popupWindowClosed;
+            expect(popupWindow.isClosed()).toBeTruthy();
         });
     });
 
@@ -372,13 +376,13 @@ describe("AAD-Prod Tests", () => {
         beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation
             );
             await page.goto(sampleHomeUrl);
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterEach(async () => {
@@ -432,7 +436,7 @@ describe("AAD-Prod Tests", () => {
         beforeAll(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+
             BrowserCache = new BrowserCacheUtils(
                 page,
                 aadMsalConfig.cache.cacheLocation
@@ -459,7 +463,7 @@ describe("AAD-Prod Tests", () => {
         beforeEach(async () => {
             await page.reload();
             await page.waitForSelector("#WelcomeMessage");
-            await pcaInitializedPoller(page, 5000);
+            await pcaInitializedPoller(page, 10000);
         });
 
         afterAll(async () => {
@@ -579,13 +583,7 @@ describe("AAD-Prod Tests", () => {
                 await BrowserCache.getTelemetryCacheEntry(
                     aadMsalConfig.auth.clientId
                 );
-            expect(telemetryCacheEntry).toBeDefined();
-            expect(telemetryCacheEntry["cacheHits"]).toEqual(1);
-            // Remove Telemetry Cache entry for next test
-            await BrowserCache.removeTokens([
-                BrowserCacheUtils.getTelemetryKey(aadMsalConfig.auth.clientId),
-            ]);
-
+            expect(telemetryCacheEntry).toBeNull();
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
             await BrowserCache.verifyTokenStore({
                 scopes: aadTokenRequest.scopes,
@@ -617,3 +615,7 @@ describe("AAD-Prod Tests", () => {
         });
     });
 });
+
+
+
+

@@ -10,6 +10,7 @@ import {
     AccountInfo,
     UrlString,
     ServerTelemetryManager,
+    StubServerTelemetryManager,
     ServerTelemetryRequest,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
@@ -29,8 +30,7 @@ import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
-import { version } from "../packageMetadata.js";
-import { BrowserConstants } from "../utils/BrowserConstants.js";
+import { version, name } from "../packageMetadata.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
@@ -68,7 +68,7 @@ export abstract class BaseInteractionClient {
         this.navigationClient = navigationClient;
         this.platformAuthProvider = platformAuthProvider;
         this.correlationId = correlationId;
-        this.logger = logger.clone(BrowserConstants.MSAL_SKU, version);
+        this.logger = logger.clone(name, version);
         this.performanceClient = performanceClient;
     }
 
@@ -97,7 +97,11 @@ export function getRedirectUri(
 ): string {
     logger.verbose("getRedirectUri called", correlationId);
     const redirectUri = requestRedirectUri || clientConfigRedirectUri || "";
-    return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
+    return UrlString.getAbsoluteUrl(
+        redirectUri,
+        BrowserUtils.getCurrentUri(),
+        correlationId
+    );
 }
 
 /**
@@ -108,6 +112,7 @@ export function getRedirectUri(
  * @param browserStorage - Browser cache manager instance for storing telemetry data
  * @param logger - Optional logger instance for verbose logging
  * @param forceRefresh - Optional flag to force refresh of telemetry data
+ * @param enabled - Optional flag to enable or disable server telemetry (default: true for custom_auth flows, false for standard flows)
  * @returns Configured ServerTelemetryManager instance
  */
 export function initializeServerTelemetryManager(
@@ -116,9 +121,18 @@ export function initializeServerTelemetryManager(
     correlationId: string,
     browserStorage: BrowserCacheManager,
     logger: Logger,
-    forceRefresh?: boolean
+    forceRefresh?: boolean,
+    enabled: boolean = true
 ): ServerTelemetryManager {
     logger.verbose("initializeServerTelemetryManager called", correlationId);
+    if (!enabled) {
+        logger.verbose(
+            "Server telemetry is disabled in configuration. Skipping telemetry manager initialization.",
+            correlationId
+        );
+        return new StubServerTelemetryManager();
+    }
+
     const telemetryPayload: ServerTelemetryRequest = {
         clientId: clientId,
         correlationId: correlationId,
@@ -179,7 +193,7 @@ export async function getDiscoveredAuthority(
     const userAuthority =
         account && resolvedInstanceAware
             ? config.auth.authority.replace(
-                  UrlString.getDomainFromUrl(resolvedAuthority),
+                  UrlString.getDomainFromUrl(resolvedAuthority, correlationId),
                   account.environment
               )
             : resolvedAuthority;
@@ -207,7 +221,8 @@ export async function getDiscoveredAuthority(
 
     if (account && !discoveredAuthority.isAlias(account.environment)) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.authorityMismatch
+            ClientConfigurationErrorCodes.authorityMismatch,
+            correlationId
         );
     }
 

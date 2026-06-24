@@ -69,6 +69,10 @@ export type BaseAuthRequest = {
     azureCloudOptions?: AzureCloudOptions;
     /**
      * Maximum allowed age, in milliseconds, of the user's authentication before a new sign-in is required.
+     * @deprecated This option no longer has any effect and will be removed in a future major version.
+     * MSAL does not validate the authentication age of returned tokens. To enforce the OIDC `max_age`
+     * parameter, send it via `extraQueryParameters` and validate the `auth_time` claim of the returned
+     * token yourself.
      */
     maxAge?: number;
     /**
@@ -95,6 +99,10 @@ export type BaseAuthRequest = {
      * Resource parameter to be sent with the request. Used for MCP flows.
      */
     resource?: string;
+    /**
+     * When true and a brokered flow is in effect—i.e., when a broker client id (brk_client_id), typically derived from embeddedClientId or other broker parameters, is included in the request—clientCapabilities from configuration will be excluded from claims. Has no effect when brk_client_id is not present (non-brokered flows).
+     */
+    skipBrokerClaims?: boolean;
     /**
      * String to string map of custom query parameters added to outgoing token service requests. Unless the parameter is only supported on query strings use extraParameters instead
      */
@@ -126,13 +134,15 @@ export function enforceResourceParameter(
             containsResourceParam(request.extraQueryParameters))
     ) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.misplacedResourceParam
+            ClientAuthErrorCodes.misplacedResourceParam,
+            request.correlationId || ""
         );
     }
 
     if (!request.resource) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.resourceParameterRequired
+            ClientAuthErrorCodes.resourceParameterRequired,
+            request.correlationId || ""
         );
     }
 }

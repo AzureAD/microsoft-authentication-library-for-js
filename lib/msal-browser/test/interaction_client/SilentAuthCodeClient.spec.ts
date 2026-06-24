@@ -72,6 +72,9 @@ describe("SilentAuthCodeClient", () => {
             //@ts-ignore
             pca.performanceClient
         );
+        // Freeze Date.now() so timestamp comparisons in toEqual don't fail
+        // when a 1-second boundary is crossed during async acquireToken calls.
+        jest.spyOn(Date, "now").mockReturnValue(Date.now());
     });
 
     afterEach(() => {
@@ -90,7 +93,10 @@ describe("SilentAuthCodeClient", () => {
                     code: "",
                 })
             ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.authCodeRequired)
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.authCodeRequired,
+                    ""
+                )
             );
         });
 
@@ -262,7 +268,8 @@ describe("SilentAuthCodeClient", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentAuthCodeClient.logout).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.silentLogoutUnsupported
+                    BrowserAuthErrorCodes.silentLogoutUnsupported,
+                    ""
                 )
             );
         });

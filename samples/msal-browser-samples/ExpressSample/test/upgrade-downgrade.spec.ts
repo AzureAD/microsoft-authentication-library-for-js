@@ -6,9 +6,14 @@ import {
     LabApiQueryParams,
     AzureEnvironments,
     AppTypes,
-    BrowserCacheUtils
+    BrowserCacheUtils,
 } from "e2e-test-utils";
-import { verifyCacheWasUsed, switchToVersion, signIn } from "./test-helpers";
+import {
+    forceRefreshAndVerifyTokenCountsDoNotChange,
+    verifyCacheWasUsed,
+    switchToVersion,
+    signIn,
+} from "./test-helpers";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/upgrade-downgrade-tests`;
 
@@ -46,9 +51,8 @@ describe("Upgrade/Downgrade Tests", () => {
     beforeEach(async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(500);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
-        await page.goto(`http://localhost:${port}`, { timeout: 2000 });
+        await page.goto(`http://localhost:${port}`, { timeout: 10000 });
     });
 
     afterEach(async () => {
@@ -62,8 +66,8 @@ describe("Upgrade/Downgrade Tests", () => {
      */
     test("Verify Schema Version", async () => {
         // DO NOT UPDATE THESE CONSTANTS UNTIL TESTS HAVE BEEN ADDED!!
-        const currentAccountSchemaVersion = 2;
-        const currentTokenSchemaVersion = 2;
+        const currentAccountSchemaVersion = 3;
+        const currentTokenSchemaVersion = 3;
 
         const testName = "schemaVersion";
         const screenshot = new Screenshot(
@@ -80,7 +84,7 @@ describe("Upgrade/Downgrade Tests", () => {
         const accountKeys = storage[`msal.${currentAccountSchemaVersion}.account.keys`];
         expect(accountKeys).toBeTruthy();
         expect(JSON.parse(accountKeys!)).toHaveLength(1);
-        const tokenKeys = storage[`msal.${currentTokenSchemaVersion}.token.keys.b5c2e510-4a17-4feb-b219-e55aa5b74144`];
+        const tokenKeys = storage[`msal.${currentTokenSchemaVersion}.token.keys.0845a021-afdf-4126-abdd-099c5e6948e1`];
         expect(tokenKeys).toBeTruthy();
         expect(JSON.parse(tokenKeys!).idToken).toHaveLength(1);
         expect(JSON.parse(tokenKeys!).accessToken).toHaveLength(1);
@@ -106,6 +110,11 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("local", page, screenshot);
 
             await verifyCacheWasUsed(page, screenshot);
+            await forceRefreshAndVerifyTokenCountsDoNotChange(
+                page,
+                screenshot,
+                BrowserCache
+            );
         });
 
         test("acquireTokenSilent can return tokens from the cache after upgrading from the latest v4 version", async () => {
@@ -120,6 +129,30 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("local", page, screenshot);
 
             await verifyCacheWasUsed(page, screenshot);
+            await forceRefreshAndVerifyTokenCountsDoNotChange(
+                page,
+                screenshot,
+                BrowserCache
+            );
+        });
+
+        test("acquireTokenSilent can return tokens from the cache after upgrading from 5.7.0 (cache schema v2)", async () => {
+            const testName = "upgradeV5-7-0";
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            await screenshot.takeScreenshot(page, "Page loaded");
+
+            await switchToVersion("5.7.0", page, screenshot);
+            await signIn(page, screenshot, username, accountPwd);
+            await switchToVersion("local", page, screenshot);
+
+            await verifyCacheWasUsed(page, screenshot);
+            await forceRefreshAndVerifyTokenCountsDoNotChange(
+                page,
+                screenshot,
+                BrowserCache
+            );
         });
 
         test("acquireTokenSilent can return tokens from the cache after upgrading from 4.25.0 (cache schema v1)", async () => {
@@ -134,6 +167,11 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("local", page, screenshot);
 
             await verifyCacheWasUsed(page, screenshot);
+            await forceRefreshAndVerifyTokenCountsDoNotChange(
+                page,
+                screenshot,
+                BrowserCache
+            );
         });
 
         test("acquireTokenSilent can return tokens from the cache after upgrading from 4.18.0 (cache schema v0)", async () => {
@@ -148,6 +186,11 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("local", page, screenshot);
 
             await verifyCacheWasUsed(page, screenshot);
+            await forceRefreshAndVerifyTokenCountsDoNotChange(
+                page,
+                screenshot,
+                BrowserCache
+            );
         });
 
         test("acquireTokenSilent can return tokens from the cache after downgrading to v3 and then upgrading back to local version", async () => {
@@ -167,6 +210,11 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("local", page, screenshot);
 
             await verifyCacheWasUsed(page, screenshot);
+            await forceRefreshAndVerifyTokenCountsDoNotChange(
+                page,
+                screenshot,
+                BrowserCache
+            );
         });
     });
     
@@ -210,6 +258,23 @@ describe("Upgrade/Downgrade Tests", () => {
             await verifyCacheWasUsed(page, screenshot);
 
             await switchToVersion("latest-v4", page, screenshot);
+            await verifyCacheWasUsed(page, screenshot);
+        });
+
+        test("acquireTokenSilent can return tokens from the cache after downgrading back to 5.7.0 (cache schema v2)", async () => {
+            const testName = "downgradeLatestTo5-7-0";
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            await screenshot.takeScreenshot(page, "Page loaded");
+
+            await switchToVersion("5.7.0", page, screenshot);
+            await signIn(page, screenshot, username, accountPwd);
+
+            await switchToVersion("local", page, screenshot);
+            await verifyCacheWasUsed(page, screenshot);
+
+            await switchToVersion("5.7.0", page, screenshot);
             await verifyCacheWasUsed(page, screenshot);
         });
 

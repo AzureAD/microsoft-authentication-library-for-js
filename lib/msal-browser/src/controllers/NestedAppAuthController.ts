@@ -628,9 +628,8 @@ export class NestedAppAuthController implements IController {
      * acquireTokenRedirect flow is not supported in nested app auth
      * @param request
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     acquireTokenRedirect(request: RedirectRequest): Promise<void> {
-        throw NestedAppAuthError.createUnsupportedError();
+        throw NestedAppAuthError.createUnsupportedError(request?.correlationId);
     }
 
     /**
@@ -648,11 +647,10 @@ export class NestedAppAuthController implements IController {
      * Hybrid flow is not currently supported in nested app auth
      * @param request
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     acquireTokenByCode(
-        request: AuthorizationCodeRequest // eslint-disable-line @typescript-eslint/no-unused-vars
+        request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
-        throw NestedAppAuthError.createUnsupportedError();
+        throw NestedAppAuthError.createUnsupportedError(request?.correlationId);
     }
 
     /**
@@ -677,11 +675,13 @@ export class NestedAppAuthController implements IController {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
+        // No request context: callback registration is not per-request
         throw NestedAppAuthError.createUnsupportedError();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     removePerformanceCallback(callbackId: string): boolean {
+        // No request context: callback registration is not per-request
         throw NestedAppAuthError.createUnsupportedError();
     }
 
@@ -756,17 +756,21 @@ export class NestedAppAuthController implements IController {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     loginRedirect(request?: RedirectRequest | undefined): Promise<void> {
-        throw NestedAppAuthError.createUnsupportedError();
+        throw NestedAppAuthError.createUnsupportedError(request?.correlationId);
     }
     logoutRedirect(
-        logoutRequest?: EndSessionRequest | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
+        logoutRequest?: EndSessionRequest | undefined
     ): Promise<void> {
-        throw NestedAppAuthError.createUnsupportedError();
+        throw NestedAppAuthError.createUnsupportedError(
+            logoutRequest?.correlationId
+        );
     }
     logoutPopup(
-        logoutRequest?: EndSessionPopupRequest | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
+        logoutRequest?: EndSessionPopupRequest | undefined
     ): Promise<void> {
-        throw NestedAppAuthError.createUnsupportedError();
+        throw NestedAppAuthError.createUnsupportedError(
+            logoutRequest?.correlationId
+        );
     }
     ssoSilent(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -829,16 +833,20 @@ export class NestedAppAuthController implements IController {
     }
 
     getPerformanceClient(): IPerformanceClient {
+        // Accessor stub with no request context
         throw NestedAppAuthError.createUnsupportedError();
     }
 
     getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>> {
+        // Accessor stub with no request context
         throw NestedAppAuthError.createUnsupportedError();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
-        throw NestedAppAuthError.createUnsupportedError();
+        throw NestedAppAuthError.createUnsupportedError(
+            logoutRequest?.correlationId
+        );
     }
 
     async hydrateCache(

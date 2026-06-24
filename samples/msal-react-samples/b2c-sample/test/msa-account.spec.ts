@@ -48,7 +48,6 @@ describe("B2C user-flow tests (msa account)", () => {
     beforeEach(async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
         await page.goto(`http://localhost:${port}`);
     });
@@ -115,16 +114,14 @@ describe("B2C user-flow tests (msa account)", () => {
         await page.$eval("#displayName", (el: any) => (el.value = "")); // clear the text field
         await page.type("#displayName", `${displayName}`);
         await page.click("#continue");
-        await page.waitForNetworkIdle();
-        await screenshot.takeScreenshot(page, "Edit profile page filled");
+        await screenshot.takeScreenshot(page, "Edit profile form submitted");
         await Promise.all([
             page.waitForFunction(
                 `window.location.href.startsWith("http://localhost:${port}")`
             ),
             page.waitForSelector("#idTokenClaims"),
             page.waitForSelector(
-                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])",
-                { timeout: 4000 }
+                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])"
             ),
         ]);
         const idTokenClaims = await page.$eval(

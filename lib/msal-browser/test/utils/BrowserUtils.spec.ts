@@ -12,9 +12,23 @@ import {
 
 describe("BrowserUtils.ts Function Unit Tests", () => {
     const oldWindow = { ...window };
+    const mockLateMeasurement = {
+        add: jest.fn(),
+        end: jest.fn(),
+        discard: jest.fn(),
+    };
     const performanceClient = {
         addFields: jest.fn(),
+        startMeasurement: jest.fn().mockReturnValue(mockLateMeasurement),
     } as any;
+
+    beforeEach(() => {
+        performanceClient.addFields.mockClear();
+        performanceClient.startMeasurement.mockClear();
+        mockLateMeasurement.add.mockClear();
+        mockLateMeasurement.end.mockClear();
+        mockLateMeasurement.discard.mockClear();
+    });
 
     afterEach(() => {
         window = oldWindow;
@@ -134,11 +148,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
                 warning: jest.fn(),
                 error: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const state = btoa(JSON.stringify({ id: "test-id-123" }));
             const request = {
                 state,
@@ -149,7 +158,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 5000,
                 logger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -176,11 +184,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const logger = {
                 verbose: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const state = btoa(JSON.stringify({ id: "test-id-456" }));
             const request = {
                 state,
@@ -193,7 +196,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 5000,
                 logger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -218,11 +220,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const logger = {
                 verbose: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const state = btoa(JSON.stringify({ id: "test-id-789" }));
             const request = {
                 state,
@@ -233,7 +230,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 5000,
                 logger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -263,11 +259,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const logger = {
                 verbose: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const state = btoa(JSON.stringify({ id: "cancel-test-id" }));
             const request = {
                 state,
@@ -277,7 +268,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 10000,
                 logger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -303,11 +293,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const logger = {
                 verbose: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const channelId = "success-test-id";
             const state = btoa(JSON.stringify({ id: channelId }));
             const request = {
@@ -319,7 +304,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 5000,
                 logger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -361,11 +345,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const logger = {
                 verbose: jest.fn(),
             } as any;
-
-            const browserCrypto = {
-                base64Decode: (input: string) => atob(input),
-            } as any;
-
             const state = btoa(JSON.stringify({ id: "timeout-test-id" }));
             const request = {
                 state,
@@ -375,7 +354,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             const waitPromise = BrowserUtils.waitForBridgeResponse(
                 1000,
                 logger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -393,6 +371,136 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
                 logger,
                 TEST_CONFIG.CORRELATION_ID
             );
+
+            jest.useRealTimers();
+        });
+
+        it("does not start background measurement when response arrives before timeout", async () => {
+            const logger = {
+                verbose: jest.fn(),
+            } as any;
+            const channelId = "pre-timeout-response-test-id";
+            const state = btoa(JSON.stringify({ id: channelId }));
+            const request = {
+                state,
+                correlationId: "test-correlation-id",
+            } as any;
+
+            const waitPromise = BrowserUtils.waitForBridgeResponse(
+                200,
+                logger,
+                request,
+                performanceClient,
+                { iframeTimeoutTelemetry: true }
+            );
+
+            await new Promise((resolve) => setTimeout(resolve, 5));
+            const channel = new BroadcastChannel(channelId);
+            channel.postMessage({
+                v: 1,
+                payload: "code=test&state=test",
+            });
+            channel.close();
+
+            await expect(waitPromise).resolves.toBe("code=test&state=test");
+
+            expect(performanceClient.startMeasurement).not.toHaveBeenCalled();
+            expect(mockLateMeasurement.end).not.toHaveBeenCalled();
+            expect(mockLateMeasurement.discard).not.toHaveBeenCalled();
+        });
+
+        it("starts a new measurement for the background phase and ends it when a late response arrives", async () => {
+            // Use real timers: Node.js worker_threads BroadcastChannel delivers
+            // messages asynchronously and is incompatible with jest fake timers.
+            const logger = {
+                verbose: jest.fn(),
+            } as any;
+            const channelId = "late-response-test-id";
+            const state = btoa(JSON.stringify({ id: channelId }));
+            const request = {
+                state,
+                correlationId: "test-correlation-id",
+            } as any;
+
+            const waitPromise = BrowserUtils.waitForBridgeResponse(
+                10, // short iframe timeout
+                logger,
+                request,
+                performanceClient,
+                { iframeTimeoutTelemetry: true }
+            );
+
+            await expect(waitPromise).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.timedOut,
+                subError: "redirect_bridge_timeout",
+            });
+
+            expect(performanceClient.startMeasurement).toHaveBeenCalledWith(
+                "waitForBridgeLateResponse",
+                "test-correlation-id"
+            );
+            expect(performanceClient.addFields).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    lateResponseExperimentEnabled: true,
+                }),
+                "test-correlation-id"
+            );
+
+            // Allow a small gap before posting the late message
+            await new Promise((resolve) => setTimeout(resolve, 5));
+            const channel = new BroadcastChannel(channelId);
+            channel.postMessage({
+                v: 2,
+                payload: "code=test&state=test",
+            });
+            channel.close();
+
+            // Wait for async BroadcastChannel message delivery
+            await new Promise((resolve) => setTimeout(resolve, 20));
+
+            expect(mockLateMeasurement.add).not.toHaveBeenCalled();
+            expect(mockLateMeasurement.end).toHaveBeenCalledWith({
+                success: true,
+            });
+        });
+
+        it("ends the background measurement with success:false when the extra observation window expires without a response", async () => {
+            jest.useFakeTimers();
+            const logger = {
+                verbose: jest.fn(),
+            } as any;
+            const state = btoa(JSON.stringify({ id: "late-expiry-test-id" }));
+            const request = {
+                state,
+                correlationId: "test-correlation-id",
+            } as any;
+
+            const waitPromise = BrowserUtils.waitForBridgeResponse(
+                1000,
+                logger,
+                request,
+                performanceClient,
+                { iframeTimeoutTelemetry: true }
+            );
+
+            jest.advanceTimersByTime(1000);
+
+            await expect(waitPromise).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.timedOut,
+                subError: "redirect_bridge_timeout",
+            });
+
+            expect(performanceClient.startMeasurement).toHaveBeenCalledWith(
+                "waitForBridgeLateResponse",
+                "test-correlation-id"
+            );
+
+            jest.advanceTimersByTime(60000);
+
+            expect(mockLateMeasurement.end).toHaveBeenCalledWith({
+                success: false,
+            });
+            expect(mockLateMeasurement.discard).not.toHaveBeenCalled();
 
             jest.useRealTimers();
         });

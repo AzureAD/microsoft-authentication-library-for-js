@@ -33,9 +33,8 @@ export const AUTHORIZATION_PENDING = "authorization_pending";
 export const NOT_APPLICABLE = "N/A";
 export const NOT_AVAILABLE = "Not Available";
 export const FORWARD_SLASH = "/";
-export const IMDS_ENDPOINT =
-    "http://169.254.169.254/metadata/instance/compute/location";
-export const IMDS_VERSION = "2020-06-01";
+export const IMDS_ENDPOINT = "http://169.254.169.254/metadata/instance/compute";
+export const IMDS_VERSION = "2021-02-01";
 export const IMDS_TIMEOUT = 2000;
 export const AZURE_REGION_AUTO_DISCOVER_FLAG = "TryAutoDetect";
 export const REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX = "login.microsoft.com";
@@ -122,6 +121,9 @@ export type AADAuthority = (typeof AADAuthority)[keyof typeof AADAuthority];
 export const ClaimsRequestKeys = {
     ACCESS_TOKEN: "access_token",
     XMS_CC: "xms_cc",
+    ID_TOKEN: "id_token",
+    SIGNIN_STATE: "signin_state",
+    LOGIN_HINT: "login_hint",
 } as const;
 export type ClaimsRequestKeys =
     (typeof ClaimsRequestKeys)[keyof typeof ClaimsRequestKeys];
@@ -180,6 +182,7 @@ export const GrantType = {
     REFRESH_TOKEN_GRANT: "refresh_token",
     DEVICE_CODE_GRANT: "device_code",
     JWT_BEARER: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+    USER_FIC: "user_fic",
 } as const;
 export type GrantType = (typeof GrantType)[keyof typeof GrantType];
 

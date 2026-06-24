@@ -9,6 +9,7 @@ async function initializeMsal() {
         return response.json();
     }).then((authConfig) => {
         myMSALObj = new msal.PublicClientApplication(authConfig.msalConfig);
+        window.msalApp = myMSALObj;
         requestConfig = authConfig.request;
         tenantConfig = authConfig.tenants;
         myMSALObj.initialize().then(() => {
@@ -49,8 +50,10 @@ function handleResponse(resp) {
             if (currentAccounts.length === 0) {
                 return;
             } else if (currentAccounts.length > 1) {
-                activeAccount = currentAccounts.sort((account) => {
-                    return account.tenantId === account.homeAccountId.split(".")[1] ? -1 : 1; 
+                activeAccount = currentAccounts.sort((a, b) => {
+                    const aIsHome = a.tenantId === a.homeAccountId.split(".")[1] ? 1 : 0;
+                    const bIsHome = b.tenantId === b.homeAccountId.split(".")[1] ? 1 : 0;
+                    return bIsHome - aIsHome;
                 })[0];
             } else if (currentAccounts.length === 1) {
                 activeAccount = currentAccounts[0];
@@ -64,12 +67,16 @@ function handleResponse(resp) {
 }
 
 async function signIn(signInType) {
-    if (signInType === "popup") {
-        return myMSALObj.loginPopup(requestConfig).then(handleResponse).catch(function (error) {
+    const request = { ...requestConfig };
+    if ((signInType === "popupGuest" || signInType === "redirectGuest") && tenantConfig?.guest) {
+        request.authority = tenantConfig.guest.authority;
+    }
+    if (signInType === "popup" || signInType === "popupGuest") {
+        return myMSALObj.loginPopup(request).then(handleResponse).catch(function (error) {
             console.log(error);
         });
-    } else if (signInType === "redirect") {
-        return myMSALObj.loginRedirect(requestConfig)
+    } else if (signInType === "redirect" || signInType === "redirectGuest") {
+        return myMSALObj.loginRedirect(request);
     }
 }
 
@@ -111,38 +118,30 @@ async function getTokenRedirect(method = "GET") {
     }
 }
 
-async function getTokenSilently() {
-    const request = requestConfig;
+async function getTokenSilently(tenantKey) {
+    const request = { ...requestConfig };
     const currentAcc = myMSALObj.getActiveAccount();
-    if (currentAcc) {
-        request.account = currentAcc;
-        response = await myMSALObj.acquireTokenSilent(request).then(handleResponse).catch(error => {
-            console.error(error);
-        });
-    }
-}
+    if (!currentAcc) return;
 
-async function getGuestTokenSilently() {
-    const request = requestConfig;
-    if (tenantConfig?.guest) {
-        const currentAcc = myMSALObj.getActiveAccount();
-        const guestAccount = myMSALObj.getAccount({ homeAccountId: currentAcc?.homeAccountId, tenantId: tenantConfig.guest.tenantId } );
-        if (guestAccount) {
-            response = await myMSALObj.acquireTokenSilent({ ...request, account: guestAccount }).then(handleResponse).catch(error => {
-                console.error(error);
-            });
+    const tenantCfg = tenantKey ? tenantConfig?.[tenantKey] : null;
+    if (tenantKey && !tenantCfg) {
+        console.error(`Sample Configuration Error: No "${tenantKey}" tenant in MSAL Config`);
+        return;
+    }
+    if (tenantCfg) {
+        const tenantAccount = myMSALObj.getAccount({ homeAccountId: currentAcc.homeAccountId, tenantId: tenantCfg.tenantId });
+        if (tenantAccount) {
+            request.account = tenantAccount;
         } else {
-            const currentAcc = myMSALObj.getActiveAccount();
-            response = await myMSALObj.acquireTokenSilent({
-                 ...request,
-                 account: currentAcc,
-                 authority: tenantConfig.guest.authority,
-                 cacheLookupPolicy: msal.CacheLookupPolicy.RefreshToken
-            }).then(handleResponse).catch(error => {
-                console.error(error);
-            });
+            request.account = currentAcc;
+            request.authority = tenantCfg.authority;
+            request.cacheLookupPolicy = msal.CacheLookupPolicy.RefreshToken;
         }
     } else {
-        console.error("Sample Configuration Error: No guest tenant in MSAL Config");
+        request.account = currentAcc;
     }
+
+    response = await myMSALObj.acquireTokenSilent(request).then(handleResponse).catch(error => {
+        console.error(error);
+    });
 }

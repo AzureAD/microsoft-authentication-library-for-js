@@ -400,7 +400,8 @@ describe("PublicClientApplication", () => {
             };
 
             const testError = new InteractionRequiredAuthError(
-                "interaction_required"
+                "interaction_required",
+                ""
             );
             const brokerSpy = jest
                 .spyOn(MockNativeBrokerPlugin.prototype, "acquireTokenSilent")
@@ -954,7 +955,8 @@ describe("PublicClientApplication", () => {
             };
 
             const testError = createClientAuthError(
-                ClientAuthErrorCodes.userCanceled
+                ClientAuthErrorCodes.userCanceled,
+                ""
             );
             const brokerSpy = jest
                 .spyOn(
@@ -1178,7 +1180,8 @@ describe("PublicClientApplication", () => {
                         homeAccountId: mockAccountInfo.homeAccountId,
                         idTokenClaims: AuthToken.extractTokenClaims(
                             mockAuthenticationResult.idToken,
-                            cryptoProvider.base64Decode
+                            cryptoProvider.base64Decode,
+                            ""
                         ),
                     },
                     await AuthorityFactory.createDiscoveredInstance(
@@ -1199,7 +1202,8 @@ describe("PublicClientApplication", () => {
                         new Logger({}),
                         TEST_CONFIG.CORRELATION_ID,
                         new StubPerformanceClient()
-                    )
+                    ),
+                    ""
                 );
 
             // @ts-ignore
@@ -1255,7 +1259,8 @@ describe("PublicClientApplication", () => {
                 account: mockNativeAccountInfo,
             };
             const testError = createClientAuthError(
-                ClientAuthErrorCodes.noAccountFound
+                ClientAuthErrorCodes.noAccountFound,
+                ""
             );
             const brokerSpy = jest
                 .spyOn(MockNativeBrokerPlugin.prototype, "signOut")
@@ -1280,9 +1285,6 @@ describe("PublicClientApplication", () => {
                 AccountEntityUtils.createAccountEntityFromAccountInfo(
                     mockAccountInfo
                 );
-
-            // @ts-ignore
-            await authApp.storage.setAccount(accountEntity);
 
             // @ts-ignore
             await authApp.storage.setAccount(accountEntity);
@@ -1328,7 +1330,8 @@ describe("PublicClientApplication", () => {
             });
 
             const testError = createClientAuthError(
-                ClientAuthErrorCodes.noAccountFound
+                ClientAuthErrorCodes.noAccountFound,
+                ""
             );
             const brokerSpy = jest
                 .spyOn(MockNativeBrokerPlugin.prototype, "getAllAccounts")
@@ -1622,7 +1625,7 @@ describe("PublicClientApplication", () => {
         await expect(
             authApp.acquireTokenByCode(request, authCodePayLoad)
         ).rejects.toMatchObject(
-            createClientAuthError(ClientAuthErrorCodes.stateMismatch)
+            createClientAuthError(ClientAuthErrorCodes.stateMismatch, "")
         );
     });
 });

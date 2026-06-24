@@ -2,20 +2,21 @@ import {
     RETRY_TIMES,
     validateCacheLocation,
     NodeCacheTestUtils,
-    getKeyVaultSecretClient,
+    getCertificateInfo,
+    ENV_VARIABLES,
+    LAB_CERT_NAME,
+    LAB_KEY_VAULT_URL,
 } from "../../../e2eTestUtils/src";
 import {
     AuthenticationResult,
     ConfidentialClientApplication,
     Configuration,
 } from "@azure/msal-node";
-import { getCertificateInfo } from "../../../e2eTestUtils/src/CertificateUtils";
-import {
-    ENV_VARIABLES,
-    LAB_CERT_NAME,
-    LAB_KEY_VAULT_URL,
-} from "../../../e2eTestUtils/src/Constants";
+import { DefaultAzureCredential } from "@azure/identity";
 import getClientCredentialsToken from "../app";
+
+// Enable SNI (send certificate chain) for cert-based auth in CI
+process.env["AZURE_CLIENT_SEND_CERTIFICATE_CHAIN"] = "true";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
@@ -31,11 +32,10 @@ describe("Client Credentials AAD Prod Tests", () => {
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
 
-        const keyVaultSecretClient = await getKeyVaultSecretClient(
-            LAB_KEY_VAULT_URL
-        );
+        const credentials = new DefaultAzureCredential();
         [thumbprint, privateKey, x5c] = await getCertificateInfo(
-            keyVaultSecretClient,
+            credentials,
+            LAB_KEY_VAULT_URL,
             LAB_CERT_NAME
         );
 

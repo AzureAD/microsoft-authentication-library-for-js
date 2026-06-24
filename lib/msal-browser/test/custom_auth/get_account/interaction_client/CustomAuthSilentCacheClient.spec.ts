@@ -7,6 +7,7 @@ import {
     AccountEntityUtils,
     CacheHelpers,
     CommonSilentFlowRequest,
+    Constants,
     createInteractionRequiredAuthError,
     ICrypto,
     INetworkModule,
@@ -36,7 +37,6 @@ import {
     getDefaultEventHandler,
     getDefaultPerformanceClient,
 } from "../../test_resources/TestModules.js";
-import { AuthenticationScheme } from "../../../../../msal-common/lib/types/utils/Constants.js";
 import { mock } from "node:test";
 
 describe("CustomAuthSilentCacheClient", () => {
@@ -298,7 +298,8 @@ describe("CustomAuthSilentCacheClient", () => {
             );
 
             const mockNoTokensFoundError = createInteractionRequiredAuthError(
-                InteractionRequiredAuthErrorCodes.noTokensFound
+                InteractionRequiredAuthErrorCodes.noTokensFound,
+                ""
             );
 
             commonSilentFlowRequest.forceRefresh = true;
@@ -321,7 +322,8 @@ describe("CustomAuthSilentCacheClient", () => {
 
             const mockRefreshTokenExpiredError =
                 createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+                    ""
                 );
 
             commonSilentFlowRequest.forceRefresh = true;
@@ -443,8 +445,9 @@ function createAccessTokenEntity(browserCrypto: ICrypto): AccessTokenEntity {
         expiresOn,
         expiresOn + 0,
         browserCrypto.base64Decode,
+        "",
         undefined,
-        TestServerTokenResponse.token_type as AuthenticationScheme
+        TestServerTokenResponse.token_type as Constants.AuthenticationScheme
     );
 }
 

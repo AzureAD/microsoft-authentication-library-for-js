@@ -130,6 +130,9 @@ describe("PopupClient", () => {
                 typeof ProtocolUtils.setRequestState
             >;
         mockSetRequestState.mockReturnValue(TEST_STATE_VALUES.TEST_STATE_POPUP);
+        // Freeze Date.now() so timestamp comparisons in toEqual don't fail
+        // when a 1-second boundary is crossed during async acquireToken calls.
+        jest.spyOn(Date, "now").mockReturnValue(Date.now());
     });
 
     afterEach(() => {
@@ -174,7 +177,8 @@ describe("PopupClient", () => {
 
             await expect(popupClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    ""
                 )
             );
         });
@@ -195,7 +199,8 @@ describe("PopupClient", () => {
 
             await expect(popupClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshKid
+                    ClientConfigurationErrorCodes.missingSshKid,
+                    ""
                 )
             );
         });
@@ -669,7 +674,8 @@ describe("PopupClient", () => {
                 .catch((e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashEmptyError
+                            BrowserAuthErrorCodes.hashEmptyError,
+                            ""
                         )
                     );
                     done();
@@ -689,7 +695,8 @@ describe("PopupClient", () => {
                 .catch((e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                            ""
                         )
                     );
                     done();
@@ -864,6 +871,9 @@ describe("PopupClient", () => {
         });
 
         it("catches error and cleans cache before rethrowing", async () => {
+            // Enable server telemetry so cacheFailedRequest writes to storage
+            //@ts-ignore
+            popupClient.config.system.serverTelemetryEnabled = true;
             const testError: AuthError = new AuthError(
                 "create_login_url_error",
                 "Error in creating a login url"
@@ -1028,7 +1038,8 @@ describe("PopupClient", () => {
                     pca.acquireTokenPopup(validRequest)
                 ).rejects.toThrow(
                     createClientConfigurationError(
-                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
+                        ""
                     )
                 );
             });
@@ -1043,6 +1054,9 @@ describe("PopupClient", () => {
             };
             // @ts-ignore
             jest.spyOn(window, "open").mockReturnValue(popupWindow);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
+                new Error("test")
+            );
         });
 
         afterEach(() => {
@@ -1059,6 +1073,21 @@ describe("PopupClient", () => {
                 await popupClient.logout();
             } catch (e) {}
             expect(popupSpy.mock.calls[0]).toHaveLength(2);
+        });
+
+        it("calls getLogoutUri with a truthy state for redirect bridge support", async () => {
+            const logoutUriSpy = jest
+                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                .mockReturnValue(TEST_URIS.TEST_END_SESSION_ENDPOINT);
+
+            jest.spyOn(PopupClient.prototype, "openSizedPopup").mockReturnValue(
+                null
+            );
+
+            await popupClient.logout().catch(() => {});
+
+            expect(logoutUriSpy).toHaveBeenCalledTimes(1);
+            expect(logoutUriSpy.mock.calls[0][0].state).toBeTruthy();
         });
 
         it("opens popups when making network request if configured", async () => {
@@ -1115,6 +1144,9 @@ describe("PopupClient", () => {
         });
 
         it("catches error and cleans cache before rethrowing", async () => {
+            // Enable server telemetry so cacheFailedRequest writes to storage
+            //@ts-ignore
+            popupClient.config.system.serverTelemetryEnabled = true;
             const testError: AuthError = new AuthError(
                 "create_logout_url_error",
                 "Error in creating a logout url"
@@ -1884,7 +1916,8 @@ describe("PopupClient", () => {
             const testState = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+                ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -1907,7 +1940,6 @@ describe("PopupClient", () => {
             const response = await BrowserUtils.waitForBridgeResponse(
                 5000,
                 clientImpl.logger,
-                clientImpl.browserCrypto,
                 request,
                 clientImpl.performanceClient
             );
@@ -1921,7 +1953,8 @@ describe("PopupClient", () => {
             const testState = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+                ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -1944,7 +1977,6 @@ describe("PopupClient", () => {
             const response = await BrowserUtils.waitForBridgeResponse(
                 5000,
                 clientImpl.logger,
-                clientImpl.browserCrypto,
                 request,
                 clientImpl.performanceClient
             );
@@ -1958,7 +1990,8 @@ describe("PopupClient", () => {
             const testState = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+                ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -1977,6 +2010,7 @@ describe("PopupClient", () => {
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.timedOut,
+                    "",
                     "redirect_bridge_timeout"
                 )
             );
@@ -1985,7 +2019,6 @@ describe("PopupClient", () => {
                 BrowserUtils.waitForBridgeResponse(
                     100,
                     clientImpl.logger,
-                    clientImpl.browserCrypto,
                     request,
                     clientImpl.performanceClient
                 )
@@ -2003,12 +2036,14 @@ describe("PopupClient", () => {
             const testState1 = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState1
+                testLibraryState1,
+                ""
             );
             const testState2 = ProtocolUtils.setRequestState(
                 clientImpl.browserCrypto,
                 "",
-                testLibraryState2
+                testLibraryState2,
+                ""
             );
 
             const request1: CommonAuthorizationUrlRequest = {
@@ -2043,7 +2078,6 @@ describe("PopupClient", () => {
             const promise1 = BrowserUtils.waitForBridgeResponse(
                 5000,
                 clientImpl.logger,
-                clientImpl.browserCrypto,
                 request1,
                 clientImpl.performanceClient
             );
@@ -2051,7 +2085,6 @@ describe("PopupClient", () => {
             const promise2 = BrowserUtils.waitForBridgeResponse(
                 5000,
                 clientImpl.logger,
-                clientImpl.browserCrypto,
                 request2,
                 clientImpl.performanceClient
             );
@@ -2125,7 +2158,7 @@ describe("PopupClient", () => {
                     popupWindowParent: window,
                 })
             ).toThrow(
-                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri, "")
             );
             expect(() =>
                 popupClient.initiateAuthRequest("", {
@@ -2137,7 +2170,7 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(
-                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri, "")
             );
             //@ts-ignore
             expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(
@@ -2295,7 +2328,10 @@ describe("PopupClient", () => {
                     }
                 )
             ).toThrow(
-                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.popupWindowError,
+                    ""
+                )
             );
         });
 
@@ -2320,8 +2356,90 @@ describe("PopupClient", () => {
                     }
                 )
             ).toThrow(
-                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.popupWindowError,
+                    ""
+                )
             );
+        });
+
+        it("sets document.title on the popup window", () => {
+            const mockPopupWindow = {
+                ...window,
+                document: { title: "" },
+                focus: jest.fn(),
+            };
+            jest.spyOn(window, "open").mockReturnValue(
+                mockPopupWindow as unknown as Window
+            );
+
+            const popupWindow = popupClient.initiateAuthRequest(
+                "http://localhost/#/code=hello",
+                {
+                    popupName: "name",
+                    popupWindowAttributes: {},
+                    popupWindowParent: window,
+                }
+            );
+
+            expect(
+                (popupWindow as unknown as { document: { title: string } })
+                    .document.title
+            ).toBe("Microsoft Authentication");
+        });
+
+        it("replaces URL-based document.title on popup window when no title is set", () => {
+            const mockPopupWindow = {
+                ...window,
+                document: {
+                    title: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=test",
+                },
+                focus: jest.fn(),
+            };
+            jest.spyOn(window, "open").mockReturnValue(
+                mockPopupWindow as unknown as Window
+            );
+
+            const popupWindow = popupClient.initiateAuthRequest(
+                "http://localhost/#/code=hello",
+                {
+                    popupName: "name",
+                    popupWindowAttributes: {},
+                    popupWindowParent: window,
+                }
+            );
+
+            expect(
+                (popupWindow as unknown as { document: { title: string } })
+                    .document.title
+            ).toBe("Microsoft Authentication");
+        });
+
+        it("does not throw when setting document.title on cross-origin popup fails", () => {
+            const mockPopupWindow = {
+                focus: jest.fn(),
+            };
+            Object.defineProperty(mockPopupWindow, "document", {
+                get() {
+                    throw new DOMException(
+                        "Blocked access to cross-origin frame"
+                    );
+                },
+            });
+            jest.spyOn(window, "open").mockReturnValue(
+                mockPopupWindow as unknown as Window
+            );
+
+            expect(() =>
+                popupClient.initiateAuthRequest(
+                    "http://localhost/#/code=hello",
+                    {
+                        popupName: "name",
+                        popupWindowAttributes: {},
+                        popupWindowParent: window,
+                    }
+                )
+            ).not.toThrow();
         });
     });
 });

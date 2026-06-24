@@ -52,36 +52,47 @@ describe("SilentHandler.ts Unit Tests", () => {
         it("throws error if requestUrl is empty", async () => {
             await expect(
                 SilentHandler.initiateCodeRequest(
+                    SilentHandler.createHiddenIframe(),
                     "",
-                    performanceClient,
                     browserRequestLogger,
                     RANDOM_TEST_GUID
                 )
             ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.emptyNavigateUri,
+                    ""
+                )
             );
         });
 
-        it("Creates a frame", async () => {
+        it("Navigates the provided frame to the request url", async () => {
+            const frame = SilentHandler.createHiddenIframe();
             const authFrame = await SilentHandler.initiateCodeRequest(
+                frame,
                 testNavUrl,
-                performanceClient,
                 browserRequestLogger,
                 RANDOM_TEST_GUID
             );
+            expect(authFrame).toBe(frame);
+        });
+    });
+
+    describe("createHiddenIframe()", () => {
+        it("Creates a frame", () => {
+            const authFrame = SilentHandler.createHiddenIframe();
             expect(authFrame instanceof HTMLIFrameElement).toBe(true);
         });
 
-        it("Sets the allow attribute for local network access on iframe", async () => {
-            const authFrame = await SilentHandler.initiateCodeRequest(
-                testNavUrl,
-                performanceClient,
-                browserRequestLogger,
-                RANDOM_TEST_GUID
-            );
+        it("Sets the allow attribute for local network access on iframe", () => {
+            const authFrame = SilentHandler.createHiddenIframe();
             expect(authFrame.getAttribute("allow")).toBe(
                 "local-network-access *"
             );
+        });
+
+        it("Sets a title attribute on the iframe for accessibility", () => {
+            const authFrame = SilentHandler.createHiddenIframe();
+            expect(authFrame.title).toBe("Microsoft Authentication");
         });
     });
 
@@ -97,7 +108,8 @@ describe("SilentHandler.ts Unit Tests", () => {
             const testState = ProtocolUtils.setRequestState(
                 browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+                ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -120,7 +132,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             const response = await BrowserUtils.waitForBridgeResponse(
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -133,7 +144,8 @@ describe("SilentHandler.ts Unit Tests", () => {
             const testState = ProtocolUtils.setRequestState(
                 browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+                ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -156,7 +168,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             const response = await BrowserUtils.waitForBridgeResponse(
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
-                browserCrypto,
                 request,
                 performanceClient
             );
@@ -169,7 +180,8 @@ describe("SilentHandler.ts Unit Tests", () => {
             const testState = ProtocolUtils.setRequestState(
                 browserCrypto,
                 "",
-                testLibraryState
+                testLibraryState,
+                ""
             );
 
             const request: CommonAuthorizationUrlRequest = {
@@ -188,6 +200,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.timedOut,
+                    "",
                     "redirect_bridge_timeout"
                 )
             );
@@ -196,7 +209,6 @@ describe("SilentHandler.ts Unit Tests", () => {
                 BrowserUtils.waitForBridgeResponse(
                     100,
                     browserRequestLogger,
-                    browserCrypto,
                     request,
                     performanceClient
                 )
@@ -213,12 +225,14 @@ describe("SilentHandler.ts Unit Tests", () => {
             const testState1 = ProtocolUtils.setRequestState(
                 browserCrypto,
                 "",
-                testLibraryState1
+                testLibraryState1,
+                ""
             );
             const testState2 = ProtocolUtils.setRequestState(
                 browserCrypto,
                 "",
-                testLibraryState2
+                testLibraryState2,
+                ""
             );
 
             const request1: CommonAuthorizationUrlRequest = {
@@ -253,7 +267,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             const promise1 = BrowserUtils.waitForBridgeResponse(
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
-                browserCrypto,
                 request1,
                 performanceClient
             );
@@ -261,7 +274,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             const promise2 = BrowserUtils.waitForBridgeResponse(
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
-                browserCrypto,
                 request2,
                 performanceClient
             );

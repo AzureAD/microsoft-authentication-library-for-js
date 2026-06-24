@@ -1,8 +1,106 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Wed, 18 Mar 2026 20:47:24 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 23 Jun 2026 22:19:30 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.3.0
+
+Tue, 23 Jun 2026 22:19:30 GMT
+
+### Minor changes
+
+- Add Federated Managed Identity (FMI) and User Federated Identity Credential (user_fic) grant type support. Also fixes a long-standing bug where the tokenEndpoint field on ClientAssertionConfig was incorrectly populated with resourceRequestUri during client-credential flows; it now correctly contains the AAD token endpoint. [#8614](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8614) (avdunn@microsoft.com)
+- Make correlationId a required parameter on NodeAuthError and ManagedIdentityError, [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609) (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v16.10.0
+
+## 5.2.5
+
+Tue, 16 Jun 2026 19:46:35 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.9.0
+
+## 5.2.4
+
+Wed, 10 Jun 2026 22:41:34 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.8.0
+
+## 5.2.3
+
+Fri, 05 Jun 2026 22:24:22 GMT
+
+### Patches
+
+- bump msal-common to version 16.6.3 [#8622](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8622) (lalimasharda@microsoft.com)
+- Bump @azure/msal-common to v16.7.0
+
+## 5.2.2
+
+Tue, 19 May 2026 19:29:14 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.6.2
+
+## 5.2.1
+
+Mon, 11 May 2026 21:48:15 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.6.1
+
+## 5.2.0
+
+Thu, 07 May 2026 19:01:04 GMT
+
+### Minor changes
+
+- Remove duplicate typings in the build output [#8557](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8557) (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v16.6.0
+
+### Patches
+
+- Add MSAL client metadata headers (x-client-SKU, x-client-VER, x-ms-client-request-id) to IMDS managed identity requests [#8529](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8529) (nicagra@microsoft.com)
+
+## 5.1.5
+
+Tue, 28 Apr 2026 21:30:32 GMT
+
+### Patches
+
+- fix(msal-node): replace uuid with node:crypto to resolve GHSA-w5hq-g745-h8pq (pieter.willaert@colruytgroup.com)
+- Preserve authority metadata when calling clear() [#8542](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8542) (shylasummers@microsoft.com)
+- Bump @azure/msal-common to v16.5.2
+
+## 5.1.4
+
+Tue, 21 Apr 2026 22:41:19 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.5.1
+
+## 5.1.3
+
+Thu, 16 Apr 2026 22:44:53 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.5.0
+
+## 5.1.2
+
+Wed, 01 Apr 2026 20:09:00 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.4.1
 
 ## 5.1.1
 

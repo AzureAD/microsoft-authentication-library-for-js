@@ -78,6 +78,23 @@ import { EncryptedData, isEncrypted } from "./EncryptedData.js";
 type KmsiMap = { [homeAccountId: string]: boolean };
 
 /**
+ * Reason an old-schema cache entry was removed during migration.
+ */
+const MigrationRemovalReason = {
+    Invalid: "invalid",
+    TtlExpired: "ttlExpired",
+    DecryptFailed: "decryptFailed",
+    Expired: "expired",
+} as const;
+
+type MigrationRemovalReason =
+    (typeof MigrationRemovalReason)[keyof typeof MigrationRemovalReason];
+
+type UpdateOldEntryResult =
+    | { entry: CredentialEntity; removalReason?: undefined }
+    | { entry: null; removalReason: MigrationRemovalReason };
+
+/**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
  */
 export class BrowserCacheManager extends CacheManager {
@@ -198,7 +215,7 @@ export class BrowserCacheManager extends CacheManager {
     async updateOldEntry(
         key: string,
         correlationId: string
-    ): Promise<CredentialEntity | null> {
+    ): Promise<UpdateOldEntryResult> {
         const rawValue = this.browserStorage.getItem(key);
         const parsedValue = this.validateAndParseJson(rawValue || "") as
             | CredentialEntity
@@ -207,7 +224,10 @@ export class BrowserCacheManager extends CacheManager {
 
         if (!parsedValue) {
             this.browserStorage.removeItem(key);
-            return null;
+            return {
+                entry: null,
+                removalReason: MigrationRemovalReason.Invalid,
+            };
         }
 
         if (!parsedValue.lastUpdatedAt) {
@@ -221,26 +241,38 @@ export class BrowserCacheManager extends CacheManager {
             )
         ) {
             this.browserStorage.removeItem(key);
-            this.performanceClient.incrementFields(
-                { expiredCacheRemovedCount: 1 },
-                correlationId
-            );
-            return null;
+            return {
+                entry: null,
+                removalReason: MigrationRemovalReason.TtlExpired,
+            };
         }
 
-        const decryptedData = isEncrypted(parsedValue)
+        const wasEncrypted = isEncrypted(parsedValue);
+        const decryptedData = wasEncrypted
             ? await this.browserStorage.decryptData(
                   key,
                   parsedValue,
                   correlationId
               )
             : parsedValue;
-        if (!decryptedData || !CacheHelpers.isCredentialEntity(decryptedData)) {
-            this.performanceClient.incrementFields(
-                { invalidCacheCount: 1 },
-                correlationId
-            );
-            return null;
+
+        if (!decryptedData) {
+            this.browserStorage.removeItem(key);
+
+            return {
+                entry: null,
+                removalReason: wasEncrypted
+                    ? MigrationRemovalReason.DecryptFailed
+                    : MigrationRemovalReason.Invalid,
+            };
+        }
+
+        if (!CacheHelpers.isCredentialEntity(decryptedData)) {
+            this.browserStorage.removeItem(key);
+            return {
+                entry: null,
+                removalReason: MigrationRemovalReason.Invalid,
+            };
         }
 
         if (
@@ -253,14 +285,13 @@ export class BrowserCacheManager extends CacheManager {
             )
         ) {
             this.browserStorage.removeItem(key);
-            this.performanceClient.incrementFields(
-                { expiredCacheRemovedCount: 1 },
-                correlationId
-            );
-            return null;
+            return {
+                entry: null,
+                removalReason: MigrationRemovalReason.Expired,
+            };
         }
 
-        return decryptedData;
+        return { entry: decryptedData };
     }
 
     /**
@@ -295,6 +326,11 @@ export class BrowserCacheManager extends CacheManager {
                 | null;
 
             if (!parsedValue) {
+                this.browserStorage.removeItem(accountKey);
+                this.performanceClient.incrementFields(
+                    { invalidAcntCount: 1 },
+                    correlationId
+                );
                 removeElementFromArray(accountKeysToCheck, accountKey);
                 continue;
             }
@@ -321,7 +357,28 @@ export class BrowserCacheManager extends CacheManager {
                     credentialSchema,
                     correlationId
                 );
+                this.performanceClient.incrementFields(
+                    { ttlExpiredAcntCount: 1 },
+                    correlationId
+                );
                 removeElementFromArray(accountKeysToCheck, accountKey);
+            } else if (isEncrypted(parsedValue)) {
+                // Remove accounts encrypted with a different key (session cookie expired/changed)
+                const decrypted = await this.browserStorage.decryptData(
+                    accountKey,
+                    parsedValue,
+                    correlationId
+                );
+                if (!decrypted) {
+                    this.browserStorage.removeItem(accountKey);
+                    this.performanceClient.incrementFields(
+                        {
+                            decryptFailedAcntCount: 1,
+                        },
+                        correlationId
+                    );
+                    removeElementFromArray(accountKeysToCheck, accountKey);
+                }
             }
         }
 
@@ -373,11 +430,6 @@ export class BrowserCacheManager extends CacheManager {
             this.setTokenKeys(tokenKeys, correlationId, credentialSchema);
         }
 
-        this.performanceClient.incrementFields(
-            { expiredAcntRemovedCount: 1 },
-            correlationId
-        );
-
         this.browserStorage.removeItem(accountKey);
     }
 
@@ -394,7 +446,8 @@ export class BrowserCacheManager extends CacheManager {
                 const idToken = JSON.parse(rawValue) as IdTokenEntity;
                 const claims = AuthToken.extractTokenClaims(
                     idToken.secret,
-                    base64Decode
+                    base64Decode,
+                    ""
                 );
                 if (claims) {
                     kmsiMap[idToken.homeAccountId] = AuthToken.isKmsi(claims);
@@ -442,11 +495,29 @@ export class BrowserCacheManager extends CacheManager {
                 correlationId
             );
 
-            const oldSchemaData = (await this.updateOldEntry(
-                idTokenKey,
-                correlationId
-            )) as IdTokenEntity | null;
+            const result = await this.updateOldEntry(idTokenKey, correlationId);
+            const oldSchemaData = result.entry as IdTokenEntity | null;
             if (!oldSchemaData) {
+                switch (result.removalReason) {
+                    case MigrationRemovalReason.TtlExpired:
+                        this.performanceClient.incrementFields(
+                            { ttlExpiredITCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.DecryptFailed:
+                        this.performanceClient.incrementFields(
+                            { decryptFailedITCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.Invalid:
+                        this.performanceClient.incrementFields(
+                            { invalidITCount: 1 },
+                            correlationId
+                        );
+                        break;
+                }
                 removeElementFromArray(
                     credentialKeysToMigrate.idToken,
                     idTokenKey
@@ -491,7 +562,8 @@ export class BrowserCacheManager extends CacheManager {
 
             const claims = AuthToken.extractTokenClaims(
                 oldSchemaData.secret,
-                base64Decode
+                base64Decode,
+                correlationId
             );
 
             const newIdTokenKey = this.generateCredentialKey(oldSchemaData);
@@ -506,7 +578,8 @@ export class BrowserCacheManager extends CacheManager {
                 Object.keys(
                     AuthToken.extractTokenClaims(
                         currentIdToken.secret,
-                        base64Decode
+                        base64Decode,
+                        correlationId
                     ) || {}
                 ).includes("signin_state");
 
@@ -533,6 +606,7 @@ export class BrowserCacheManager extends CacheManager {
                         account.homeAccountId,
                         account.localAccountId,
                         tenantId,
+                        account.nativeAccountId,
                         claims
                     );
                     tenantProfiles.push(newTenantProfile);
@@ -563,7 +637,9 @@ export class BrowserCacheManager extends CacheManager {
                     { migratedITCount: 1 },
                     correlationId
                 );
-                currentCredentialKeys.idToken.push(newIdTokenKey);
+                if (!currentCredentialKeys.idToken.includes(newIdTokenKey)) {
+                    currentCredentialKeys.idToken.push(newIdTokenKey);
+                }
             }
         }
 
@@ -609,11 +685,38 @@ export class BrowserCacheManager extends CacheManager {
                 correlationId
             );
 
-            const oldSchemaData = (await this.updateOldEntry(
+            const result = await this.updateOldEntry(
                 accessTokenKey,
                 correlationId
-            )) as AccessTokenEntity | null;
+            );
+            const oldSchemaData = result.entry as AccessTokenEntity | null;
             if (!oldSchemaData) {
+                switch (result.removalReason) {
+                    case MigrationRemovalReason.TtlExpired:
+                        this.performanceClient.incrementFields(
+                            { ttlExpiredATCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.DecryptFailed:
+                        this.performanceClient.incrementFields(
+                            { decryptFailedATCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.Expired:
+                        this.performanceClient.incrementFields(
+                            { expiredATCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.Invalid:
+                        this.performanceClient.incrementFields(
+                            { invalidATCount: 1 },
+                            correlationId
+                        );
+                        break;
+                }
                 removeElementFromArray(
                     credentialKeysToMigrate.accessToken,
                     accessTokenKey
@@ -713,11 +816,38 @@ export class BrowserCacheManager extends CacheManager {
                 correlationId
             );
 
-            const oldSchemaData = (await this.updateOldEntry(
+            const result = await this.updateOldEntry(
                 refreshTokenKey,
                 correlationId
-            )) as RefreshTokenEntity | null;
+            );
+            const oldSchemaData = result.entry as RefreshTokenEntity | null;
             if (!oldSchemaData) {
+                switch (result.removalReason) {
+                    case MigrationRemovalReason.TtlExpired:
+                        this.performanceClient.incrementFields(
+                            { ttlExpiredRTCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.DecryptFailed:
+                        this.performanceClient.incrementFields(
+                            { decryptFailedRTCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.Expired:
+                        this.performanceClient.incrementFields(
+                            { expiredRTCount: 1 },
+                            correlationId
+                        );
+                        break;
+                    case MigrationRemovalReason.Invalid:
+                        this.performanceClient.incrementFields(
+                            { invalidRTCount: 1 },
+                            correlationId
+                        );
+                        break;
+                }
                 removeElementFromArray(
                     credentialKeysToMigrate.refreshToken,
                     refreshTokenKey
@@ -1899,30 +2029,12 @@ export class BrowserCacheManager extends CacheManager {
         correlationId: string,
         generateKey?: boolean
     ): string | null {
+        this.logger.trace(
+            "BrowserCacheManager.getTemporaryCache called",
+            correlationId
+        );
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
-        const value = this.temporaryCacheStorage.getItem(key);
-        if (!value) {
-            // If temp cache item not found in session/memory, check local storage for items set by old versions
-            if (
-                this.cacheConfig.cacheLocation ===
-                BrowserCacheLocation.LocalStorage
-            ) {
-                const item = this.browserStorage.getItem(key);
-                if (item) {
-                    this.logger.trace(
-                        "BrowserCacheManager.getTemporaryCache: Temporary cache item found in local storage",
-                        correlationId
-                    );
-                    return item;
-                }
-            }
-            this.logger.trace(
-                "BrowserCacheManager.getTemporaryCache: No cache item found in local storage",
-                correlationId
-            );
-            return null;
-        }
-        return value;
+        return this.temporaryCacheStorage.getItem(key);
     }
 
     /**
@@ -2006,10 +2118,8 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Cache Key: msal.<schema_version>-<home_account_id>-<environment>-<credential_type>-<client_id or familyId>-<realm>-<scopes>-<claims hash>-<scheme>
-     * IdToken Example: uid.utid-login.microsoftonline.com-idtoken-app_client_id-contoso.com
-     * AccessToken Example: uid.utid-login.microsoftonline.com-accesstoken-app_client_id-contoso.com-scope1 scope2--pop
-     * RefreshToken Example: uid.utid-login.microsoftonline.com-refreshtoken-1-contoso.com
+     * Generate Credential Key. All changes to the key REQUIRE a schema version update.
+     * Cache Key: msal.<schema_version>|<home_account_id>|<environment>|<credential_type>|<client_id or familyId>|<realm>|<scopes>|<scheme>
      * @param credentialEntity
      * @returns
      */
@@ -2130,7 +2240,8 @@ export class BrowserCacheManager extends CacheManager {
         );
         if (!encodedTokenRequest) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.noTokenRequestCacheError
+                BrowserAuthErrorCodes.noTokenRequestCacheError,
+                ""
             );
         }
         const encodedVerifier = this.getTemporaryCache(
@@ -2156,7 +2267,8 @@ export class BrowserCacheManager extends CacheManager {
                 correlationId
             );
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
+                BrowserAuthErrorCodes.unableToParseTokenRequestCacheError,
+                ""
             );
         }
 
@@ -2257,7 +2369,8 @@ export class BrowserCacheManager extends CacheManager {
                     this.removeTemporaryItem(key);
                 } else {
                     throw createBrowserAuthError(
-                        BrowserAuthErrorCodes.interactionInProgress
+                        BrowserAuthErrorCodes.interactionInProgress,
+                        ""
                     );
                 }
             }
@@ -2319,6 +2432,7 @@ export class BrowserCacheManager extends CacheManager {
                 ? TimeUtils.toSecondsFromDate(result.extExpiresOn)
                 : 0,
             base64Decode,
+            request.correlationId || "",
             undefined, // refreshOn
             result.tokenType as Constants.AuthenticationScheme,
             undefined, // userAssertionHash
@@ -2337,7 +2451,11 @@ export class BrowserCacheManager extends CacheManager {
             cacheRecord,
             result.correlationId,
             AuthToken.isKmsi(
-                AuthToken.extractTokenClaims(result.idToken, base64Decode)
+                AuthToken.extractTokenClaims(
+                    result.idToken,
+                    base64Decode,
+                    result.correlationId
+                )
             ),
             ApiId.hydrateCache
         );

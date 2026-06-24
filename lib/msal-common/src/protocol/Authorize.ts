@@ -34,6 +34,7 @@ import { ServerError } from "../error/ServerError.js";
  * @param logger
  * @param performanceClient
  * @returns
+ * @internal
  */
 export function getStandardAuthorizeRequestParameters(
     authOptions: AuthOptions,
@@ -60,6 +61,7 @@ export function getStandardAuthorizeRequestParameters(
     RequestParameterBuilder.addScopes(
         parameters,
         requestScopes,
+        request.correlationId,
         true,
         authOptions.authority.options.OIDCOptions?.defaultScopes
     );
@@ -238,18 +240,6 @@ export function getStandardAuthorizeRequestParameters(
         RequestParameterBuilder.addState(parameters, request.state);
     }
 
-    if (
-        request.claims ||
-        (authOptions.clientCapabilities &&
-            authOptions.clientCapabilities.length > 0)
-    ) {
-        RequestParameterBuilder.addClaims(
-            parameters,
-            request.claims,
-            authOptions.clientCapabilities
-        );
-    }
-
     if (request.embeddedClientId) {
         RequestParameterBuilder.addBrokerParameters(
             parameters,
@@ -257,6 +247,14 @@ export function getStandardAuthorizeRequestParameters(
             authOptions.redirectUri
         );
     }
+
+    RequestParameterBuilder.addClaims(
+        parameters,
+        request.correlationId,
+        request.claims,
+        authOptions.clientCapabilities,
+        request.skipBrokerClaims
+    );
 
     // If extraQueryParameters includes instance_aware its value will be added when extraQueryParameters are added
     if (
@@ -277,6 +275,7 @@ export function getStandardAuthorizeRequestParameters(
  * @param authority
  * @param requestParameters
  * @returns
+ * @internal
  */
 export function getAuthorizeUrl(
     authority: Authority,
@@ -294,18 +293,21 @@ export function getAuthorizeUrl(
  * the client to exchange for a token in acquireToken.
  * @param serverParams
  * @param cachedState
+ * @param correlationId
  */
 export function getAuthorizationCodePayload(
     serverParams: AuthorizeResponse,
-    cachedState: string
+    cachedState: string,
+    correlationId: string
 ): AuthorizationCodePayload {
     // Get code response
-    validateAuthorizationResponse(serverParams, cachedState);
+    validateAuthorizationResponse(serverParams, cachedState, correlationId);
 
     // throw when there is no auth code in the response
     if (!serverParams.code) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse
+            ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse,
+            correlationId
         );
     }
 
@@ -316,19 +318,23 @@ export function getAuthorizationCodePayload(
  * Function which validates server authorization code response.
  * @param serverResponseHash
  * @param requestState
+ * @param correlationId
  */
 export function validateAuthorizationResponse(
     serverResponse: AuthorizeResponse,
-    requestState: string
+    requestState: string,
+    correlationId: string
 ): void {
     if (!serverResponse.state || !requestState) {
         throw serverResponse.state
             ? createClientAuthError(
                   ClientAuthErrorCodes.stateNotFound,
+                  correlationId,
                   "Cached State"
               )
             : createClientAuthError(
                   ClientAuthErrorCodes.stateNotFound,
+                  correlationId,
                   "Server State"
               );
     }
@@ -341,6 +347,7 @@ export function validateAuthorizationResponse(
     } catch (e) {
         throw createClientAuthError(
             ClientAuthErrorCodes.invalidState,
+            correlationId,
             serverResponse.state
         );
     }
@@ -350,12 +357,16 @@ export function validateAuthorizationResponse(
     } catch (e) {
         throw createClientAuthError(
             ClientAuthErrorCodes.invalidState,
+            correlationId,
             serverResponse.state
         );
     }
 
     if (decodedServerResponseState !== decodedRequestState) {
-        throw createClientAuthError(ClientAuthErrorCodes.stateMismatch);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.stateMismatch,
+            correlationId
+        );
     }
 
     // Check for error
@@ -374,11 +385,11 @@ export function validateAuthorizationResponse(
         ) {
             throw new InteractionRequiredAuthError(
                 serverResponse.error || "",
+                serverResponse.correlation_id || correlationId,
                 serverResponse.error_description,
                 serverResponse.suberror,
                 serverResponse.timestamp || "",
                 serverResponse.trace_id || "",
-                serverResponse.correlation_id || "",
                 serverResponse.claims || "",
                 serverErrorNo
             );
@@ -386,6 +397,7 @@ export function validateAuthorizationResponse(
 
         throw new ServerError(
             serverResponse.error || "",
+            serverResponse.correlation_id || correlationId,
             serverResponse.error_description,
             serverResponse.suberror,
             serverErrorNo

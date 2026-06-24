@@ -18,7 +18,7 @@ const LOGGER_CALL_START = new RegExp(
 /**
  * Efficiently find string literals within logger calls using linear parsing
  * instead of complex regex that can cause quadratic performance.
- * 
+ *
  * Supports both direct logger calls and chained method calls:
  * - Direct: logger.verbose(...), commonLogger.info(...), log.error(...)
  * - Chained: this.getLogger().verbose(...), obj.getLogger().info(...)
@@ -253,6 +253,83 @@ function normalizeTemplateVariables(str) {
 }
 
 /**
+ * Extracts the interpolated expressions (the contents of each `${...}`) from a
+ * template literal, in source order. Returns an array of the raw expression
+ * strings, e.g. for `` `User ${id} did ${action.toUpperCase()}` `` it returns
+ * ['id', 'action.toUpperCase()'].
+ *
+ * Uses a linear parser (no regex backtracking) and correctly handles nested
+ * braces, string literals, and nested template literals inside expressions.
+ */
+function extractTemplateExpressions(templateText) {
+    const expressions = [];
+    // Skip the surrounding backticks
+    const end = templateText.length - 1;
+    let i = 1;
+
+    while (i < end) {
+        const char = templateText[i];
+
+        if (char === '\\') {
+            // Skip escaped character in the literal portion
+            i += 2;
+            continue;
+        }
+
+        if (char === '$' && templateText[i + 1] === '{') {
+            // Start of an interpolation
+            let j = i + 2;
+            let depth = 1;
+
+            while (j < templateText.length && depth > 0) {
+                const c = templateText[j];
+
+                if (c === '\\') {
+                    j += 2;
+                    continue;
+                }
+
+                if (c === '{') {
+                    depth++;
+                } else if (c === '}') {
+                    depth--;
+                    if (depth === 0) {
+                        break;
+                    }
+                } else if (c === '"' || c === "'" || c === '`') {
+                    // Skip over a nested string/template literal
+                    const quote = c;
+                    j++;
+                    while (j < templateText.length) {
+                        if (templateText[j] === '\\') {
+                            j += 2;
+                            continue;
+                        }
+                        if (templateText[j] === quote) {
+                            break;
+                        }
+                        j++;
+                    }
+                }
+
+                j++;
+            }
+
+            const expression = templateText.slice(i + 2, j).trim();
+            if (expression.length > 0) {
+                expressions.push(expression);
+            }
+            i = j + 1; // Skip past the closing brace
+            continue;
+        }
+
+        i++;
+    }
+
+    return expressions;
+}
+
+/**
  * Creates the rollup plugin for logger string minification
  */
 function loggerMinifyPlugin(options = {}) {
@@ -284,8 +361,18 @@ function loggerMinifyPlugin(options = {}) {
 
                 const originalString = cleanMessage(quotedString);
 
-                // Skip if this looks like a hash (6 character alphanumeric string)
-                if (/^[a-z0-9]{6}$/.test(originalString)) {
+                // Skip strings that are already minified to avoid creating a
+                // "hash of a hash". This happens when an already-minified bundle
+                // is processed again (e.g. msal-browser re-bundles the minified
+                // msal-common output). An already-minified message is either:
+                //   - a bare 6-char hash: "0nxk52", or
+                //   - a 6-char hash followed by appended ${...} variables:
+                //     "0nxk52 ${subMeasurement.name} ${event.name}"
+                // The hash alphabet is lowercase base36 (see createStringHash).
+                if (
+                    /^[a-z0-9]{6}$/.test(originalString) ||
+                    /^[a-z0-9]{6} \$\{/.test(originalString)
+                ) {
                     continue;
                 }
 
@@ -310,8 +397,24 @@ function loggerMinifyPlugin(options = {}) {
                 });
                 hasChanges = true;
 
-                // Replace the entire logger call
-                const replacement = `${prefix}${middle}"${hash}"${suffix}`;
+                // Replace the message with the hash. For template literals that
+                // contain interpolated variables, preserve those variables by
+                // appending them after the hash so they remain visible in local
+                // (console) logs. The static text - which dominates bundle size -
+                // is still dropped in favor of the hash. The leading hash is what
+                // telemetry captures, so the appended variables never reach telemetry.
+                let minifiedMessage = `"${hash}"`;
+                if (isTemplateLiteral) {
+                    const expressions = extractTemplateExpressions(quotedString);
+                    if (expressions.length > 0) {
+                        const interpolations = expressions
+                            .map((expression) => `\${${expression}}`)
+                            .join(' ');
+                        minifiedMessage = `\`${hash} ${interpolations}\``;
+                    }
+                }
+
+                const replacement = `${prefix}${middle}${minifiedMessage}${suffix}`;
                 transformedCode = transformedCode.slice(0, startPos) + replacement + transformedCode.slice(endPos);
             }
 

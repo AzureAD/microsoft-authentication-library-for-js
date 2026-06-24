@@ -83,9 +83,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             },
         };
 
-        createNestablePublicClientApplication(config).then((result) => {
-            pca = result;
-        });
+        pca = await createNestablePublicClientApplication(config);
 
         windowSpy = jest.spyOn(global, "window", "get");
 
@@ -151,7 +149,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 } as any)
             ).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.resourceParameterRequired
+                    ClientAuthErrorCodes.resourceParameterRequired,
+                    ""
                 )
             );
         });
@@ -180,7 +179,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 } as any)
             ).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.misplacedResourceParam
+                    ClientAuthErrorCodes.misplacedResourceParam,
+                    ""
                 )
             );
         });
@@ -209,7 +209,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 } as any)
             ).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.misplacedResourceParam
+                    ClientAuthErrorCodes.misplacedResourceParam,
+                    ""
                 )
             );
         });
@@ -454,7 +455,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 "fromNaaTokenResponse"
             ).mockImplementation(() => {
                 throw createClientAuthError(
-                    ClientAuthErrorCodes.nullOrEmptyToken
+                    ClientAuthErrorCodes.nullOrEmptyToken,
+                    ""
                 );
             });
 
@@ -467,7 +469,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             await expect(() =>
                 pca.acquireTokenSilent(testRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+                createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
         });
 
@@ -489,7 +491,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             await expect(() =>
                 pca.acquireTokenSilent(testRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+                createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken, "")
             );
         });
 
@@ -1092,6 +1094,65 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
 
         afterEach(() => {
             jest.restoreAllMocks();
+        });
+    });
+
+    describe("getAccount tests", () => {
+        it("should not return cached account A when searching for account B by login hint", async () => {
+            // Setup: Account A cached but no idToken or idTokenClaims
+            const cachedAccountA: AccountInfo = {
+                homeAccountId: "account-a-home-id",
+                localAccountId: "account-a-local-id",
+                environment: "login.microsoftonline.com",
+                tenantId: "tenant-id",
+                username: "userA@contoso.com",
+                loginHint: "userA@contoso.com",
+            };
+
+            // Account B that we're searching for (not cached)
+            const searchLoginHintB = "userB@contoso.com";
+
+            // Mock the browser storage to return account A
+            const cacheManager = (pca as any).controller.browserStorage;
+            jest.spyOn(cacheManager, "getAccountKeys").mockReturnValue([
+                "account-a-key",
+            ]);
+
+            const accountEntityA = {
+                homeAccountId: cachedAccountA.homeAccountId,
+                localAccountId: cachedAccountA.localAccountId,
+                environment: cachedAccountA.environment,
+                realm: cachedAccountA.tenantId,
+                username: cachedAccountA.username,
+                loginHint: cachedAccountA.loginHint,
+                authorityType: "MSSTS",
+                clientInfo: "",
+                tenantProfiles: [],
+            };
+
+            jest.spyOn(cacheManager, "getAccount").mockReturnValue(
+                accountEntityA
+            );
+
+            // Mock that there are no ID tokens for account A (simulating no idToken or idTokenClaims)
+            jest.spyOn(cacheManager, "getTokenKeys").mockReturnValue({
+                idToken: [], // No ID tokens
+                accessToken: [],
+                refreshToken: [],
+                appMetadata: [],
+            });
+
+            jest.spyOn(cacheManager, "getIdTokenCredential").mockReturnValue(
+                null
+            );
+
+            // Call getAccount with login hint for account B
+            const result = pca.getAccount({
+                loginHint: searchLoginHintB,
+            });
+
+            // Result should be null since account A doesn't match the login hint for account B
+            expect(result).toBeNull();
         });
     });
 });

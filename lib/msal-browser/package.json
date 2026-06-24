@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "5.6.1",
+  "version": "5.15.0",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -25,35 +25,35 @@
   "sideEffects": false,
   "main": "./lib/msal-browser.cjs",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "types": "./types/index.d.ts",
   "exports": {
     "./custom-auth": {
       "import": {
-        "types": "./dist/custom-auth-path/custom_auth/index.d.ts",
-        "default": "./dist/custom-auth-path/custom_auth/index.mjs"
+        "types": "./types/custom_auth/index.d.ts",
+        "default": "./dist/custom_auth/index.mjs"
       },
       "require": {
-        "types": "./lib/custom-auth-path/types/custom_auth/index.d.ts",
+        "types": "./types/custom_auth/index.d.cts",
         "default": "./lib/custom-auth-path/msal-custom-auth.cjs"
       }
     },
     "./redirect-bridge": {
       "import": {
-        "types": "./dist/redirect-bridge/redirect_bridge/index.d.ts",
-        "default": "./dist/redirect-bridge/redirect_bridge/index.mjs"
+        "types": "./types/redirect_bridge/index.d.ts",
+        "default": "./dist/redirect_bridge/index.mjs"
       },
       "require": {
-        "types": "./lib/redirect-bridge/types/redirect_bridge/index.d.ts",
-        "default": "./lib/redirect-bridge/msal-redirect-bridge.js"
+        "types": "./types/redirect_bridge/index.d.cts",
+        "default": "./lib/redirect-bridge/msal-redirect-bridge.cjs"
       }
     },
     ".": {
       "import": {
-        "types": "./dist/index.d.ts",
+        "types": "./types/index.d.ts",
         "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./lib/types/index.d.ts",
+        "types": "./types/index.d.cts",
         "default": "./lib/msal-browser.cjs"
       }
     },
@@ -72,11 +72,12 @@
   },
   "files": [
     "dist",
+    "types",
     "lib",
     "src"
   ],
   "scripts": {
-    "clean": "shx rm -rf dist lib",
+    "clean": "shx rm -rf dist types lib",
     "clean:coverage": "rimraf ../../.nyc_output/*",
     "lint": "eslint src --ext .ts",
     "lint:fix": "npm run lint -- --fix",
@@ -85,7 +86,8 @@
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
     "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser",
     "build:all:debug": "cd ../.. && cross-env MSAL_MINIFY_LOGS=false npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser",
-    "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs && npm run build:types",
+    "build:types": "tsc -p tsconfig.build.types.json",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "build": "npm run clean && npm run build:modules",
     "build:debug": "npm run clean && cross-env MSAL_MINIFY_LOGS=false npm run build:modules",
@@ -96,15 +98,14 @@
     "apiExtractor": "api-extractor run"
   },
   "devDependencies": {
-    "@azure/storage-blob": "^12.2.1",
     "@babel/core": "^7.7.2",
     "@babel/plugin-proposal-class-properties": "^7.7.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
     "@babel/preset-env": "^7.7.1",
     "@babel/preset-typescript": "^7.7.2",
-    "@microsoft/api-extractor": "^7.43.4",
+    "@microsoft/api-extractor": "^7.58.7",
     "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-terser": "^0.4.0",
+    "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.3.1",
@@ -122,12 +123,12 @@
     "rollup-msal": "file:../../shared-configs/rollup-msal",
     "shx": "^0.3.2",
     "ssri": "^8.0.1",
-    "ts-jest": "^29.2.5",
+    "ts-jest": "^29.4.11",
     "ts-jest-resolver": "^2.0.1",
     "tslib": "^1.10.0",
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "@azure/msal-common": "16.4.0"
+    "@azure/msal-common": "16.10.0"
   }
 }

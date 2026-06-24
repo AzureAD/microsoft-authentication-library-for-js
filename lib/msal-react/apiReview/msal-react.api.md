@@ -21,24 +21,15 @@ import { RedirectRequest } from '@azure/msal-browser';
 import { SilentRequest } from '@azure/msal-browser';
 import { SsoSilentRequest } from '@azure/msal-browser';
 
-// Warning: (ae-missing-release-tag) "AccountIdentifiers" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export type AccountIdentifiers = Partial<Pick<AccountInfo, "homeAccountId" | "localAccountId" | "username">>;
 
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "AuthenticatedTemplate" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function AuthenticatedTemplate(input: AuthenticatedTemplateProps): React_2.ReactElement | null;
 
-// Warning: (ae-missing-release-tag) "AuthenticatedTemplateProps" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export type AuthenticatedTemplateProps = PropsWithChildren<AccountIdentifiers>;
 
-// Warning: (ae-missing-release-tag) "IMsalContext" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export interface IMsalContext {
     // (undocumented)
@@ -51,8 +42,6 @@ export interface IMsalContext {
     logger: Logger;
 }
 
-// Warning: (ae-missing-release-tag) "MsalAuthenticationProps" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export type MsalAuthenticationProps = PropsWithChildren<AccountIdentifiers & {
     interactionType: InteractionType;
@@ -61,8 +50,6 @@ export type MsalAuthenticationProps = PropsWithChildren<AccountIdentifiers & {
     errorComponent?: React_2.ElementType<MsalAuthenticationResult>;
 }>;
 
-// Warning: (ae-missing-release-tag) "MsalAuthenticationResult" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export type MsalAuthenticationResult = {
     login: (callbackInteractionType?: InteractionType | undefined, callbackRequest?: PopupRequest | RedirectRequest | SilentRequest) => Promise<AuthenticationResult | null>;
@@ -71,106 +58,59 @@ export type MsalAuthenticationResult = {
     error: AuthError | null;
 };
 
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "MsalAuthenticationTemplate" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function MsalAuthenticationTemplate(input: MsalAuthenticationProps): React_2.ReactElement | null;
 
-// Warning: (ae-missing-release-tag) "MsalConsumer" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export const MsalConsumer: React_3.Consumer<IMsalContext>;
 
-// Warning: (ae-missing-release-tag) "MsalContext" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export const MsalContext: React_3.Context<IMsalContext>;
 
-// Warning: (ae-missing-release-tag) "MsalProvider" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function MsalProvider(input: MsalProviderProps): React_2.ReactElement;
 
-// Warning: (ae-missing-release-tag) "MsalProviderProps" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export type MsalProviderProps = PropsWithChildren<{
     instance: IPublicClientApplication;
 }>;
 
-// Warning: (ae-missing-release-tag) "SetComplement" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export type SetComplement<A, A1 extends A> = SetDifference<A, A1>;
 
-// Warning: (ae-missing-release-tag) "SetDifference" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export type SetDifference<A, B> = A extends B ? never : A;
 
-// Warning: (ae-missing-release-tag) "Subtract" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export type Subtract<T extends T1, T1 extends object> = Pick<T, SetComplement<keyof T, keyof T1>>;
 
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "UnauthenticatedTemplate" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function UnauthenticatedTemplate(input: UnauthenticatedTemplateProps): React_2.ReactElement | null;
 
-// Warning: (ae-missing-release-tag) "UnauthenticatedTemplateProps" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export type UnauthenticatedTemplateProps = PropsWithChildren<AccountIdentifiers>;
 
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "useAccount" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function useAccount(accountIdentifiers?: AccountIdentifiers): AccountInfo | null;
 
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "useIsAuthenticated" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function useIsAuthenticated(matchAccount?: AccountIdentifiers): boolean;
 
-// Warning: (ae-missing-release-tag) "useMsal" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export const useMsal: () => IMsalContext;
 
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "useMsalAuthentication" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function useMsalAuthentication(interactionType: InteractionType, authenticationRequest?: PopupRequest | RedirectRequest | SsoSilentRequest, accountIdentifiers?: AccountIdentifiers): MsalAuthenticationResult;
 
-// Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
-export const version = "5.1.0";
+export const version = "5.5.0";
 
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "withMsal" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export const withMsal: <P extends WithMsalProps>(Component: React_2.ComponentType<P>) => React_2.FunctionComponent<Subtract<P, WithMsalProps>>;
 
-// Warning: (ae-missing-release-tag) "WithMsalProps" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export type WithMsalProps = {
     msalContext: IMsalContext;
 };
-
-// Warnings were encountered during analysis:
-//
-// dist/index.d.ts:3:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
-// dist/index.d.ts:3:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
 
 ```

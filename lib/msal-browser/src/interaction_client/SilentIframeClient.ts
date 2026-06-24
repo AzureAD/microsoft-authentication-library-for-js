@@ -15,6 +15,8 @@ import {
     invoke,
     ProtocolMode,
     CommonAuthorizationUrlRequest,
+    AuthorizeProtocol,
+    PkceCodes,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
@@ -35,6 +37,7 @@ import {
     BrowserConstants,
 } from "../utils/BrowserConstants.js";
 import {
+    createHiddenIframe,
     initiateCodeRequest,
     initiateCodeFlowWithPost,
     initiateEarRequest,
@@ -54,9 +57,35 @@ import {
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
 
+import type { WaitForBridgeRequest } from "../utils/BrowserUtils.js";
+
+/**
+ * Minimal request shape accepted by the iframe-response hook.
+ * Intentionally narrow so subclasses can override without needing
+ * access to internal resolved-request types.
+ *
+ * @internal
+ */
+export type WaitForIframeRequest = WaitForBridgeRequest;
+
+/**
+ * Signature of the iframe-response handler supplied by
+ * {@link PublicClientApplication} to {@link SilentIframeClient} via the
+ * operating context.
+ *
+ * @internal
+ */
+export type WaitForIframeResponseFn = (
+    iframe: HTMLIFrameElement,
+    request: WaitForIframeRequest
+) => Promise<string>;
+
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
     protected nativeStorage: BrowserCacheManager;
+    private readonly waitForIframeResponseHook:
+        | WaitForIframeResponseFn
+        | undefined;
 
     constructor(
         config: BrowserConfiguration,
@@ -69,7 +98,8 @@ export class SilentIframeClient extends StandardInteractionClient {
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
-        platformAuthProvider?: IPlatformAuthHandler
+        platformAuthProvider?: IPlatformAuthHandler,
+        waitForIframeResponseHook?: WaitForIframeResponseFn
     ) {
         super(
             config,
@@ -84,6 +114,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         );
         this.apiId = apiId;
         this.nativeStorage = nativeStorageImpl;
+        this.waitForIframeResponseHook = waitForIframeResponseHook;
     }
 
     /**
@@ -169,7 +200,9 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
-            this.logger
+            this.logger,
+            undefined,
+            this.config.system.serverTelemetryEnabled
         );
 
         try {
@@ -197,7 +230,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             )(authClient, request);
         } catch (e) {
             if (e instanceof AuthError) {
-                (e as AuthError).setCorrelationId(this.correlationId);
+                (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
             }
 
@@ -277,36 +310,45 @@ export class SilentIframeClient extends StandardInteractionClient {
             earJwk: earJwk,
             codeChallenge: pkceCodes.challenge,
         };
-        const iframe = await invokeAsync(
-            initiateEarRequest,
-            BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(
-            this.config,
-            discoveredAuthority,
-            silentRequest,
-            this.logger,
-            this.performanceClient
-        );
+
+        // Create the iframe, register the response listener, then navigate, so the listener is active before the iframe can respond.
+        const iframe = createHiddenIframe();
 
         const responseType = this.config.auth.OIDCOptions.responseMode;
         let responseString: string;
         try {
-            responseString = await invokeAsync(
-                BrowserUtils.waitForBridgeResponse,
+            const responsePromise = invokeAsync(
+                this.waitForIframeResponse.bind(this),
                 BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
                 this.logger,
                 this.performanceClient,
                 correlationId
-            )(
-                this.config.system.iframeBridgeTimeout,
+            )(iframe, request);
+            responsePromise.catch(() => {
+                /*
+                 * If navigation below throws before responsePromise is awaited,
+                 * the listener still rejects on timeout. Swallow it here so it
+                 * does not surface as an unhandled rejection; the navigation
+                 * error is propagated instead.
+                 */
+            });
+
+            await invokeAsync(
+                initiateEarRequest,
+                BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
                 this.logger,
-                this.browserCrypto,
-                request,
+                this.performanceClient,
+                correlationId
+            )(
+                iframe,
+                this.config,
+                discoveredAuthority,
+                silentRequest,
+                this.logger,
                 this.performanceClient
             );
+
+            responseString = await responsePromise;
         } finally {
             invoke(
                 removeHiddenIframe,
@@ -339,7 +381,9 @@ export class SilentIframeClient extends StandardInteractionClient {
                     this.config.auth.clientId,
                     correlationId,
                     this.browserStorage,
-                    this.logger
+                    this.logger,
+                    undefined,
+                    this.config.system.serverTelemetryEnabled
                 ),
                 requestAuthority: request.authority,
                 requestAzureCloudOptions: request.azureCloudOptions,
@@ -392,13 +436,96 @@ export class SilentIframeClient extends StandardInteractionClient {
     }
 
     /**
+     * Verifies SSO capability by making an iframe request to /authorize without exchanging the code for tokens.
+     * This is useful for verifying SSO capability in the background without the overhead of a full token exchange.
+     * @param request - The SSO silent request
+     * @returns true if SSO verification was successful with a valid authorization code, false otherwise
+     */
+    async verifySso(request: SsoSilentRequest): Promise<boolean> {
+        const inputRequest = { ...request };
+        if (!inputRequest.prompt) {
+            inputRequest.prompt = Constants.PromptValue.NONE;
+        }
+
+        // Create silent request
+        const silentRequest: CommonAuthorizationUrlRequest = await invokeAsync(
+            initializeAuthorizationRequest,
+            BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(
+            inputRequest,
+            InteractionType.Silent,
+            this.config,
+            this.browserCrypto,
+            this.browserStorage,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        );
+
+        const authClient: AuthorizationCodeClient = await invokeAsync(
+            this.createAuthCodeClient.bind(this),
+            BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )({
+            serverTelemetryManager: initializeServerTelemetryManager(
+                this.apiId,
+                this.config.auth.clientId,
+                this.correlationId,
+                this.browserStorage,
+                this.logger,
+                undefined,
+                this.config.system.serverTelemetryEnabled
+            ),
+            requestAuthority: silentRequest.authority,
+            requestAzureCloudOptions: silentRequest.azureCloudOptions,
+            requestExtraQueryParameters: silentRequest.extraQueryParameters,
+            account: silentRequest.account,
+        });
+
+        const { serverParams } = await this.silentAuthorizeHelper(
+            authClient,
+            silentRequest
+        );
+
+        const correlationId = silentRequest.correlationId;
+
+        // Validate the response - this checks for errors and validates state
+        AuthorizeProtocol.validateAuthorizationResponse(
+            serverParams,
+            silentRequest.state,
+            correlationId
+        );
+
+        // Verify a valid authorization code is present
+        if (!serverParams.code) {
+            this.logger.warning(
+                "SSO verification response did not contain an authorization code",
+                correlationId
+            );
+            return false;
+        }
+
+        this.logger.verbose(
+            "SSO verification completed successfully with valid authorization code - skipped token exchange",
+            correlationId
+        );
+        return true;
+    }
+
+    /**
      * Currently Unsupported
      */
     logout(): Promise<void> {
         // Synchronous so we must reject
         return Promise.reject(
             createBrowserAuthError(
-                BrowserAuthErrorCodes.silentLogoutUnsupported
+                BrowserAuthErrorCodes.silentLogoutUnsupported,
+                ""
             )
         );
     }
@@ -413,6 +540,47 @@ export class SilentIframeClient extends StandardInteractionClient {
         authClient: AuthorizationCodeClient,
         request: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
+        const { serverParams, pkceCodes } = await this.silentAuthorizeHelper(
+            authClient,
+            request
+        );
+
+        return invokeAsync(
+            Authorize.handleResponseCode,
+            BrowserPerformanceEvents.HandleResponseCode,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(
+            request,
+            serverParams,
+            pkceCodes.verifier,
+            this.apiId,
+            this.config,
+            authClient,
+            this.browserStorage,
+            this.nativeStorage,
+            this.eventHandler,
+            this.logger,
+            this.performanceClient,
+            this.platformAuthProvider
+        );
+    }
+
+    /**
+     * Shared helper that generates PKCE codes, builds the /authorize URL,
+     * loads it in a hidden iframe, waits for the redirect-bridge response,
+     * and returns the deserialized server parameters along with the PKCE codes
+     * and the request that was sent.
+     */
+    private async silentAuthorizeHelper(
+        authClient: AuthorizationCodeClient,
+        request: CommonAuthorizationUrlRequest
+    ): Promise<{
+        serverParams: ReturnType<typeof ResponseHandler.deserializeResponse>;
+        pkceCodes: PkceCodes;
+        silentRequest: CommonAuthorizationUrlRequest;
+    }> {
         const correlationId = request.correlationId;
         const pkceCodes = await invokeAsync(
             generatePkceCodes,
@@ -427,64 +595,72 @@ export class SilentIframeClient extends StandardInteractionClient {
             codeChallenge: pkceCodes.challenge,
         };
 
-        let iframe: HTMLIFrameElement;
-        if (request.httpMethod === Constants.HttpMethod.POST) {
-            iframe = await invokeAsync(
-                initiateCodeFlowWithPost,
-                BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(
-                this.config,
-                authClient.authority,
-                silentRequest,
-                this.logger,
-                this.performanceClient
-            );
-        } else {
-            // Create authorize request url
-            const navigateUrl = await invokeAsync(
-                Authorize.getAuthCodeRequestUrl,
-                PerformanceEvents.GetAuthCodeUrl,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(
-                this.config,
-                authClient.authority,
-                silentRequest,
-                this.logger,
-                this.performanceClient
-            );
-
-            // Get the frame handle for the silent request
-            iframe = await invokeAsync(
-                initiateCodeRequest,
-                BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(navigateUrl, this.performanceClient, this.logger, correlationId);
-        }
+        // Create the iframe, register the response listener, then navigate, so the listener is active before the iframe can respond.
+        const iframe = createHiddenIframe();
 
         const responseType = this.config.auth.OIDCOptions.responseMode;
         // Wait for response from the redirect bridge.
         let responseString: string;
         try {
-            responseString = await invokeAsync(
-                BrowserUtils.waitForBridgeResponse,
+            const responsePromise = invokeAsync(
+                this.waitForIframeResponse.bind(this),
                 BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
                 this.logger,
                 this.performanceClient,
                 correlationId
-            )(
-                this.config.system.iframeBridgeTimeout,
-                this.logger,
-                this.browserCrypto,
-                request,
-                this.performanceClient
-            );
+            )(iframe, request);
+            responsePromise.catch(() => {
+                /*
+                 * If URL creation or navigation below throws before
+                 * responsePromise is awaited, the listener still rejects on
+                 * timeout. Swallow it here so it does not surface as an
+                 * unhandled rejection; the navigation error is propagated
+                 * instead.
+                 */
+            });
+
+            if (request.httpMethod === Constants.HttpMethod.POST) {
+                await invokeAsync(
+                    initiateCodeFlowWithPost,
+                    BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(
+                    iframe,
+                    this.config,
+                    authClient.authority,
+                    silentRequest,
+                    this.logger,
+                    this.performanceClient
+                );
+            } else {
+                // Create authorize request url
+                const navigateUrl = await invokeAsync(
+                    Authorize.getAuthCodeRequestUrl,
+                    PerformanceEvents.GetAuthCodeUrl,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(
+                    this.config,
+                    authClient.authority,
+                    silentRequest,
+                    this.logger,
+                    this.performanceClient
+                );
+
+                // Navigate the iframe to the authorize request url
+                await invokeAsync(
+                    initiateCodeRequest,
+                    BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(iframe, navigateUrl, this.logger, correlationId);
+            }
+
+            responseString = await responsePromise;
         } finally {
             invoke(
                 removeHiddenIframe,
@@ -503,25 +679,22 @@ export class SilentIframeClient extends StandardInteractionClient {
             correlationId
         )(responseString, responseType, this.logger, this.correlationId);
 
-        return invokeAsync(
-            Authorize.handleResponseCode,
-            BrowserPerformanceEvents.HandleResponseCode,
+        return { serverParams, pkceCodes, silentRequest };
+    }
+
+    protected async waitForIframeResponse(
+        iframe: HTMLIFrameElement,
+        request: WaitForIframeRequest
+    ): Promise<string> {
+        if (this.waitForIframeResponseHook) {
+            return this.waitForIframeResponseHook(iframe, request);
+        }
+        return BrowserUtils.waitForBridgeResponse(
+            this.config.system.iframeBridgeTimeout,
             this.logger,
-            this.performanceClient,
-            correlationId
-        )(
             request,
-            serverParams,
-            pkceCodes.verifier,
-            this.apiId,
-            this.config,
-            authClient,
-            this.browserStorage,
-            this.nativeStorage,
-            this.eventHandler,
-            this.logger,
             this.performanceClient,
-            this.platformAuthProvider
+            this.config.experimental
         );
     }
 }

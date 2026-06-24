@@ -2,6 +2,239 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 23 Jun 2026 22:19:30 GMT",
+      "version": "5.3.0",
+      "tag": "@azure/msal-node_v5.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "avdunn@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Add Federated Managed Identity (FMI) and User Federated Identity Credential (user_fic) grant type support. Also fixes a long-standing bug where the tokenEndpoint field on ClientAssertionConfig was incorrectly populated with resourceRequestUri during client-credential flows; it now correctly contains the AAD token endpoint. [#8614](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8614)"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Make correlationId a required parameter on NodeAuthError and ManagedIdentityError, [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.10.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Update test constants for default idToken claims"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 16 Jun 2026 19:46:35 GMT",
+      "version": "5.2.5",
+      "tag": "@azure/msal-node_v5.2.5",
+      "comments": {
+        "none": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5fbb1e5e2ecbe3a54d60db17640c2f67220bbe6c",
+            "comment": "Resolve transitive CVEs in 3P samples and tooling [#8630](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8630)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.9.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 10 Jun 2026 22:41:34 GMT",
+      "version": "5.2.4",
+      "tag": "@azure/msal-node_v5.2.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.8.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 05 Jun 2026 22:24:22 GMT",
+      "version": "5.2.3",
+      "tag": "@azure/msal-node_v5.2.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "7588af34d25beca61640567b526de3e8aa682d3d",
+            "comment": "bump msal-common to version 16.6.3 [#8622](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8622)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.7.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 19 May 2026 19:29:14 GMT",
+      "version": "5.2.2",
+      "tag": "@azure/msal-node_v5.2.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.6.2",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 11 May 2026 21:48:15 GMT",
+      "version": "5.2.1",
+      "tag": "@azure/msal-node_v5.2.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.6.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 07 May 2026 19:01:04 GMT",
+      "version": "5.2.0",
+      "tag": "@azure/msal-node_v5.2.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "nicagra@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "b4e498cf6e52136ad1123691138a66f8e9a1a87c",
+            "comment": "Add MSAL client metadata headers (x-client-SKU, x-client-VER, x-ms-client-request-id) to IMDS managed identity requests [#8529](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8529)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "b4e498cf6e52136ad1123691138a66f8e9a1a87c",
+            "comment": "Remove duplicate typings in the build output [#8557](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8557)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.6.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 28 Apr 2026 21:30:32 GMT",
+      "version": "5.1.5",
+      "tag": "@azure/msal-node_v5.1.5",
+      "comments": {
+        "patch": [
+          {
+            "author": "pieter.willaert@colruytgroup.com",
+            "package": "@azure/msal-node",
+            "commit": "7ca7202caaa8f335bf5cec4359de7f664b335d2b",
+            "comment": "fix(msal-node): replace uuid with node:crypto to resolve GHSA-w5hq-g745-h8pq"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "7ca7202caaa8f335bf5cec4359de7f664b335d2b",
+            "comment": "Preserve authority metadata when calling clear() [#8542](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8542)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.5.2",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 21 Apr 2026 22:41:19 GMT",
+      "version": "5.1.4",
+      "tag": "@azure/msal-node_v5.1.4",
+      "comments": {
+        "none": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4ff5911eacefacd2d2cd4f13b6a3a39fd3a3a68c",
+            "comment": "Updated msal-node tests to reflect upn idtokenclaim [#8478](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8478)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.5.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 16 Apr 2026 22:44:53 GMT",
+      "version": "5.1.3",
+      "tag": "@azure/msal-node_v5.1.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.5.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 01 Apr 2026 20:09:00 GMT",
+      "version": "5.1.2",
+      "tag": "@azure/msal-node_v5.1.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.4.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 18 Mar 2026 20:47:24 GMT",
       "version": "5.1.1",
       "tag": "@azure/msal-node_v5.1.1",

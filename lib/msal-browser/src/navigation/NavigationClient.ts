@@ -55,6 +55,7 @@ export class NavigationClient implements INavigationClient {
                 reject(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.timedOut,
+                        "",
                         "failed_to_redirect"
                     )
                 );

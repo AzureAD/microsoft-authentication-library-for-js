@@ -119,6 +119,9 @@ describe("SilentIframeClient", () => {
         mockSetRequestState.mockReturnValue(
             TEST_STATE_VALUES.TEST_STATE_SILENT
         );
+        // Freeze Date.now() so timestamp comparisons in toEqual don't fail
+        // when a 1-second boundary is crossed during async acquireToken calls.
+        jest.spyOn(Date, "now").mockReturnValue(Date.now());
     });
 
     afterEach(() => {
@@ -225,6 +228,9 @@ describe("SilentIframeClient", () => {
         });
 
         it("Errors thrown during token acquisition are cached for telemetry and browserStorage is cleaned", (done) => {
+            // Enable server telemetry so cacheFailedRequest writes to storage
+            //@ts-ignore
+            silentIframeClient.config.system.serverTelemetryEnabled = true;
             jest.spyOn(
                 AuthorizeProtocol,
                 "getAuthCodeRequestUrl"
@@ -232,6 +238,7 @@ describe("SilentIframeClient", () => {
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.timedOut,
+                    "",
                     "redirect_bridge_timeout"
                 )
             );
@@ -248,6 +255,7 @@ describe("SilentIframeClient", () => {
                     expect(e).toMatchObject(
                         createBrowserAuthError(
                             BrowserAuthErrorCodes.timedOut,
+                            "",
                             "redirect_bridge_timeout"
                         )
                     );
@@ -672,7 +680,8 @@ describe("SilentIframeClient", () => {
                 .catch((e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashEmptyError
+                            BrowserAuthErrorCodes.hashEmptyError,
+                            ""
                         )
                     );
                     done();
@@ -690,7 +699,8 @@ describe("SilentIframeClient", () => {
                 .catch((e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                            ""
                         )
                     );
                     done();
@@ -723,6 +733,7 @@ describe("SilentIframeClient", () => {
                 status: 200,
             };
             const testAccount: AccountInfo = {
+                dataBoundary: undefined,
                 homeAccountId: ID_TOKEN_CLAIMS.sub,
                 environment: "login.windows.net",
                 tenantId: ID_TOKEN_CLAIMS.tid,
@@ -730,6 +741,7 @@ describe("SilentIframeClient", () => {
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 loginHint: ID_TOKEN_CLAIMS.login_hint,
                 name: ID_TOKEN_CLAIMS.name,
+                upn: ID_TOKEN_CLAIMS.upn,
                 nativeAccountId: undefined,
                 authorityType: "MSSTS",
                 tenantProfiles: new Map<string, TenantProfile>([
@@ -742,11 +754,13 @@ describe("SilentIframeClient", () => {
                             loginHint: ID_TOKEN_CLAIMS.login_hint,
                             name: ID_TOKEN_CLAIMS.name,
                             tenantId: ID_TOKEN_CLAIMS.tid,
+                            upn: ID_TOKEN_CLAIMS.upn,
                         },
                     ],
                 ]),
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
+                kmsi: false,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1288,6 +1302,9 @@ describe("SilentIframeClient", () => {
             it("removes hidden iframe after successful token acquisition", async () => {
                 const iframe = document.createElement("iframe");
                 document.body.appendChild(iframe);
+                jest.spyOn(SilentHandler, "createHiddenIframe").mockReturnValue(
+                    iframe
+                );
                 jest.spyOn(
                     AuthorizeProtocol,
                     "getAuthCodeRequestUrl"
@@ -1314,6 +1331,9 @@ describe("SilentIframeClient", () => {
             it("removes hidden iframe even when waitForBridgeResponse rejects", async () => {
                 const iframe = document.createElement("iframe");
                 document.body.appendChild(iframe);
+                jest.spyOn(SilentHandler, "createHiddenIframe").mockReturnValue(
+                    iframe
+                );
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
                     TEST_STATE_VALUES.TEST_STATE_SILENT
                 );
@@ -1341,6 +1361,7 @@ describe("SilentIframeClient", () => {
                 ).mockRejectedValue(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.timedOut,
+                        "",
                         "redirect_bridge_timeout"
                     )
                 );
@@ -1361,6 +1382,219 @@ describe("SilentIframeClient", () => {
 
                 expect(removeIframeSpy).toHaveBeenCalledWith(iframe);
                 expect(document.body.contains(iframe)).toBe(false);
+            });
+        });
+
+        describe("redirect bridge listener race condition (regression)", () => {
+            /*
+             * Regression coverage for the silent-iframe redirect-bridge race.
+             *
+             * The hidden iframe must have its BroadcastChannel response listener
+             * registered BEFORE it is navigated. Otherwise a fast auth response
+             * can be broadcast before the listener exists and is missed, causing
+             * a spurious timeout.
+             *
+             * These tests drive the REAL waitForBridgeResponse (it is deliberately
+             * not mocked) and broadcast the response from inside the navigation
+             * spy - i.e. at the exact moment of navigation. Node's BroadcastChannel
+             * only delivers to channels that already exist when postMessage runs,
+             * so the flow resolves only if the listener was registered first
+             * (create -> listen -> navigate). If the order regresses back to
+             * create -> navigate -> listen, the broadcast is missed and the
+             * acquireToken call rejects with a bridge timeout, failing the test.
+             */
+            const testAuthResult = getTestAuthenticationResult();
+
+            // MSAL derives the bridge channel id from the request state; the
+            // mocked silent state (TEST_STATE_SILENT) encodes RANDOM_TEST_GUID.
+            const broadcastBridgeResponse = (payload: string): void => {
+                const channel = new BroadcastChannel(RANDOM_TEST_GUID);
+                channel.postMessage({ v: 1, payload });
+                channel.close();
+            };
+
+            // Short iframe timeout so a regression fails fast (reject) rather
+            // than hanging until the default bridge timeout.
+            const buildSilentClient = async (
+                system: object
+            ): Promise<SilentIframeClient> => {
+                const racePca = new PublicClientApplication({
+                    auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                    system,
+                });
+                await racePca.initialize();
+                const controller: any = (racePca as any).controller;
+                return new SilentIframeClient(
+                    controller.config,
+                    controller.browserStorage,
+                    controller.browserCrypto,
+                    controller.logger,
+                    controller.eventHandler,
+                    controller.navigationClient,
+                    ApiId.acquireTokenSilent_authCode,
+                    controller.performanceClient,
+                    controller.nativeInternalStorage,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            };
+
+            beforeEach(() => {
+                mockSetRequestState.mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_SILENT
+                );
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER,
+                });
+                jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                    RANDOM_TEST_GUID
+                );
+            });
+
+            it("catches a response broadcast at navigation time - GET auth code flow", async () => {
+                const raceClient = await buildSilentClient({
+                    iframeBridgeTimeout: 3000,
+                });
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "getAuthCodeRequestUrl"
+                ).mockResolvedValue(testNavUrl);
+                jest.spyOn(
+                    InteractionHandler.prototype,
+                    "handleCodeResponse"
+                ).mockResolvedValue(testAuthResult);
+                const initiateCodeRequestSpy = jest
+                    .spyOn(SilentHandler, "initiateCodeRequest")
+                    .mockImplementation(async (frame) => {
+                        broadcastBridgeResponse(
+                            TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+                        );
+                        return frame;
+                    });
+
+                const result = await raceClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    httpMethod: Constants.HttpMethod.GET,
+                });
+
+                expect(initiateCodeRequestSpy).toHaveBeenCalled();
+                expect(result).toEqual(testAuthResult);
+            });
+
+            it("catches a response broadcast at navigation time - POST auth code flow", async () => {
+                const raceClient = await buildSilentClient({
+                    iframeBridgeTimeout: 3000,
+                });
+                jest.spyOn(
+                    InteractionHandler.prototype,
+                    "handleCodeResponse"
+                ).mockResolvedValue(testAuthResult);
+                const initiateCodeFlowWithPostSpy = jest
+                    .spyOn(SilentHandler, "initiateCodeFlowWithPost")
+                    .mockImplementation(async (frame) => {
+                        broadcastBridgeResponse(
+                            TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+                        );
+                        return frame;
+                    });
+
+                const result = await raceClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    httpMethod: Constants.HttpMethod.POST,
+                });
+
+                expect(initiateCodeFlowWithPostSpy).toHaveBeenCalled();
+                expect(result).toEqual(testAuthResult);
+            });
+
+            it("catches a response broadcast at navigation time - EAR flow", async () => {
+                const raceClient = await buildSilentClient({
+                    protocolMode: ProtocolMode.EAR,
+                    iframeBridgeTimeout: 3000,
+                });
+                jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(
+                    validEarJWK
+                );
+                /*
+                 * Broadcast a code response (rather than ear_jwe) so EAR falls
+                 * back to the auth-code path, letting us assert via a mocked
+                 * handleResponseCode without real EAR decryption.
+                 */
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "handleResponseCode"
+                ).mockResolvedValue(testAuthResult);
+                const initiateEarRequestSpy = jest
+                    .spyOn(SilentHandler, "initiateEarRequest")
+                    .mockImplementation(async (frame) => {
+                        broadcastBridgeResponse(
+                            `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
+                        );
+                        return frame;
+                    });
+
+                const result = await raceClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                });
+
+                expect(initiateEarRequestSpy).toHaveBeenCalled();
+                expect(result).toEqual(testAuthResult);
+            });
+
+            it("propagates a navigation error without an unhandled rejection", async () => {
+                const raceClient = await buildSilentClient({
+                    iframeBridgeTimeout: 3000,
+                });
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "getAuthCodeRequestUrl"
+                ).mockResolvedValue(testNavUrl);
+                const navError = new Error("navigation failed");
+                jest.spyOn(
+                    SilentHandler,
+                    "initiateCodeRequest"
+                ).mockRejectedValue(navError);
+
+                /*
+                 * The response listener promise is created before navigation. If
+                 * navigation throws, that listener still rejects later (as it
+                 * would on a real bridge timeout) - it must not surface as an
+                 * unhandled rejection. Use a sentinel rejection so we can assert
+                 * specifically that THIS rejection was handled, while acquireToken
+                 * rejects with the navigation error.
+                 */
+                const listenerError = new Error("bridge-listener-sentinel");
+                jest.spyOn(
+                    BrowserUtils,
+                    "waitForBridgeResponse"
+                ).mockImplementation(() => Promise.reject(listenerError));
+
+                const unhandledReasons: unknown[] = [];
+                const onUnhandled = (reason: unknown): void => {
+                    unhandledReasons.push(reason);
+                };
+                process.on("unhandledRejection", onUnhandled);
+                try {
+                    await expect(
+                        raceClient.acquireToken({
+                            redirectUri: TEST_URIS.TEST_REDIR_URI,
+                            loginHint: "testLoginHint",
+                            httpMethod: Constants.HttpMethod.GET,
+                        })
+                    ).rejects.toBe(navError);
+
+                    // Flush macrotasks so any unhandled rejection would surface.
+                    await new Promise((resolve) => setTimeout(resolve, 10));
+                    expect(unhandledReasons).not.toContain(listenerError);
+                } finally {
+                    process.off("unhandledRejection", onUnhandled);
+                }
             });
         });
 
@@ -1543,10 +1777,211 @@ describe("SilentIframeClient", () => {
                     })
                 ).rejects.toThrow(
                     createClientConfigurationError(
-                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
+                        ""
                     )
                 );
             });
+        });
+    });
+
+    describe("iframe timeout telemetry", () => {
+        beforeEach(() => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(
+                InteractionHandler.prototype,
+                "handleCodeResponse"
+            ).mockResolvedValue(getTestAuthenticationResult());
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+        });
+
+        it("passes experimental config when iframeTimeoutTelemetry is enabled", async () => {
+            const waitForBridgeResponseSpy = jest
+                .spyOn(BrowserUtils, "waitForBridgeResponse")
+                .mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
+            (clientProperties as any).config.experimental = {
+                iframeTimeoutTelemetry: true,
+            };
+
+            await silentIframeClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint",
+            });
+
+            expect(waitForBridgeResponseSpy.mock.calls[0][4]).toEqual({
+                iframeTimeoutTelemetry: true,
+            });
+        });
+
+        it("passes experimental config when iframeTimeoutTelemetry is disabled", async () => {
+            const waitForBridgeResponseSpy = jest
+                .spyOn(BrowserUtils, "waitForBridgeResponse")
+                .mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
+            (clientProperties as any).config.experimental = {
+                iframeTimeoutTelemetry: false,
+            };
+
+            await silentIframeClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint",
+            });
+
+            expect(waitForBridgeResponseSpy.mock.calls[0][4]).toEqual({
+                iframeTimeoutTelemetry: false,
+            });
+        });
+    });
+
+    describe("verifySso", () => {
+        it("returns true when authorization code is present in response", async () => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+            );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            const result = await silentIframeClient.verifySso({
+                account: {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "testuser@microsoft.com",
+                },
+                correlationId: RANDOM_TEST_GUID,
+            });
+
+            expect(result).toBe(true);
+        });
+
+        it("returns false when authorization code is missing from response", async () => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            // Return response without code
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
+                `#state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
+            );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            const result = await silentIframeClient.verifySso({
+                account: {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "testuser@microsoft.com",
+                },
+                correlationId: RANDOM_TEST_GUID,
+            });
+
+            expect(result).toBe(false);
+        });
+
+        it("sets prompt to none if not specified", async () => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+            );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            const initializeAuthorizationRequestSpy = jest.spyOn(
+                StandardInteractionClientExports,
+                "initializeAuthorizationRequest"
+            );
+
+            await silentIframeClient.verifySso({
+                account: {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "testuser@microsoft.com",
+                },
+                correlationId: RANDOM_TEST_GUID,
+            });
+
+            expect(initializeAuthorizationRequestSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    prompt: Constants.PromptValue.NONE,
+                }),
+                InteractionType.Silent,
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything()
+            );
+        });
+
+        it("propagates errors from iframe flow", async () => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.timedOut,
+                    "",
+                    "redirect_bridge_timeout"
+                )
+            );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            await expect(
+                silentIframeClient.verifySso({
+                    account: {
+                        homeAccountId:
+                            TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                        localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                        environment: "login.windows.net",
+                        tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                        username: "testuser@microsoft.com",
+                    },
+                    correlationId: RANDOM_TEST_GUID,
+                })
+            ).rejects.toThrow();
         });
     });
 
@@ -1554,7 +1989,8 @@ describe("SilentIframeClient", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentIframeClient.logout).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.silentLogoutUnsupported
+                    BrowserAuthErrorCodes.silentLogoutUnsupported,
+                    ""
                 )
             );
         });

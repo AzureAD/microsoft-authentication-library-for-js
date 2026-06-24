@@ -33,6 +33,16 @@ export const HttpHeaderKeys = {
     X_MS_REQUEST_ID: "x-ms-request-id",
 } as const;
 
+export const CustomHeaderConstants = {
+    REQUIRED_PREFIX: "x-",
+    RESERVED_PREFIXES: [
+        "x-client-",
+        "x-ms-",
+        "x-broker-",
+        "x-app-",
+    ] as ReadonlyArray<string>,
+} as const;
+
 export const DefaultPackageInfo = {
     SKU: "msal.browser",
     VERSION: version,

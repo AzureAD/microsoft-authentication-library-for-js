@@ -76,14 +76,6 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Nonce mismatch error.
 
-### `auth_time_not_found`
-
--   Max Age was requested and the ID token is missing the auth_time variable. auth_time is an optional claim and is not enabled by default - it must be enabled. See https://aka.ms/msaljs/optional-claims for more information.
-
-### `max_age_transpired`
-
--   Max Age is set to 0, or too much time has elapsed since the last end-user authentication.
-
 ### `multiple_matching_tokens`
 
 -   The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements such as authority or account.
@@ -175,6 +167,18 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ### `platform_broker_error`
 -   An error occurred in the native broker. When this error is thrown, check the `platformBrokerError` property on the error object for detailed information.
 
+### `empty_fic_assertion`
+
+-   The assertion provided to `acquireTokenByUserFederatedIdentityCredential` is empty. A non-empty assertion (typically an instance token from Leg 2 of the agent identity protocol) is required.
+
+### `conflicting_user_identifiers`
+
+-   Both `userObjectId` and `username` were provided to `acquireTokenByUserFederatedIdentityCredential`. Only one user identifier should be specified.
+
+### `missing_user_identifier`
+
+-   Neither `userObjectId` nor `username` was provided to `acquireTokenByUserFederatedIdentityCredential`. Exactly one user identifier is required.
+
 ## Client configuration errors
 
 ### `redirect_uri_empty`
@@ -261,12 +265,19 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Cannot set allowPlatformBroker parameter to true when not in AAD protocol mode.
 
+### `invalid_platform_broker_configuration`
+
+-   Invalid platform broker configuration. `allowPlatformBrokerWithDOM` requires `allowPlatformBroker` to also be set to `true`.
+
 ### `authority_mismatch`
 
 -   Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.
 
 ### `invalid_request_method_for_EAR`
 - The EAR protocol cannot be used with HTTP method `GET`. The `httpMethod` parameter in all requests using `protocolMode: ProtocolMode.EAR` must be either unset or `"POST"`/`HttpMethod.POST`.
+
+### `issuer_validation_failed`
+- Issuer returned from OpenID configuration endpoint does not match with the authority configured by the application.
 
 ## Interaction required errors
 
@@ -298,10 +309,9 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Identity provider returned bad_token due to an expired or invalid refresh token. Please invoke an interactive API to resolve.
 
-### `ux_not_allowed`
+### `ui_not_allowed`
 
 -   `canShowUI` flag in Edge was set to false. User interaction required on web page. Please invoke an interactive API to resolve.
-
 
 ### `interrupted_user`
 

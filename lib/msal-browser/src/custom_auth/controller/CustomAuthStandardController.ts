@@ -59,6 +59,7 @@ import { SignUpCodeRequiredState } from "../sign_up/auth_flow/state/SignUpCodeRe
 import { SignUpPasswordRequiredState } from "../sign_up/auth_flow/state/SignUpPasswordRequiredState.js";
 import { ResetPasswordCodeRequiredState } from "../reset_password/auth_flow/state/ResetPasswordCodeRequiredState.js";
 import { StandardController } from "../../controllers/StandardController.js";
+import { name } from "../../packageMetadata.js";
 
 /*
  * Controller for standard native auth operations.
@@ -95,10 +96,7 @@ export class CustomAuthStandardController
             throw new UnsupportedEnvironmentError();
         }
 
-        this.logger = this.logger.clone(
-            DefaultPackageInfo.SKU,
-            DefaultPackageInfo.VERSION
-        );
+        this.logger = this.logger.clone(name, DefaultPackageInfo.VERSION);
         this.customAuthConfig = operatingContext.getCustomAuthConfig();
 
         this.authority = new CustomAuthAuthority(
@@ -125,7 +123,9 @@ export class CustomAuthStandardController
                     this.customAuthConfig.auth.clientId,
                     new FetchHttpClient(this.logger),
                     this.customAuthConfig.customAuth?.capabilities?.join(" "),
-                    this.customAuthConfig.customAuth?.customAuthApiQueryParams
+                    this.customAuthConfig.customAuth?.customAuthApiQueryParams,
+                    this.customAuthConfig.customAuth?.requestInterceptor,
+                    this.logger
                 ),
             this.authority
         );

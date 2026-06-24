@@ -2,6 +2,8 @@
 
 For the most part `@azure/msal-react` abstracts away login calls and the handling of the response. As an application developer you are mostly left to determine which components should be protected and which method you'd like to use to sign your users in, but may be less concerned with the specifics of the response. There may be cases, however, where your application needs direct access to the response of a login call or maybe you need to handle a specific error. `@azure/msal-browser` exposes an [Event API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md) you can use for this purpose and this doc will walk you through how you can take advantage of this in a react app.
 
+> :warning: **Do not use events for telemetry.** Events are intended for reacting to auth state changes in your application (e.g. updating UI or showing error messages). They are not a telemetry mechanism: the set of events, their timing, and their payloads are not guaranteed to be stable across versions, and relying on them to collect metrics or measure performance is not supported. For telemetry and performance monitoring, see MSAL Browser's [Performance](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/performance.md) and [telemetry configuration options](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#telemetry-config-options).
+
 ## Registering and unregistering an event callback
 
 Using the event API, you can register an event callback that will do something when an event is emitted.
@@ -81,9 +83,16 @@ class EventExample extends React.Component {
 
 ## Syncing logged in state across tabs and windows
 
-If you would like to update your UI when a user logs in or out of your app in a different tab or window you can subscribe to the `ACCOUNT_ADDED` and `ACCOUNT_REMOVED` events. The payload will be the `AccountInfo` object that was added or removed.
+If you would like to update your UI when a user logs in or out of your app or changes the active account in a different tab or window you can subscribe to the `LOGIN_SUCCESS`, `LOGOUT_SUCCESS`, and `ACTIVE_ACCOUNT_CHANGED` events.
 
-These events will not be emitted by default. In order to enable these events you must call the `enableAccountStorageEvents` API before registering your event callbacks:
+> Note: Cross-tab and cross-window event syncing in `@azure/msal-browser` is only available when `cache.cacheLocation` is set to `localStorage`. If you are using `sessionStorage` or in-memory storage, these events will not be received from other tabs or windows.
+
+- For `LOGIN_SUCCESS`, the payload will be the logged in `AccountInfo` object (`result.account`).
+- For `LOGOUT_SUCCESS`, the payload will be the logout request (`EndSessionRequest | EndSessionPopupRequest`).
+- For `ACTIVE_ACCOUNT_CHANGED`, the payload will be `null`.
+
+> [!IMPORTANT]
+> For redirect logout flows, `LOGOUT_SUCCESS` is only broadcast to other tabs/windows when the logout request includes an `account`. If you call `logoutRedirect()` without an `account` (for example, to clear all accounts), other tabs/windows may not receive `LOGOUT_SUCCESS`. If you need reliable cross-tab logout syncing, prefer `logoutRedirect({ account })`.
 
 ```javascript
 import { useEffect } from "react";
@@ -95,21 +104,19 @@ function EventExample() {
 
     useEffect(() => {
         // This will be run on component mount
-        instance.enableAccountStorageEvents();
         const callbackId = instance.addEventCallback((message) => {
-            // This will be run every time an event is emitted after registering this callback
-            if (message.eventType === EventType.ACCOUNT_ADDED) {
-                const account = message.payload;    
-                // Update UI
-            } else if (message.eventType === EventType.ACCOUNT_REMOVED) {
-                const account = message.payload;
-                // Update UI
+            if (message.eventType === EventType.LOGIN_SUCCESS) {
+                // Update UI with new account
+            } else if (message.eventType === EventType.LOGOUT_SUCCESS) {
+                // Update UI with account from the logout request
+            } else if (message.eventType === EventType.ACTIVE_ACCOUNT_CHANGED) {
+                const accountInfo = instance.getActiveAccount();
+                // Update UI with new active account info
             }
         });
 
         return () => {
             // This will be run on component unmount
-            instance.disableAccountStorageEvents();
             if (callbackId) {
                 instance.removeEventCallback(callbackId);
             }

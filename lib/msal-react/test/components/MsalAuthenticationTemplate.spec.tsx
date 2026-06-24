@@ -209,7 +209,7 @@ describe("MsalAuthenticationTemplate tests", () => {
         const ssoSilentSpy = jest
             .spyOn(pca, "ssoSilent")
             .mockImplementation((request) => {
-                expect(request).toBe(undefined);
+                expect(request).toStrictEqual({});
                 accounts = [testAccount];
                 const eventMessage: EventMessage = {
                     eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
@@ -388,7 +388,7 @@ describe("MsalAuthenticationTemplate tests", () => {
     });
 
     test("LoginRedirect is not called if handleRedirectPromise returns an error", async () => {
-        const error = new AuthError("login_failed");
+        const error = new AuthError("login_failed", "");
         handleRedirectSpy = jest
             .spyOn(pca, "handleRedirectPromise")
             .mockImplementation(() => {
@@ -652,6 +652,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                     return Promise.reject(
                         new InteractionRequiredAuthError(
                             "interaction_required",
+                            "",
                             "Interaction is required"
                         )
                     );
@@ -705,6 +706,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                     return Promise.reject(
                         new InteractionRequiredAuthError(
                             "interaction_required",
+                            "",
                             "Interaction is required"
                         )
                     );
@@ -757,6 +759,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                     return Promise.reject(
                         new InteractionRequiredAuthError(
                             "interaction_required",
+                            "",
                             "Interaction is required"
                         )
                     );
@@ -860,6 +863,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                     return Promise.reject(
                         new InteractionRequiredAuthError(
                             "interaction_required",
+                            "",
                             "Interaction is required"
                         )
                     );
@@ -964,7 +968,7 @@ describe("MsalAuthenticationTemplate tests", () => {
     });
 
     test("Renders provided error component when an error occurs", async () => {
-        const error = new AuthError("login_failed");
+        const error = new AuthError("login_failed", "");
         const loginPopupSpy = jest
             .spyOn(pca, "loginPopup")
             .mockImplementation(() => {
@@ -1016,8 +1020,41 @@ describe("MsalAuthenticationTemplate tests", () => {
         ).not.toBeInTheDocument();
     });
 
+    test("Renders provided error component when rendered within React.StrictMode", async () => {
+        const error = new AuthError("login_failed", "");
+        jest.spyOn(pca, "loginPopup").mockImplementation(() => {
+            return Promise.reject(error);
+        });
+
+        const errorMessage = ({ error }: MsalAuthenticationResult) => {
+            if (error) {
+                return <p>Error Occurred: {error.errorCode}</p>;
+            }
+
+            return null;
+        };
+
+        render(
+            <React.StrictMode>
+                <MsalProvider instance={pca}>
+                    <p>This text will always display.</p>
+                    <MsalAuthenticationTemplate
+                        interactionType={InteractionType.Popup}
+                        errorComponent={errorMessage}
+                    >
+                        <span> A user is authenticated!</span>
+                    </MsalAuthenticationTemplate>
+                </MsalProvider>
+            </React.StrictMode>
+        );
+
+        expect(
+            await screen.findByText("Error Occurred: login_failed")
+        ).toBeInTheDocument();
+    });
+
     test("Throws invalid interaction type error", async () => {
-        const error = new AuthError("login_failed");
+        const error = new AuthError("login_failed", "");
         const loginPopupSpy = jest
             .spyOn(pca, "loginPopup")
             .mockImplementation(() => {
@@ -1082,7 +1119,7 @@ describe("MsalAuthenticationTemplate tests", () => {
     });
 
     test("Provided error component can resolve error by calling login again, child renders after success", async () => {
-        const error = new AuthError("login_failed");
+        const error = new AuthError("login_failed", "");
         const ssoSilentSpy = jest
             .spyOn(pca, "ssoSilent")
             .mockImplementation(() => {

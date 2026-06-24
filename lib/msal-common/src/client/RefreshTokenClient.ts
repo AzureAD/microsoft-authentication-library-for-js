@@ -19,7 +19,6 @@ import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
-import { StringUtils } from "../utils/StringUtils.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import {
@@ -178,13 +177,15 @@ export class RefreshTokenClient {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.tokenRequestEmpty
+                ClientConfigurationErrorCodes.tokenRequestEmpty,
+                ""
             );
         }
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.noAccountInSilentRequest
+                ClientAuthErrorCodes.noAccountInSilentRequest,
+                request.correlationId
             );
         }
 
@@ -259,7 +260,8 @@ export class RefreshTokenClient {
 
         if (!refreshToken) {
             throw createInteractionRequiredAuthError(
-                InteractionRequiredAuthErrorCodes.noTokensFound
+                InteractionRequiredAuthErrorCodes.noTokensFound,
+                request.correlationId
             );
         }
 
@@ -277,7 +279,8 @@ export class RefreshTokenClient {
 
             if (TimeUtils.isTokenExpired(refreshToken.expiresOn, offset)) {
                 throw createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+                    request.correlationId
                 );
             }
         }
@@ -408,6 +411,7 @@ export class RefreshTokenClient {
         RequestParameterBuilder.addScopes(
             parameters,
             request.scopes,
+            request.correlationId,
             true,
             this.config.authOptions.authority.options.OIDCOptions?.defaultScopes
         );
@@ -498,21 +502,10 @@ export class RefreshTokenClient {
                 RequestParameterBuilder.addSshJwk(parameters, request.sshJwk);
             } else {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    request.correlationId
                 );
             }
-        }
-
-        if (
-            !StringUtils.isEmptyObj(request.claims) ||
-            (this.config.authOptions.clientCapabilities &&
-                this.config.authOptions.clientCapabilities.length > 0)
-        ) {
-            RequestParameterBuilder.addClaims(
-                parameters,
-                request.claims,
-                this.config.authOptions.clientCapabilities
-            );
         }
 
         if (
@@ -564,6 +557,15 @@ export class RefreshTokenClient {
             request.correlationId,
             this.performanceClient
         );
+
+        RequestParameterBuilder.addClaims(
+            parameters,
+            request.correlationId,
+            request.claims,
+            this.config.authOptions.clientCapabilities,
+            request.skipBrokerClaims
+        );
+
         return UrlUtils.mapToQueryString(parameters);
     }
 }

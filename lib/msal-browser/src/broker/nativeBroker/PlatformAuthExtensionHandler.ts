@@ -66,7 +66,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         this.messageChannel = new MessageChannel();
         this.windowListener = this.onWindowMessage.bind(this); // Window event callback doesn't have access to 'this' unless it's bound
         this.performanceClient = performanceClient;
-        this.handshakeEvent = performanceClient.startMeasurement(
+        this.handshakeEvent = this.performanceClient.startMeasurement(
             BrowserPerformanceEvents.NativeMessageHandlerHandshake
         );
         this.platformAuthType =
@@ -211,7 +211,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 });
                 reject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.nativeHandshakeTimeout
+                        BrowserAuthErrorCodes.nativeHandshakeTimeout,
+                        ""
                     )
                 );
                 this.handshakeResolvers.delete(req.responseId);
@@ -280,7 +281,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             });
             handshakeResolver.reject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.nativeExtensionNotInstalled
+                    BrowserAuthErrorCodes.nativeExtensionNotInstalled,
+                    ""
                 )
             );
         }
@@ -327,6 +329,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                     resolver.reject(
                         createNativeAuthError(
                             response.code,
+                            correlationId,
                             response.description,
                             response.ext
                         )
@@ -339,6 +342,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                         resolver.reject(
                             createNativeAuthError(
                                 response.result["code"],
+                                correlationId,
                                 response.result["description"],
                                 response.result["ext"]
                             )
@@ -349,6 +353,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 } else {
                     throw createAuthError(
                         AuthErrorCodes.unexpectedError,
+                        correlationId,
                         "Event does not contain result."
                     );
                 }
@@ -420,6 +425,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         } else {
             throw createAuthError(
                 AuthErrorCodes.unexpectedError,
+                "",
                 "Response missing expected properties."
             );
         }

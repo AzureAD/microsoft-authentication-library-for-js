@@ -49,7 +49,7 @@ const sampleAccountInfo: AccountInfo = {
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
-      clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
+      clientId: "0845a021-afdf-4126-abdd-099c5e6948e1",
       redirectUri: "http://localhost:4200",
     },
   });
@@ -490,7 +490,7 @@ describe("MsalInterceptor", () => {
 
     msalBroadcastService.inProgress$ = _inProgress.asObservable();
 
-    const sampleError = new AuthError("123", "message");
+    const sampleError = new AuthError("123", "", "message");
     const sampleAccessToken = {
       accessToken: "123abc",
     };
@@ -549,7 +549,7 @@ describe("MsalInterceptor", () => {
 
     msalBroadcastService.inProgress$ = _inProgress.asObservable();
 
-    const sampleError = new AuthError("123", "message");
+    const sampleError = new AuthError("123", "", "message");
 
     spyOn(
       PublicClientApplication.prototype,
@@ -593,7 +593,7 @@ describe("MsalInterceptor", () => {
 
     msalBroadcastService.inProgress$ = _inProgress.asObservable();
 
-    const sampleError = new AuthError("123", "message");
+    const sampleError = new AuthError("123", "", "message");
     const sampleAccessToken = {
       accessToken: "123abc",
     };
@@ -656,7 +656,7 @@ describe("MsalInterceptor", () => {
 
     msalBroadcastService.inProgress$ = _inProgress.asObservable();
 
-    const sampleError = new AuthError("123", "message");
+    const sampleError = new AuthError("123", "", "message");
     const sampleAccessToken = {
       accessToken: "123abc",
     };

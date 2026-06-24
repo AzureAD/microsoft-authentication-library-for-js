@@ -9,6 +9,7 @@ import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRe
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import {
+    Constants as NodeConstants,
     HttpMethod,
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentityHeaders,
@@ -18,6 +19,7 @@ import {
 } from "../../utils/Constants.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 import { ImdsRetryPolicy } from "../../retry/ImdsRetryPolicy.js";
+import { version as packageVersion } from "../../packageMetadata.js";
 
 // Documentation for IMDS is available at https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http
 
@@ -167,6 +169,11 @@ export class Imds extends BaseManagedIdentitySource {
             );
 
         request.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] = "true";
+        request.headers[ManagedIdentityHeaders.CLIENT_SKU] =
+            NodeConstants.MSAL_SKU;
+        request.headers[ManagedIdentityHeaders.CLIENT_VER] = packageVersion;
+        request.headers[ManagedIdentityHeaders.CLIENT_REQUEST_ID] =
+            this.createCorrelationId();
 
         request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             IMDS_API_VERSION;

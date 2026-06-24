@@ -7,6 +7,7 @@ import { parseAuthResponseFromUrl } from "../utils/BrowserUtils.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import {
     ApiId,
+    INTERACTION_TYPE,
     InteractionType,
     TemporaryCacheKeys,
 } from "../utils/BrowserConstants.js";
@@ -31,18 +32,14 @@ import { PREFIX } from "../cache/CacheKeys.js";
 export async function broadcastResponseToMainFrame(
     navigationClient?: NavigationClient
 ): Promise<void> {
+    document.title = "Microsoft Authentication";
+
     let parsedResponse;
     try {
         parsedResponse = parseAuthResponseFromUrl();
     } catch (error) {
         // Clear hash and query string before re-throwing parse errors
-        if (typeof window.history.replaceState === "function") {
-            window.history.replaceState(
-                null,
-                "",
-                `${window.location.origin}${window.location.pathname}`
-            );
-        }
+        BrowserUtils.clearAuthResponseFromUrl(window);
         throw error;
     }
 
@@ -59,14 +56,10 @@ export async function broadcastResponseToMainFrame(
 
     if (meta["interactionType"] === InteractionType.Redirect) {
         const navClient = navigationClient || new NavigationClient();
-        const navigationOptions: NavigationOptions = {
-            apiId: ApiId.handleRedirectPromise,
-            noHistory: true,
-            timeout: DEFAULT_REDIRECT_TIMEOUT_MS,
-        };
 
         let navigateToUrl = "";
         let clientId = "";
+        let interactionType = "";
         const interactionKey = `${PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         /*
          * Retrieve the clientId and original navigation URL from
@@ -78,6 +71,7 @@ export async function broadcastResponseToMainFrame(
                 window.sessionStorage.getItem(interactionKey);
             const interactionStatus = JSON.parse(rawInteractionStatus || "");
             clientId = interactionStatus.clientId || "";
+            interactionType = interactionStatus.type;
 
             if (clientId) {
                 const originKey = `${PREFIX}.${clientId}.${TemporaryCacheKeys.ORIGIN_URI}`;
@@ -86,6 +80,15 @@ export async function broadcastResponseToMainFrame(
         } catch {
             // sessionStorage access or JSON.parse failed
         }
+
+        const navigationOptions: NavigationOptions = {
+            apiId:
+                interactionType === INTERACTION_TYPE.SIGNOUT
+                    ? ApiId.logout
+                    : ApiId.handleRedirectPromise,
+            noHistory: true,
+            timeout: DEFAULT_REDIRECT_TIMEOUT_MS,
+        };
 
         /*
          * Cache the auth response payload in sessionStorage under the URL_HASH

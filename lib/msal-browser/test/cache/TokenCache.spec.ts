@@ -115,7 +115,8 @@ describe("TokenCache tests", () => {
             testIdToken = TEST_TOKENS.IDTOKEN_V2;
             testIdTokenClaims = AuthToken.extractTokenClaims(
                 testIdToken,
-                base64Decode
+                base64Decode,
+                ""
             );
             testHomeAccountId = AccountEntityUtils.generateHomeAccountId(
                 testClientInfo,
@@ -333,7 +334,8 @@ describe("TokenCache tests", () => {
                 (e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.unableToLoadToken
+                            BrowserAuthErrorCodes.unableToLoadToken,
+                            ""
                         )
                     );
                     done();
@@ -451,6 +453,65 @@ describe("TokenCache tests", () => {
             await loadExternalTokens(configuration, request, response, options);
 
             expect(blockSpy).toHaveBeenCalled();
+        });
+
+        it("initializes storage when cacheLocation is localStorage", async () => {
+            const initializeSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "initialize"
+            );
+            const localStorageConfig = buildConfiguration(
+                {
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                    cache: {
+                        cacheLocation: BrowserCacheLocation.LocalStorage,
+                        cacheRetentionDays: 5,
+                    },
+                },
+                true
+            );
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                account: {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    environment: testEnvironment,
+                    tenantId: TEST_CONFIG.TENANT,
+                    username: "username",
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+                    loginHint: "login_hint",
+                },
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            };
+            const response: ExternalTokenResponse = {
+                id_token: testIdToken,
+            };
+
+            const result = await loadExternalTokens(
+                localStorageConfig,
+                request,
+                response,
+                {}
+            );
+            const pca = new PublicClientApplication(localStorageConfig);
+            await pca.initialize();
+            const account = pca.getAccount({
+                localAccountId: result.account.localAccountId,
+                homeAccountId: result.account.homeAccountId,
+                realm: result.account.tenantId,
+                environment: result.account.environment,
+            });
+
+            expect(pca.getAllAccounts()).toHaveLength(1);
+            expect(account?.homeAccountId).toEqual(
+                result.account.homeAccountId
+            );
+
+            expect(initializeSpy).toHaveBeenCalledWith(
+                TEST_CONFIG.CORRELATION_ID
+            );
+            expect(result.idToken).toEqual(testIdToken);
         });
 
         it("loads refresh token with request authority and client info provided in response", async () => {

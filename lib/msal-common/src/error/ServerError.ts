@@ -20,13 +20,14 @@ export class ServerError extends AuthError {
     readonly status?: number;
 
     constructor(
-        errorCode?: string,
+        errorCode: string,
+        correlationId: string,
         errorMessage?: string,
         subError?: string,
         errorNo?: string,
         status?: number
     ) {
-        super(errorCode, errorMessage, subError);
+        super(errorCode, correlationId, errorMessage, subError);
         this.name = "ServerError";
         this.errorNo = errorNo;
         this.status = status;

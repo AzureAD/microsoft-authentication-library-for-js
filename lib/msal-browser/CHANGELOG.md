@@ -1,8 +1,171 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Thu, 19 Mar 2026 23:46:44 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 23 Jun 2026 22:19:29 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.15.0
+
+Tue, 23 Jun 2026 22:19:29 GMT
+
+### Minor changes
+
+- Request idToken claims (signin_state, login_hint) by default and add kmsi on AccountInfo [#8656](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8656) (thnorlin@microsoft.com)
+- Make correlationId a required parameter on AuthError and all derived error classes [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609) (sameera.gajjarapu@microsoft.com)
+- Add NativeAccountId property to TenantProfile and deprecate top-level AccountEntity property [#8649](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8649) (lalimasharda@microsoft.com)
+- Bump @azure/msal-common to v16.10.0
+
+## 5.14.0
+
+Tue, 16 Jun 2026 19:46:34 GMT
+
+### Minor changes
+
+- Enhance logging functionality by injecting runtime variables into decoded messages [#8644](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8644) (kshabelko@microsoft.com)
+- Add package metadata to loggers and fix SKU name [#8647](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8647) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.9.0
+
+### Patches
+
+- Initialize BrowserCacheManager in loadExternalTokens for localStorage cache usage [#8642](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8642) (198982749+Copilot@users.noreply.github.com)
+- Update API Extractor warning policy and tag internal APIs with @internal [#8653](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8653) (thomas.norling@microsoft.com)
+
+## 5.13.0
+
+Wed, 10 Jun 2026 22:41:33 GMT
+
+### Minor changes
+
+- Add per-type migration telemetry counters for cache migration [#8628](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8628) (thomas.norling@microsoft.com)
+- Disable ServerTelemetryManager by default [#8600](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8600) (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v16.8.0
+
+### Patches
+
+- Fix duplicate redirect flows clearing in-flight interaction state [#8637](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8637) (thomas.norling@microsoft.com)
+- add logging support for normalizeUrlForComparison when executing handleRedirectPromise [#8625](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8625/) (lalimasharda@microsoft.com)
+- Fix silent iframe redirect-bridge listener race condition by registering the response listener before navigating the iframe [#8636](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8636) (thomas.norling@microsoft.com)
+
+## 5.12.0
+
+Fri, 05 Jun 2026 22:24:22 GMT
+
+### Minor changes
+
+- Rename uxNotAllowed error code to uiNotAllowed [#8608](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8608) (198982749+Copilot@users.noreply.github.com)
+- Bump @azure/msal-common to v16.7.0
+
+### Patches
+
+- Set document.title during authentication redirects for accessibility and UX [#8624](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8624) (sameera.gajjarapu@microsoft.com)
+- Respect redirectStartPage in PlatformAuthInteractionClient.acquireTokenRedirect [#8604](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8604) (lalimasharda@microsoft.com)
+- Add PCA functions for custom authentication response handling [#8590](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8590) (kshabelko@microsoft.com)
+- Clear old-schema cache entries when encryption key is expired [#8619](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8619) (thomas.norling@microsoft.com)
+- bump msal-common to version 16.6.3 [#8622](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8622) (lalimasharda@microsoft.com)
+
+## 5.11.0
+
+Tue, 19 May 2026 19:29:14 GMT
+
+### Minor changes
+
+- Add allowPlatformBrokerWithDOM experimental config flag for DOM-based platform brokering [#8589](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8589) (lalimasharda@microsoft.com)
+- Custom Auth: add `requestInterceptor` configuration option that lets apps attach additional `x-*` headers to custom-auth backend requests (e.g., for fraud/bot-detection vendors). Headers without the `x-` prefix and headers starting with reserved prefixes (`x-client-`, `x-ms-`, `x-broker-`, `x-app-`) are filtered out. [#8587](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8587) (shen.jian@live.com)
+- Bump @azure/msal-common to v16.6.2
+
+### Patches
+
+- Fix logoutHint to check account loginHint before falling back to idTokenClaims [#8591](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8591) (lalimasharda@microsoft.com)
+
+## 5.10.1
+
+Mon, 11 May 2026 21:48:15 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.6.1
+
+## 5.10.0
+
+Thu, 07 May 2026 19:01:04 GMT
+
+### Minor changes
+
+- Add native auth e2e sample app (yongdiwang@microsoft.com)
+- Remove duplicate typings in the build output [#8557](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8557) (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v16.6.0
+
+### Patches
+
+- Stop looking in localStorage for temporary cache [#8579](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8579) (-g)
+
+## 5.9.0
+
+Tue, 28 Apr 2026 21:30:31 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+- Bump @azure/msal-common to v16.5.2
+
+### Patches
+
+- Use client_info="1" string value in native auth token requests [#8562](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8562) (jiashen@microsoft.com)
+- Fix CookieStorage.getItem and getKeys throwing URIError when unrelated cookies contain invalid percent-encoded sequences [#7531](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/7531) (198982749+Copilot@users.noreply.github.com)
+
+## 5.8.0
+
+Tue, 21 Apr 2026 22:41:19 GMT
+
+### Minor changes
+
+- Add CJS build for redirect-bridge subpath export [#8541](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8541) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.5.1
+
+### Patches
+
+- Add flat username (alias) attribute support in sign-up flow [#8536](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8536) (yongdiwang@microsoft.com)
+- Update cache schema version to fix bug when upgrading from v4 to v5 [#8545](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8545) (thomas.norling@microsoft.com)
+- Improved account filtering when login hint is provided [#8478](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8478) (lalimasharda@microsoft.com)
+
+## 5.7.0
+
+Thu, 16 Apr 2026 22:44:53 GMT
+
+### Minor changes
+
+- Implement redirect bridge for logout flows and update postLogoutRedirectUri in samples [#8489](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8489) (kshabelko@microsoft.com)
+- Add support for client data telemetry with CLI_DATA parameter [#8378](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8378) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.5.0
+
+### Patches
+
+- Verify if an app is SSO Capable with 24h TTL cached. Add SsoCapable performance event. (sameera.gajjarapu@microsoft.com)
+- Fix MsalAuthenticationTemplate passing in undefined SsoSilentRequest [#8520](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8520) (lalimasharda@microsoft.com)
+- Attach cached ssoCapable value to ssoSilent and acquireTokenSilent telemetry. Refactor verifySsoCapability to accept request instead of account. (sameera.gajjarapu@microsoft.com)
+- Add Platform broker telemetry [#8488](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8488) (lalimasharda@microsoft.com)
+- Enable waitForBridgeLateResponse Telemetry [#8509](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8509) (thomas.norling@microsoft.com)
+- Add missing client capabilities in platform broker flows [#8428](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8428) (lalimasharda@microsoft.com)
+
+## 5.6.3
+
+Wed, 01 Apr 2026 20:08:59 GMT
+
+### Patches
+
+- Track online/offline status change [#8411](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8411) (thomas.norling@microsoft.com)
+- Experimental iframe timeout debugging telemetry [#8470](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8470) (thomas.norling@microsoft.com)
+- Thread performanceClient through buildAccountToCache callers for telemetry [#8471](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8471) (ruijungao@microsoft.com)
+- Bump @azure/msal-common to v16.4.1
+
+## 5.6.2
+
+Fri, 27 Mar 2026 16:35:28 GMT
+
+### Patches
+
+- Remove hidden iframe after receiving response from the redirect bridge [#8459](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8459) (kshabelko@microsoft.com)
+- Cache auth response in sessionStorage and navigate to origin URL without appending auth parameters [#8467](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8467) (kshabelko@microsoft.com)
 
 ## 5.6.1
 

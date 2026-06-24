@@ -14,7 +14,21 @@ export function buildAccountFromIdTokenClaims(
     guestIdTokenClaimsList?: TokenClaims[],
     options?: Partial<AccountInfo>
 ): AccountEntity {
-    const { oid, tid, preferred_username, emails, name, login_hint } =
+    const accountInfo = buildAccountInfoFromIdTokenClaims(
+        idTokenClaims,
+        guestIdTokenClaimsList
+    );
+    return AccountEntityUtils.createAccountEntityFromAccountInfo({
+        ...accountInfo,
+        ...options,
+    });
+}
+
+export function buildAccountInfoFromIdTokenClaims(
+    idTokenClaims: TokenClaims,
+    guestIdTokenClaimsList?: TokenClaims[]
+): AccountInfo {
+    const { oid, tid, preferred_username, emails, name, login_hint, upn } =
         idTokenClaims;
     const tenantId = tid || "";
     const email = emails ? emails[0] : null;
@@ -23,13 +37,14 @@ export function buildAccountFromIdTokenClaims(
 
     const accountInfo: AccountInfo = {
         homeAccountId: homeAccountId || "",
-        username: preferred_username || email || "",
+        username: preferred_username || upn || email || "",
         localAccountId: oid || "",
         tenantId: tenantId,
         environment: "login.windows.net",
         authorityType: "MSSTS",
         name: name,
         loginHint: login_hint,
+        upn: upn,
         tenantProfiles: new Map<string, TenantProfile>([
             [
                 tenantId,
@@ -37,6 +52,7 @@ export function buildAccountFromIdTokenClaims(
                     homeAccountId,
                     oid || "",
                     tenantId,
+                    undefined,
                     idTokenClaims
                 ),
             ],
@@ -50,11 +66,12 @@ export function buildAccountFromIdTokenClaims(
                 accountInfo.homeAccountId,
                 accountInfo.localAccountId,
                 guestTenantId,
+                undefined,
                 guestIdTokenClaims
             )
         );
     });
-    return AccountEntityUtils.createAccountEntityFromAccountInfo({ ...accountInfo, ...options });
+    return accountInfo;
 }
 
 export function buildIdToken(
@@ -71,7 +88,7 @@ export function buildIdToken(
         secret: idTokenSecret,
         clientId: "mock_client_id",
         homeAccountId: homeAccountId,
-        lastUpdatedAt: Date.now().toString()
+        lastUpdatedAt: Date.now().toString(),
     };
 
     return { ...idToken, ...options };

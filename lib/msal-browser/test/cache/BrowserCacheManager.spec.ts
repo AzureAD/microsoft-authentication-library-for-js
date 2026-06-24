@@ -247,7 +247,7 @@ describe("BrowserCacheManager tests", () => {
         });
 
         describe("migrateExistingCache", () => {
-            it("should migrate v0 tokens to v2 in localStorage", async () => {
+            it("should migrate v0 tokens to current schema in localStorage", async () => {
                 await browserCacheManager.initialize(
                     TEST_CONFIG.CORRELATION_ID
                 );
@@ -348,7 +348,7 @@ describe("BrowserCacheManager tests", () => {
                 );
             });
 
-            it("should migrate v1 tokens to v2 in localStorage", async () => {
+            it("should migrate v1 tokens to current schema in localStorage", async () => {
                 await browserCacheManager.initialize(
                     TEST_CONFIG.CORRELATION_ID
                 );
@@ -447,6 +447,218 @@ describe("BrowserCacheManager tests", () => {
                     },
                     TEST_CONFIG.CORRELATION_ID
                 );
+            });
+
+            it("should migrate v2 tokens to current schema in localStorage", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Setup some current cache entries
+                await browserCacheManager.saveCacheRecord(
+                    {
+                        account: TEST_ACCOUNT_ENTITY,
+                        accessToken: TEST_ACCESS_TOKEN_ENTITY,
+                        idToken: TEST_ID_TOKEN_ENTITY,
+                        refreshToken: TEST_REFRESH_TOKEN_ENTITY,
+                    },
+                    TEST_CONFIG.CORRELATION_ID,
+                    true,
+                    0
+                );
+
+                // Setup some schema 2 cache entries
+                const schema2Account = {
+                    ...TEST_ACCOUNT_ENTITY,
+                    homeAccountId: "schema2-cleanup.uid.utid",
+                    lastUpdatedAt: (Date.now() - 1000).toString(),
+                };
+                const schema2AccountKey =
+                    `msal.2|${schema2Account.homeAccountId}|${schema2Account.environment}|utid`.toLowerCase();
+                window.localStorage.setItem(
+                    CacheKeys.getAccountKeysCacheKey(2),
+                    JSON.stringify([schema2AccountKey])
+                );
+                window.localStorage.setItem(
+                    schema2AccountKey,
+                    JSON.stringify(schema2Account)
+                );
+
+                const timestamp = (Date.now() - 1000).toString();
+                const schema2IdToken = {
+                    ...TEST_ID_TOKEN_ENTITY,
+                    homeAccountId: schema2Account.homeAccountId,
+                    lastUpdatedAt: timestamp,
+                };
+                const schema2AccessToken = {
+                    ...TEST_ACCESS_TOKEN_ENTITY,
+                    homeAccountId: schema2Account.homeAccountId,
+                    lastUpdatedAt: timestamp,
+                };
+                const schema2RefreshToken = {
+                    ...TEST_REFRESH_TOKEN_ENTITY,
+                    homeAccountId: schema2Account.homeAccountId,
+                    lastUpdatedAt: timestamp,
+                };
+
+                const compactIdTokenKey =
+                    `msal.2|${schema2IdToken.homeAccountId}|${schema2IdToken.environment}|${schema2IdToken.credentialType}|${schema2IdToken.clientId}|${schema2IdToken.realm}||`.toLowerCase();
+                const legacyIdTokenKey =
+                    `msal.2|${schema2IdToken.homeAccountId}|${schema2IdToken.environment}|${schema2IdToken.credentialType}|${schema2IdToken.clientId}|${schema2IdToken.realm}|||`.toLowerCase();
+                const compactAccessTokenKey =
+                    `msal.2|${schema2AccessToken.homeAccountId}|${schema2AccessToken.environment}|${schema2AccessToken.credentialType}|${schema2AccessToken.clientId}|${schema2AccessToken.realm}|${schema2AccessToken.target}|`.toLowerCase();
+                const legacyAccessTokenKey =
+                    `msal.2|${schema2AccessToken.homeAccountId}|${schema2AccessToken.environment}|${schema2AccessToken.credentialType}|${schema2AccessToken.clientId}|${schema2AccessToken.realm}|${schema2AccessToken.target}||`.toLowerCase();
+                const schema2RefreshTokenFamilyId =
+                    schema2RefreshToken.familyId ||
+                    schema2RefreshToken.clientId;
+                const compactRefreshTokenKey = `msal.2|${
+                    schema2RefreshToken.homeAccountId
+                }|${schema2RefreshToken.environment}|${
+                    schema2RefreshToken.credentialType
+                }|${schema2RefreshTokenFamilyId}|${
+                    schema2RefreshToken.realm || ""
+                }||`.toLowerCase();
+                const legacyRefreshTokenKey = `msal.2|${
+                    schema2RefreshToken.homeAccountId
+                }|${schema2RefreshToken.environment}|${
+                    schema2RefreshToken.credentialType
+                }|${schema2RefreshTokenFamilyId}|${
+                    schema2RefreshToken.realm || ""
+                }|||`.toLowerCase();
+
+                window.localStorage.setItem(
+                    compactIdTokenKey,
+                    JSON.stringify(schema2IdToken)
+                );
+                window.localStorage.setItem(
+                    legacyIdTokenKey,
+                    JSON.stringify(schema2IdToken)
+                );
+                window.localStorage.setItem(
+                    compactAccessTokenKey,
+                    JSON.stringify(schema2AccessToken)
+                );
+                window.localStorage.setItem(
+                    legacyAccessTokenKey,
+                    JSON.stringify(schema2AccessToken)
+                );
+                window.localStorage.setItem(
+                    compactRefreshTokenKey,
+                    JSON.stringify(schema2RefreshToken)
+                );
+                window.localStorage.setItem(
+                    legacyRefreshTokenKey,
+                    JSON.stringify(schema2RefreshToken)
+                );
+                window.localStorage.setItem(
+                    CacheKeys.getTokenKeysCacheKey(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        2
+                    ),
+                    JSON.stringify({
+                        idToken: [compactIdTokenKey, legacyIdTokenKey],
+                        accessToken: [
+                            compactAccessTokenKey,
+                            legacyAccessTokenKey,
+                        ],
+                        refreshToken: [
+                            compactRefreshTokenKey,
+                            legacyRefreshTokenKey,
+                        ],
+                    })
+                );
+
+                const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
+
+                await browserCacheManager.migrateExistingCache(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(addFieldsSpy).toHaveBeenCalledWith(
+                    {
+                        preMigrateATCount: 1,
+                        preMigrateAcntCount: 1,
+                        preMigrateITCount: 1,
+                        preMigrateRTCount: 1,
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(addFieldsSpy).toHaveBeenCalledWith(
+                    {
+                        postMigrateATCount: 2,
+                        postMigrateAcntCount: 2,
+                        postMigrateITCount: 2,
+                        postMigrateRTCount: 2,
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                const currentTokenKeys = browserCacheManager.getTokenKeys();
+                expect(currentTokenKeys.idToken).toEqual([
+                    browserCacheManager.generateCredentialKey(
+                        TEST_ID_TOKEN_ENTITY
+                    ),
+                    browserCacheManager.generateCredentialKey(schema2IdToken),
+                ]);
+                expect(currentTokenKeys.accessToken).toEqual([
+                    browserCacheManager.generateCredentialKey(
+                        TEST_ACCESS_TOKEN_ENTITY
+                    ),
+                    browserCacheManager.generateCredentialKey(
+                        schema2AccessToken
+                    ),
+                ]);
+                expect(currentTokenKeys.refreshToken).toEqual([
+                    browserCacheManager.generateCredentialKey(
+                        TEST_REFRESH_TOKEN_ENTITY
+                    ),
+                    browserCacheManager.generateCredentialKey(
+                        schema2RefreshToken
+                    ),
+                ]);
+
+                const schema2TokenKeys = browserCacheManager.getTokenKeys(2);
+                expect(schema2TokenKeys.idToken).toEqual([
+                    compactIdTokenKey,
+                    legacyIdTokenKey,
+                ]);
+                expect(schema2TokenKeys.accessToken).toEqual([
+                    compactAccessTokenKey,
+                    legacyAccessTokenKey,
+                ]);
+                expect(schema2TokenKeys.refreshToken).toEqual([
+                    compactRefreshTokenKey,
+                    legacyRefreshTokenKey,
+                ]);
+
+                expect(window.localStorage.getItem(compactIdTokenKey)).toBe(
+                    JSON.stringify(schema2IdToken)
+                );
+                expect(window.localStorage.getItem(legacyIdTokenKey)).toBe(
+                    JSON.stringify(schema2IdToken)
+                );
+                expect(window.localStorage.getItem(compactAccessTokenKey)).toBe(
+                    JSON.stringify(schema2AccessToken)
+                );
+                expect(window.localStorage.getItem(legacyAccessTokenKey)).toBe(
+                    JSON.stringify(schema2AccessToken)
+                );
+                expect(
+                    window.localStorage.getItem(compactRefreshTokenKey)
+                ).toBe(JSON.stringify(schema2RefreshToken));
+                expect(window.localStorage.getItem(legacyRefreshTokenKey)).toBe(
+                    JSON.stringify(schema2RefreshToken)
+                );
+                expect(
+                    window.localStorage.getItem(
+                        CacheKeys.getTokenKeysCacheKey(
+                            TEST_CONFIG.MSAL_CLIENT_ID,
+                            2
+                        )
+                    )
+                ).not.toBeNull();
             });
 
             describe("getKMSIValues", () => {
@@ -1002,7 +1214,7 @@ describe("BrowserCacheManager tests", () => {
         describe("updateOldEntry", () => {
             it("should add lastUpdatedAt to v0 entries that don't have it", async () => {
                 const v0Key = "test-v0-key";
-                const v0Value = { someProperty: "value" };
+                const { lastUpdatedAt, ...v0Value } = TEST_ACCESS_TOKEN_ENTITY;
                 window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
 
                 await browserCacheManager.updateOldEntry(
@@ -1028,21 +1240,15 @@ describe("BrowserCacheManager tests", () => {
                     lastUpdatedAt: expiredTimestamp,
                 };
                 window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
-                const incrementFieldsSpy = jest.spyOn(
-                    performanceClient,
-                    "incrementFields"
-                );
 
-                await browserCacheManager.updateOldEntry(
+                const result = await browserCacheManager.updateOldEntry(
                     v0Key,
                     TEST_CONFIG.CORRELATION_ID
                 );
 
+                expect(result.entry).toBeNull();
+                expect(result.removalReason).toBe("ttlExpired");
                 expect(window.localStorage.getItem(v0Key)).toBeNull();
-                expect(incrementFieldsSpy).toHaveBeenCalledWith(
-                    { expiredCacheRemovedCount: 1 },
-                    TEST_CONFIG.CORRELATION_ID
-                );
             });
 
             it("should remove expired access tokens based on expiresOn", async () => {
@@ -1061,21 +1267,15 @@ describe("BrowserCacheManager tests", () => {
                     lastUpdatedAt: Date.now().toString(),
                 };
                 window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
-                const incrementFieldsSpy = jest.spyOn(
-                    performanceClient,
-                    "incrementFields"
-                );
 
-                await browserCacheManager.updateOldEntry(
+                const result = await browserCacheManager.updateOldEntry(
                     v0Key,
                     TEST_CONFIG.CORRELATION_ID
                 );
 
+                expect(result.entry).toBeNull();
+                expect(result.removalReason).toBe("expired");
                 expect(window.localStorage.getItem(v0Key)).toBeNull();
-                expect(incrementFieldsSpy).toHaveBeenCalledWith(
-                    { expiredCacheRemovedCount: 1 },
-                    TEST_CONFIG.CORRELATION_ID
-                );
             });
 
             it("should return decrypted value if cached entry is encrypted", async () => {
@@ -1103,17 +1303,320 @@ describe("BrowserCacheManager tests", () => {
                         )
                     )
                 ).toBe(true);
-                expect(result).toEqual(TEST_ACCESS_TOKEN_ENTITY);
+                expect(result.entry).toEqual(TEST_ACCESS_TOKEN_ENTITY);
             });
 
             it("should handle missing cache entries gracefully", async () => {
                 const missingKey = "non-existent-key";
-                expect(
-                    await browserCacheManager.updateOldEntry(
-                        missingKey,
-                        TEST_CONFIG.CORRELATION_ID
-                    )
-                ).toBeNull();
+                const result = await browserCacheManager.updateOldEntry(
+                    missingKey,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+                expect(result.entry).toBeNull();
+                expect(result.removalReason).toBe("invalid");
+            });
+
+            it("should remove invalid entries from storage", async () => {
+                const v0Key = "test-invalid-entry";
+                const invalidValue = {
+                    someProperty: "value",
+                    lastUpdatedAt: Date.now().toString(),
+                };
+                window.localStorage.setItem(
+                    v0Key,
+                    JSON.stringify(invalidValue)
+                );
+
+                const result = await browserCacheManager.updateOldEntry(
+                    v0Key,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(result.entry).toBeNull();
+                expect(result.removalReason).toBe("invalid");
+                expect(window.localStorage.getItem(v0Key)).toBeNull();
+            });
+
+            it("should remove encrypted entries with mismatched encryption key from storage", async () => {
+                const v0Key = "test-encrypted-mismatch";
+                const encryptedValue = {
+                    id: "different-encryption-id",
+                    nonce: "test-nonce",
+                    data: "encrypted-data",
+                    lastUpdatedAt: Date.now().toString(),
+                };
+                window.localStorage.setItem(
+                    v0Key,
+                    JSON.stringify(encryptedValue)
+                );
+
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+                const result = await browserCacheManager.updateOldEntry(
+                    v0Key,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(result.entry).toBeNull();
+                expect(result.removalReason).toBe("decryptFailed");
+                expect(window.localStorage.getItem(v0Key)).toBeNull();
+            });
+        });
+
+        describe("removeStaleAccounts", () => {
+            it("should remove encrypted accounts with mismatched encryption key", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Setup an old-schema account with a mismatched encryption key
+                const accountKey = `${TEST_ACCOUNT_ENTITY.homeAccountId}-${TEST_ACCOUNT_ENTITY.environment}-${TEST_ACCOUNT_ENTITY.realm}`;
+                const encryptedAccount = {
+                    id: "different-encryption-id",
+                    nonce: "test-nonce",
+                    data: "encrypted-data",
+                    lastUpdatedAt: Date.now().toString(),
+                };
+                window.localStorage.setItem(
+                    accountKey,
+                    JSON.stringify(encryptedAccount)
+                );
+                // Register the key in v0 account keys
+                window.localStorage.setItem(
+                    "msal.account.keys",
+                    JSON.stringify([accountKey])
+                );
+
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                await browserCacheManager.removeStaleAccounts(
+                    0,
+                    0,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Account should be removed from storage
+                expect(window.localStorage.getItem(accountKey)).toBeNull();
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { oldAcntCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    {
+                        decryptFailedAcntCount: 1,
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            });
+
+            it("should not remove encrypted accounts with valid encryption key", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Save account using the current encryption key
+                const accountKey = `${TEST_ACCOUNT_ENTITY.homeAccountId}-${TEST_ACCOUNT_ENTITY.environment}-${TEST_ACCOUNT_ENTITY.realm}`;
+                await browserCacheManager.setUserData(
+                    accountKey,
+                    JSON.stringify(TEST_ACCOUNT_ENTITY),
+                    TEST_CONFIG.CORRELATION_ID,
+                    Date.now().toString(),
+                    false
+                );
+
+                // Register the key in v0 account keys
+                window.localStorage.setItem(
+                    "msal.account.keys",
+                    JSON.stringify([accountKey])
+                );
+
+                await browserCacheManager.removeStaleAccounts(
+                    0,
+                    0,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Account should still be in storage
+                expect(window.localStorage.getItem(accountKey)).not.toBeNull();
+            });
+
+            it("should remove unparseable account entries from storage", async () => {
+                const accountKey = "bad-account-key";
+                window.localStorage.setItem(accountKey, "not-valid-json{{{");
+                window.localStorage.setItem(
+                    "msal.account.keys",
+                    JSON.stringify([accountKey])
+                );
+
+                await browserCacheManager.removeStaleAccounts(
+                    0,
+                    0,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(window.localStorage.getItem(accountKey)).toBeNull();
+            });
+        });
+
+        describe("per-type migration counter telemetry", () => {
+            it("should increment ttlExpiredITCount when id token TTL is expired", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                const expiredTimestamp = (
+                    Date.now() -
+                    8 * 24 * 60 * 60 * 1000
+                ).toString(); // 8 days ago
+                const v0IdToken = {
+                    ...TEST_ID_TOKEN_ENTITY,
+                    lastUpdatedAt: expiredTimestamp,
+                };
+                const v0Key = `${v0IdToken.homeAccountId}-${v0IdToken.environment}-idtoken-${v0IdToken.clientId}-${v0IdToken.realm}`;
+                window.localStorage.setItem(v0Key, JSON.stringify(v0IdToken));
+                window.localStorage.setItem(
+                    `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                    JSON.stringify({
+                        idToken: [v0Key],
+                        accessToken: [],
+                        refreshToken: [],
+                    })
+                );
+
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                await browserCacheManager.migrateExistingCache(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { ttlExpiredITCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            });
+
+            it("should increment invalidATCount when access token is unparseable", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                const v0Key =
+                    "test-home-test-environment-accesstoken-test-clientid-test-realm";
+                window.localStorage.setItem(
+                    v0Key,
+                    JSON.stringify({
+                        lastUpdatedAt: Date.now().toString(),
+                    })
+                );
+                window.localStorage.setItem(
+                    `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                    JSON.stringify({
+                        idToken: [],
+                        accessToken: [v0Key],
+                        refreshToken: [],
+                    })
+                );
+
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                await browserCacheManager.migrateExistingCache(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { invalidATCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            });
+
+            it("should increment decryptFailedRTCount when refresh token decryption fails", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                const v0Key = `${TEST_REFRESH_TOKEN_ENTITY.homeAccountId}-${TEST_REFRESH_TOKEN_ENTITY.environment}-refreshtoken-${TEST_REFRESH_TOKEN_ENTITY.clientId}--`;
+                const encryptedValue = {
+                    id: "different-encryption-id",
+                    nonce: "test-nonce",
+                    data: "encrypted-data",
+                    lastUpdatedAt: Date.now().toString(),
+                };
+                window.localStorage.setItem(
+                    v0Key,
+                    JSON.stringify(encryptedValue)
+                );
+                window.localStorage.setItem(
+                    `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                    JSON.stringify({
+                        idToken: [],
+                        accessToken: [],
+                        refreshToken: [v0Key],
+                    })
+                );
+
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                await browserCacheManager.migrateExistingCache(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { decryptFailedRTCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            });
+
+            it("should increment expiredATCount when access token expiresOn is in the past", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                const expiredExpiresOn = Math.floor(Date.now() / 1000) - 3600; // 1 hour ago
+                const v0AccessToken = {
+                    ...TEST_ACCESS_TOKEN_ENTITY,
+                    expiresOn: expiredExpiresOn.toString(),
+                    lastUpdatedAt: Date.now().toString(),
+                };
+                const v0Key = `${v0AccessToken.homeAccountId}-${v0AccessToken.environment}-accesstoken-${v0AccessToken.clientId}-${v0AccessToken.realm}`;
+                window.localStorage.setItem(
+                    v0Key,
+                    JSON.stringify(v0AccessToken)
+                );
+                window.localStorage.setItem(
+                    `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                    JSON.stringify({
+                        idToken: [],
+                        accessToken: [v0Key],
+                        refreshToken: [],
+                    })
+                );
+
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                await browserCacheManager.migrateExistingCache(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { expiredATCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
             });
         });
 
@@ -1663,29 +2166,6 @@ describe("BrowserCacheManager tests", () => {
             expect(window.sessionStorage.getItem(msalCacheKey2)).toBe(cacheVal);
         });
 
-        it("getTemporaryCache falls back to local storage if not found in session/memory storage", () => {
-            const testTempItemKey = "test-temp-item-key";
-            const testTempItemValue = "test-temp-item-value";
-            window.localStorage.setItem(testTempItemKey, testTempItemValue);
-            browserLocalStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                {
-                    ...cacheConfig,
-                    cacheLocation: BrowserCacheLocation.LocalStorage,
-                },
-                browserCrypto,
-                logger,
-                new StubPerformanceClient(),
-                new EventHandler()
-            );
-            expect(
-                browserLocalStorage.getTemporaryCache(
-                    testTempItemKey,
-                    TEST_CONFIG.CORRELATION_ID
-                )
-            ).toBe(testTempItemValue);
-        });
-
         it("setItem", () => {
             window.sessionStorage.setItem(msalCacheKey, cacheVal);
             window.localStorage.setItem(msalCacheKey2, cacheVal);
@@ -1713,6 +2193,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -1726,6 +2207,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -1812,6 +2294,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -1825,6 +2308,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -1838,6 +2322,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -1932,6 +2417,7 @@ describe("BrowserCacheManager tests", () => {
                     1000,
                     1000,
                     browserCrypto.base64Decode,
+                    "",
                     500,
                     Constants.AuthenticationScheme.BEARER
                 );
@@ -2008,6 +2494,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2021,6 +2508,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2110,6 +2598,7 @@ describe("BrowserCacheManager tests", () => {
                     1000,
                     1000,
                     browserCrypto.base64Decode,
+                    "",
                     500,
                     Constants.AuthenticationScheme.BEARER
                 );
@@ -2187,6 +2676,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2200,6 +2690,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2213,6 +2704,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2875,14 +3367,16 @@ describe("BrowserCacheManager tests", () => {
                             homeAccountId: "homeAccountId",
                             idTokenClaims: AuthToken.extractTokenClaims(
                                 TEST_TOKENS.IDTOKEN_V2,
-                                base64Decode
+                                base64Decode,
+                                ""
                             ),
                             clientInfo:
                                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                             cloudGraphHostName: "cloudGraphHost",
                             msGraphHost: "msGraphHost",
                         },
-                        authority
+                        authority,
+                        ""
                     );
 
                     await browserLocalStorage.setAccount(
@@ -3116,6 +3610,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3163,6 +3658,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3178,6 +3674,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.POP,
                             "oboAssertion"
@@ -3223,6 +3720,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3238,6 +3736,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.POP,
                             "oboAssertion"
@@ -3311,6 +3810,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3326,6 +3826,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.POP,
                             "oboAssertion"
@@ -3402,6 +3903,7 @@ describe("BrowserCacheManager tests", () => {
                         1000,
                         1000,
                         browserCrypto.base64Decode,
+                        "",
                         500,
                         Constants.AuthenticationScheme.BEARER,
                         "oboAssertion"
@@ -3420,6 +3922,7 @@ describe("BrowserCacheManager tests", () => {
                         1000,
                         1000,
                         browserCrypto.base64Decode,
+                        "",
                         500,
                         Constants.AuthenticationScheme.BEARER
                     );
@@ -4053,6 +4556,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -4437,7 +4941,8 @@ describe("BrowserCacheManager tests", () => {
                 browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID)
             ).toThrow(
                 new BrowserAuthError(
-                    BrowserAuthErrorCodes.noTokenRequestCacheError
+                    BrowserAuthErrorCodes.noTokenRequestCacheError,
+                    ""
                 )
             );
         });
@@ -4476,7 +4981,8 @@ describe("BrowserCacheManager tests", () => {
                 browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID)
             ).toThrow(
                 new BrowserAuthError(
-                    BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
+                    BrowserAuthErrorCodes.unableToParseTokenRequestCacheError,
+                    ""
                 )
             );
         });

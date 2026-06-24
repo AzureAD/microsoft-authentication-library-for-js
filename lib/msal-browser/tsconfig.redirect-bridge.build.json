@@ -3,6 +3,10 @@
     "compilerOptions": {
         "rootDir": "./src",
         "outDir": "./dist/redirect-bridge",
+        "declaration": false,
+        "declarationMap": false,
     },
-    "include": ["src"]
+    "include": [
+        "src"
+    ]
 }

@@ -75,6 +75,9 @@ export const FetchAccountIdWithNativeBroker = "fetchAccountIdWithNativeBroker";
 export const NativeInteractionClientAcquireToken =
     "nativeInteractionClientAcquireToken";
 
+export const NativeInteractionClientAcquireTokenRedirect =
+    "nativeInteractionClientAcquireToken";
+
 /**
  * Time spent creating default headers for requests to token endpoint
  */
@@ -118,7 +121,6 @@ export const SilentHandlerInitiateAuthRequest =
 export const SilentHandlerMonitorIframeForHash =
     "silentHandlerMonitorIframeForHash";
 export const SilentHandlerLoadFrame = "silentHandlerLoadFrame";
-export const SilentHandlerLoadFrameSync = "silentHandlerLoadFrameSync";
 
 /**
  * Helper functions in StandardInteractionClient class (msal-browser)
@@ -184,3 +186,9 @@ export const LoadAccount = "loadAccount";
 export const LoadIdToken = "loadIdToken";
 export const LoadAccessToken = "loadAccessToken";
 export const LoadRefreshToken = "loadRefreshToken";
+
+/**
+ * Background telemetry measurement that tracks whether a late bridge response
+ * arrives after the iframe timeout has already fired.
+ */
+export const WaitForBridgeLateResponse = "waitForBridgeLateResponse";
