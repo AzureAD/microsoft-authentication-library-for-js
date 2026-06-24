@@ -2854,7 +2854,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             // Add performance callback
             const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events[0].isNativeBroker).toBe(undefined);
+                expect(events[0].isNativeBroker).toBe(false);
                 expect(events[0].isPlatformAuthorizeRequest).toBe(true);
                 expect(events[0].isPlatformBrokerRequest).toBe(undefined);
                 pca.removePerformanceCallback(callbackId);
@@ -2926,7 +2926,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             // Add performance callback
             const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events[0].isNativeBroker).toBe(undefined);
+                expect(events[0].isNativeBroker).toBe(false);
                 expect(events[0].isPlatformAuthorizeRequest).toBe(undefined);
                 expect(events[0].isPlatformBrokerRequest).toBe(true);
                 expect(events[0].brokerErrorName).toBeDefined();
@@ -3003,7 +3003,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             // Add performance callback
             const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events[0].isNativeBroker).toBe(undefined);
+                expect(events[0].isNativeBroker).toBe(false);
                 expect(events[0].isPlatformAuthorizeRequest).toBe(undefined);
                 expect(events[0].isPlatformBrokerRequest).toBe(true);
                 pca.removePerformanceCallback(callbackId);

@@ -584,6 +584,8 @@ export class StandardController implements IController {
                     rootMeasurement.end(
                         {
                             success: true,
+                            isNativeBroker:
+                                result.fromPlatformBroker,
                         },
                         undefined,
                         result.account
@@ -850,7 +852,8 @@ export class StandardController implements IController {
                     atPopupMeasurement.end(
                         {
                             success: true,
-                            isNativeBroker: true,
+                            isNativeBroker:
+                                response.fromPlatformBroker,
                         },
                         undefined,
                         response.account
@@ -911,6 +914,7 @@ export class StandardController implements IController {
                 atPopupMeasurement.end(
                     {
                         success: true,
+                        isNativeBroker: false,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
                     },
@@ -1332,6 +1336,7 @@ export class StandardController implements IController {
                             atbcMeasurement.end(
                                 {
                                     success: true,
+                                    isNativeBroker: false,
                                     accessTokenSize: result.accessToken.length,
                                     idTokenSize: result.idToken.length,
                                 },
@@ -1397,6 +1402,7 @@ export class StandardController implements IController {
                     atbcMeasurement.end(
                         {
                             success: true,
+                            isNativeBroker: true,
                         },
                         undefined,
                         result.account
@@ -1457,6 +1463,7 @@ export class StandardController implements IController {
             .then((response) => {
                 this.acquireTokenByCodeAsyncMeasurement?.end({
                     success: true,
+                    isNativeBroker: false,
                     fromCache: response.fromCache,
                 });
                 return response;
@@ -2203,6 +2210,7 @@ export class StandardController implements IController {
                 atsMeasurement.end(
                     {
                         success: true,
+                        isNativeBroker: result.fromPlatformBroker,
                         fromCache: result.fromCache,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
