@@ -1,7 +1,0 @@
-{
-    "type": "minor",
-    "comment": "Make correlationId a required parameter on NodeAuthError and ManagedIdentityError, [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)",
-    "packageName": "@azure/msal-node",
-    "email": "sameera.gajjarapu@microsoft.com",
-    "dependentChangeType": "patch"
-}
