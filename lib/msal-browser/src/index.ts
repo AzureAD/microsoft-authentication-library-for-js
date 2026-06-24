@@ -157,7 +157,7 @@ export {
     IPerformanceClient,
     StubPerformanceClient,
     enforceResourceParameter,
-    CommonAuthorizationUrlRequest
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
 export * as BrowserRootPerformanceEvents from "./telemetry/BrowserRootPerformanceEvents.js";
 
