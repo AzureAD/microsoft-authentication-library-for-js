@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Implement PKCE support for authorization code flow and add getAuthCodeUrl function [#8679](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8679)",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
