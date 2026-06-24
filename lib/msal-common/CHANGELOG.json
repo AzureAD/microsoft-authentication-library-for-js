@@ -2,6 +2,53 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 23 Jun 2026 22:19:29 GMT",
+      "version": "16.10.0",
+      "tag": "@azure/msal-common_v16.10.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Migrate region auto-discovery to the IMDS /compute JSON endpoint (api-version 2021-02-01), reading the location field [#8660](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8660)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Deprecate the max_age request parameter and stop validating the auth_time of returned tokens. maxAge is now a no-op; the unused checkMaxAge helper and the auth_time_not_found/max_age_transpired error codes have been removed [#8664](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8664)"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Make correlationId a required parameter on AuthError and all derived error classes [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)"
+          },
+          {
+            "author": "thnorlin@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Add default idToken claims (signin_state, login_hint) and kmsi on AccountInfo [#8656](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8656)"
+          },
+          {
+            "author": "avdunn@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Add FMI cache key isolation and FIC grant type support (constants, cache infrastructure, assertion context) [#8614](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8614)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Add NativeAccountId property to TenantProfile and deprecate top-level AccountEntity property [#8649](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8649)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 16 Jun 2026 19:46:34 GMT",
       "version": "16.9.0",
       "tag": "@azure/msal-common_v16.9.0",
