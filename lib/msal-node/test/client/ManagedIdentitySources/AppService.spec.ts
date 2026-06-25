@@ -35,7 +35,7 @@ import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/c
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
     beforeAll(() => {
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
-            "fake_IDENTITY_ENDPOINT";
+            "http://127.0.0.1:41564/msi/token";
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER] =
             "fake_IDENTITY_HEADER";
     });

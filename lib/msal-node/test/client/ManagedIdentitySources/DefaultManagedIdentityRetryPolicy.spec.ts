@@ -34,7 +34,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
     beforeAll(() => {
         // The managed identity's source will be set to Service Fabric for these tests
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
-            "fake_IDENTITY_ENDPOINT";
+            "https://localhost:2377/metadata/identity/oauth2/token";
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER] =
             "fake_IDENTITY_HEADER";
         process.env[

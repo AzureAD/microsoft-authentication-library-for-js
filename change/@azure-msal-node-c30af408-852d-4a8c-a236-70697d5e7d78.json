@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Restrict Managed Identity endpoint environment variables to loopback and link-local hosts to prevent the credential request from being redirected to an untrusted host [#8682](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8682)",
+    "packageName": "@azure/msal-node",
+    "email": "rginsburg@microsoft.com",
+    "dependentChangeType": "patch"
+}

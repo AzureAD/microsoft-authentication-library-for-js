@@ -390,9 +390,103 @@ export abstract class BaseManagedIdentitySource {
     }
 
     /**
-     * Validates and normalizes an environment variable containing a URL string.
-     * This static utility method ensures that environment variables used for managed identity
-     * endpoints contain properly formatted URLs and provides informative error messages when validation fails.
+     * Returns true only if the given URL host (as produced by the WHATWG URL parser)
+     * is a loopback or link-local address.
+     *
+     * Managed Identity credential endpoints are always served by a node-local agent
+     * (IMDS on link-local 169.254.169.254; Azure Arc, App Service, Cloud Shell, Machine
+     * Learning and Service Fabric on loopback). Any other host indicates the endpoint
+     * environment variable has been tampered with to redirect the credential request -
+     * and the secret it carries - to an attacker-controlled server.
+     *
+     * The host must come from URL.hostname (not UrlString's regex) so that userinfo such
+     * as "http://127.0.0.1@evil.com" correctly resolves to host "evil.com" and is
+     * rejected. The WHATWG parser also normalizes alternate IPv4 encodings (decimal,
+     * hexadecimal, short form) to dotted-decimal, so the octet checks below can assume
+     * base-10 notation.
+     *
+     * @param hostname - The host component of the endpoint URL (URL.hostname)
+     * @returns true if the host is loopback or link-local, false otherwise
+     */
+    private static isAllowedManagedIdentityHost(hostname: string): boolean {
+        const host: string = hostname.toLowerCase();
+
+        /*
+         * localhost and the bracketed IPv6 loopback that URL.hostname returns
+         * (e.g. "[::1]") are always node-local.
+         */
+        if (host === "localhost" || host === "[::1]") {
+            return true;
+        }
+
+        const octets: number[] | null =
+            BaseManagedIdentitySource.parseIPv4Octets(host);
+        if (octets) {
+            /*
+             * IPv4 loopback (127.0.0.0/8) and link-local (169.254.0.0/16). The
+             * latter includes the well-known IMDS endpoint 169.254.169.254.
+             */
+            if (octets[0] === 127) {
+                return true;
+            }
+            if (octets[0] === 169 && octets[1] === 254) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Parses a host string as a dotted-decimal IPv4 address (e.g. "127.0.0.1").
+     *
+     * URL.hostname has already normalized alternate IPv4 encodings (decimal,
+     * hexadecimal, short form) to dotted-decimal, so a node-local literal always
+     * reaches this method as four base-10 octets. Anything that is not exactly four
+     * numeric octets in the 0-255 range (including real domain names such as
+     * "127.0.0.1.evil.com") returns null and is therefore treated as disallowed.
+     *
+     * @param host - The lower-cased host component to parse
+     * @returns The four octets as numbers, or null if host is not a dotted-decimal IPv4 address
+     */
+    private static parseIPv4Octets(host: string): number[] | null {
+        const parts: string[] = host.split(".");
+        if (parts.length !== 4) {
+            return null;
+        }
+
+        const octets: number[] = [];
+        for (const part of parts) {
+            if (part.length < 1 || part.length > 3) {
+                return null;
+            }
+
+            for (let i: number = 0; i < part.length; i++) {
+                const charCode: number = part.charCodeAt(i);
+                if (charCode < 0x30 || charCode > 0x39) {
+                    return null;
+                }
+            }
+
+            const octet: number = Number(part);
+            if (octet > 255) {
+                return null;
+            }
+            octets.push(octet);
+        }
+
+        return octets;
+    }
+
+    /**
+     * Validates and normalizes an environment variable containing a Managed Identity
+     * endpoint URL.
+     *
+     * Beyond ensuring the value is a parseable URL, this pins the endpoint host to a
+     * node-local (loopback or link-local) address. Managed Identity endpoint URLs are
+     * read from environment variables and are used together with credential material, so
+     * host pinning prevents an in-process attacker from redirecting the credential
+     * request to an arbitrary server.
      *
      * @param envVariableStringName - The name of the environment variable being validated (for error reporting)
      * @param envVariable - The environment variable value containing the URL string
@@ -401,7 +495,8 @@ export abstract class BaseManagedIdentitySource {
      *
      * @returns The validated and normalized URL string
      *
-     * @throws {ManagedIdentityError} When the environment variable contains a malformed URL
+     * @throws {ManagedIdentityError} When the value is not a parseable URL, or when its
+     *         host is not a loopback / link-local address
      */
     public static getValidatedEnvVariableUrlString = (
         envVariableStringName: keyof typeof ManagedIdentityErrorCodes.MsiEnvironmentVariableUrlMalformedErrorCodes,
@@ -409,9 +504,15 @@ export abstract class BaseManagedIdentitySource {
         sourceName: string,
         logger: Logger
     ): string => {
+        let endpointHost: string;
         try {
-            // Static boot-time helper invoked from each MI source's tryCreate() before any request exists
-            return new UrlString(envVariable, "").urlString;
+            /*
+             * Parse with the WHATWG URL parser so the host is cleanly separated
+             * from any userinfo (e.g. "http://127.0.0.1@evil.com" resolves to
+             * host "evil.com"). This helper runs from each MI source's
+             * tryCreate() before any request object exists.
+             */
+            endpointHost = new URL(envVariable).hostname;
         } catch (error) {
             logger.info(
                 `[Managed Identity] ${sourceName} managed identity is unavailable because the '${envVariableStringName}' environment variable is malformed.`,
@@ -426,5 +527,28 @@ export abstract class BaseManagedIdentitySource {
                 ""
             );
         }
+
+        /*
+         * Managed Identity endpoints are always node-local. Reject any other
+         * host so a co-located attacker cannot redirect the credential request
+         * (and its secret) to an arbitrary server via this environment variable.
+         */
+        if (
+            !BaseManagedIdentitySource.isAllowedManagedIdentityHost(
+                endpointHost
+            )
+        ) {
+            logger.error(
+                `[Managed Identity] ${sourceName} managed identity is unavailable because the '${envVariableStringName}' environment variable points to a disallowed host '${endpointHost}'. Managed Identity endpoints must use a loopback or link-local address.`,
+                ""
+            );
+
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.invalidManagedIdentityEndpoint,
+                ""
+            );
+        }
+
+        return new UrlString(envVariable, "").urlString;
     };
 }

@@ -205,10 +205,6 @@ export class AzureArc extends BaseManagedIdentitySource {
                     ManagedIdentitySourceNames.AZURE_ARC,
                     logger
                 );
-            // remove trailing slash
-            validatedIdentityEndpoint.endsWith("/")
-                ? validatedIdentityEndpoint.slice(0, -1)
-                : validatedIdentityEndpoint;
 
             AzureArc.getValidatedEnvVariableUrlString(
                 ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT,

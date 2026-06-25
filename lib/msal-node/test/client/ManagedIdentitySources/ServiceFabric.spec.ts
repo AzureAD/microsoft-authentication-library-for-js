@@ -39,7 +39,7 @@ import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/c
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
     beforeAll(() => {
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
-            "fake_IDENTITY_ENDPOINT";
+            "https://localhost:2377/metadata/identity/oauth2/token";
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER] =
             "fake_IDENTITY_HEADER";
         process.env[

@@ -39,7 +39,7 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
             ManagedIdentityEnvironmentVariableNames.DEFAULT_IDENTITY_CLIENT_ID
         ] = "fake_DEFAULT_IDENTITY_CLIENT_ID";
         process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT] =
-            "fake_MSI_ENDPOINT";
+            "http://127.0.0.1:42424/msi/token";
         process.env[ManagedIdentityEnvironmentVariableNames.MSI_SECRET] =
             "fake_MSI_SECRET";
     });

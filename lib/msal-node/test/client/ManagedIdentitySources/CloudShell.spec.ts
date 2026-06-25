@@ -37,7 +37,7 @@ import {
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
     beforeAll(() => {
         process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT] =
-            "msi_IDENTITY_ENDPOINT";
+            "http://localhost:50342/metadata/identity/oauth2/token";
     });
 
     afterAll(() => {

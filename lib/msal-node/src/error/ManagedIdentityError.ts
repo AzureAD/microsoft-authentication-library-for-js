@@ -32,6 +32,8 @@ export const ManagedIdentityErrorMessages = {
         .IMDS_ENDPOINT]: `The Managed Identity's '${ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT}' environment variable is malformed.`,
     [ManagedIdentityErrorCodes.MsiEnvironmentVariableUrlMalformedErrorCodes
         .MSI_ENDPOINT]: `The Managed Identity's '${ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT}' environment variable is malformed.`,
+    [ManagedIdentityErrorCodes.invalidManagedIdentityEndpoint]:
+        "The Managed Identity endpoint URL specified by the environment variable is not allowed. Managed Identity endpoints must use a loopback (localhost, 127.0.0.0/8, [::1]) or link-local (169.254.0.0/16) address. This prevents the credential request from being redirected to an untrusted host.",
     [ManagedIdentityErrorCodes.networkUnavailable]:
         "Authentication unavailable. The request to the managed identity endpoint timed out.",
     [ManagedIdentityErrorCodes.unableToCreateAzureArc]:
