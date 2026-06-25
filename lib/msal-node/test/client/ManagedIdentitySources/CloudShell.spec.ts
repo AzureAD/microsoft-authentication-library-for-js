@@ -35,7 +35,7 @@ import {
     createManagedIdentityError,
 } from "../../../src/error/ManagedIdentityError.js";
 
-describe("Acquires a token successfully via an App Service Managed Identity", () => {
+describe("Acquires a token successfully via a Cloud Shell Managed Identity", () => {
     beforeAll(() => {
         process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT] =
             MANAGED_IDENTITY_TEST_ENDPOINTS.CLOUD_SHELL;

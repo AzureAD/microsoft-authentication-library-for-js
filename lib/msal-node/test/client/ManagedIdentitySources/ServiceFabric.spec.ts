@@ -37,7 +37,7 @@ import {
 } from "../../../src/utils/Constants.js";
 import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
 
-describe("Acquires a token successfully via an App Service Managed Identity", () => {
+describe("Acquires a token successfully via a Service Fabric Managed Identity", () => {
     beforeAll(() => {
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
             MANAGED_IDENTITY_TEST_ENDPOINTS.SERVICE_FABRIC;

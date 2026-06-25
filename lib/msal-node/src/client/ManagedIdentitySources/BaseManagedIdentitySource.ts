@@ -413,7 +413,11 @@ export abstract class BaseManagedIdentitySource {
 
         /*
          * localhost and the bracketed IPv6 loopback that URL.hostname returns
-         * (e.g. "[::1]") are always node-local.
+         * (e.g. "[::1]") are always node-local. Allowing localhost by name is
+         * intentional: the threat mitigated here is redirection to an off-box
+         * attacker server. A co-located process that can both bind localhost and
+         * set these environment variables already has local code execution, which
+         * is outside the scope of this control.
          */
         if (host === "localhost" || host === "[::1]") {
             return true;
@@ -434,6 +438,11 @@ export abstract class BaseManagedIdentitySource {
             }
         }
 
+        /*
+         * Everything else is rejected, including IPv6 link-local (fe80::/10) and
+         * IPv4-mapped IPv6 such as "[::ffff:127.0.0.1]". Real Managed Identity
+         * endpoints never use those forms, so failing closed is the safe choice.
+         */
         return false;
     }
 
@@ -549,6 +558,12 @@ export abstract class BaseManagedIdentitySource {
             );
         }
 
+        /*
+         * Re-parse with UrlString for canonicalization parity with the rest of
+         * msal. This intentionally sits outside the try/catch above: UrlString's
+         * constructor only throws on an empty value, which the new URL() parse has
+         * already rejected, so any value reaching here is non-empty and safe.
+         */
         return new UrlString(envVariable, "").urlString;
     };
 }

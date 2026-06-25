@@ -34,13 +34,14 @@ const logger = new Logger({});
 // Invoke the shared validator and return the thrown error (or undefined if it did not throw).
 const validate = (
     envVar: keyof typeof ManagedIdentityErrorCodes.MsiEnvironmentVariableUrlMalformedErrorCodes,
-    value: string
+    value: string,
+    sourceName: string = ManagedIdentitySourceNames.APP_SERVICE
 ): unknown => {
     try {
         BaseManagedIdentitySource.getValidatedEnvVariableUrlString(
             envVar,
             value,
-            ManagedIdentitySourceNames.APP_SERVICE,
+            sourceName,
             logger
         );
         return undefined;
@@ -103,35 +104,61 @@ describe("Managed Identity endpoint host validation", () => {
     });
 
     describe("accepts loopback and link-local endpoints", () => {
-        const allowed: Array<[string, string]> = [
+        /*
+         * [label, env var, endpoint, source]. The source-mapped rows are
+         * validated through the env var and source name their real source uses,
+         * so the path exercised matches the label; the alternate-encoding rows
+         * are host-shape checks not tied to a particular source.
+         */
+        const allowed: Array<
+            [
+                string,
+                keyof typeof ManagedIdentityErrorCodes.MsiEnvironmentVariableUrlMalformedErrorCodes,
+                string,
+                string
+            ]
+        > = [
             [
                 "IPv4 loopback (Azure Arc)",
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
                 MANAGED_IDENTITY_TEST_ENDPOINTS.AZURE_ARC,
+                ManagedIdentitySourceNames.AZURE_ARC,
             ],
             [
                 "localhost (Cloud Shell)",
+                ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT,
                 MANAGED_IDENTITY_TEST_ENDPOINTS.CLOUD_SHELL,
+                ManagedIdentitySourceNames.CLOUD_SHELL,
             ],
             [
                 "https localhost (Service Fabric)",
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
                 MANAGED_IDENTITY_TEST_ENDPOINTS.SERVICE_FABRIC,
+                ManagedIdentitySourceNames.SERVICE_FABRIC,
             ],
-            ["IPv4 link-local (IMDS)", MANAGED_IDENTITY_TEST_ENDPOINTS.IMDS],
+            [
+                "IPv4 link-local (IMDS)",
+                ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST,
+                MANAGED_IDENTITY_TEST_ENDPOINTS.IMDS,
+                ManagedIdentitySourceNames.IMDS,
+            ],
             [
                 "IPv6 loopback",
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
                 "http://[::1]:40342/metadata/identity/oauth2/token",
+                ManagedIdentitySourceNames.APP_SERVICE,
             ],
             // alternate IPv4 encodings normalize to 127.0.0.1 under the WHATWG parser
-            ["decimal-encoded loopback", "http://2130706433/token"],
+            [
+                "decimal-encoded loopback",
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
+                "http://2130706433/token",
+                ManagedIdentitySourceNames.APP_SERVICE,
+            ],
         ];
 
-        test.each(allowed)("%s", (_name, value) => {
-            expect(
-                validate(
-                    ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
-                    value
-                )
-            ).toBeUndefined();
+        test.each(allowed)("%s", (_name, envVar, value, sourceName) => {
+            expect(validate(envVar, value, sourceName)).toBeUndefined();
         });
     });
 
