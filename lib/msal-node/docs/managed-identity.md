@@ -117,3 +117,7 @@ For failed requests the error response contains a correlation ID that can be use
 #### `ManagedIdentityError` Error Code: `invalid_resource` Error Message: The supplied resource is an invalid URL.
 
 This exception might mean that the resource you are trying to acquire a token for is either not supported or is provided using the wrong resource ID format. Examples of correct resource ID formats include `https://management.azure.com/.default`, `https://management.azure.com`, and `https://graph.microsoft.com`.
+
+#### `ManagedIdentityError` Error Code: `invalid_managed_identity_endpoint` Error Message: The Managed Identity endpoint URL specified by the environment variable is not allowed. Managed Identity endpoints must use a loopback (localhost, 127.0.0.0/8, [::1]) or link-local (169.254.0.0/16) address. This prevents the credential request from being redirected to an untrusted host.
+
+This error means the managed identity endpoint environment variable (for example `IDENTITY_ENDPOINT`, `MSI_ENDPOINT`, `IMDS_ENDPOINT`, or `AZURE_POD_IDENTITY_AUTHORITY_HOST`) resolved to a host that is not loopback or link-local. MSAL only contacts the node-local managed identity endpoint, so a non-local host indicates the variable has been altered to point elsewhere. Verify that the environment variable is set by the trusted hosting environment (App Service, Azure Arc, Cloud Shell, Machine Learning, Service Fabric, or IMDS) and has not been overridden.
