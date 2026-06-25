@@ -9,6 +9,7 @@ import {
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     MANAGED_IDENTITY_MACHINE_LEARNING_NETWORK_REQUEST_400_ERROR,
     MANAGED_IDENTITY_RESOURCE,
+    MANAGED_IDENTITY_TEST_ENDPOINTS,
 } from "../../test_kit/StringConstants.js";
 
 import {
@@ -39,7 +40,7 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
             ManagedIdentityEnvironmentVariableNames.DEFAULT_IDENTITY_CLIENT_ID
         ] = "fake_DEFAULT_IDENTITY_CLIENT_ID";
         process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT] =
-            "http://127.0.0.1:42424/msi/token";
+            MANAGED_IDENTITY_TEST_ENDPOINTS.MACHINE_LEARNING;
         process.env[ManagedIdentityEnvironmentVariableNames.MSI_SECRET] =
             "fake_MSI_SECRET";
     });

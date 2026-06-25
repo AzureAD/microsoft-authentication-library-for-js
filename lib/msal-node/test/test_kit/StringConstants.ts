@@ -9,6 +9,7 @@ import {
     DEFAULT_MANAGED_IDENTITY_ID,
 } from "../../src/utils/Constants.js";
 import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse.js";
+import { DEFAULT_AZURE_ARC_IDENTITY_ENDPOINT } from "../../src/client/ManagedIdentitySources/AzureArc.js";
 
 // This file contains the string constants used by the test classes.
 
@@ -374,6 +375,25 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
 export const MANAGED_IDENTITY_AZURE_ARC_WWW_AUTHENTICATE_HEADER: string = `Basic ${TEST_TOKENS.ACCESS_TOKEN}`;
 export const MANAGED_IDENTITY_CONTENT_TYPE_HEADER: string =
     "application/x-www-form-urlencoded;charset=utf-8";
+
+/*
+ * Representative node-local Managed Identity endpoints used by the source specs.
+ * Only the host (loopback / link-local) is load-bearing: the network layer is
+ * mocked in these tests, so the port and path are never dialed or asserted.
+ * Azure Arc reuses the real source default and IMDS uses the real link-local
+ * host. The platform-assigned sources (App Service, Cloud Shell, Machine
+ * Learning, Service Fabric) have no fixed port, so these are representative
+ * loopback values; Service Fabric uses a port from the IANA dynamic/ephemeral
+ * range, reflecting that its endpoint port is assigned at runtime.
+ */
+export const MANAGED_IDENTITY_TEST_ENDPOINTS = {
+    APP_SERVICE: "http://127.0.0.1:41564/msi/token",
+    AZURE_ARC: DEFAULT_AZURE_ARC_IDENTITY_ENDPOINT,
+    CLOUD_SHELL: "http://localhost:50342/metadata/identity/oauth2/token",
+    IMDS: "http://169.254.169.254/metadata/identity/oauth2/token",
+    MACHINE_LEARNING: "http://127.0.0.1:42424/msi/token",
+    SERVICE_FABRIC: "https://localhost:49152/metadata/identity/oauth2/token",
+};
 
 export const MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE: string =
     "There was an error retrieving the access token from the managed identity.";

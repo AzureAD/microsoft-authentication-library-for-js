@@ -10,6 +10,7 @@ import {
     MANAGED_IDENTITY_APP_SERVICE_NETWORK_REQUEST_400_ERROR,
     MANAGED_IDENTITY_RESOURCE,
     MANAGED_IDENTITY_RESOURCE_ID,
+    MANAGED_IDENTITY_TEST_ENDPOINTS,
 } from "../../test_kit/StringConstants.js";
 
 import {
@@ -35,7 +36,7 @@ import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/c
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
     beforeAll(() => {
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
-            "http://127.0.0.1:41564/msi/token";
+            MANAGED_IDENTITY_TEST_ENDPOINTS.APP_SERVICE;
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER] =
             "fake_IDENTITY_HEADER";
     });

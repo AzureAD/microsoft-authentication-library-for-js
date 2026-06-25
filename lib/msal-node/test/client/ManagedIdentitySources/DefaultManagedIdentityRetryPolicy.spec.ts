@@ -7,6 +7,7 @@ import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityA
 import {
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     MANAGED_IDENTITY_SERVICE_FABRIC_NETWORK_REQUEST_400_ERROR,
+    MANAGED_IDENTITY_TEST_ENDPOINTS,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE,
     ONE_HUNDRED_TIMES_FASTER,
 } from "../../test_kit/StringConstants.js";
@@ -34,7 +35,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
     beforeAll(() => {
         // The managed identity's source will be set to Service Fabric for these tests
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
-            "https://localhost:2377/metadata/identity/oauth2/token";
+            MANAGED_IDENTITY_TEST_ENDPOINTS.SERVICE_FABRIC;
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER] =
             "fake_IDENTITY_HEADER";
         process.env[

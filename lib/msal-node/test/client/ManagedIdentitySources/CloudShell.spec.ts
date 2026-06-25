@@ -8,6 +8,7 @@ import {
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     MANAGED_IDENTITY_CLOUD_SHELL_NETWORK_REQUEST_400_ERROR,
     MANAGED_IDENTITY_RESOURCE,
+    MANAGED_IDENTITY_TEST_ENDPOINTS,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE,
 } from "../../test_kit/StringConstants.js";
@@ -37,7 +38,7 @@ import {
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
     beforeAll(() => {
         process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT] =
-            "http://localhost:50342/metadata/identity/oauth2/token";
+            MANAGED_IDENTITY_TEST_ENDPOINTS.CLOUD_SHELL;
     });
 
     afterAll(() => {

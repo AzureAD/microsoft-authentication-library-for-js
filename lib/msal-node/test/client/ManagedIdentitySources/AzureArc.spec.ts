@@ -11,6 +11,7 @@ import {
     MANAGED_IDENTITY_CONTENT_TYPE_HEADER,
     MANAGED_IDENTITY_RESOURCE,
     MANAGED_IDENTITY_RESOURCE_BASE,
+    MANAGED_IDENTITY_TEST_ENDPOINTS,
     TEST_TOKENS,
 } from "../../test_kit/StringConstants.js";
 
@@ -49,9 +50,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
 
     beforeAll(() => {
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
-            "http://127.0.0.1:40342/metadata/identity/oauth2/token";
+            MANAGED_IDENTITY_TEST_ENDPOINTS.AZURE_ARC;
         process.env[ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT] =
-            "http://127.0.0.1:40342/metadata/identity/oauth2/token";
+            MANAGED_IDENTITY_TEST_ENDPOINTS.AZURE_ARC;
 
         originalPlatform = process.platform;
         Object.defineProperty(process, "platform", {
@@ -171,9 +172,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             // reset the environment variables to expected values for Azure Arc tests
             process.env[
                 ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-            ] = "http://127.0.0.1:40342/metadata/identity/oauth2/token";
+            ] = MANAGED_IDENTITY_TEST_ENDPOINTS.AZURE_ARC;
             process.env[ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT] =
-                "http://127.0.0.1:40342/metadata/identity/oauth2/token";
+                MANAGED_IDENTITY_TEST_ENDPOINTS.AZURE_ARC;
         });
 
         test("returns an already acquired token from the cache", async () => {

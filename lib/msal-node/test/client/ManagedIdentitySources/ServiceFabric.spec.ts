@@ -12,6 +12,7 @@ import {
     MANAGED_IDENTITY_RESOURCE,
     MANAGED_IDENTITY_RESOURCE_ID,
     MANAGED_IDENTITY_SERVICE_FABRIC_NETWORK_REQUEST_400_ERROR,
+    MANAGED_IDENTITY_TEST_ENDPOINTS,
     TEST_CONFIG,
 } from "../../test_kit/StringConstants.js";
 
@@ -39,7 +40,7 @@ import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/c
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
     beforeAll(() => {
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
-            "https://localhost:2377/metadata/identity/oauth2/token";
+            MANAGED_IDENTITY_TEST_ENDPOINTS.SERVICE_FABRIC;
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER] =
             "fake_IDENTITY_HEADER";
         process.env[

@@ -19,6 +19,7 @@ import {
     systemAssignedConfig,
     managedIdentityRequestParams,
 } from "../../test_kit/ManagedIdentityTestUtils.js";
+import { MANAGED_IDENTITY_TEST_ENDPOINTS } from "../../test_kit/StringConstants.js";
 
 /*
  * Regression coverage for the Managed Identity endpoint-redirect vulnerability:
@@ -105,20 +106,17 @@ describe("Managed Identity endpoint host validation", () => {
         const allowed: Array<[string, string]> = [
             [
                 "IPv4 loopback (Azure Arc)",
-                "http://127.0.0.1:40342/metadata/identity/oauth2/token",
+                MANAGED_IDENTITY_TEST_ENDPOINTS.AZURE_ARC,
             ],
             [
                 "localhost (Cloud Shell)",
-                "http://localhost:50342/metadata/identity/oauth2/token",
+                MANAGED_IDENTITY_TEST_ENDPOINTS.CLOUD_SHELL,
             ],
             [
                 "https localhost (Service Fabric)",
-                "https://localhost:2377/metadata/identity/oauth2/token",
+                MANAGED_IDENTITY_TEST_ENDPOINTS.SERVICE_FABRIC,
             ],
-            [
-                "IPv4 link-local (IMDS)",
-                "http://169.254.169.254/metadata/identity/oauth2/token",
-            ],
+            ["IPv4 link-local (IMDS)", MANAGED_IDENTITY_TEST_ENDPOINTS.IMDS],
             [
                 "IPv6 loopback",
                 "http://[::1]:40342/metadata/identity/oauth2/token",
