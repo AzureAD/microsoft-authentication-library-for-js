@@ -41,15 +41,36 @@ export class MsalService implements IMsalService {
     this.instance.initializeWrapperLibrary(WrapperSKU.Angular, version);
   }
 
+  /**
+   * Initializes the underlying MSAL browser instance.
+   */
   initialize(): Observable<void> {
     return from(this.instance.initialize());
   }
+
+  /**
+   * Acquires an access token interactively using a popup.
+   *
+   * @param request - Popup token request parameters.
+   */
   acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult> {
     return from(this.instance.acquireTokenPopup(request));
   }
+
+  /**
+   * Acquires an access token interactively using a full-page redirect.
+   *
+   * @param request - Redirect token request parameters.
+   */
   acquireTokenRedirect(request: RedirectRequest): Observable<void> {
     return from(this.instance.acquireTokenRedirect(request));
   }
+
+  /**
+   * Acquires an access token silently from cache or by using a refresh token.
+   *
+   * @param silentRequest - Silent token request parameters.
+   */
   acquireTokenSilent(
     silentRequest: SilentRequest
   ): Observable<AuthenticationResult> {
@@ -97,18 +118,48 @@ export class MsalService implements IMsalService {
         })
     );
   }
+
+  /**
+   * Signs in a user interactively using a popup.
+   *
+   * @param request - Optional popup login request parameters.
+   */
   loginPopup(request?: PopupRequest): Observable<AuthenticationResult> {
     return from(this.instance.loginPopup(request));
   }
+
+  /**
+   * Signs in a user interactively using a full-page redirect.
+   *
+   * @param request - Optional redirect login request parameters.
+   */
   loginRedirect(request?: RedirectRequest): Observable<void> {
     return from(this.instance.loginRedirect(request));
   }
+
+  /**
+   * Signs out a user by navigating to the identity provider logout endpoint.
+   *
+   * @param logoutRequest - Optional redirect logout request parameters.
+   */
   logoutRedirect(logoutRequest?: EndSessionRequest): Observable<void> {
     return from(this.instance.logoutRedirect(logoutRequest));
   }
+
+  /**
+   * Signs out a user using a popup window.
+   *
+   * @param logoutRequest - Optional popup logout request parameters.
+   */
   logoutPopup(logoutRequest?: EndSessionPopupRequest): Observable<void> {
     return from(this.instance.logoutPopup(logoutRequest));
   }
+
+  /**
+   * Performs a silent sign-in attempt using existing session information.
+   *
+   * @param request - Silent SSO request parameters.
+   */
   ssoSilent(request: SsoSilentRequest): Observable<AuthenticationResult> {
     return from(this.instance.ssoSilent(request));
   }
@@ -122,7 +173,13 @@ export class MsalService implements IMsalService {
     }
     return this.logger;
   }
-  // Create a logger instance for msal-angular with the same options as msal-browser
+
+  /**
+    * Sets the logger for msal-angular by cloning the provided logger with
+    * msal-angular metadata, and applies the original logger to msal-browser.
+   *
+   * @param logger - Logger instance to use.
+   */
   setLogger(logger: Logger): void {
     this.logger = logger.clone(name, version);
     this.instance.setLogger(logger);

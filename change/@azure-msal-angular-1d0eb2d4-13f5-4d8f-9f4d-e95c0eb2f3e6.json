@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Clarify MsalService logger API docs and add missing method JSDoc [#8531](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8531)",
+  "packageName": "@azure/msal-angular",
+  "email": "shirshaw64@gmail.com",
+  "dependentChangeType": "patch"
+}
