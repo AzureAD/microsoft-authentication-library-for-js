@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 26 Jun 2026 00:51:48 GMT",
+      "version": "16.10.1",
+      "tag": "@azure/msal-common_v16.10.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "22bc4e36dd2b1a54d8a5ca4dfa86641d7ba54439",
+            "comment": "Include resource in the silent request thumbprint so concurrent MCP token requests for different resources are not deduplicated [#8680](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8680)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 23 Jun 2026 22:19:29 GMT",
       "version": "16.10.0",
       "tag": "@azure/msal-common_v16.10.0",

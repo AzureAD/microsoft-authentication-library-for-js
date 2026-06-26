@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 23 Jun 2026 22:19:29 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 26 Jun 2026 00:51:48 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.15.1
+
+Fri, 26 Jun 2026 00:51:48 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.10.1
 
 ## 5.15.0
 

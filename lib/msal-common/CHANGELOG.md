@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 23 Jun 2026 22:19:29 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 26 Jun 2026 00:51:48 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.10.1
+
+Fri, 26 Jun 2026 00:51:48 GMT
+
+### Patches
+
+- Include resource in the silent request thumbprint so concurrent MCP token requests for different resources are not deduplicated [#8680](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8680) (joarroyo@microsoft.com)
 
 ## 16.10.0
 
