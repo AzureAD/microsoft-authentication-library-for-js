@@ -332,6 +332,88 @@ describe("CryptoOps.ts Unit Tests", () => {
         const result = await cryptoObj.hashString("testString");
         expect(regExp.test(result)).toBe(true);
     });
+
+    describe("DPoP ES256/P-256 internal helpers", () => {
+        it("UT-04: generateDpopKeyPair exports only public JWK material (no private field d)", async () => {
+            const keyPair = await BrowserCrypto.generateDpopKeyPair();
+            const publicJwk = await BrowserCrypto.exportDpopPublicJwk(
+                keyPair.publicKey
+            );
+
+            // EC P-256 public key fields must be present
+            expect(publicJwk.kty).toBe("EC");
+            expect(publicJwk.crv).toBe("P-256");
+            expect(typeof publicJwk.x).toBe("string");
+            expect(typeof publicJwk.y).toBe("string");
+
+            // Private field MUST NOT appear in the exported public JWK
+            expect(publicJwk.d).toBeUndefined();
+        }, 10000);
+
+        it("RT-02: private DPoP key is non-extractable after importDpopPrivateKey", async () => {
+            const keyPair = await BrowserCrypto.generateDpopKeyPair();
+
+            // Export the initially-extractable private key JWK
+            const privateJwk = await window.crypto.subtle.exportKey(
+                "jwk",
+                keyPair.privateKey
+            );
+
+            // Re-import as non-extractable
+            const unextractableKey =
+                await BrowserCrypto.importDpopPrivateKey(privateJwk);
+
+            expect(unextractableKey.extractable).toBe(false);
+
+            // Attempting to export a non-extractable key must reject
+            await expect(
+                window.crypto.subtle.exportKey("jwk", unextractableKey)
+            ).rejects.toBeDefined();
+        }, 10000);
+
+        it("computeDpopThumbprint returns a valid base64url string of expected length", async () => {
+            jest.spyOn(
+                BrowserCrypto,
+                "sha256Digest"
+                // @ts-ignore
+            ).mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
+                return Promise.resolve(
+                    createHash("SHA256").update(Buffer.from(data)).digest()
+                );
+            });
+
+            const keyPair = await BrowserCrypto.generateDpopKeyPair();
+            const publicJwk = await BrowserCrypto.exportDpopPublicJwk(
+                keyPair.publicKey
+            );
+            const thumbprint =
+                await BrowserCrypto.computeDpopThumbprint(publicJwk);
+
+            // SHA-256 base64url is always 43 characters (base64url alphabet: A-Z a-z 0-9 - _)
+            const regExp = new RegExp("^[A-Za-z0-9_-]{43}$");
+            expect(regExp.test(thumbprint)).toBe(true);
+        }, 10000);
+
+        it("signDpop produces a non-empty signature with the imported private key", async () => {
+            const keyPair = await BrowserCrypto.generateDpopKeyPair();
+            const privateJwk = await window.crypto.subtle.exportKey(
+                "jwk",
+                keyPair.privateKey
+            );
+            const unextractableKey =
+                await BrowserCrypto.importDpopPrivateKey(privateJwk);
+
+            const data = new TextEncoder().encode("header.payload");
+            const signature = await BrowserCrypto.signDpop(
+                unextractableKey,
+                data
+            );
+
+            expect(signature).toBeDefined();
+            expect(signature.byteLength).toBeGreaterThan(0);
+        }, 10000);
+    });
+
     it("throws if crypto is unavailable", () => {
         const mockedWindow = window;
         //@ts-ignore
