@@ -677,6 +677,100 @@ describe("RequestParameterBuilder unit tests", () => {
         });
     });
 
+    describe("mergeClaims tests", () => {
+        it("returns undefined when both inputs are empty", () => {
+            expect(
+                RequestParameterBuilder.mergeClaims(undefined, undefined)
+            ).toBeUndefined();
+            expect(RequestParameterBuilder.mergeClaims("", "")).toBeUndefined();
+        });
+
+        it("treats whitespace-only inputs as empty", () => {
+            const claims = '{"a":1}';
+            expect(
+                RequestParameterBuilder.mergeClaims("   ", "  ")
+            ).toBeUndefined();
+            // Whitespace base is ignored; the meaningful value is returned verbatim.
+            expect(RequestParameterBuilder.mergeClaims("   ", claims)).toBe(
+                claims
+            );
+            expect(RequestParameterBuilder.mergeClaims(claims, "  ")).toBe(
+                claims
+            );
+        });
+
+        it("returns the second value verbatim when the first is empty", () => {
+            const claims = '{"a":1}';
+            expect(RequestParameterBuilder.mergeClaims(undefined, claims)).toBe(
+                claims
+            );
+            expect(RequestParameterBuilder.mergeClaims("", claims)).toBe(
+                claims
+            );
+        });
+
+        it("returns the first value verbatim when the second is empty", () => {
+            const claims = '{"a":1}';
+            expect(RequestParameterBuilder.mergeClaims(claims, undefined)).toBe(
+                claims
+            );
+            expect(RequestParameterBuilder.mergeClaims(claims, "")).toBe(
+                claims
+            );
+        });
+
+        it("merges non-overlapping top-level keys", () => {
+            const claims1 = '{"nsp":{"essential":true}}';
+            const claims2 = '{"userinfo":{"given_name":{"essential":true}}}';
+            const result = RequestParameterBuilder.mergeClaims(
+                claims1,
+                claims2
+            );
+            const parsed = JSON.parse(result as string);
+            expect(parsed).toHaveProperty("nsp");
+            expect(parsed).toHaveProperty("userinfo");
+        });
+
+        it("lets the second object win on overlapping keys", () => {
+            const claims1 = '{"nsp":{"value":"v1"}}';
+            const claims2 = '{"nsp":{"value":"v2"}}';
+            const result = RequestParameterBuilder.mergeClaims(
+                claims1,
+                claims2
+            );
+            const parsed = JSON.parse(result as string);
+            expect(parsed.nsp.value).toBe("v2");
+        });
+
+        it("throws invalidClaims when one side is invalid JSON", () => {
+            const valid = '{"a":1}';
+            const invalid = "not-json";
+            expect(() =>
+                RequestParameterBuilder.mergeClaims(invalid, valid)
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidClaims,
+                    ""
+                )
+            );
+        });
+
+        it.each(["[]", '"string"', "null", "5"])(
+            "throws invalidClaims when a side is valid JSON but not an object (%s)",
+            (nonObjectJson: string) => {
+                const valid = '{"a":1}';
+                expect(() =>
+                    RequestParameterBuilder.mergeClaims(nonObjectJson, valid)
+                ).toThrow(
+                    new ClientConfigurationError(
+                        ClientConfigurationErrorCodes.invalidClaims,
+                        ""
+                    )
+                );
+            }
+        );
+    });
+
     describe("addExtraParameters tests", () => {
         it("adds extra query parameters to the request", () => {
             const parameters = new Map<string, string>();

@@ -491,6 +491,70 @@ const DEFAULT_ID_TOKEN_CLAIMS: Record<string, { essential: false }> = {
 };
 
 /**
+ * Parses a claims JSON string into an object, throwing a ClientConfigurationError
+ * (error code `invalid_claims`) if the value is not a valid JSON object. The raw
+ * claims value is never included in the error - it may contain sensitive data.
+ * @param claims - Claims JSON string. Must be valid JSON representing an object.
+ * @param correlationId - The request correlation id
+ * @returns The parsed claims object
+ */
+function parseClaimsOrThrow(
+    claims: string,
+    correlationId: string = ""
+): Record<string, object> {
+    try {
+        const parsed = JSON.parse(claims);
+        if (
+            typeof parsed !== "object" ||
+            parsed === null ||
+            Array.isArray(parsed)
+        ) {
+            // Valid JSON, but not an object (e.g. an array, a scalar, or the literal `null`).
+            throw new Error("Claims must be a JSON object");
+        }
+        return parsed;
+    } catch (e) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidClaims,
+            correlationId
+        );
+    }
+}
+
+/**
+ * Merges two claims JSON strings into one. If either side is empty/whitespace/undefined the
+ * other is returned verbatim (and `undefined` is returned when both are empty). When both are
+ * present they are parsed and shallow-merged at the top level, with keys from `claimsToMergeIn`
+ * taking precedence on conflicts. Throws a ClientConfigurationError (error code `invalid_claims`)
+ * if either side is present but is not a valid JSON object.
+ *
+ * Unlike `claims` (a server-issued challenge that bypasses the cache), this is used to combine a
+ * server-issued challenge with client-originated claims so both are sent on the wire.
+ * @param baseClaims - The base claims JSON string (e.g. server-issued `claims`)
+ * @param claimsToMergeIn - The claims JSON string merged in with precedence (e.g. `clientClaims`)
+ * @param correlationId - The request correlation id
+ * @returns The merged claims JSON string, or undefined when both inputs are empty
+ */
+export function mergeClaims(
+    baseClaims?: string,
+    claimsToMergeIn?: string,
+    correlationId: string = ""
+): string | undefined {
+    if (!baseClaims?.trim()) {
+        return claimsToMergeIn?.trim() ? claimsToMergeIn : undefined;
+    }
+    if (!claimsToMergeIn?.trim()) {
+        return baseClaims;
+    }
+
+    const merged = {
+        ...parseClaimsOrThrow(baseClaims, correlationId),
+        ...parseClaimsOrThrow(claimsToMergeIn, correlationId),
+    };
+    return JSON.stringify(merged);
+}
+
+/**
  * Parses claims JSON, merges default optional idToken claims (signin_state, login_hint),
  * and appends client capabilities (xms_cc) to the access_token section.
  * Does not overwrite idToken claims already specified by the caller.
@@ -503,29 +567,10 @@ export function buildMergedClaims(
     clientCapabilities?: Array<string>,
     correlationId: string = ""
 ): string {
-    let mergedClaims: object;
-
     // Parse provided claims into JSON object or initialize empty object
-    if (!claims) {
-        mergedClaims = {};
-    } else {
-        try {
-            const parsed = JSON.parse(claims);
-            if (
-                typeof parsed !== "object" ||
-                parsed === null ||
-                Array.isArray(parsed)
-            ) {
-                throw new Error("Claims must be a JSON object");
-            }
-            mergedClaims = parsed;
-        } catch (e) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaims,
-                correlationId
-            );
-        }
-    }
+    const mergedClaims: object = claims
+        ? parseClaimsOrThrow(claims, correlationId)
+        : {};
 
     // Add default optional idToken claims
     if (

@@ -35,6 +35,7 @@ export const ManagedIdentityQueryParameters = {
     RESOURCE: "resource",
     SHA256_TOKEN_TO_REFRESH: "token_sha256_to_refresh",
     XMS_CC: "xms_cc",
+    CLAIMS: "claims",
 } as const;
 export type ManagedIdentityQueryParameters =
     (typeof ManagedIdentityQueryParameters)[keyof typeof ManagedIdentityQueryParameters];

@@ -2108,6 +2108,9 @@ const logoutRequestEmpty = "logout_request_empty";
 // @public
 function mapToQueryString(parameters: Map<string, string>): string;
 
+// @public
+function mergeClaims(baseClaims?: string, claimsToMergeIn?: string, correlationId?: string): string | undefined;
+
 // @public (undocumented)
 const methodNotImplemented = "method_not_implemented";
 
@@ -2746,6 +2749,7 @@ declare namespace RequestParameterBuilder {
         addCliData,
         addInstanceAware,
         addExtraParameters,
+        mergeClaims,
         buildMergedClaims,
         addUsername,
         addPassword,

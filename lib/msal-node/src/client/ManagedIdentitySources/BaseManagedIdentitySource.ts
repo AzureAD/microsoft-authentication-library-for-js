@@ -248,6 +248,30 @@ export abstract class BaseManagedIdentitySource {
             ] = clientCapabilities;
         }
 
+        /*
+         * Forward client-originated claims (e.g. NSP `xms_az_nwperimid`) to IMDS. IMDS-only
+         * support and the MSIv1 allow-list are validated earlier in
+         * ManagedIdentityApplication.acquireToken, so by the time execution reaches here the
+         * value is safe to forward. GET sources (IMDS) send it as the `claims` query parameter;
+         * POST sources send it in the body. The value is stored raw and URL-encoded downstream.
+         */
+        if (managedIdentityRequest.clientClaims) {
+            this.logger.info(
+                "[Managed Identity] Adding client claims to the managed identity request.",
+                ""
+            );
+
+            if (networkRequest.httpMethod === HttpMethod.GET) {
+                networkRequest.queryParameters[
+                    ManagedIdentityQueryParameters.CLAIMS
+                ] = managedIdentityRequest.clientClaims;
+            } else {
+                networkRequest.bodyParameters[
+                    ManagedIdentityQueryParameters.CLAIMS
+                ] = managedIdentityRequest.clientClaims;
+            }
+        }
+
         const headers: Record<string, string> = networkRequest.headers;
         headers[Constants.HeaderNames.CONTENT_TYPE] =
             Constants.URL_FORM_CONTENT_TYPE;
@@ -326,12 +350,23 @@ export abstract class BaseManagedIdentitySource {
         );
 
         // caches the token
+        const additionalCacheKeyComponents: Record<string, string> | undefined =
+            managedIdentityRequest.clientClaims
+                ? { client_claims: managedIdentityRequest.clientClaims }
+                : undefined;
+
         return responseHandler.handleServerTokenResponse(
             serverTokenResponse,
             fakeAuthority,
             reqTimestamp,
             managedIdentityRequest,
-            ApiId.acquireTokenWithManagedIdentity
+            ApiId.acquireTokenWithManagedIdentity,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            additionalCacheKeyComponents
         );
     }
 

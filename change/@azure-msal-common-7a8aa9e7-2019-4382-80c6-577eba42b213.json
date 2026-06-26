@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Export a `mergeClaims` helper that merges a base claims object with a second claims object (the second taking precedence), used to combine server-issued and client-originated claims.",
+    "packageName": "@azure/msal-common",
+    "email": "rginsburg@microsoft.com",
+    "dependentChangeType": "patch"
+}
