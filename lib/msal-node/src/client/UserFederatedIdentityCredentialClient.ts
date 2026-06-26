@@ -13,6 +13,7 @@ import {
     RequestThumbprint,
     ResponseHandler,
     ScopeSet,
+    StringUtils,
     TimeUtils,
     UrlString,
     ClientAssertion,
@@ -208,15 +209,25 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
             );
         }
 
+        /*
+         * Merge the server-issued `claims` challenge with client-originated `clientClaims` so both
+         * are sent on the wire. Client capabilities are appended by addClaims/buildMergedClaims.
+         */
+        const mergedClaims = RequestParameterBuilder.mergeClaims(
+            request.claims,
+            request.clientClaims,
+            request.correlationId
+        );
+
         if (
-            request.claims ||
+            !StringUtils.isEmptyObj(mergedClaims) ||
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
             RequestParameterBuilder.addClaims(
                 parameters,
                 request.correlationId,
-                request.claims,
+                mergedClaims,
                 this.config.authOptions.clientCapabilities
             );
         }

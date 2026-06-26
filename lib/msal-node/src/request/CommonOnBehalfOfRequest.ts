@@ -20,4 +20,11 @@ export type CommonOnBehalfOfRequest = Omit<
      * Skip token cache lookup and force request to authority to get a a new token. Defaults to false.
      */
     skipCache?: boolean;
+    /**
+     * Client-originated claims to forward to the token endpoint, sent as the `claims` parameter on the wire.
+     * Unlike `claims` (a server-issued challenge, which bypasses the token cache), client claims are cached and
+     * the cache entry is keyed on the claims value: identical values are served from cache, while different values
+     * produce separate cache entries. Use stable, non-dynamic values to avoid unbounded cache growth.
+     */
+    clientClaims?: string;
 };

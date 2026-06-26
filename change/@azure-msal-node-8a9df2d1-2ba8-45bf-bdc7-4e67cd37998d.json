@@ -1,6 +1,6 @@
 {
     "type": "minor",
-    "comment": "Add `clientClaims` request parameter to forward client-originated claims (e.g. the NSP `xms_az_nwperimid` claim) to ESTS and IMDS across the confidential client and managed identity flows. Unlike server-issued `claims`, client claims do not bypass the token cache; they are cached and the cache entry is keyed on the claims value.",
+    "comment": "Add `clientClaims` request parameter to forward client-originated claims (e.g. the NSP `xms_az_nwperimid` claim) to ESTS and IMDS across the confidential client flows (client credential, on-behalf-of, user federated identity credential) and the managed identity flow. Unlike server-issued `claims`, client claims do not bypass the token cache; they are cached and the cache entry is keyed on the claims value.",
     "packageName": "@azure/msal-node",
     "email": "rginsburg@microsoft.com",
     "dependentChangeType": "patch"
