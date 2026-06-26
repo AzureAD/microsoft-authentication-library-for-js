@@ -75,7 +75,7 @@ export class NestedAppAuthAdapter {
 
         const correlationId =
             request.correlationId || this.crypto.createNewGuid();
-        const claims = RequestParameterBuilder.addClientCapabilitiesToClaims(
+        const claims = RequestParameterBuilder.buildMergedClaims(
             request.claims,
             this.clientCapabilities
         );

@@ -174,6 +174,7 @@ export type AccountInfo = {
     authorityType?: string;
     tenantProfiles?: Map<string, TenantProfile>;
     dataBoundary?: DataBoundary;
+    kmsi?: boolean;
 };
 
 // @public (undocumented)
@@ -209,9 +210,6 @@ function addClientAssertion(parameters: Map<string, string>, clientAssertion: st
 
 // @public
 function addClientAssertionType(parameters: Map<string, string>, clientAssertionType: string): void;
-
-// @public (undocumented)
-function addClientCapabilitiesToClaims(claims?: string, clientCapabilities?: Array<string>): string;
 
 // @public
 function addClientId(parameters: Map<string, string>, clientId: string): void;
@@ -641,15 +639,11 @@ export type AuthorizeResponse = {
     clientdata?: string;
 };
 
-// @public (undocumented)
-const authTimeNotFound = "auth_time_not_found";
-
 declare namespace AuthToken {
     export {
         extractTokenClaims,
         isKmsi,
-        getJWSPayload,
-        checkMaxAge
+        getJWSPayload
     }
 }
 export { AuthToken }
@@ -735,6 +729,9 @@ export function buildClientInfo(rawClientInfo: string, base64Decode: (input: str
 
 // @public
 export function buildClientInfoFromHomeAccountId(homeAccountId: string): ClientInfo;
+
+// @public
+function buildMergedClaims(claims?: string, clientCapabilities?: Array<string>, correlationId?: string): string;
 
 // @public (undocumented)
 export function buildStaticAuthorityOptions(authOptions: Partial<AuthorityOptions>): StaticAuthorityOptions;
@@ -933,9 +930,6 @@ export const CcsCredentialType: {
 // @public (undocumented)
 export type CcsCredentialType = (typeof CcsCredentialType)[keyof typeof CcsCredentialType];
 
-// @public
-function checkMaxAge(authTime: number, maxAge: number, correlationId: string): void;
-
 // @public (undocumented)
 const CIAM_AUTH_URL = ".ciamlogin.com";
 
@@ -946,6 +940,9 @@ const CLAIMS = "claims";
 const ClaimsRequestKeys: {
     readonly ACCESS_TOKEN: "access_token";
     readonly XMS_CC: "xms_cc";
+    readonly ID_TOKEN: "id_token";
+    readonly SIGNIN_STATE: "signin_state";
+    readonly LOGIN_HINT: "login_hint";
 };
 
 // @public (undocumented)
@@ -1026,8 +1023,6 @@ declare namespace ClientAuthErrorCodes {
         stateMismatch,
         stateNotFound,
         nonceMismatch,
-        authTimeNotFound,
-        maxAgeTranspired,
         multipleMatchingTokens,
         multipleMatchingAppMetadata,
         requestCannotBeMade,
@@ -1791,13 +1786,13 @@ export interface ILoggerCallback {
 }
 
 // @public (undocumented)
-const IMDS_ENDPOINT = "http://169.254.169.254/metadata/instance/compute/location";
+const IMDS_ENDPOINT = "http://169.254.169.254/metadata/instance/compute";
 
 // @public (undocumented)
 const IMDS_TIMEOUT = 2000;
 
 // @public (undocumented)
-const IMDS_VERSION = "2020-06-01";
+const IMDS_VERSION = "2021-02-01";
 
 // @public (undocumented)
 export interface INativeBrokerPlugin {
@@ -2112,9 +2107,6 @@ const logoutRequestEmpty = "logout_request_empty";
 
 // @public
 function mapToQueryString(parameters: Map<string, string>): string;
-
-// @public (undocumented)
-const maxAgeTranspired = "max_age_transpired";
 
 // @public (undocumented)
 const methodNotImplemented = "method_not_implemented";
@@ -2754,7 +2746,7 @@ declare namespace RequestParameterBuilder {
         addCliData,
         addInstanceAware,
         addExtraParameters,
-        addClientCapabilitiesToClaims,
+        buildMergedClaims,
         addUsername,
         addPassword,
         addPopToken,
@@ -2788,6 +2780,7 @@ export type RequestThumbprint = {
     sshKid?: string;
     shrOptions?: ShrOptions;
     embeddedClientId?: string;
+    resource?: string;
 };
 
 // @public (undocumented)
@@ -3369,7 +3362,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.9.0";
+export const version = "16.10.0";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;

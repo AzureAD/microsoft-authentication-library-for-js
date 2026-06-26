@@ -43,6 +43,7 @@ import {
     UrlString,
 } from "../../src/index.js";
 import { RegionDiscovery } from "../../src/authority/RegionDiscovery.js";
+import { RegionDiscoveryMetadata } from "../../src/authority/RegionDiscoveryMetadata.js";
 import { InstanceDiscoveryMetadata } from "../../src/authority/AuthorityMetadata.js";
 import * as authorityMetadata from "../../src/authority/AuthorityMetadata.js";
 import { getDefaultErrorMessage } from "../../src/error/AuthError.js";
@@ -936,6 +937,188 @@ describe("Authority.ts Class Unit Tests", () => {
                     "common"
                 )
             );
+        });
+    });
+
+    describe("RegionDiscovery IMDS compute endpoint", () => {
+        const correlationId = TEST_CONFIG.CORRELATION_ID;
+
+        const buildNetworkInterface = (
+            getImpl: (url: string, options?: NetworkRequestOptions) => unknown
+        ): INetworkModule => ({
+            sendGetRequestAsync: <T>(
+                url: string,
+                options?: NetworkRequestOptions
+            ): Promise<T> => Promise.resolve(getImpl(url, options) as T),
+            sendPostRequestAsync: <T>(): Promise<T> => Promise.resolve({} as T),
+        });
+
+        it("calls the IMDS /compute JSON endpoint and reads the location field", async () => {
+            let requestedUrl = "";
+            const networkInterface = buildNetworkInterface((url) => {
+                requestedUrl = url;
+                return {
+                    status: Constants.HTTP_SUCCESS,
+                    body: { location: "centralus" },
+                };
+            });
+
+            const regionDiscovery = new RegionDiscovery(
+                networkInterface,
+                logger,
+                new StubPerformanceClient(),
+                correlationId
+            );
+            const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
+
+            const region = await regionDiscovery.detectRegion(
+                undefined,
+                regionDiscoveryMetadata
+            );
+
+            expect(region).toBe("centralus");
+            expect(requestedUrl).toBe(
+                `${Constants.IMDS_ENDPOINT}?api-version=${Constants.IMDS_VERSION}`
+            );
+            expect(requestedUrl).toContain(
+                "metadata/instance/compute?api-version=2021-02-01"
+            );
+            expect(requestedUrl).not.toContain("format=text");
+            expect(requestedUrl).not.toContain("/compute/location");
+            expect(regionDiscoveryMetadata.region_source).toBe(
+                Constants.RegionDiscoverySources.IMDS
+            );
+        });
+
+        it("falls back to FAILED_AUTO_DETECTION when the location field is missing", async () => {
+            const networkInterface = buildNetworkInterface(() => ({
+                status: Constants.HTTP_SUCCESS,
+                body: { vmId: "11111111-1111-1111-1111-111111111111" },
+            }));
+
+            const regionDiscovery = new RegionDiscovery(
+                networkInterface,
+                logger,
+                new StubPerformanceClient(),
+                correlationId
+            );
+            const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
+
+            const region = await regionDiscovery.detectRegion(
+                undefined,
+                regionDiscoveryMetadata
+            );
+
+            expect(region).toBeNull();
+            expect(regionDiscoveryMetadata.region_source).toBe(
+                Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION
+            );
+        });
+
+        it("falls back to FAILED_AUTO_DETECTION when the location field is null", async () => {
+            const networkInterface = buildNetworkInterface(() => ({
+                status: Constants.HTTP_SUCCESS,
+                body: { location: null },
+            }));
+
+            const regionDiscovery = new RegionDiscovery(
+                networkInterface,
+                logger,
+                new StubPerformanceClient(),
+                correlationId
+            );
+            const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
+
+            const region = await regionDiscovery.detectRegion(
+                undefined,
+                regionDiscoveryMetadata
+            );
+
+            expect(region).toBeNull();
+            expect(regionDiscoveryMetadata.region_source).toBe(
+                Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION
+            );
+        });
+
+        it("falls back to FAILED_AUTO_DETECTION when the IMDS body is malformed JSON", async () => {
+            // The network client throws while parsing a malformed JSON body.
+            const networkInterface = buildNetworkInterface(() => {
+                throw new Error("Failed to parse response");
+            });
+
+            const regionDiscovery = new RegionDiscovery(
+                networkInterface,
+                logger,
+                new StubPerformanceClient(),
+                correlationId
+            );
+            const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
+
+            const region = await regionDiscovery.detectRegion(
+                undefined,
+                regionDiscoveryMetadata
+            );
+
+            expect(region).toBeNull();
+            expect(regionDiscoveryMetadata.region_source).toBe(
+                Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION
+            );
+        });
+
+        it("negotiates a new api-version on 400 then reads location from the retry", async () => {
+            const requestedUrls: string[] = [];
+            const networkInterface = buildNetworkInterface((url) => {
+                requestedUrls.push(url);
+
+                // Probe for supported versions (no api-version param).
+                if (url === `${Constants.IMDS_ENDPOINT}?format=json`) {
+                    return {
+                        status: Constants.HTTP_BAD_REQUEST,
+                        body: {
+                            error: "invalid",
+                            "newest-versions": ["2020-10-01"],
+                        },
+                    };
+                }
+
+                // First call with the default api-version is rejected.
+                if (
+                    url ===
+                    `${Constants.IMDS_ENDPOINT}?api-version=${Constants.IMDS_VERSION}`
+                ) {
+                    return { status: Constants.HTTP_BAD_REQUEST, body: {} };
+                }
+
+                // Retry with the negotiated api-version succeeds.
+                return {
+                    status: Constants.HTTP_SUCCESS,
+                    body: { location: "centralus" },
+                };
+            });
+
+            const regionDiscovery = new RegionDiscovery(
+                networkInterface,
+                logger,
+                new StubPerformanceClient(),
+                correlationId
+            );
+            const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
+
+            const region = await regionDiscovery.detectRegion(
+                undefined,
+                regionDiscoveryMetadata
+            );
+
+            expect(region).toBe("centralus");
+            expect(regionDiscoveryMetadata.region_source).toBe(
+                Constants.RegionDiscoverySources.IMDS
+            );
+            expect(requestedUrls).toContain(
+                `${Constants.IMDS_ENDPOINT}?api-version=2020-10-01`
+            );
+            requestedUrls.forEach((url) => {
+                expect(url).not.toContain("format=text");
+            });
         });
     });
 

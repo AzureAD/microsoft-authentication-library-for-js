@@ -15,7 +15,6 @@ import {
 import {
     AuthenticationScheme,
     CredentialType,
-    ONE_DAY_IN_MS,
     OPENID_SCOPE,
     PROFILE_SCOPE,
 } from "../../src/utils/Constants.js";
@@ -32,7 +31,6 @@ import {
     AccountInfo,
     updateAccountTenantProfileData,
 } from "../../src/account/AccountInfo.js";
-import * as AuthToken from "../../src/account/AuthToken.js";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity.js";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity.js";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity.js";
@@ -373,75 +371,6 @@ describe("SilentFlowClient unit tests", () => {
                     ""
                 )
             );
-        });
-
-        it("acquireCachedToken returns correct token when max age is provided and has not transpired yet", async () => {
-            const testScopes = [
-                OPENID_SCOPE,
-                PROFILE_SCOPE,
-                ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            ];
-            testAccessTokenEntity.target = testScopes.join(" ");
-            jest.spyOn(
-                Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
-            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-
-            const idTokenClaimsWithAuthTime = {
-                ...ID_TOKEN_CLAIMS,
-                auth_time: Date.now() - ONE_DAY_IN_MS * 2,
-            };
-            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaimsWithAuthTime
-            );
-            jest.spyOn(
-                MockStorageClass.prototype,
-                "getAccount"
-            ).mockReturnValue(testAccountEntity);
-            jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
-            );
-            jest.spyOn(
-                CacheManager.prototype,
-                "getAccessToken"
-            ).mockReturnValue(testAccessTokenEntity);
-            jest.spyOn(
-                CacheManager.prototype,
-                "getRefreshToken"
-            ).mockReturnValue(testRefreshTokenEntity);
-
-            const config =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client = new SilentFlowClient(config, stubPerformanceClient);
-            jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(false);
-
-            const silentFlowRequest: CommonSilentFlowRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-                maxAge: ONE_DAY_IN_MS * 3,
-            };
-
-            const response = await client.acquireCachedToken(silentFlowRequest);
-            const authResult: AuthenticationResult = response[0];
-            expect(authResult.authority).toBe(
-                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`
-            );
-            expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
-            expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
-            expect(authResult.scopes).toEqual(testScopes);
-            expect(authResult.account).toEqual({
-                ...testAccount,
-                idTokenClaims: idTokenClaimsWithAuthTime,
-            });
-            expect(authResult.idToken).toEqual(testIdToken.secret);
-            expect(authResult.idTokenClaims).toEqual(idTokenClaimsWithAuthTime);
-            expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
-            );
-            expect(authResult.state).toHaveLength(0);
         });
 
         it("acquireCachedToken returns cached token when isMcp is true and resource matches", async () => {
@@ -981,54 +910,6 @@ describe("SilentFlowClient unit tests", () => {
                 testAccessTokenEntity.secret
             );
             expect(authResult.state).toHaveLength(0);
-        });
-
-        it("Throws error if max age is equal to 0 or has transpired since the last end-user authentication", async () => {
-            const client = new SilentFlowClient(config, stubPerformanceClient);
-            jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(false);
-
-            const idTokenClaimsWithAuthTime = {
-                ...ID_TOKEN_CLAIMS,
-                auth_time: Date.now() - ONE_DAY_IN_MS * 2,
-            };
-            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaimsWithAuthTime
-            );
-
-            const silentFlowRequest: CommonSilentFlowRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-                maxAge: 0, // 0 indicates an immediate refresh
-            };
-
-            await expect(
-                client.acquireCachedToken(silentFlowRequest)
-            ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired, "")
-            );
-        });
-
-        it("Throws error if max age is requested and auth time is not included in the token claims", async () => {
-            const client = new SilentFlowClient(config, stubPerformanceClient);
-            jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(false);
-
-            const silentFlowRequest: CommonSilentFlowRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-                maxAge: ONE_DAY_IN_MS * 3,
-            };
-
-            await expect(
-                client.acquireCachedToken(silentFlowRequest)
-            ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound, "")
-            );
         });
 
         it("acquireCachedToken throws refresh requiredError if access token is expired", async () => {

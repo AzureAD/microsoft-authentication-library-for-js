@@ -112,7 +112,7 @@ await msalInstance.logoutPopup({
 
 ## Promptless logout
 
-If your client application has the [login_hint optional claim](https://docs.microsoft.com/azure/active-directory/develop/active-directory-optional-claims#v10-and-v20-optional-claims-set) enabled for ID Tokens, you can leverage the ID Token's `login_hint` claim to perform a "silent" or promptless logout while using either `logoutRedirect` or `logoutPopup`. There are two ways to achieve a promptless logout:
+MSAL automatically requests the `login_hint` claim on all authentication requests, so the ID Token's `login_hint` claim can be leveraged to perform a "silent" or promptless logout while using either `logoutRedirect` or `logoutPopup`. There are two ways to achieve a promptless logout:
 
 ### Option 1: Let MSAL automatically parse the login_hint out of the account's ID token claims
 
@@ -120,7 +120,6 @@ The first and simplest option is to provide the account object you want to end t
 
 ```javascript
 const currentAccount = msalInstance.getAccount({ homeAccountId });
-// The account's ID Token must contain the login_hint optional claim to avoid the account picker
 await msalInstance.logoutRedirect({ account: currentAccount});
 ```
 

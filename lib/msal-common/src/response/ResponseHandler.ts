@@ -8,11 +8,7 @@ import {
     buildTenantProfile,
     updateAccountTenantProfileData,
 } from "../account/AccountInfo.js";
-import {
-    checkMaxAge,
-    extractTokenClaims,
-    isKmsi,
-} from "../account/AuthToken.js";
+import { extractTokenClaims, isKmsi } from "../account/AuthToken.js";
 import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,
@@ -215,19 +211,6 @@ export class ResponseHandler {
                         request.correlationId
                     );
                 }
-            }
-
-            // token max_age check
-            if (request.maxAge || request.maxAge === 0) {
-                const authTime = idTokenClaims.auth_time;
-                if (!authTime) {
-                    throw createClientAuthError(
-                        ClientAuthErrorCodes.authTimeNotFound,
-                        request.correlationId
-                    );
-                }
-
-                checkMaxAge(authTime, request.maxAge, request.correlationId);
             }
         }
 
