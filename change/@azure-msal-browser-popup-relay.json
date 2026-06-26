@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Add auth.popupRelayUri config + a popup-relay sub-export (runPopupRelay) to acquire tokens via acquireTokenPopup from inside an untrusted cross-origin iframe (storage-partitioned / COOP), relaying the interactive flow through a top-level same-origin page. Supports the auth-code (GET), form_post, and EAR response modes.",
+    "packageName": "@azure/msal-browser",
+    "email": "kshabelko@microsoft.com",
+    "dependentChangeType": "patch"
+}

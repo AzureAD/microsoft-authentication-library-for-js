@@ -535,6 +535,38 @@ export function createGuid(): string {
     return BrowserCrypto.createNewGuid();
 }
 
+/**
+ * Creates a POST `<form>` in the provided document with the given auth
+ * parameters as hidden inputs, targeting `action`. Shared by the popup auth
+ * flows (`getEARForm` / `getCodeForm`) and the popup-relay page
+ * (`runPopupRelay`) so the form is built one way only.
+ *
+ * @param frame - document to create the form in
+ * @param action - form action (the /authorize URL)
+ * @param fields - POST-body fields
+ * @internal
+ */
+export function createForm(
+    frame: Document,
+    action: string,
+    fields: Record<string, string>
+): HTMLFormElement {
+    const form = frame.createElement("form");
+    form.method = "post";
+    form.action = action;
+
+    Object.keys(fields).forEach((name) => {
+        const input = frame.createElement("input");
+        input.hidden = true;
+        input.name = name;
+        input.value = fields[name];
+        form.appendChild(input);
+    });
+
+    frame.body.appendChild(form);
+    return form;
+}
+
 export { invoke };
 export { invokeAsync };
 export const buildMergedClaims = RequestParameterBuilder.buildMergedClaims;

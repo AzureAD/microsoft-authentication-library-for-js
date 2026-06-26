@@ -47,6 +47,16 @@
         "default": "./lib/redirect-bridge/msal-redirect-bridge.cjs"
       }
     },
+    "./popup-relay": {
+      "import": {
+        "types": "./types/popup_relay/index.d.ts",
+        "default": "./dist/popup_relay/index.mjs"
+      },
+      "require": {
+        "types": "./types/popup_relay/index.d.cts",
+        "default": "./lib/popup-relay/msal-popup-relay.cjs"
+      }
+    },
     ".": {
       "import": {
         "types": "./types/index.d.ts",

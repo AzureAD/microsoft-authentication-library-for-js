@@ -12,7 +12,6 @@ import {
     PerformanceEvents,
     invokeAsync,
     CommonAuthorizationUrlRequest,
-    AuthorizationCodeClient,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
@@ -112,14 +111,10 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         );
 
         try {
-            /*
-             * Create auth code request. A caller-supplied code_verifier is preserved so
-             * PKCE-bound authorization codes can be redeemed.
-             */
+            // Create auth code request (PKCE not needed)
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 ...silentRequest,
                 code: request.code,
-                codeVerifier: request.codeVerifier,
             };
 
             // Initialize the client
@@ -136,22 +131,11 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 requestExtraQueryParameters: silentRequest.extraQueryParameters,
                 account: silentRequest.account,
             });
-            /*
-             * When a PKCE code_verifier is supplied, the authorization code was minted by a
-             * standard /authorize request bound to a redirect URI, so it must be redeemed with
-             * both code_verifier and the matching redirect_uri. The base AuthorizationCodeClient
-             * (includeRedirectUri = true) does this. Without a verifier this is the hybrid SPA
-             * flow, where the code is not bound to a redirect URI, so redirect_uri is omitted.
-             */
-            const authClient: AuthorizationCodeClient = request.codeVerifier
-                ? new AuthorizationCodeClient(
-                      clientConfig,
-                      this.performanceClient
-                  )
-                : new HybridSpaAuthorizationCodeClient(
-                      clientConfig,
-                      this.performanceClient
-                  );
+            const authClient: HybridSpaAuthorizationCodeClient =
+                new HybridSpaAuthorizationCodeClient(
+                    clientConfig,
+                    this.performanceClient
+                );
             this.logger.verbose("Auth code client created", this.correlationId);
 
             // Create silent handler

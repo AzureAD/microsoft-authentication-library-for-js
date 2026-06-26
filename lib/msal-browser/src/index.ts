@@ -71,9 +71,6 @@ export { HandleRedirectPromiseOptions } from "./request/HandleRedirectPromiseOpt
 export { LoadTokenOptions } from "./cache/TokenCache.js";
 export { loadExternalTokens } from "./cache/TokenCache.js";
 
-// Protocol
-export { getAuthCodeUrl, AuthCodeUrlRequest } from "./protocol/Authorize.js";
-
 // Storage
 export { MemoryStorage } from "./cache/MemoryStorage.js";
 export { LocalStorage } from "./cache/LocalStorage.js";
@@ -157,7 +154,6 @@ export {
     IPerformanceClient,
     StubPerformanceClient,
     enforceResourceParameter,
-    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
 export * as BrowserRootPerformanceEvents from "./telemetry/BrowserRootPerformanceEvents.js";
 

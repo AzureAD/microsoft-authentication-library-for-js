@@ -34,7 +34,6 @@ import {
 } from "../../src/error/BrowserAuthError.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
-import { getAuthCodeUrl } from "../../src/protocol/Authorize.js";
 
 describe("Authorize Protocol Tests", () => {
     describe("EAR Protocol Tests", () => {
@@ -714,67 +713,6 @@ describe("Authorize Protocol Tests", () => {
                 validRequest.correlationId
             );
             addFieldsSpy.mockRestore();
-        });
-    });
-
-    describe("getAuthCodeUrl()", () => {
-        const baseConfig = {
-            auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
-        };
-
-        const baseRequest = {
-            scopes: ["User.Read"],
-            redirectUri: window.location.origin + "/callback",
-            codeChallenge: "test-code-challenge",
-            state: "embed.test-nonce",
-        };
-
-        afterEach(() => {
-            jest.restoreAllMocks();
-            window.sessionStorage.clear();
-            window.localStorage.clear();
-        });
-
-        it("builds an authorization-code + PKCE /authorize URL", async () => {
-            const url = await getAuthCodeUrl(baseConfig, baseRequest);
-
-            const parsed = new URL(url);
-            const params = parsed.searchParams;
-
-            expect(params.get("response_type")).toEqual("code");
-            expect(params.get("client_id")).toEqual(TEST_CONFIG.MSAL_CLIENT_ID);
-            expect(params.get("redirect_uri")).toEqual(
-                window.location.origin + "/callback"
-            );
-            expect(params.get("code_challenge")).toEqual("test-code-challenge");
-            expect(params.get("code_challenge_method")).toEqual("S256");
-            expect(params.get("scope")).toContain("User.Read");
-        });
-
-        it("round-trips the caller's state verbatim (un-wrapped)", async () => {
-            const rawState = "embed.my-correlation-id";
-            const url = await getAuthCodeUrl(baseConfig, {
-                ...baseRequest,
-                state: rawState,
-            });
-
-            const params = new URL(url).searchParams;
-            expect(params.get("state")).toEqual(rawState);
-        });
-
-        it("defaults response_mode from config and forwards login hint + extra query parameters", async () => {
-            const url = await getAuthCodeUrl(baseConfig, {
-                ...baseRequest,
-                // Config (OIDCOptions) wins over the request's responseMode.
-                responseMode: Constants.ResponseMode.QUERY,
-                loginHint: "user@contoso.com",
-                extraQueryParameters: { dc: "ESTS-TEST-SLICE" },
-            });
-
-            const params = new URL(url).searchParams;
-            expect(params.get("response_mode")).toEqual("fragment");
-            expect(params.get("login_hint")).toEqual("user@contoso.com");
-            expect(params.get("dc")).toEqual("ESTS-TEST-SLICE");
         });
     });
 });

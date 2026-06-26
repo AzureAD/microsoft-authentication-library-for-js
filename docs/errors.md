@@ -633,6 +633,12 @@ const promise2 = msalInstance.acquireTokenPopup(request2);
 
 -   The redirect bridge returned an empty response, indicating the redirect bridge script may have been modified or replaced.
 
+### `popup_relay_unsupported_flow`
+
+-   `runPopupRelay` was invoked in an unsupported context. This error is thrown from the relay page (configured via `auth.popupRelayUri`) and includes a sub-error indicating the cause:
+-   `popup_relay_no_opener` - The relay page was not opened as a popup (`window.opener` is null), so it has no parent window to relay the authentication response back to. Ensure the relay page is only loaded as the popup opened by MSAL and that `runPopupRelay` is not called when navigating to the page directly.
+-   `popup_relay_bad_request` - The relayed request encoded in the relay page URL could not be parsed or was missing its channel id. This typically indicates the relay page was loaded without the expected request payload or the payload was modified.
+
 ### `redirect_in_iframe`
 
 -   Redirects are not supported for iframed or brokered applications. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs.

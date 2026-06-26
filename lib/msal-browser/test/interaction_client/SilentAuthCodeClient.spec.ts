@@ -264,48 +264,6 @@ describe("SilentAuthCodeClient", () => {
         });
     });
 
-    describe("PKCE-bound authorization code redemption", () => {
-        let postSpy: jest.SpyInstance;
-
-        beforeEach(() => {
-            postSpy = jest
-                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
-                .mockResolvedValue(TEST_TOKEN_RESPONSE);
-        });
-
-        it("redeems with code_verifier and redirect_uri when a codeVerifier is supplied", async () => {
-            await silentAuthCodeClient.acquireToken({
-                code: "test-code",
-                codeVerifier: "test-verifier",
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-            });
-
-            expect(postSpy).toHaveBeenCalled();
-            const body =
-                (postSpy.mock.calls[0][1] as { body?: string }).body || "";
-            // PKCE-bound code: redeemed WITH the verifier and the matching
-            // redirect_uri (base AuthorizationCodeClient path).
-            expect(body).toContain("code_verifier=test-verifier");
-            expect(body).toContain("redirect_uri=");
-        });
-
-        it("omits redirect_uri (hybrid SPA path) when no codeVerifier is supplied", async () => {
-            await silentAuthCodeClient.acquireToken({
-                code: "test-code",
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-            });
-
-            expect(postSpy).toHaveBeenCalled();
-            const body =
-                (postSpy.mock.calls[0][1] as { body?: string }).body || "";
-            // Hybrid SPA code is not bound to a redirect URI, so it must NOT be
-            // sent (preserves the legacy behavior byte-for-byte).
-            expect(body).not.toContain("redirect_uri=");
-        });
-    });
-
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentAuthCodeClient.logout).rejects.toMatchObject(
