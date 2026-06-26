@@ -4,7 +4,7 @@
         "rootDir": "./src",
         "outDir": "./dist/popup-relay",
         "declaration": false,
-        "declarationMap": false,
+        "declarationMap": false
     },
     "include": [
         "src"
