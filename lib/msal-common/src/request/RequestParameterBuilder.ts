@@ -501,7 +501,7 @@ const DEFAULT_ID_TOKEN_CLAIMS: Record<string, { essential: false }> = {
 function parseClaimsOrThrow(
     claims: string,
     correlationId: string = ""
-): Record<string, object> {
+): Record<string, unknown> {
     try {
         const parsed = JSON.parse(claims);
         if (

@@ -104,6 +104,28 @@ const response: AuthenticationResult =
 console.log(response);
 ```
 
+## Client-originated claims (`clientClaims`)
+
+`ManagedIdentityRequestParams` accepts an optional `clientClaims` parameter that forwards **client-originated** claims (for example the Network Security Perimeter `xms_az_nwperimid` claim) to IMDS, sent as the `claims` query parameter. Tokens are cached and the cache entry is **keyed on the `clientClaims` value**, so identical values are served from cache while different values produce separate cache entries. Empty or whitespace-only values are ignored.
+
+Two restrictions are enforced before the network call:
+
+-   **IMDS only.** `clientClaims` is only supported for the IMDS managed identity source. Supplying it for any other source (App Service, Cloud Shell, Azure Arc, Service Fabric, Machine Learning, etc.) throws a `ManagedIdentityError` with error code `client_claims_unsupported_source`.
+-   **MSIv1 allow-list.** MSIv1 (IMDS) only supports the `xms_az_nwperimid` claim. Including any other top-level key throws a `ManagedIdentityError` with error code `msi_v1_unsupported_claim`.
+
+```typescript
+const managedIdentityRequestParams: ManagedIdentityRequestParams = {
+    resource: "https://management.azure.com",
+    clientClaims: '{"xms_az_nwperimid":{"essential":true}}',
+};
+
+const response: AuthenticationResult =
+    await systemAssignedManagedIdentityApplication.acquireToken(
+        managedIdentityRequestParams
+    );
+console.log(response);
+```
+
 ## Caching
 
 MSALJS caches tokens from managed identity in memory. There is no eviction, but memory is not a concern because a limited number of managed identities can be defined. Cache extensibility is not supported in this scenario because tokens should not be shared between machines.
@@ -117,3 +139,11 @@ For failed requests the error response contains a correlation ID that can be use
 #### `ManagedIdentityError` Error Code: `invalid_resource` Error Message: The supplied resource is an invalid URL.
 
 This exception might mean that the resource you are trying to acquire a token for is either not supported or is provided using the wrong resource ID format. Examples of correct resource ID formats include `https://management.azure.com/.default`, `https://management.azure.com`, and `https://graph.microsoft.com`.
+
+#### `ManagedIdentityError` Error Code: `client_claims_unsupported_source` Error Message: The 'clientClaims' request parameter is only supported for the IMDS managed identity source. Remove 'clientClaims' or target IMDS.
+
+This exception means `clientClaims` was supplied for a non-IMDS managed identity source (for example App Service, Cloud Shell, Azure Arc, Service Fabric, or Machine Learning). `clientClaims` is only honored on IMDS — remove it or run against an IMDS-backed source.
+
+#### `ManagedIdentityError` Error Code: `msi_v1_unsupported_claim` Error Message: MSIv1 (IMDS) only supports the 'xms_az_nwperimid' client claim. Remove all keys other than 'xms_az_nwperimid' from 'clientClaims' when using a managed identity.
+
+This exception means the `clientClaims` value contained a top-level key other than `xms_az_nwperimid`. MSIv1 (IMDS) only accepts the `xms_az_nwperimid` claim — remove any other keys from `clientClaims`.

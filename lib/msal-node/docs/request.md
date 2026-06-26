@@ -315,6 +315,29 @@ cca.acquireTokenByClientCredential(clientCredentialRequest)
 
 The assertion callback context (`ClientAssertionConfig`) includes `fmiPath` so that context-aware assertion callbacks can use it to acquire the correct credential for multi-leg agent flows.
 
+### Client-originated claims (`clientClaims`)
+
+All confidential client flows — `acquireTokenByClientCredential`, `acquireTokenOnBehalfOf`, and `acquireTokenByUserFederatedIdentityCredential` — accept an optional `clientClaims` parameter. It forwards **client-originated** claims (for example the Network Security Perimeter `xms_az_nwperimid` claim) to the token endpoint, sent as the `claims` parameter in the request body. When both `claims` and `clientClaims` are present they are merged, with `clientClaims` taking precedence on conflicting top-level keys.
+
+Unlike `claims` (a server-issued challenge, which **bypasses** the token cache), `clientClaims` does **not** bypass the cache. Tokens are cached and the cache entry is **keyed on the `clientClaims` value** (using the same extended cache-key hash as `fmiPath`): identical values are served from cache, while different values produce separate cache entries. Use stable, non-dynamic values to avoid unbounded cache growth. Empty or whitespace-only values are ignored.
+
+> Note: `acquireTokenByUserFederatedIdentityCredential` always calls the network, so `clientClaims` is forwarded on every request but is not cached by that method.
+
+```javascript
+const clientCredentialRequest = {
+    scopes: ["https://graph.microsoft.com/.default"],
+    clientClaims: '{"xms_az_nwperimid":{"essential":true}}',
+};
+
+cca.acquireTokenByClientCredential(clientCredentialRequest)
+    .then((response) => {
+        console.log("Response: ", response);
+    })
+    .catch((error) => {
+        console.log(JSON.stringify(error));
+    });
+```
+
 ## User Federated Identity Credential (user_fic)
 
 A User Federated Identity Credential (FIC) enables an agent application to acquire a user-scoped token without direct user interaction. This is the final step (Leg 3) in the agent identity protocol:
