@@ -51,6 +51,20 @@ export function buildPopupRelayUrl(
     );
     const req = { id: libraryState.id, ...action };
     const target = new URL(popupRelayUri, window.location.origin);
+    /*
+     * The relay page must be same-origin as the embedded frame: the response is
+     * relayed back via postMessage and only accepted from this origin, and a
+     * cross-origin page would also receive the relayed /authorize request. Fail
+     * fast with a clear error instead of silently relaying to (and timing out
+     * against) the wrong origin.
+     */
+    if (target.origin !== window.location.origin) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.popupRelayUnsupportedFlow,
+            correlationId,
+            "popup_relay_cross_origin"
+        );
+    }
     const hashParams = new URLSearchParams();
     hashParams.set("req", JSON.stringify(req));
     target.hash = hashParams.toString();

@@ -66,6 +66,22 @@ describe("buildPopupRelayUrl", () => {
             fields: { client_id: "abc", code_challenge: "xyz" },
         });
     });
+
+    it("throws popup_relay_cross_origin when popupRelayUri resolves to a different origin", () => {
+        expect(() =>
+            PopupRelay.buildPopupRelayUrl(
+                "https://attacker.example.com/relay",
+                REQUEST_STATE,
+                { method: "GET", url: AUTH_URL },
+                "cid"
+            )
+        ).toThrowError(
+            expect.objectContaining({
+                errorCode: "popup_relay_unsupported_flow",
+                subError: "popup_relay_cross_origin",
+            })
+        );
+    });
 });
 
 describe("waitForPopupRelayResponse", () => {
