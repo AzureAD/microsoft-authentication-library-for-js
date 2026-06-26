@@ -924,10 +924,9 @@ export class BrowserCacheManager extends CacheManager {
                 `MSAL.js was last initialized by version: '${previousVersion}'`,
                 correlationId
             );
-            this.performanceClient.addFields(
-                { previousLibraryVersion: previousVersion },
-                correlationId
-            );
+            this.performanceClient.addGlobalFields({
+                previousLibraryVersion: previousVersion,
+            });
         }
 
         if (previousVersion !== version) {

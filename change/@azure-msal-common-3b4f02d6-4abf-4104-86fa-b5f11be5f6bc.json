@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Add addGlobalFields method to PerformanceClient [#XXXX](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/XXXX)",
+    "packageName": "@azure/msal-common",
+    "email": "thomas.norling@microsoft.com",
+    "dependentChangeType": "patch"
+}

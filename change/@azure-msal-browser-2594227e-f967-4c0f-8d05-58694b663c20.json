@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add previousLibraryVersion to all telemetry events [#XXXX](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/XXXX)",
+    "packageName": "@azure/msal-browser",
+    "email": "thomas.norling@microsoft.com",
+    "dependentChangeType": "patch"
+}
