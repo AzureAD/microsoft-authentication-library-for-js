@@ -375,7 +375,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
             correlationId: eventCorrelationId,
             appName: this.applicationTelemetry?.appName,
             appVersion: this.applicationTelemetry?.appVersion,
-            ...this.globalFields,
         };
 
         // Store in progress events so they can be discarded if not ended properly
@@ -517,6 +516,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
             incompleteSubsCount,
             context,
             logs: formattedLogs,
+            /*
+             * Global fields are spread last so they are always present on the
+             * emitted event and never overridden, even when registered after
+             * the measurement started.
+             */
+            ...this.globalFields,
         };
         if (account) {
             finalEvent.accountType = getAccountType(account);

@@ -202,6 +202,31 @@ describe("PerformanceClient.spec.ts", () => {
         });
     });
 
+    it("addGlobalFields stamps fields registered after a measurement started onto the emitted event", (done) => {
+        const mockPerfClient = new MockPerformanceClient();
+        const correlationId = "global-fields-after-start";
+
+        mockPerfClient.addPerformanceCallback((events) => {
+            expect(events.length).toBe(1);
+            expect(events[0].correlationId).toBe(correlationId);
+            expect(events[0].previousLibraryVersion).toBe("4.0.0");
+            done();
+        });
+
+        const topLevelEvent = mockPerfClient.startMeasurement(
+            PerformanceEvents.RefreshTokenClientAcquireToken,
+            correlationId
+        );
+
+        // Global field registered AFTER the measurement started must still
+        // land on the emitted event (stamped at emit time in endMeasurement).
+        mockPerfClient.addGlobalFields({ previousLibraryVersion: "4.0.0" });
+
+        topLevelEvent.end({
+            success: true,
+        });
+    });
+
     it("addGlobalFields merges across multiple calls and applies to every event", (done) => {
         const mockPerfClient = new MockPerformanceClient();
         const firstCorrelationId = "global-fields-first";
