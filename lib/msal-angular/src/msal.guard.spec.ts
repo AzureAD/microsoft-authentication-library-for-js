@@ -28,7 +28,7 @@ let authService: MsalService;
 let routeMock: any = { snapshot: {} };
 let routeStateMock: any = { snapshot: {}, url: "/" };
 let testInteractionType: InteractionType;
-let testLoginFailedRoute: string;
+let testLoginFailedRoute: string | undefined;
 let testConfiguration: Partial<MsalGuardConfiguration>;
 let browserSystemOptions: BrowserSystemOptions;
 
@@ -104,7 +104,7 @@ describe("MsalGuard", () => {
     try {
       guard.canActivate(routeMock, routeStateMock).subscribe((result) => {});
     } catch (err) {
-      expect(err.errorCode).toBe("invalid_interaction_type");
+      expect((err as { errorCode: string }).errorCode).toBe("invalid_interaction_type");
       done();
     }
   });
@@ -173,7 +173,7 @@ describe("MsalGuard", () => {
 
     guard
       .canActivate(routeMock, routeStateMock)
-      .subscribe((result: UrlTree) => {
+      .subscribe((result: boolean | UrlTree) => {
         expect(result.toString()).toEqual("/path");
         done();
       });
@@ -221,7 +221,7 @@ describe("MsalGuard", () => {
 
     guard
       .canActivate(routeMock, routeStateMock)
-      .subscribe((result: UrlTree) => {
+      .subscribe((result: boolean | UrlTree) => {
         expect(result).toBeTrue();
         done();
       });
@@ -267,7 +267,7 @@ describe("MsalGuard", () => {
 
     guard
       .canActivate(routeMock, routeStateMock)
-      .subscribe((result: UrlTree) => {
+      .subscribe((result: boolean | UrlTree) => {
         expect(result).toBeTrue();
         done();
       });
@@ -313,7 +313,7 @@ describe("MsalGuard", () => {
 
     guard
       .canActivate(routeMock, routeStateMock)
-      .subscribe((result: UrlTree) => {
+      .subscribe((result: boolean | UrlTree) => {
         expect(result).toBeTrue();
         done();
       });
@@ -359,7 +359,7 @@ describe("MsalGuard", () => {
 
     guard
       .canActivate(routeMock, routeStateMock)
-      .subscribe((result: UrlTree) => {
+      .subscribe((result: boolean | UrlTree) => {
         expect(result.toString()).toEqual("/");
         done();
       });

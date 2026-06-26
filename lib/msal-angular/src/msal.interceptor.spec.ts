@@ -29,6 +29,7 @@ import {
   MsalInterceptorConfiguration,
   ProtectedResourceScopes,
 } from "./public-api";
+import { MsalGuardConfiguration } from "./msal.guard.config";
 import { provideRouter } from "@angular/router";
 
 let interceptor: MsalInterceptor;
@@ -117,7 +118,7 @@ function initializeMsal() {
 
   TestBed.configureTestingModule({
     imports: [
-      MsalModule.forRoot(MSALInstanceFactory(), null, MSALInterceptorFactory()),
+      MsalModule.forRoot(MSALInstanceFactory(), null as unknown as MsalGuardConfiguration, MSALInterceptorFactory()),
     ],
     providers: [
       MsalInterceptor,
@@ -237,7 +238,7 @@ describe("MsalInterceptor", () => {
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
-          accessToken: null,
+          accessToken: null as unknown as string,
         });
       })
     );
@@ -764,7 +765,7 @@ describe("MsalInterceptor", () => {
     testInterceptorConfig.authRequest = (msalService, httpReq, authRequest) => {
       return {
         ...authRequest,
-        authority: `https://login.microsoftonline.com/${authRequest.account.tenantId}`,
+        authority: `https://login.microsoftonline.com/${authRequest.account!.tenantId}`,
       };
     };
     initializeMsal();
@@ -1192,7 +1193,7 @@ describe("MsalInterceptor - strict matching warning", () => {
       imports: [
         MsalModule.forRoot(
           MSALInstanceFactory(),
-          null,
+          null as unknown as MsalGuardConfiguration,
           MSALStrictInterceptorFactory(emptyMap, strict)
         ),
       ],
@@ -1262,7 +1263,7 @@ function initializeMsalStrict(
     imports: [
       MsalModule.forRoot(
         MSALInstanceFactory(),
-        null,
+        null as unknown as MsalGuardConfiguration,
         MSALStrictInterceptorFactory(resourceMap, strict)
       ),
     ],

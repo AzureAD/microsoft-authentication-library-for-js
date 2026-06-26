@@ -26,8 +26,8 @@ import { MsalBroadcastService } from "./msal.broadcast.service";
 
 @Injectable()
 export class MsalService implements IMsalService {
-  private redirectHash: string;
-  private logger: Logger;
+  private redirectHash?: string;
+  private logger?: Logger;
 
   constructor(
     @Inject(MSAL_INSTANCE) public instance: IPublicClientApplication,
@@ -44,16 +44,26 @@ export class MsalService implements IMsalService {
   initialize(): Observable<void> {
     return from(this.instance.initialize());
   }
+  /**
+   * Ensures the PublicClientApplication has been initialized.
+   */
+  private withInitialize<T>(call: () => Promise<T>): Observable<T> {
+    return from(this.instance.initialize().then(() => call()));
+  }
   acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult> {
-    return from(this.instance.acquireTokenPopup(request));
+    return this.withInitialize(() => this.instance.acquireTokenPopup(request));
   }
   acquireTokenRedirect(request: RedirectRequest): Observable<void> {
-    return from(this.instance.acquireTokenRedirect(request));
+    return this.withInitialize(() =>
+      this.instance.acquireTokenRedirect(request)
+    );
   }
   acquireTokenSilent(
     silentRequest: SilentRequest
   ): Observable<AuthenticationResult> {
-    return from(this.instance.acquireTokenSilent(silentRequest));
+    return this.withInitialize(() =>
+      this.instance.acquireTokenSilent(silentRequest)
+    );
   }
   /**
    * @deprecated Pass options object instead of hash string. Use handleRedirectObservable({ hash: "#..." }) instead.
@@ -98,19 +108,23 @@ export class MsalService implements IMsalService {
     );
   }
   loginPopup(request?: PopupRequest): Observable<AuthenticationResult> {
-    return from(this.instance.loginPopup(request));
+    return this.withInitialize(() => this.instance.loginPopup(request));
   }
   loginRedirect(request?: RedirectRequest): Observable<void> {
-    return from(this.instance.loginRedirect(request));
+    return this.withInitialize(() => this.instance.loginRedirect(request));
   }
   logoutRedirect(logoutRequest?: EndSessionRequest): Observable<void> {
-    return from(this.instance.logoutRedirect(logoutRequest));
+    return this.withInitialize(() =>
+      this.instance.logoutRedirect(logoutRequest)
+    );
   }
   logoutPopup(logoutRequest?: EndSessionPopupRequest): Observable<void> {
-    return from(this.instance.logoutPopup(logoutRequest));
+    return this.withInitialize(() =>
+      this.instance.logoutPopup(logoutRequest)
+    );
   }
   ssoSilent(request: SsoSilentRequest): Observable<AuthenticationResult> {
-    return from(this.instance.ssoSilent(request));
+    return this.withInitialize(() => this.instance.ssoSilent(request));
   }
   /**
    * Gets logger for msal-angular.
