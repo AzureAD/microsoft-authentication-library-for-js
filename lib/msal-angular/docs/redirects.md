@@ -182,9 +182,6 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 ```
 
-> [!NOTE]
-> If your component renders based on state assigned inside this subscriber (e.g. an `isLoggedIn` flag bound in the template), inject `ChangeDetectorRef` and call `cdr.detectChanges()` after the assignment. With Angular 22's zone-based change detection, `ApplicationRef.tick()` skips views that have not been marked dirty, so RxJS-driven field assignments will not re-render the template on their own. See the [v5 → v6 upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v5-v6-upgrade-guide.md#components-must-trigger-change-detection-after-rxjs-driven-state-changes) for a complete example.
-
 ## Subscribing to `handleRedirectObservable` manually
 
 Apps using standalone components will be unable to handle redirects with `MsalRedirectComponent`. If you are unable to bootstrap the `MsalRedirectComponent`, you **must** handle redirects using the `handleRedirectObservable` as follows:

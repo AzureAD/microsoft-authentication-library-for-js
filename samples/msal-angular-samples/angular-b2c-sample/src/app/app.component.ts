@@ -64,8 +64,6 @@ export class AppComponent implements OnInit, OnDestroy {
             .subscribe(() => {
                 this.setLoginDisplay();
                 this.checkAndSetActiveAccount();
-                // Angular 18+ targeted change detection: state mutated inside
-                // an RxJS subscription callback does not mark this view dirty.
                 this.cdr.detectChanges();
             })
 

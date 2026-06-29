@@ -2,11 +2,6 @@
 
 Before you start here, make sure you understand how to [initialize the application object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/initialization.md).
 
-> [!NOTE]
-> As of `@azure/msal-angular@6`, the interactive and silent `MsalService` methods (`loginPopup`, `loginRedirect`, `logoutPopup`, `logoutRedirect`, `acquireTokenPopup`, `acquireTokenRedirect`, `acquireTokenSilent`, `ssoSilent`) internally `await instance.initialize()` before delegating to `@azure/msal-browser`. You no longer need to gate these calls on `handleRedirectObservable()` completing first. You **do** still need to subscribe to `handleRedirectObservable()` on pages where a redirect may land in order to process the response — see [redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/redirects.md).
->
-> The returned `Observable` must be subscribed to (e.g. via `.subscribe()` or `firstValueFrom`) for the work to execute. `await`-ing the observable directly is a no-op.
-
 The login APIs in MSAL retrieve an `authorization code` which can be exchanged for an [ID token](https://docs.microsoft.com/azure/active-directory/develop/id-tokens) for a signed in user, while consenting scopes for an additional resource, and an [access token](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) containing the user consented scopes to allow your app to securely call the API.
 
 You can read more about ID tokens on our [Azure Docs pages](https://docs.microsoft.com/azure/active-directory/develop/id-tokens).

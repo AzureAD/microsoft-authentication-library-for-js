@@ -38,10 +38,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => {
         this.setLoginDisplay();
-        // Angular 18+ uses targeted change detection: state mutated in an
-        // RxJS subscription callback does not automatically mark this view as
-        // dirty, so the template won't re-render until the next zone event.
-        // Force an explicit CD pass for this component.
         this.cdr.detectChanges();
       });
   }

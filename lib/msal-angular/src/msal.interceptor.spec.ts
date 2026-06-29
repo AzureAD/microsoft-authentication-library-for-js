@@ -29,7 +29,6 @@ import {
   MsalInterceptorConfiguration,
   ProtectedResourceScopes,
 } from "./public-api";
-import { MsalGuardConfiguration } from "./msal.guard.config";
 import { provideRouter } from "@angular/router";
 
 let interceptor: MsalInterceptor;
@@ -118,7 +117,7 @@ function initializeMsal() {
 
   TestBed.configureTestingModule({
     imports: [
-      MsalModule.forRoot(MSALInstanceFactory(), null as unknown as MsalGuardConfiguration, MSALInterceptorFactory()),
+      MsalModule.forRoot(MSALInstanceFactory(), { interactionType: InteractionType.Redirect }, MSALInterceptorFactory()),
     ],
     providers: [
       MsalInterceptor,
@@ -1193,7 +1192,7 @@ describe("MsalInterceptor - strict matching warning", () => {
       imports: [
         MsalModule.forRoot(
           MSALInstanceFactory(),
-          null as unknown as MsalGuardConfiguration,
+          { interactionType: InteractionType.Redirect },
           MSALStrictInterceptorFactory(emptyMap, strict)
         ),
       ],
@@ -1263,7 +1262,7 @@ function initializeMsalStrict(
     imports: [
       MsalModule.forRoot(
         MSALInstanceFactory(),
-        null as unknown as MsalGuardConfiguration,
+        { interactionType: InteractionType.Redirect },
         MSALStrictInterceptorFactory(resourceMap, strict)
       ),
     ],

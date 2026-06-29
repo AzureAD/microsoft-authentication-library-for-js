@@ -42,8 +42,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         this.setLoginDisplay();
         this.getClaims(this.authService.instance.getActiveAccount()?.idTokenClaims as Record<string, any>);
-        // Angular 18+ targeted change detection: state mutated inside an
-        // RxJS subscription callback does not mark this view as dirty.
         this.cdr.detectChanges();
       });
   }

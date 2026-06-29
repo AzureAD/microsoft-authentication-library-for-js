@@ -31,7 +31,7 @@ import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
-  private _document?: Document;
+  private _document: Document;
 
   constructor(
     @Inject(MSAL_INTERCEPTOR_CONFIG)
@@ -39,10 +39,9 @@ export class MsalInterceptor implements HttpInterceptor {
     private authService: MsalService,
     private location: Location,
     private msalBroadcastService: MsalBroadcastService,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-    @Inject(DOCUMENT) document?: any
+    @Inject(DOCUMENT) document: Document
   ) {
-    this._document = document as Document;
+    this._document = document;
 
     if (this.msalInterceptorConfig.strictMatching === undefined) {
       this.authService
@@ -305,13 +304,7 @@ export class MsalInterceptor implements HttpInterceptor {
     endpointComponents: URL
   ): boolean {
     // URL properties from https://developer.mozilla.org/en-US/docs/Web/API/URL
-    const urlProperties: Array<"protocol" | "host" | "pathname" | "search" | "hash"> = [
-      "protocol",
-      "host",
-      "pathname",
-      "search",
-      "hash",
-    ];
+    const urlProperties = ["protocol", "host", "pathname", "search", "hash"] as const;
 
     // Maps URL property names to the component identifiers used by matchPatternStrict.
     const componentMap: Record<
@@ -364,9 +357,6 @@ export class MsalInterceptor implements HttpInterceptor {
    * @returns
    */
   private getAbsoluteUrl(url: string): string {
-    if (!this._document) {
-      return url;
-    }
     const link = this._document.createElement("a");
     link.href = url;
     return link.href;
