@@ -18,8 +18,8 @@ import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
 
-// A simple NSP-style claims payload. MSIv1 only allows the `xms_az_nwperimid` key, but the
-// confidential client does not enforce that allow-list - any client-originated claims are merged.
+// A simple client-originated claims payload. MSAL does not restrict which claim keys are
+// sent - any client-originated claims are merged into the request and forwarded as-is.
 const NSP_CLAIMS = '{"xms_az_nwperimid":{"essential":true}}';
 // A second, distinct claims value used to exercise separate-cache-entry behaviour.
 const OTHER_CLAIMS = '{"xms_az_nwperimid":{"values":["eastus"]}}';

@@ -249,11 +249,11 @@ export abstract class BaseManagedIdentitySource {
         }
 
         /*
-         * Forward client-originated claims (e.g. NSP `xms_az_nwperimid`) to IMDS. IMDS-only
-         * support and the MSIv1 allow-list are validated earlier in
+         * Forward client-originated claims to IMDS. IMDS-only support is validated earlier in
          * ManagedIdentityApplication.acquireToken, so by the time execution reaches here the
-         * value is safe to forward. GET sources (IMDS) send it as the `claims` query parameter;
-         * POST sources send it in the body. The value is stored raw and URL-encoded downstream.
+         * value is safe to forward. MSAL does not restrict which claim keys are sent. GET sources
+         * (IMDS) send it as the `claims` query parameter; POST sources send it in the body. The
+         * value is stored raw and URL-encoded downstream.
          */
         if (managedIdentityRequest.clientClaims) {
             this.logger.info(

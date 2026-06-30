@@ -18,7 +18,6 @@ export const unableToCreateSource = "unable_to_create_source";
 export const unableToReadSecretFile = "unable_to_read_secret_file";
 export const urlParseError = "url_parse_error";
 export const clientClaimsUnsupportedSource = "client_claims_unsupported_source";
-export const msiV1UnsupportedClaim = "msi_v1_unsupported_claim";
 export const userAssignedNotAvailableAtRuntime =
     "user_assigned_not_available_at_runtime";
 export const wwwAuthenticateHeaderMissing = "www_authenticate_header_missing";

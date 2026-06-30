@@ -1,6 +1,6 @@
 {
     "type": "minor",
-    "comment": "Add `clientClaims` request parameter to forward client-originated claims (e.g. the NSP `xms_az_nwperimid` claim) to ESTS and IMDS across the confidential client flows (client credential, on-behalf-of, user federated identity credential) and the managed identity flow. Unlike server-issued `claims`, client claims do not bypass the token cache; they are cached and the cache entry is keyed on the claims value. [#8686](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8686)",
+    "comment": "Add `clientClaims` request parameter to forward client-originated claims to ESTS and IMDS across the confidential client flows (client credential, on-behalf-of, user federated identity credential) and the managed identity flow. Unlike server-issued `claims`, client claims do not bypass the token cache; they are cached and the cache entry is keyed on the claims value. [#8686](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8686)",
     "packageName": "@azure/msal-node",
     "email": "rginsburg@microsoft.com",
     "dependentChangeType": "patch"

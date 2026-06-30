@@ -317,16 +317,16 @@ The assertion callback context (`ClientAssertionConfig`) includes `fmiPath` so t
 
 ### Client-originated claims (`clientClaims`)
 
-All confidential client flows — `acquireTokenByClientCredential`, `acquireTokenOnBehalfOf`, and `acquireTokenByUserFederatedIdentityCredential` — accept an optional `clientClaims` parameter. It forwards **client-originated** claims (for example the Network Security Perimeter `xms_az_nwperimid` claim) to the token endpoint, sent as the `claims` parameter in the request body. When both `claims` and `clientClaims` are present they are merged, with `clientClaims` taking precedence on conflicting top-level keys.
+All confidential client flows — `acquireTokenByClientCredential`, `acquireTokenOnBehalfOf`, and `acquireTokenByUserFederatedIdentityCredential` — accept an optional `clientClaims` parameter. It forwards **client-originated** claims to the token endpoint, sent as the `claims` parameter in the request body. The value is forwarded as-is — MSAL does not restrict which claim keys you send. When both `claims` and `clientClaims` are present they are **deep-merged**, with `clientClaims` taking precedence on conflicting keys (nested objects are merged recursively rather than replaced).
 
-Unlike `claims` (a server-issued challenge, which **bypasses** the token cache), `clientClaims` does **not** bypass the cache. Tokens are cached and the cache entry is **keyed on the `clientClaims` value** (using the same extended cache-key hash as `fmiPath`): identical values are served from cache, while different values produce separate cache entries. Use stable, non-dynamic values to avoid unbounded cache growth. Empty or whitespace-only values are ignored.
+Unlike `claims` (a server-issued challenge, which **bypasses** the token cache), `clientClaims` does **not** bypass the cache. Tokens are cached and the cache entry is **keyed on the `clientClaims` value** (using the same extended cache-key hash as `fmiPath`): identical values are served from cache, while different values produce separate cache entries. Because the entry is keyed on the value, send the **same `clientClaims` value on every request** for which you want the cached token to be reused — a different value (or omitting it) produces a separate cache entry and a new network call. Use stable, non-dynamic values to avoid unbounded cache growth. Empty or whitespace-only values are ignored.
 
 > Note: `acquireTokenByUserFederatedIdentityCredential` always calls the network, so `clientClaims` is forwarded on every request but is not cached by that method.
 
 ```javascript
 const clientCredentialRequest = {
     scopes: ["https://graph.microsoft.com/.default"],
-    clientClaims: '{"xms_az_nwperimid":{"essential":true}}',
+    clientClaims: '{"example_claim":{"essential":true}}',
 };
 
 cca.acquireTokenByClientCredential(clientCredentialRequest)

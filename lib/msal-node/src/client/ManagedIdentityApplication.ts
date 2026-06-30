@@ -46,12 +46,6 @@ const SOURCES_THAT_SUPPORT_TOKEN_REVOCATION: Array<ManagedIdentitySourceNames> =
     [ManagedIdentitySourceNames.SERVICE_FABRIC];
 
 /*
- * MSIv1 (IMDS) only supports a single client-originated claim. Any other top-level key
- * causes IMDS to return HTTP 400 with no useful diagnostic, so it is validated up front.
- */
-const XMS_AZ_NWPERIMID: string = "xms_az_nwperimid";
-
-/*
  * Managed Identity sources that are allowed to forward client-originated claims. Only the
  * IMDS-based sources have a confirmed contract for the `claims` parameter.
  */
@@ -185,9 +179,11 @@ export class ManagedIdentityApplication {
         };
 
         /*
-         * Client-originated claims are only supported for IMDS and must satisfy the MSIv1
-         * allow-list. Validate up front (before any cache read/write or network call) so the
-         * caller gets a clear error rather than an opaque HTTP 400 from IMDS.
+         * Client-originated claims are only supported for IMDS-based sources. Validate the
+         * source (and that the value is a JSON object) up front, before any cache read/write
+         * or network call, so an unsupported source fails fast instead of returning a cached
+         * token or reaching the wire. The claim keys themselves are not restricted by MSAL -
+         * IMDS decides what it accepts.
          */
         if (managedIdentityRequest.clientClaims) {
             this.validateClientClaims(
@@ -324,15 +320,14 @@ export class ManagedIdentityApplication {
     /**
      * Validates client-originated claims for the Managed Identity flow.
      *
-     * Client claims are only supported for IMDS-based managed identity sources. When IMDS is
-     * the source, MSIv1 additionally only permits the `xms_az_nwperimid` claim; any other
-     * top-level key is rejected before the network call.
+     * Client claims are only supported for IMDS-based managed identity sources. The claim
+     * keys themselves are not restricted by MSAL - the JSON is forwarded to IMDS as-is, and
+     * IMDS decides which keys it accepts.
      *
      * @param clientClaims - The raw client claims JSON string supplied on the request.
      * @param correlationId - Correlation id used when constructing errors.
-     * @throws {ManagedIdentityError} When the source is not IMDS-based, or when an unsupported
-     * claim key is present.
-     * @throws {ClientConfigurationError} When the claims string is not valid JSON object.
+     * @throws {ManagedIdentityError} When the source is not IMDS-based.
+     * @throws {ClientConfigurationError} When the claims string is not a valid JSON object.
      */
     private validateClientClaims(
         clientClaims: string,
@@ -367,15 +362,6 @@ export class ManagedIdentityApplication {
                 ClientConfigurationErrorCodes.invalidClaims,
                 correlationId
             );
-        }
-
-        for (const key of Object.keys(parsedClaims)) {
-            if (key !== XMS_AZ_NWPERIMID) {
-                throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.msiV1UnsupportedClaim,
-                    correlationId
-                );
-            }
         }
     }
 }

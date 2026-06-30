@@ -26,13 +26,12 @@ import {
 import { ClientConfigurationErrorCodes } from "@azure/msal-common";
 import { NodeStorage } from "../../../src/cache/NodeStorage.js";
 
-// MSIv1 (IMDS) only permits the `xms_az_nwperimid` client claim.
+// MSIv1 (IMDS) NSP claim - the canonical client-originated claim.
 const NSP_CLAIMS: string = `{"xms_az_nwperimid":{"essential":true}}`;
-// Same key, different value — must produce a separate cache entry.
+// Same key, different value - must produce a separate cache entry.
 const OTHER_CLAIMS: string = `{"xms_az_nwperimid":{"values":["eastus"]}}`;
-const VALID_NSP_CLAIM: string = `{"xms_az_nwperimid":{"values":["perimid-1234"]}}`;
-const UNSUPPORTED_CLAIM: string = `{"custom_claim":{"essential":true}}`;
-const MIXED_CLAIMS: string = `{"xms_az_nwperimid":{"values":["perimid-1234"]},"other_claim":{"essential":true}}`;
+// A non-nwperimid key: MSAL forwards it to IMDS as-is (IMDS decides what it accepts).
+const NON_NWPERIMID_CLAIMS: string = `{"custom_claim":{"essential":true}}`;
 // Server-issued claims challenge (bypasses cache, never forwarded to IMDS).
 const SERVER_CLAIMS: string = `{"access_token":{"nbf":{"essential":true}}}`;
 
@@ -278,63 +277,36 @@ describe("Managed Identity client claims (clientClaims)", () => {
         });
     });
 
-    describe("MSIv1 claim allow-list (IMDS)", () => {
+    describe("claims validation (IMDS)", () => {
         afterEach(() => {
             delete ManagedIdentityClient["identitySource"];
             delete ManagedIdentityApplication["nodeStorage"];
             jest.restoreAllMocks();
         });
 
-        it("succeeds for the allowed xms_az_nwperimid claim", async () => {
+        it("forwards a non-nwperimid claim key to IMDS as-is (IMDS decides what it accepts)", async () => {
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(systemAssignedConfig);
 
             const result: AuthenticationResult =
                 await managedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
-                    clientClaims: VALID_NSP_CLAIM,
+                    clientClaims: NON_NWPERIMID_CLAIMS,
                 });
             expect(result.fromCache).toBe(false);
-            expect(result.accessToken).toEqual(
-                DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+
+            const url: URLSearchParams = new URLSearchParams(
+                sendGetRequestAsyncSpy.mock.lastCall[0]
             );
-        });
-
-        it("throws (naming xms_az_nwperimid) for an unsupported claim key", async () => {
-            const managedIdentityApplication: ManagedIdentityApplication =
-                new ManagedIdentityApplication(systemAssignedConfig);
-
-            await expect(
-                managedIdentityApplication.acquireToken({
-                    resource: MANAGED_IDENTITY_RESOURCE,
-                    clientClaims: UNSUPPORTED_CLAIM,
-                })
-            ).rejects.toMatchObject({
-                errorCode: ManagedIdentityErrorCodes.msiV1UnsupportedClaim,
-                errorMessage:
-                    ManagedIdentityErrorMessages[
-                        ManagedIdentityErrorCodes.msiV1UnsupportedClaim
-                    ],
-            });
-            expect(
-                ManagedIdentityErrorMessages[
-                    ManagedIdentityErrorCodes.msiV1UnsupportedClaim
-                ]
-            ).toContain("xms_az_nwperimid");
-        });
-
-        it("throws for mixed claims even when xms_az_nwperimid is present", async () => {
-            const managedIdentityApplication: ManagedIdentityApplication =
-                new ManagedIdentityApplication(systemAssignedConfig);
-
-            await expect(
-                managedIdentityApplication.acquireToken({
-                    resource: MANAGED_IDENTITY_RESOURCE,
-                    clientClaims: MIXED_CLAIMS,
-                })
-            ).rejects.toMatchObject({
-                errorCode: ManagedIdentityErrorCodes.msiV1UnsupportedClaim,
-            });
+            // MSAL no longer restricts claim keys; the value is forwarded verbatim.
+            expect(url.get(ManagedIdentityQueryParameters.CLAIMS)).toEqual(
+                NON_NWPERIMID_CLAIMS
+            );
         });
 
         it("throws invalidClaims for clientClaims that is not valid JSON", async () => {

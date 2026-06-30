@@ -16,7 +16,7 @@ export type ManagedIdentityRequestParams = {
      * Client-originated claims to forward to the managed identity endpoint, sent as the `claims` query parameter.
      * Unlike `claims` (a server-issued challenge, which bypasses the token cache), client claims are cached and the
      * cache entry is keyed on the claims value: identical values are served from cache, while different values produce
-     * separate cache entries. Only supported for the IMDS source; MSIv1 (IMDS) only permits the `xms_az_nwperimid` claim.
+     * separate cache entries. Only supported for the IMDS source.
      */
     clientClaims?: string;
     /**
