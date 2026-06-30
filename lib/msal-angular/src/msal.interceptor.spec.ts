@@ -117,7 +117,11 @@ function initializeMsal() {
 
   TestBed.configureTestingModule({
     imports: [
-      MsalModule.forRoot(MSALInstanceFactory(), { interactionType: InteractionType.Redirect }, MSALInterceptorFactory()),
+      MsalModule.forRoot(
+        MSALInstanceFactory(),
+        { interactionType: InteractionType.Redirect },
+        MSALInterceptorFactory()
+      ),
     ],
     providers: [
       MsalInterceptor,
@@ -764,7 +768,9 @@ describe("MsalInterceptor", () => {
     testInterceptorConfig.authRequest = (msalService, httpReq, authRequest) => {
       return {
         ...authRequest,
-        authority: `https://login.microsoftonline.com/${authRequest.account!.tenantId}`,
+        authority: `https://login.microsoftonline.com/${
+          authRequest.account!.tenantId
+        }`,
       };
     };
     initializeMsal();

@@ -27,7 +27,13 @@ function initializeMsal() {
 
   TestBed.configureTestingModule({
     declarations: [MsalRedirectComponent],
-    imports: [MsalModule.forRoot(MSALInstanceFactory(), null as unknown as MsalGuardConfiguration, null as unknown as MsalInterceptorConfiguration)],
+    imports: [
+      MsalModule.forRoot(
+        MSALInstanceFactory(),
+        null as unknown as MsalGuardConfiguration,
+        null as unknown as MsalInterceptorConfiguration
+      ),
+    ],
     providers: [],
     teardown: { destroyAfterEach: false },
   });

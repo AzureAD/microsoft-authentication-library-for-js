@@ -28,10 +28,14 @@ function initializeMsal() {
 
   TestBed.configureTestingModule({
     imports: [
-      MsalModule.forRoot(msalInstance, null as unknown as MsalGuardConfiguration, {
-        interactionType: InteractionType.Popup,
-        protectedResourceMap: new Map(),
-      }),
+      MsalModule.forRoot(
+        msalInstance,
+        null as unknown as MsalGuardConfiguration,
+        {
+          interactionType: InteractionType.Popup,
+          protectedResourceMap: new Map(),
+        }
+      ),
     ],
     providers: [MsalService, MsalBroadcastService],
     teardown: { destroyAfterEach: false },
@@ -273,9 +277,11 @@ describe("MsalService", () => {
         })
       );
 
-      await firstValueFrom(authService.acquireTokenRedirect({
-        scopes: ["user.read"],
-      }));
+      await firstValueFrom(
+        authService.acquireTokenRedirect({
+          scopes: ["user.read"],
+        })
+      );
 
       expect(
         PublicClientApplication.prototype.acquireTokenRedirect

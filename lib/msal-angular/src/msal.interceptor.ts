@@ -304,7 +304,13 @@ export class MsalInterceptor implements HttpInterceptor {
     endpointComponents: URL
   ): boolean {
     // URL properties from https://developer.mozilla.org/en-US/docs/Web/API/URL
-    const urlProperties = ["protocol", "host", "pathname", "search", "hash"] as const;
+    const urlProperties = [
+      "protocol",
+      "host",
+      "pathname",
+      "search",
+      "hash",
+    ] as const;
 
     // Maps URL property names to the component identifiers used by matchPatternStrict.
     const componentMap: Record<

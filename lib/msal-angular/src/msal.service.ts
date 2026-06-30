@@ -119,9 +119,7 @@ export class MsalService implements IMsalService {
     );
   }
   logoutPopup(logoutRequest?: EndSessionPopupRequest): Observable<void> {
-    return this.withInitialize(() =>
-      this.instance.logoutPopup(logoutRequest)
-    );
+    return this.withInitialize(() => this.instance.logoutPopup(logoutRequest));
   }
   ssoSilent(request: SsoSilentRequest): Observable<AuthenticationResult> {
     return this.withInitialize(() => this.instance.ssoSilent(request));

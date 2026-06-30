@@ -104,7 +104,9 @@ describe("MsalGuard", () => {
     try {
       guard.canActivate(routeMock, routeStateMock).subscribe((result) => {});
     } catch (err) {
-      expect((err as { errorCode: string }).errorCode).toBe("invalid_interaction_type");
+      expect((err as { errorCode: string }).errorCode).toBe(
+        "invalid_interaction_type"
+      );
       done();
     }
   });
