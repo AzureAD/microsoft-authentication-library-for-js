@@ -99,6 +99,7 @@ Setup:
 
 Caveats:
 
+-   The relay is a browser **SPA-only** mechanism (`PublicClientApplication` in `@azure/msal-browser`). It brokers the standard interactive popup auth-code flow through a same-origin page and is **not** intended for native app, platform broker (WAM), Nested App Auth, or confidential-client / server-side scenarios.
 -   `popupRelayUri` must resolve to the **same origin** as the app; a cross-origin value throws `popup_relay_unsupported_flow` with sub-error `popup_relay_cross_origin` (see [errors](../../../docs/errors.md#popup_relay_unsupported_flow)).
 -   The relay page opens the IdP popup, so it must be triggered by a user gesture.
 -   The auth-code (GET), `form_post`, and EAR response modes are all supported.

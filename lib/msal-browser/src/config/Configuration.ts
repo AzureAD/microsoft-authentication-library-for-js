@@ -75,6 +75,12 @@ export type BrowserAuthOptions = {
      * instead of navigating the popup straight to the IdP, and the page must call
      * `runPopupRelay()`. Resolved relative to the app origin, so it must be
      * same-origin as the embedded frame.
+     *
+     * This is a browser SPA-only mechanism (`PublicClientApplication` in
+     * `@azure/msal-browser`): it brokers the standard interactive popup
+     * auth-code flow through a same-origin page. It does not apply to native
+     * app, platform broker (WAM), Nested App Auth, or confidential-client /
+     * server-side scenarios.
      */
     popupRelayUri?: string;
 
