@@ -1,6 +1,6 @@
 {
     "type": "minor",
-    "comment": "Add auth.popupRelayUri config + a popup-relay sub-export (runPopupRelay) to acquire tokens via acquireTokenPopup from inside an untrusted cross-origin iframe (storage-partitioned / COOP), relaying the interactive flow through a top-level same-origin page. Supports the auth-code (GET), form_post, and EAR response modes. [#8687](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8687)",
+    "comment": "Add auth.popupRelayUri: a double-popup option for apps that customize COOP/storage-partitioning, relaying acquireTokenPopup/logoutPopup through a top-level same-origin relay page (runPopupRelay) so tokens can be acquired from an untrusted cross-origin iframe. [#8687](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8687)",
     "packageName": "@azure/msal-browser",
     "email": "kshabelko@microsoft.com",
     "dependentChangeType": "patch"

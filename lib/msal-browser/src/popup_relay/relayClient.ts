@@ -32,7 +32,7 @@ export type PopupRelayAction =
  * Builds the URL of the popup-relay page to open. The action the relay page
  * must perform (GET navigation or POST form) is carried in the page's hash
  * (client-side only, never sent to a server), keyed by the per-request
- * library-state id so the relay page can listen on the right BroadcastChannel
+ * library-state `id` so the relay page can listen on the right BroadcastChannel
  * and echo the id back. The relay URI is resolved against the app origin, so it
  * must be same-origin as the embedded frame. See `runPopupRelay`.
  *
@@ -40,16 +40,11 @@ export type PopupRelayAction =
  */
 export function buildPopupRelayUrl(
     popupRelayUri: string,
-    state: string,
+    id: string,
     action: PopupRelayAction,
     correlationId: string
 ): string {
-    const { libraryState } = ProtocolUtils.parseRequestState(
-        base64Decode,
-        state,
-        correlationId
-    );
-    const req = { id: libraryState.id, ...action };
+    const req = { id, ...action };
     const target = new URL(popupRelayUri, window.location.origin);
     /*
      * The relay page must be same-origin as the embedded frame: the response is

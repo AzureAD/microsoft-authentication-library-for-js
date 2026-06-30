@@ -35,6 +35,7 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
 import { NavigationOptions } from "../navigation/NavigationOptions.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import * as PopupRelay from "../popup_relay/relayClient.js";
+import { base64Decode } from "../encode/Base64Decode.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import {
     createBrowserAuthError,
@@ -387,7 +388,7 @@ export class PopupClient extends StandardInteractionClient {
                 const popupNavigateUrl = popupRelayUri
                     ? PopupRelay.buildPopupRelayUrl(
                           popupRelayUri,
-                          request.state,
+                          this.getRelayStateId(request.state, correlationId),
                           { method: "GET", url: navigateUrl },
                           correlationId
                       )
@@ -527,7 +528,7 @@ export class PopupClient extends StandardInteractionClient {
             );
             const relayUrl = PopupRelay.buildPopupRelayUrl(
                 popupRelayUri,
-                popupRequest.state,
+                this.getRelayStateId(popupRequest.state, correlationId),
                 {
                     method: "POST",
                     action: formData.action,
@@ -674,7 +675,7 @@ export class PopupClient extends StandardInteractionClient {
             );
             const relayUrl = PopupRelay.buildPopupRelayUrl(
                 popupRelayUri,
-                request.state,
+                this.getRelayStateId(request.state, correlationId),
                 {
                     method: "POST",
                     action: formData.action,
@@ -871,7 +872,10 @@ export class PopupClient extends StandardInteractionClient {
             const popupNavigateUrl = popupRelayUri
                 ? PopupRelay.buildPopupRelayUrl(
                       popupRelayUri,
-                      validRequest.state || "",
+                      this.getRelayStateId(
+                          validRequest.state || "",
+                          this.correlationId
+                      ),
                       { method: "GET", url: logoutUri },
                       this.correlationId
                   )
@@ -1155,6 +1159,17 @@ export class PopupClient extends StandardInteractionClient {
     generateLogoutPopupName(request: CommonEndSessionRequest): string {
         const homeAccountId = request.account && request.account.homeAccountId;
         return `${BrowserConstants.POPUP_NAME_PREFIX}.${this.config.auth.clientId}.${homeAccountId}.${this.correlationId}`;
+    }
+
+    /**
+     * Decodes the per-request library-state id from the encoded request state.
+     */
+    private getRelayStateId(state: string, correlationId: string): string {
+        return ProtocolUtils.parseRequestState(
+            base64Decode,
+            state,
+            correlationId
+        ).libraryState.id;
     }
 
     protected async waitForPopupResponse(

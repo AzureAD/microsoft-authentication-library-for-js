@@ -27,7 +27,7 @@ describe("buildPopupRelayUrl", () => {
     it("encodes a GET action with the channel id into the relay page hash", () => {
         const url = PopupRelay.buildPopupRelayUrl(
             "/relay",
-            REQUEST_STATE,
+            CHANNEL_ID,
             { method: "GET", url: AUTH_URL },
             "cid"
         );
@@ -48,7 +48,7 @@ describe("buildPopupRelayUrl", () => {
     it("encodes a POST form action with fields", () => {
         const url = PopupRelay.buildPopupRelayUrl(
             "/relay",
-            REQUEST_STATE,
+            CHANNEL_ID,
             {
                 method: "POST",
                 action: ACTION_URL,
@@ -71,7 +71,7 @@ describe("buildPopupRelayUrl", () => {
         expect(() =>
             PopupRelay.buildPopupRelayUrl(
                 "https://attacker.example.com/relay",
-                REQUEST_STATE,
+                CHANNEL_ID,
                 { method: "GET", url: AUTH_URL },
                 "cid"
             )

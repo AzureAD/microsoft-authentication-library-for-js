@@ -9,14 +9,16 @@ import {
     createBrowserAuthError,
 } from "../error/BrowserAuthError.js";
 import { createForm } from "../utils/BrowserUtils.js";
+import { PopupWindowAttributes } from "../request/PopupWindowAttributes.js";
 
 /** Options for {@link runPopupRelay}. */
 export type PopupRelayOptions = {
     /**
-     * Window features string for the IdP child popup the relay page opens.
-     * Defaults to a 520x640 window.
+     * Sizing/positioning for the IdP child popup the relay page opens. Same
+     * shape as `PopupRequest.popupWindowAttributes` (`popupSize` with width and
+     * height, `popupPosition` with top and left). Defaults to a 520x640 window.
      */
-    popupWindowFeatures?: string;
+    popupWindowAttributes?: PopupWindowAttributes;
     /**
      * How long (ms) to wait for the IdP child popup to deliver a response
      * before giving up. Defaults to 300000 (5 minutes).
@@ -30,6 +32,27 @@ type PopupRelayRequest = { id: string } & (
 );
 
 const DEFAULT_POPUP_RELAY_TIMEOUT_MS = 300000;
+const DEFAULT_POPUP_RELAY_WIDTH = 520;
+const DEFAULT_POPUP_RELAY_HEIGHT = 640;
+
+/**
+ * Builds the `window.open` features string for the IdP child popup from a
+ * {@link PopupWindowAttributes}, mirroring the shape used by
+ * `PopupRequest.popupWindowAttributes`.
+ */
+function buildChildPopupFeatures(attributes?: PopupWindowAttributes): string {
+    const width = attributes?.popupSize?.width || DEFAULT_POPUP_RELAY_WIDTH;
+    const height = attributes?.popupSize?.height || DEFAULT_POPUP_RELAY_HEIGHT;
+    const features = [`width=${width}`, `height=${height}`];
+    if (attributes?.popupPosition?.top !== undefined) {
+        features.push(`top=${attributes.popupPosition.top}`);
+    }
+    if (attributes?.popupPosition?.left !== undefined) {
+        features.push(`left=${attributes.popupPosition.left}`);
+    }
+    features.push("scrollbars=yes");
+    return features.join(",");
+}
 
 /**
  * Entry point for the top-level "popup-relay" page referenced by
@@ -137,7 +160,7 @@ export function runPopupRelay(options?: PopupRelayOptions): void {
         }
     };
 
-    const features = options?.popupWindowFeatures || "width=520,height=640";
+    const features = buildChildPopupFeatures(options?.popupWindowAttributes);
     const childPopup =
         request.method === "POST"
             ? window.open("about:blank", "msalPopupRelayChild", features)
