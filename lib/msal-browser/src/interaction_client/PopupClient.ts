@@ -19,6 +19,7 @@ import {
     PkceCodes,
     CommonAuthorizationUrlRequest,
     ProtocolUtils,
+    Authority,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
@@ -516,41 +517,13 @@ export class PopupClient extends StandardInteractionClient {
             earJwk: earJwk,
             codeChallenge: pkce.challenge,
         };
-        const popupRelayUri = this.config.auth.popupRelayUri;
-        let popupWindow: Window;
-        if (popupRelayUri) {
-            const formData = await Authorize.getEARFormData(
-                this.config,
-                discoveredAuthority,
-                popupRequest,
-                this.logger,
-                this.performanceClient
-            );
-            const relayUrl = PopupRelay.buildPopupRelayUrl(
-                popupRelayUri,
-                this.getRelayStateId(popupRequest.state, correlationId),
-                {
-                    method: "POST",
-                    action: formData.action,
-                    fields: formData.fields,
-                },
-                correlationId
-            );
-            popupWindow = this.initiateAuthRequest(relayUrl, popupParams);
-        } else {
-            popupWindow =
-                popupParams.popup || this.openPopup("about:blank", popupParams);
-
-            const form = await Authorize.getEARForm(
-                popupWindow.document,
-                this.config,
-                discoveredAuthority,
-                popupRequest,
-                this.logger,
-                this.performanceClient
-            );
-            form.submit();
-        }
+        const popupWindow = await this.openPostFormPopup(
+            popupRequest,
+            discoveredAuthority,
+            popupParams,
+            correlationId,
+            true
+        );
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
@@ -663,42 +636,13 @@ export class PopupClient extends StandardInteractionClient {
             this.logger
         );
 
-        const popupRelayUri = this.config.auth.popupRelayUri;
-        let popupWindow: Window;
-        if (popupRelayUri) {
-            const formData = await Authorize.getCodeFormData(
-                this.config,
-                discoveredAuthority,
-                request,
-                this.logger,
-                this.performanceClient
-            );
-            const relayUrl = PopupRelay.buildPopupRelayUrl(
-                popupRelayUri,
-                this.getRelayStateId(request.state, correlationId),
-                {
-                    method: "POST",
-                    action: formData.action,
-                    fields: formData.fields,
-                },
-                correlationId
-            );
-            popupWindow = this.initiateAuthRequest(relayUrl, popupParams);
-        } else {
-            popupWindow =
-                popupParams.popup || this.openPopup("about:blank", popupParams);
-
-            const form = await Authorize.getCodeForm(
-                popupWindow.document,
-                this.config,
-                discoveredAuthority,
-                request,
-                this.logger,
-                this.performanceClient
-            );
-
-            form.submit();
-        }
+        const popupWindow = await this.openPostFormPopup(
+            request,
+            discoveredAuthority,
+            popupParams,
+            correlationId,
+            false
+        );
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
@@ -1170,6 +1114,61 @@ export class PopupClient extends StandardInteractionClient {
             state,
             correlationId
         ).libraryState.id;
+    }
+
+    /**
+     * Opens the interactive popup for a POST-form /authorize request. Shared by
+     * the auth-code POST and EAR flows, which are identical apart from the form
+     * builder (`isEAR` selects the EAR vs auth-code builders). When a
+     * popup-relay page is configured the form is carried to the relay page
+     * (which opens the IdP child popup); otherwise the form is submitted
+     * directly into the popup.
+     */
+    private async openPostFormPopup(
+        request: CommonAuthorizationUrlRequest,
+        discoveredAuthority: Authority,
+        popupParams: PopupParams,
+        correlationId: string,
+        isEAR: boolean
+    ): Promise<Window> {
+        const popupRelayUri = this.config.auth.popupRelayUri;
+        if (popupRelayUri) {
+            const getFormData = isEAR
+                ? Authorize.getEARFormData
+                : Authorize.getCodeFormData;
+            const formData = await getFormData(
+                this.config,
+                discoveredAuthority,
+                request,
+                this.logger,
+                this.performanceClient
+            );
+            const relayUrl = PopupRelay.buildPopupRelayUrl(
+                popupRelayUri,
+                this.getRelayStateId(request.state, correlationId),
+                {
+                    method: "POST",
+                    action: formData.action,
+                    fields: formData.fields,
+                },
+                correlationId
+            );
+            return this.initiateAuthRequest(relayUrl, popupParams);
+        }
+
+        const popupWindow =
+            popupParams.popup || this.openPopup("about:blank", popupParams);
+        const getForm = isEAR ? Authorize.getEARForm : Authorize.getCodeForm;
+        const form = await getForm(
+            popupWindow.document,
+            this.config,
+            discoveredAuthority,
+            request,
+            this.logger,
+            this.performanceClient
+        );
+        form.submit();
+        return popupWindow;
     }
 
     protected async waitForPopupResponse(
