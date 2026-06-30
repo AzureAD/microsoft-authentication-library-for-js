@@ -360,7 +360,6 @@ declare namespace BrowserUtils {
         redirectPreflightCheck,
         preconnect,
         createGuid,
-        createForm,
         WaitForBridgeRequest,
         invoke,
         invokeAsync,
@@ -422,9 +421,6 @@ export type Configuration = {
     experimental?: BrowserExperimentalOptions;
     telemetry?: BrowserTelemetryOptions;
 };
-
-// @internal
-function createForm(frame: Document, action: string, fields: Record<string, string>): HTMLFormElement;
 
 // @public
 function createGuid(): string;

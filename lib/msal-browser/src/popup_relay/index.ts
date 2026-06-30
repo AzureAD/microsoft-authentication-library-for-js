@@ -8,7 +8,7 @@ import {
     BrowserAuthErrorCodes,
     createBrowserAuthError,
 } from "../error/BrowserAuthError.js";
-import { createForm } from "../utils/BrowserUtils.js";
+import { createForm } from "../protocol/Authorize.js";
 import { PopupWindowAttributes } from "../request/PopupWindowAttributes.js";
 
 /** Options for {@link runPopupRelay}. */
