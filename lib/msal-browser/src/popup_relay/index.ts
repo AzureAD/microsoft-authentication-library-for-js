@@ -32,6 +32,14 @@ type PopupRelayRequest = { id: string } & (
 );
 
 const DEFAULT_POPUP_RELAY_TIMEOUT_MS = 300000;
+/*
+ * Grace period (ms) after the IdP child popup is observed closed before the
+ * flow is declared cancelled. The redirect bridge broadcasts the auth response
+ * and *then* closes the child popup, so a closed popup may still have a success
+ * message in flight on the BroadcastChannel; this window lets that message win
+ * the race instead of being reported as user_cancelled.
+ */
+const POPUP_CLOSE_GRACE_MS = 1000;
 const DEFAULT_POPUP_RELAY_WIDTH = 520;
 const DEFAULT_POPUP_RELAY_HEIGHT = 640;
 
@@ -126,6 +134,16 @@ export function runPopupRelay(options?: PopupRelayOptions): void {
     const id = request.id;
     const channel = new BroadcastChannel(id);
     let settled = false;
+    /*
+     * Timer handles are kept on a const holder so relay() (declared before the
+     * timers are created) can clear them — `let` handles trip prefer-const, and
+     * `const` handles can't be referenced before assignment (TDZ).
+     */
+    const timers: {
+        closedPoll?: number;
+        timeoutId?: number;
+        cancelGrace?: number;
+    } = {};
 
     const relay = (message: { payload?: string; error?: string }): void => {
         if (settled) {
@@ -137,8 +155,9 @@ export function runPopupRelay(options?: PopupRelayOptions): void {
         } catch (e) {
             /* ignore */
         }
-        clearInterval(closedPoll);
-        clearTimeout(timeoutId);
+        clearInterval(timers.closedPoll);
+        clearTimeout(timers.timeoutId);
+        clearTimeout(timers.cancelGrace);
         opener.postMessage(
             { type: POPUP_RELAY_RESPONSE_TYPE, id, ...message },
             targetOrigin
@@ -179,13 +198,27 @@ export function runPopupRelay(options?: PopupRelayOptions): void {
         ).submit();
     }
 
-    const closedPoll = window.setInterval(() => {
+    timers.closedPoll = window.setInterval(() => {
         if (childPopup.closed && !settled) {
-            relay({ error: BrowserAuthErrorCodes.userCancelled });
+            /*
+             * The redirect bridge broadcasts the auth response and then closes
+             * the child popup, so a closed popup does not necessarily mean the
+             * user cancelled — the success message may still be in flight on the
+             * BroadcastChannel. Stop polling, drop the overall timeout, and give
+             * that message a short grace period to arrive before declaring
+             * cancellation, so a successful sign-in isn't reported as cancelled.
+             */
+            clearInterval(timers.closedPoll);
+            clearTimeout(timers.timeoutId);
+            timers.cancelGrace = window.setTimeout(() => {
+                if (!settled) {
+                    relay({ error: BrowserAuthErrorCodes.userCancelled });
+                }
+            }, POPUP_CLOSE_GRACE_MS);
         }
     }, 500);
 
-    const timeoutId = window.setTimeout(() => {
+    timers.timeoutId = window.setTimeout(() => {
         if (!settled) {
             try {
                 childPopup.close();
