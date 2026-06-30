@@ -2,10 +2,10 @@ window.name = "STS Window";
 const channel = new BroadcastChannel('sts-channel');
 
 function performAuthentication() {
-    
+
     console.log("STS: Performing authentication (simulated)");
     console.log("STS: Adding 2 second delay...");
-    
+
     // Since the STS response is mocked, the popup opens and closes before the e2e tests can capture a screenshot. Add a 2 second delay to capture popup screenshot before the popup closes itself.
     setTimeout(() => {
         continueAuthentication();
@@ -31,7 +31,7 @@ function continueAuthentication() {
 
     // Generate a base64-encoded auth code that looks realistic and includes nonce
     const authCodePayload = {
-        tenant: "72f988bf-86f1-41af-91ab-2d7cd011db47",
+        tenant: "c7cef333-42af-492c-afb0-21f74a661133",
         user: "test@example.com",
         timestamp: Date.now(),
         nonce: nonce  // Store nonce in auth code so token endpoint can use it
@@ -61,7 +61,7 @@ function navigatetoJSApp(simulated_auth_code, redirectUri, urlParams) {
     const clientInfo = urlParams.get('client_info');
     if (clientInfo === '1') {
         // Generate a base64-encoded client info
-        const clientInfoPayload = { uid: "test-uid", utid: "72f988bf-86f1-41af-91ab-2d7cd011db47" };
+        const clientInfoPayload = { uid: "test-uid", utid: "c7cef333-42af-492c-afb0-21f74a661133" };
         redirectUrl += '&client_info=' + encodeURIComponent(btoa(JSON.stringify(clientInfoPayload)));
     }
 

@@ -1,13 +1,13 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "8015f5e0-0370-427c-9b0d-d834189ffdd0",
+        clientId: "dd138a81-f5f8-4d9c-8d24-d7bdd6ecc58f",
         authority:
-            "https://localhost:30663/72f988bf-86f1-41af-91ab-2d7cd011db47",
+            "https://localhost:30663/c7cef333-42af-492c-afb0-21f74a661133",
         redirectUri: "https://localhost:30662/redirect",
         knownAuthorities: ["localhost:30663"],
         cloudDiscoveryMetadata: JSON.stringify({
-            tenant_discovery_endpoint: "https://localhost:30663/72f988bf-86f1-41af-91ab-2d7cd011db47/v2.0/.well-known/openid-configuration",
+            tenant_discovery_endpoint: "https://localhost:30663/c7cef333-42af-492c-afb0-21f74a661133/v2.0/.well-known/openid-configuration",
             metadata: [
                 {
                     preferred_network: "localhost:30663",
@@ -17,10 +17,10 @@ const msalConfig = {
             ]
         }),
         authorityMetadata: JSON.stringify({
-            authorization_endpoint: "https://localhost:30663/72f988bf-86f1-41af-91ab-2d7cd011db47/oauth2/v2.0/authorize",
-            token_endpoint: "https://localhost:30663/72f988bf-86f1-41af-91ab-2d7cd011db47/oauth2/v2.0/token",
-            issuer: "https://localhost:30663/72f988bf-86f1-41af-91ab-2d7cd011db47/v2.0",
-            end_session_endpoint: "https://localhost:30663/72f988bf-86f1-41af-91ab-2d7cd011db47/oauth2/v2.0/logout"
+            authorization_endpoint: "https://localhost:30663/c7cef333-42af-492c-afb0-21f74a661133/oauth2/v2.0/authorize",
+            token_endpoint: "https://localhost:30663/c7cef333-42af-492c-afb0-21f74a661133/oauth2/v2.0/token",
+            issuer: "https://localhost:30663/c7cef333-42af-492c-afb0-21f74a661133/v2.0",
+            end_session_endpoint: "https://localhost:30663/c7cef333-42af-492c-afb0-21f74a661133/oauth2/v2.0/logout"
         }),
     },
     cache: {
