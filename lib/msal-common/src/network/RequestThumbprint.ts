@@ -23,6 +23,7 @@ export type RequestThumbprint = {
     sshKid?: string;
     shrOptions?: ShrOptions;
     embeddedClientId?: string;
+    resource?: string;
 };
 
 export function getRequestThumbprint(
@@ -43,5 +44,6 @@ export function getRequestThumbprint(
         sshKid: request.sshKid,
         embeddedClientId:
             request.embeddedClientId || request.extraParameters?.clientId,
+        resource: request.resource,
     };
 }

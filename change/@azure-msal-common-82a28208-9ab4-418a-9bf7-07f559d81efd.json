@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Migrate region auto-discovery to the IMDS /compute JSON endpoint (api-version 2021-02-01), reading the location field [#8660](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8660)",
-  "packageName": "@azure/msal-common",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

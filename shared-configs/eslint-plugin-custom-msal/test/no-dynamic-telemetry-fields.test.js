@@ -88,6 +88,13 @@ ruleTester.run("no-dynamic-telemetry-fields", noDynamicTelemetryFields, {
         {
             code: `telemetryClient.addFields({ correlationId: "abc", httpStatus: 200, success: true }, id);`,
         },
+        // Global telemetry fields are validated like addFields — valid PerformanceEvent field
+        {
+            code: `telemetryClient.addGlobalFields({ previousLibraryVersion: "1.0.0" });`,
+        },
+        {
+            code: `this.performanceClient.addGlobalFields({ libraryVersion: version });`,
+        },
     ],
     invalid: [
         // Computed keys without "ext." prefix in telemetry calls
@@ -219,6 +226,28 @@ ruleTester.run("no-dynamic-telemetry-fields", noDynamicTelemetryFields, {
                 {
                     messageId: "unknownStaticField",
                     data: { name: "badFieldName", method: "addFields" },
+                },
+            ],
+        },
+        // Global telemetry fields are validated too — unknown static field
+        {
+            code: `telemetryClient.addGlobalFields({ notARealGlobalField: "value" });`,
+            errors: [
+                {
+                    messageId: "unknownStaticField",
+                    data: {
+                        name: "notARealGlobalField",
+                        method: "addGlobalFields",
+                    },
+                },
+            ],
+        },
+        // Global telemetry fields — computed key without "ext." prefix
+        {
+            code: 'telemetryClient.addGlobalFields({ [fieldName + "Version"]: "1.0.0" });',
+            errors: [
+                {
+                    messageId: "noDynamicFields",
                 },
             ],
         },

@@ -1919,6 +1919,10 @@ export interface IPerformanceClient {
         [key: string]: {} | undefined;
     }, correlationId: string): void;
     // (undocumented)
+    addGlobalFields(fields: {
+        [key: string]: {} | undefined;
+    }): void;
+    // (undocumented)
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     // (undocumented)
     discardMeasurements(correlationId: string): void;
@@ -2293,6 +2297,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
     addFields(fields: {
         [key: string]: {} | undefined;
     }, correlationId: string): void;
+    addGlobalFields(fields: {
+        [key: string]: {} | undefined;
+    }): void;
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     // (undocumented)
     protected applicationTelemetry: ApplicationTelemetry;
@@ -2309,6 +2316,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected eventsByCorrelationId: Map<string, PerformanceEvent>;
     protected eventStack: Map<string, PerformanceEventStackedContext[]>;
     abstract generateId(): string;
+    protected globalFields: {
+        [key: string]: {} | undefined;
+    };
     incrementFields(fields: {
         [key: string]: number | undefined;
     }, correlationId: string): void;
@@ -2780,6 +2790,7 @@ export type RequestThumbprint = {
     sshKid?: string;
     shrOptions?: ShrOptions;
     embeddedClientId?: string;
+    resource?: string;
 };
 
 // @public (undocumented)
@@ -3079,6 +3090,8 @@ export class StubPerformanceClient implements IPerformanceClient {
     // (undocumented)
     addFields(): void;
     // (undocumented)
+    addGlobalFields(): void;
+    // (undocumented)
     addPerformanceCallback(): string;
     // (undocumented)
     cacheEventByCorrelationId(): void;
@@ -3361,7 +3374,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.9.0";
+export const version = "16.10.0";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;
