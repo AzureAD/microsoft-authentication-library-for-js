@@ -522,10 +522,46 @@ function parseClaimsOrThrow(
 }
 
 /**
+ * Type guard for a non-null, non-array object (a JSON "object" value).
+ * @param value - The value to test
+ * @returns True when value is a plain object that can be deep-merged
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Recursively deep-merges two parsed claims objects. Nested objects are merged key-by-key;
+ * for any other value type (arrays, scalars, null) the value from `claimsToMergeIn` replaces
+ * the base. This mirrors the deep merge used by msal-dotnet so that, for example, a server
+ * `access_token` challenge and a client-originated `access_token` claim are combined rather
+ * than one clobbering the other.
+ * @param baseClaims - The parsed base claims object
+ * @param claimsToMergeIn - The parsed claims object merged in with precedence
+ * @returns The deep-merged claims object
+ */
+function deepMergeClaims(
+    baseClaims: Record<string, unknown>,
+    claimsToMergeIn: Record<string, unknown>
+): Record<string, unknown> {
+    const merged: Record<string, unknown> = { ...baseClaims };
+    for (const [key, mergeInValue] of Object.entries(claimsToMergeIn)) {
+        const baseValue = merged[key];
+        if (isPlainObject(baseValue) && isPlainObject(mergeInValue)) {
+            merged[key] = deepMergeClaims(baseValue, mergeInValue);
+        } else {
+            merged[key] = mergeInValue;
+        }
+    }
+    return merged;
+}
+
+/**
  * Merges two claims JSON strings into one. If either side is empty/whitespace/undefined the
  * other is returned verbatim (and `undefined` is returned when both are empty). When both are
- * present they are parsed and shallow-merged at the top level, with keys from `claimsToMergeIn`
- * taking precedence on conflicts. Throws a ClientConfigurationError (error code `invalid_claims`)
+ * present they are parsed and recursively deep-merged, with values from `claimsToMergeIn`
+ * taking precedence on conflicts (nested objects are merged key-by-key; arrays and scalar values
+ * are replaced). Throws a ClientConfigurationError (error code `invalid_claims`)
  * if either side is present but is not a valid JSON object.
  *
  * Unlike `claims` (a server-issued challenge that bypasses the cache), this is used to combine a
@@ -547,10 +583,10 @@ export function mergeClaims(
         return baseClaims;
     }
 
-    const merged = {
-        ...parseClaimsOrThrow(baseClaims, correlationId),
-        ...parseClaimsOrThrow(claimsToMergeIn, correlationId),
-    };
+    const merged = deepMergeClaims(
+        parseClaimsOrThrow(baseClaims, correlationId),
+        parseClaimsOrThrow(claimsToMergeIn, correlationId)
+    );
     return JSON.stringify(merged);
 }
 

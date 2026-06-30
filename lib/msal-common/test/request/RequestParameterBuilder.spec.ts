@@ -742,6 +742,47 @@ describe("RequestParameterBuilder unit tests", () => {
             expect(parsed.nsp.value).toBe("v2");
         });
 
+        it("deep-merges a colliding object key, preserving sibling sub-claims", () => {
+            const serverClaims = '{"access_token":{"nbf":{"essential":true}}}';
+            const clientClaims =
+                '{"access_token":{"xms_az_nwperimid":{"value":"perimid-1"}}}';
+            const result = RequestParameterBuilder.mergeClaims(
+                serverClaims,
+                clientClaims
+            );
+            const parsed = JSON.parse(result as string);
+            expect(parsed.access_token.nbf).toEqual({ essential: true });
+            expect(parsed.access_token.xms_az_nwperimid).toEqual({
+                value: "perimid-1",
+            });
+        });
+
+        it("deep-merges recursively across multiple nesting levels", () => {
+            const claims1 = '{"a":{"b":{"keep":1}}}';
+            const claims2 = '{"a":{"b":{"add":2}},"c":{"essential":true}}';
+            const result = RequestParameterBuilder.mergeClaims(
+                claims1,
+                claims2
+            );
+            const parsed = JSON.parse(result as string);
+            expect(parsed.a.b).toEqual({ keep: 1, add: 2 });
+            expect(parsed.c).toEqual({ essential: true });
+        });
+
+        it("replaces arrays and scalars (no element merging) with the second object winning", () => {
+            const claims1 =
+                '{"access_token":{"groups":{"values":["a","b"]},"scalar":1}}';
+            const claims2 =
+                '{"access_token":{"groups":{"values":["c"]},"scalar":2}}';
+            const result = RequestParameterBuilder.mergeClaims(
+                claims1,
+                claims2
+            );
+            const parsed = JSON.parse(result as string);
+            expect(parsed.access_token.groups.values).toEqual(["c"]);
+            expect(parsed.access_token.scalar).toBe(2);
+        });
+
         it("throws invalidClaims when one side is invalid JSON", () => {
             const valid = '{"a":1}';
             const invalid = "not-json";
