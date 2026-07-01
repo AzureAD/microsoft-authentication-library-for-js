@@ -31,6 +31,7 @@ export interface IPerformanceClient {
         fields: { [key: string]: {} | undefined },
         correlationId: string
     ): void;
+    addGlobalFields(fields: { [key: string]: {} | undefined }): void;
     incrementFields(
         fields: { [key: string]: number | undefined },
         correlationId: string
