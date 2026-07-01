@@ -105,11 +105,7 @@ describe("LoopbackClient", () => {
             const redirectUri = loopbackClient.getRedirectUri();
             const port = new URL(redirectUri).port;
 
-            const statusCode = await makeRequest(
-                Number(port),
-                "PUT",
-                "/"
-            );
+            const statusCode = await makeRequest(Number(port), "PUT", "/");
 
             expect(statusCode).toBe(405);
         });
@@ -168,29 +164,20 @@ describe("LoopbackClient", () => {
 
         it("still handles GET after redirect (backward compat)", async () => {
             loopbackClient = new LoopbackClient();
-            const responsePromise = loopbackClient.listenForAuthCode(
-                "Custom success!"
-            );
+            const responsePromise =
+                loopbackClient.listenForAuthCode("Custom success!");
 
             await waitForServerReady(loopbackClient);
             const redirectUri = loopbackClient.getRedirectUri();
             const port = new URL(redirectUri).port;
 
             // First: GET with code triggers 302 redirect
-            await makeRequest(
-                Number(port),
-                "GET",
-                "/?code=abc&state=xyz"
-            );
+            await makeRequest(Number(port), "GET", "/?code=abc&state=xyz");
 
             await responsePromise;
 
             // Second: GET to root returns success template
-            const result = await makeRequestWithBody(
-                Number(port),
-                "GET",
-                "/"
-            );
+            const result = await makeRequestWithBody(Number(port), "GET", "/");
             expect(result.body).toBe("Custom success!");
         });
     });
@@ -203,9 +190,7 @@ describe("LoopbackClient", () => {
 
             await waitForServerReady(loopbackClient);
             const redirectUri = loopbackClient.getRedirectUri();
-            expect(redirectUri).toBe(
-                `http://localhost:${preferredPort}`
-            );
+            expect(redirectUri).toBe(`http://localhost:${preferredPort}`);
         });
 
         it("falls back to random port when preferred port is unavailable", async () => {

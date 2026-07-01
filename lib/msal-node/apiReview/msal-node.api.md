@@ -267,6 +267,7 @@ export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "sc
     errorTemplate?: string;
     windowHandle?: Buffer;
     loopbackClient?: ILoopbackClient;
+    preferredPort?: number;
 };
 
 declare namespace internals {

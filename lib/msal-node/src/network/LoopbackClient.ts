@@ -87,10 +87,7 @@ export class LoopbackClient implements ILoopbackClient {
                                 parsedUrl.search
                             ) || {};
 
-                        if (
-                            !authCodeResponse.code &&
-                            !authCodeResponse.error
-                        ) {
+                        if (!authCodeResponse.code && !authCodeResponse.error) {
                             // Ignore requests without OAuth params (e.g., /favicon.ico)
                             res.writeHead(200);
                             res.end();
@@ -167,8 +164,7 @@ export class LoopbackClient implements ILoopbackClient {
             if (authCodeResponse.error) {
                 res.writeHead(200);
                 res.end(
-                    errorTemplate ||
-                        `Error occurred: ${authCodeResponse.error}`
+                    errorTemplate || `Error occurred: ${authCodeResponse.error}`
                 );
             } else {
                 res.writeHead(200);
