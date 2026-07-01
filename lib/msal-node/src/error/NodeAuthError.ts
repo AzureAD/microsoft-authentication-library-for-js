@@ -45,6 +45,10 @@ export const NodeAuthErrorMessage = {
         code: "redirect_uri_not_supported",
         desc: "RedirectUri is not supported in this scenario. Please remove redirectUri from the request.",
     },
+    invalidResponseMode: {
+        code: "invalid_response_mode",
+        desc: 'The responseMode provided is not supported for the interactive loopback flow. Only "query" and "form_post" are supported. "fragment" cannot be used because fragments are never sent to the HTTP server, which would result in a timeout.',
+    },
 };
 
 export class NodeAuthError extends AuthError {
@@ -159,6 +163,19 @@ export class NodeAuthError extends AuthError {
             NodeAuthErrorMessage.redirectUriNotSupported.code,
             correlationId,
             NodeAuthErrorMessage.redirectUriNotSupported.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when an unsupported responseMode is provided for the interactive flow.
+     */
+    static createInvalidResponseModeError(
+        correlationId: string = ""
+    ): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.invalidResponseMode.code,
+            correlationId,
+            NodeAuthErrorMessage.invalidResponseMode.desc
         );
     }
 }

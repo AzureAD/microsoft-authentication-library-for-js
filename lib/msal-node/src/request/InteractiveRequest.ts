@@ -35,6 +35,12 @@ export type InteractiveRequest = Partial<
     windowHandle?: Buffer; // Relevant only to brokered requests
     /**
      * Custom implementation for a loopback server to listen for authorization code response.
+     * @deprecated Use the built-in LoopbackClient with `preferredPort` instead. This property will be removed in a future major version.
      */
     loopbackClient?: ILoopbackClient;
+    /**
+     * Preferred port for the loopback server to listen on. If the port is unavailable, a random port will be used.
+     * Use this instead of a custom loopbackClient when you need a fixed port for redirect URI registration.
+     */
+    preferredPort?: number;
 };
