@@ -24,6 +24,7 @@ export const redirectBridgeEmptyResponse = "redirect_bridge_empty_response";
 export const redirectInIframe = "redirect_in_iframe";
 export const blockIframeReload = "block_iframe_reload";
 export const blockNestedPopups = "block_nested_popups";
+export const popupRelayUnsupportedFlow = "popup_relay_unsupported_flow";
 export const iframeClosedPrematurely = "iframe_closed_prematurely";
 export const silentLogoutUnsupported = "silent_logout_unsupported";
 export const noAccountError = "no_account_error";
