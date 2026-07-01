@@ -234,19 +234,13 @@ describe("runPopupRelay", () => {
         expect(submitSpy).toHaveBeenCalled();
     });
 
-    it("relays the IdP child popup being closed back to the opener as an error after the grace period", () => {
+    it("relays the IdP child popup being closed back to the opener as an error", () => {
         childPopup.closed = true;
 
         runPopupRelay();
 
-        // The poll observes the closed popup but must NOT reject immediately —
-        // the redirect bridge closes the popup right after broadcasting, so a
-        // success message could still be in flight. No error yet.
+        // Advance past the closed-popup poll interval.
         jest.advanceTimersByTime(500);
-        expect(postMessage).not.toHaveBeenCalled();
-
-        // Only after the grace period elapses with no response is it cancelled.
-        jest.advanceTimersByTime(1000);
 
         expect(postMessage).toHaveBeenCalledWith(
             expect.objectContaining({
