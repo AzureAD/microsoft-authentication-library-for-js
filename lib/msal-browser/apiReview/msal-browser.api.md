@@ -183,6 +183,7 @@ declare namespace BrowserAuthErrorCodes {
         redirectInIframe,
         blockIframeReload,
         blockNestedPopups,
+        popupRelayUnsupportedFlow,
         iframeClosedPrematurely,
         silentLogoutUnsupported,
         noAccountError,
@@ -229,6 +230,7 @@ export type BrowserAuthOptions = {
     authorityMetadata?: string;
     redirectUri?: string;
     postLogoutRedirectUri?: string | null;
+    popupRelayUri?: string;
     clientCapabilities?: Array<string>;
     OIDCOptions?: OIDCOptions;
     azureCloudOptions?: AzureCloudOptions;
@@ -882,6 +884,9 @@ export type PopupPosition = {
     top: number;
     left: number;
 };
+
+// @public (undocumented)
+const popupRelayUnsupportedFlow = "popup_relay_unsupported_flow";
 
 // @public
 export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
