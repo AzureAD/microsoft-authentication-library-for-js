@@ -309,6 +309,91 @@ describe("ConfidentialClientApplication", () => {
             expect(acquireTokenByClientCredentialSpy).toHaveBeenCalledTimes(1);
         });
 
+        describe("mTLS Proof-of-Possession opt-in", () => {
+            it("maps mtlsProofOfPossession to the MTLS_POP authentication scheme", async () => {
+                let observedScheme: string | undefined;
+                jest.spyOn(
+                    ClientCredentialClient.prototype,
+                    "acquireToken"
+                ).mockImplementation(
+                    (request: CommonClientCredentialRequest) => {
+                        observedScheme = request.authenticationScheme;
+                        return Promise.resolve(null);
+                    }
+                );
+
+                const client: ConfidentialClientApplication =
+                    new ConfidentialClientApplication(config);
+
+                await client.acquireTokenByClientCredential({
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    skipCache: false,
+                    mtlsProofOfPossession: true,
+                });
+
+                expect(observedScheme).toBe(
+                    CommonConstants.AuthenticationScheme.MTLS_POP
+                );
+            });
+
+            it("passes the request tokenBindingCertificate through to the client credential client", async () => {
+                const tokenBindingCertificate = {
+                    x5c: "leg1-binding-cert",
+                    privateKey: "leg1-private-key",
+                    thumbprintSha256: "leg1-thumbprint",
+                };
+                let observedCert:
+                    | CommonClientCredentialRequest["tokenBindingCertificate"]
+                    | undefined;
+                jest.spyOn(
+                    ClientCredentialClient.prototype,
+                    "acquireToken"
+                ).mockImplementation(
+                    (request: CommonClientCredentialRequest) => {
+                        observedCert = request.tokenBindingCertificate;
+                        return Promise.resolve(null);
+                    }
+                );
+
+                const client: ConfidentialClientApplication =
+                    new ConfidentialClientApplication(config);
+
+                await client.acquireTokenByClientCredential({
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    skipCache: false,
+                    mtlsProofOfPossession: true,
+                    tokenBindingCertificate,
+                });
+
+                expect(observedCert).toEqual(tokenBindingCertificate);
+            });
+
+            it("leaves the authentication scheme as Bearer when mtlsProofOfPossession is omitted", async () => {
+                let observedScheme: string | undefined;
+                jest.spyOn(
+                    ClientCredentialClient.prototype,
+                    "acquireToken"
+                ).mockImplementation(
+                    (request: CommonClientCredentialRequest) => {
+                        observedScheme = request.authenticationScheme;
+                        return Promise.resolve(null);
+                    }
+                );
+
+                const client: ConfidentialClientApplication =
+                    new ConfidentialClientApplication(config);
+
+                await client.acquireTokenByClientCredential({
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    skipCache: false,
+                });
+
+                expect(observedScheme).not.toBe(
+                    CommonConstants.AuthenticationScheme.MTLS_POP
+                );
+            });
+        });
+
         describe("clientAssertion is used to acquire a token after being provided in the request", () => {
             beforeEach(() => {
                 jest.spyOn(

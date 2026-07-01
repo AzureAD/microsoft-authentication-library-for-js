@@ -1,0 +1,27 @@
+{
+    "name": "msal-node-client-credentials-mtls-pop",
+    "version": "1.0.0",
+    "description": "Command line app showing how to use the client credentials grant with an SN/I certificate to acquire an mTLS-bound Proof-of-Possession (mtls_pop) token from Microsoft Entra ID, including the two-leg Federated Identity Credential (FIC) flow",
+    "main": "index.js",
+    "private": true,
+    "scripts": {
+        "test:e2e": "jest",
+        "build": "npx tsc",
+        "start": "npm run build && node dist/app.js",
+        "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-node"
+    },
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "@azure/msal-node": "^3.0.0",
+        "dotenv": "^16.5.0"
+    },
+    "devDependencies": {
+        "@azure/identity": "^4.13.1",
+        "@types/jest": "^29.5.0",
+        "e2e-test-utils": "file:../../e2eTestUtils",
+        "jest": "^29.5.0",
+        "jest-junit": "^16.0.0",
+        "ts-jest": "^29.4.11"
+    }
+}

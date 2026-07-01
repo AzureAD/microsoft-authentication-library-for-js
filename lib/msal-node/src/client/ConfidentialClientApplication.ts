@@ -182,6 +182,15 @@ export class ConfidentialClientApplication
         };
 
         /*
+         * initializeBaseRequest forces authenticationScheme to Bearer, so opt into mTLS
+         * Proof-of-Possession here (after the base request is spread in) when requested.
+         */
+        if (request.mtlsProofOfPossession) {
+            validRequest.authenticationScheme =
+                Constants.AuthenticationScheme.MTLS_POP;
+        }
+
+        /*
          * valid request should not have "common" or "organizations" in lieu of the tenant_id in the authority in the auth configuration
          * example authority: "https://login.microsoftonline.com/TenantId",
          */

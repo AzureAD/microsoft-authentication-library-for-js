@@ -45,6 +45,25 @@ export const KNOWN_PUBLIC_CLOUDS = [
     "login.microsoft.com",
     "sts.windows.net",
 ];
+/**
+ * mTLS Proof-of-Possession endpoint host constants.
+ * The token endpoint host is rewritten from `login.*` to `mtlsauth.*` for mTLS PoP requests.
+ * The global public-cloud host is production-ready; a region prefix is optional (recommended).
+ */
+export const MTLS_AUTH_LOGIN_PREFIX = "login.";
+export const MTLS_AUTH_HOST_PREFIX = "mtlsauth.";
+export const MTLS_AUTH_PUBLIC_CLOUD_HOST = "mtlsauth.microsoft.com";
+/**
+ * Sovereign/national clouds where the `mtlsauth.*` endpoint is not (yet) available. mTLS PoP
+ * requests targeting these clouds fail fast. Isolated here so the guardrail is trivial to lift as
+ * `mtlsauth.*` rolls out to additional clouds (see Authority.isMtlsSupportedCloud).
+ */
+export const MTLS_UNSUPPORTED_CLOUD_HOSTS = [
+    "login.microsoftonline.us",
+    "login.usgovcloudapi.net",
+    "login.chinacloudapi.cn",
+    "login.partner.microsoftonline.cn",
+];
 export const SHR_NONCE_VALIDITY = 240;
 export const INVALID_INSTANCE = "invalid_instance";
 
@@ -263,6 +282,7 @@ export const AuthenticationScheme = {
     BEARER: "Bearer",
     POP: "pop",
     SSH: "ssh-cert",
+    MTLS_POP: "mtls_pop",
 } as const;
 export type AuthenticationScheme =
     (typeof AuthenticationScheme)[keyof typeof AuthenticationScheme];

@@ -515,6 +515,22 @@ export abstract class ClientApplication {
             discoveredAuthority.regionDiscoveryMetadata
         );
 
+        /*
+         * Retain the raw certificate (public chain + private key) so a client-credential request can
+         * present it as the client TLS certificate for mTLS Proof-of-Possession, independent of the
+         * signed-assertion path used for the default SNI + Bearer flow.
+         */
+        const clientCertificate = this.config.auth.clientCertificate;
+        const mtlsBindingCertificate =
+            clientCertificate?.x5c && clientCertificate?.privateKey
+                ? {
+                      privateKey: clientCertificate.privateKey,
+                      x5c: clientCertificate.x5c,
+                      thumbprintSha256:
+                          clientCertificate.thumbprintSha256 || undefined,
+                  }
+                : undefined;
+
         const clientConfiguration: ClientConfiguration = {
             authOptions: {
                 clientId: this.config.auth.clientId,
@@ -539,6 +555,7 @@ export abstract class ClientApplication {
                 clientAssertion: await this.getClientAssertion(
                     discoveredAuthority
                 ),
+                mtlsBindingCertificate: mtlsBindingCertificate,
             },
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,

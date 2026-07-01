@@ -45,4 +45,12 @@ export type AuthenticationResult = {
     code?: string;
     fromPlatformBroker?: boolean;
     resource?: string;
+    /**
+     * For mutual-TLS Proof-of-Possession tokens (`tokenType === "mtls_pop"`), the certificate the
+     * access token is cryptographically bound to. Only public material is returned — the app already
+     * holds the private key and presents this certificate as the client TLS certificate when calling
+     * the protected resource. `x5c` is the base64-encoded certificate (chain); `thumbprintSha256` is
+     * the certificate's SHA-256 thumbprint (x5t#S256).
+     */
+    bindingCertificate?: { x5c: string; thumbprintSha256: string };
 };

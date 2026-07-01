@@ -298,6 +298,21 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(Object.keys(requestQueryString)).toHaveLength(0);
     });
 
+    it("Adds token type but no req_cnf for mTLS proof-of-possession tokens", () => {
+        const parameters = new Map<string, string>();
+        RequestParameterBuilder.addMtlsPopToken(parameters);
+        const requestQueryString = UrlUtils.mapToQueryString(parameters);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.TOKEN_TYPE}=${Constants.AuthenticationScheme.MTLS_POP}`
+            )
+        ).toBe(true);
+        // mTLS PoP binds via the TLS client certificate, so no req_cnf is sent.
+        expect(
+            requestQueryString.includes(`${AADServerParamKeys.REQ_CNF}=`)
+        ).toBe(false);
+    });
+
     it("addScopes appends oidc scopes by default", () => {
         const parameters = new Map<string, string>();
         RequestParameterBuilder.addScopes(parameters, ["testScope"]);

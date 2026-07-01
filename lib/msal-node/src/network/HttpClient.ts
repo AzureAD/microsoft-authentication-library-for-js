@@ -13,6 +13,8 @@ import {
     createNetworkError,
 } from "@azure/msal-common/node";
 import { HttpMethod } from "../utils/Constants.js";
+import https from "https";
+import type { IncomingHttpHeaders } from "http";
 
 /**
  * HTTP client implementation using Node.js native fetch API.
@@ -62,7 +64,117 @@ export class HttpClient implements INetworkModule {
         url: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
+        if (options?.mtlsCertificate) {
+            return this.sendMtlsPostRequestAsync<T>(url, options);
+        }
         return this.sendRequest<T>(url, HttpMethod.POST, options);
+    }
+
+    /**
+     * Sends an HTTP POST request over a mutual-TLS connection using Node's `https` module.
+     *
+     * Native `fetch` cannot attach a client certificate to the TLS handshake, so mTLS
+     * Proof-of-Possession requests are routed through `https.request` with an `https.Agent`
+     * configured with the binding certificate's `cert` and `key`. The certificate authenticates
+     * the client at the TLS layer; ESTS returns a token bound to that certificate.
+     *
+     * The response shape, JSON parsing, and error semantics mirror the fetch-based path.
+     *
+     * @param url - The target mTLS token endpoint URL
+     * @param options - Request configuration; `mtlsCertificate` (PEM cert + key) is required here
+     * @returns Promise resolving to a NetworkResponse with parsed JSON body
+     * @throws {AuthError} When response parsing fails
+     * @throws {NetworkError} When the network request fails
+     */
+    private sendMtlsPostRequestAsync<T>(
+        url: string,
+        options: NetworkRequestOptions
+    ): Promise<NetworkResponse<T>> {
+        return new Promise<NetworkResponse<T>>((resolve, reject) => {
+            let parsedUrl: URL;
+            try {
+                parsedUrl = new URL(url);
+            } catch (error) {
+                const baseAuthError: AuthError = createAuthError(
+                    ClientAuthErrorCodes.networkError,
+                    `Network request failed: ${
+                        error instanceof Error ? error.message : "unknown"
+                    }`
+                );
+                reject(
+                    createNetworkError(
+                        baseAuthError,
+                        undefined,
+                        undefined,
+                        error instanceof Error ? error : undefined
+                    )
+                );
+                return;
+            }
+
+            const body = options.body || "";
+            const agent = new https.Agent({
+                cert: options.mtlsCertificate?.cert,
+                key: options.mtlsCertificate?.key,
+            });
+            const requestOptions: https.RequestOptions = {
+                method: HttpMethod.POST,
+                hostname: parsedUrl.hostname,
+                port: parsedUrl.port,
+                path: `${parsedUrl.pathname}${parsedUrl.search}`,
+                headers: {
+                    ...options.headers,
+                    "Content-Length": Buffer.byteLength(body),
+                },
+                agent,
+            };
+
+            const request = https.request(requestOptions, (response) => {
+                const chunks: Buffer[] = [];
+                response.on("data", (chunk: Buffer) => chunks.push(chunk));
+                response.on("end", () => {
+                    const rawBody = Buffer.concat(chunks).toString();
+                    try {
+                        resolve({
+                            headers: getIncomingHeaderDict(response.headers),
+                            body: JSON.parse(rawBody) as T,
+                            status: response.statusCode ?? 0,
+                        });
+                    } catch (error) {
+                        reject(
+                            createAuthError(
+                                ClientAuthErrorCodes.tokenParsingError,
+                                `Failed to parse response: ${
+                                    error instanceof Error
+                                        ? error.message
+                                        : "unknown"
+                                }`
+                            )
+                        );
+                    }
+                });
+            });
+
+            request.on("error", (error: Error) => {
+                const baseAuthError: AuthError = createAuthError(
+                    ClientAuthErrorCodes.networkError,
+                    `Network request failed: ${error.message}`
+                );
+                reject(
+                    createNetworkError(
+                        baseAuthError,
+                        undefined,
+                        undefined,
+                        error
+                    )
+                );
+            });
+
+            if (body) {
+                request.write(body);
+            }
+            request.end();
+        });
     }
 
     /**
@@ -190,6 +302,30 @@ function getHeaderDict(headers: Headers): Record<string, string> {
 
     headers.forEach((value: string, key: string) => {
         headerDict[key] = value;
+    });
+
+    return headerDict;
+}
+
+/**
+ * Converts a Node.js `IncomingHttpHeaders` object to a plain string key-value object.
+ *
+ * The `https` module exposes response headers as an object whose values may be strings or
+ * string arrays (e.g. multiple `set-cookie` headers). This normalizes them to the flat
+ * `Record<string, string>` shape the rest of MSAL expects, joining array values with `, `.
+ *
+ * @param headers - The headers object from an `https` `IncomingMessage`
+ * @returns A plain object with header names as keys and string values
+ */
+function getIncomingHeaderDict(
+    headers: IncomingHttpHeaders
+): Record<string, string> {
+    const headerDict: Record<string, string> = {};
+
+    Object.entries(headers).forEach(([key, value]) => {
+        if (value !== undefined) {
+            headerDict[key] = Array.isArray(value) ? value.join(", ") : value;
+        }
     });
 
     return headerDict;

@@ -10,11 +10,28 @@ import {
 import { NetworkResponse } from "./NetworkResponse.js";
 
 /**
+ * Certificate material used to establish a mutual-TLS (mTLS) connection for
+ * Proof-of-Possession token requests. Both values are PEM-encoded strings.
+ */
+export type MtlsCertificate = {
+    /** PEM-encoded client certificate (or certificate chain) presented on the TLS handshake. */
+    cert: string;
+    /** PEM-encoded private key for the client certificate. */
+    key: string;
+};
+
+/**
  * Options allowed by network request APIs.
  */
 export type NetworkRequestOptions = {
     headers?: Record<string, string>;
     body?: string;
+    /**
+     * Client certificate to present on the outbound mutual-TLS connection. When set, the network
+     * module MUST establish the connection using this certificate (see {@link INetworkModule}).
+     * Only honored by mTLS-capable transports (the built-in msal-node HttpClient).
+     */
+    mtlsCertificate?: MtlsCertificate;
 };
 
 /**

@@ -22,6 +22,7 @@ export {
     ClientAssertion,
     ClientAssertionConfig,
     ClientAssertionCallback,
+    MtlsBindingCertificate,
 } from "./account/ClientCredentials.js";
 export {
     DeviceCodeResponse,

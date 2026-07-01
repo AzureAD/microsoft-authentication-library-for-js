@@ -15,6 +15,8 @@ import {
     CredentialFilter,
     IAppTokenProvider,
     ICrypto,
+    MtlsBindingCertificate,
+    MtlsCertificate,
     RequestParameterBuilder,
     RequestThumbprint,
     ResponseHandler,
@@ -30,13 +32,19 @@ import {
     getClientAssertion,
     UrlUtils,
 } from "@azure/msal-common/node";
-import { ApiId } from "../utils/Constants.js";
+import { ApiId, Constants as NodeConstants } from "../utils/Constants.js";
 import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
 } from "../config/Configuration.js";
 import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest.js";
 import { BaseClient } from "./BaseClient.js";
+import { NodeAuthError } from "../error/NodeAuthError.js";
+import { HttpClient } from "../network/HttpClient.js";
+import {
+    computeX5tSha256,
+    x5cToPem,
+} from "../utils/MtlsCertificateUtils.js";
 
 /**
  * OAuth2.0 client credential grant
@@ -66,6 +74,24 @@ export class ClientCredentialClient extends BaseClient {
             additionalCacheKeyComponents = {
                 fmi_path: request.fmiPath,
             };
+        }
+
+        // Isolate mTLS PoP tokens in the cache by the binding certificate they are bound to, so
+        // tokens bound to different certificates (or Bearer tokens) never collide.
+        if (
+            request.authenticationScheme ===
+            Constants.AuthenticationScheme.MTLS_POP
+        ) {
+            const bindingCertificate =
+                this.getMtlsBindingCertificate(request);
+            if (bindingCertificate) {
+                additionalCacheKeyComponents = {
+                    ...(additionalCacheKeyComponents ?? {}),
+                    mtls_pop_cert_thumbprint:
+                        bindingCertificate.thumbprintSha256 ??
+                        computeX5tSha256(bindingCertificate.x5c),
+                };
+            }
         }
 
         if (request.skipCache || request.claims) {
@@ -162,6 +188,7 @@ export class ClientCredentialClient extends BaseClient {
             new ScopeSet(request.scopes || []),
             cacheManager,
             request.correlationId,
+            request.authenticationScheme,
             additionalCacheKeyComponents
         );
 
@@ -208,7 +235,7 @@ export class ClientCredentialClient extends BaseClient {
             );
         }
 
-        return [
+        const cachedResult =
             await ResponseHandler.generateAuthenticationResult(
                 cryptoUtils,
                 authority,
@@ -222,9 +249,17 @@ export class ClientCredentialClient extends BaseClient {
                 true,
                 request,
                 this.performanceClient
-            ),
-            lastCacheOutcome,
-        ];
+            );
+
+        // Surface the binding certificate on cached mTLS PoP results as well.
+        if (
+            request.authenticationScheme ===
+            Constants.AuthenticationScheme.MTLS_POP
+        ) {
+            this.setBindingCertificateOnResult(cachedResult, request);
+        }
+
+        return [cachedResult, lastCacheOutcome];
     }
 
     /**
@@ -236,16 +271,31 @@ export class ClientCredentialClient extends BaseClient {
         scopeSet: ScopeSet,
         cacheManager: CacheManager,
         correlationId: string,
+        authenticationScheme?: Constants.AuthenticationScheme,
         additionalCacheKeyComponents?: Record<string, string>
     ): AccessTokenEntity | null {
+        /*
+         * Distinguish Bearer from auth-scheme-bound (PoP / mTLS PoP) tokens. Auth-scheme tokens are
+         * persisted under credentialType ACCESS_TOKEN_WITH_AUTH_SCHEME and must be looked up with the
+         * matching tokenType, otherwise a cached mTLS PoP token would never be found.
+         */
+        const authScheme =
+            authenticationScheme || Constants.AuthenticationScheme.BEARER;
+        const isAuthSchemeToken =
+            authScheme.toLowerCase() !==
+            Constants.AuthenticationScheme.BEARER.toLowerCase();
+
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: "",
             environment:
                 authority.canonicalAuthorityUrlComponents.HostNameAndPort,
-            credentialType: Constants.CredentialType.ACCESS_TOKEN,
+            credentialType: isAuthSchemeToken
+                ? Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
+                : Constants.CredentialType.ACCESS_TOKEN,
             clientId: id,
             realm: authority.tenant,
             target: ScopeSet.createSearchScopes(scopeSet.asArray()),
+            tokenType: isAuthSchemeToken ? authScheme : undefined,
             additionalCacheKeyComponents: additionalCacheKeyComponents,
         };
 
@@ -304,8 +354,39 @@ export class ClientCredentialClient extends BaseClient {
         } else {
             const queryParametersString =
                 this.createTokenQueryParameters(request);
+
+            /*
+             * mTLS Proof-of-Possession: target the mTLS token endpoint and present the binding
+             * certificate as the client TLS certificate. The certificate authenticates the client
+             * at the TLS layer, so ESTS returns a token bound to it (cnf/x5t#S256).
+             */
+            const isMtlsPop =
+                request.authenticationScheme ===
+                Constants.AuthenticationScheme.MTLS_POP;
+            let mtlsCertificate: MtlsCertificate | undefined;
+            let tokenEndpoint = authority.tokenEndpoint;
+
+            if (isMtlsPop) {
+                if (!(this.networkClient instanceof HttpClient)) {
+                    throw NodeAuthError.createMtlsCustomNetworkClientUnsupportedError();
+                }
+                const bindingCertificate =
+                    this.getMtlsBindingCertificate(request);
+                if (!bindingCertificate) {
+                    throw NodeAuthError.createMtlsBindingCertificateMissingError();
+                }
+                if (!bindingCertificate.privateKey) {
+                    throw NodeAuthError.createMtlsBindingCertificateMissingPrivateKeyError();
+                }
+                tokenEndpoint = authority.getMtlsTokenEndpoint();
+                mtlsCertificate = {
+                    cert: x5cToPem(bindingCertificate.x5c),
+                    key: bindingCertificate.privateKey,
+                };
+            }
+
             const endpoint = UrlString.appendQueryString(
-                authority.tokenEndpoint,
+                tokenEndpoint,
                 queryParametersString
             );
 
@@ -325,7 +406,7 @@ export class ClientCredentialClient extends BaseClient {
             };
 
             this.logger.info(
-                "Sending token request to endpoint: " + authority.tokenEndpoint,
+                "Sending token request to endpoint: " + tokenEndpoint,
                 request.correlationId
             );
 
@@ -335,7 +416,8 @@ export class ClientCredentialClient extends BaseClient {
                 requestBody,
                 headers,
                 thumbprint,
-                request.correlationId
+                request.correlationId,
+                mtlsCertificate
             );
 
             serverTokenResponse = response.body;
@@ -372,7 +454,52 @@ export class ClientCredentialClient extends BaseClient {
             additionalCacheKeyComponents
         );
 
+        // Surface the binding certificate (public material only) on mTLS PoP results.
+        if (
+            tokenResponse &&
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.MTLS_POP
+        ) {
+            this.setBindingCertificateOnResult(tokenResponse, request);
+        }
+
         return tokenResponse;
+    }
+
+    /**
+     * Resolves the certificate used to bind an mTLS Proof-of-Possession request. Precedence:
+     * the request-level `tokenBindingCertificate` (e.g. FIC Leg 2, where the credential is an
+     * assertion) takes priority over the app's configured `clientCertificate`.
+     * @param request - CommonClientCredentialRequest provided by the developer
+     */
+    private getMtlsBindingCertificate(
+        request: CommonClientCredentialRequest
+    ): MtlsBindingCertificate | undefined {
+        return (
+            request.tokenBindingCertificate ??
+            this.config.clientCredentials.mtlsBindingCertificate
+        );
+    }
+
+    /**
+     * Populates `bindingCertificate` (public certificate + SHA-256 thumbprint) on an mTLS PoP
+     * result. The private key is never surfaced — the developer already possesses it.
+     * @param result - AuthenticationResult to augment
+     * @param request - CommonClientCredentialRequest provided by the developer
+     */
+    private setBindingCertificateOnResult(
+        result: AuthenticationResult,
+        request: CommonClientCredentialRequest
+    ): void {
+        const bindingCertificate = this.getMtlsBindingCertificate(request);
+        if (bindingCertificate) {
+            result.bindingCertificate = {
+                x5c: bindingCertificate.x5c,
+                thumbprintSha256:
+                    bindingCertificate.thumbprintSha256 ??
+                    computeX5tSha256(bindingCertificate.x5c),
+            };
+        }
     }
 
     /**
@@ -419,32 +546,59 @@ export class ClientCredentialClient extends BaseClient {
             this.config.cryptoInterface.createNewGuid();
         RequestParameterBuilder.addCorrelationId(parameters, correlationId);
 
-        if (this.config.clientCredentials.clientSecret) {
-            RequestParameterBuilder.addClientSecret(
-                parameters,
-                this.config.clientCredentials.clientSecret
-            );
+        const isMtlsPop =
+            request.authenticationScheme ===
+            Constants.AuthenticationScheme.MTLS_POP;
+
+        /*
+         * In vanilla SNI mTLS PoP the configured certificate authenticates the client at the TLS
+         * layer, so no client_secret / client_assertion is sent in the body. When the credential is
+         * an assertion (e.g. FIC Leg 2) the assertion is still sent and the binding certificate is
+         * supplied separately via request.tokenBindingCertificate.
+         */
+        const useCertAsCredential =
+            isMtlsPop &&
+            !!this.config.clientCredentials.mtlsBindingCertificate &&
+            !request.tokenBindingCertificate;
+
+        if (isMtlsPop) {
+            RequestParameterBuilder.addMtlsPopToken(parameters);
         }
 
-        // Use clientAssertion from request, fallback to client assertion in base configuration
-        const clientAssertion: ClientAssertion | undefined =
-            request.clientAssertion ||
-            this.config.clientCredentials.clientAssertion;
+        if (!useCertAsCredential) {
+            if (this.config.clientCredentials.clientSecret) {
+                RequestParameterBuilder.addClientSecret(
+                    parameters,
+                    this.config.clientCredentials.clientSecret
+                );
+            }
 
-        if (clientAssertion) {
-            RequestParameterBuilder.addClientAssertion(
-                parameters,
-                await getClientAssertion(
-                    clientAssertion.assertion,
-                    this.config.authOptions.clientId,
-                    this.authority.tokenEndpoint,
-                    request.fmiPath
-                )
-            );
-            RequestParameterBuilder.addClientAssertionType(
-                parameters,
-                clientAssertion.assertionType
-            );
+            // Use clientAssertion from request, fallback to client assertion in base configuration
+            const clientAssertion: ClientAssertion | undefined =
+                request.clientAssertion ||
+                this.config.clientCredentials.clientAssertion;
+
+            if (clientAssertion) {
+                RequestParameterBuilder.addClientAssertion(
+                    parameters,
+                    await getClientAssertion(
+                        clientAssertion.assertion,
+                        this.config.authOptions.clientId,
+                        this.authority.tokenEndpoint,
+                        request.fmiPath
+                    )
+                );
+                /*
+                 * FIC Leg 2 over mTLS PoP: the assertion is presented over a certificate-bound
+                 * connection, so the assertion type is jwt-pop rather than the default jwt-bearer.
+                 */
+                RequestParameterBuilder.addClientAssertionType(
+                    parameters,
+                    isMtlsPop
+                        ? NodeConstants.JWT_POP_ASSERTION_TYPE
+                        : clientAssertion.assertionType
+                );
+            }
         }
 
         if (request.fmiPath) {

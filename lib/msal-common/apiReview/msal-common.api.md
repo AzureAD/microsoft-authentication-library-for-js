@@ -262,6 +262,9 @@ function addLoginHint(parameters: Map<string, string>, loginHint: string): void;
 function addLogoutHint(parameters: Map<string, string>, logoutHint: string): void;
 
 // @public
+function addMtlsPopToken(parameters: Map<string, string>): void;
+
+// @public
 function addNativeBroker(parameters: Map<string, string>): void;
 
 // @public
@@ -394,6 +397,10 @@ export type AuthenticationResult = {
     code?: string;
     fromPlatformBroker?: boolean;
     resource?: string;
+    bindingCertificate?: {
+        x5c: string;
+        thumbprintSha256: string;
+    };
 };
 
 // @public
@@ -401,6 +408,7 @@ const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
     readonly SSH: "ssh-cert";
+    readonly MTLS_POP: "mtls_pop";
 };
 
 // @public (undocumented)
@@ -458,6 +466,7 @@ export class Authority {
     discoveryComplete(): boolean;
     get endSessionEndpoint(): string;
     static generateAuthority(authorityString: string, azureCloudOptions?: AzureCloudOptions): string;
+    getMtlsTokenEndpoint(): string;
     getPreferredCache(): string;
     get hostnameAndPort(): string;
     isAlias(host: string): boolean;
@@ -1054,7 +1063,9 @@ declare namespace ClientAuthErrorCodes {
         nestedAppAuthBridgeDisabled,
         platformBrokerError,
         resourceParameterRequired,
-        misplacedResourceParam
+        misplacedResourceParam,
+        mtlsPopUnsupportedCloud,
+        mtlsPopNonTenantedAuthority
     }
 }
 export { ClientAuthErrorCodes }
@@ -1248,6 +1259,10 @@ declare namespace Constants {
         AZURE_REGION_AUTO_DISCOVER_FLAG,
         REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX,
         KNOWN_PUBLIC_CLOUDS,
+        MTLS_AUTH_LOGIN_PREFIX,
+        MTLS_AUTH_HOST_PREFIX,
+        MTLS_AUTH_PUBLIC_CLOUD_HOST,
+        MTLS_UNSUPPORTED_CLOUD_HOSTS,
         SHR_NONCE_VALIDITY,
         INVALID_INSTANCE,
         HTTP_SUCCESS,
@@ -1557,7 +1572,7 @@ const ERROR = "error";
 const ERROR_DESCRIPTION = "error_description";
 
 // @internal
-function executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>, thumbprint: RequestThumbprint, correlationId: string, cacheManager: CacheManager, networkClient: INetworkModule, logger: Logger, performanceClient: IPerformanceClient, serverTelemetryManager: ServerTelemetryManager | null): Promise<NetworkResponse<ServerAuthorizationTokenResponse>>;
+function executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>, thumbprint: RequestThumbprint, correlationId: string, cacheManager: CacheManager, networkClient: INetworkModule, logger: Logger, performanceClient: IPerformanceClient, serverTelemetryManager: ServerTelemetryManager | null, mtlsCertificate?: MtlsCertificate): Promise<NetworkResponse<ServerAuthorizationTokenResponse>>;
 
 // @public (undocumented)
 const EXPIRES_IN = "expires_in";
@@ -2134,6 +2149,37 @@ const missingSshJwk = "missing_ssh_jwk";
 const missingSshKid = "missing_ssh_kid";
 
 // @public (undocumented)
+const MTLS_AUTH_HOST_PREFIX = "mtlsauth.";
+
+// @public
+const MTLS_AUTH_LOGIN_PREFIX = "login.";
+
+// @public (undocumented)
+const MTLS_AUTH_PUBLIC_CLOUD_HOST = "mtlsauth.microsoft.com";
+
+// @public
+const MTLS_UNSUPPORTED_CLOUD_HOSTS: string[];
+
+// @public
+export type MtlsBindingCertificate = {
+    privateKey: string;
+    x5c: string;
+    thumbprintSha256?: string;
+};
+
+// @public
+export type MtlsCertificate = {
+    cert: string;
+    key: string;
+};
+
+// @public (undocumented)
+const mtlsPopNonTenantedAuthority = "mtls_pop_non_tenanted_authority";
+
+// @public (undocumented)
+const mtlsPopUnsupportedCloud = "mtls_pop_unsupported_cloud";
+
+// @public (undocumented)
 const multipleMatchingAppMetadata = "multiple_matching_appMetadata";
 
 // @public (undocumented)
@@ -2197,6 +2243,7 @@ const networkError = "network_error";
 export type NetworkRequestOptions = {
     headers?: Record<string, string>;
     body?: string;
+    mtlsCertificate?: MtlsCertificate;
 };
 
 // @public (undocumented)
@@ -2761,6 +2808,7 @@ declare namespace RequestParameterBuilder {
         addPassword,
         addPopToken,
         addSshJwk,
+        addMtlsPopToken,
         addServerTelemetry,
         addThrottling,
         addLogoutHint,

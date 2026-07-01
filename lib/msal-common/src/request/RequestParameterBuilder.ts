@@ -589,6 +589,20 @@ export function addSshJwk(
 }
 
 /**
+ * Add token_type=mtls_pop to request a mutual-TLS Proof-of-Possession token.
+ *
+ * Unlike `addPopToken` (Signed HTTP Request PoP), no `req_cnf` is sent: the binding is
+ * derived server-side from the client certificate presented on the mutual-TLS handshake
+ * (cnf/x5t#S256). The certificate is attached at the transport layer, not in the request body.
+ */
+export function addMtlsPopToken(parameters: Map<string, string>): void {
+    parameters.set(
+        AADServerParamKeys.TOKEN_TYPE,
+        Constants.AuthenticationScheme.MTLS_POP
+    );
+}
+
+/**
  * add server telemetry fields
  * @param serverTelemetryManager
  * @internal

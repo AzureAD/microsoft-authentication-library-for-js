@@ -45,6 +45,18 @@ export const NodeAuthErrorMessage = {
         code: "redirect_uri_not_supported",
         desc: "RedirectUri is not supported in this scenario. Please remove redirectUri from the request.",
     },
+    mtlsBindingCertificateMissing: {
+        code: "mtls_binding_certificate_missing",
+        desc: "mTLS Proof-of-Possession was requested but no binding certificate is available. Configure a clientCertificate on the application, or supply tokenBindingCertificate on the request.",
+    },
+    mtlsBindingCertificateMissingPrivateKey: {
+        code: "mtls_binding_certificate_missing_private_key",
+        desc: "The certificate used for mTLS Proof-of-Possession is missing its private key. Both x5c (public certificate) and privateKey are required.",
+    },
+    mtlsCustomNetworkClientUnsupported: {
+        code: "mtls_custom_network_client_unsupported",
+        desc: "mTLS Proof-of-Possession requires MSAL's built-in HttpClient to attach the client certificate to the TLS connection. A custom networkClient cannot be used with mtlsProofOfPossession.",
+    },
 };
 
 export class NodeAuthError extends AuthError {
@@ -140,6 +152,38 @@ export class NodeAuthError extends AuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.redirectUriNotSupported.code,
             NodeAuthErrorMessage.redirectUriNotSupported.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when mTLS Proof-of-Possession is requested but no binding certificate
+     * (app clientCertificate or request tokenBindingCertificate) is available.
+     */
+    static createMtlsBindingCertificateMissingError(): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.mtlsBindingCertificateMissing.code,
+            NodeAuthErrorMessage.mtlsBindingCertificateMissing.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when the mTLS binding certificate is missing its private key.
+     */
+    static createMtlsBindingCertificateMissingPrivateKeyError(): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.mtlsBindingCertificateMissingPrivateKey.code,
+            NodeAuthErrorMessage.mtlsBindingCertificateMissingPrivateKey.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when mTLS Proof-of-Possession is requested with a custom networkClient
+     * that cannot attach the client certificate to the outbound TLS connection.
+     */
+    static createMtlsCustomNetworkClientUnsupportedError(): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.mtlsCustomNetworkClientUnsupported.code,
+            NodeAuthErrorMessage.mtlsCustomNetworkClientUnsupported.desc
         );
     }
 }

@@ -138,6 +138,8 @@ export const Constants = {
     MSAL_SKU: "msal.js.node",
     JWT_BEARER_ASSERTION_TYPE:
         "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+    JWT_POP_ASSERTION_TYPE:
+        "urn:ietf:params:oauth:client-assertion-type:jwt-pop",
     AUTHORIZATION_PENDING: "authorization_pending",
     HTTP_PROTOCOL: "http://",
     LOCALHOST: "localhost",

@@ -237,6 +237,83 @@ export class Authority {
         }
     }
 
+    /**
+     * OAuth /token endpoint to use for mutual-TLS Proof-of-Possession (mTLS PoP) requests.
+     *
+     * Rewrites the host of the `tokenEndpoint` from the `login.*` family to the `mtlsauth.*`
+     * family (the endpoint that terminates the client-certificate TLS handshake):
+     * - Global public cloud -> `mtlsauth.microsoft.com`.
+     * - Regional (e.g. `westus3.login.microsoft.com`) -> `westus3.mtlsauth.microsoft.com`. Region is
+     *   optional; the global host is production-ready.
+     * - Any other `login.*` host -> the leading `login.` segment becomes `mtlsauth.`.
+     *
+     * Fails fast for sovereign clouds where the endpoint is not available and for non-tenanted
+     * authorities (`/common`, `/organizations`, `/consumers`), which mTLS PoP does not support.
+     */
+    public getMtlsTokenEndpoint(): string {
+        const tokenEndpoint = this.tokenEndpoint;
+        const host = new UrlString(tokenEndpoint)
+            .getUrlComponents()
+            .HostNameAndPort.toLowerCase();
+
+        if (!Authority.isMtlsSupportedCloud(host)) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.mtlsPopUnsupportedCloud,
+                `mTLS Proof-of-Possession is not supported for cloud host '${host}'.`
+            );
+        }
+
+        const tenant = this.tenant.toLowerCase();
+        if (
+            (Object.values(Constants.AADAuthority) as string[]).includes(tenant)
+        ) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.mtlsPopNonTenantedAuthority,
+                `mTLS Proof-of-Possession requires a tenanted authority; '${tenant}' is not allowed.`
+            );
+        }
+
+        const mtlsHost = Authority.transformToMtlsHost(host);
+        // Replace only the authority host portion (immediately after the scheme) of the endpoint.
+        return tokenEndpoint.replace(`//${host}`, `//${mtlsHost}`);
+    }
+
+    /**
+     * Whether the given `login.*` host belongs to a cloud where mTLS PoP is available.
+     * Isolated so the sovereign-cloud guardrail is trivial to widen as `mtlsauth.*` rolls out.
+     */
+    private static isMtlsSupportedCloud(host: string): boolean {
+        const lower = host.toLowerCase();
+        return !Constants.MTLS_UNSUPPORTED_CLOUD_HOSTS.some(
+            (unsupported) =>
+                lower === unsupported || lower.endsWith(`.${unsupported}`)
+        );
+    }
+
+    /**
+     * Transform a `login.*` token-endpoint host into its `mtlsauth.*` equivalent.
+     */
+    private static transformToMtlsHost(host: string): string {
+        const lower = host.toLowerCase();
+        // Global public-cloud hosts all collapse onto the single global mTLS host.
+        if (Constants.KNOWN_PUBLIC_CLOUDS.includes(lower)) {
+            return Constants.MTLS_AUTH_PUBLIC_CLOUD_HOST;
+        }
+        // Otherwise rewrite the `login.` segment to `mtlsauth.` (handles regional + generic hosts).
+        const idx = lower.indexOf(Constants.MTLS_AUTH_LOGIN_PREFIX);
+        if (idx !== -1) {
+            return (
+                lower.substring(0, idx) +
+                Constants.MTLS_AUTH_HOST_PREFIX +
+                lower.substring(idx + Constants.MTLS_AUTH_LOGIN_PREFIX.length)
+            );
+        }
+        throw createClientAuthError(
+            ClientAuthErrorCodes.mtlsPopUnsupportedCloud,
+            `Cannot derive an mTLS endpoint from token endpoint host '${host}'.`
+        );
+    }
+
     public get deviceCodeEndpoint(): string {
         if (this.discoveryComplete()) {
             return this.replacePath(
