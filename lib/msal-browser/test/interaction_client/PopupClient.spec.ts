@@ -61,6 +61,7 @@ import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
+import * as PopupRelayClient from "../../src/popup_relay/relayClient.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
 import { PopupRequest } from "../../src/request/PopupRequest.js";
@@ -1090,6 +1091,62 @@ describe("PopupClient", () => {
             expect(logoutUriSpy.mock.calls[0][0].state).toBeTruthy();
         });
 
+        it("routes logout through the popup-relay page when popupRelayUri is configured", async () => {
+            (popupClient as any).config.auth.popupRelayUri = "/relay";
+            const logoutUri = TEST_URIS.TEST_END_SESSION_ENDPOINT;
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "getLogoutUri"
+            ).mockReturnValue(logoutUri);
+            const buildSpy = jest
+                .spyOn(PopupRelayClient, "buildPopupRelayUrl")
+                .mockReturnValue("https://localhost/relay#req");
+            const relayResponseSpy = jest
+                .spyOn(PopupRelayClient, "waitForPopupRelayResponse")
+                .mockResolvedValue("state=loggedout");
+            jest.spyOn(PopupClient.prototype, "openSizedPopup").mockReturnValue(
+                {
+                    location: { assign: jest.fn() },
+                    document: {},
+                    close: jest.fn(),
+                } as any
+            );
+
+            await popupClient.logout().catch(() => {});
+
+            // The end-session URL is carried into the relay page as a GET action.
+            expect(buildSpy).toHaveBeenCalledWith(
+                "/relay",
+                expect.any(String),
+                { method: "GET", url: logoutUri },
+                expect.any(String)
+            );
+            expect(relayResponseSpy).toHaveBeenCalled();
+        });
+
+        it("opens the end-session URL directly (no relay) when popupRelayUri is not configured", async () => {
+            (popupClient as any).config.auth.popupRelayUri = undefined;
+            const logoutUri = TEST_URIS.TEST_END_SESSION_ENDPOINT;
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "getLogoutUri"
+            ).mockReturnValue(logoutUri);
+            const buildSpy = jest.spyOn(PopupRelayClient, "buildPopupRelayUrl");
+            const assign = jest.fn();
+            jest.spyOn(PopupClient.prototype, "openSizedPopup").mockReturnValue(
+                {
+                    location: { assign },
+                    document: {},
+                    close: jest.fn(),
+                } as any
+            );
+
+            await popupClient.logout().catch(() => {});
+
+            expect(buildSpy).not.toHaveBeenCalled();
+            expect(assign).toHaveBeenCalledWith(logoutUri);
+        });
+
         it("opens popups when making network request if configured", async () => {
             let pca = new PublicClientApplication({
                 auth: {
@@ -2095,6 +2152,71 @@ describe("PopupClient", () => {
             ]);
             expect(response1).toEqual("code=code1&state=state1");
             expect(response2).toEqual("code=code2&state=state2");
+        });
+    });
+
+    describe("waitForPopupResponse relay precedence", () => {
+        const buildRequest = (): CommonAuthorizationUrlRequest => ({
+            scopes: ["openid"],
+            state: TEST_STATE_VALUES.TEST_STATE_POPUP,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            authority: TEST_CONFIG.validAuthority,
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            responseMode: "fragment",
+            codeChallenge: "challenge",
+            codeChallengeMethod: "S256",
+            nonce: "test-nonce",
+        });
+
+        it("uses the popup-relay path (and tracks the relay popup) over the response hook when popupRelayUri is configured", async () => {
+            const clientImpl = popupClient as any;
+            const hook = jest.fn();
+            clientImpl.config.auth.popupRelayUri = "/relay";
+            clientImpl.waitForPopupResponseHook = hook;
+            const relaySpy = jest
+                .spyOn(PopupRelayClient, "waitForPopupRelayResponse")
+                .mockResolvedValue("code=relayCode");
+
+            const request = buildRequest();
+            const popupWindow = { closed: false } as Window;
+
+            const response = await clientImpl.waitForPopupResponse(
+                request,
+                popupWindow,
+                window
+            );
+
+            expect(response).toEqual("code=relayCode");
+            // The relay popup window must be passed through so its close can be tracked.
+            expect(relaySpy).toHaveBeenCalledWith(
+                expect.any(Number),
+                clientImpl.logger,
+                request,
+                popupWindow,
+                clientImpl.performanceClient
+            );
+            expect(hook).not.toHaveBeenCalled();
+        });
+
+        it("uses the response hook when popupRelayUri is not configured", async () => {
+            const clientImpl = popupClient as any;
+            const hook = jest.fn().mockResolvedValue("code=hookCode");
+            clientImpl.config.auth.popupRelayUri = undefined;
+            clientImpl.waitForPopupResponseHook = hook;
+            const relaySpy = jest.spyOn(
+                PopupRelayClient,
+                "waitForPopupRelayResponse"
+            );
+
+            const response = await clientImpl.waitForPopupResponse(
+                buildRequest(),
+                { closed: false } as Window,
+                window
+            );
+
+            expect(response).toEqual("code=hookCode");
+            expect(hook).toHaveBeenCalledTimes(1);
+            expect(relaySpy).not.toHaveBeenCalled();
         });
     });
 

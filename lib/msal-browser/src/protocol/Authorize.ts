@@ -271,17 +271,22 @@ export async function getAuthCodeRequestUrl(
     return AuthorizeProtocol.getAuthorizeUrl(authority, parameters);
 }
 
+/** Action URL + POST-body fields for a /authorize form submission. */
+export type AuthorizeFormData = {
+    action: string;
+    fields: Record<string, string>;
+};
+
 /**
- * Gets the form that will be posted to /authorize with request parameters when using EAR
+ * Builds the action URL + POST-body fields for the EAR /authorize form.
  */
-export async function getEARForm(
-    frame: Document,
+export async function getEARFormData(
     config: BrowserConfiguration,
     authority: Authority,
     request: CommonAuthorizationUrlRequest,
     logger: Logger,
     performanceClient: IPerformanceClient
-): Promise<HTMLFormElement> {
+): Promise<AuthorizeFormData> {
     if (!request.earJwk) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.earJwkEmpty,
@@ -326,15 +331,15 @@ export async function getEARForm(
         request.correlationId
     );
 
-    const url = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
+    const action = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
 
-    return createForm(frame, url, parameters);
+    return { action, fields: Object.fromEntries(parameters) };
 }
 
 /**
- * Gets the form that will be posted to /authorize with request parameters when using POST method
+ * Gets the form that will be posted to /authorize with request parameters when using EAR
  */
-export async function getCodeForm(
+export async function getEARForm(
     frame: Document,
     config: BrowserConfiguration,
     authority: Authority,
@@ -342,6 +347,26 @@ export async function getCodeForm(
     logger: Logger,
     performanceClient: IPerformanceClient
 ): Promise<HTMLFormElement> {
+    const { action, fields } = await getEARFormData(
+        config,
+        authority,
+        request,
+        logger,
+        performanceClient
+    );
+    return createForm(frame, action, fields);
+}
+
+/**
+ * Builds the action URL + POST-body fields for the auth-code /authorize form.
+ */
+export async function getCodeFormData(
+    config: BrowserConfiguration,
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<AuthorizeFormData> {
     const parameters = await getStandardParameters(
         config,
         authority,
@@ -379,34 +404,58 @@ export async function getCodeForm(
         request.correlationId
     );
 
-    const url = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
+    const action = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
 
-    return createForm(frame, url, parameters);
+    return { action, fields: Object.fromEntries(parameters) };
 }
 
 /**
- * Creates form element in the provided document with auth parameters in the post body
- * @param frame
- * @param authorizeUrl
- * @param parameters
- * @returns
+ * Gets the form that will be posted to /authorize with request parameters when using POST method
  */
-function createForm(
+export async function getCodeForm(
     frame: Document,
-    authorizeUrl: string,
-    parameters: Map<string, string>
+    config: BrowserConfiguration,
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<HTMLFormElement> {
+    const { action, fields } = await getCodeFormData(
+        config,
+        authority,
+        request,
+        logger,
+        performanceClient
+    );
+    return createForm(frame, action, fields);
+}
+
+/**
+ * Creates a POST `<form>` in the provided document with the given auth
+ * parameters as hidden inputs, targeting `action`. Shared by the popup auth
+ * flows (`getEARForm` / `getCodeForm`) and the popup-relay page
+ * (`runPopupRelay`) so the form is built one way only.
+ *
+ * @param frame - document to create the form in
+ * @param action - form action (the /authorize URL)
+ * @param fields - POST-body fields
+ * @internal
+ */
+export function createForm(
+    frame: Document,
+    action: string,
+    fields: Record<string, string>
 ): HTMLFormElement {
     const form = frame.createElement("form");
     form.method = "post";
-    form.action = authorizeUrl;
+    form.action = action;
 
-    parameters.forEach((value: string, key: string) => {
-        const param = frame.createElement("input");
-        param.hidden = true;
-        param.name = key;
-        param.value = value;
-
-        form.appendChild(param);
+    Object.keys(fields).forEach((name) => {
+        const input = frame.createElement("input");
+        input.hidden = true;
+        input.name = name;
+        input.value = fields[name];
+        form.appendChild(input);
     });
 
     frame.body.appendChild(form);
