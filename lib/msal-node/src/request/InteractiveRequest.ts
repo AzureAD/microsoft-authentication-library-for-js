@@ -35,7 +35,7 @@ export type InteractiveRequest = Partial<
     windowHandle?: Buffer; // Relevant only to brokered requests
     /**
      * Custom implementation for a loopback server to listen for authorization code response.
-     * @deprecated Use the built-in LoopbackClient with `preferredPort` instead. This property will be removed in a future major version.
+     * @deprecated Omit this property to use MSAL's built-in loopback server; set `preferredPort` when a fixed port is required. This property will be removed in a future major version.
      */
     loopbackClient?: ILoopbackClient;
     /**

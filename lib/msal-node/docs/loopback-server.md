@@ -68,7 +68,7 @@ If the preferred port is unavailable, the server falls back to a random port aut
 
 ## Custom Loopback Client
 
-> **⚠️ Deprecated:** The `loopbackClient` option is deprecated and will be removed in a future major version. Use `preferredPort` instead for port binding, or the built-in `LoopbackClient` for all other cases.
+> **⚠️ Deprecated:** The `loopbackClient` option is deprecated and will be removed in a future major version. Omit `loopbackClient` to use MSAL's built-in loopback server, and set `preferredPort` when you need a fixed port.
 
 For advanced scenarios, you can provide a custom implementation of the `ILoopbackClient` interface:
 
@@ -90,7 +90,7 @@ The `ILoopbackClient` interface requires three methods:
 ## Security Considerations
 
 - The server binds to `127.0.0.1` only — it is not accessible from other machines
-- No CORS headers are added — cross-origin requests from other browser tabs cannot reach the server
+- No CORS headers are added — while a cross-origin page may still be able to send a request to the loopback address, it cannot read the response, so it cannot obtain the authorization code
 - The server validates HTTP methods (only GET and POST are accepted)
 - The server validates `Content-Type` on POST requests (only `application/x-www-form-urlencoded` is accepted)
 - The server only resolves the authentication promise when a valid OAuth response (`code` or `error`) is received

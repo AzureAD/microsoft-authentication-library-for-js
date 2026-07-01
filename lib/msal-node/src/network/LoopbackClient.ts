@@ -107,12 +107,17 @@ export class LoopbackClient implements ILoopbackClient {
                             );
                         }
                         resolve(authCodeResponse);
+                    } else {
+                        // Non-root POST (no OAuth response expected here) — ignore
+                        res.writeHead(200);
+                        res.end();
                     }
                 }
             );
 
             const port = this.preferredPort || 0;
-            this.server.listen(port, "127.0.0.1");
+            // Register the error handler before listening so an immediate
+            // listen failure (e.g. preferredPort in use) triggers the fallback.
             this.server.on("error", (err: NodeJS.ErrnoException) => {
                 if (
                     err.code === "EADDRINUSE" &&
@@ -125,6 +130,7 @@ export class LoopbackClient implements ILoopbackClient {
                     reject(err);
                 }
             });
+            this.server.listen(port, "127.0.0.1");
         });
     }
 
@@ -146,6 +152,12 @@ export class LoopbackClient implements ILoopbackClient {
         }
 
         let body = "";
+        req.on("error", () => {
+            if (!res.headersSent) {
+                res.writeHead(400);
+            }
+            res.end();
+        });
         req.on("data", (chunk: Buffer) => {
             body += chunk.toString();
         });

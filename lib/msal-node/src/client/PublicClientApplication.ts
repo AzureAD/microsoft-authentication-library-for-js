@@ -164,7 +164,7 @@ export class PublicClientApplication
 
         if (customLoopbackClient) {
             this.logger.warning(
-                "The loopbackClient option is deprecated and will be removed in a future major version. Use the built-in LoopbackClient with preferredPort instead.",
+                "The loopbackClient option is deprecated and will be removed in a future major version. Omit it to use the built-in loopback server, and set preferredPort when a fixed port is required.",
                 correlationId
             );
         }

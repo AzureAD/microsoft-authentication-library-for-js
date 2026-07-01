@@ -162,6 +162,37 @@ describe("LoopbackClient", () => {
             expect(response.code).toBe("real_code");
         });
 
+        it("returns 200 (does not hang) for non-root POST", async () => {
+            loopbackClient = new LoopbackClient();
+            const responsePromise = loopbackClient.listenForAuthCode();
+
+            await waitForServerReady(loopbackClient);
+            const redirectUri = loopbackClient.getRedirectUri();
+            const port = new URL(redirectUri).port;
+
+            // POST to a non-root path must respond (not hang) and must not resolve
+            const statusCode = await makeRequest(
+                Number(port),
+                "POST",
+                "/not-root",
+                "code=abc&state=xyz",
+                "application/x-www-form-urlencoded"
+            );
+            expect(statusCode).toBe(200);
+
+            // Server still works: valid root POST resolves the promise
+            await makeRequest(
+                Number(port),
+                "POST",
+                "/",
+                "code=real_code&state=real_state",
+                "application/x-www-form-urlencoded"
+            );
+
+            const response = await responsePromise;
+            expect(response.code).toBe("real_code");
+        });
+
         it("still handles GET after redirect (backward compat)", async () => {
             loopbackClient = new LoopbackClient();
             const responsePromise =
@@ -184,7 +215,8 @@ describe("LoopbackClient", () => {
 
     describe("preferredPort", () => {
         it("listens on preferred port when available", async () => {
-            const preferredPort = 49876; // Unlikely to be in use
+            // Ask the OS for a free port, then request it as the preferred port
+            const preferredPort = await getFreePort();
             loopbackClient = new LoopbackClient(preferredPort);
             loopbackClient.listenForAuthCode();
 
@@ -194,12 +226,16 @@ describe("LoopbackClient", () => {
         });
 
         it("falls back to random port when preferred port is unavailable", async () => {
-            // Occupy the preferred port first
-            const preferredPort = 49877;
+            // Occupy an OS-assigned port, then use that exact port as preferred
             const blocker = http.createServer();
             await new Promise<void>((resolve) => {
-                blocker.listen(preferredPort, "127.0.0.1", () => resolve());
+                blocker.listen(0, "127.0.0.1", () => resolve());
             });
+            const blockerAddress = blocker.address();
+            const preferredPort =
+                typeof blockerAddress === "object" && blockerAddress
+                    ? blockerAddress.port
+                    : 0;
 
             try {
                 loopbackClient = new LoopbackClient(preferredPort);
@@ -217,6 +253,22 @@ describe("LoopbackClient", () => {
         });
     });
 });
+
+/**
+ * Helper: obtain a free TCP port assigned by the OS
+ */
+async function getFreePort(): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+        const srv = http.createServer();
+        srv.on("error", reject);
+        srv.listen(0, "127.0.0.1", () => {
+            const address = srv.address();
+            const port =
+                typeof address === "object" && address ? address.port : 0;
+            srv.close(() => resolve(port));
+        });
+    });
+}
 
 /**
  * Helper: wait for the loopback server to start listening
