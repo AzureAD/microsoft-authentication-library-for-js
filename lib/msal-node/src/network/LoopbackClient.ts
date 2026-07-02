@@ -116,8 +116,10 @@ export class LoopbackClient implements ILoopbackClient {
             );
 
             const port = this.preferredPort || 0;
-            // Register the error handler before listening so an immediate
-            // listen failure (e.g. preferredPort in use) triggers the fallback.
+            /*
+             * Register the error handler before listening so an immediate
+             * listen failure (e.g. preferredPort in use) triggers the fallback.
+             */
             this.server.on("error", (err: NodeJS.ErrnoException) => {
                 if (
                     err.code === "EADDRINUSE" &&
