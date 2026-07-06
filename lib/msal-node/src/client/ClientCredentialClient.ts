@@ -32,7 +32,7 @@ import {
     getClientAssertion,
     UrlUtils,
 } from "@azure/msal-common/node";
-import { ApiId, Constants as NodeConstants } from "../utils/Constants.js";
+import { ApiId } from "../utils/Constants.js";
 import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
@@ -86,7 +86,7 @@ export class ClientCredentialClient extends BaseClient {
              * missing binding certificate / private key) before consulting the cache, so a cached
              * token is never returned for a request that could not be satisfied over mTLS.
              */
-            const bindingCertificate = this.validateMtlsPopRequest(request);
+            const bindingCertificate = this.validateMtlsPopRequest();
             additionalCacheKeyComponents = {
                 ...(additionalCacheKeyComponents ?? {}),
                 mtls_pop_cert_thumbprint:
@@ -256,7 +256,7 @@ export class ClientCredentialClient extends BaseClient {
             request.authenticationScheme ===
             Constants.AuthenticationScheme.MTLS_POP
         ) {
-            this.setBindingCertificateOnResult(cachedResult, request);
+            this.setBindingCertificateOnResult(cachedResult);
         }
 
         return [cachedResult, lastCacheOutcome];
@@ -371,7 +371,7 @@ export class ClientCredentialClient extends BaseClient {
             let tokenEndpoint = authority.tokenEndpoint;
 
             if (isMtlsPop) {
-                const bindingCertificate = this.validateMtlsPopRequest(request);
+                const bindingCertificate = this.validateMtlsPopRequest();
                 tokenEndpoint = authority.getMtlsTokenEndpoint();
                 mtlsCertificate = {
                     cert: x5cToPem(bindingCertificate.x5c),
@@ -454,7 +454,7 @@ export class ClientCredentialClient extends BaseClient {
             request.authenticationScheme ===
                 Constants.AuthenticationScheme.MTLS_POP
         ) {
-            this.setBindingCertificateOnResult(tokenResponse, request);
+            this.setBindingCertificateOnResult(tokenResponse);
         }
 
         return tokenResponse;
@@ -466,15 +466,13 @@ export class ClientCredentialClient extends BaseClient {
      * networkClient cannot present a client certificate), and a binding certificate with a private
      * key must be resolvable. Returns the resolved binding certificate so callers can reuse it
      * (e.g. for cache-key isolation and the TLS handshake).
-     * @param request - CommonClientCredentialRequest provided by the developer
      */
-    private validateMtlsPopRequest(
-        request: CommonClientCredentialRequest
-    ): MtlsBindingCertificate {
+    private validateMtlsPopRequest(): MtlsBindingCertificate {
         if (!(this.networkClient instanceof HttpClient)) {
             throw NodeAuthError.createMtlsCustomNetworkClientUnsupportedError();
         }
-        const bindingCertificate = this.getMtlsBindingCertificate(request);
+        const bindingCertificate =
+            this.config.clientCredentials.mtlsBindingCertificate;
         if (!bindingCertificate) {
             throw NodeAuthError.createMtlsBindingCertificateMissingError();
         }
@@ -485,31 +483,13 @@ export class ClientCredentialClient extends BaseClient {
     }
 
     /**
-     * Resolves the certificate used to bind an mTLS Proof-of-Possession request. Precedence:
-     * the request-level `tokenBindingCertificate` (e.g. FIC Leg 2, where the credential is an
-     * assertion) takes priority over the app's configured `clientCertificate`.
-     * @param request - CommonClientCredentialRequest provided by the developer
-     */
-    private getMtlsBindingCertificate(
-        request: CommonClientCredentialRequest
-    ): MtlsBindingCertificate | undefined {
-        return (
-            request.tokenBindingCertificate ??
-            this.config.clientCredentials.mtlsBindingCertificate
-        );
-    }
-
-    /**
      * Populates `bindingCertificate` (public certificate + SHA-256 thumbprint) on an mTLS PoP
      * result. The private key is never surfaced — the developer already possesses it.
      * @param result - AuthenticationResult to augment
-     * @param request - CommonClientCredentialRequest provided by the developer
      */
-    private setBindingCertificateOnResult(
-        result: AuthenticationResult,
-        request: CommonClientCredentialRequest
-    ): void {
-        const bindingCertificate = this.getMtlsBindingCertificate(request);
+    private setBindingCertificateOnResult(result: AuthenticationResult): void {
+        const bindingCertificate =
+            this.config.clientCredentials.mtlsBindingCertificate;
         if (bindingCertificate) {
             result.bindingCertificate = {
                 x5c: bindingCertificate.x5c,
@@ -574,15 +554,11 @@ export class ClientCredentialClient extends BaseClient {
             Constants.AuthenticationScheme.MTLS_POP;
 
         /*
-         * In vanilla SNI mTLS PoP the configured certificate authenticates the client at the TLS
-         * layer, so no client_secret / client_assertion is sent in the body. When the credential is
-         * an assertion (e.g. FIC Leg 2) the assertion is still sent and the binding certificate is
-         * supplied separately via request.tokenBindingCertificate.
+         * In SNI mTLS PoP the configured certificate authenticates the client at the TLS layer, so
+         * no client_secret / client_assertion is sent in the body.
          */
         const useCertAsCredential =
-            isMtlsPop &&
-            !!this.config.clientCredentials.mtlsBindingCertificate &&
-            !request.tokenBindingCertificate;
+            isMtlsPop && !!this.config.clientCredentials.mtlsBindingCertificate;
 
         if (isMtlsPop) {
             RequestParameterBuilder.addMtlsPopToken(parameters);
@@ -611,19 +587,9 @@ export class ClientCredentialClient extends BaseClient {
                         request.fmiPath
                     )
                 );
-                /*
-                 * FIC Leg 2 over mTLS PoP: the assertion is presented over a certificate-bound
-                 * connection, signalled by request.tokenBindingCertificate, so the assertion type
-                 * is jwt-pop rather than the default jwt-bearer. For any other assertion credential
-                 * the caller-supplied assertion type is preserved.
-                 */
-                const isFicLegTwo =
-                    isMtlsPop && !!request.tokenBindingCertificate;
                 RequestParameterBuilder.addClientAssertionType(
                     parameters,
-                    isFicLegTwo
-                        ? NodeConstants.JWT_POP_ASSERTION_TYPE
-                        : clientAssertion.assertionType
+                    clientAssertion.assertionType
                 );
             }
         }

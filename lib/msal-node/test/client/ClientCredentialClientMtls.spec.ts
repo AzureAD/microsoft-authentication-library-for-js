@@ -45,14 +45,6 @@ const APP_CERT: MtlsBindingCertificate = {
         "-----BEGIN PRIVATE KEY-----\nsni-private-key\n-----END PRIVATE KEY-----\n",
 };
 
-// A distinct binding cert supplied on the request (FIC Leg 2), decoupled from the credential.
-const BINDING_CERT: MtlsBindingCertificate = {
-    x5c: Buffer.from("leg1-binding-cert-der-bytes").toString("base64"),
-    privateKey:
-        "-----BEGIN PRIVATE KEY-----\nleg1-private-key\n-----END PRIVATE KEY-----\n",
-    thumbprintSha256: "EXPLICIT-LEG1-THUMBPRINT",
-};
-
 const MTLS_POP_TOKEN_RESPONSE: ServerAuthorizationTokenResponse = {
     token_type: Constants.AuthenticationScheme.MTLS_POP,
     expires_in: 3599,
@@ -210,69 +202,6 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
             expect(JSON.stringify(result.bindingCertificate)).not.toContain(
                 "PRIVATE KEY"
             );
-        });
-    });
-
-    describe("FIC Leg 2 (assertion credential + tokenBindingCertificate)", () => {
-        const legTwoRequest = (): CommonClientCredentialRequest => ({
-            authority: TENANTED_AUTHORITY,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            authenticationScheme: Constants.AuthenticationScheme.MTLS_POP,
-            clientAssertion: {
-                assertion: "leg1-federated-assertion-jwt",
-                assertionType:
-                    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-            },
-            tokenBindingCertificate: BINDING_CERT,
-        });
-
-        it("keeps the assertion in the body and marks it as jwt-pop", async () => {
-            // No app clientCertificate — the credential is the assertion, cert comes from the request.
-            const { config, postSpy } = await buildMtlsConfig({});
-            const client = new ClientCredentialClient(config);
-
-            await client.acquireToken(legTwoRequest());
-
-            const body = postSpy.mock.calls[0][1]?.body as string;
-            expect(body).toContain(
-                "client_assertion=leg1-federated-assertion-jwt"
-            );
-            expect(body).toContain(
-                `client_assertion_type=${encodeURIComponent(
-                    "urn:ietf:params:oauth:client-assertion-type:jwt-pop"
-                )}`
-            );
-            expect(body).toContain(
-                `token_type=${encodeURIComponent("mtls_pop")}`
-            );
-        });
-
-        it("presents the request binding certificate (not an app cert) on the TLS connection", async () => {
-            const { config, postSpy } = await buildMtlsConfig({});
-            const client = new ClientCredentialClient(config);
-
-            await client.acquireToken(legTwoRequest());
-
-            const mtlsCertificate = postSpy.mock.calls[0][1]?.mtlsCertificate;
-            expect(mtlsCertificate).toEqual({
-                cert: x5cToPem(BINDING_CERT.x5c),
-                key: BINDING_CERT.privateKey,
-            });
-        });
-
-        it("binds the result to the request binding certificate thumbprint", async () => {
-            const { config } = await buildMtlsConfig({});
-            const client = new ClientCredentialClient(config);
-
-            const result = (await client.acquireToken(
-                legTwoRequest()
-            )) as AuthenticationResult;
-
-            expect(result.bindingCertificate).toEqual({
-                x5c: BINDING_CERT.x5c,
-                thumbprintSha256: BINDING_CERT.thumbprintSha256,
-            });
         });
     });
 

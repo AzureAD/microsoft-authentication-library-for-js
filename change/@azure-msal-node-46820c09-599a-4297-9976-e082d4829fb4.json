@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add mTLS Proof-of-Possession support for confidential clients: opt in per request with mtlsProofOfPossession to use an SN/I certificate as the client TLS certificate and obtain an mtls_pop token bound to that certificate. Includes the tokenBindingCertificate request field for the two-leg Federated Identity Credential (FIC) flow and result.bindingCertificate on the response [#8693](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8693)",
+  "comment": "Add mTLS Proof-of-Possession support for confidential clients: opt in per request with mtlsProofOfPossession to use an SN/I certificate as the client TLS certificate and obtain an mtls_pop token bound to that certificate, exposed on result.bindingCertificate [#8693](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8693)",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"

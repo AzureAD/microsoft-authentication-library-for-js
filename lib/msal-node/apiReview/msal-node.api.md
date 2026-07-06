@@ -56,7 +56,6 @@ import { ISerializableTokenCache } from '@azure/msal-common/node';
 import { Logger } from '@azure/msal-common/node';
 import { LoggerOptions } from '@azure/msal-common/node';
 import { LogLevel } from '@azure/msal-common/node';
-import { MtlsBindingCertificate } from '@azure/msal-common/node';
 import { NetworkRequestOptions } from '@azure/msal-common/node';
 import { NetworkResponse } from '@azure/msal-common/node';
 import { PkceCodes } from '@azure/msal-common/node';
