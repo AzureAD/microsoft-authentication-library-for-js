@@ -68,7 +68,9 @@ async function startServer(): Promise<{
         res.end(route.body);
     });
 
-    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    await new Promise<void>((resolve) =>
+        server.listen(0, "127.0.0.1", resolve)
+    );
     const address = server.address() as { port: number };
 
     return {
@@ -118,7 +120,9 @@ describe("decode-logs script - standalone (remote) use case", () => {
     });
 
     it("extractFileFromTarball extracts a file from a gzipped tarball buffer", async () => {
-        const content = JSON.stringify({ logStrings: { abc123: "hello world" } });
+        const content = JSON.stringify({
+            logStrings: { abc123: "hello world" },
+        });
         const tarball = makeTarGz([
             { name: "package/dist/log-strings-mapping.json", content },
         ]);
@@ -205,6 +209,65 @@ describe("decode-logs script - standalone (remote) use case", () => {
         // On a hash collision, the own-package string wins over the dependency's.
         expect(result.logStrings.shared).toBe("browser-shared");
     });
+
+    it("fetchRemoteMapping extracts the lib/custom-auth-path mapping from a remote tarball", async () => {
+        // Isolate the on-disk cache to a temp home directory. The decoder reads
+        // the cache dir via `require("os").homedir()`, so the spy must target
+        // that same module singleton rather than the `import * as os` namespace
+        // copy (which ts-jest creates and which a plain spy would not affect).
+        const tempHome = fs.mkdtempSync(
+            path.join(os.tmpdir(), "msal-decoder-home-")
+        );
+        tempDirs.push(tempHome);
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        jest.spyOn(require("os"), "homedir").mockReturnValue(tempHome);
+
+        server = await startServer();
+        const base = server.base;
+
+        // msal-browser publishes a second mapping file under
+        // lib/custom-auth-path in addition to dist. The standalone (remote)
+        // flow must locate and merge both from the tarball.
+        const browserTarball = makeTarGz([
+            {
+                name: "package/dist/log-strings-mapping.json",
+                content: JSON.stringify({
+                    logStrings: { aaaaaa: "browser-core" },
+                }),
+            },
+            {
+                name: "package/lib/custom-auth-path/log-strings-mapping.json",
+                content: JSON.stringify({
+                    logStrings: { cccccc: "custom-auth-message" },
+                }),
+            },
+        ]);
+
+        server.setRoutes({
+            "/@azure/msal-browser": {
+                body: JSON.stringify({
+                    versions: {
+                        "1.0.0": {
+                            dist: { tarball: `${base}/browser-tarball` },
+                            dependencies: {},
+                        },
+                    },
+                }),
+            },
+            "/browser-tarball": { body: browserTarball },
+        });
+
+        const result = await decoder.fetchRemoteMapping(
+            "@azure/msal-browser",
+            "1.0.0",
+            base
+        );
+
+        expect(result).not.toBeNull();
+        expect(result.logStrings.aaaaaa).toBe("browser-core");
+        // The custom-auth-path mapping is extracted and merged from the tarball.
+        expect(result.logStrings.cccccc).toBe("custom-auth-message");
+    });
 });
 
 describe("decode-logs script - in-house (local) use case", () => {
@@ -262,7 +325,10 @@ describe("decode-logs script - in-house (local) use case", () => {
             JSON.stringify({ logStrings: { xxxxxx: "local-message" } })
         );
 
-        const mapping = decoder.loadLocalMapping("@azure/msal-browser", scriptDir);
+        const mapping = decoder.loadLocalMapping(
+            "@azure/msal-browser",
+            scriptDir
+        );
 
         expect(mapping).not.toBeNull();
         expect(mapping.logStrings.xxxxxx).toBe("local-message");
@@ -277,6 +343,12 @@ describe("decode-logs script - in-house (local) use case", () => {
         const allLines = [line];
 
         const mappings = {
+            // The own module@version mapping exists but does not contain the
+            // hash, so the decoder must fall back to searching the other
+            // package mappings to resolve it.
+            "@azure/msal-browser@1.0.0": {
+                logStrings: {},
+            },
             "@azure/msal-common@2.0.0": {
                 logStrings: { aaaaaa: "resolved from msal-common" },
             },
