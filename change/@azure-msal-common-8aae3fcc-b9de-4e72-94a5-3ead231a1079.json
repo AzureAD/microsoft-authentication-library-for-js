@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add mTLS Proof-of-Possession (mtls_pop) support: MTLS_POP authentication scheme, mtls token endpoint transform on Authority, addMtlsPopToken request parameter, mtlsCertificate network option, MtlsBindingCertificate credential, and bindingCertificate on AuthenticationResult",
+  "comment": "Add mTLS Proof-of-Possession (mtls_pop) support: MTLS_POP authentication scheme, mtls token endpoint transform on Authority, addMtlsPopToken request parameter, mtlsCertificate network option, MtlsBindingCertificate credential, and bindingCertificate on AuthenticationResult [#8693](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8693)",
   "packageName": "@azure/msal-common",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"

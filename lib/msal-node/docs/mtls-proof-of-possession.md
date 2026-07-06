@@ -23,9 +23,9 @@ const cca = new msal.ConfidentialClientApplication({
         clientId: process.env.CLIENT_ID,
         authority: `https://login.microsoftonline.com/${process.env.TENANT_ID}`,
         clientCertificate: {
-            thumbprintSha256: process.env.thumbprint,
-            privateKey: process.env.privateKey,
-            x5c: process.env.x5c,
+            thumbprintSha256: process.env.CLIENT_CERTIFICATE_THUMBPRINT_SHA_256,
+            privateKey: process.env.CLIENT_CERTIFICATE_PRIVATE_KEY,
+            x5c: process.env.CLIENT_CERTIFICATE_X5C,
         },
     },
 });

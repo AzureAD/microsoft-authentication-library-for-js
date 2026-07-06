@@ -21,7 +21,11 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
 } from "../test_kit/StringConstants.js";
-import { ClientTestUtils, MockStorageClass, mockCrypto } from "./ClientTestUtils.js";
+import {
+    ClientTestUtils,
+    MockStorageClass,
+    mockCrypto,
+} from "./ClientTestUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
@@ -163,7 +167,9 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
             await client.acquireToken(baseRequest());
 
             const body = postSpy.mock.calls[0][1]?.body as string;
-            expect(body).toContain(`token_type=${encodeURIComponent("mtls_pop")}`);
+            expect(body).toContain(
+                `token_type=${encodeURIComponent("mtls_pop")}`
+            );
             // The certificate authenticates via TLS: no secret or assertion in the body.
             expect(body).not.toContain("client_secret");
             expect(body).not.toContain("client_assertion");
@@ -201,9 +207,9 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
                 thumbprintSha256: computeX5tSha256(APP_CERT.x5c),
             });
             // The private key is never returned to the caller.
-            expect(
-                JSON.stringify(result.bindingCertificate)
-            ).not.toContain("PRIVATE KEY");
+            expect(JSON.stringify(result.bindingCertificate)).not.toContain(
+                "PRIVATE KEY"
+            );
         });
     });
 
@@ -215,7 +221,8 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
             authenticationScheme: Constants.AuthenticationScheme.MTLS_POP,
             clientAssertion: {
                 assertion: "leg1-federated-assertion-jwt",
-                assertionType: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                assertionType:
+                    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
             },
             tokenBindingCertificate: BINDING_CERT,
         });
@@ -228,13 +235,17 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
             await client.acquireToken(legTwoRequest());
 
             const body = postSpy.mock.calls[0][1]?.body as string;
-            expect(body).toContain("client_assertion=leg1-federated-assertion-jwt");
+            expect(body).toContain(
+                "client_assertion=leg1-federated-assertion-jwt"
+            );
             expect(body).toContain(
                 `client_assertion_type=${encodeURIComponent(
                     "urn:ietf:params:oauth:client-assertion-type:jwt-pop"
                 )}`
             );
-            expect(body).toContain(`token_type=${encodeURIComponent("mtls_pop")}`);
+            expect(body).toContain(
+                `token_type=${encodeURIComponent("mtls_pop")}`
+            );
         });
 
         it("presents the request binding certificate (not an app cert) on the TLS connection", async () => {
@@ -323,9 +334,39 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
                     authenticationScheme:
                         Constants.AuthenticationScheme.MTLS_POP,
                 })
-            ).rejects.toThrow(
-                /mtls_binding_certificate_missing_private_key/
+            ).rejects.toThrow(/mtls_binding_certificate_missing_private_key/);
+        });
+
+        it("validates mTLS configuration before any cache lookup (fails fast on cache hits)", async () => {
+            const { config } = await buildMtlsConfig({
+                mtlsBindingCertificate: APP_CERT,
+            });
+            /*
+             * Reconfigure with a custom (non-HttpClient) network client, which cannot present a
+             * client certificate. Even if a matching mtls_pop token were cached, the request must
+             * fail fast rather than return an unusable token, so the cache is never consulted.
+             */
+            config.networkInterface = mockNetworkClient(
+                DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
             );
+            const client = new ClientCredentialClient(config);
+            const cacheSpy = jest.spyOn(
+                client,
+                "getCachedAuthenticationResult"
+            );
+
+            await expect(
+                client.acquireToken({
+                    authority: TENANTED_AUTHORITY,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    authenticationScheme:
+                        Constants.AuthenticationScheme.MTLS_POP,
+                })
+            ).rejects.toThrow(/mtls_custom_network_client_unsupported/);
+
+            expect(cacheSpy).not.toHaveBeenCalled();
         });
     });
 
@@ -357,4 +398,3 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
         });
     });
 });
-

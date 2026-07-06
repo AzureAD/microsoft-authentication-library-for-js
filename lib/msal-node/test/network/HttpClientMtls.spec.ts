@@ -78,11 +78,17 @@ function mockHttpsRequest(
 
 describe("HttpClient mTLS path", () => {
     let httpClient: HttpClient;
+    const originalFetch = global.fetch;
 
     beforeEach(() => {
         httpClient = new HttpClient();
         mockedAgent.mockClear();
         mockedRequest.mockClear();
+    });
+
+    afterEach(() => {
+        // Restore fetch so the global stub installed by individual tests cannot leak between tests.
+        global.fetch = originalFetch;
     });
 
     it("routes POST through https.request when mtlsCertificate is present", async () => {
