@@ -1122,12 +1122,28 @@ describe("PublicClientApplication", () => {
             ).rejects.toThrow("RedirectUri is not supported in this scenario");
         });
 
-        test("acquireTokenInteractive throws invalid_response_mode for unsupported responseMode", async () => {
+        test("acquireTokenInteractive throws invalid_response_mode for fragment responseMode", async () => {
             const authApp = new PublicClientApplication(appConfig);
             const request: InteractiveRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 openBrowser: jest.fn(),
                 responseMode: CommonConstants.ResponseMode.FRAGMENT,
+            };
+
+            await expect(
+                authApp.acquireTokenInteractive(request)
+            ).rejects.toMatchObject({
+                errorCode: ClientConfigurationErrorCodes.invalidResponseMode,
+            });
+        });
+
+        test("acquireTokenInteractive throws invalid_response_mode for an unrecognized responseMode", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                openBrowser: jest.fn(),
+                responseMode:
+                    "unsupported_mode" as InteractiveRequest["responseMode"],
             };
 
             await expect(
