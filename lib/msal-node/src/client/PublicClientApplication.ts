@@ -22,6 +22,8 @@ import {
     ServerTelemetryManager,
     AuthorizationCodePayload,
     enforceResourceParameter,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common/node";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
@@ -216,7 +218,10 @@ export class PublicClientApplication
             responseMode !== CommonConstants.ResponseMode.QUERY &&
             responseMode !== CommonConstants.ResponseMode.FORM_POST
         ) {
-            throw NodeAuthError.createInvalidResponseModeError(correlationId);
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidResponseMode,
+                correlationId
+            );
         }
 
         let authCodeResponse: AuthorizeResponse = {};

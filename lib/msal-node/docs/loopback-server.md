@@ -12,19 +12,9 @@ The loopback server is a core component of `msal-node`'s interactive authenticat
 
 ## Response Modes
 
-The loopback server supports two response modes that control how the authorization code is delivered:
+The loopback server supports two response modes that control how the authorization code is delivered. `form_post` is the preferred mode and will become the default in a future major version; `query` remains the default in v5 for backward compatibility.
 
-### `query` (default in v5)
-
-The authorization code is delivered as a query parameter in a GET request:
-
-```
-GET /?code=AUTH_CODE&state=STATE HTTP/1.1
-```
-
-The server performs a 302 redirect to clear the authorization code from the browser's URL bar and history.
-
-### `form_post`
+### `form_post` (preferred)
 
 The authorization code is delivered in a POST body:
 
@@ -35,10 +25,7 @@ Content-Type: application/x-www-form-urlencoded
 code=AUTH_CODE&state=STATE
 ```
 
-This mode is more secure because:
-- The authorization code never appears in the URL bar
-- The code is not stored in browser history
-- The code cannot leak through the HTTP `Referer` header
+With `form_post`, the authorization code is kept out of the URL entirely — it never appears in the URL bar, is not stored in browser history, and cannot leak through the HTTP `Referer` header. This is the recommended mode for new applications and will be mandated in a future major version.
 
 To opt in to `form_post`:
 
@@ -49,6 +36,20 @@ const result = await pca.acquireTokenInteractive({
     responseMode: "form_post",
 });
 ```
+
+### `query` (default in v5)
+
+The authorization code is delivered as a query parameter in a GET request:
+
+```
+GET /?code=AUTH_CODE&state=STATE HTTP/1.1
+```
+
+The server performs a 302 redirect to remove the authorization code from the browser's URL bar and history. This remains the default in v5 for backward compatibility, but `form_post` is preferred going forward.
+
+### Unsupported response modes
+
+Only `query` and `form_post` are supported for the interactive loopback flow. Any other value (for example `fragment`) throws a `ClientConfigurationError` with the code `invalid_response_mode`. `fragment` cannot be used because URL fragments are never sent to the HTTP server, which would cause the flow to hang until it times out.
 
 ## Preferred Port
 

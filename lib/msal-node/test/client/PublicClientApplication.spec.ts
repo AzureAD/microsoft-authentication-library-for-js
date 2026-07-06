@@ -38,6 +38,7 @@ import {
     CacheManager,
     CommonSilentFlowRequest,
     AccountEntityUtils,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -1119,6 +1120,21 @@ describe("PublicClientApplication", () => {
             await expect(
                 authApp.acquireTokenInteractive(request)
             ).rejects.toThrow("RedirectUri is not supported in this scenario");
+        });
+
+        test("acquireTokenInteractive throws invalid_response_mode for unsupported responseMode", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                openBrowser: jest.fn(),
+                responseMode: CommonConstants.ResponseMode.FRAGMENT,
+            };
+
+            await expect(
+                authApp.acquireTokenInteractive(request)
+            ).rejects.toMatchObject({
+                errorCode: ClientConfigurationErrorCodes.invalidResponseMode,
+            });
         });
 
         test("acquireTokenInteractive resets redirectUri when broker fallback occurs", async () => {

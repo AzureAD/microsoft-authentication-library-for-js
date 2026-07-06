@@ -105,9 +105,10 @@ describe("LoopbackClient", () => {
             const redirectUri = loopbackClient.getRedirectUri();
             const port = new URL(redirectUri).port;
 
-            const statusCode = await makeRequest(Number(port), "PUT", "/");
-
-            expect(statusCode).toBe(405);
+            for (const method of ["PUT", "DELETE", "PATCH"]) {
+                const statusCode = await makeRequest(Number(port), method, "/");
+                expect(statusCode).toBe(405);
+            }
         });
 
         it("does not resolve promise for requests without OAuth params", async () => {
