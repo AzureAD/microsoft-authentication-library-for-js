@@ -305,7 +305,8 @@ describe("OnBehalfOf unit tests", () => {
 
             const idTokenClaims = AuthToken.extractTokenClaims(
                 TEST_TOKENS.IDTOKEN_V2,
-                EncodingUtils.base64Decode
+                EncodingUtils.base64Decode,
+                ""
             );
             const expectedAccountEntity: AccountEntity =
                 AccountEntityUtils.createAccountEntity(
@@ -313,7 +314,8 @@ describe("OnBehalfOf unit tests", () => {
                         homeAccountId: "123-test-uid.456-test-uid",
                         idTokenClaims: idTokenClaims,
                     },
-                    config.authOptions.authority
+                    config.authOptions.authority,
+                    ""
                 );
 
             const mockIdTokenCached = jest
@@ -346,7 +348,7 @@ describe("OnBehalfOf unit tests", () => {
                 oboRequest
             )) as AuthenticationResult;
             expect(authResult.scopes).toEqual(
-                ScopeSet.fromString(testAccessTokenEntity.target).asArray()
+                ScopeSet.fromString(testAccessTokenEntity.target, "").asArray()
             );
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.accessToken).toEqual(

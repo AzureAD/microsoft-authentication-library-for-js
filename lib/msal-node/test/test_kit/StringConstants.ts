@@ -194,16 +194,18 @@ const ADDITIONAL_CLAIM = '"additional_claim":{"key":"value"}';
 const NBF_CLAIM = '"nbf":{"essential":true,"value":"1701477303"}';
 const NEW_CLAIM = '"new_claim":{"new_key":"new_value"}';
 const XMS_CC_CLAIM = '"xms_cc":{"values":["cp1","cp2"]}';
+const DEFAULT_ID_TOKEN_CLAIMS =
+    '"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}';
 export const CAE_CONSTANTS = {
     CLIENT_CAPABILITIES: ["cp1", "cp2"],
     EMPTY_CLAIMS: "{}",
-    MERGED_EMPTY_CLAIMS: `{"access_token":{${XMS_CC_CLAIM}}}`,
+    MERGED_EMPTY_CLAIMS: `{${DEFAULT_ID_TOKEN_CLAIMS},"access_token":{${XMS_CC_CLAIM}}}`,
     CLAIMS_WITH_ADDITIONAL_CLAIMS: `{"access_token":{${NBF_CLAIM},${ADDITIONAL_CLAIM}}}`,
-    MERGED_CLAIMS_WITH_ADDITIONAL_CLAIMS: `{"access_token":{${NBF_CLAIM},${ADDITIONAL_CLAIM},${XMS_CC_CLAIM}}}`,
+    MERGED_CLAIMS_WITH_ADDITIONAL_CLAIMS: `{"access_token":{${NBF_CLAIM},${ADDITIONAL_CLAIM},${XMS_CC_CLAIM}},${DEFAULT_ID_TOKEN_CLAIMS}}`,
     CLAIMS_WITH_ADDITIONAL_KEY: `{"access_token":{${NBF_CLAIM},${ADDITIONAL_CLAIM},${NEW_CLAIM}},"some_other_key":{${NBF_CLAIM},${ADDITIONAL_CLAIM},${NEW_CLAIM}}}`,
-    MERGED_CLAIMS_WITH_ADDITIONAL_KEY: `{"access_token":{${NBF_CLAIM},${ADDITIONAL_CLAIM},${NEW_CLAIM},${XMS_CC_CLAIM}},"some_other_key":{${NBF_CLAIM},${ADDITIONAL_CLAIM},${NEW_CLAIM}}}`,
+    MERGED_CLAIMS_WITH_ADDITIONAL_KEY: `{"access_token":{${NBF_CLAIM},${ADDITIONAL_CLAIM},${NEW_CLAIM},${XMS_CC_CLAIM}},"some_other_key":{${NBF_CLAIM},${ADDITIONAL_CLAIM},${NEW_CLAIM}},${DEFAULT_ID_TOKEN_CLAIMS}}`,
     CLAIM_WITH_ADDITIONAL_KEY_AND_ACCESS_KEY: `{"some_other_key":{${NBF_CLAIM},${ADDITIONAL_CLAIM},${NEW_CLAIM}},"access_token":{${NBF_CLAIM},${ADDITIONAL_CLAIM},${NEW_CLAIM}}}`,
-    MERGED_CLAIM_WITH_ADDITIONAL_KEY_AND_ACCESS_KEY: `{"some_other_key":{${NBF_CLAIM},${ADDITIONAL_CLAIM},${NEW_CLAIM}},"access_token":{${NBF_CLAIM},${ADDITIONAL_CLAIM},${NEW_CLAIM},${XMS_CC_CLAIM}}}`,
+    MERGED_CLAIM_WITH_ADDITIONAL_KEY_AND_ACCESS_KEY: `{"some_other_key":{${NBF_CLAIM},${ADDITIONAL_CLAIM},${NEW_CLAIM}},"access_token":{${NBF_CLAIM},${ADDITIONAL_CLAIM},${NEW_CLAIM},${XMS_CC_CLAIM}},${DEFAULT_ID_TOKEN_CLAIMS}}`,
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";

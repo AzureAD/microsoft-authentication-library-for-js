@@ -93,7 +93,8 @@ export class ConfidentialClientApplication
             (clientSecretNotEmpty && certificateNotEmpty)
         ) {
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.invalidClientCredential
+                NodeClientAuthErrorCodes.invalidClientCredential,
+                ""
             );
         }
 
@@ -110,7 +111,8 @@ export class ConfidentialClientApplication
 
         if (!certificateNotEmpty) {
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.invalidClientCredential
+                NodeClientAuthErrorCodes.invalidClientCredential,
+                ""
             );
         } else {
             this.clientAssertion = !!this.config.auth.clientCertificate
@@ -194,7 +196,10 @@ export class ConfidentialClientApplication
          * valid request should not have "common" or "organizations" in lieu of the tenant_id in the authority in the auth configuration
          * example authority: "https://login.microsoftonline.com/TenantId",
          */
-        const authority = new UrlString(validRequest.authority);
+        const authority = new UrlString(
+            validRequest.authority,
+            validRequest.correlationId
+        );
         const tenantId = authority.getUrlComponents().PathSegments[0];
         if (
             Object.values(Constants.AADAuthority).includes(
@@ -202,7 +207,8 @@ export class ConfidentialClientApplication
             )
         ) {
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.missingTenantIdError
+                NodeClientAuthErrorCodes.missingTenantIdError,
+                validRequest.correlationId
             );
         }
 
@@ -257,7 +263,7 @@ export class ConfidentialClientApplication
             return await clientCredentialClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(validRequest.correlationId);
+                e.correlationId = validRequest.correlationId;
             }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
@@ -307,7 +313,7 @@ export class ConfidentialClientApplication
             return await oboClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(validRequest.correlationId);
+                e.correlationId = validRequest.correlationId;
             }
             throw e;
         }
@@ -332,19 +338,22 @@ export class ConfidentialClientApplication
         // Validate that exactly one user identifier is provided
         if (request.userObjectId && request.username) {
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.conflictingUserIdentifiers
+                NodeClientAuthErrorCodes.conflictingUserIdentifiers,
+                request.correlationId || ""
             );
         }
         if (!request.userObjectId && !request.username) {
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.missingUserIdentifier
+                NodeClientAuthErrorCodes.missingUserIdentifier,
+                request.correlationId || ""
             );
         }
 
         // Validate that the assertion is not empty
         if (!request.assertion) {
             throw createClientAuthError(
-                NodeClientAuthErrorCodes.emptyFicAssertion
+                NodeClientAuthErrorCodes.emptyFicAssertion,
+                request.correlationId || ""
             );
         }
 
@@ -396,7 +405,7 @@ export class ConfidentialClientApplication
             return await ficClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(validRequest.correlationId);
+                e.correlationId = validRequest.correlationId;
             }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;

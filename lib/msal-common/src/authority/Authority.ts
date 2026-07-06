@@ -180,7 +180,7 @@ export class Authority {
      * Sets canonical authority.
      */
     public set canonicalAuthority(url: string) {
-        this._canonicalAuthority = new UrlString(url);
+        this._canonicalAuthority = new UrlString(url, this.correlationId);
         this._canonicalAuthority.validateAsUri();
         this._canonicalAuthorityUrlComponents = null;
     }
@@ -219,7 +219,8 @@ export class Authority {
             return this.replacePath(this.metadata.authorization_endpoint);
         } else {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
             );
         }
     }
@@ -232,7 +233,8 @@ export class Authority {
             return this.replacePath(this.metadata.token_endpoint);
         } else {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
             );
         }
     }
@@ -252,13 +254,14 @@ export class Authority {
      */
     public getMtlsTokenEndpoint(): string {
         const tokenEndpoint = this.tokenEndpoint;
-        const host = new UrlString(tokenEndpoint)
+        const host = new UrlString(tokenEndpoint, this.correlationId)
             .getUrlComponents()
             .HostNameAndPort.toLowerCase();
 
         if (!Authority.isMtlsSupportedCloud(host)) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.mtlsPopUnsupportedCloud,
+                this.correlationId,
                 `mTLS Proof-of-Possession is not supported for cloud host '${host}'.`
             );
         }
@@ -269,11 +272,15 @@ export class Authority {
         ) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.mtlsPopNonTenantedAuthority,
+                this.correlationId,
                 `mTLS Proof-of-Possession requires a tenanted authority; '${tenant}' is not allowed.`
             );
         }
 
-        const mtlsHost = Authority.transformToMtlsHost(host);
+        const mtlsHost = Authority.transformToMtlsHost(
+            host,
+            this.correlationId
+        );
         // Replace only the authority host portion (immediately after the scheme) of the endpoint.
         return tokenEndpoint.replace(`//${host}`, `//${mtlsHost}`);
     }
@@ -293,7 +300,10 @@ export class Authority {
     /**
      * Transform a `login.*` token-endpoint host into its `mtlsauth.*` equivalent.
      */
-    private static transformToMtlsHost(host: string): string {
+    private static transformToMtlsHost(
+        host: string,
+        correlationId: string
+    ): string {
         const lower = host.toLowerCase();
         // Global public-cloud hosts all collapse onto the single global mTLS host.
         if (Constants.KNOWN_PUBLIC_CLOUDS.includes(lower)) {
@@ -310,6 +320,7 @@ export class Authority {
         }
         throw createClientAuthError(
             ClientAuthErrorCodes.mtlsPopUnsupportedCloud,
+            correlationId,
             `Cannot derive an mTLS endpoint from token endpoint host '${host}'.`
         );
     }
@@ -321,7 +332,8 @@ export class Authority {
             );
         } else {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
             );
         }
     }
@@ -334,13 +346,15 @@ export class Authority {
             // ROPC policies may not have end_session_endpoint set
             if (!this.metadata.end_session_endpoint) {
                 throw createClientAuthError(
-                    ClientAuthErrorCodes.endSessionEndpointNotSupported
+                    ClientAuthErrorCodes.endSessionEndpointNotSupported,
+                    this.correlationId
                 );
             }
             return this.replacePath(this.metadata.end_session_endpoint);
         } else {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
             );
         }
     }
@@ -353,7 +367,8 @@ export class Authority {
             return this.replacePath(this.metadata.issuer);
         } else {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
             );
         }
     }
@@ -366,7 +381,8 @@ export class Authority {
             return this.replacePath(this.metadata.jwks_uri);
         } else {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
             );
         }
     }
@@ -402,7 +418,8 @@ export class Authority {
     private replacePath(urlString: string): string {
         let endpoint = urlString;
         const cachedAuthorityUrl = new UrlString(
-            this.metadata.canonical_authority
+            this.metadata.canonical_authority,
+            this.correlationId
         );
         const cachedAuthorityUrlComponents =
             cachedAuthorityUrl.getUrlComponents();
@@ -417,7 +434,8 @@ export class Authority {
                 this.canReplaceTenant(cachedAuthorityUrlComponents)
             ) {
                 const tenantId = new UrlString(
-                    this.metadata.authorization_endpoint
+                    this.metadata.authorization_endpoint,
+                    this.correlationId
                 ).getUrlComponents().PathSegments[0];
                 /**
                  * Check if AAD canonical authority contains tenant domain name, for example "testdomain.onmicrosoft.com",
@@ -648,7 +666,8 @@ export class Authority {
             // Metadata could not be obtained from the config, cache, network or hardcoded values
             throw createClientAuthError(
                 ClientAuthErrorCodes.openIdConfigError,
-                this.defaultOpenIdConfigurationEndpoint
+                this.defaultOpenIdConfigurationEndpoint,
+                this.correlationId
             );
         }
     }
@@ -736,7 +755,8 @@ export class Authority {
         metadataEntity: AuthorityMetadataEntity
     ): boolean {
         const cachedAuthorityUrl = new UrlString(
-            metadataEntity.canonical_authority
+            metadataEntity.canonical_authority,
+            this.correlationId
         );
         const cachedParts = cachedAuthorityUrl.getUrlComponents().PathSegments;
 
@@ -757,7 +777,8 @@ export class Authority {
                 ) as OpenIdConfigResponse;
             } catch (e) {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.invalidAuthorityMetadata
+                    ClientConfigurationErrorCodes.invalidAuthorityMetadata,
+                    this.correlationId
                 );
             }
         }
@@ -842,7 +863,8 @@ export class Authority {
                     userConfiguredAzureRegion;
                 return Authority.replaceWithRegionalInformation(
                     metadata,
-                    userConfiguredAzureRegion
+                    userConfiguredAzureRegion,
+                    this.correlationId
                 );
             }
 
@@ -865,7 +887,8 @@ export class Authority {
                     autodetectedRegionName;
                 return Authority.replaceWithRegionalInformation(
                     metadata,
-                    autodetectedRegionName
+                    autodetectedRegionName,
+                    this.correlationId
                 );
             }
 
@@ -911,7 +934,8 @@ export class Authority {
 
         // Metadata could not be obtained from the config, cache, network or hardcoded values
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.untrustedAuthority
+            ClientConfigurationErrorCodes.untrustedAuthority,
+            this.correlationId
         );
     }
 
@@ -1055,7 +1079,8 @@ export class Authority {
                     this.correlationId
                 );
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata
+                    ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata,
+                    this.correlationId
                 );
             }
         }
@@ -1197,8 +1222,10 @@ export class Authority {
             (authority) => {
                 return (
                     authority &&
-                    UrlString.getDomainFromUrl(authority).toLowerCase() ===
-                        normalizedHost
+                    UrlString.getDomainFromUrl(
+                        authority,
+                        this.correlationId
+                    ).toLowerCase() === normalizedHost
                 );
             }
         );
@@ -1255,7 +1282,8 @@ export class Authority {
             return this.metadata.preferred_cache;
         } else {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
             );
         }
     }
@@ -1303,7 +1331,8 @@ export class Authority {
     private validateIssuer(issuer: string): void {
         if (!issuer) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.issuerValidationFailed
+                ClientConfigurationErrorCodes.issuerValidationFailed,
+                this.correlationId
             );
         }
 
@@ -1313,7 +1342,8 @@ export class Authority {
             issuerUrl = new URL(issuer);
         } catch {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.issuerValidationFailed
+                ClientConfigurationErrorCodes.issuerValidationFailed,
+                this.correlationId
             );
         }
         const issuerScheme = issuerUrl.protocol;
@@ -1378,7 +1408,8 @@ export class Authority {
 
         // issuer validation fails if none of the above rules are satisfied
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.issuerValidationFailed
+            ClientConfigurationErrorCodes.issuerValidationFailed,
+            this.correlationId
         );
     }
 
@@ -1493,10 +1524,11 @@ export class Authority {
     static buildRegionalAuthorityString(
         host: string,
         region: string,
+        correlationId: string,
         queryString?: string
     ): string {
         // Create and validate a Url string object with the initial authority string
-        const authorityUrlInstance = new UrlString(host);
+        const authorityUrlInstance = new UrlString(host, correlationId);
         authorityUrlInstance.validateAsUri();
 
         const authorityUrlParts = authorityUrlInstance.getUrlComponents();
@@ -1508,10 +1540,13 @@ export class Authority {
         }
 
         // Include the query string portion of the url
-        const url = UrlString.constructAuthorityUriFromObject({
-            ...authorityUrlInstance.getUrlComponents(),
-            HostNameAndPort: hostNameAndPort,
-        }).urlString;
+        const url = UrlString.constructAuthorityUriFromObject(
+            {
+                ...authorityUrlInstance.getUrlComponents(),
+                HostNameAndPort: hostNameAndPort,
+            },
+            correlationId
+        ).urlString;
 
         // Add the query string if a query string was provided
         if (queryString) return `${url}?${queryString}`;
@@ -1527,26 +1562,30 @@ export class Authority {
      */
     static replaceWithRegionalInformation(
         metadata: OpenIdConfigResponse,
-        azureRegion: string
+        azureRegion: string,
+        correlationId: string
     ): OpenIdConfigResponse {
         const regionalMetadata = { ...metadata };
         regionalMetadata.authorization_endpoint =
             Authority.buildRegionalAuthorityString(
                 regionalMetadata.authorization_endpoint,
-                azureRegion
+                azureRegion,
+                correlationId
             );
 
         regionalMetadata.token_endpoint =
             Authority.buildRegionalAuthorityString(
                 regionalMetadata.token_endpoint,
-                azureRegion
+                azureRegion,
+                correlationId
             );
 
         if (regionalMetadata.end_session_endpoint) {
             regionalMetadata.end_session_endpoint =
                 Authority.buildRegionalAuthorityString(
                     regionalMetadata.end_session_endpoint,
-                    azureRegion
+                    azureRegion,
+                    correlationId
                 );
         }
 
@@ -1562,9 +1601,12 @@ export class Authority {
      *
      * @param authority
      */
-    static transformCIAMAuthority(authority: string): string {
+    static transformCIAMAuthority(
+        authority: string,
+        correlationId: string
+    ): string {
         let ciamAuthority = authority;
-        const authorityUrl = new UrlString(authority);
+        const authorityUrl = new UrlString(authority, correlationId);
         const authorityUrlComponents = authorityUrl.getUrlComponents();
 
         // check if transformation is needed
@@ -1587,9 +1629,10 @@ export class Authority {
  * Extract tenantId from authority
  */
 export function getTenantFromAuthorityString(
-    authority: string
+    authority: string,
+    correlationId: string
 ): string | undefined {
-    const authorityUrl = new UrlString(authority);
+    const authorityUrl = new UrlString(authority, correlationId);
     const authorityUrlComponents = authorityUrl.getUrlComponents();
     /**
      * For credential matching purposes, tenantId is the last path segment of the authority URL:
@@ -1629,7 +1672,8 @@ export function buildStaticAuthorityOptions(
             cloudDiscoveryMetadata = JSON.parse(rawCloudDiscoveryMetadata);
         } catch (e) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata
+                ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata,
+                ""
             );
         }
     }

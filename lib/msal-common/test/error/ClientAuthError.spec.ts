@@ -10,7 +10,7 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         const code =
             ClientAuthErrorCodes[key as keyof typeof ClientAuthErrorCodes];
         it(`ClientAuthError object can be created for code ${code}`, () => {
-            const err: ClientAuthError = createClientAuthError(code);
+            const err: ClientAuthError = createClientAuthError(code, "");
 
             const message = getDefaultErrorMessage(code);
             expect(message).toBeTruthy();
@@ -25,4 +25,12 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
             expect(err.stack?.includes("ClientAuthError.spec.ts")).toBe(true);
         });
     }
+
+    it("createClientAuthError sets correlationId when provided", () => {
+        const TEST_CORRELATION_ID = "test-correlation-id";
+        const code = ClientAuthErrorCodes.noAccountFound;
+        const err = createClientAuthError(code, TEST_CORRELATION_ID);
+        expect(err.correlationId).toBe(TEST_CORRELATION_ID);
+        expect(err.errorCode).toBe(code);
+    });
 });

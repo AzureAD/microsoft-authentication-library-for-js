@@ -43,7 +43,8 @@ export class FetchClient implements INetworkModule {
                 createBrowserAuthError(
                     window.navigator.onLine
                         ? BrowserAuthErrorCodes.getRequestFailed
-                        : BrowserAuthErrorCodes.noNetworkConnectivity
+                        : BrowserAuthErrorCodes.noNetworkConnectivity,
+                    ""
                 ),
                 undefined,
                 undefined,
@@ -62,7 +63,8 @@ export class FetchClient implements INetworkModule {
         } catch (e) {
             throw createNetworkError(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.failedToParseResponse
+                    BrowserAuthErrorCodes.failedToParseResponse,
+                    ""
                 ),
                 responseStatus,
                 responseHeaders,
@@ -98,7 +100,8 @@ export class FetchClient implements INetworkModule {
                 createBrowserAuthError(
                     window.navigator.onLine
                         ? BrowserAuthErrorCodes.postRequestFailed
-                        : BrowserAuthErrorCodes.noNetworkConnectivity
+                        : BrowserAuthErrorCodes.noNetworkConnectivity,
+                    ""
                 ),
                 undefined,
                 undefined,
@@ -117,7 +120,8 @@ export class FetchClient implements INetworkModule {
         } catch (e) {
             throw createNetworkError(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.failedToParseResponse
+                    BrowserAuthErrorCodes.failedToParseResponse,
+                    ""
                 ),
                 responseStatus,
                 responseHeaders,
@@ -144,7 +148,10 @@ function getFetchHeaders(options?: NetworkRequestOptions): Headers {
         return headers;
     } catch (e) {
         throw createNetworkError(
-            createBrowserAuthError(BrowserAuthErrorCodes.failedToBuildHeaders),
+            createBrowserAuthError(
+                BrowserAuthErrorCodes.failedToBuildHeaders,
+                ""
+            ),
             undefined,
             undefined,
             e as Error
@@ -166,7 +173,8 @@ function getHeaderDict(headers: Headers): Record<string, string> {
         return headerDict;
     } catch (e) {
         throw createBrowserAuthError(
-            BrowserAuthErrorCodes.failedToParseHeaders
+            BrowserAuthErrorCodes.failedToParseHeaders,
+            ""
         );
     }
 }

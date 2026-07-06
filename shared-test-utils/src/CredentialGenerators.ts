@@ -52,6 +52,7 @@ export function buildAccountInfoFromIdTokenClaims(
                     homeAccountId,
                     oid || "",
                     tenantId,
+                    undefined,
                     idTokenClaims
                 ),
             ],
@@ -65,6 +66,7 @@ export function buildAccountInfoFromIdTokenClaims(
                 accountInfo.homeAccountId,
                 accountInfo.localAccountId,
                 guestTenantId,
+                undefined,
                 guestIdTokenClaims
             )
         );

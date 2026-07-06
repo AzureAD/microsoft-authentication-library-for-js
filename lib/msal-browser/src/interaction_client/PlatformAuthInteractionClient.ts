@@ -266,7 +266,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         return {
             authority: request.authority,
             correlationId: this.correlationId,
-            scopes: ScopeSet.fromString(request.scope).asArray(),
+            scopes: ScopeSet.fromString(
+                request.scope,
+                this.correlationId
+            ).asArray(),
             account: cachedAccount,
             forceRefresh: false,
         };
@@ -287,7 +290,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 "NativeInteractionClient:acquireTokensFromCache - No nativeAccountId provided",
                 this.correlationId
             );
-            throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.noAccountFound,
+                this.correlationId
+            );
         }
         // fetch the account from browser cache
         const account = this.browserStorage.getBaseAccountInfo(
@@ -298,7 +304,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         if (!account) {
-            throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.noAccountFound,
+                this.correlationId
+            );
         }
 
         // leverage silent flow for cached tokens retrieval
@@ -320,7 +329,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
             const idTokenClaims = AuthToken.extractTokenClaims(
                 idToken?.secret || "",
-                base64Decode
+                base64Decode,
+                this.correlationId
             );
 
             const fullAccount = updateAccountTenantProfileData(
@@ -395,7 +405,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const redirectUri = navigateToLoginRequestUrl
             ? UrlString.getAbsoluteUrl(
                   request.redirectStartPage || window.location.href,
-                  getCurrentUri()
+                  getCurrentUri(),
+                  this.correlationId
               )
             : getRedirectUri(
                   request.redirectUri,
@@ -522,7 +533,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // generate identifiers
         const idTokenClaims = AuthToken.extractTokenClaims(
             response.id_token,
-            base64Decode
+            base64Decode,
+            this.correlationId
         );
 
         const homeAccountIdentifier = this.createHomeAccountIdentifier(
@@ -552,7 +564,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             response.account.id !== request.accountId
         ) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
-            throw createNativeAuthError(NativeAuthErrorCodes.userSwitch);
+            throw createNativeAuthError(
+                NativeAuthErrorCodes.userSwitch,
+                this.correlationId
+            );
         }
 
         // Get the preferred_cache domain for the given authority
@@ -640,8 +655,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      */
     generateScopes(requestScopes: string, responseScopes?: string): ScopeSet {
         return responseScopes
-            ? ScopeSet.fromString(responseScopes)
-            : ScopeSet.fromString(requestScopes);
+            ? ScopeSet.fromString(responseScopes, this.correlationId)
+            : ScopeSet.fromString(requestScopes, this.correlationId);
     }
 
     /**
@@ -689,7 +704,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
              * PopTokenGenerator to query the full key for signing
              */
             if (!request.keyId) {
-                throw createClientAuthError(ClientAuthErrorCodes.keyIdMissing);
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.keyIdMissing,
+                    this.correlationId
+                );
             }
             return popTokenGenerator.signPopToken(
                 response.access_token,
@@ -751,6 +769,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
          */
         if (accountInfo.nativeAccountId !== response.account.id) {
             accountInfo.nativeAccountId = response.account.id;
+            // Also update the matching tenant profile (source of truth)
+            const targetTenantId = tid || accountInfo.tenantId;
+            const tenantProfile =
+                accountInfo.tenantProfiles?.get(targetTenantId);
+            if (tenantProfile) {
+                tenantProfile.nativeAccountId = response.account.id;
+            }
         }
 
         // generate PoP token as needed
@@ -861,6 +886,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 tokenExpirationSeconds,
                 0,
                 base64Decode,
+                request.correlationId,
                 undefined,
                 request.tokenType as Constants.AuthenticationScheme,
                 undefined,
@@ -994,16 +1020,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
         const { scopes, claims, ...remainingProperties } = request;
-        const scopeSet = new ScopeSet(scopes || []);
+        const scopeSet = new ScopeSet(scopes || [], this.correlationId);
         scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
 
-        const mergedClaims =
-            configClaims && configClaims.length
-                ? RequestParameterBuilder.addClientCapabilitiesToClaims(
-                      claims,
-                      configClaims
-                  )
-                : claims;
+        const mergedClaims = RequestParameterBuilder.buildMergedClaims(
+            claims,
+            configClaims?.length ? configClaims : undefined
+        );
 
         const validatedRequest: PlatformAuthRequest = {
             ...remainingProperties,
@@ -1032,7 +1055,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
         if (validatedRequest.signPopToken && !!request.popKid) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.invalidPopTokenRequest
+                BrowserAuthErrorCodes.invalidPopTokenRequest,
+                this.correlationId
             );
         }
 
@@ -1110,7 +1134,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             );
         }
 
-        const canonicalAuthority = new UrlString(requestAuthority);
+        const canonicalAuthority = new UrlString(
+            requestAuthority,
+            this.correlationId
+        );
         canonicalAuthority.validateAsUri();
         return canonicalAuthority;
     }
@@ -1154,7 +1181,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     this.correlationId
                 );
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.nativePromptNotSupported
+                    BrowserAuthErrorCodes.nativePromptNotSupported,
+                    this.correlationId
                 );
         }
     }

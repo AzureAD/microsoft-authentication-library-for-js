@@ -97,7 +97,11 @@ export function getRedirectUri(
 ): string {
     logger.verbose("getRedirectUri called", correlationId);
     const redirectUri = requestRedirectUri || clientConfigRedirectUri || "";
-    return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
+    return UrlString.getAbsoluteUrl(
+        redirectUri,
+        BrowserUtils.getCurrentUri(),
+        correlationId
+    );
 }
 
 /**
@@ -189,7 +193,7 @@ export async function getDiscoveredAuthority(
     const userAuthority =
         account && resolvedInstanceAware
             ? config.auth.authority.replace(
-                  UrlString.getDomainFromUrl(resolvedAuthority),
+                  UrlString.getDomainFromUrl(resolvedAuthority, correlationId),
                   account.environment
               )
             : resolvedAuthority;
@@ -217,7 +221,8 @@ export async function getDiscoveredAuthority(
 
     if (account && !discoveredAuthority.isAlias(account.environment)) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.authorityMismatch
+            ClientConfigurationErrorCodes.authorityMismatch,
+            correlationId
         );
     }
 

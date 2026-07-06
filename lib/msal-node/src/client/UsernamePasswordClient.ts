@@ -137,7 +137,11 @@ export class UsernamePasswordClient extends BaseClient {
         RequestParameterBuilder.addUsername(parameters, request.username);
         RequestParameterBuilder.addPassword(parameters, request.password);
 
-        RequestParameterBuilder.addScopes(parameters, request.scopes);
+        RequestParameterBuilder.addScopes(
+            parameters,
+            request.scopes,
+            request.correlationId
+        );
 
         RequestParameterBuilder.addResponseType(
             parameters,
@@ -204,6 +208,7 @@ export class UsernamePasswordClient extends BaseClient {
         ) {
             RequestParameterBuilder.addClaims(
                 parameters,
+                request.correlationId,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );

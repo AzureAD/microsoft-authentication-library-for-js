@@ -75,7 +75,7 @@ export class NestedAppAuthAdapter {
 
         const correlationId =
             request.correlationId || this.crypto.createNewGuid();
-        const claims = RequestParameterBuilder.addClientCapabilitiesToClaims(
+        const claims = RequestParameterBuilder.buildMergedClaims(
             request.claims,
             this.clientCapabilities
         );
@@ -104,7 +104,10 @@ export class NestedAppAuthAdapter {
         reqTimestamp: number
     ): AuthenticationResult {
         if (!response.token.id_token || !response.token.access_token) {
-            throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.nullOrEmptyToken,
+                request.correlationId
+            );
         }
 
         // Request timestamp and AuthResult expires_in are in seconds, converting to Date for AuthenticationResult
@@ -113,7 +116,8 @@ export class NestedAppAuthAdapter {
         );
         const idTokenClaims = AuthToken.extractTokenClaims(
             response.token.id_token,
-            this.crypto.base64Decode
+            this.crypto.base64Decode,
+            request.correlationId
         );
         const account = this.fromNaaAccountInfo(
             response.account,
@@ -196,7 +200,8 @@ export class NestedAppAuthAdapter {
         const environment = fromAccount.environment;
         if (!environment) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.invalidCacheEnvironment
+                ClientAuthErrorCodes.invalidCacheEnvironment,
+                ""
             );
         }
 
@@ -225,6 +230,7 @@ export class NestedAppAuthAdapter {
             homeAccountId,
             localAccountId,
             tenantId,
+            fromAccount.platformBrokerId,
             effectiveIdTokenClaims
         );
         tenantProfiles.set(tenantId, tenantProfile);
@@ -239,6 +245,7 @@ export class NestedAppAuthAdapter {
             loginHint,
             idToken: idToken,
             idTokenClaims: effectiveIdTokenClaims,
+            nativeAccountId: fromAccount.platformBrokerId,
             tenantProfiles,
         };
 
@@ -262,39 +269,57 @@ export class NestedAppAuthAdapter {
             switch (error.status) {
                 case BridgeStatusCode.UserCancel:
                     return new ClientAuthError(
-                        ClientAuthErrorCodes.userCanceled
+                        ClientAuthErrorCodes.userCanceled,
+                        ""
                     );
                 case BridgeStatusCode.NoNetwork:
                     return new ClientAuthError(
-                        ClientAuthErrorCodes.noNetworkConnectivity
+                        ClientAuthErrorCodes.noNetworkConnectivity,
+                        ""
                     );
                 case BridgeStatusCode.AccountUnavailable:
                     return new ClientAuthError(
-                        ClientAuthErrorCodes.noAccountFound
+                        ClientAuthErrorCodes.noAccountFound,
+                        ""
                     );
                 case BridgeStatusCode.Disabled:
                     return new ClientAuthError(
-                        ClientAuthErrorCodes.nestedAppAuthBridgeDisabled
+                        ClientAuthErrorCodes.nestedAppAuthBridgeDisabled,
+                        ""
                     );
                 case BridgeStatusCode.NestedAppAuthUnavailable:
                     return new ClientAuthError(
                         error.code ||
                             ClientAuthErrorCodes.nestedAppAuthBridgeDisabled,
+                        "",
                         error.description
                     );
                 case BridgeStatusCode.TransientError:
                 case BridgeStatusCode.PersistentError:
-                    return new ServerError(error.code, error.description);
+                    return new ServerError(
+                        error.code || "",
+                        "",
+                        error.description
+                    );
                 case BridgeStatusCode.UserInteractionRequired:
                     return new InteractionRequiredAuthError(
-                        error.code,
+                        error.code || "",
+                        "",
                         error.description
                     );
                 default:
-                    return new AuthError(error.code, error.description);
+                    return new AuthError(
+                        error.code || "",
+                        "",
+                        error.description
+                    );
             }
         } else {
-            return new AuthError("unknown_error", "An unknown error occurred");
+            return new AuthError(
+                "unknown_error",
+                "",
+                "An unknown error occurred"
+            );
         }
     }
 
@@ -315,12 +340,16 @@ export class NestedAppAuthAdapter {
         correlationId: string
     ): AuthenticationResult {
         if (!idToken || !accessToken) {
-            throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.nullOrEmptyToken,
+                correlationId
+            );
         }
 
         const idTokenClaims = AuthToken.extractTokenClaims(
             idToken.secret,
-            this.crypto.base64Decode
+            this.crypto.base64Decode,
+            correlationId
         );
 
         const scopes = accessToken.target || request.scopes.join(" ");

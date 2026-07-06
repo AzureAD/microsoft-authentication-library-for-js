@@ -1,8 +1,26 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 16 Jun 2026 19:46:35 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 30 Jun 2026 21:04:20 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.3.1
+
+Tue, 30 Jun 2026 21:04:20 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.11.0
+
+## 5.3.0
+
+Tue, 23 Jun 2026 22:19:30 GMT
+
+### Minor changes
+
+- Add Federated Managed Identity (FMI) and User Federated Identity Credential (user_fic) grant type support. Also fixes a long-standing bug where the tokenEndpoint field on ClientAssertionConfig was incorrectly populated with resourceRequestUri during client-credential flows; it now correctly contains the AAD token endpoint. [#8614](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8614) (avdunn@microsoft.com)
+- Make correlationId a required parameter on NodeAuthError and ManagedIdentityError, [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609) (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v16.10.0
 
 ## 5.2.5
 

@@ -54,10 +54,18 @@ export function getAccountInfo(accountEntity: AccountEntity): AccountInfo {
             buildTenantProfile(
                 accountEntity.homeAccountId,
                 accountEntity.localAccountId,
-                accountEntity.realm
+                accountEntity.realm,
+                accountEntity.nativeAccountId
             )
         );
     }
+    // Resolve nativeAccountId from the home tenant profile first, fall back to top-level (deprecated) for old cache entries
+    const homeTenantProfile = tenantProfiles.find(
+        (tp) => tp.tenantId === accountEntity.realm
+    );
+    const nativeAccountId =
+        homeTenantProfile?.nativeAccountId || accountEntity.nativeAccountId;
+
     return {
         homeAccountId: accountEntity.homeAccountId,
         environment: accountEntity.environment,
@@ -66,7 +74,7 @@ export function getAccountInfo(accountEntity: AccountEntity): AccountInfo {
         localAccountId: accountEntity.localAccountId,
         loginHint: accountEntity.loginHint,
         name: accountEntity.name,
-        nativeAccountId: accountEntity.nativeAccountId,
+        nativeAccountId: nativeAccountId,
         authorityType: accountEntity.authorityType,
         // Deserialize tenant profiles array into a Map
         tenantProfiles: new Map(
@@ -103,6 +111,7 @@ export function createAccountEntity(
         tenantProfiles?: Array<TenantProfile>;
     },
     authority: Authority,
+    correlationId: string,
     base64Decode?: (input: string) => string
 ): AccountEntity {
     let authorityType;
@@ -130,7 +139,8 @@ export function createAccountEntity(
 
     if (!env) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.invalidCacheEnvironment
+            ClientAuthErrorCodes.invalidCacheEnvironment,
+            correlationId
         );
     }
 
@@ -168,6 +178,7 @@ export function createAccountEntity(
             accountDetails.homeAccountId,
             localAccountId,
             realm,
+            accountDetails.nativeAccountId,
             accountDetails.idTokenClaims
         );
         tenantProfiles = [tenantProfile];
@@ -221,9 +232,18 @@ export function createAccountEntityFromAccountInfo(
                 accountInfo.homeAccountId,
                 accountInfo.localAccountId,
                 accountInfo.tenantId,
+                accountInfo.nativeAccountId,
                 accountInfo.idTokenClaims
             )
         );
+    } else if (accountInfo.nativeAccountId) {
+        // Ensure nativeAccountId is set on the matching tenant profile
+        const matchingProfile = tenantProfiles.find(
+            (tp) => tp.tenantId === accountInfo.tenantId
+        );
+        if (matchingProfile && !matchingProfile.nativeAccountId) {
+            matchingProfile.nativeAccountId = accountInfo.nativeAccountId;
+        }
     }
     return {
         authorityType:

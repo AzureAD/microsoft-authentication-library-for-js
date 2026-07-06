@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add FMI cache key isolation and FIC grant type support (constants, cache infrastructure, assertion context) [#8614](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8614)",
-  "packageName": "@azure/msal-common",
-  "email": "avdunn@microsoft.com",
-  "dependentChangeType": "patch"
-}

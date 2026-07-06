@@ -77,6 +77,10 @@ export class StubPerformanceClient implements IPerformanceClient {
         return;
     }
 
+    addGlobalFields(): void {
+        return;
+    }
+
     incrementFields(): void {
         return;
     }

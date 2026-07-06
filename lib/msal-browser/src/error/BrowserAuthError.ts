@@ -15,8 +15,13 @@ export function getDefaultErrorMessage(code: string): string {
  * Browser library error class thrown by the MSAL.js library for SPAs
  */
 export class BrowserAuthError extends AuthError {
-    constructor(errorCode: string, subError?: string) {
-        super(errorCode, getDefaultErrorMessage(errorCode), subError);
+    constructor(errorCode: string, correlationId: string, subError?: string) {
+        super(
+            errorCode,
+            correlationId,
+            getDefaultErrorMessage(errorCode),
+            subError
+        );
 
         Object.setPrototypeOf(this, BrowserAuthError.prototype);
         this.name = "BrowserAuthError";
@@ -25,7 +30,8 @@ export class BrowserAuthError extends AuthError {
 
 export function createBrowserAuthError(
     errorCode: string,
+    correlationId: string,
     subError?: string
 ): BrowserAuthError {
-    return new BrowserAuthError(errorCode, subError);
+    return new BrowserAuthError(errorCode, correlationId, subError);
 }

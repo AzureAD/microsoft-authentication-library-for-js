@@ -69,6 +69,10 @@ export type BaseAuthRequest = {
     azureCloudOptions?: AzureCloudOptions;
     /**
      * Maximum allowed age, in milliseconds, of the user's authentication before a new sign-in is required.
+     * @deprecated This option no longer has any effect and will be removed in a future major version.
+     * MSAL does not validate the authentication age of returned tokens. To enforce the OIDC `max_age`
+     * parameter, send it via `extraQueryParameters` and validate the `auth_time` claim of the returned
+     * token yourself.
      */
     maxAge?: number;
     /**
@@ -130,13 +134,15 @@ export function enforceResourceParameter(
             containsResourceParam(request.extraQueryParameters))
     ) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.misplacedResourceParam
+            ClientAuthErrorCodes.misplacedResourceParam,
+            request.correlationId || ""
         );
     }
 
     if (!request.resource) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.resourceParameterRequired
+            ClientAuthErrorCodes.resourceParameterRequired,
+            request.correlationId || ""
         );
     }
 }

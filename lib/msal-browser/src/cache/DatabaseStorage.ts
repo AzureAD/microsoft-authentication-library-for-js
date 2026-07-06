@@ -65,7 +65,8 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             openDB.addEventListener("error", () =>
                 reject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.databaseUnavailable
+                        BrowserAuthErrorCodes.databaseUnavailable,
+                        ""
                     )
                 )
             );
@@ -104,7 +105,8 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             if (!this.db) {
                 return reject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.databaseNotOpen
+                        BrowserAuthErrorCodes.databaseNotOpen,
+                        ""
                     )
                 );
             }
@@ -140,7 +142,8 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             if (!this.db) {
                 return reject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.databaseNotOpen
+                        BrowserAuthErrorCodes.databaseNotOpen,
+                        ""
                     )
                 );
             }
@@ -175,7 +178,8 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             if (!this.db) {
                 return reject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.databaseNotOpen
+                        BrowserAuthErrorCodes.databaseNotOpen,
+                        ""
                     )
                 );
             }
@@ -208,7 +212,8 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             if (!this.db) {
                 return reject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.databaseNotOpen
+                        BrowserAuthErrorCodes.databaseNotOpen,
+                        ""
                     )
                 );
             }
@@ -244,7 +249,8 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             if (!this.db) {
                 return reject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.databaseNotOpen
+                        BrowserAuthErrorCodes.databaseNotOpen,
+                        ""
                     )
                 );
             }

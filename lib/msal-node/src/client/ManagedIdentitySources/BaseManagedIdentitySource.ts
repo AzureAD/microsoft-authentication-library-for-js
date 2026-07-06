@@ -294,7 +294,10 @@ export abstract class BaseManagedIdentitySource {
             if (error instanceof AuthError) {
                 throw error;
             } else {
-                throw createClientAuthError(ClientAuthErrorCodes.networkError);
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.networkError,
+                    managedIdentityRequest.correlationId
+                );
             }
         }
 
@@ -380,7 +383,8 @@ export abstract class BaseManagedIdentitySource {
                 return ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_OBJECT_ID;
             default:
                 throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType,
+                    ""
                 );
         }
     }
@@ -406,7 +410,8 @@ export abstract class BaseManagedIdentitySource {
         logger: Logger
     ): string => {
         try {
-            return new UrlString(envVariable).urlString;
+            // Static boot-time helper invoked from each MI source's tryCreate() before any request exists
+            return new UrlString(envVariable, "").urlString;
         } catch (error) {
             logger.info(
                 `[Managed Identity] ${sourceName} managed identity is unavailable because the '${envVariableStringName}' environment variable is malformed.`,
@@ -417,7 +422,8 @@ export abstract class BaseManagedIdentitySource {
                 ManagedIdentityErrorCodes
                     .MsiEnvironmentVariableUrlMalformedErrorCodes[
                     envVariableStringName
-                ]
+                ],
+                ""
             );
         }
     };

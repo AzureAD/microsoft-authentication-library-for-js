@@ -20,6 +20,13 @@ import { getClientAssertion } from "../../src/utils/ClientAssertionUtils.js";
 import { ClientAssertionConfig } from "../../src/account/ClientCredentials.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 
+const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS =
+    '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_CLIENT_CAPABILITIES =
+    '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
+const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
+    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+
 describe("RequestParameterBuilder unit tests", () => {
     afterEach(() => {
         jest.restoreAllMocks();
@@ -37,7 +44,8 @@ describe("RequestParameterBuilder unit tests", () => {
         );
         RequestParameterBuilder.addScopes(
             parameters,
-            TEST_CONFIG.DEFAULT_SCOPES
+            TEST_CONFIG.DEFAULT_SCOPES,
+            ""
         );
         RequestParameterBuilder.addClientId(
             parameters,
@@ -55,7 +63,12 @@ describe("RequestParameterBuilder unit tests", () => {
             parameters,
             TEST_CONFIG.LOGIN_HINT
         );
-        RequestParameterBuilder.addClaims(parameters, TEST_CONFIG.CLAIMS, []);
+        RequestParameterBuilder.addClaims(
+            parameters,
+            "",
+            TEST_CONFIG.CLAIMS,
+            []
+        );
         RequestParameterBuilder.addCorrelationId(
             parameters,
             TEST_CONFIG.CORRELATION_ID
@@ -144,7 +157,7 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                    TEST_CONFIG.CLAIMS
+                    DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS
                 )}`
             )
         ).toBe(true);
@@ -315,7 +328,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes appends oidc scopes by default", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, ["testScope"]);
+        RequestParameterBuilder.addScopes(parameters, ["testScope"], "");
         let requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
@@ -324,7 +337,7 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
 
         const parameters2 = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters2, []);
+        RequestParameterBuilder.addScopes(parameters2, [], "");
         requestQueryString = UrlUtils.mapToQueryString(parameters2);
         expect(
             requestQueryString.includes(
@@ -335,7 +348,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes does not append oidc scopes if flag set to false", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, ["testScope"], false);
+        RequestParameterBuilder.addScopes(parameters, ["testScope"], "", false);
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(`${AADServerParamKeys.SCOPE}=testScope`)
@@ -344,7 +357,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes overrides OIDC_DEFAULT_SCOPES with defaultScopes", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, [], true, [
+        RequestParameterBuilder.addScopes(parameters, [], "", true, [
             "openid",
             "profile",
         ]);
@@ -361,7 +374,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes adds openid scope when in OIDC protocol mode", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, [], true, []);
+        RequestParameterBuilder.addScopes(parameters, [], "", true, []);
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
@@ -380,7 +393,8 @@ describe("RequestParameterBuilder unit tests", () => {
             )
         ).toThrow(
             new ClientConfigurationError(
-                ClientConfigurationErrorCodes.pkceParamsMissing
+                ClientConfigurationErrorCodes.pkceParamsMissing,
+                ""
             )
         );
     });
@@ -395,7 +409,8 @@ describe("RequestParameterBuilder unit tests", () => {
             )
         ).toThrow(
             new ClientConfigurationError(
-                ClientConfigurationErrorCodes.pkceParamsMissing
+                ClientConfigurationErrorCodes.pkceParamsMissing,
+                ""
             )
         );
     });
@@ -419,7 +434,7 @@ describe("RequestParameterBuilder unit tests", () => {
     it("addClaims sets claims parameter with merged claims when valid claims and capabilities are provided", () => {
         const parameters = new Map<string, string>();
         const claims = JSON.stringify({ userinfo: { given_name: null } });
-        RequestParameterBuilder.addClaims(parameters, claims, ["CP1"]);
+        RequestParameterBuilder.addClaims(parameters, "", claims, ["CP1"]);
 
         const claimsParam = parameters.get(AADServerParamKeys.CLAIMS);
         expect(claimsParam).toBeDefined();
@@ -604,23 +619,22 @@ describe("RequestParameterBuilder unit tests", () => {
         });
     });
 
-    describe("addClientCapabilitiesToClaims tests", () => {
-        it("passing just claims returns claims", () => {
+    describe("buildMergedClaims tests", () => {
+        it("passing just claims returns claims with default idToken claims", () => {
             const testClaims = TEST_CONFIG.CLAIMS;
+            const expectedString =
+                '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
             expect(
-                RequestParameterBuilder.addClientCapabilitiesToClaims(
-                    testClaims,
-                    []
-                )
-            ).toBe(testClaims);
+                RequestParameterBuilder.buildMergedClaims(testClaims, [])
+            ).toBe(expectedString);
         });
 
-        it("passing just clientCapabilities returns clientCapabilities as claims request", () => {
+        it("passing just clientCapabilities returns clientCapabilities and default idToken claims", () => {
             const clientCapabilities = ["CP1"];
             const expectedString =
-                '{"access_token":{"xms_cc":{"values":["CP1"]}}}';
+                '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
             expect(
-                RequestParameterBuilder.addClientCapabilitiesToClaims(
+                RequestParameterBuilder.buildMergedClaims(
                     undefined,
                     clientCapabilities
                 )
@@ -632,9 +646,9 @@ describe("RequestParameterBuilder unit tests", () => {
                 '{"access_token":{"example_claim":{"values":["example_value"]}}}';
             const clientCapabilities = ["CP1"];
             const expectedString =
-                '{"access_token":{"example_claim":{"values":["example_value"]},"xms_cc":{"values":["CP1"]}}}';
+                '{"access_token":{"example_claim":{"values":["example_value"]},"xms_cc":{"values":["CP1"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
             expect(
-                RequestParameterBuilder.addClientCapabilitiesToClaims(
+                RequestParameterBuilder.buildMergedClaims(
                     claimsRequest,
                     clientCapabilities
                 )
@@ -646,25 +660,33 @@ describe("RequestParameterBuilder unit tests", () => {
                 '{"id_token":{"example_claim":{"values":["example_value"]}}}';
             const clientCapabilities = ["CP1"];
             const expectedString =
-                '{"id_token":{"example_claim":{"values":["example_value"]}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
+                '{"id_token":{"example_claim":{"values":["example_value"]},"signin_state":{"essential":false},"login_hint":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
             expect(
-                RequestParameterBuilder.addClientCapabilitiesToClaims(
+                RequestParameterBuilder.buildMergedClaims(
                     claimsRequest,
                     clientCapabilities
                 )
             ).toBe(expectedString);
         });
 
+        it("does not overwrite caller-specified idToken claims", () => {
+            const claimsRequest =
+                '{"id_token":{"signin_state":{"essential":true}}}';
+            const expectedString =
+                '{"id_token":{"signin_state":{"essential":true},"login_hint":{"essential":false}}}';
+            expect(
+                RequestParameterBuilder.buildMergedClaims(claimsRequest, [])
+            ).toBe(expectedString);
+        });
+
         it("throws error if claims passed is not stringified JSON object", () => {
             const testClaims = "not-a-valid-JSON-object";
             expect(() =>
-                RequestParameterBuilder.addClientCapabilitiesToClaims(
-                    testClaims,
-                    []
-                )
+                RequestParameterBuilder.buildMergedClaims(testClaims, [])
             ).toThrow(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.invalidClaims
+                    ClientConfigurationErrorCodes.invalidClaims,
+                    ""
                 )
             );
         });
@@ -843,6 +865,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 false
@@ -863,6 +886,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 false
@@ -883,6 +907,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 true
@@ -909,6 +934,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 true
@@ -921,17 +947,20 @@ describe("RequestParameterBuilder unit tests", () => {
             expect(parsedClaims.access_token?.xms_cc).toBeUndefined();
         });
 
-        it("does not add claims parameter when claims and clientCapabilities are both empty", () => {
+        it("adds default id token claims parameter when claims and clientCapabilities are both empty", () => {
             const parameters = new Map<string, string>();
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 undefined,
                 undefined,
                 false
             );
 
-            expect(parameters.has(AADServerParamKeys.CLAIMS)).toBe(false);
+            expect(parameters.get(AADServerParamKeys.CLAIMS)).toBe(
+                DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS
+            );
         });
 
         it("adds claims when only clientCapabilities are provided", () => {
@@ -939,6 +968,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 undefined,
                 ["CP1"],
                 false
@@ -946,8 +976,9 @@ describe("RequestParameterBuilder unit tests", () => {
 
             const claimsParam = parameters.get(AADServerParamKeys.CLAIMS);
             expect(claimsParam).toBeDefined();
-            const parsedClaims = JSON.parse(claimsParam!);
-            expect(parsedClaims.access_token?.xms_cc?.values).toEqual(["CP1"]);
+            expect(claimsParam).toBe(
+                DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_CLIENT_CAPABILITIES
+            );
         });
     });
 });
