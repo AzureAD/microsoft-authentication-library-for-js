@@ -6,8 +6,10 @@
 import { DpopTokenGenerator } from "../../src/crypto/DpopTokenGenerator.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
+import { ClientConfigurationErrorCodes } from "../../src/error/ClientConfigurationError.js";
+import crypto from "crypto";
 import { mockCrypto } from "../client/ClientTestUtils.js";
-import { TEST_CONFIG } from "../test_kit/StringConstants.js";
+import { TEST_CONFIG, TEST_DPOP_VALUES } from "../test_kit/StringConstants.js";
 
 describe("DpopTokenGenerator Unit Tests", () => {
     let generator: DpopTokenGenerator;
@@ -101,9 +103,71 @@ describe("DpopTokenGenerator Unit Tests", () => {
             );
             expect(claims.htu).not.toContain("?");
         });
+
+        it("preserves mixed-case token endpoint path casing", () => {
+            const claims = generator.buildTokenProofClaims(
+                {
+                    tokenEndpoint:
+                        "https://login.microsoftonline.com/TenantID/OAuth2/v2.0/Token?client_id=abc",
+                },
+                ""
+            );
+
+            expect(claims.htu).toBe(
+                "https://login.microsoftonline.com/TenantID/OAuth2/v2.0/Token"
+            );
+        });
+
+        it("does not append a trailing slash to queryless token endpoint paths", () => {
+            const claims = generator.buildTokenProofClaims(
+                {
+                    tokenEndpoint:
+                        "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                },
+                ""
+            );
+
+            expect(claims.htu).toBe(
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+            );
+        });
+
+        it("rejects malformed, relative, and non-https token endpoint URLs", () => {
+            const invalidTokenEndpoints = [
+                "not-a-valid-url",
+                "/common/oauth2/v2.0/token",
+                "http://login.microsoftonline.com/common/oauth2/v2.0/token",
+                "ftp://login.microsoftonline.com/common/oauth2/v2.0/token",
+                "https:login.microsoftonline.com/common/oauth2/v2.0/token",
+            ];
+
+            invalidTokenEndpoints.forEach((tokenEndpoint) => {
+                expect(() =>
+                    generator.buildTokenProofClaims({ tokenEndpoint }, "")
+                ).toThrow(ClientConfigurationErrorCodes.urlParseError);
+            });
+        });
     });
 
     describe("buildResourceProofClaims", () => {
+        it("uses a DPoP access token fixture and computes ath as BASE64URL(SHA-256(ASCII(access_token)))", () => {
+            const tokenSegments = TEST_DPOP_VALUES.ACCESS_TOKEN.split(".");
+            const [, payload] = tokenSegments;
+            const decodedPayload = JSON.parse(
+                Buffer.from(payload, "base64url").toString("utf8")
+            );
+            const expectedAth = crypto
+                .createHash("sha256")
+                .update(Buffer.from(TEST_DPOP_VALUES.ACCESS_TOKEN, "ascii"))
+                .digest("base64url");
+
+            expect(tokenSegments).toHaveLength(3);
+            expect(decodedPayload.cnf.jkt).toBe(
+                TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+            );
+            expect(TEST_DPOP_VALUES.ACCESS_TOKEN_ATH).toBe(expectedAth);
+        });
+
         it("UT-02: Resource DPoP proof includes ath and resource binding (uppercase htm, normalized htu, ath, iat, jti)", () => {
             const currTime = TimeUtils.nowSeconds();
             jest.spyOn(TimeUtils, "nowSeconds").mockReturnValue(currTime);
@@ -111,7 +175,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
             const resourceUrl =
                 "https://graph.microsoft.com/v1.0/me?$select=id,displayName";
             const htm = "get"; // lowercase — must be uppercased
-            const ath = "base64url-encoded-access-token-hash";
+            const ath = TEST_DPOP_VALUES.ACCESS_TOKEN_ATH;
 
             const claims = generator.buildResourceProofClaims(
                 { resourceUrl, htm, ath },
@@ -141,7 +205,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
                 {
                     resourceUrl: "https://graph.microsoft.com/v1.0/me",
                     htm: "GET",
-                    ath: "some-ath-value",
+                    ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                     nonce: "resource-nonce-xyz",
                 },
                 ""
@@ -155,7 +219,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
                 {
                     resourceUrl: "https://graph.microsoft.com/v1.0/me",
                     htm: "POST",
-                    ath: "some-ath-value",
+                    ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 },
                 ""
             );
@@ -168,7 +232,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
                 {
                     resourceUrl: "https://graph.microsoft.com/v1.0/me",
                     htm: "GET",
-                    ath: "some-ath-value",
+                    ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 },
                 ""
             ) as Record<string, unknown>;
@@ -188,7 +252,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
                     {
                         resourceUrl: "https://graph.microsoft.com/v1.0/me",
                         htm: method,
-                        ath: "ath-value",
+                        ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                     },
                     ""
                 );
@@ -200,12 +264,114 @@ describe("DpopTokenGenerator Unit Tests", () => {
             const resourceUrl =
                 "https://api.example.com/data?filter=active&page=2";
             const claims = generator.buildResourceProofClaims(
-                { resourceUrl, htm: "GET", ath: "ath-value" },
+                {
+                    resourceUrl,
+                    htm: "GET",
+                    ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                },
                 ""
             );
 
             expect(claims.htu).toBe("https://api.example.com/data");
             expect(claims.htu).not.toContain("?");
+        });
+
+        it("strips both query and fragment from resource htu", () => {
+            const claims = generator.buildResourceProofClaims(
+                {
+                    resourceUrl:
+                        "https://graph.microsoft.com/v1.0/me?$select=id#profile",
+                    htm: "GET",
+                    ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                },
+                ""
+            );
+
+            expect(claims.htu).toBe("https://graph.microsoft.com/v1.0/me");
+            expect(claims.htu).not.toContain("?");
+            expect(claims.htu).not.toContain("#");
+        });
+
+        it("preserves mixed-case resource path casing", () => {
+            const claims = generator.buildResourceProofClaims(
+                {
+                    resourceUrl:
+                        "https://api.example.com/v1.0/MyResource/Items",
+                    htm: "GET",
+                    ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                },
+                ""
+            );
+
+            expect(claims.htu).toBe(
+                "https://api.example.com/v1.0/MyResource/Items"
+            );
+        });
+
+        it("does not append a trailing slash to queryless resource paths", () => {
+            const claims = generator.buildResourceProofClaims(
+                {
+                    resourceUrl: "https://api.example.com/v1.0/me",
+                    htm: "GET",
+                    ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                },
+                ""
+            );
+
+            expect(claims.htu).toBe("https://api.example.com/v1.0/me");
+        });
+
+        it("rejects malformed, relative, and non-https resource URLs", () => {
+            const invalidResourceUrls = [
+                "not-a-valid-url",
+                "v1.0/me",
+                "http://api.example.com/v1.0/me",
+                "mailto:user@example.com",
+                "https:api.example.com/v1.0/me",
+            ];
+
+            invalidResourceUrls.forEach((resourceUrl) => {
+                expect(() =>
+                    generator.buildResourceProofClaims({
+                        resourceUrl,
+                        htm: "GET",
+                        ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                    })
+                ).toThrow(ClientConfigurationErrorCodes.urlParseError);
+            });
+        });
+
+        it("rejects invalid resource HTTP methods", () => {
+            const invalidMethods = ["", " ", "GET /", "GET\nPOST"];
+
+            invalidMethods.forEach((htm) => {
+                expect(() =>
+                    generator.buildResourceProofClaims({
+                        resourceUrl: "https://graph.microsoft.com/v1.0/me",
+                        htm,
+                        ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                    })
+                ).toThrow(ClientConfigurationErrorCodes.invalidClaims);
+            });
+        });
+
+        it("rejects missing or malformed ath values", () => {
+            const invalidAths = [
+                "",
+                "raw-access-token",
+                "Kq5sNclPz7QV2-lfQIuc6R7oRu0eHPeDcJryCH0Fspw=",
+                "Kq5sNclPz7QV2+lfQIuc6R7oRu0eHPeDcJryCH0Fspw",
+            ];
+
+            invalidAths.forEach((ath) => {
+                expect(() =>
+                    generator.buildResourceProofClaims({
+                        resourceUrl: "https://graph.microsoft.com/v1.0/me",
+                        htm: "GET",
+                        ath,
+                    })
+                ).toThrow(ClientConfigurationErrorCodes.invalidClaims);
+            });
         });
     });
 
@@ -271,7 +437,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
                 {
                     resourceUrl: "https://graph.microsoft.com/v1.0/me",
                     htm: "GET",
-                    ath: "ath-val",
+                    ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 },
                 ""
             );
@@ -279,7 +445,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
                 {
                     resourceUrl: "https://graph.microsoft.com/v1.0/me",
                     htm: "GET",
-                    ath: "ath-val",
+                    ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 },
                 ""
             );

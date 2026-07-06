@@ -739,6 +739,10 @@ If you do not want to use a dedicated `redirectUri` for this purpose, you should
 
 -   Cryptographic Key or Keypair not found in browser storage.
 
+### `invalid_public_jwk`
+
+-   Public JWK must include the required RFC 7638 thumbprint members for its supported key type.
+
 ### `auth_code_required`
 
 -   An authorization code must be provided (as the `code` property on the request) to this flow.

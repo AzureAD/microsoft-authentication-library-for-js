@@ -44,25 +44,30 @@ const DERIVE_KEY = "deriveKey";
 // Suberror
 const SUBTLE_SUBERROR = "crypto_subtle_undefined";
 
-// DPoP ES256 (ECDSA P-256) algorithm constants
-const ECDSA_ALG = "ECDSA";
+// Asymmetric key algorithm constants
+const EC_KEY_TYPE = "EC";
 const EC_CURVE_P256 = "P-256";
-// EcKeyGenParams for P-256 key generation (used for DPoP proofs, RFC 9449)
-const dpopEcKeygenParams: EcKeyGenParams = {
-    name: ECDSA_ALG,
-    namedCurve: EC_CURVE_P256,
-};
-// EcdsaParams for signing DPoP proofs with ECDSA-SHA-256
-const dpopEcSignParams: EcdsaParams = {
-    name: ECDSA_ALG,
-    hash: { name: S256_HASH_ALG },
-};
+const RSA_KEY_TYPE = "RSA";
 
-const keygenAlgorithmOptions: RsaHashedKeyGenParams = {
+export const RSA_KEYGEN_ALGORITHM_OPTIONS: RsaHashedKeyGenParams = {
     name: PKCS1_V15_KEYGEN_ALG,
     hash: S256_HASH_ALG,
     modulusLength: MODULUS_LENGTH,
     publicExponent: PUBLIC_EXPONENT,
+};
+
+export const RSA_SIGN_ALGORITHM_OPTIONS: Algorithm = {
+    name: PKCS1_V15_KEYGEN_ALG,
+};
+
+export const ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS: EcKeyGenParams = {
+    name: "ECDSA",
+    namedCurve: EC_CURVE_P256,
+};
+
+export const ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS: EcdsaParams = {
+    name: "ECDSA",
+    hash: { name: S256_HASH_ALG },
 };
 
 /**
@@ -171,16 +176,18 @@ export function createNewGuid(): string {
 }
 
 /**
- * Generates a keypair based on current keygen algorithm config.
+ * Generates a keypair based on the provided algorithm config.
  * @param extractable
  * @param usages
+ * @param algorithm
  */
 export async function generateKeyPair(
     extractable: boolean,
-    usages: Array<KeyUsage>
+    usages: Array<KeyUsage>,
+    algorithm: AlgorithmIdentifier
 ): Promise<CryptoKeyPair> {
     return window.crypto.subtle.generateKey(
-        keygenAlgorithmOptions,
+        algorithm,
         extractable,
         usages
     ) as Promise<CryptoKeyPair>;
@@ -202,32 +209,36 @@ export async function exportJwk(key: CryptoKey): Promise<JsonWebKey> {
  * @param key
  * @param extractable
  * @param usages
+ * @param algorithm
  */
 export async function importJwk(
     key: JsonWebKey,
     extractable: boolean,
-    usages: Array<KeyUsage>
+    usages: Array<KeyUsage>,
+    algorithm: AlgorithmIdentifier
 ): Promise<CryptoKey> {
     return window.crypto.subtle.importKey(
         KEY_FORMAT_JWK,
         key,
-        keygenAlgorithmOptions,
+        algorithm,
         extractable,
         usages
     ) as Promise<CryptoKey>;
 }
 
 /**
- * Signs given data with given key
+ * Signs given data with given key.
  * @param key
  * @param data
+ * @param algorithm
  */
 export async function sign(
     key: CryptoKey,
-    data: ArrayBuffer
+    data: ArrayBuffer,
+    algorithm: AlgorithmIdentifier
 ): Promise<ArrayBuffer> {
     return window.crypto.subtle.sign(
-        keygenAlgorithmOptions,
+        algorithm,
         key,
         data
     ) as Promise<ArrayBuffer>;
@@ -443,96 +454,52 @@ export async function hashString(plainText: string): Promise<string> {
     return urlEncodeArr(hashBytes);
 }
 
-/*
- * Internal DPoP (RFC 9449) ES256 / P-256 helpers
- *
- * These functions are NOT exported from the package public entry point
- * (src/index.ts).  They provide the low-level crypto seam that will be
- * wired into acquisition flows in a subsequent work item.
- */
+const JWK_THUMBPRINT_REQUIRED_MEMBERS: Record<string, Array<string>> = {
+    [EC_KEY_TYPE]: ["crv", "kty", "x", "y"],
+    [RSA_KEY_TYPE]: ["e", "kty", "n"],
+};
 
-/**
- * Generates an ES256 (ECDSA P-256) key pair for DPoP proof signing.
- * Both keys are initially extractable so the public JWK can be exported and
- * the private key can be re-imported as non-extractable via importDpopPrivateKey.
- * @internal
- */
-export async function generateDpopKeyPair(): Promise<CryptoKeyPair> {
-    return window.crypto.subtle.generateKey(
-        dpopEcKeygenParams,
-        true, // extractable: public key exported for thumbprint; private re-imported non-extractable
-        ["sign", "verify"]
-    ) as Promise<CryptoKeyPair>;
+function getJwkThumbprintMembers(
+    publicJwk: JsonWebKey
+): Record<string, string> {
+    const kty = publicJwk.kty;
+    const requiredMembers =
+        typeof kty === "string" ? JWK_THUMBPRINT_REQUIRED_MEMBERS[kty] : null;
+    if (!requiredMembers) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.invalidPublicJwk,
+            ""
+        );
+    }
+
+    return requiredMembers.reduce((thumbprintMembers, memberName) => {
+        const memberValue = publicJwk[memberName as keyof JsonWebKey];
+        if (typeof memberValue !== "string" || memberValue.length === 0) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.invalidPublicJwk,
+                ""
+            );
+        }
+
+        thumbprintMembers[memberName] = memberValue;
+        return thumbprintMembers;
+    }, {} as Record<string, string>);
 }
 
 /**
- * Exports an EC public CryptoKey as a JSON Web Key.
- * The returned JWK contains only public EC fields (kty, crv, x, y);
- * the private field "d" is never present on an exported public key.
- * @internal
- */
-export async function exportDpopPublicJwk(
-    publicKey: CryptoKey
-): Promise<JsonWebKey> {
-    return window.crypto.subtle.exportKey(
-        KEY_FORMAT_JWK,
-        publicKey
-    ) as Promise<JsonWebKey>;
-}
-
-/**
- * Re-imports an EC private key JWK as a non-extractable CryptoKey.
- * Once imported the raw key material cannot be exported, satisfying RT-02.
- * @internal
- */
-export async function importDpopPrivateKey(
-    jwk: JsonWebKey
-): Promise<CryptoKey> {
-    return window.crypto.subtle.importKey(
-        KEY_FORMAT_JWK,
-        jwk,
-        dpopEcKeygenParams,
-        false, // non-extractable – private key material never leaves SubtleCrypto
-        ["sign"]
-    ) as Promise<CryptoKey>;
-}
-
-/**
- * Computes an RFC 7638 JWK thumbprint for an EC P-256 public key.
- * The required members {crv, kty, x, y} are serialised in lexicographic order
+ * Computes an RFC 7638 JWK thumbprint for a public key.
+ * The required members for the JWK key type are serialised in lexicographic order
  * and the SHA-256 digest is returned as a base64url string.
  * @internal
  */
-export async function computeDpopThumbprint(
+export async function computeJwkThumbprint(
     publicJwk: JsonWebKey
 ): Promise<string> {
-    const { crv, kty, x, y } = publicJwk;
-    if (!crv || !kty || !x || !y) {
-        throw new Error(
-            "computeDpopThumbprint: publicJwk is missing required EC member(s): crv, kty, x, y"
-        );
-    }
+    const thumbprintMembers = getJwkThumbprintMembers(publicJwk);
     // RFC 7638 §3.3: use only required members, sorted lexicographically
-    const thumbprintMembers: Record<string, string> = { crv, kty, x, y };
     const thumbprintJson = JSON.stringify(
         thumbprintMembers,
         Object.keys(thumbprintMembers).sort()
     );
     return hashString(thumbprintJson);
-}
-
-/**
- * Signs the given data buffer with the provided EC private key using
- * ECDSA-SHA-256 (ES256), returning the raw DER/IEEE P1363 signature bytes.
- * @internal
- */
-export async function signDpop(
-    privateKey: CryptoKey,
-    data: ArrayBuffer
-): Promise<ArrayBuffer> {
-    return window.crypto.subtle.sign(
-        dpopEcSignParams,
-        privateKey,
-        data
-    ) as Promise<ArrayBuffer>;
 }

@@ -200,6 +200,7 @@ declare namespace BrowserAuthErrorCodes {
         failedToParseResponse,
         unableToLoadToken,
         cryptoKeyNotFound,
+        invalidPublicJwk,
         authCodeRequired,
         authCodeOrNativeAccountIdRequired,
         spaCodeAndNativeAccountIdPresent,
@@ -645,6 +646,9 @@ const invalidCacheType = "invalid_cache_type";
 
 // @public (undocumented)
 const invalidPopTokenRequest = "invalid_pop_token_request";
+
+// @public (undocumented)
+const invalidPublicJwk = "invalid_public_jwk";
 
 export { IPerformanceClient }
 

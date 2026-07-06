@@ -280,10 +280,11 @@ describe("CryptoOps.ts Unit Tests", () => {
          * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
          */
         const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
-        expect(generateKeyPairSpy).toHaveBeenCalledWith(true, [
-            "sign",
-            "verify",
-        ]);
+        expect(generateKeyPairSpy).toHaveBeenCalledWith(
+            true,
+            ["sign", "verify"],
+            BrowserCrypto.RSA_KEYGEN_ALGORITHM_OPTIONS
+        );
         const result = await generateKeyPairSpy.mock.results[0].value;
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
@@ -333,12 +334,25 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(regExp.test(result)).toBe(true);
     });
 
-    describe("DPoP ES256/P-256 internal helpers", () => {
-        it("UT-04: generateDpopKeyPair exports only public JWK material (no private field d)", async () => {
-            const keyPair = await BrowserCrypto.generateDpopKeyPair();
-            const publicJwk = await BrowserCrypto.exportDpopPublicJwk(
-                keyPair.publicKey
+    describe("DPoP internal crypto helpers", () => {
+        it("exposes reusable ECDSA P-256 and ECDSA SHA-256 algorithm options", () => {
+            expect(BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS).toEqual({
+                name: "ECDSA",
+                namedCurve: "P-256",
+            });
+            expect(BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS).toEqual({
+                name: "ECDSA",
+                hash: { name: "SHA-256" },
+            });
+        });
+
+        it("UT-04: generateKeyPair supports DPoP EC keys with public-only JWK export", async () => {
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
             );
+            const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
 
             // EC P-256 public key fields must be present
             expect(publicJwk.kty).toBe("EC");
@@ -350,28 +364,40 @@ describe("CryptoOps.ts Unit Tests", () => {
             expect(publicJwk.d).toBeUndefined();
         }, 10000);
 
-        it("RT-02: private DPoP key is non-extractable after importDpopPrivateKey", async () => {
-            const keyPair = await BrowserCrypto.generateDpopKeyPair();
-
-            // Export the initially-extractable private key JWK
-            const privateJwk = await window.crypto.subtle.exportKey(
-                "jwk",
-                keyPair.privateKey
+        it("importJwk supports DPoP EC keys when passed ECDSA params", async () => {
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                true,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
+            const importedPublicKey = await BrowserCrypto.importJwk(
+                publicJwk,
+                true,
+                ["verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
             );
 
-            // Re-import as non-extractable
-            const unextractableKey =
-                await BrowserCrypto.importDpopPrivateKey(privateJwk);
+            expect(importedPublicKey.type).toBe("public");
+            expect(importedPublicKey.algorithm.name).toBe("ECDSA");
+        }, 10000);
 
-            expect(unextractableKey.extractable).toBe(false);
+        it("RT-02: generated private DPoP key is non-extractable", async () => {
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+
+            expect(keyPair.privateKey.extractable).toBe(false);
 
             // Attempting to export a non-extractable key must reject
             await expect(
-                window.crypto.subtle.exportKey("jwk", unextractableKey)
+                window.crypto.subtle.exportKey("jwk", keyPair.privateKey)
             ).rejects.toBeDefined();
         }, 10000);
 
-        it("computeDpopThumbprint returns a valid base64url string of expected length", async () => {
+        it("computeJwkThumbprint returns a valid base64url string of expected length", async () => {
             jest.spyOn(
                 BrowserCrypto,
                 "sha256Digest"
@@ -382,31 +408,93 @@ describe("CryptoOps.ts Unit Tests", () => {
                 );
             });
 
-            const keyPair = await BrowserCrypto.generateDpopKeyPair();
-            const publicJwk = await BrowserCrypto.exportDpopPublicJwk(
-                keyPair.publicKey
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
             );
-            const thumbprint =
-                await BrowserCrypto.computeDpopThumbprint(publicJwk);
+            const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
+            const thumbprint = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk
+            );
 
             // SHA-256 base64url is always 43 characters (base64url alphabet: A-Z a-z 0-9 - _)
             const regExp = new RegExp("^[A-Za-z0-9_-]{43}$");
             expect(regExp.test(thumbprint)).toBe(true);
         }, 10000);
 
-        it("signDpop produces a non-empty signature with the imported private key", async () => {
-            const keyPair = await BrowserCrypto.generateDpopKeyPair();
-            const privateJwk = await window.crypto.subtle.exportKey(
-                "jwk",
-                keyPair.privateKey
+        it("computeJwkThumbprint computes RFC 7638 thumbprints for RSA public JWKs", async () => {
+            jest.spyOn(
+                BrowserCrypto,
+                "sha256Digest"
+                // @ts-ignore
+            ).mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
+                return Promise.resolve(
+                    createHash("SHA256").update(Buffer.from(data)).digest()
+                );
+            });
+
+            const publicJwk = {
+                kty: "RSA",
+                e: "AQAB",
+                n: "test-modulus",
+            };
+            const thumbprint = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk
             );
-            const unextractableKey =
-                await BrowserCrypto.importDpopPrivateKey(privateJwk);
+            const expectedThumbprint = createHash("SHA256")
+                .update(JSON.stringify(publicJwk, ["e", "kty", "n"]))
+                .digest("base64url");
+
+            expect(thumbprint).toBe(expectedThumbprint);
+        });
+
+        it("computeJwkThumbprint rejects unsupported public JWK key types", async () => {
+            await expect(
+                BrowserCrypto.computeJwkThumbprint({
+                    kty: "oct",
+                    k: "symmetric-key",
+                })
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+            });
+        });
+
+        it("computeJwkThumbprint rejects missing or empty public JWK coordinates", async () => {
+            await expect(
+                BrowserCrypto.computeJwkThumbprint({
+                    kty: "EC",
+                    crv: "P-256",
+                    x: "x-coordinate",
+                })
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+            });
+
+            await expect(
+                BrowserCrypto.computeJwkThumbprint({
+                    kty: "EC",
+                    crv: "P-256",
+                    x: "",
+                    y: "y-coordinate",
+                })
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+            });
+        });
+
+        it("sign supports DPoP EC signatures when passed ECDSA params", async () => {
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
 
             const data = new TextEncoder().encode("header.payload");
-            const signature = await BrowserCrypto.signDpop(
-                unextractableKey,
-                data
+            const signature = await BrowserCrypto.sign(
+                keyPair.privateKey,
+                data,
+                BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS
             );
 
             expect(signature).toBeDefined();

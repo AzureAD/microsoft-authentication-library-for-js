@@ -5,7 +5,10 @@
 
 import { ICrypto } from "./ICrypto.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
-import { UrlString } from "../url/UrlString.js";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError.js";
 
 /**
  * RFC 9449 DPoP proof JWT payload claims.
@@ -41,18 +44,70 @@ export type DpopResourceProofParams = {
     nonce?: string;
 };
 
+const SHA256_BASE64URL_REGEX = /^[A-Za-z0-9_-]{43}$/;
+const HTTP_METHOD_REGEX = /^[A-Za-z]+$/;
+export const DPOP_JWT_HEADER_ALGORITHM = "ES256";
+
 /**
  * Normalizes a URL for use as the DPoP htu claim.
  * Per RFC 9449 §4.2, htu is the target URI without query and fragment components.
  * @internal
  */
 function normalizeDpopHtu(url: string, correlationId: string): string {
-    const urlObj = new UrlString(url, correlationId);
-    const components = urlObj.getUrlComponents();
-    // RFC 9449 §4.2: htu is the target URI without query and fragment.
-    // Use "/" as the path when AbsolutePath is empty (bare origin URL).
-    const path = components.AbsolutePath || "/";
-    return `${components.Protocol}//${components.HostNameAndPort}${path}`;
+    if (!/^https:\/\//i.test(url)) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.urlParseError,
+            correlationId
+        );
+    }
+
+    let parsedUrl: URL;
+    try {
+        parsedUrl = new URL(url);
+    } catch {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.urlParseError,
+            correlationId
+        );
+    }
+
+    if (parsedUrl.protocol !== "https:") {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.urlParseError,
+            correlationId
+        );
+    }
+
+    /*
+     * RFC 9449 §4.2: htu is the target URI without query and fragment.
+     * Use the URL API only for parsing and scheme/host canonicalization; avoid
+     * UrlString comparison normalization because DPoP target matching must not
+     * lowercase or add trailing slashes to the path component.
+     */
+    return `${parsedUrl.origin}${parsedUrl.pathname}`;
+}
+
+function normalizeDpopHttpMethod(
+    method: string,
+    correlationId: string
+): string {
+    if (!HTTP_METHOD_REGEX.test(method)) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidClaims,
+            correlationId
+        );
+    }
+
+    return method.toUpperCase();
+}
+
+function validateDpopAth(ath: string, correlationId: string): void {
+    if (!SHA256_BASE64URL_REGEX.test(ath)) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidClaims,
+            correlationId
+        );
+    }
 }
 
 /**
@@ -106,9 +161,11 @@ export class DpopTokenGenerator {
         params: DpopResourceProofParams,
         correlationId: string = ""
     ): DpopProofClaims {
+        validateDpopAth(params.ath, correlationId);
+
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
-            htm: params.htm.toUpperCase(),
+            htm: normalizeDpopHttpMethod(params.htm, correlationId),
             htu: normalizeDpopHtu(params.resourceUrl, correlationId),
             ath: params.ath,
             iat: TimeUtils.nowSeconds(),
