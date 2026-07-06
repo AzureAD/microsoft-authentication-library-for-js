@@ -44,8 +44,44 @@ export type DpopResourceProofParams = {
     nonce?: string;
 };
 
+/**
+ * Public JWK embedded in the DPoP proof header.
+ * @internal
+ */
+export type DpopPublicJwk = Record<string, unknown>;
+
+/**
+ * RFC 9449 DPoP proof JWT header.
+ * @internal
+ */
+export type DpopProofHeader = {
+    typ: typeof DPOP_JWT_HEADER_TYPE;
+    alg: string;
+    jwk: DpopPublicJwk;
+};
+
+/**
+ * Signs the ASCII DPoP JWT signing input and returns a base64url-encoded signature.
+ * @internal
+ */
+export type DpopProofSigner = (
+    signingInput: string,
+    correlationId: string
+) => Promise<string>;
+
+/**
+ * Parameters shared by token and resource DPoP proof generation.
+ * @internal
+ */
+export type DpopProofGenerationParams = {
+    publicJwk: DpopPublicJwk;
+    sign: DpopProofSigner;
+    alg?: string;
+};
+
 const SHA256_BASE64URL_REGEX = /^[A-Za-z0-9_-]{43}$/;
 const HTTP_METHOD_REGEX = /^[A-Za-z]+$/;
+export const DPOP_JWT_HEADER_TYPE = "dpop+jwt";
 export const DPOP_JWT_HEADER_ALGORITHM = "ES256";
 
 /**
@@ -110,6 +146,16 @@ function validateDpopAth(ath: string, correlationId: string): void {
     }
 }
 
+function buildDpopProofHeader(
+    params: DpopProofGenerationParams
+): DpopProofHeader {
+    return {
+        typ: DPOP_JWT_HEADER_TYPE,
+        alg: params.alg || DPOP_JWT_HEADER_ALGORITHM,
+        jwk: params.publicJwk,
+    };
+}
+
 /**
  * Builds RFC 9449 DPoP proof JWT payloads for token-endpoint and
  * resource-endpoint proof bindings.
@@ -151,6 +197,20 @@ export class DpopTokenGenerator {
     }
 
     /**
+     * Builds and signs a compact DPoP proof JWT for a token-endpoint request.
+     */
+    async generateTokenProof(
+        params: DpopTokenProofParams & DpopProofGenerationParams,
+        correlationId: string = ""
+    ): Promise<string> {
+        return this.generateProof(
+            this.buildTokenProofClaims(params, correlationId),
+            params,
+            correlationId
+        );
+    }
+
+    /**
      * Builds RFC 9449 claims for a resource-endpoint DPoP proof.
      * - htm is uppercased per RFC 9449 §4.2.
      * - htu is the normalized resource URI (query and fragment stripped).
@@ -174,5 +234,36 @@ export class DpopTokenGenerator {
             claims.nonce = params.nonce;
         }
         return claims;
+    }
+
+    /**
+     * Builds and signs a compact DPoP proof JWT for a resource request.
+     */
+    async generateResourceProof(
+        params: DpopResourceProofParams & DpopProofGenerationParams,
+        correlationId: string = ""
+    ): Promise<string> {
+        return this.generateProof(
+            this.buildResourceProofClaims(params, correlationId),
+            params,
+            correlationId
+        );
+    }
+
+    private async generateProof(
+        claims: DpopProofClaims,
+        params: DpopProofGenerationParams,
+        correlationId: string
+    ): Promise<string> {
+        const encodedHeader = this.cryptoUtils.base64UrlEncode(
+            JSON.stringify(buildDpopProofHeader(params))
+        );
+        const encodedClaims = this.cryptoUtils.base64UrlEncode(
+            JSON.stringify(claims)
+        );
+        const signingInput = `${encodedHeader}.${encodedClaims}`;
+        const signature = await params.sign(signingInput, correlationId);
+
+        return `${signingInput}.${signature}`;
     }
 }

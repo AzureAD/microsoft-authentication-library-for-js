@@ -3,17 +3,34 @@
  * Licensed under the MIT License.
  */
 
-import { DpopTokenGenerator } from "../../src/crypto/DpopTokenGenerator.js";
+import {
+    DPOP_JWT_HEADER_ALGORITHM,
+    DPOP_JWT_HEADER_TYPE,
+    DpopProofClaims,
+    DpopProofHeader,
+    DpopTokenGenerator,
+} from "../../src/crypto/DpopTokenGenerator.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { ClientConfigurationErrorCodes } from "../../src/error/ClientConfigurationError.js";
 import crypto from "crypto";
 import { mockCrypto } from "../client/ClientTestUtils.js";
-import { TEST_CONFIG, TEST_DPOP_VALUES } from "../test_kit/StringConstants.js";
+import {
+    RANDOM_TEST_GUID,
+    TEST_CONFIG,
+    TEST_DPOP_VALUES,
+} from "../test_kit/StringConstants.js";
 
 describe("DpopTokenGenerator Unit Tests", () => {
     let generator: DpopTokenGenerator;
     const cryptoInterface: ICrypto = { ...mockCrypto };
+    const publicJwk = {
+        kty: "EC",
+        crv: "P-256",
+        x: "test-x-coordinate",
+        y: "test-y-coordinate",
+    };
+    const dpopSignature = "test-signature";
 
     beforeEach(() => {
         generator = new DpopTokenGenerator(cryptoInterface);
@@ -22,6 +39,26 @@ describe("DpopTokenGenerator Unit Tests", () => {
     afterEach(() => {
         jest.restoreAllMocks();
     });
+
+    function decodeDpopProof(proof: string): {
+        header: DpopProofHeader;
+        claims: DpopProofClaims;
+        signingInput: string;
+        signature: string;
+    } {
+        const [encodedHeader, encodedClaims, signature] = proof.split(".");
+
+        return {
+            header: JSON.parse(
+                Buffer.from(encodedHeader, "base64url").toString("utf8")
+            ),
+            claims: JSON.parse(
+                Buffer.from(encodedClaims, "base64url").toString("utf8")
+            ),
+            signingInput: `${encodedHeader}.${encodedClaims}`,
+            signature,
+        };
+    }
 
     describe("buildTokenProofClaims", () => {
         it("UT-01: Token-endpoint DPoP proof uses RFC 9449 claims (htm=POST, normalized htu, iat, jti)", () => {
@@ -372,6 +409,98 @@ describe("DpopTokenGenerator Unit Tests", () => {
                     })
                 ).toThrow(ClientConfigurationErrorCodes.invalidClaims);
             });
+        });
+    });
+
+    describe("generateTokenProof", () => {
+        it("builds and signs a compact DPoP proof JWT for token requests", async () => {
+            const currTime = TimeUtils.nowSeconds();
+            const sign = jest.fn().mockResolvedValue(dpopSignature);
+            jest.spyOn(TimeUtils, "nowSeconds").mockReturnValue(currTime);
+
+            const proof = await generator.generateTokenProof(
+                {
+                    tokenEndpoint:
+                        "https://login.microsoftonline.com/tenant/oauth2/v2.0/token?client_id=abc",
+                    nonce: "server-nonce",
+                    publicJwk,
+                    sign,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
+            const decodedProof = decodeDpopProof(proof);
+
+            expect(decodedProof.header).toEqual({
+                typ: DPOP_JWT_HEADER_TYPE,
+                alg: DPOP_JWT_HEADER_ALGORITHM,
+                jwk: publicJwk,
+            });
+            expect(decodedProof.claims).toEqual({
+                jti: RANDOM_TEST_GUID,
+                htm: "POST",
+                htu: "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
+                iat: currTime,
+                nonce: "server-nonce",
+            });
+            expect(sign).toHaveBeenCalledWith(
+                decodedProof.signingInput,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            expect(decodedProof.signature).toBe(dpopSignature);
+        });
+
+        it("uses a caller-provided DPoP proof header algorithm", async () => {
+            const proof = await generator.generateTokenProof({
+                tokenEndpoint:
+                    "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
+                publicJwk,
+                alg: "custom-alg",
+                sign: jest.fn().mockResolvedValue(dpopSignature),
+            });
+            const decodedProof = decodeDpopProof(proof);
+
+            expect(decodedProof.header.alg).toBe("custom-alg");
+        });
+    });
+
+    describe("generateResourceProof", () => {
+        it("builds and signs a compact DPoP proof JWT for resource requests", async () => {
+            const currTime = TimeUtils.nowSeconds();
+            const sign = jest.fn().mockResolvedValue(dpopSignature);
+            jest.spyOn(TimeUtils, "nowSeconds").mockReturnValue(currTime);
+
+            const proof = await generator.generateResourceProof(
+                {
+                    resourceUrl:
+                        "https://graph.microsoft.com/v1.0/me?$select=id",
+                    htm: "get",
+                    ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                    nonce: "resource-nonce",
+                    publicJwk,
+                    sign,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
+            const decodedProof = decodeDpopProof(proof);
+
+            expect(decodedProof.header).toEqual({
+                typ: DPOP_JWT_HEADER_TYPE,
+                alg: DPOP_JWT_HEADER_ALGORITHM,
+                jwk: publicJwk,
+            });
+            expect(decodedProof.claims).toEqual({
+                jti: RANDOM_TEST_GUID,
+                htm: "GET",
+                htu: "https://graph.microsoft.com/v1.0/me",
+                ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                iat: currTime,
+                nonce: "resource-nonce",
+            });
+            expect(sign).toHaveBeenCalledWith(
+                decodedProof.signingInput,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            expect(decodedProof.signature).toBe(dpopSignature);
         });
     });
 
