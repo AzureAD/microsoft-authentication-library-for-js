@@ -4,11 +4,14 @@ This sample demonstrates how to use an MSAL Node [confidential client applicatio
 
 Instead of using the SN/I certificate to sign a `private_key_jwt` client assertion (which yields a **Bearer** token — the existing "SNI + Bearer" flow), MSAL presents the **same certificate as the client TLS certificate** in the mutual-TLS handshake to the token endpoint. Entra ID (ESTS) then returns a token whose `token_type` is `mtls_pop`, cryptographically bound to that certificate (`cnf`/`x5t#S256`).
 
-See the [mTLS Proof-of-Possession docs](../../../lib/msal-node/docs/mtls-proof-of-possession.md) for the full concept and region guidance.
+See the [mTLS Proof-of-Possession docs](../../../lib/msal-node/docs/mtls-proof-of-possession.md) for the full concept, region guidance, and FIC details.
 
 ## Scenarios covered
 
 1. **Vanilla SN/I → mTLS PoP** (`getMtlsPopToken` in `app.ts`): the app is configured with an SN/I certificate and requests a token with `mtlsProofOfPossession: true`. The certificate is the client TLS certificate; no `client_assertion` is sent.
+2. **FIC two-leg → mTLS PoP** (`acquireFicMtlsPopToken` in `app.ts`): a developer-orchestrated, service-to-service (app-only) Federated Identity Credential flow.
+    - **Leg 1** — the SN/I certificate acquires an mTLS-PoP federated assertion for the exchange audience (e.g. `api://AzureADTokenExchange/.default`). The result exposes the binding certificate.
+    - **Leg 2** — Leg 1's token is the `client_assertion` credential (`client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-pop`), and Leg 1's binding certificate is presented on the TLS handshake to obtain the final mTLS-PoP token for the target resource.
 
 ## Requirements / limitations
 
@@ -27,7 +30,7 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 
 ## Register
 
-Register a confidential-client app and upload your certificate exactly as for the [certificate client-credentials sample](../client-credentials-with-cert-from-key-vault/README.md#register).
+Register a confidential-client app and upload your certificate exactly as for the [certificate client-credentials sample](../client-credentials-with-cert-from-key-vault/README.md#register). For the FIC two-leg scenario you additionally register a second app and configure a Federated Identity Credential on it that trusts the first app.
 
 Before running the sample you will need to retrieve the certificate and create a `.env` file:
 

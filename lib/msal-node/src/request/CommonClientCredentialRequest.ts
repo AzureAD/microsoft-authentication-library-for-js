@@ -7,6 +7,7 @@ import {
     BaseAuthRequest,
     AzureRegion,
     ClientAssertion,
+    MtlsBindingCertificate,
 } from "@azure/msal-common/node";
 
 /**
@@ -34,9 +35,16 @@ export type CommonClientCredentialRequest = Omit<
     fmiPath?: string;
     /**
      * When true, requests an mTLS-bound Proof-of-Possession token (`token_type=mtls_pop`) from Entra ID.
-     * The app's configured `clientCertificate` is presented as the client TLS certificate in the
-     * mutual-TLS handshake to the token endpoint, and the returned token is cryptographically bound
-     * to that certificate.
+     * The binding certificate (the app's configured `clientCertificate`, or `tokenBindingCertificate`
+     * on this request) is presented as the client TLS certificate in the mutual-TLS handshake to the
+     * token endpoint, and the returned token is cryptographically bound to that certificate.
      */
     mtlsProofOfPossession?: boolean;
+    /**
+     * Certificate used to bind the mTLS connection when the credential in the request body is an
+     * assertion (e.g. the second leg of a Federated Identity Credential exchange). When set, the
+     * certificate is presented at the TLS layer while the assertion remains the credential. Defaults
+     * to the app's configured `clientCertificate` when omitted.
+     */
+    tokenBindingCertificate?: MtlsBindingCertificate;
 };

@@ -47,7 +47,7 @@ export const NodeAuthErrorMessage = {
     },
     mtlsBindingCertificateMissing: {
         code: "mtls_binding_certificate_missing",
-        desc: "mTLS Proof-of-Possession was requested but no binding certificate is available. Configure a clientCertificate on the application.",
+        desc: "mTLS Proof-of-Possession was requested but no binding certificate is available. Configure a clientCertificate on the application, or supply tokenBindingCertificate on the request.",
     },
     mtlsBindingCertificateMissingPrivateKey: {
         code: "mtls_binding_certificate_missing_private_key",
@@ -176,7 +176,7 @@ export class NodeAuthError extends AuthError {
 
     /**
      * Creates an error thrown when mTLS Proof-of-Possession is requested but no binding certificate
-     * (app clientCertificate) is available.
+     * (app clientCertificate or request tokenBindingCertificate) is available.
      */
     static createMtlsBindingCertificateMissingError(): NodeAuthError {
         return new NodeAuthError(
