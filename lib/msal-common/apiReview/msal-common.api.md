@@ -2158,7 +2158,6 @@ const MTLS_UNSUPPORTED_CLOUD_HOSTS: string[];
 export type MtlsBindingCertificate = {
     privateKey: string;
     x5c: string;
-    thumbprintSha256?: string;
 };
 
 // @public

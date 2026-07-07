@@ -89,9 +89,9 @@ export class ClientCredentialClient extends BaseClient {
             const bindingCertificate = this.validateMtlsPopRequest();
             additionalCacheKeyComponents = {
                 ...(additionalCacheKeyComponents ?? {}),
-                mtls_pop_cert_thumbprint:
-                    bindingCertificate.thumbprintSha256 ??
-                    computeX5tSha256(bindingCertificate.x5c),
+                mtls_pop_cert_thumbprint: computeX5tSha256(
+                    bindingCertificate.x5c
+                ),
             };
         }
 
@@ -493,9 +493,7 @@ export class ClientCredentialClient extends BaseClient {
         if (bindingCertificate) {
             result.bindingCertificate = {
                 x5c: bindingCertificate.x5c,
-                thumbprintSha256:
-                    bindingCertificate.thumbprintSha256 ??
-                    computeX5tSha256(bindingCertificate.x5c),
+                thumbprintSha256: computeX5tSha256(bindingCertificate.x5c),
             };
         }
     }

@@ -537,8 +537,6 @@ export abstract class ClientApplication {
                 ? {
                       privateKey: clientCertificate.privateKey,
                       x5c: clientCertificate.x5c,
-                      thumbprintSha256:
-                          clientCertificate.thumbprintSha256 || undefined,
                   }
                 : undefined;
 
