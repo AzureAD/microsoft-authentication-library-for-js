@@ -1400,11 +1400,11 @@ export class StandardController implements IController {
                         }
                         throw e;
                     });
-                    atbcMeasurement.end(
-                        {
-                            success: true,
-                            isNativeBroker: true,
-                        },
+atbcMeasurement.end(
+    {
+        success: true,
+        isNativeBroker: result.fromPlatformBroker,
+    },
                         undefined,
                         result.account
                     );
