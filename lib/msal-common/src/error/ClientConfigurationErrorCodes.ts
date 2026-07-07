@@ -33,3 +33,4 @@ export const invalidResponseMode = "invalid_response_mode";
 export const invalidDpopAth = "invalid_dpop_ath";
 export const invalidDpopHtu = "invalid_dpop_htu";
 export const invalidDpopPublicJwk = "invalid_dpop_public_jwk";
+export const invalidDpopSignature = "invalid_dpop_signature";

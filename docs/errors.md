@@ -226,6 +226,10 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   DPoP public JWK must not contain private or symmetric key material.
 
+### `invalid_dpop_signature`
+
+-   DPoP proof signature must be base64url-encoded.
+
 ### `token_request_empty`
 
 -   Token request was empty and not found in cache.

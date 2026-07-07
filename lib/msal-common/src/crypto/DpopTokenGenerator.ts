@@ -86,6 +86,8 @@ export type DpopProofGenerationParams = {
 };
 
 const DPOP_ATH_REGEX = SHA256_BASE64URL_REGEX;
+// Validates that signer output is a non-empty base64url JWT segment.
+const DPOP_SIGNATURE_REGEX = /^[A-Za-z0-9_-]+$/;
 const DPOP_PRIVATE_JWK_MEMBERS = PRIVATE_JWK_MEMBERS;
 export const DPOP_JWT_HEADER_TYPE = "dpop+jwt";
 export const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
@@ -146,6 +148,15 @@ function sanitizePublicJwk(
     }
 
     return { ...publicJwk };
+}
+
+function validateSignature(signature: string, correlationId: string): void {
+    if (!DPOP_SIGNATURE_REGEX.test(signature)) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidDpopSignature,
+            correlationId
+        );
+    }
 }
 
 function buildProofHeader(
@@ -266,6 +277,7 @@ export class DpopTokenGenerator {
         );
         const signingInput = `${encodedHeader}.${encodedClaims}`;
         const signature = await params.signer.sign(signingInput, correlationId);
+        validateSignature(signature, correlationId);
 
         return `${signingInput}.${signature}`;
     }

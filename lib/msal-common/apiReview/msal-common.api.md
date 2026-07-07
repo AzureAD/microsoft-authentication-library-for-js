@@ -1102,7 +1102,8 @@ declare namespace ClientConfigurationErrorCodes {
         invalidResponseMode,
         invalidDpopAth,
         invalidDpopHtu,
-        invalidDpopPublicJwk
+        invalidDpopPublicJwk,
+        invalidDpopSignature
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1909,6 +1910,9 @@ const invalidDpopHtu = "invalid_dpop_htu";
 
 // @public (undocumented)
 const invalidDpopPublicJwk = "invalid_dpop_public_jwk";
+
+// @public (undocumented)
+const invalidDpopSignature = "invalid_dpop_signature";
 
 // @public (undocumented)
 const invalidPlatformBrokerConfiguration = "invalid_platform_broker_configuration";

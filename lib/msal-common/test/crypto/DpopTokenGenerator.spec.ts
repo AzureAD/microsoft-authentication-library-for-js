@@ -555,6 +555,25 @@ describe("DpopTokenGenerator Unit Tests", () => {
             );
             expect(sign).not.toHaveBeenCalled();
         });
+
+        it("rejects empty or malformed DPoP proof signatures returned by the signer", async () => {
+            const invalidSignatures = ["", "not+base64url", "not/base64url"];
+
+            for (const signature of invalidSignatures) {
+                await expect(
+                    generator.generateTokenProof({
+                        tokenEndpoint:
+                            "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
+                        publicJwk,
+                        signer: createSigner(
+                            jest.fn().mockResolvedValue(signature)
+                        ),
+                    })
+                ).rejects.toThrow(
+                    ClientConfigurationErrorCodes.invalidDpopSignature
+                );
+            }
+        });
     });
 
     describe("generateResourceProof", () => {
