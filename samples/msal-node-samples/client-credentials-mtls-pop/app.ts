@@ -120,7 +120,6 @@ export const acquireFicMtlsPopToken = async (params: {
         tokenBindingCertificate: {
             privateKey: params.cert.privateKey,
             x5c: leg1.bindingCertificate.x5c,
-            thumbprintSha256: leg1.bindingCertificate.thumbprintSha256,
         },
         skipCache: true,
     });

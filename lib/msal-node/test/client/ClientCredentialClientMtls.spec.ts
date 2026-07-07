@@ -50,7 +50,6 @@ const BINDING_CERT: MtlsBindingCertificate = {
     x5c: Buffer.from("leg1-binding-cert-der-bytes").toString("base64"),
     privateKey:
         "-----BEGIN PRIVATE KEY-----\nleg1-private-key\n-----END PRIVATE KEY-----\n",
-    thumbprintSha256: "EXPLICIT-LEG1-THUMBPRINT",
 };
 
 const MTLS_POP_TOKEN_RESPONSE: ServerAuthorizationTokenResponse = {
@@ -271,7 +270,7 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
 
             expect(result.bindingCertificate).toEqual({
                 x5c: BINDING_CERT.x5c,
-                thumbprintSha256: BINDING_CERT.thumbprintSha256,
+                thumbprintSha256: computeX5tSha256(BINDING_CERT.x5c),
             });
         });
     });
@@ -335,6 +334,26 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
                         Constants.AuthenticationScheme.MTLS_POP,
                 })
             ).rejects.toThrow(/mtls_binding_certificate_missing_private_key/);
+        });
+
+        it("throws when the binding certificate is missing its public certificate (x5c)", async () => {
+            const { config } = await buildMtlsConfig({
+                mtlsBindingCertificate: {
+                    x5c: "",
+                    privateKey: APP_CERT.privateKey,
+                },
+            });
+            const client = new ClientCredentialClient(config);
+
+            await expect(
+                client.acquireToken({
+                    authority: TENANTED_AUTHORITY,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    authenticationScheme:
+                        Constants.AuthenticationScheme.MTLS_POP,
+                })
+            ).rejects.toThrow(/mtls_binding_certificate_missing_certificate/);
         });
 
         it("validates mTLS configuration before any cache lookup (fails fast on cache hits)", async () => {

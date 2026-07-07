@@ -53,6 +53,10 @@ export const NodeAuthErrorMessage = {
         code: "mtls_binding_certificate_missing_private_key",
         desc: "The certificate used for mTLS Proof-of-Possession is missing its private key. Both x5c (public certificate) and privateKey are required.",
     },
+    mtlsBindingCertificateMissingCertificate: {
+        code: "mtls_binding_certificate_missing_certificate",
+        desc: "The certificate used for mTLS Proof-of-Possession is missing its public certificate (x5c). Both x5c (public certificate) and privateKey are required.",
+    },
     mtlsCustomNetworkClientUnsupported: {
         code: "mtls_custom_network_client_unsupported",
         desc: "mTLS Proof-of-Possession requires MSAL's built-in HttpClient to attach the client certificate to the TLS connection. A custom networkClient cannot be used with mtlsProofOfPossession.",
@@ -192,6 +196,16 @@ export class NodeAuthError extends AuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.mtlsBindingCertificateMissingPrivateKey.code,
             NodeAuthErrorMessage.mtlsBindingCertificateMissingPrivateKey.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when the mTLS binding certificate is missing its public certificate (x5c).
+     */
+    static createMtlsBindingCertificateMissingCertificateError(): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.mtlsBindingCertificateMissingCertificate.code,
+            NodeAuthErrorMessage.mtlsBindingCertificateMissingCertificate.desc
         );
     }
 

@@ -341,7 +341,6 @@ describe("ConfidentialClientApplication", () => {
                 const tokenBindingCertificate = {
                     x5c: "leg1-binding-cert",
                     privateKey: "leg1-private-key",
-                    thumbprintSha256: "leg1-thumbprint",
                 };
                 let observedCert:
                     | CommonClientCredentialRequest["tokenBindingCertificate"]

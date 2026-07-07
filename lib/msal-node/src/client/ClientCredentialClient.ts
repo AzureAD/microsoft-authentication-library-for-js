@@ -89,9 +89,9 @@ export class ClientCredentialClient extends BaseClient {
             const bindingCertificate = this.validateMtlsPopRequest(request);
             additionalCacheKeyComponents = {
                 ...(additionalCacheKeyComponents ?? {}),
-                mtls_pop_cert_thumbprint:
-                    bindingCertificate.thumbprintSha256 ??
-                    computeX5tSha256(bindingCertificate.x5c),
+                mtls_pop_cert_thumbprint: computeX5tSha256(
+                    bindingCertificate.x5c
+                ),
             };
         }
 
@@ -463,9 +463,9 @@ export class ClientCredentialClient extends BaseClient {
     /**
      * Validates that an mTLS Proof-of-Possession request can be satisfied before any cache lookup
      * or network call: MSAL must own the transport (the built-in HttpClient, since a custom
-     * networkClient cannot present a client certificate), and a binding certificate with a private
-     * key must be resolvable. Returns the resolved binding certificate so callers can reuse it
-     * (e.g. for cache-key isolation and the TLS handshake).
+     * networkClient cannot present a client certificate), and a binding certificate with both its
+     * public certificate (x5c) and private key must be resolvable. Returns the resolved binding
+     * certificate so callers can reuse it (e.g. for cache-key isolation and the TLS handshake).
      * @param request - CommonClientCredentialRequest provided by the developer
      */
     private validateMtlsPopRequest(
@@ -480,6 +480,9 @@ export class ClientCredentialClient extends BaseClient {
         }
         if (!bindingCertificate.privateKey) {
             throw NodeAuthError.createMtlsBindingCertificateMissingPrivateKeyError();
+        }
+        if (!bindingCertificate.x5c) {
+            throw NodeAuthError.createMtlsBindingCertificateMissingCertificateError();
         }
         return bindingCertificate;
     }
@@ -513,9 +516,7 @@ export class ClientCredentialClient extends BaseClient {
         if (bindingCertificate) {
             result.bindingCertificate = {
                 x5c: bindingCertificate.x5c,
-                thumbprintSha256:
-                    bindingCertificate.thumbprintSha256 ??
-                    computeX5tSha256(bindingCertificate.x5c),
+                thumbprintSha256: computeX5tSha256(bindingCertificate.x5c),
             };
         }
     }

@@ -65,12 +65,15 @@ describeOrSkip("FIC two-leg mTLS Proof-of-Possession AAD Prod Tests", () => {
         // Leg 1: SN/I cert -> mTLS-bound federated assertion.
         expect(leg1.accessToken).toBeTruthy();
         expect(leg1.tokenType).toBe("mtls_pop");
-        expect(leg1.bindingCertificate?.thumbprintSha256).toBe(thumbprint);
+        // The binding thumbprint is the certificate's x5t#S256 (base64url), derived from the x5c.
+        expect(leg1.bindingCertificate?.thumbprintSha256).toBeTruthy();
 
         // Leg 2: assertion credential + Leg 1 binding cert on TLS -> final mTLS-PoP token.
         expect(leg2.accessToken).toBeTruthy();
         expect(leg2.tokenType).toBe("mtls_pop");
-        // The final token is bound to the Leg 1 certificate thumbprint.
-        expect(leg2.bindingCertificate?.thumbprintSha256).toBe(thumbprint);
+        // The final token is bound to the same (Leg 1) certificate as Leg 1.
+        expect(leg2.bindingCertificate?.thumbprintSha256).toBe(
+            leg1.bindingCertificate?.thumbprintSha256
+        );
     });
 });

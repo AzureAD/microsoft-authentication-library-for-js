@@ -80,7 +80,6 @@ const final = await leg2Cca.acquireTokenByClientCredential({
     tokenBindingCertificate: {
         privateKey: sniPrivateKey, // the app already holds the Leg 1 cert's private key
         x5c: leg1.bindingCertificate.x5c,
-        thumbprintSha256: leg1.bindingCertificate.thumbprintSha256,
     },
 });
 ```
