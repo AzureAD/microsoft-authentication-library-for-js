@@ -9,7 +9,9 @@ import {
   SilentRequest,
 } from "@azure/msal-browser";
 import { MsalModule, MsalBroadcastService, MsalService } from "./public-api";
+import { MsalGuardConfiguration } from "./msal.guard.config";
 import { takeLast } from "rxjs/operators";
+import { firstValueFrom } from "rxjs";
 
 let authService: MsalService;
 let broadcastService: MsalBroadcastService;
@@ -26,10 +28,14 @@ function initializeMsal() {
 
   TestBed.configureTestingModule({
     imports: [
-      MsalModule.forRoot(msalInstance, null, {
-        interactionType: InteractionType.Popup,
-        protectedResourceMap: new Map(),
-      }),
+      MsalModule.forRoot(
+        msalInstance,
+        null as unknown as MsalGuardConfiguration,
+        {
+          interactionType: InteractionType.Popup,
+          protectedResourceMap: new Map(),
+        }
+      ),
     ],
     providers: [MsalService, MsalBroadcastService],
     teardown: { destroyAfterEach: false },
@@ -107,7 +113,7 @@ describe("MsalService", () => {
         scopes: ["user.read"],
       };
 
-      await authService.loginRedirect(request);
+      await firstValueFrom(authService.loginRedirect(request));
 
       expect(
         PublicClientApplication.prototype.loginRedirect
@@ -122,7 +128,7 @@ describe("MsalService", () => {
           resolve();
         })
       );
-      await authService.logoutPopup();
+      await firstValueFrom(authService.logoutPopup());
       expect(PublicClientApplication.prototype.logoutPopup).toHaveBeenCalled();
     });
   });
@@ -137,7 +143,7 @@ describe("MsalService", () => {
           resolve();
         })
       );
-      await authService.logoutRedirect();
+      await firstValueFrom(authService.logoutRedirect());
       expect(
         PublicClientApplication.prototype.logoutRedirect
       ).toHaveBeenCalled();
@@ -217,7 +223,7 @@ describe("MsalService", () => {
 
       const request: SilentRequest = {
         scopes: ["user.read"],
-        account: null,
+        account: undefined,
       };
 
       authService
@@ -245,7 +251,7 @@ describe("MsalService", () => {
 
       const request: SilentRequest = {
         scopes: ["wrong.scope"],
-        account: null,
+        account: undefined,
       };
 
       authService.acquireTokenSilent(request).subscribe({
@@ -271,9 +277,11 @@ describe("MsalService", () => {
         })
       );
 
-      await authService.acquireTokenRedirect({
-        scopes: ["user.read"],
-      });
+      await firstValueFrom(
+        authService.acquireTokenRedirect({
+          scopes: ["user.read"],
+        })
+      );
 
       expect(
         PublicClientApplication.prototype.acquireTokenRedirect
@@ -365,8 +373,8 @@ describe("MsalService", () => {
 
       authService
         .handleRedirectObservable()
-        .subscribe((response: AuthenticationResult) => {
-          expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+        .subscribe((response: AuthenticationResult | null) => {
+          expect(response!.accessToken).toBe(sampleAccessToken.accessToken);
           expect(
             PublicClientApplication.prototype.initialize
           ).toHaveBeenCalled();
@@ -436,8 +444,8 @@ describe("MsalService", () => {
 
       authService
         .handleRedirectObservable(hash)
-        .subscribe((response: AuthenticationResult) => {
-          expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+        .subscribe((response: AuthenticationResult | null) => {
+          expect(response!.accessToken).toBe(sampleAccessToken.accessToken);
           expect(
             PublicClientApplication.prototype.handleRedirectPromise
           ).toHaveBeenCalledWith({ hash: hash });
@@ -464,8 +472,8 @@ describe("MsalService", () => {
 
       authService
         .handleRedirectObservable({ hash })
-        .subscribe((response: AuthenticationResult) => {
-          expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+        .subscribe((response: AuthenticationResult | null) => {
+          expect(response!.accessToken).toBe(sampleAccessToken.accessToken);
           expect(
             PublicClientApplication.prototype.handleRedirectPromise
           ).toHaveBeenCalledWith({ hash: hash });
@@ -490,8 +498,8 @@ describe("MsalService", () => {
 
       authService
         .handleRedirectObservable({ navigateToLoginRequestUrl: false })
-        .subscribe((response: AuthenticationResult) => {
-          expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+        .subscribe((response: AuthenticationResult | null) => {
+          expect(response!.accessToken).toBe(sampleAccessToken.accessToken);
           expect(
             PublicClientApplication.prototype.handleRedirectPromise
           ).toHaveBeenCalledWith({ navigateToLoginRequestUrl: false });

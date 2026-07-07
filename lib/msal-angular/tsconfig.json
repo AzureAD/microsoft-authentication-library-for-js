@@ -1,29 +1,28 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "esModuleInterop": true,
     "declaration": false,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": true,
-    "target": "es2020",
-    "module": "es2020",
+    "target": "ES2022",
+    "module": "ES2022",
     "lib": [
-      "ES2020",
+      "ES2022",
       "dom"
     ],
     "paths": {
       "msal-angular": [
-        "dist/msal-angular"
+        "./dist/msal-angular"
       ],
       "rxjs": [
-        "node_modules/rxjs"
+        "./node_modules/rxjs"
       ],
       "rxjs/*": [
-        "node_modules/rxjs/*"
+        "./node_modules/rxjs/*"
       ],
     },
     "useDefineForClassFields": false

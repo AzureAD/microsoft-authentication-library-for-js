@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
@@ -39,6 +39,7 @@ export class AppComponent implements OnInit {
   private msalGuardConfig = inject<MsalGuardConfiguration>(MSAL_GUARD_CONFIG);
   private authService = inject(MsalService);
   private msalBroadcastService = inject(MsalBroadcastService);
+  private cdr = inject(ChangeDetectorRef);
 
   title = 'Angular Standalone Sample - MSAL Angular';
   isIframe = false;
@@ -75,6 +76,7 @@ export class AppComponent implements OnInit {
       .subscribe(() => {
         this.setLoginDisplay();
         this.checkAndSetActiveAccount();
+        this.cdr.detectChanges();
       });
   }
 
