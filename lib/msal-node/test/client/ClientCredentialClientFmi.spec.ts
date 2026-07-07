@@ -528,5 +528,15 @@ describe("ClientCredentialClient FMI tests", () => {
             // But should end with the same hash (same components)
             expect(bearerKey).toMatch(/[a-z0-9_-]{43}$/);
         });
+
+        it("prefers persisted additionalCacheKeyComponentsHash over inline compute", () => {
+            const entity = makeEntity({
+                additionalCacheKeyComponents: { fmi_path: "agent-a" },
+                additionalCacheKeyComponentsHash: "precomputed-hash-segment",
+            });
+
+            const key = generateCredentialKey(entity);
+            expect(key.endsWith("precomputed-hash-segment")).toBe(true);
+        });
     });
 });

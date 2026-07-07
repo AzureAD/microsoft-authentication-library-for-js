@@ -80,6 +80,10 @@ export class NestedAppAuthAdapter {
             this.clientCapabilities
         );
         const scopes = request.scopes || Constants.OIDC_DEFAULT_SCOPES;
+        const attributeTokens =
+            request.attributeTokens && request.attributeTokens.length > 0
+                ? [...request.attributeTokens].sort().join(" ")
+                : undefined;
         const tokenRequest: TokenRequest = {
             platformBrokerId: request.account?.homeAccountId,
             clientId: this.clientId,
@@ -93,6 +97,7 @@ export class NestedAppAuthAdapter {
                 request.authenticationScheme ||
                 Constants.AuthenticationScheme.BEARER,
             extraParameters: extraParams,
+            attributeTokens,
         };
 
         return tokenRequest;

@@ -6,6 +6,7 @@
 import { ShrOptions } from "../crypto/SignedHttpRequest.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import { AuthenticationScheme } from "../utils/Constants.js";
+import * as AttributeTokenCacheHelpers from "../cache/utils/AttributeTokenCacheHelpers.js";
 
 /**
  * Type representing a unique request thumbprint.
@@ -24,6 +25,14 @@ export type RequestThumbprint = {
     shrOptions?: ShrOptions;
     embeddedClientId?: string;
     resource?: string;
+    /**
+     * Partition identifier derived from `request.attributeTokens`. Included so that
+     * silent-request dedupe (see StandardController.acquireTokenSilentDeduped) does
+     * not cross-resolve bearer-mode requests with attribute-token requests, or
+     * distinct attribute-token sets with each other. Value comes from
+     * `AttributeTokenCacheHelpers.getAttributeTokenPartitionKey`.
+     */
+    attributeTokenPartition?: string;
 };
 
 export function getRequestThumbprint(
@@ -45,5 +54,9 @@ export function getRequestThumbprint(
         embeddedClientId:
             request.embeddedClientId || request.extraParameters?.clientId,
         resource: request.resource,
+        attributeTokenPartition:
+            AttributeTokenCacheHelpers.getAttributeTokenPartitionKey(
+                request.attributeTokens
+            ),
     };
 }

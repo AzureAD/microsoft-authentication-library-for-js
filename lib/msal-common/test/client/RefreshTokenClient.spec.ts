@@ -256,6 +256,42 @@ describe("RefreshTokenClient unit tests", () => {
             });
         });
 
+        it("Adds sorted attribute_tokens to the /token request body", (done) => {
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                try {
+                    expect(body).toContain(
+                        "attribute_tokens=alpha%20mike%20zeta"
+                    );
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+                attributeTokens: ["zeta", "alpha", "mike"],
+            };
+
+            client.acquireToken(refreshTokenRequest, 0).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
         it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {
             jest.spyOn(
                 TokenProtocol,

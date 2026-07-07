@@ -1018,14 +1018,31 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 ? undefined
                 : this.config.auth.clientCapabilities;
 
-        // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
-        const { scopes, claims, ...remainingProperties } = request;
+        /*
+         * scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
+         * attributeTokens is destructured out because PlatformAuthRequest represents it as a pre-serialized string, not the caller-provided Array<string>.
+         */
+        const {
+            scopes,
+            claims,
+            attributeTokens: requestAttributeTokens,
+            ...remainingProperties
+        } = request;
         const scopeSet = new ScopeSet(scopes || [], this.correlationId);
         scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
 
         const mergedClaims = RequestParameterBuilder.buildMergedClaims(
             claims,
             configClaims?.length ? configClaims : undefined
+        );
+
+        const serializedAttributeTokens =
+            requestAttributeTokens && requestAttributeTokens.length > 0
+                ? [...requestAttributeTokens].sort().join(" ")
+                : undefined;
+        this.performanceClient?.addFields(
+            { "ext.hasAttributeTokens": !!requestAttributeTokens?.length },
+            this.correlationId
         );
 
         const validatedRequest: PlatformAuthRequest = {
@@ -1050,6 +1067,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             },
             extendedExpiryToken: false, // Make this configurable?
             keyId: request.popKid,
+            attributeTokens: serializedAttributeTokens,
         };
 
         // Check for PoP token requests: signPopToken should only be set to true if popKid is not set

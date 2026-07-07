@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add attribute-tokens support to NAA (NestedAppAuthAdapter serializes sorted-space-joined attributeTokens onto TokenRequest), Native Broker (PlatformAuthInteractionClient/PlatformAuthRequest passthrough), and BrowserCacheManager.generateCredentialKey (appends persisted additionalCacheKeyComponentsHash for cache-key partition isolation)",
+  "packageName": "@azure/msal-browser",
+  "email": "spingale@microsoft.com",
+  "dependentChangeType": "patch"
+}

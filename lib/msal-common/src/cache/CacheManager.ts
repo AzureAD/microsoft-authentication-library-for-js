@@ -38,6 +38,7 @@ import { ServerTelemetryEntity } from "./entities/ServerTelemetryEntity.js";
 import { ThrottlingEntity } from "./entities/ThrottlingEntity.js";
 import { ICacheManager } from "./interface/ICacheManager.js";
 import * as AccountEntityUtils from "./utils/AccountEntityUtils.js";
+import * as AttributeTokenCacheHelpers from "./utils/AttributeTokenCacheHelpers.js";
 import {
     AccountFilter,
     AppMetadataCache,
@@ -1354,6 +1355,19 @@ export abstract class CacheManager implements ICacheManager {
             target: scopes,
             tokenType: authScheme,
             keyId: request.sshKid,
+            /*
+             * Isolate cache lookup by attribute-token partition so bearer-mode entries
+             * never resolve for attribute-token requests, and distinct joined
+             * attribute-token strings do not cross-resolve (R4). When the request has
+             * no attribute tokens this returns undefined and legacy bearer read
+             * semantics are preserved.
+             */
+            additionalCacheKeyComponents:
+                AttributeTokenCacheHelpers.buildAttributeTokenAdditionalCacheKeyComponents(
+                    AttributeTokenCacheHelpers.getAttributeTokenPartitionKey(
+                        request.attributeTokens
+                    )
+                ),
         };
 
         const accessTokenKeys =

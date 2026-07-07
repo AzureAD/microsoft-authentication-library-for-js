@@ -87,7 +87,8 @@ declare namespace AADServerParamKeys {
         USER_FEDERATED_IDENTITY_CREDENTIAL,
         USERNAME,
         USER_ID,
-        FMI_PATH
+        FMI_PATH,
+        ATTRIBUTE_TOKENS
     }
 }
 export { AADServerParamKeys }
@@ -186,6 +187,9 @@ export type ActiveAccountFilters = {
 
 // @public
 function addApplicationTelemetry(parameters: Map<string, string>, appTelemetry: ApplicationTelemetry): void;
+
+// @public
+function addAttributeTokens(parameters: Map<string, string>, attributeTokens?: Array<string>): void;
 
 // @public
 function addAuthorizationCode(parameters: Map<string, string>, code: string): void;
@@ -355,6 +359,22 @@ export type AppTokenProviderResult = {
     expiresInSeconds: number;
     refreshInSeconds?: number;
 };
+
+// @public
+const ATTRIBUTE_TOKEN_BEARER_PARTITION = "bearer";
+
+// @public (undocumented)
+const ATTRIBUTE_TOKENS = "attribute_tokens";
+
+declare namespace AttributeTokenCacheHelpers {
+    export {
+        getAttributeTokenPartitionKey,
+        buildAttributeTokenAdditionalCacheKeyComponents,
+        getAdditionalCacheKeyComponentsHashPayload,
+        ATTRIBUTE_TOKEN_BEARER_PARTITION
+    }
+}
+export { AttributeTokenCacheHelpers }
 
 // @public (undocumented)
 const AuthClientCreateTokenRequestBody = "authClientCreateTokenRequestBody";
@@ -707,6 +727,7 @@ export type BaseAuthRequest = {
     skipBrokerClaims?: boolean;
     extraQueryParameters?: StringDict;
     extraParameters?: StringDict;
+    attributeTokens?: Array<string>;
 };
 
 // @public (undocumented)
@@ -720,6 +741,9 @@ const BROKER_REDIRECT_URI = "brk_redirect_uri";
 
 // @internal (undocumented)
 export function buildAccountToCache(cacheStorage: CacheManager, authority: Authority, homeAccountId: string, base64Decode: (input: string) => string, correlationId: string, idTokenClaims?: TokenClaims, clientInfo?: string, environment?: string, claimsTenantId?: string | null, authCodePayload?: AuthorizationCodePayload, nativeAccountId?: string, logger?: Logger, performanceClient?: IPerformanceClient): AccountEntity;
+
+// @public
+function buildAttributeTokenAdditionalCacheKeyComponents(partition: string): Record<string, string> | undefined;
 
 // @internal
 export function buildClientConfiguration(input: ClientConfiguration): CommonClientConfiguration;
@@ -1321,7 +1345,7 @@ declare namespace Constants {
 const CONSUMER_UTID = "9188040d-6c67-4c5b-b112-36a304b66dad";
 
 // @public
-function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, correlationId: string, refreshOn?: number, tokenType?: Constants_2.AuthenticationScheme, userAssertionHash?: string, keyId?: string, additionalCacheKeyComponents?: Record<string, string>): AccessTokenEntity;
+function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, correlationId: string, refreshOn?: number, tokenType?: Constants_2.AuthenticationScheme, userAssertionHash?: string, keyId?: string, additionalCacheKeyComponents?: Record<string, string>, additionalCacheKeyComponentsHash?: string): AccessTokenEntity;
 
 // @internal
 function createAccountEntity(accountDetails: {
@@ -1385,6 +1409,7 @@ export type CredentialEntity = {
     tokenType?: AuthenticationScheme;
     keyId?: string;
     additionalCacheKeyComponents?: Record<string, string>;
+    additionalCacheKeyComponentsHash?: string;
     lastUpdatedAt: string;
 };
 
@@ -1594,6 +1619,12 @@ function generateLibraryState(cryptoObj: ICrypto, correlationId: string, meta?: 
 
 // @internal
 function getAccountInfo(accountEntity: AccountEntity): AccountInfo;
+
+// @public
+function getAdditionalCacheKeyComponentsHashPayload(components?: Record<string, string>): string | undefined;
+
+// @public
+function getAttributeTokenPartitionKey(attributeTokens?: Array<string>): string;
 
 // @public
 const GetAuthCodeUrl = "getAuthCodeUrl";
@@ -2770,7 +2801,8 @@ declare namespace RequestParameterBuilder {
         addLogoutHint,
         addBrokerParameters,
         addEARParameters,
-        addResource
+        addResource,
+        addAttributeTokens
     }
 }
 
@@ -2795,6 +2827,7 @@ export type RequestThumbprint = {
     shrOptions?: ShrOptions;
     embeddedClientId?: string;
     resource?: string;
+    attributeTokenPartition?: string;
 };
 
 // @public (undocumented)

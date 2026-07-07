@@ -966,4 +966,56 @@ describe("RequestParameterBuilder unit tests", () => {
             );
         });
     });
+
+    describe("addAttributeTokens", () => {
+        it("emits sorted, space-joined attribute_tokens when provided", () => {
+            const parameters = new Map<string, string>();
+            RequestParameterBuilder.addAttributeTokens(parameters, [
+                "zeta",
+                "alpha",
+                "mike",
+            ]);
+            expect(parameters.get(AADServerParamKeys.ATTRIBUTE_TOKENS)).toBe(
+                "alpha mike zeta"
+            );
+        });
+
+        it("does not mutate parameters when attributeTokens is undefined", () => {
+            const parameters = new Map<string, string>();
+            parameters.set(AADServerParamKeys.ATTRIBUTE_TOKENS, "keep");
+            RequestParameterBuilder.addAttributeTokens(parameters, undefined);
+            expect(parameters.get(AADServerParamKeys.ATTRIBUTE_TOKENS)).toBe(
+                "keep"
+            );
+        });
+
+        it("deletes attribute_tokens when passed an explicitly empty array", () => {
+            const parameters = new Map<string, string>();
+            parameters.set(AADServerParamKeys.ATTRIBUTE_TOKENS, "existing");
+            RequestParameterBuilder.addAttributeTokens(parameters, []);
+            expect(parameters.has(AADServerParamKeys.ATTRIBUTE_TOKENS)).toBe(
+                false
+            );
+        });
+
+        it("transmits caller-provided values verbatim without trim or dedupe", () => {
+            const parameters = new Map<string, string>();
+            RequestParameterBuilder.addAttributeTokens(parameters, [
+                "b",
+                "a",
+                "a",
+                " c ",
+            ]);
+            expect(parameters.get(AADServerParamKeys.ATTRIBUTE_TOKENS)).toBe(
+                " c  a a b"
+            );
+        });
+
+        it("does not mutate the caller-provided array", () => {
+            const parameters = new Map<string, string>();
+            const input = ["c", "a", "b"];
+            RequestParameterBuilder.addAttributeTokens(parameters, input);
+            expect(input).toEqual(["c", "a", "b"]);
+        });
+    });
 });

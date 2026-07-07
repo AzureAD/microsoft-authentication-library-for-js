@@ -700,3 +700,36 @@ export function addResource(
         parameters.set(AADServerParamKeys.RESOURCE, resource);
     }
 }
+
+/**
+ * Add the `attribute_tokens` parameter to a /token request body.
+ *
+ * When `attributeTokens` is undefined the parameter is not set and any prior value is left alone.
+ * When `attributeTokens` is a non-empty array the values are sorted lexicographically and joined
+ * with a single space, then written to the request body. When `attributeTokens` is an explicitly
+ * empty array the parameter is deleted from the request body.
+ *
+ * MSAL performs no per-token validation, trimming, or deduplication - the caller-provided values
+ * are transmitted verbatim.
+ *
+ * @param parameters - request parameter map that will be serialized into the /token body
+ * @param attributeTokens - optional caller-provided attribute token strings
+ */
+export function addAttributeTokens(
+    parameters: Map<string, string>,
+    attributeTokens?: Array<string>
+): void {
+    if (typeof attributeTokens === "undefined") {
+        return;
+    }
+
+    if (attributeTokens.length > 0) {
+        const sortedAttributeTokens = [...attributeTokens].sort();
+        parameters.set(
+            AADServerParamKeys.ATTRIBUTE_TOKENS,
+            sortedAttributeTokens.join(" ")
+        );
+    } else {
+        parameters.delete(AADServerParamKeys.ATTRIBUTE_TOKENS);
+    }
+}

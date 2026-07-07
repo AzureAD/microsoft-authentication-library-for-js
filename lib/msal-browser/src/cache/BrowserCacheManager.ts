@@ -2118,7 +2118,13 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Generate Credential Key. All changes to the key REQUIRE a schema version update.
-     * Cache Key: msal.<schema_version>|<home_account_id>|<environment>|<credential_type>|<client_id or familyId>|<realm>|<scopes>|<scheme>
+     * Cache Key: msal.<schema_version>|<home_account_id>|<environment>|<credential_type>|<client_id or familyId>|<realm>|<scopes>|<scheme>[|<additional_cache_key_components_hash>]
+     *
+     * When the credential carries `additionalCacheKeyComponents` (e.g., attribute-token
+     * partition, FMI path), the precomputed `additionalCacheKeyComponentsHash` written by
+     * `ResponseHandler` at write time is appended as an additional segment so that entries
+     * differing only by partition receive distinct persisted keys. Existing bearer-mode
+     * entries carry neither field and their key format is unchanged (backward-compatible).
      * @param credentialEntity
      * @returns
      */
@@ -2144,6 +2150,20 @@ export class BrowserCacheManager extends CacheManager {
             credential.target || "",
             scheme,
         ];
+
+        /*
+         * Append the precomputed component-hash segment when the entity carries additional
+         * cache key components. Browser cannot compute SHA-256 synchronously, so the hash
+         * is written once at cache-write time by ResponseHandler using `ICrypto.hashString`
+         * and persisted on the entity as `additionalCacheKeyComponentsHash`.
+         */
+        if (
+            credential.additionalCacheKeyComponents &&
+            Object.keys(credential.additionalCacheKeyComponents).length > 0 &&
+            credential.additionalCacheKeyComponentsHash
+        ) {
+            credentialKey.push(credential.additionalCacheKeyComponentsHash);
+        }
 
         return credentialKey.join(CacheKeys.CACHE_KEY_SEPARATOR).toLowerCase();
     }

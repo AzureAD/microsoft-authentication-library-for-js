@@ -818,6 +818,50 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
         });
 
+        it("Adds sorted attribute_tokens to the /token request body", (done) => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                try {
+                    expect(body).toContain(
+                        "attribute_tokens=alpha%20mike%20zeta"
+                    );
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                attributeTokens: ["zeta", "alpha", "mike"],
+            };
+
+            client.acquireToken(authorizationCodeRequest, 0).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
         it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {
             jest.spyOn(
                 Authority.prototype,

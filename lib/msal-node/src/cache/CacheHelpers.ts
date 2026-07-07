@@ -44,15 +44,22 @@ export function generateCredentialKey(credential: CredentialEntity): string {
         scheme,
     ];
 
-    // Compute and append a combined hash from additional cache key components (e.g., fmi_path)
+    /*
+     * Compute and append a combined hash from additional cache key components (e.g., fmi_path).
+     * Prefer the precomputed hash persisted on the entity (written at cache-write time in
+     * ResponseHandler via the async `ICrypto.hashString`) so that all runtimes agree on the
+     * same hashed value even when they cannot recompute it synchronously. Fall back to the
+     * legacy inline compute for entities persisted before the precompute contract landed.
+     */
     if (
         credential.additionalCacheKeyComponents &&
         Object.keys(credential.additionalCacheKeyComponents).length > 0
     ) {
         credentialKey.push(
-            computeAdditionalCacheKeyHash(
-                credential.additionalCacheKeyComponents
-            )
+            credential.additionalCacheKeyComponentsHash ||
+                computeAdditionalCacheKeyHash(
+                    credential.additionalCacheKeyComponents
+                )
         );
     }
 

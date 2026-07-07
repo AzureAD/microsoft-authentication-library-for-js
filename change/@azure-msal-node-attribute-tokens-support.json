@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Support attribute-tokens cache partition isolation in generateCredentialKey (prefers persisted additionalCacheKeyComponentsHash from ResponseHandler, falls back to inline compute for backward compatibility with pre-existing cache entries)",
+  "packageName": "@azure/msal-node",
+  "email": "spingale@microsoft.com",
+  "dependentChangeType": "patch"
+}

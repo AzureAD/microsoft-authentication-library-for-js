@@ -33,6 +33,14 @@ export type CredentialEntity = {
     keyId?: string;
     /** Additional cache key components for cache isolation (e.g., { fmi_path: "..." }). Stored as raw key-value pairs; a combined hash is computed at key-generation time. */
     additionalCacheKeyComponents?: Record<string, string>;
+    /**
+     * Precomputed SHA-256 base64url hash of the deterministic payload derived from
+     * `additionalCacheKeyComponents`. Written once at cache-write time so that
+     * synchronous credential-key generators (e.g., in msal-browser) can append the
+     * hash segment without needing async crypto. Consumers that recompute the hash
+     * synchronously (e.g., msal-node) may treat this as an optimization/index.
+     */
+    additionalCacheKeyComponentsHash?: string;
     /** Timestamp when the entry was last updated */
     lastUpdatedAt: string;
 };

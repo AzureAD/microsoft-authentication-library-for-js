@@ -453,6 +453,66 @@ describe("ResponseHandler.ts", () => {
             );
         });
 
+        it("persists attribute-token partition and precomputed hash on access token entity", (done) => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                attributeTokens: ["zeta", "alpha"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+
+            jest.spyOn(
+                ResponseHandler,
+                "generateAuthenticationResult"
+            ).mockImplementation(
+                async (
+                    _cryptoObj,
+                    _authority,
+                    cacheRecord,
+                    _fromTokenCache,
+                    _request,
+                    _idTokenClaims,
+                    _requestState,
+                    _serverTokenResponse,
+                    _requestId
+                ) => {
+                    expect(
+                        cacheRecord.accessToken?.additionalCacheKeyComponents
+                    ).toEqual({
+                        attribute_tokens: "attribute_tokens:alpha zeta",
+                    });
+                    expect(
+                        cacheRecord.accessToken
+                            ?.additionalCacheKeyComponentsHash
+                    ).toBeDefined();
+                    done();
+                    return {} as AuthenticationResult;
+                }
+            );
+
+            const timestamp = TimeUtils.nowSeconds();
+            responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest,
+                0
+            );
+        });
+
         it("includes spa_code in response as code", async () => {
             const testSpaCode = "sample-spa-code";
 

@@ -73,7 +73,8 @@ export function createAccessTokenEntity(
     tokenType?: Constants.AuthenticationScheme,
     userAssertionHash?: string,
     keyId?: string,
-    additionalCacheKeyComponents?: Record<string, string>
+    additionalCacheKeyComponents?: Record<string, string>,
+    additionalCacheKeyComponentsHash?: string
 ): AccessTokenEntity {
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
@@ -135,6 +136,10 @@ export function createAccessTokenEntity(
         Object.keys(additionalCacheKeyComponents).length > 0
     ) {
         atEntity.additionalCacheKeyComponents = additionalCacheKeyComponents;
+        if (additionalCacheKeyComponentsHash) {
+            atEntity.additionalCacheKeyComponentsHash =
+                additionalCacheKeyComponentsHash;
+        }
     }
 
     return atEntity;

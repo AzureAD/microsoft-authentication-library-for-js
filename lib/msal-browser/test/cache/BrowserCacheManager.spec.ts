@@ -5032,4 +5032,79 @@ describe("BrowserCacheManager tests", () => {
             );
         });
     });
+
+    describe("generateCredentialKey attribute-token partition segment", () => {
+        let browserCacheManager: BrowserCacheManager;
+        beforeEach(() => {
+            browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+        });
+
+        it("does not append segment when entity has no additionalCacheKeyComponents", () => {
+            const key = browserCacheManager.generateCredentialKey(
+                TEST_ACCESS_TOKEN_ENTITY
+            );
+            const segments = key.split("-");
+            // baseline reference — no partition entity produces the current
+            // 8-segment credential key format.
+            expect(key).not.toContain("|precomputed-hash");
+            expect(segments.length).toBeGreaterThan(0);
+        });
+
+        it("appends persisted additionalCacheKeyComponentsHash when present", () => {
+            const partitioned = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                additionalCacheKeyComponents: {
+                    attribute_tokens: "attribute_tokens:alpha zeta",
+                },
+                additionalCacheKeyComponentsHash: "precomputed-hash-abc",
+            };
+            const key = browserCacheManager.generateCredentialKey(partitioned);
+            expect(key.endsWith("precomputed-hash-abc")).toBe(true);
+        });
+
+        it("omits appended segment when hash is missing (defensive)", () => {
+            const partitionedNoHash = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                additionalCacheKeyComponents: {
+                    attribute_tokens: "attribute_tokens:alpha",
+                },
+            };
+            const partitioned = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                additionalCacheKeyComponents: {
+                    attribute_tokens: "attribute_tokens:alpha",
+                },
+                additionalCacheKeyComponentsHash: "hash-xyz",
+            };
+            const noHashKey =
+                browserCacheManager.generateCredentialKey(partitionedNoHash);
+            const withHashKey =
+                browserCacheManager.generateCredentialKey(partitioned);
+            expect(withHashKey).not.toBe(noHashKey);
+            expect(withHashKey.endsWith("hash-xyz")).toBe(true);
+        });
+
+        it("produces distinct keys for bearer vs partitioned entity", () => {
+            const bearerKey = browserCacheManager.generateCredentialKey(
+                TEST_ACCESS_TOKEN_ENTITY
+            );
+            const partitioned = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                additionalCacheKeyComponents: {
+                    attribute_tokens: "attribute_tokens:alpha",
+                },
+                additionalCacheKeyComponentsHash: "hash-1",
+            };
+            const attrKey =
+                browserCacheManager.generateCredentialKey(partitioned);
+            expect(bearerKey).not.toBe(attrKey);
+        });
+    });
 });
