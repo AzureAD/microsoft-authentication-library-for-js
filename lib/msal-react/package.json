@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "5.5.1",
+  "version": "5.5.2",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -59,11 +59,11 @@
     "apiExtractor": "api-extractor run"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^5.16.0",
+    "@azure/msal-browser": "^5.17.0",
     "react": "^16.8.0 || ^17 || ^18 || ^19.2.1"
   },
   "devDependencies": {
-    "@azure/msal-browser": "^5.16.0",
+    "@azure/msal-browser": "^5.17.0",
     "@microsoft/api-extractor": "^7.58.7",
     "@rollup/plugin-typescript": "^11.1.5",
     "@testing-library/dom": "^10.4.1",
