@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 23 Jun 2026 22:19:29 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 30 Jun 2026 21:04:19 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.16.0
+
+Tue, 30 Jun 2026 21:04:19 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+- Bump @azure/msal-common to v16.11.0
+
+### Patches
+
+- Add previousLibraryVersion to all telemetry events [#8688](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8688) (thomas.norling@microsoft.com)
 
 ## 5.15.0
 

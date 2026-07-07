@@ -280,6 +280,14 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected callbacks: Map<string, PerformanceCallbackFunction>;
 
     /**
+     * Fields stamped onto every event emitted by this client (e.g. previousLibraryVersion).
+     * Unlike addFields, these are not scoped to a single correlationId and persist for the
+     * lifetime of the client. Set imperatively after construction via addGlobalFields.
+     * @protected
+     */
+    protected globalFields: { [key: string]: {} | undefined };
+
+    /**
      * Multiple events with the same correlation id.
      * @protected
      * @type {Map<string, PerformanceEvent>}
@@ -320,6 +328,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.authority = authority;
         this.libraryName = libraryName;
         this.libraryVersion = libraryVersion;
+        this.globalFields = {};
         this.applicationTelemetry = applicationTelemetry;
         this.clientId = clientId;
         this.logger = logger;
@@ -507,6 +516,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
             incompleteSubsCount,
             context,
             logs: formattedLogs,
+            /*
+             * Global fields are spread last so they are always present on the
+             * emitted event and never overridden, even when registered after
+             * the measurement started.
+             */
+            ...this.globalFields,
         };
         if (account) {
             finalEvent.accountType = getAccountType(account);
@@ -566,6 +581,19 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 correlationId
             );
         }
+    }
+
+    /**
+     * Saves fields to be emitted on every event measured by this client.
+     * Unlike addFields, these are not scoped to a single correlationId and persist for the
+     * lifetime of the client (e.g. previousLibraryVersion for upgrade/downgrade telemetry).
+     * @param fields
+     */
+    addGlobalFields(fields: { [key: string]: {} | undefined }): void {
+        this.globalFields = {
+            ...this.globalFields,
+            ...fields,
+        };
     }
 
     /**
