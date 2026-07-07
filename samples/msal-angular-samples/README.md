@@ -1,5 +1,7 @@
 # MSAL Angular Samples
 
+These samples target Angular 22, which requires Node.js `>=22.22.3`, `>=24.15.0`, or `>=26.0.0`.
+
 ### Current available samples for `@azure/msal-angular`:
 
 -   [Angular B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular-b2c-sample)
