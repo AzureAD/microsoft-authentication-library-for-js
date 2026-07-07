@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix decode logs script for the standalone mode [#8697](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8697)",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
