@@ -22,6 +22,8 @@ import {
     ServerTelemetryManager,
     AuthorizationCodePayload,
     enforceResourceParameter,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common/node";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
@@ -158,8 +160,16 @@ export class PublicClientApplication
             errorTemplate,
             windowHandle,
             loopbackClient: customLoopbackClient,
+            preferredPort,
             ...remainingProperties
         } = request;
+
+        if (customLoopbackClient) {
+            this.logger.warning(
+                "The loopbackClient option is deprecated and will be removed in a future major version. Omit it to use the built-in loopback server, and set preferredPort when a fixed port is required.",
+                correlationId
+            );
+        }
 
         if (this.nativeBrokerPlugin) {
             const brokerRequest: NativeRequest = {
@@ -197,7 +207,22 @@ export class PublicClientApplication
             await this.cryptoProvider.generatePkceCodes();
 
         const loopbackClient: ILoopbackClient =
-            customLoopbackClient || new LoopbackClient();
+            customLoopbackClient || new LoopbackClient(preferredPort);
+
+        // Validate and resolve responseMode
+        const responseMode =
+            remainingProperties.responseMode ??
+            CommonConstants.ResponseMode.QUERY;
+
+        if (
+            responseMode !== CommonConstants.ResponseMode.QUERY &&
+            responseMode !== CommonConstants.ResponseMode.FORM_POST
+        ) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidResponseMode,
+                correlationId
+            );
+        }
 
         let authCodeResponse: AuthorizeResponse = {};
         let authCodeListenerError: AuthError | null = null;
@@ -223,7 +248,7 @@ export class PublicClientApplication
                 correlationId: correlationId,
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
                 redirectUri: redirectUri,
-                responseMode: CommonConstants.ResponseMode.QUERY,
+                responseMode: responseMode,
                 codeChallenge: challenge,
                 codeChallengeMethod:
                     CommonConstants.CodeChallengeMethodValues.S256,
