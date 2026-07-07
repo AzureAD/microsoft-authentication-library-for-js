@@ -2713,6 +2713,9 @@ const RegionDiscoverySources: {
 // @public (undocumented)
 type RegionDiscoverySources = (typeof RegionDiscoverySources)[keyof typeof RegionDiscoverySources];
 
+// @public
+function removeQueryStringAndFragment(url: string): string;
+
 // @public (undocumented)
 const REQ_CNF = "req_cnf";
 
@@ -3347,6 +3350,7 @@ declare namespace UrlUtils {
         stripLeadingHashOrQuery,
         getDeserializedResponse,
         mapToQueryString,
+        removeQueryStringAndFragment,
         normalizeUrlForComparison,
         validateUrl
     }

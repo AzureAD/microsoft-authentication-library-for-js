@@ -169,6 +169,17 @@ describe("DpopTokenGenerator Unit Tests", () => {
             );
         });
 
+        it("preserves explicit ports in token endpoint htu", () => {
+            const claims = generator.buildTokenProofClaims({
+                tokenEndpoint:
+                    "https://login.microsoftonline.com:443/common/oauth2/v2.0/token?client_id=abc",
+            });
+
+            expect(claims.htu).toBe(
+                "https://login.microsoftonline.com:443/common/oauth2/v2.0/token"
+            );
+        });
+
         it("rejects malformed, relative, and non-https token endpoint URLs", () => {
             const invalidTokenEndpoints = [
                 "not-a-valid-url",
@@ -297,6 +308,25 @@ describe("DpopTokenGenerator Unit Tests", () => {
             }
         });
 
+        it("accepts RFC token characters in resource htm", () => {
+            const methods = [
+                "propfind",
+                "search-v2",
+                "m-search",
+                "custom.method",
+            ];
+
+            methods.forEach((method) => {
+                const claims = generator.buildResourceProofClaims({
+                    resourceUrl: "https://graph.microsoft.com/v1.0/me",
+                    htm: method,
+                    ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                });
+
+                expect(claims.htm).toBe(method.toUpperCase());
+            });
+        });
+
         it("normalizes resource htu by removing trailing query string", () => {
             const resourceUrl =
                 "https://api.example.com/data?filter=active&page=2";
@@ -358,6 +388,26 @@ describe("DpopTokenGenerator Unit Tests", () => {
             expect(claims.htu).toBe("https://api.example.com/v1.0/me");
         });
 
+        it("preserves explicit default ports in resource htu", () => {
+            const claims = generator.buildResourceProofClaims({
+                resourceUrl: "https://api.example.com:443/v1.0/me?filter=all",
+                htm: "GET",
+                ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+            });
+
+            expect(claims.htu).toBe("https://api.example.com:443/v1.0/me");
+        });
+
+        it("preserves non-default ports in resource htu", () => {
+            const claims = generator.buildResourceProofClaims({
+                resourceUrl: "https://api.example.com:8443/v1.0/me#profile",
+                htm: "GET",
+                ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+            });
+
+            expect(claims.htu).toBe("https://api.example.com:8443/v1.0/me");
+        });
+
         it("rejects malformed, relative, and non-https resource URLs", () => {
             const invalidResourceUrls = [
                 "not-a-valid-url",
@@ -375,20 +425,6 @@ describe("DpopTokenGenerator Unit Tests", () => {
                         ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                     })
                 ).toThrow(ClientConfigurationErrorCodes.urlParseError);
-            });
-        });
-
-        it("rejects invalid resource HTTP methods", () => {
-            const invalidMethods = ["", " ", "GET /", "GET\nPOST"];
-
-            invalidMethods.forEach((htm) => {
-                expect(() =>
-                    generator.buildResourceProofClaims({
-                        resourceUrl: "https://graph.microsoft.com/v1.0/me",
-                        htm,
-                        ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
-                    })
-                ).toThrow(ClientConfigurationErrorCodes.invalidClaims);
             });
         });
 

@@ -91,6 +91,48 @@ describe("UrlUtils.ts Class Unit Tests", () => {
         });
     });
 
+    describe("removeQueryStringAndFragment Tests", () => {
+        it("removes query string from URL", () => {
+            expect(
+                UrlUtils.removeQueryStringAndFragment(
+                    "https://example.com/path?key=value"
+                )
+            ).toEqual("https://example.com/path");
+        });
+
+        it("removes fragment from URL", () => {
+            expect(
+                UrlUtils.removeQueryStringAndFragment(
+                    "https://example.com/path#fragment"
+                )
+            ).toEqual("https://example.com/path");
+        });
+
+        it("removes both query string and fragment from URL", () => {
+            expect(
+                UrlUtils.removeQueryStringAndFragment(
+                    "https://example.com/path?key=value#fragment"
+                )
+            ).toEqual("https://example.com/path");
+        });
+
+        it("preserves explicit default ports", () => {
+            expect(
+                UrlUtils.removeQueryStringAndFragment(
+                    "https://example.com:443/path?key=value#fragment"
+                )
+            ).toEqual("https://example.com:443/path");
+        });
+
+        it("returns URL as-is when no query string or fragment is present", () => {
+            expect(
+                UrlUtils.removeQueryStringAndFragment(
+                    "https://example.com:8443/path"
+                )
+            ).toEqual("https://example.com:8443/path");
+        });
+    });
+
     describe("normalizeUrlForComparison Tests", () => {
         it("treats a trailing slash inside a query value as significant", () => {
             expect(

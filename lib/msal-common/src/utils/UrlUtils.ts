@@ -83,6 +83,21 @@ export function mapToQueryString(parameters: Map<string, string>): string {
 }
 
 /**
+ * Removes query string and fragment components from a URL string without
+ * applying URL canonicalization.
+ * @param url
+ */
+export function removeQueryStringAndFragment(url: string): string {
+    const queryStart = url.indexOf("?");
+    const fragmentStart = url.indexOf("#");
+    const urlEnd = [queryStart, fragmentStart]
+        .filter((index) => index >= 0)
+        .reduce((minIndex, index) => Math.min(minIndex, index), url.length);
+
+    return url.slice(0, urlEnd);
+}
+
+/**
  * Normalizes URLs for comparison per MDN & RFC 3986 standards:
  * - Hash/fragment is removed
  * - Scheme and host are lowercased (case-insensitive per spec)

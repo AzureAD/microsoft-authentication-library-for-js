@@ -9,6 +9,7 @@ import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError.js";
+import { removeQueryStringAndFragment } from "../utils/UrlUtils.js";
 
 /**
  * RFC 9449 DPoP proof JWT payload claims.
@@ -80,7 +81,6 @@ export type DpopProofGenerationParams = {
 };
 
 const SHA256_BASE64URL_REGEX = /^[A-Za-z0-9_-]{43}$/;
-const HTTP_METHOD_REGEX = /^[A-Za-z]+$/;
 export const DPOP_JWT_HEADER_TYPE = "dpop+jwt";
 export const DPOP_JWT_HEADER_ALGORITHM = "ES256";
 
@@ -89,7 +89,7 @@ export const DPOP_JWT_HEADER_ALGORITHM = "ES256";
  * Per RFC 9449 §4.2, htu is the target URI without query and fragment components.
  * @internal
  */
-function normalizeDpopHtu(url: string, correlationId: string): string {
+function normalizeHtu(url: string, correlationId: string): string {
     if (!/^https:\/\//i.test(url)) {
         throw createClientConfigurationError(
             ClientConfigurationErrorCodes.urlParseError,
@@ -114,30 +114,10 @@ function normalizeDpopHtu(url: string, correlationId: string): string {
         );
     }
 
-    /*
-     * RFC 9449 §4.2: htu is the target URI without query and fragment.
-     * Use the URL API only for parsing and scheme/host canonicalization; avoid
-     * UrlString comparison normalization because DPoP target matching must not
-     * lowercase or add trailing slashes to the path component.
-     */
-    return `${parsedUrl.origin}${parsedUrl.pathname}`;
+    return removeQueryStringAndFragment(url);
 }
 
-function normalizeDpopHttpMethod(
-    method: string,
-    correlationId: string
-): string {
-    if (!HTTP_METHOD_REGEX.test(method)) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidClaims,
-            correlationId
-        );
-    }
-
-    return method.toUpperCase();
-}
-
-function validateDpopAth(ath: string, correlationId: string): void {
+function validateAth(ath: string, correlationId: string): void {
     if (!SHA256_BASE64URL_REGEX.test(ath)) {
         throw createClientConfigurationError(
             ClientConfigurationErrorCodes.invalidClaims,
@@ -146,9 +126,7 @@ function validateDpopAth(ath: string, correlationId: string): void {
     }
 }
 
-function buildDpopProofHeader(
-    params: DpopProofGenerationParams
-): DpopProofHeader {
+function buildProofHeader(params: DpopProofGenerationParams): DpopProofHeader {
     return {
         typ: DPOP_JWT_HEADER_TYPE,
         alg: params.alg || DPOP_JWT_HEADER_ALGORITHM,
@@ -187,7 +165,7 @@ export class DpopTokenGenerator {
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
             htm: "POST",
-            htu: normalizeDpopHtu(params.tokenEndpoint, correlationId),
+            htu: normalizeHtu(params.tokenEndpoint, correlationId),
             iat: TimeUtils.nowSeconds(),
         };
         if (params.nonce !== undefined) {
@@ -221,12 +199,12 @@ export class DpopTokenGenerator {
         params: DpopResourceProofParams,
         correlationId: string = ""
     ): DpopProofClaims {
-        validateDpopAth(params.ath, correlationId);
+        validateAth(params.ath, correlationId);
 
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
-            htm: normalizeDpopHttpMethod(params.htm, correlationId),
-            htu: normalizeDpopHtu(params.resourceUrl, correlationId),
+            htm: params.htm.toUpperCase(),
+            htu: normalizeHtu(params.resourceUrl, correlationId),
             ath: params.ath,
             iat: TimeUtils.nowSeconds(),
         };
@@ -256,7 +234,7 @@ export class DpopTokenGenerator {
         correlationId: string
     ): Promise<string> {
         const encodedHeader = this.cryptoUtils.base64UrlEncode(
-            JSON.stringify(buildDpopProofHeader(params))
+            JSON.stringify(buildProofHeader(params))
         );
         const encodedClaims = this.cryptoUtils.base64UrlEncode(
             JSON.stringify(claims)
