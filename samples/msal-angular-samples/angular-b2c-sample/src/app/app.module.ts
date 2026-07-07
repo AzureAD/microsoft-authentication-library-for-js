@@ -35,7 +35,7 @@ import {
   MsalGuardConfiguration,
 } from '@azure/msal-angular';
 
-import { environment } from 'src/environments/environment';
+import { environment } from '../environments/environment';
 
 export function loggerCallback(logLevel: LogLevel, message: string) {
   console.log(message);

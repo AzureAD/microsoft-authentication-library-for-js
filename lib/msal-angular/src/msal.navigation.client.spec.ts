@@ -11,6 +11,7 @@ import { MsalBroadcastService } from "./msal.broadcast.service";
 import { MsalGuard } from "./msal.guard";
 import { MsalCustomNavigationClient } from "./msal.navigation.client";
 import { MsalModule, MsalService } from "./public-api";
+import { MsalGuardConfiguration } from "./msal.guard.config";
 
 let authService: MsalService;
 let navigationClient: MsalCustomNavigationClient;
@@ -31,10 +32,14 @@ describe("MsalCustomNaviationClient", () => {
 
     TestBed.configureTestingModule({
       imports: [
-        MsalModule.forRoot(msalInstance, null, {
-          interactionType: InteractionType.Popup,
-          protectedResourceMap: new Map(),
-        }),
+        MsalModule.forRoot(
+          msalInstance,
+          null as unknown as MsalGuardConfiguration,
+          {
+            interactionType: InteractionType.Popup,
+            protectedResourceMap: new Map(),
+          }
+        ),
       ],
       providers: [
         MsalBroadcastService,

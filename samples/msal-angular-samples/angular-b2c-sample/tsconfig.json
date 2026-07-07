@@ -2,8 +2,8 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
     "outDir": "./dist/out-tsc",
+    "rootDir": "./",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitOverride": true,
@@ -26,10 +26,10 @@
         "../../../node_modules/@azure/msal-angular/dist"
       ],
       "rxjs": [
-        "node_modules/rxjs"
+        "./node_modules/rxjs"
       ],
       "rxjs/*": [
-        "node_modules/rxjs/*"
+        "./node_modules/rxjs/*"
       ]
     },
     "useDefineForClassFields": false,

@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "es2020",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "lib": ["ES2022", "dom"],
+        "skipLibCheck": true
+    },
+    "include": ["src/**/*.ts"]
+}
