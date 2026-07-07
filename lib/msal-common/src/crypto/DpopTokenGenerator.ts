@@ -3,7 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto } from "./ICrypto.js";
+import {
+    ICrypto,
+    JsonWebTokenAlgorithms,
+    PRIVATE_JWK_MEMBERS,
+    SHA256_BASE64URL_REGEX,
+} from "./ICrypto.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import {
     createClientConfigurationError,
@@ -62,13 +67,14 @@ export type DpopProofHeader = {
 };
 
 /**
- * Signs the ASCII DPoP JWT signing input and returns a base64url-encoded signature.
+ * Signs the ASCII DPoP JWT signing input with the declared JOSE alg
+ * and returns a base64url-encoded signature.
  * @internal
  */
-export type DpopProofSigner = (
-    signingInput: string,
-    correlationId: string
-) => Promise<string>;
+export type DpopProofSigner = {
+    alg: string;
+    sign: (signingInput: string, correlationId: string) => Promise<string>;
+};
 
 /**
  * Parameters shared by token and resource DPoP proof generation.
@@ -76,13 +82,13 @@ export type DpopProofSigner = (
  */
 export type DpopProofGenerationParams = {
     publicJwk: DpopPublicJwk;
-    sign: DpopProofSigner;
-    alg?: string;
+    signer: DpopProofSigner;
 };
 
-const SHA256_BASE64URL_REGEX = /^[A-Za-z0-9_-]{43}$/;
+const DPOP_ATH_REGEX = SHA256_BASE64URL_REGEX;
+const DPOP_PRIVATE_JWK_MEMBERS = PRIVATE_JWK_MEMBERS;
 export const DPOP_JWT_HEADER_TYPE = "dpop+jwt";
-export const DPOP_JWT_HEADER_ALGORITHM = "ES256";
+export const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
 
 /**
  * Normalizes a URL for use as the DPoP htu claim.
@@ -90,13 +96,6 @@ export const DPOP_JWT_HEADER_ALGORITHM = "ES256";
  * @internal
  */
 function normalizeHtu(url: string, correlationId: string): string {
-    if (!/^https:\/\//i.test(url)) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.urlParseError,
-            correlationId
-        );
-    }
-
     let parsedUrl: URL;
     try {
         parsedUrl = new URL(url);
@@ -107,9 +106,14 @@ function normalizeHtu(url: string, correlationId: string): string {
         );
     }
 
-    if (parsedUrl.protocol !== "https:") {
+    if (
+        !/^https:\/\//i.test(url) ||
+        parsedUrl.protocol !== "https:" ||
+        parsedUrl.username ||
+        parsedUrl.password
+    ) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.urlParseError,
+            ClientConfigurationErrorCodes.invalidDpopHtu,
             correlationId
         );
     }
@@ -118,19 +122,40 @@ function normalizeHtu(url: string, correlationId: string): string {
 }
 
 function validateAth(ath: string, correlationId: string): void {
-    if (!SHA256_BASE64URL_REGEX.test(ath)) {
+    if (!DPOP_ATH_REGEX.test(ath)) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidClaims,
+            ClientConfigurationErrorCodes.invalidDpopAth,
             correlationId
         );
     }
 }
 
-function buildProofHeader(params: DpopProofGenerationParams): DpopProofHeader {
+function sanitizePublicJwk(
+    publicJwk: DpopPublicJwk,
+    correlationId: string
+): DpopPublicJwk {
+    const hasPrivateMember = DPOP_PRIVATE_JWK_MEMBERS.some((member) =>
+        Object.prototype.hasOwnProperty.call(publicJwk, member)
+    );
+
+    if (hasPrivateMember) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidDpopPublicJwk,
+            correlationId
+        );
+    }
+
+    return { ...publicJwk };
+}
+
+function buildProofHeader(
+    params: DpopProofGenerationParams,
+    correlationId: string
+): DpopProofHeader {
     return {
         typ: DPOP_JWT_HEADER_TYPE,
-        alg: params.alg || DPOP_JWT_HEADER_ALGORITHM,
-        jwk: params.publicJwk,
+        alg: params.signer.alg,
+        jwk: sanitizePublicJwk(params.publicJwk, correlationId),
     };
 }
 
@@ -234,13 +259,13 @@ export class DpopTokenGenerator {
         correlationId: string
     ): Promise<string> {
         const encodedHeader = this.cryptoUtils.base64UrlEncode(
-            JSON.stringify(buildProofHeader(params))
+            JSON.stringify(buildProofHeader(params, correlationId))
         );
         const encodedClaims = this.cryptoUtils.base64UrlEncode(
             JSON.stringify(claims)
         );
         const signingInput = `${encodedHeader}.${encodedClaims}`;
-        const signature = await params.sign(signingInput, correlationId);
+        const signature = await params.signer.sign(signingInput, correlationId);
 
         return `${signingInput}.${signature}`;
     }

@@ -1099,7 +1099,10 @@ declare namespace ClientConfigurationErrorCodes {
         invalidRequestMethodForEAR,
         invalidPlatformBrokerConfiguration,
         issuerValidationFailed,
-        invalidResponseMode
+        invalidResponseMode,
+        invalidDpopAth,
+        invalidDpopHtu,
+        invalidDpopPublicJwk
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1897,6 +1900,15 @@ const invalidCloudDiscoveryMetadata = "invalid_cloud_discovery_metadata";
 
 // @public (undocumented)
 const invalidCodeChallengeMethod = "invalid_code_challenge_method";
+
+// @public (undocumented)
+const invalidDpopAth = "invalid_dpop_ath";
+
+// @public (undocumented)
+const invalidDpopHtu = "invalid_dpop_htu";
+
+// @public (undocumented)
+const invalidDpopPublicJwk = "invalid_dpop_public_jwk";
 
 // @public (undocumented)
 const invalidPlatformBrokerConfiguration = "invalid_platform_broker_configuration";

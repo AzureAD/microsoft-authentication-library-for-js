@@ -31,6 +31,21 @@ export type SignedHttpRequestParameters = Pick<
     correlationId: string;
 };
 
+export const SHA256_BASE64URL_REGEX = /^[A-Za-z0-9_-]{43}$/;
+export const JsonWebTokenAlgorithms = {
+    ES256: "ES256",
+} as const;
+export const PRIVATE_JWK_MEMBERS = [
+    "d",
+    "p",
+    "q",
+    "dp",
+    "dq",
+    "qi",
+    "oth",
+    "k",
+];
+
 /**
  * Interface for crypto functions used by library
  */

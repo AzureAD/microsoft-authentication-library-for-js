@@ -8,6 +8,7 @@ import {
     DPOP_JWT_HEADER_TYPE,
     DpopProofClaims,
     DpopProofHeader,
+    DpopProofSigner,
     DpopTokenGenerator,
 } from "../../src/crypto/DpopTokenGenerator.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
@@ -31,6 +32,16 @@ describe("DpopTokenGenerator Unit Tests", () => {
         y: "test-y-coordinate",
     };
     const dpopSignature = "test-signature";
+
+    function createSigner(
+        sign: jest.Mock = jest.fn().mockResolvedValue(dpopSignature),
+        alg: string = DPOP_JWT_HEADER_ALGORITHM
+    ): DpopProofSigner {
+        return {
+            alg,
+            sign,
+        };
+    }
 
     beforeEach(() => {
         generator = new DpopTokenGenerator(cryptoInterface);
@@ -180,19 +191,31 @@ describe("DpopTokenGenerator Unit Tests", () => {
             );
         });
 
-        it("rejects malformed, relative, and non-https token endpoint URLs", () => {
+        it("rejects malformed and relative token endpoint URLs as parse errors", () => {
             const invalidTokenEndpoints = [
                 "not-a-valid-url",
                 "/common/oauth2/v2.0/token",
-                "http://login.microsoftonline.com/common/oauth2/v2.0/token",
-                "ftp://login.microsoftonline.com/common/oauth2/v2.0/token",
-                "https:login.microsoftonline.com/common/oauth2/v2.0/token",
             ];
 
             invalidTokenEndpoints.forEach((tokenEndpoint) => {
                 expect(() =>
                     generator.buildTokenProofClaims({ tokenEndpoint }, "")
                 ).toThrow(ClientConfigurationErrorCodes.urlParseError);
+            });
+        });
+
+        it("rejects non-https, non-authority, and userinfo token endpoint htu values", () => {
+            const invalidTokenEndpoints = [
+                "http://login.microsoftonline.com/common/oauth2/v2.0/token",
+                "ftp://login.microsoftonline.com/common/oauth2/v2.0/token",
+                "https:login.microsoftonline.com/common/oauth2/v2.0/token",
+                "https://user:pass@login.microsoftonline.com/common/oauth2/v2.0/token",
+            ];
+
+            invalidTokenEndpoints.forEach((tokenEndpoint) => {
+                expect(() =>
+                    generator.buildTokenProofClaims({ tokenEndpoint }, "")
+                ).toThrow(ClientConfigurationErrorCodes.invalidDpopHtu);
             });
         });
     });
@@ -408,14 +431,8 @@ describe("DpopTokenGenerator Unit Tests", () => {
             expect(claims.htu).toBe("https://api.example.com:8443/v1.0/me");
         });
 
-        it("rejects malformed, relative, and non-https resource URLs", () => {
-            const invalidResourceUrls = [
-                "not-a-valid-url",
-                "v1.0/me",
-                "http://api.example.com/v1.0/me",
-                "mailto:user@example.com",
-                "https:api.example.com/v1.0/me",
-            ];
+        it("rejects malformed and relative resource URLs as parse errors", () => {
+            const invalidResourceUrls = ["not-a-valid-url", "v1.0/me"];
 
             invalidResourceUrls.forEach((resourceUrl) => {
                 expect(() =>
@@ -425,6 +442,25 @@ describe("DpopTokenGenerator Unit Tests", () => {
                         ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                     })
                 ).toThrow(ClientConfigurationErrorCodes.urlParseError);
+            });
+        });
+
+        it("rejects non-https, non-authority, and userinfo resource htu values", () => {
+            const invalidResourceUrls = [
+                "http://api.example.com/v1.0/me",
+                "mailto:user@example.com",
+                "https:api.example.com/v1.0/me",
+                "https://user:pass@api.example.com/v1.0/me",
+            ];
+
+            invalidResourceUrls.forEach((resourceUrl) => {
+                expect(() =>
+                    generator.buildResourceProofClaims({
+                        resourceUrl,
+                        htm: "GET",
+                        ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                    })
+                ).toThrow(ClientConfigurationErrorCodes.invalidDpopHtu);
             });
         });
 
@@ -443,7 +479,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
                         htm: "GET",
                         ath,
                     })
-                ).toThrow(ClientConfigurationErrorCodes.invalidClaims);
+                ).toThrow(ClientConfigurationErrorCodes.invalidDpopAth);
             });
         });
     });
@@ -452,6 +488,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
         it("builds and signs a compact DPoP proof JWT for token requests", async () => {
             const currTime = TimeUtils.nowSeconds();
             const sign = jest.fn().mockResolvedValue(dpopSignature);
+            const signer = createSigner(sign);
             jest.spyOn(TimeUtils, "nowSeconds").mockReturnValue(currTime);
 
             const proof = await generator.generateTokenProof(
@@ -460,7 +497,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
                         "https://login.microsoftonline.com/tenant/oauth2/v2.0/token?client_id=abc",
                     nonce: "server-nonce",
                     publicJwk,
-                    sign,
+                    signer,
                 },
                 TEST_CONFIG.CORRELATION_ID
             );
@@ -478,24 +515,45 @@ describe("DpopTokenGenerator Unit Tests", () => {
                 iat: currTime,
                 nonce: "server-nonce",
             });
-            expect(sign).toHaveBeenCalledWith(
+            expect(signer.sign).toHaveBeenCalledWith(
                 decodedProof.signingInput,
                 TEST_CONFIG.CORRELATION_ID
             );
             expect(decodedProof.signature).toBe(dpopSignature);
         });
 
-        it("uses a caller-provided DPoP proof header algorithm", async () => {
+        it("uses the DPoP proof header algorithm declared by the signer", async () => {
             const proof = await generator.generateTokenProof({
                 tokenEndpoint:
                     "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
                 publicJwk,
-                alg: "custom-alg",
-                sign: jest.fn().mockResolvedValue(dpopSignature),
+                signer: createSigner(
+                    jest.fn().mockResolvedValue(dpopSignature),
+                    "custom-alg"
+                ),
             });
             const decodedProof = decodeDpopProof(proof);
 
             expect(decodedProof.header.alg).toBe("custom-alg");
+        });
+
+        it("rejects private JWK material before building the DPoP proof header", async () => {
+            const sign = jest.fn().mockResolvedValue(dpopSignature);
+
+            await expect(
+                generator.generateTokenProof({
+                    tokenEndpoint:
+                        "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
+                    publicJwk: {
+                        ...publicJwk,
+                        d: "private-key-material",
+                    },
+                    signer: createSigner(sign),
+                })
+            ).rejects.toThrow(
+                ClientConfigurationErrorCodes.invalidDpopPublicJwk
+            );
+            expect(sign).not.toHaveBeenCalled();
         });
     });
 
@@ -503,6 +561,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
         it("builds and signs a compact DPoP proof JWT for resource requests", async () => {
             const currTime = TimeUtils.nowSeconds();
             const sign = jest.fn().mockResolvedValue(dpopSignature);
+            const signer = createSigner(sign);
             jest.spyOn(TimeUtils, "nowSeconds").mockReturnValue(currTime);
 
             const proof = await generator.generateResourceProof(
@@ -513,7 +572,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                     nonce: "resource-nonce",
                     publicJwk,
-                    sign,
+                    signer,
                 },
                 TEST_CONFIG.CORRELATION_ID
             );
@@ -532,7 +591,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
                 iat: currTime,
                 nonce: "resource-nonce",
             });
-            expect(sign).toHaveBeenCalledWith(
+            expect(signer.sign).toHaveBeenCalledWith(
                 decodedProof.signingInput,
                 TEST_CONFIG.CORRELATION_ID
             );

@@ -214,6 +214,18 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Given claims parameter must be a stringified JSON object.
 
+### `invalid_dpop_ath`
+
+-   DPoP access token hash (`ath`) must be a base64url-encoded SHA-256 hash.
+
+### `invalid_dpop_htu`
+
+-   DPoP HTTP target URI (`htu`) must be an HTTPS URL without userinfo.
+
+### `invalid_dpop_public_jwk`
+
+-   DPoP public JWK must not contain private or symmetric key material.
+
 ### `token_request_empty`
 
 -   Token request was empty and not found in cache.
