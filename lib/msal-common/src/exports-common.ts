@@ -102,7 +102,12 @@ export { UrlString } from "./url/UrlString.js";
 export {
     ICrypto,
     PkceCodes,
+    BASE64URL_STRING_REGEX,
     DEFAULT_CRYPTO_IMPLEMENTATION,
+    ES256_SIGNATURE_LENGTH_BYTES,
+    JSON_WEB_KEY_CURVE_P256,
+    JSON_WEB_KEY_TYPE_EC,
+    JSON_WEB_KEY_TYPE_RSA,
     SignedHttpRequestParameters,
 } from "./crypto/ICrypto.js";
 

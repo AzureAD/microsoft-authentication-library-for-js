@@ -7,6 +7,11 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
+import {
+    JSON_WEB_KEY_CURVE_P256,
+    JSON_WEB_KEY_TYPE_EC,
+    JSON_WEB_KEY_TYPE_RSA,
+} from "@azure/msal-common/browser";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants.js";
 import { base64Encode, urlEncodeArr } from "../encode/Base64Encode.js";
 import { base64Decode, base64DecToArr } from "../encode/Base64Decode.js";
@@ -44,11 +49,6 @@ const DERIVE_KEY = "deriveKey";
 // Suberror
 const SUBTLE_SUBERROR = "crypto_subtle_undefined";
 
-// Asymmetric key algorithm constants
-const EC_KEY_TYPE = "EC";
-const EC_CURVE_P256 = "P-256";
-const RSA_KEY_TYPE = "RSA";
-
 export const RSA_KEYGEN_ALGORITHM_OPTIONS: RsaHashedKeyGenParams = {
     name: PKCS1_V15_KEYGEN_ALG,
     hash: S256_HASH_ALG,
@@ -62,7 +62,7 @@ export const RSA_SIGN_ALGORITHM_OPTIONS: Algorithm = {
 
 export const ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS: EcKeyGenParams = {
     name: "ECDSA",
-    namedCurve: EC_CURVE_P256,
+    namedCurve: JSON_WEB_KEY_CURVE_P256,
 };
 
 export const ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS: EcdsaParams = {
@@ -455,8 +455,8 @@ export async function hashString(plainText: string): Promise<string> {
 }
 
 const JWK_THUMBPRINT_REQUIRED_MEMBERS: Record<string, Array<string>> = {
-    [EC_KEY_TYPE]: ["crv", "kty", "x", "y"],
-    [RSA_KEY_TYPE]: ["e", "kty", "n"],
+    [JSON_WEB_KEY_TYPE_EC]: ["crv", "kty", "x", "y"],
+    [JSON_WEB_KEY_TYPE_RSA]: ["e", "kty", "n"],
 };
 
 function getJwkThumbprintMembers(

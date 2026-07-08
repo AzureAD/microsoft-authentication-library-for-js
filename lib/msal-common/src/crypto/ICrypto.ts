@@ -32,9 +32,29 @@ export type SignedHttpRequestParameters = Pick<
 };
 
 export const SHA256_BASE64URL_REGEX = /^[A-Za-z0-9_-]{43}$/;
+/**
+ * Validates that a string is a non-empty base64url-encoded value.
+ */
+export const BASE64URL_STRING_REGEX = /^[A-Za-z0-9_-]+$/;
 export const JsonWebTokenAlgorithms = {
     ES256: "ES256",
 } as const;
+/**
+ * Raw ECDSA P-256 signature size for JOSE ES256 signatures.
+ */
+export const ES256_SIGNATURE_LENGTH_BYTES = 64;
+/**
+ * Elliptic Curve JWK key type.
+ */
+export const JSON_WEB_KEY_TYPE_EC = "EC";
+/**
+ * RSA JWK key type.
+ */
+export const JSON_WEB_KEY_TYPE_RSA = "RSA";
+/**
+ * P-256 JWK curve name.
+ */
+export const JSON_WEB_KEY_CURVE_P256 = "P-256";
 export const PRIVATE_JWK_MEMBERS = [
     "d",
     "p",

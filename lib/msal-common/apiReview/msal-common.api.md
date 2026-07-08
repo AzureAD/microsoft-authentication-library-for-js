@@ -683,6 +683,9 @@ export type AzureRegionConfiguration = {
 const badToken = "bad_token";
 
 // @public
+export const BASE64URL_STRING_REGEX: RegExp;
+
+// @public
 export type BaseAuthRequest = {
     authority: string;
     correlationId: string;
@@ -1100,7 +1103,9 @@ declare namespace ClientConfigurationErrorCodes {
         invalidPlatformBrokerConfiguration,
         issuerValidationFailed,
         invalidResponseMode,
+        invalidDpopAlg,
         invalidDpopAth,
+        invalidDpopHtm,
         invalidDpopHtu,
         invalidDpopPublicJwk,
         invalidDpopSignature
@@ -1554,6 +1559,9 @@ const ERROR = "error";
 // @public (undocumented)
 const ERROR_DESCRIPTION = "error_description";
 
+// @public
+export const ES256_SIGNATURE_LENGTH_BYTES = 64;
+
 // @internal
 function executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>, thumbprint: RequestThumbprint, correlationId: string, cacheManager: CacheManager, networkClient: INetworkModule, logger: Logger, performanceClient: IPerformanceClient, serverTelemetryManager: ServerTelemetryManager | null): Promise<NetworkResponse<ServerAuthorizationTokenResponse>>;
 
@@ -1903,7 +1911,13 @@ const invalidCloudDiscoveryMetadata = "invalid_cloud_discovery_metadata";
 const invalidCodeChallengeMethod = "invalid_code_challenge_method";
 
 // @public (undocumented)
+const invalidDpopAlg = "invalid_dpop_alg";
+
+// @public (undocumented)
 const invalidDpopAth = "invalid_dpop_ath";
+
+// @public (undocumented)
+const invalidDpopHtm = "invalid_dpop_htm";
 
 // @public (undocumented)
 const invalidDpopHtu = "invalid_dpop_htu";
@@ -2054,6 +2068,15 @@ export class JoseHeader {
     // (undocumented)
     typ?: JsonWebTokenTypes;
 }
+
+// @public
+export const JSON_WEB_KEY_CURVE_P256 = "P-256";
+
+// @public
+export const JSON_WEB_KEY_TYPE_EC = "EC";
+
+// @public
+export const JSON_WEB_KEY_TYPE_RSA = "RSA";
 
 // @public (undocumented)
 const JsonWebTokenTypes: {
@@ -2729,9 +2752,6 @@ const RegionDiscoverySources: {
 // @public (undocumented)
 type RegionDiscoverySources = (typeof RegionDiscoverySources)[keyof typeof RegionDiscoverySources];
 
-// @public
-function removeQueryStringAndFragment(url: string): string;
-
 // @public (undocumented)
 const REQ_CNF = "req_cnf";
 
@@ -3366,7 +3386,6 @@ declare namespace UrlUtils {
         stripLeadingHashOrQuery,
         getDeserializedResponse,
         mapToQueryString,
-        removeQueryStringAndFragment,
         normalizeUrlForComparison,
         validateUrl
     }

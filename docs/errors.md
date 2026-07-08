@@ -214,9 +214,17 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Given claims parameter must be a stringified JSON object.
 
+### `invalid_dpop_alg`
+
+-   DPoP JOSE algorithm (`alg`) must be a non-empty string.
+
 ### `invalid_dpop_ath`
 
 -   DPoP access token hash (`ath`) must be a base64url-encoded SHA-256 hash.
+
+### `invalid_dpop_htm`
+
+-   DPoP HTTP method (`htm`) must be a non-empty RFC HTTP method token.
 
 ### `invalid_dpop_htu`
 
@@ -224,11 +232,11 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 ### `invalid_dpop_public_jwk`
 
--   DPoP public JWK must not contain private or symmetric key material.
+-   DPoP public JWK must not contain private or symmetric key material. ES256 DPoP public JWKs must use `kty: "EC"`, `crv: "P-256"`, and non-empty `x` and `y` coordinates.
 
 ### `invalid_dpop_signature`
 
--   DPoP proof signature must be base64url-encoded.
+-   DPoP proof signature must be base64url-encoded. ES256 signatures must be 64-byte raw ECDSA signatures encoded as base64url.
 
 ### `token_request_empty`
 

@@ -8,9 +8,10 @@ import {
     DPOP_JWT_HEADER_TYPE,
     DpopProofClaims,
     DpopProofHeader,
+    DpopPublicJwk,
     DpopProofSigner,
-    DpopTokenGenerator,
-} from "../../src/crypto/DpopTokenGenerator.js";
+    DpopProofGenerator,
+} from "../../src/crypto/DpopProofGenerator.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { ClientConfigurationErrorCodes } from "../../src/error/ClientConfigurationError.js";
@@ -22,8 +23,8 @@ import {
     TEST_DPOP_VALUES,
 } from "../test_kit/StringConstants.js";
 
-describe("DpopTokenGenerator Unit Tests", () => {
-    let generator: DpopTokenGenerator;
+describe("DpopProofGenerator Unit Tests", () => {
+    let generator: DpopProofGenerator;
     const cryptoInterface: ICrypto = { ...mockCrypto };
     const publicJwk = {
         kty: "EC",
@@ -31,7 +32,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
         x: "test-x-coordinate",
         y: "test-y-coordinate",
     };
-    const dpopSignature = "test-signature";
+    const dpopSignature = "A".repeat(86);
 
     function createSigner(
         sign: jest.Mock = jest.fn().mockResolvedValue(dpopSignature),
@@ -44,7 +45,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
     }
 
     beforeEach(() => {
-        generator = new DpopTokenGenerator(cryptoInterface);
+        generator = new DpopProofGenerator(cryptoInterface);
     });
 
     afterEach(() => {
@@ -218,6 +219,20 @@ describe("DpopTokenGenerator Unit Tests", () => {
                 ).toThrow(ClientConfigurationErrorCodes.invalidDpopHtu);
             });
         });
+
+        it("rejects token endpoint htu values repaired by URL serialization", () => {
+            const invalidTokenEndpoints = [
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token with space",
+                "HTTPS://login.microsoftonline.com/common/oauth2/v2.0/token",
+                "https://LOGIN.microsoftonline.com/common/oauth2/v2.0/token",
+            ];
+
+            invalidTokenEndpoints.forEach((tokenEndpoint) => {
+                expect(() =>
+                    generator.buildTokenProofClaims({ tokenEndpoint }, "")
+                ).toThrow(ClientConfigurationErrorCodes.invalidDpopHtu);
+            });
+        });
     });
 
     describe("buildResourceProofClaims", () => {
@@ -337,6 +352,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
                 "search-v2",
                 "m-search",
                 "custom.method",
+                "!#$%&'*+-.^_`|~0123456789abcdefghijklmnopqrstuvwxyz",
             ];
 
             methods.forEach((method) => {
@@ -347,6 +363,28 @@ describe("DpopTokenGenerator Unit Tests", () => {
                 });
 
                 expect(claims.htm).toBe(method.toUpperCase());
+            });
+        });
+
+        it("rejects empty or malformed resource htm values", () => {
+            const invalidMethods = [
+                "",
+                " ",
+                "GET POST",
+                "GET\tPOST",
+                "GET/POST",
+                "GET()",
+                null,
+            ];
+
+            invalidMethods.forEach((htm) => {
+                expect(() =>
+                    generator.buildResourceProofClaims({
+                        resourceUrl: "https://graph.microsoft.com/v1.0/me",
+                        htm: htm as string,
+                        ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                    })
+                ).toThrow(ClientConfigurationErrorCodes.invalidDpopHtm);
             });
         });
 
@@ -464,6 +502,24 @@ describe("DpopTokenGenerator Unit Tests", () => {
             });
         });
 
+        it("rejects resource htu values repaired by URL serialization", () => {
+            const invalidResourceUrls = [
+                "https://api.example.com/v1.0/my profile",
+                "HTTPS://api.example.com/v1.0/me",
+                "https://API.example.com/v1.0/me",
+            ];
+
+            invalidResourceUrls.forEach((resourceUrl) => {
+                expect(() =>
+                    generator.buildResourceProofClaims({
+                        resourceUrl,
+                        htm: "GET",
+                        ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                    })
+                ).toThrow(ClientConfigurationErrorCodes.invalidDpopHtu);
+            });
+        });
+
         it("rejects missing or malformed ath values", () => {
             const invalidAths = [
                 "",
@@ -537,6 +593,41 @@ describe("DpopTokenGenerator Unit Tests", () => {
             expect(decodedProof.header.alg).toBe("custom-alg");
         });
 
+        it("rejects empty DPoP proof header algorithm values", async () => {
+            const sign = jest.fn().mockResolvedValue(dpopSignature);
+
+            await expect(
+                generator.generateTokenProof({
+                    tokenEndpoint:
+                        "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
+                    publicJwk,
+                    signer: createSigner(sign, ""),
+                })
+            ).rejects.toThrow(ClientConfigurationErrorCodes.invalidDpopAlg);
+            expect(sign).not.toHaveBeenCalled();
+        });
+
+        it("keeps non-ES256 public JWK shape validation extensible", async () => {
+            const rsaPublicJwk = {
+                kty: "RSA",
+                n: "test-modulus",
+                e: "AQAB",
+            };
+            const proof = await generator.generateTokenProof({
+                tokenEndpoint:
+                    "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
+                publicJwk: rsaPublicJwk,
+                signer: createSigner(
+                    jest.fn().mockResolvedValue(dpopSignature),
+                    "PS256"
+                ),
+            });
+            const decodedProof = decodeDpopProof(proof);
+
+            expect(decodedProof.header.alg).toBe("PS256");
+            expect(decodedProof.header.jwk).toEqual(rsaPublicJwk);
+        });
+
         it("rejects private JWK material before building the DPoP proof header", async () => {
             const sign = jest.fn().mockResolvedValue(dpopSignature);
 
@@ -556,8 +647,42 @@ describe("DpopTokenGenerator Unit Tests", () => {
             expect(sign).not.toHaveBeenCalled();
         });
 
-        it("rejects empty or malformed DPoP proof signatures returned by the signer", async () => {
-            const invalidSignatures = ["", "not+base64url", "not/base64url"];
+        it("rejects invalid ES256 public JWK shapes before signing", async () => {
+            const invalidPublicJwks = [
+                null,
+                [],
+                {},
+                { ...publicJwk, kty: "RSA" },
+                { ...publicJwk, crv: "P-384" },
+                { ...publicJwk, x: "" },
+                { ...publicJwk, y: undefined },
+            ];
+
+            for (const invalidPublicJwk of invalidPublicJwks) {
+                const sign = jest.fn().mockResolvedValue(dpopSignature);
+
+                await expect(
+                    generator.generateTokenProof({
+                        tokenEndpoint:
+                            "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
+                        publicJwk: invalidPublicJwk as unknown as DpopPublicJwk,
+                        signer: createSigner(sign),
+                    })
+                ).rejects.toThrow(
+                    ClientConfigurationErrorCodes.invalidDpopPublicJwk
+                );
+                expect(sign).not.toHaveBeenCalled();
+            }
+        });
+
+        it("rejects empty, malformed, or wrong-length ES256 DPoP proof signatures returned by the signer", async () => {
+            const invalidSignatures = [
+                "",
+                "not+base64url",
+                "not/base64url",
+                "A",
+                "A".repeat(85),
+            ];
 
             for (const signature of invalidSignatures) {
                 await expect(
@@ -627,7 +752,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
                     return `unique-jti-${++callCount}`;
                 },
             };
-            const uniqueGenerator = new DpopTokenGenerator(uniqueGuidCrypto);
+            const uniqueGenerator = new DpopProofGenerator(uniqueGuidCrypto);
             const endpoint =
                 "https://login.microsoftonline.com/common/oauth2/v2.0/token";
 
@@ -674,7 +799,7 @@ describe("DpopTokenGenerator Unit Tests", () => {
                     return `res-unique-jti-${++callCount}`;
                 },
             };
-            const uniqueGenerator = new DpopTokenGenerator(uniqueGuidCrypto);
+            const uniqueGenerator = new DpopProofGenerator(uniqueGuidCrypto);
 
             const proof1 = uniqueGenerator.buildResourceProofClaims(
                 {

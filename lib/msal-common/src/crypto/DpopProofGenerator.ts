@@ -4,7 +4,11 @@
  */
 
 import {
+    BASE64URL_STRING_REGEX,
+    ES256_SIGNATURE_LENGTH_BYTES,
     ICrypto,
+    JSON_WEB_KEY_CURVE_P256,
+    JSON_WEB_KEY_TYPE_EC,
     JsonWebTokenAlgorithms,
     PRIVATE_JWK_MEMBERS,
     SHA256_BASE64URL_REGEX,
@@ -14,7 +18,7 @@ import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError.js";
-import { removeQueryStringAndFragment } from "../utils/UrlUtils.js";
+import { getBase64UrlDecodedLength } from "../utils/Base64Utils.js";
 
 /**
  * RFC 9449 DPoP proof JWT payload claims.
@@ -86,16 +90,138 @@ export type DpopProofGenerationParams = {
 };
 
 const DPOP_ATH_REGEX = SHA256_BASE64URL_REGEX;
-// Validates that signer output is a non-empty base64url JWT segment.
-const DPOP_SIGNATURE_REGEX = /^[A-Za-z0-9_-]+$/;
+const DPOP_HTM_REGEX = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
 const DPOP_PRIVATE_JWK_MEMBERS = PRIVATE_JWK_MEMBERS;
 export const DPOP_JWT_HEADER_TYPE = "dpop+jwt";
 export const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
 
+function validateAth(ath: string, correlationId: string): void {
+    if (!DPOP_ATH_REGEX.test(ath)) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidDpopAth,
+            correlationId
+        );
+    }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isNonEmptyString(value: unknown): value is string {
+    return typeof value === "string" && value.length > 0;
+}
+
+function validateEs256PublicJwk(
+    publicJwk: DpopPublicJwk,
+    correlationId: string
+): void {
+    if (
+        publicJwk.kty !== JSON_WEB_KEY_TYPE_EC ||
+        publicJwk.crv !== JSON_WEB_KEY_CURVE_P256 ||
+        !isNonEmptyString(publicJwk.x) ||
+        !isNonEmptyString(publicJwk.y)
+    ) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidDpopPublicJwk,
+            correlationId
+        );
+    }
+}
+
+function sanitizePublicJwk(
+    publicJwk: DpopPublicJwk,
+    alg: string,
+    correlationId: string
+): DpopPublicJwk {
+    if (!isRecord(publicJwk)) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidDpopPublicJwk,
+            correlationId
+        );
+    }
+
+    const hasPrivateMember = DPOP_PRIVATE_JWK_MEMBERS.some((member) =>
+        Object.prototype.hasOwnProperty.call(publicJwk, member)
+    );
+
+    if (hasPrivateMember) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidDpopPublicJwk,
+            correlationId
+        );
+    }
+
+    if (alg === DPOP_JWT_HEADER_ALGORITHM) {
+        validateEs256PublicJwk(publicJwk, correlationId);
+    }
+
+    return { ...publicJwk };
+}
+
+function validateAlg(alg: string, correlationId: string): void {
+    if (!isNonEmptyString(alg)) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidDpopAlg,
+            correlationId
+        );
+    }
+}
+
+function validateSignature(
+    signature: string,
+    alg: string,
+    correlationId: string
+): void {
+    if (!BASE64URL_STRING_REGEX.test(signature)) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidDpopSignature,
+            correlationId
+        );
+    }
+
+    if (
+        alg === DPOP_JWT_HEADER_ALGORITHM &&
+        getBase64UrlDecodedLength(signature) !== ES256_SIGNATURE_LENGTH_BYTES
+    ) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidDpopSignature,
+            correlationId
+        );
+    }
+}
+
+function buildProofHeader(
+    params: DpopProofGenerationParams,
+    correlationId: string
+): DpopProofHeader {
+    validateAlg(params.signer.alg, correlationId);
+
+    return {
+        typ: DPOP_JWT_HEADER_TYPE,
+        alg: params.signer.alg,
+        jwk: sanitizePublicJwk(
+            params.publicJwk,
+            params.signer.alg,
+            correlationId
+        ),
+    };
+}
+
+function normalizeHtm(htm: string, correlationId: string): string {
+    if (typeof htm !== "string" || !DPOP_HTM_REGEX.test(htm)) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidDpopHtm,
+            correlationId
+        );
+    }
+
+    return htm.toUpperCase();
+}
+
 /**
  * Normalizes a URL for use as the DPoP htu claim.
  * Per RFC 9449 §4.2, htu is the target URI without query and fragment components.
- * @internal
  */
 function normalizeHtu(url: string, correlationId: string): string {
     let parsedUrl: URL;
@@ -120,54 +246,30 @@ function normalizeHtu(url: string, correlationId: string): string {
         );
     }
 
-    return removeQueryStringAndFragment(url);
-}
+    const queryStart = url.indexOf("?");
+    const fragmentStart = url.indexOf("#");
+    const urlEnd = [queryStart, fragmentStart]
+        .filter((index) => index >= 0)
+        .reduce((minIndex, index) => Math.min(minIndex, index), url.length);
 
-function validateAth(ath: string, correlationId: string): void {
-    if (!DPOP_ATH_REGEX.test(ath)) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidDpopAth,
-            correlationId
+    const htu = url.slice(0, urlEnd);
+    parsedUrl.search = "";
+    parsedUrl.hash = "";
+
+    if (htu !== parsedUrl.href) {
+        const explicitDefaultPortHtu = htu.replace(
+            /^https:\/\/([^/:?#]+):443(?=\/|$)/i,
+            "https://$1"
         );
-    }
-}
-
-function sanitizePublicJwk(
-    publicJwk: DpopPublicJwk,
-    correlationId: string
-): DpopPublicJwk {
-    const hasPrivateMember = DPOP_PRIVATE_JWK_MEMBERS.some((member) =>
-        Object.prototype.hasOwnProperty.call(publicJwk, member)
-    );
-
-    if (hasPrivateMember) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidDpopPublicJwk,
-            correlationId
-        );
+        if (explicitDefaultPortHtu !== parsedUrl.href) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidDpopHtu,
+                correlationId
+            );
+        }
     }
 
-    return { ...publicJwk };
-}
-
-function validateSignature(signature: string, correlationId: string): void {
-    if (!DPOP_SIGNATURE_REGEX.test(signature)) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidDpopSignature,
-            correlationId
-        );
-    }
-}
-
-function buildProofHeader(
-    params: DpopProofGenerationParams,
-    correlationId: string
-): DpopProofHeader {
-    return {
-        typ: DPOP_JWT_HEADER_TYPE,
-        alg: params.signer.alg,
-        jwk: sanitizePublicJwk(params.publicJwk, correlationId),
-    };
+    return htu;
 }
 
 /**
@@ -181,7 +283,7 @@ function buildProofHeader(
  * DPoP proofs do not contain SHR fields (at, ts, m, u, p, q).
  * @internal
  */
-export class DpopTokenGenerator {
+export class DpopProofGenerator {
     private cryptoUtils: ICrypto;
 
     constructor(cryptoUtils: ICrypto) {
@@ -239,7 +341,7 @@ export class DpopTokenGenerator {
 
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
-            htm: params.htm.toUpperCase(),
+            htm: normalizeHtm(params.htm, correlationId),
             htu: normalizeHtu(params.resourceUrl, correlationId),
             ath: params.ath,
             iat: TimeUtils.nowSeconds(),
@@ -277,7 +379,7 @@ export class DpopTokenGenerator {
         );
         const signingInput = `${encodedHeader}.${encodedClaims}`;
         const signature = await params.signer.sign(signingInput, correlationId);
-        validateSignature(signature, correlationId);
+        validateSignature(signature, params.signer.alg, correlationId);
 
         return `${signingInput}.${signature}`;
     }
