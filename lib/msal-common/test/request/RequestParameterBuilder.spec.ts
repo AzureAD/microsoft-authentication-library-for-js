@@ -998,7 +998,7 @@ describe("RequestParameterBuilder unit tests", () => {
             );
         });
 
-        it("transmits caller-provided values verbatim without trim or dedupe", () => {
+        it("preserves caller-provided values (including spacing/duplicates) after sorting", () => {
             const parameters = new Map<string, string>();
             RequestParameterBuilder.addAttributeTokens(parameters, [
                 "b",

@@ -2124,7 +2124,9 @@ export class BrowserCacheManager extends CacheManager {
      * partition, FMI path), the precomputed `additionalCacheKeyComponentsHash` written by
      * `ResponseHandler` at write time is appended as an additional segment so that entries
      * differing only by partition receive distinct persisted keys. Existing bearer-mode
-     * entries carry neither field and their key format is unchanged (backward-compatible).
+    * entries carry neither field and their key format is unchanged (backward-compatible).
+    * Because this is an additive optional suffix and legacy key shape remains valid/readable,
+    * the current credential schema version remains unchanged.
      * @param credentialEntity
      * @returns
      */
@@ -2152,10 +2154,7 @@ export class BrowserCacheManager extends CacheManager {
         ];
 
         /*
-         * Append the precomputed component-hash segment when the entity carries additional
-         * cache key components. Browser cannot compute SHA-256 synchronously, so the hash
-         * is written once at cache-write time by ResponseHandler using `ICrypto.hashString`
-         * and persisted on the entity as `additionalCacheKeyComponentsHash`.
+         * Append the precomputed component-hash segment.
          */
         if (
             credential.additionalCacheKeyComponents &&
