@@ -92,6 +92,7 @@ export type DpopProofGenerationParams = {
 const DPOP_ATH_REGEX = SHA256_BASE64URL_REGEX;
 const DPOP_HTM_REGEX = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
 const DPOP_PRIVATE_JWK_MEMBERS = PRIVATE_JWK_MEMBERS;
+const ES256_PUBLIC_JWK_COORDINATE_LENGTH_BYTES = 32;
 export const DPOP_JWT_HEADER_TYPE = "dpop+jwt";
 export const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
 
@@ -116,11 +117,17 @@ function validateEs256PublicJwk(
     publicJwk: DpopPublicJwk,
     correlationId: string
 ): void {
+    const hasValidCoordinate = (coordinate: unknown): coordinate is string =>
+        isNonEmptyString(coordinate) &&
+        BASE64URL_STRING_REGEX.test(coordinate) &&
+        getBase64UrlDecodedLength(coordinate) ===
+            ES256_PUBLIC_JWK_COORDINATE_LENGTH_BYTES;
+
     if (
         publicJwk.kty !== JSON_WEB_KEY_TYPE_EC ||
         publicJwk.crv !== JSON_WEB_KEY_CURVE_P256 ||
-        !isNonEmptyString(publicJwk.x) ||
-        !isNonEmptyString(publicJwk.y)
+        !hasValidCoordinate(publicJwk.x) ||
+        !hasValidCoordinate(publicJwk.y)
     ) {
         throw createClientConfigurationError(
             ClientConfigurationErrorCodes.invalidDpopPublicJwk,

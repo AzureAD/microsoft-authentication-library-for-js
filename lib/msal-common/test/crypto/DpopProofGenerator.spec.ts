@@ -29,8 +29,8 @@ describe("DpopProofGenerator Unit Tests", () => {
     const publicJwk = {
         kty: "EC",
         crv: "P-256",
-        x: "test-x-coordinate",
-        y: "test-y-coordinate",
+        x: "A".repeat(43),
+        y: "B".repeat(43),
     };
     const dpopSignature = "A".repeat(86);
 
@@ -668,6 +668,8 @@ describe("DpopProofGenerator Unit Tests", () => {
                 { ...publicJwk, crv: "P-384" },
                 { ...publicJwk, x: "" },
                 { ...publicJwk, y: undefined },
+                { ...publicJwk, x: "not+base64url" },
+                { ...publicJwk, y: "A".repeat(42) },
             ];
 
             for (const invalidPublicJwk of invalidPublicJwks) {
