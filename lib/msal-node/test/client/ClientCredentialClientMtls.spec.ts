@@ -293,6 +293,30 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
             // The request must never reach the network without a credential.
             expect(postSpy).not.toHaveBeenCalled();
         });
+
+        it("fails closed when a tokenBindingCertificate is supplied without enabling mtlsProofOfPossession", async () => {
+            // authenticationScheme is not MTLS_POP (mtlsProofOfPossession was not set), so the cert
+            // would otherwise be silently dropped and a non-bound token returned.
+            const { config, postSpy } = await buildMtlsConfig({});
+            const client = new ClientCredentialClient(config);
+
+            await expect(
+                client.acquireToken({
+                    authority: TENANTED_AUTHORITY,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    clientAssertion: {
+                        assertion: "leg1-federated-assertion-jwt",
+                        assertionType:
+                            "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                    },
+                    tokenBindingCertificate: BINDING_CERT,
+                })
+            ).rejects.toThrow(/token_binding_certificate_without_mtls_pop/);
+
+            // The request must never reach the network as an unbound token.
+            expect(postSpy).not.toHaveBeenCalled();
+        });
     });
 
     describe("negative cases", () => {

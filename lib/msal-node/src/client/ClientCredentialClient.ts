@@ -65,6 +65,22 @@ export class ClientCredentialClient extends BaseClient {
     public async acquireToken(
         request: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
+        /*
+         * Fail closed when a request-level tokenBindingCertificate is supplied without enabling mTLS
+         * PoP. The certificate is only consumed on the mtls_pop path, so accepting it here would
+         * silently drop it and return a token that is NOT certificate-bound while the caller believes
+         * the connection was bound. Require mtlsProofOfPossession to be set alongside the certificate.
+         */
+        if (
+            request.tokenBindingCertificate &&
+            request.authenticationScheme !==
+                Constants.AuthenticationScheme.MTLS_POP
+        ) {
+            throw NodeAuthError.createTokenBindingCertificateWithoutMtlsPopError(
+                request.correlationId
+            );
+        }
+
         // Build additional cache key components for FMI cache isolation
         let additionalCacheKeyComponents: Record<string, string> | undefined;
         if (request.fmiPath) {

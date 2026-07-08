@@ -6,7 +6,7 @@
 
 Normally, a confidential client configured with a Subject Name + Issuer (SN/I) certificate uses that certificate to **sign a `private_key_jwt` client assertion**. Entra ID (ESTS) validates the assertion and returns a **Bearer** token. This is the existing "SNI + Bearer" flow and is unchanged.
 
-**mTLS Proof-of-Possession (`mtls_pop`)** uses the *same* certificate differently: MSAL presents it as the **client TLS certificate** in the mutual-TLS handshake to the token endpoint. ESTS returns a token whose `token_type` is `mtls_pop`, cryptographically **bound to that certificate** (`cnf`/`x5t#S256`). The credential is identical — only the mechanism changes (assertion signer → TLS client certificate).
+**mTLS Proof-of-Possession (`mtls_pop`)** uses the _same_ certificate differently: MSAL presents it as the **client TLS certificate** in the mutual-TLS handshake to the token endpoint. ESTS returns a token whose `token_type` is `mtls_pop`, cryptographically **bound to that certificate** (`cnf`/`x5t#S256`). The credential is identical — only the mechanism changes (assertion signer → TLS client certificate).
 
 A resource server that accepts an `mtls_pop` token verifies that the caller presents the same certificate on its own TLS connection, so a stolen token cannot be replayed without the private key.
 
@@ -70,7 +70,11 @@ The `tokenBindingCertificate` request field carries the binding certificate for 
 ```js
 // Leg 2: credential is the Leg 1 token; binding cert is presented on TLS.
 const leg2Cca = new msal.ConfidentialClientApplication({
-    auth: { clientId: leg2ClientId, authority, clientAssertion: leg1.accessToken },
+    auth: {
+        clientId: leg2ClientId,
+        authority,
+        clientAssertion: leg1.accessToken,
+    },
 });
 
 const final = await leg2Cca.acquireTokenByClientCredential({
@@ -99,8 +103,10 @@ mTLS PoP **fails closed** — because the whole point of `mtls_pop` is a certifi
 -   **`token_type_mismatch` (`ClientAuthError`).** `mtlsProofOfPossession: true` was requested but the identity provider returned a token whose `token_type` is not `mtls_pop` (for example a Bearer downgrade, or a response with no `token_type`). MSAL throws before the token is cached or returned, so a caller never receives a token that only looks bound; the error message reports the requested scheme and the `token_type` that was actually returned. Treat this as a resource-allow-listing or configuration problem (see [Requirements and limitations](#requirements-and-limitations)) rather than retrying.
 -   **`mtls_binding_certificate_missing` (`NodeAuthError`).** `mtlsProofOfPossession: true` was requested but no usable binding certificate is configured. Configure `auth.clientCertificate` with **both** an `x5c` (certificate or chain) and a `privateKey`; a thumbprint-only certificate is not sufficient for mTLS PoP.
 -   **`mtls_binding_certificate_missing_private_key` (`NodeAuthError`).** The configured certificate has no `privateKey`. mTLS PoP needs the private key to complete the mutual-TLS handshake.
+-   **`mtls_binding_certificate_missing_certificate` (`NodeAuthError`).** The binding certificate has no `x5c` (public certificate). mTLS PoP requires **both** an `x5c` and a `privateKey`; supply the public certificate (or chain) alongside the private key.
 -   **`mtls_custom_network_client_unsupported` (`NodeAuthError`).** `mtlsProofOfPossession: true` was combined with a custom `networkClient`. MSAL must own the transport to attach the client certificate — remove the custom `networkClient` for mTLS PoP requests.
 -   **`token_binding_certificate_without_assertion` (`NodeAuthError`).** A request-level `tokenBindingCertificate` was supplied for FIC Leg 2, but no client assertion was resolved from the request or the application configuration. FIC Leg 2 presents a client assertion over the certificate-bound connection, so a `clientAssertion` is required alongside `tokenBindingCertificate`.
+-   **`token_binding_certificate_without_mtls_pop` (`NodeAuthError`).** A request-level `tokenBindingCertificate` was supplied without `mtlsProofOfPossession: true`. The certificate is only used on the mTLS PoP path, so MSAL fails closed rather than silently returning a token that is not certificate-bound — set `mtlsProofOfPossession: true` alongside the `tokenBindingCertificate`.
 
 ## Backward compatibility
 

@@ -65,6 +65,10 @@ export const NodeAuthErrorMessage = {
         code: "token_binding_certificate_without_assertion",
         desc: "A request-level tokenBindingCertificate was supplied for mTLS Proof-of-Possession (FIC Leg 2), but no client assertion was resolved from the request or the application configuration. FIC Leg 2 presents a client assertion over a certificate-bound connection, so a clientAssertion is required alongside tokenBindingCertificate.",
     },
+    tokenBindingCertificateWithoutMtlsPop: {
+        code: "token_binding_certificate_without_mtls_pop",
+        desc: "A request-level tokenBindingCertificate was supplied, but mTLS Proof-of-Possession is not enabled on the request. Set mtlsProofOfPossession: true so the token is bound to the certificate; otherwise the certificate is ignored and the resulting token would not be certificate-bound.",
+    },
 };
 
 export class NodeAuthError extends AuthError {
@@ -237,6 +241,21 @@ export class NodeAuthError extends AuthError {
             NodeAuthErrorMessage.tokenBindingCertificateWithoutAssertion.code,
             "",
             NodeAuthErrorMessage.tokenBindingCertificateWithoutAssertion.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when a request-level tokenBindingCertificate is supplied but mTLS
+     * Proof-of-Possession is not enabled. Without mtlsProofOfPossession the certificate is never
+     * consumed, so the request would silently return a token that is not certificate-bound.
+     */
+    static createTokenBindingCertificateWithoutMtlsPopError(
+        correlationId: string = ""
+    ): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.tokenBindingCertificateWithoutMtlsPop.code,
+            correlationId,
+            NodeAuthErrorMessage.tokenBindingCertificateWithoutMtlsPop.desc
         );
     }
 }
