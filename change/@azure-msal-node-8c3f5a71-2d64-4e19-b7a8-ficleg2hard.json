@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "FIC Leg 2 over mTLS PoP fails fast with token_binding_certificate_without_assertion when a request-level tokenBindingCertificate is supplied but no client assertion resolves, adds a verbose log for the FIC Leg 2 branch, and fixes an mtls binding-certificate error whose message landed in the correlationId slot [#8698](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8698)",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -643,6 +643,20 @@ export class ClientCredentialClient extends BaseClient {
                 request.clientAssertion ||
                 this.config.clientCredentials.clientAssertion;
 
+            /*
+             * FIC Leg 2 presents a client assertion over a certificate-bound connection. If a
+             * request-level tokenBindingCertificate was supplied for mTLS PoP but no assertion is
+             * resolvable, fail fast with an actionable error instead of sending a credential-less
+             * request that the identity provider would reject with an opaque AADSTS error.
+             */
+            if (
+                isMtlsPop &&
+                request.tokenBindingCertificate &&
+                !clientAssertion
+            ) {
+                throw NodeAuthError.createTokenBindingCertificateWithoutAssertionError();
+            }
+
             if (clientAssertion) {
                 RequestParameterBuilder.addClientAssertion(
                     parameters,
@@ -661,6 +675,12 @@ export class ClientCredentialClient extends BaseClient {
                  */
                 const isFicLegTwo =
                     isMtlsPop && !!request.tokenBindingCertificate;
+                if (isFicLegTwo) {
+                    this.logger.verbose(
+                        "ClientCredentialClient:createTokenRequestBody - FIC Leg 2 over mTLS PoP: presenting the client assertion with the jwt-pop assertion type over the certificate-bound connection.",
+                        request.correlationId
+                    );
+                }
                 RequestParameterBuilder.addClientAssertionType(
                     parameters,
                     isFicLegTwo

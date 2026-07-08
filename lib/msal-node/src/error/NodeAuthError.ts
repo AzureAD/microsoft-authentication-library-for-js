@@ -61,6 +61,10 @@ export const NodeAuthErrorMessage = {
         code: "mtls_custom_network_client_unsupported",
         desc: "mTLS Proof-of-Possession requires MSAL's built-in HttpClient to attach the client certificate to the TLS connection. A custom networkClient cannot be used with mtlsProofOfPossession.",
     },
+    tokenBindingCertificateWithoutAssertion: {
+        code: "token_binding_certificate_without_assertion",
+        desc: "A request-level tokenBindingCertificate was supplied for mTLS Proof-of-Possession (FIC Leg 2), but no client assertion was resolved from the request or the application configuration. FIC Leg 2 presents a client assertion over a certificate-bound connection, so a clientAssertion is required alongside tokenBindingCertificate.",
+    },
 };
 
 export class NodeAuthError extends AuthError {
@@ -207,6 +211,7 @@ export class NodeAuthError extends AuthError {
     static createMtlsBindingCertificateMissingCertificateError(): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.mtlsBindingCertificateMissingCertificate.code,
+            "",
             NodeAuthErrorMessage.mtlsBindingCertificateMissingCertificate.desc
         );
     }
@@ -220,6 +225,18 @@ export class NodeAuthError extends AuthError {
             NodeAuthErrorMessage.mtlsCustomNetworkClientUnsupported.code,
             "",
             NodeAuthErrorMessage.mtlsCustomNetworkClientUnsupported.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when a request-level tokenBindingCertificate is supplied for mTLS PoP
+     * (FIC Leg 2) but no client assertion is resolved to present over the certificate-bound connection.
+     */
+    static createTokenBindingCertificateWithoutAssertionError(): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.tokenBindingCertificateWithoutAssertion.code,
+            "",
+            NodeAuthErrorMessage.tokenBindingCertificateWithoutAssertion.desc
         );
     }
 }

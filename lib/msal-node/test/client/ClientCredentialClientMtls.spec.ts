@@ -273,6 +273,26 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
                 thumbprintSha256: computeX5tSha256(BINDING_CERT.x5c),
             });
         });
+
+        it("fails fast when a tokenBindingCertificate is supplied but no client assertion resolves", async () => {
+            // No app clientAssertion and none on the request → the FIC Leg 2 credential is missing.
+            const { config, postSpy } = await buildMtlsConfig({});
+            const client = new ClientCredentialClient(config);
+
+            await expect(
+                client.acquireToken({
+                    authority: TENANTED_AUTHORITY,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    authenticationScheme:
+                        Constants.AuthenticationScheme.MTLS_POP,
+                    tokenBindingCertificate: BINDING_CERT,
+                })
+            ).rejects.toThrow(/token_binding_certificate_without_assertion/);
+
+            // The request must never reach the network without a credential.
+            expect(postSpy).not.toHaveBeenCalled();
+        });
     });
 
     describe("negative cases", () => {

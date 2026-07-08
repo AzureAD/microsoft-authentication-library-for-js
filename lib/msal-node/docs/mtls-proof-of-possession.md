@@ -100,6 +100,7 @@ mTLS PoP **fails closed** — because the whole point of `mtls_pop` is a certifi
 -   **`mtls_binding_certificate_missing` (`NodeAuthError`).** `mtlsProofOfPossession: true` was requested but no usable binding certificate is configured. Configure `auth.clientCertificate` with **both** an `x5c` (certificate or chain) and a `privateKey`; a thumbprint-only certificate is not sufficient for mTLS PoP.
 -   **`mtls_binding_certificate_missing_private_key` (`NodeAuthError`).** The configured certificate has no `privateKey`. mTLS PoP needs the private key to complete the mutual-TLS handshake.
 -   **`mtls_custom_network_client_unsupported` (`NodeAuthError`).** `mtlsProofOfPossession: true` was combined with a custom `networkClient`. MSAL must own the transport to attach the client certificate — remove the custom `networkClient` for mTLS PoP requests.
+-   **`token_binding_certificate_without_assertion` (`NodeAuthError`).** A request-level `tokenBindingCertificate` was supplied for FIC Leg 2, but no client assertion was resolved from the request or the application configuration. FIC Leg 2 presents a client assertion over the certificate-bound connection, so a `clientAssertion` is required alongside `tokenBindingCertificate`.
 
 ## Backward compatibility
 
