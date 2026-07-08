@@ -247,10 +247,11 @@ export class Authority {
      * - Global public cloud -> `mtlsauth.microsoft.com`.
      * - Regional (e.g. `westus3.login.microsoft.com`) -> `westus3.mtlsauth.microsoft.com`. Region is
      *   optional; the global host is production-ready.
-     * - Any other `login.*` host -> the leading `login.` segment becomes `mtlsauth.`.
+     * - Any other host whose `login.` DNS label can be rewritten -> that label becomes `mtlsauth.`.
      *
-     * Fails fast for sovereign clouds where the endpoint is not available and for non-tenanted
-     * authorities (`/common`, `/organizations`, `/consumers`), which mTLS PoP does not support.
+     * Fails fast for sovereign clouds where the endpoint is not available, for non-tenanted
+     * authorities (`/common`, `/organizations`, `/consumers`), and for non-AAD hosts (e.g. B2C
+     * `*.b2clogin.com` / CIAM `*.ciamlogin.com`), none of which mTLS PoP supports.
      */
     public getMtlsTokenEndpoint(): string {
         const tokenEndpoint = this.tokenEndpoint;
@@ -309,19 +310,34 @@ export class Authority {
         if (Constants.KNOWN_PUBLIC_CLOUDS.includes(lower)) {
             return Constants.MTLS_AUTH_PUBLIC_CLOUD_HOST;
         }
-        // Otherwise rewrite the `login.` segment to `mtlsauth.` (handles regional + generic hosts).
-        const idx = lower.indexOf(Constants.MTLS_AUTH_LOGIN_PREFIX);
+        // Rewrite the `login.` DNS label to `mtlsauth.` (handles regional + generic AAD hosts).
+        // The match is anchored to a label boundary (host start, or immediately after a dot):
+        // an unanchored substring match would corrupt non-AAD hosts that merely contain the
+        // literal `login.`, rewriting them across a registrable-domain boundary — e.g.
+        // `contoso.b2clogin.com` -> `contoso.b2cmtlsauth.com` or `t.ciamlogin.com` ->
+        // `t.ciammtlsauth.com`. mTLS PoP is AAD-only, so B2C/CIAM hosts are rejected here
+        // (mirrors MSAL .NET's `host.StartsWith("login.")` gate in RegionAndMtlsDiscoveryProvider).
+        const prefix = Constants.MTLS_AUTH_LOGIN_PREFIX;
+        let idx = -1;
+        if (lower.startsWith(prefix)) {
+            idx = 0;
+        } else {
+            const labelIdx = lower.indexOf(`.${prefix}`);
+            if (labelIdx !== -1) {
+                idx = labelIdx + 1;
+            }
+        }
         if (idx !== -1) {
             return (
                 lower.substring(0, idx) +
                 Constants.MTLS_AUTH_HOST_PREFIX +
-                lower.substring(idx + Constants.MTLS_AUTH_LOGIN_PREFIX.length)
+                lower.substring(idx + prefix.length)
             );
         }
         throw createClientAuthError(
             ClientAuthErrorCodes.mtlsPopUnsupportedCloud,
             correlationId,
-            `Cannot derive an mTLS endpoint from token endpoint host '${host}'.`
+            `mTLS Proof-of-Possession is only supported for AAD 'login.*' hosts; cannot derive an mTLS endpoint from token endpoint host '${host}'.`
         );
     }
 

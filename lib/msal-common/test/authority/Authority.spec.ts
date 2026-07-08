@@ -347,6 +347,22 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(() => authority.getMtlsTokenEndpoint()).toThrow(ClientAuthErrorCodes.mtlsPopUnsupportedCloud);
             });
 
+            it("throws mtlsPopUnsupportedCloud for a B2C host that merely contains 'login.'", () => {
+                mockEndpoints(
+                    `https://contoso.b2clogin.com/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(() => authority.getMtlsTokenEndpoint()).toThrow(ClientAuthErrorCodes.mtlsPopUnsupportedCloud);
+            });
+
+            it("throws mtlsPopUnsupportedCloud for a CIAM host that merely contains 'login.'", () => {
+                mockEndpoints(
+                    `https://contoso.ciamlogin.com/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(() => authority.getMtlsTokenEndpoint()).toThrow(ClientAuthErrorCodes.mtlsPopUnsupportedCloud);
+            });
+
             it("throws mtlsPopNonTenantedAuthority for a /common authority", () => {
                 mockEndpoints(
                     "https://login.microsoftonline.com/common/oauth2/v2.0/token",
