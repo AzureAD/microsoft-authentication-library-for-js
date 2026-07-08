@@ -41,10 +41,16 @@ export type CommonClientCredentialRequest = Omit<
      */
     mtlsProofOfPossession?: boolean;
     /**
-     * Certificate used to bind the mTLS connection when the credential in the request body is an
-     * assertion (e.g. the second leg of a Federated Identity Credential exchange). When set, the
-     * certificate is presented at the TLS layer while the assertion remains the credential. Defaults
-     * to the app's configured `clientCertificate` when omitted.
+     * Certificate that binds the mTLS connection for the second leg of a Federated Identity
+     * Credential (FIC) exchange, where the credential in the request body is a client assertion.
+     * Providing this field selects the FIC Leg 2 path: the assertion is sent as the credential
+     * (with the `jwt-pop` assertion type) while this certificate is presented at the TLS layer,
+     * decoupled from the credential.
+     *
+     * When omitted, the request runs as vanilla SN/I mTLS PoP — the app's configured
+     * `clientCertificate` is both the credential and the TLS binding, and any supplied
+     * `clientAssertion` is not sent. To present an assertion over the application certificate, set
+     * this explicitly (it may be the same certificate as `auth.clientCertificate`).
      */
     tokenBindingCertificate?: MtlsBindingCertificate;
 };

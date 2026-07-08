@@ -236,10 +236,12 @@ export class NodeAuthError extends AuthError {
      * Creates an error thrown when a request-level tokenBindingCertificate is supplied for mTLS PoP
      * (FIC Leg 2) but no client assertion is resolved to present over the certificate-bound connection.
      */
-    static createTokenBindingCertificateWithoutAssertionError(): NodeAuthError {
+    static createTokenBindingCertificateWithoutAssertionError(
+        correlationId: string = ""
+    ): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.tokenBindingCertificateWithoutAssertion.code,
-            "",
+            correlationId,
             NodeAuthErrorMessage.tokenBindingCertificateWithoutAssertion.desc
         );
     }

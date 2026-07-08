@@ -279,16 +279,21 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
             const { config, postSpy } = await buildMtlsConfig({});
             const client = new ClientCredentialClient(config);
 
-            await expect(
-                client.acquireToken({
-                    authority: TENANTED_AUTHORITY,
-                    correlationId: TEST_CONFIG.CORRELATION_ID,
-                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                    authenticationScheme:
-                        Constants.AuthenticationScheme.MTLS_POP,
-                    tokenBindingCertificate: BINDING_CERT,
-                })
-            ).rejects.toThrow(/token_binding_certificate_without_assertion/);
+            const acquire = client.acquireToken({
+                authority: TENANTED_AUTHORITY,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                authenticationScheme: Constants.AuthenticationScheme.MTLS_POP,
+                tokenBindingCertificate: BINDING_CERT,
+            });
+
+            await expect(acquire).rejects.toThrow(
+                /token_binding_certificate_without_assertion/
+            );
+            // The resolved correlationId is threaded onto the error for diagnostics.
+            await expect(acquire).rejects.toMatchObject({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            });
 
             // The request must never reach the network without a credential.
             expect(postSpy).not.toHaveBeenCalled();

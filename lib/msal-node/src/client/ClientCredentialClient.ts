@@ -670,7 +670,9 @@ export class ClientCredentialClient extends BaseClient {
                 request.tokenBindingCertificate &&
                 !clientAssertion
             ) {
-                throw NodeAuthError.createTokenBindingCertificateWithoutAssertionError();
+                throw NodeAuthError.createTokenBindingCertificateWithoutAssertionError(
+                    correlationId
+                );
             }
 
             if (clientAssertion) {
