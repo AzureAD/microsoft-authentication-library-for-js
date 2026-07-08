@@ -222,6 +222,8 @@ function normalizeHtm(htm: string, correlationId: string): string {
 /**
  * Normalizes a URL for use as the DPoP htu claim.
  * Per RFC 9449 §4.2, htu is the target URI without query and fragment components.
+ * WHATWG URL serialization handles RFC 3986 syntax- and scheme-based normalization
+ * such as lowercasing scheme/host and eliding default ports.
  */
 function normalizeHtu(url: string, correlationId: string): string {
     let parsedUrl: URL;
@@ -246,30 +248,9 @@ function normalizeHtu(url: string, correlationId: string): string {
         );
     }
 
-    const queryStart = url.indexOf("?");
-    const fragmentStart = url.indexOf("#");
-    const urlEnd = [queryStart, fragmentStart]
-        .filter((index) => index >= 0)
-        .reduce((minIndex, index) => Math.min(minIndex, index), url.length);
-
-    const htu = url.slice(0, urlEnd);
     parsedUrl.search = "";
     parsedUrl.hash = "";
-
-    if (htu !== parsedUrl.href) {
-        const explicitDefaultPortHtu = htu.replace(
-            /^https:\/\/([^/:?#]+):443(?=\/|$)/i,
-            "https://$1"
-        );
-        if (explicitDefaultPortHtu !== parsedUrl.href) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidDpopHtu,
-                correlationId
-            );
-        }
-    }
-
-    return htu;
+    return parsedUrl.href;
 }
 
 /**

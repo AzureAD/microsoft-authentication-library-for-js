@@ -181,14 +181,25 @@ describe("DpopProofGenerator Unit Tests", () => {
             );
         });
 
-        it("preserves explicit ports in token endpoint htu", () => {
+        it("elides explicit default ports in token endpoint htu", () => {
             const claims = generator.buildTokenProofClaims({
                 tokenEndpoint:
                     "https://login.microsoftonline.com:443/common/oauth2/v2.0/token?client_id=abc",
             });
 
             expect(claims.htu).toBe(
-                "https://login.microsoftonline.com:443/common/oauth2/v2.0/token"
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+            );
+        });
+
+        it("normalizes scheme and host casing in token endpoint htu", () => {
+            const claims = generator.buildTokenProofClaims({
+                tokenEndpoint:
+                    "HTTPS://LOGIN.microsoftonline.com/common/oauth2/v2.0/token?client_id=abc",
+            });
+
+            expect(claims.htu).toBe(
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token"
             );
         });
 
@@ -220,18 +231,15 @@ describe("DpopProofGenerator Unit Tests", () => {
             });
         });
 
-        it("rejects token endpoint htu values repaired by URL serialization", () => {
-            const invalidTokenEndpoints = [
-                "https://login.microsoftonline.com/common/oauth2/v2.0/token with space",
-                "HTTPS://login.microsoftonline.com/common/oauth2/v2.0/token",
-                "https://LOGIN.microsoftonline.com/common/oauth2/v2.0/token",
-            ];
-
-            invalidTokenEndpoints.forEach((tokenEndpoint) => {
-                expect(() =>
-                    generator.buildTokenProofClaims({ tokenEndpoint }, "")
-                ).toThrow(ClientConfigurationErrorCodes.invalidDpopHtu);
+        it("serializes token endpoint htu values repaired by URL parsing", () => {
+            const claims = generator.buildTokenProofClaims({
+                tokenEndpoint:
+                    "https://login.microsoftonline.com/common/oauth2/v2.0/token with space?client_id=abc",
             });
+
+            expect(claims.htu).toBe(
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token%20with%20space"
+            );
         });
     });
 
@@ -449,14 +457,14 @@ describe("DpopProofGenerator Unit Tests", () => {
             expect(claims.htu).toBe("https://api.example.com/v1.0/me");
         });
 
-        it("preserves explicit default ports in resource htu", () => {
+        it("elides explicit default ports in resource htu", () => {
             const claims = generator.buildResourceProofClaims({
                 resourceUrl: "https://api.example.com:443/v1.0/me?filter=all",
                 htm: "GET",
                 ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
             });
 
-            expect(claims.htu).toBe("https://api.example.com:443/v1.0/me");
+            expect(claims.htu).toBe("https://api.example.com/v1.0/me");
         });
 
         it("preserves non-default ports in resource htu", () => {
@@ -467,6 +475,16 @@ describe("DpopProofGenerator Unit Tests", () => {
             });
 
             expect(claims.htu).toBe("https://api.example.com:8443/v1.0/me");
+        });
+
+        it("normalizes scheme and host casing in resource htu", () => {
+            const claims = generator.buildResourceProofClaims({
+                resourceUrl: "HTTPS://API.example.com/v1.0/me#profile",
+                htm: "GET",
+                ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+            });
+
+            expect(claims.htu).toBe("https://api.example.com/v1.0/me");
         });
 
         it("rejects malformed and relative resource URLs as parse errors", () => {
@@ -502,22 +520,16 @@ describe("DpopProofGenerator Unit Tests", () => {
             });
         });
 
-        it("rejects resource htu values repaired by URL serialization", () => {
-            const invalidResourceUrls = [
-                "https://api.example.com/v1.0/my profile",
-                "HTTPS://api.example.com/v1.0/me",
-                "https://API.example.com/v1.0/me",
-            ];
-
-            invalidResourceUrls.forEach((resourceUrl) => {
-                expect(() =>
-                    generator.buildResourceProofClaims({
-                        resourceUrl,
-                        htm: "GET",
-                        ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
-                    })
-                ).toThrow(ClientConfigurationErrorCodes.invalidDpopHtu);
+        it("serializes resource htu values repaired by URL parsing", () => {
+            const claims = generator.buildResourceProofClaims({
+                resourceUrl: "https://api.example.com/v1.0/my profile",
+                htm: "GET",
+                ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
             });
+
+            expect(claims.htu).toBe(
+                "https://api.example.com/v1.0/my%20profile"
+            );
         });
 
         it("rejects missing or malformed ath values", () => {
