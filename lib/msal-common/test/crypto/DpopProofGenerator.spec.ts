@@ -711,6 +711,23 @@ describe("DpopProofGenerator Unit Tests", () => {
                 );
             }
         });
+
+        it("rejects non-string DPoP proof signatures returned by the signer", async () => {
+            await expect(
+                generator.generateTokenProof({
+                    tokenEndpoint:
+                        "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
+                    publicJwk,
+                    signer: createSigner(
+                        jest
+                            .fn()
+                            .mockResolvedValue({ signature: dpopSignature })
+                    ),
+                })
+            ).rejects.toThrow(
+                ClientConfigurationErrorCodes.invalidDpopSignature
+            );
+        });
     });
 
     describe("generateResourceProof", () => {

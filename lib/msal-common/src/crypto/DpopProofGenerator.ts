@@ -173,7 +173,10 @@ function validateSignature(
     alg: string,
     correlationId: string
 ): void {
-    if (!BASE64URL_STRING_REGEX.test(signature)) {
+    if (
+        typeof signature !== "string" ||
+        !BASE64URL_STRING_REGEX.test(signature)
+    ) {
         throw createClientConfigurationError(
             ClientConfigurationErrorCodes.invalidDpopSignature,
             correlationId
