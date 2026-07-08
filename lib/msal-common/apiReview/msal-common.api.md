@@ -683,9 +683,6 @@ export type AzureRegionConfiguration = {
 const badToken = "bad_token";
 
 // @public
-export const BASE64URL_STRING_REGEX: RegExp;
-
-// @public
 export type BaseAuthRequest = {
     authority: string;
     correlationId: string;
@@ -1103,12 +1100,8 @@ declare namespace ClientConfigurationErrorCodes {
         invalidPlatformBrokerConfiguration,
         issuerValidationFailed,
         invalidResponseMode,
-        invalidDpopAlg,
-        invalidDpopAth,
         invalidDpopHtm,
-        invalidDpopHtu,
-        invalidDpopPublicJwk,
-        invalidDpopSignature
+        invalidDpopHtu
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1432,7 +1425,7 @@ const DEFAULT_AUTHORITY_HOST = "login.microsoftonline.com";
 // @public (undocumented)
 const DEFAULT_COMMON_TENANT = "common";
 
-// @public (undocumented)
+// @public
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto;
 
 // @public (undocumented)
@@ -1558,9 +1551,6 @@ const ERROR = "error";
 
 // @public (undocumented)
 const ERROR_DESCRIPTION = "error_description";
-
-// @public
-export const ES256_SIGNATURE_LENGTH_BYTES = 64;
 
 // @internal
 function executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>, thumbprint: RequestThumbprint, correlationId: string, cacheManager: CacheManager, networkClient: INetworkModule, logger: Logger, performanceClient: IPerformanceClient, serverTelemetryManager: ServerTelemetryManager | null): Promise<NetworkResponse<ServerAuthorizationTokenResponse>>;
@@ -1911,22 +1901,10 @@ const invalidCloudDiscoveryMetadata = "invalid_cloud_discovery_metadata";
 const invalidCodeChallengeMethod = "invalid_code_challenge_method";
 
 // @public (undocumented)
-const invalidDpopAlg = "invalid_dpop_alg";
-
-// @public (undocumented)
-const invalidDpopAth = "invalid_dpop_ath";
-
-// @public (undocumented)
 const invalidDpopHtm = "invalid_dpop_htm";
 
 // @public (undocumented)
 const invalidDpopHtu = "invalid_dpop_htu";
-
-// @public (undocumented)
-const invalidDpopPublicJwk = "invalid_dpop_public_jwk";
-
-// @public (undocumented)
-const invalidDpopSignature = "invalid_dpop_signature";
 
 // @public (undocumented)
 const invalidPlatformBrokerConfiguration = "invalid_platform_broker_configuration";
@@ -3049,7 +3027,7 @@ export type SignedHttpRequest = {
     client_claims?: string;
 };
 
-// @public (undocumented)
+// @public
 export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequestMethod" | "resourceRequestUri" | "shrClaims" | "shrNonce" | "shrOptions"> & {
     correlationId: string;
 };

@@ -8,7 +8,6 @@ import {
     DPOP_JWT_HEADER_TYPE,
     DpopProofClaims,
     DpopProofHeader,
-    DpopPublicJwk,
     DpopProofSigner,
     DpopProofGenerator,
 } from "../../src/crypto/DpopProofGenerator.js";
@@ -531,25 +530,6 @@ describe("DpopProofGenerator Unit Tests", () => {
                 "https://api.example.com/v1.0/my%20profile"
             );
         });
-
-        it("rejects missing or malformed ath values", () => {
-            const invalidAths = [
-                "",
-                "raw-access-token",
-                "Kq5sNclPz7QV2-lfQIuc6R7oRu0eHPeDcJryCH0Fspw=",
-                "Kq5sNclPz7QV2+lfQIuc6R7oRu0eHPeDcJryCH0Fspw",
-            ];
-
-            invalidAths.forEach((ath) => {
-                expect(() =>
-                    generator.buildResourceProofClaims({
-                        resourceUrl: "https://graph.microsoft.com/v1.0/me",
-                        htm: "GET",
-                        ath,
-                    })
-                ).toThrow(ClientConfigurationErrorCodes.invalidDpopAth);
-            });
-        });
     });
 
     describe("generateTokenProof", () => {
@@ -605,21 +585,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             expect(decodedProof.header.alg).toBe("custom-alg");
         });
 
-        it("rejects empty DPoP proof header algorithm values", async () => {
-            const sign = jest.fn().mockResolvedValue(dpopSignature);
-
-            await expect(
-                generator.generateTokenProof({
-                    tokenEndpoint:
-                        "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
-                    publicJwk,
-                    signer: createSigner(sign, ""),
-                })
-            ).rejects.toThrow(ClientConfigurationErrorCodes.invalidDpopAlg);
-            expect(sign).not.toHaveBeenCalled();
-        });
-
-        it("keeps non-ES256 public JWK shape validation extensible", async () => {
+        it("passes signer-declared alg and matching public JWK through", async () => {
             const rsaPublicJwk = {
                 kty: "RSA",
                 n: "test-modulus",
@@ -638,97 +604,6 @@ describe("DpopProofGenerator Unit Tests", () => {
 
             expect(decodedProof.header.alg).toBe("PS256");
             expect(decodedProof.header.jwk).toEqual(rsaPublicJwk);
-        });
-
-        it("rejects private JWK material before building the DPoP proof header", async () => {
-            const sign = jest.fn().mockResolvedValue(dpopSignature);
-
-            await expect(
-                generator.generateTokenProof({
-                    tokenEndpoint:
-                        "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
-                    publicJwk: {
-                        ...publicJwk,
-                        d: "private-key-material",
-                    },
-                    signer: createSigner(sign),
-                })
-            ).rejects.toThrow(
-                ClientConfigurationErrorCodes.invalidDpopPublicJwk
-            );
-            expect(sign).not.toHaveBeenCalled();
-        });
-
-        it("rejects invalid ES256 public JWK shapes before signing", async () => {
-            const invalidPublicJwks = [
-                null,
-                [],
-                {},
-                { ...publicJwk, kty: "RSA" },
-                { ...publicJwk, crv: "P-384" },
-                { ...publicJwk, x: "" },
-                { ...publicJwk, y: undefined },
-                { ...publicJwk, x: "not+base64url" },
-                { ...publicJwk, y: "A".repeat(42) },
-            ];
-
-            for (const invalidPublicJwk of invalidPublicJwks) {
-                const sign = jest.fn().mockResolvedValue(dpopSignature);
-
-                await expect(
-                    generator.generateTokenProof({
-                        tokenEndpoint:
-                            "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
-                        publicJwk: invalidPublicJwk as unknown as DpopPublicJwk,
-                        signer: createSigner(sign),
-                    })
-                ).rejects.toThrow(
-                    ClientConfigurationErrorCodes.invalidDpopPublicJwk
-                );
-                expect(sign).not.toHaveBeenCalled();
-            }
-        });
-
-        it("rejects empty, malformed, or wrong-length ES256 DPoP proof signatures returned by the signer", async () => {
-            const invalidSignatures = [
-                "",
-                "not+base64url",
-                "not/base64url",
-                "A",
-                "A".repeat(85),
-            ];
-
-            for (const signature of invalidSignatures) {
-                await expect(
-                    generator.generateTokenProof({
-                        tokenEndpoint:
-                            "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
-                        publicJwk,
-                        signer: createSigner(
-                            jest.fn().mockResolvedValue(signature)
-                        ),
-                    })
-                ).rejects.toThrow(
-                    ClientConfigurationErrorCodes.invalidDpopSignature
-                );
-            }
-        });
-
-        it("rejects non-string DPoP proof signatures returned by the signer", async () => {
-            await expect(
-                generator.generateTokenProof({
-                    tokenEndpoint:
-                        "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
-                    publicJwk,
-                    signer: createSigner(
-                        jest
-                            .fn()
-                            .mockResolvedValue({ signature: dpopSignature })
-                    ),
-                })
-            ).rejects.toThrow(
-                ClientConfigurationErrorCodes.invalidDpopSignature
-            );
         });
     });
 

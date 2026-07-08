@@ -34,26 +34,11 @@ export type SignedHttpRequestParameters = Pick<
 };
 
 /**
- * Shared JOSE validation helper for MSAL package internals that need to validate
- * base64url-encoded SHA-256 digests.
- */
-export const SHA256_BASE64URL_REGEX = /^[A-Za-z0-9_-]{43}$/;
-/**
- * Shared JOSE validation helper for MSAL package internals that need to validate
- * non-empty base64url-encoded values.
- */
-export const BASE64URL_STRING_REGEX = /^[A-Za-z0-9_-]+$/;
-/**
  * Shared JOSE algorithm literals used by MSAL package internals.
  */
 export const JsonWebTokenAlgorithms = {
     ES256: "ES256",
 } as const;
-/**
- * Shared JOSE validation constant for MSAL package internals that validate raw
- * ECDSA P-256 signatures used by ES256.
- */
-export const ES256_SIGNATURE_LENGTH_BYTES = 64;
 /**
  * Shared JWK literal for MSAL package internals that validate or construct
  * Elliptic Curve public JWKs.
@@ -69,21 +54,6 @@ export const JSON_WEB_KEY_TYPE_RSA = "RSA";
  * P-256 public JWKs.
  */
 export const JSON_WEB_KEY_CURVE_P256 = "P-256";
-/**
- * JWK member names that indicate private or symmetric key material and must not
- * be included in public proof headers.
- */
-export const PRIVATE_JWK_MEMBERS = [
-    "d",
-    "p",
-    "q",
-    "dp",
-    "dq",
-    "qi",
-    "oth",
-    "k",
-];
-
 /**
  * Interface for crypto functions used by library
  */
