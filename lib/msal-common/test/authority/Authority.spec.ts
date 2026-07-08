@@ -339,13 +339,39 @@ describe("Authority.ts Class Unit Tests", () => {
                 );
             });
 
-            it("throws mtlsPopUnsupportedCloud for US Gov / China sovereign clouds", () => {
+            it("throws mtlsPopUnsupportedCloud for the US Gov (usgovcloudapi.net) and China (chinacloudapi.cn) hosts blocked by MSAL .NET", () => {
                 mockEndpoints(
-                    `https://login.microsoftonline.us/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    `https://login.usgovcloudapi.net/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
                     RANDOM_TEST_GUID
                 );
                 expect(() => authority.getMtlsTokenEndpoint()).toThrow(
                     ClientAuthErrorCodes.mtlsPopUnsupportedCloud
+                );
+
+                mockEndpoints(
+                    `https://login.chinacloudapi.cn/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(() => authority.getMtlsTokenEndpoint()).toThrow(
+                    ClientAuthErrorCodes.mtlsPopUnsupportedCloud
+                );
+            });
+
+            it("transforms other sovereign hosts (microsoftonline.us, partner.microsoftonline.cn) to mtlsauth.*, matching MSAL .NET", () => {
+                mockEndpoints(
+                    `https://login.microsoftonline.us/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(authority.getMtlsTokenEndpoint()).toBe(
+                    `https://mtlsauth.microsoftonline.us/${RANDOM_TEST_GUID}/oauth2/v2.0/token`
+                );
+
+                mockEndpoints(
+                    `https://login.partner.microsoftonline.cn/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(authority.getMtlsTokenEndpoint()).toBe(
+                    `https://mtlsauth.partner.microsoftonline.cn/${RANDOM_TEST_GUID}/oauth2/v2.0/token`
                 );
             });
 
