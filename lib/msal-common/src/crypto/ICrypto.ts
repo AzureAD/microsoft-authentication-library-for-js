@@ -11,15 +11,17 @@ import type { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import type { ShrOptions, SignedHttpRequest } from "./SignedHttpRequest.js";
 
 /**
- * The PkceCodes type describes the structure
- * of objects that contain PKCE code
- * challenge and verifier pairs
+ * PKCE code verifier and challenge pair used by authorization code flows.
  */
 export type PkceCodes = {
     verifier: string;
     challenge: string;
 };
 
+/**
+ * Parameters used by crypto implementations to build signed HTTP request
+ * proof-of-possession tokens.
+ */
 export type SignedHttpRequestParameters = Pick<
     BaseAuthRequest,
     | "resourceRequestMethod"
@@ -31,30 +33,46 @@ export type SignedHttpRequestParameters = Pick<
     correlationId: string;
 };
 
+/**
+ * Shared JOSE validation helper for MSAL package internals that need to validate
+ * base64url-encoded SHA-256 digests.
+ */
 export const SHA256_BASE64URL_REGEX = /^[A-Za-z0-9_-]{43}$/;
 /**
- * Validates that a string is a non-empty base64url-encoded value.
+ * Shared JOSE validation helper for MSAL package internals that need to validate
+ * non-empty base64url-encoded values.
  */
 export const BASE64URL_STRING_REGEX = /^[A-Za-z0-9_-]+$/;
+/**
+ * Shared JOSE algorithm literals used by MSAL package internals.
+ */
 export const JsonWebTokenAlgorithms = {
     ES256: "ES256",
 } as const;
 /**
- * Raw ECDSA P-256 signature size for JOSE ES256 signatures.
+ * Shared JOSE validation constant for MSAL package internals that validate raw
+ * ECDSA P-256 signatures used by ES256.
  */
 export const ES256_SIGNATURE_LENGTH_BYTES = 64;
 /**
- * Elliptic Curve JWK key type.
+ * Shared JWK literal for MSAL package internals that validate or construct
+ * Elliptic Curve public JWKs.
  */
 export const JSON_WEB_KEY_TYPE_EC = "EC";
 /**
- * RSA JWK key type.
+ * Shared JWK literal for MSAL package internals that validate or construct RSA
+ * public JWKs.
  */
 export const JSON_WEB_KEY_TYPE_RSA = "RSA";
 /**
- * P-256 JWK curve name.
+ * Shared JWK literal for MSAL package internals that validate or construct
+ * P-256 public JWKs.
  */
 export const JSON_WEB_KEY_CURVE_P256 = "P-256";
+/**
+ * JWK member names that indicate private or symmetric key material and must not
+ * be included in public proof headers.
+ */
 export const PRIVATE_JWK_MEMBERS = [
     "d",
     "p",
@@ -129,6 +147,10 @@ export interface ICrypto {
     hashString(plainText: string): Promise<string>;
 }
 
+/**
+ * Default crypto implementation used when a platform-specific implementation has
+ * not been provided.
+ */
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     createNewGuid: (): string => {
         throw createClientAuthError(
