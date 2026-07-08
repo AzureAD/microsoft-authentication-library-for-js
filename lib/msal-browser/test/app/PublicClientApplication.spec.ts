@@ -2787,7 +2787,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // Add performance callback
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].isNativeBroker).toBe(true);
-                expect(events[0].isPlatformBrokerRequest).toBe(true);
+                expect(events[0].isPlatformBrokerRequest).toBe(undefined);
                 expect(events[0].isPlatformAuthorizeRequest).toBe(undefined);
                 pca.removePerformanceCallback(callbackId);
             });
@@ -2953,7 +2953,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].isNativeBroker).toBe(false);
                 expect(events[0].isPlatformAuthorizeRequest).toBe(undefined);
-                expect(events[0].isPlatformBrokerRequest).toBe(true);
+                expect(events[0].isPlatformBrokerRequest).toBe(undefined);
                 expect(events[0].brokerErrorName).toBeDefined();
                 expect(events[0].brokerErrorName).toContain("NativeAuthError");
                 expect(events[0].brokerErrorCode).toContain("ContentError");
@@ -3031,7 +3031,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].isNativeBroker).toBe(false);
                 expect(events[0].isPlatformAuthorizeRequest).toBe(undefined);
-                expect(events[0].isPlatformBrokerRequest).toBe(true);
+                expect(events[0].isPlatformBrokerRequest).toBe(undefined);
                 pca.removePerformanceCallback(callbackId);
             });
 
@@ -3086,9 +3086,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             // Add performance callback
             const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events[0].isNativeBroker).toBe(undefined);
+                expect(events[0].isNativeBroker).toBe(true);
                 expect(events[0].isPlatformAuthorizeRequest).toBe(undefined);
-                expect(events[0].isPlatformBrokerRequest).toBe(true);
+                expect(events[0].isPlatformBrokerRequest).toBe(undefined);
                 expect(events[0].brokerErrorName).toBeDefined();
                 pca.removePerformanceCallback(callbackId);
             });
@@ -3732,7 +3732,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // Add performance callback
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].isNativeBroker).toBe(true);
-                expect(events[0].isPlatformBrokerRequest).toBe(true);
+                expect(events[0].isPlatformBrokerRequest).toBe(undefined);
                 expect(events[0].isPlatformAuthorizeRequest).toBe(undefined);
                 pca.removePerformanceCallback(callbackId);
             });
@@ -3806,7 +3806,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].isNativeBroker).toBe(undefined);
                 expect(events[0].isPlatformAuthorizeRequest).toBe(undefined);
-                expect(events[0].isPlatformBrokerRequest).toBe(true);
+                expect(events[0].isPlatformBrokerRequest).toBe(undefined);
                 expect(events[0].brokerErrorName).toBeDefined();
                 expect(events[0].brokerErrorName).toContain("NativeAuthError");
                 expect(events[0].brokerErrorCode).toContain("ContentError");
@@ -3862,9 +3862,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             // Add performance callback
             const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events[0].isNativeBroker).toBe(undefined);
+                expect(events[0].isNativeBroker).toBe(true);
                 expect(events[0].isPlatformAuthorizeRequest).toBe(undefined);
-                expect(events[0].isPlatformBrokerRequest).toBe(true);
+                expect(events[0].isPlatformBrokerRequest).toBe(undefined);
                 expect(events[0].brokerErrorName).toContain("NativeAuthError");
                 pca.removePerformanceCallback(callbackId);
             });
