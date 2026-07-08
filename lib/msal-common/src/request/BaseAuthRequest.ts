@@ -115,7 +115,6 @@ export type BaseAuthRequest = {
      * Optional caller-provided attribute tokens (opaque assertions from external Attribute Authorities).
      * When present and non-empty, MSAL serializes these into the `attribute_tokens` parameter on
      * supported /token grant requests by sorting the values and joining them with a single space.
-     * MSAL performs no validation, trimming, or deduping on the values.
      */
     attributeTokens?: Array<string>;
 };

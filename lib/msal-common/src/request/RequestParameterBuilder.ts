@@ -709,9 +709,6 @@ export function addResource(
  * with a single space, then written to the request body. When `attributeTokens` is an explicitly
  * empty array the parameter is deleted from the request body.
  *
- * MSAL performs no per-token validation, trimming, or deduplication - the caller-provided values
- * are transmitted verbatim.
- *
  * @param parameters - request parameter map that will be serialized into the /token body
  * @param attributeTokens - optional caller-provided attribute token strings
  */

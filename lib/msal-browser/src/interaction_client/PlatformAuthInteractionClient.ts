@@ -1041,7 +1041,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 ? [...requestAttributeTokens].sort().join(" ")
                 : undefined;
         this.performanceClient?.addFields(
-            { "ext.hasAttributeTokens": !!requestAttributeTokens?.length },
+            {
+                hasAttributeTokens: Boolean(requestAttributeTokens?.length),
+            },
             this.correlationId
         );
 

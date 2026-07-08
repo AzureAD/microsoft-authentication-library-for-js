@@ -38,6 +38,7 @@ import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { mockCrypto, MockStorageClass } from "../client/ClientTestUtils.js";
 import {
     AUTHENTICATION_RESULT,
+    TEST_CRYPTO_VALUES,
     ID_TOKEN_CLAIMS,
     POP_AUTHENTICATION_RESULT,
     TEST_CONFIG,
@@ -463,6 +464,7 @@ describe("ResponseHandler.ts", () => {
             const testResponse: ServerAuthorizationTokenResponse = {
                 ...AUTHENTICATION_RESULT.body,
             };
+            const hashStringSpy = jest.spyOn(cryptoInterface, "hashString");
 
             const responseHandler = new ResponseHandler(
                 "this-is-a-client-id",
@@ -489,16 +491,24 @@ describe("ResponseHandler.ts", () => {
                     _serverTokenResponse,
                     _requestId
                 ) => {
-                    expect(
-                        cacheRecord.accessToken?.additionalCacheKeyComponents
-                    ).toEqual({
-                        attribute_tokens: "attribute_tokens:alpha zeta",
-                    });
-                    expect(
-                        cacheRecord.accessToken
-                            ?.additionalCacheKeyComponentsHash
-                    ).toBeDefined();
-                    done();
+                    try {
+                        expect(
+                            cacheRecord.accessToken
+                                ?.additionalCacheKeyComponents
+                        ).toEqual({
+                            attribute_tokens: "attribute_tokens:alpha zeta",
+                        });
+                        expect(hashStringSpy).toHaveBeenCalledWith(
+                            "attribute_tokensattribute_tokens:alpha zeta"
+                        );
+                        expect(
+                            cacheRecord.accessToken
+                                ?.additionalCacheKeyComponentsHash
+                        ).toBe(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+                        done();
+                    } catch (error) {
+                        done(error);
+                    }
                     return {} as AuthenticationResult;
                 }
             );

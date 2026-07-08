@@ -349,7 +349,9 @@ export class AuthorizationCodeClient {
             request.attributeTokens
         );
         this.performanceClient?.addFields(
-            { "ext.hasAttributeTokens": !!request.attributeTokens?.length },
+            {
+                hasAttributeTokens: Boolean(request.attributeTokens?.length),
+            },
             request.correlationId
         );
 
