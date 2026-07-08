@@ -167,6 +167,10 @@ function sanitizePublicJwk(
 }
 
 function validateAlg(alg: string, correlationId: string): void {
+    /*
+     * The proof generator is signer-agnostic. ES256 receives additional local
+     * JWK/signature validation because it is the MSAL default.
+     */
     if (!isNonEmptyString(alg)) {
         throw createClientConfigurationError(
             ClientConfigurationErrorCodes.invalidDpopAlg,
