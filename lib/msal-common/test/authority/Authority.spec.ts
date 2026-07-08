@@ -344,7 +344,9 @@ describe("Authority.ts Class Unit Tests", () => {
                     `https://login.microsoftonline.us/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
                     RANDOM_TEST_GUID
                 );
-                expect(() => authority.getMtlsTokenEndpoint()).toThrow(ClientAuthErrorCodes.mtlsPopUnsupportedCloud);
+                expect(() => authority.getMtlsTokenEndpoint()).toThrow(
+                    ClientAuthErrorCodes.mtlsPopUnsupportedCloud
+                );
             });
 
             it("throws mtlsPopUnsupportedCloud for a B2C host that merely contains 'login.'", () => {
@@ -352,7 +354,9 @@ describe("Authority.ts Class Unit Tests", () => {
                     `https://contoso.b2clogin.com/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
                     RANDOM_TEST_GUID
                 );
-                expect(() => authority.getMtlsTokenEndpoint()).toThrow(ClientAuthErrorCodes.mtlsPopUnsupportedCloud);
+                expect(() => authority.getMtlsTokenEndpoint()).toThrow(
+                    ClientAuthErrorCodes.mtlsPopUnsupportedCloud
+                );
             });
 
             it("throws mtlsPopUnsupportedCloud for a CIAM host that merely contains 'login.'", () => {
@@ -360,7 +364,9 @@ describe("Authority.ts Class Unit Tests", () => {
                     `https://contoso.ciamlogin.com/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
                     RANDOM_TEST_GUID
                 );
-                expect(() => authority.getMtlsTokenEndpoint()).toThrow(ClientAuthErrorCodes.mtlsPopUnsupportedCloud);
+                expect(() => authority.getMtlsTokenEndpoint()).toThrow(
+                    ClientAuthErrorCodes.mtlsPopUnsupportedCloud
+                );
             });
 
             it("throws mtlsPopNonTenantedAuthority for a /common authority", () => {
@@ -368,7 +374,9 @@ describe("Authority.ts Class Unit Tests", () => {
                     "https://login.microsoftonline.com/common/oauth2/v2.0/token",
                     "common"
                 );
-                expect(() => authority.getMtlsTokenEndpoint()).toThrow(ClientAuthErrorCodes.mtlsPopNonTenantedAuthority);
+                expect(() => authority.getMtlsTokenEndpoint()).toThrow(
+                    ClientAuthErrorCodes.mtlsPopNonTenantedAuthority
+                );
             });
 
             it("throws mtlsPopNonTenantedAuthority for an /organizations authority", () => {
@@ -376,7 +384,9 @@ describe("Authority.ts Class Unit Tests", () => {
                     "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
                     "organizations"
                 );
-                expect(() => authority.getMtlsTokenEndpoint()).toThrow(ClientAuthErrorCodes.mtlsPopNonTenantedAuthority);
+                expect(() => authority.getMtlsTokenEndpoint()).toThrow(
+                    ClientAuthErrorCodes.mtlsPopNonTenantedAuthority
+                );
             });
         });
 
@@ -3555,5 +3565,3 @@ describe("Authority.ts Class Unit Tests", () => {
         });
     });
 });
-
-
