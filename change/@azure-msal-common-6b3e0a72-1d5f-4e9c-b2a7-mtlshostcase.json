@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "mTLS Proof-of-Possession: match the token-endpoint host case-insensitively when rewriting `login.*` to `mtlsauth.*`, so a mixed-case discovery host is still rewritten instead of silently leaving the non-mTLS endpoint in place [#8693](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8693)",
+    "packageName": "@azure/msal-common",
+    "email": "rginsburg@microsoft.com",
+    "dependentChangeType": "patch"
+}

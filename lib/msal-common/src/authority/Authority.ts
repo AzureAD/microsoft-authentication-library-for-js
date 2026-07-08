@@ -282,8 +282,18 @@ export class Authority {
             host,
             this.correlationId
         );
-        // Replace only the authority host portion (immediately after the scheme) of the endpoint.
-        return tokenEndpoint.replace(`//${host}`, `//${mtlsHost}`);
+        /*
+         * Rewrite only the authority host portion (immediately after the scheme) of the endpoint.
+         * UrlString canonicalizes (lowercases) the parsed host, but discovery metadata may return
+         * the token endpoint with a mixed-case host; locate the host case-insensitively so the
+         * rewrite still applies instead of no-opping and silently leaving the non-mTLS endpoint.
+         */
+        const hostIndex = tokenEndpoint.toLowerCase().indexOf(`//${host}`);
+        return (
+            tokenEndpoint.slice(0, hostIndex + 2) +
+            mtlsHost +
+            tokenEndpoint.slice(hostIndex + 2 + host.length)
+        );
     }
 
     /**

@@ -339,6 +339,16 @@ describe("Authority.ts Class Unit Tests", () => {
                 );
             });
 
+            it("rewrites a mixed-case discovery host case-insensitively (UrlString preserves host casing)", () => {
+                mockEndpoints(
+                    `https://WestUS3.Login.Microsoft.com/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(authority.getMtlsTokenEndpoint()).toBe(
+                    `https://westus3.mtlsauth.microsoft.com/${RANDOM_TEST_GUID}/oauth2/v2.0/token`
+                );
+            });
+
             it("throws mtlsPopUnsupportedCloud for the US Gov (usgovcloudapi.net) and China (chinacloudapi.cn) hosts blocked by MSAL .NET", () => {
                 mockEndpoints(
                     `https://login.usgovcloudapi.net/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
