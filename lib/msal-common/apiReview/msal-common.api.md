@@ -2485,6 +2485,7 @@ export type PerformanceEvent = {
     removeTokenBindingKeyFailure?: number;
     silentRefreshReason?: string;
     deduped?: boolean;
+    hasAttributeTokens?: boolean;
     kmsi?: boolean;
     ssoCapable?: boolean;
     isBackground?: boolean;
