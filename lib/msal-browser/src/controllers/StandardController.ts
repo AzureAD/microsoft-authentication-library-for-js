@@ -1397,11 +1397,11 @@ export class StandardController implements IController {
                         atbcMeasurement.add({ isNativeBroker: true });
                         throw e;
                     });
-atbcMeasurement.end(
-    {
-        success: true,
-        isNativeBroker: result.fromPlatformBroker,
-    },
+                    atbcMeasurement.end(
+                        {
+                            success: true,
+                            isNativeBroker: result.fromPlatformBroker,
+                        },
                         undefined,
                         result.account
                     );
