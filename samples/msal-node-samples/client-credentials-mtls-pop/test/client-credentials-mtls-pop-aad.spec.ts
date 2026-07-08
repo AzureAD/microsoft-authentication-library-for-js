@@ -3,7 +3,6 @@ import {
     validateCacheLocation,
     NodeCacheTestUtils,
     getCertificateInfo,
-    ENV_VARIABLES,
     LAB_CERT_NAME,
     LAB_KEY_VAULT_URL,
 } from "../../../e2eTestUtils/src";
@@ -24,6 +23,14 @@ const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
 // mTLS PoP requires a tenanted authority; the region is recommended but optional.
 const REGION = "westus3";
+// The generic lab app (shared by the other node samples via AZURE_CLIENT_ID) works for
+// Bearer SN/I but is NOT ESTS allow-listed for mTLS PoP — it fails with AADSTS700025.
+// Use the SN/I-allow-listed app + MSI-team tenant, matching the MSAL .NET/Java/Python e2e
+// config. The LabAuth SN/I cert loaded below is trusted by this app (SN/I matches on
+// subject + issuer, not thumbprint), so the cert loading stays unchanged.
+const SNI_ALLOWLISTED_CLIENT_ID = "163ffef9-a313-45b4-ab2f-c7e2f5e0e23e";
+const SNI_ALLOWLISTED_AUTHORITY =
+    "https://login.microsoftonline.com/bea21ebe-8b64-4d06-9f6d-6a889b120a7c";
 
 describe("Client Credentials mTLS Proof-of-Possession AAD Prod Tests", () => {
     jest.retryTimes(RETRY_TIMES);
@@ -45,10 +52,8 @@ describe("Client Credentials mTLS Proof-of-Possession AAD Prod Tests", () => {
 
         config = {
             auth: {
-                clientId: process.env[ENV_VARIABLES.CLIENT_ID] as string,
-                authority: `https://login.microsoftonline.com/${
-                    process.env[ENV_VARIABLES.TENANT]
-                }`,
+                clientId: SNI_ALLOWLISTED_CLIENT_ID,
+                authority: SNI_ALLOWLISTED_AUTHORITY,
                 clientCertificate: {
                     thumbprintSha256: thumbprint,
                     privateKey: privateKey,
