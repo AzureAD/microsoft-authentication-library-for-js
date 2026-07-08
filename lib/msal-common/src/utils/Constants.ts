@@ -54,14 +54,15 @@ export const MTLS_AUTH_HOST_PREFIX = "mtlsauth.";
 export const MTLS_AUTH_PUBLIC_CLOUD_HOST = "mtlsauth.microsoft.com";
 /**
  * Sovereign/national clouds where the `mtlsauth.*` endpoint is not (yet) available. mTLS PoP
- * requests targeting these clouds fail fast. Isolated here so the guardrail is trivial to lift as
- * `mtlsauth.*` rolls out to additional clouds (see Authority.isMtlsSupportedCloud).
+ * requests targeting these clouds fail fast. This list mirrors MSAL .NET's `s_unsupportedMtlsHosts`
+ * (US Gov `usgovcloudapi.net` + China `chinacloudapi.cn`); every other `login.*` host — including
+ * other sovereign hosts such as `login.microsoftonline.us` and `login.partner.microsoftonline.cn` —
+ * is rewritten to its `mtlsauth.*` equivalent, matching .NET. Isolated here so the guardrail is
+ * trivial to adjust as `mtlsauth.*` rolls out (see Authority.isMtlsSupportedCloud).
  */
 export const MTLS_UNSUPPORTED_CLOUD_HOSTS = [
-    "login.microsoftonline.us",
     "login.usgovcloudapi.net",
     "login.chinacloudapi.cn",
-    "login.partner.microsoftonline.cn",
 ];
 export const SHR_NONCE_VALIDITY = 240;
 export const INVALID_INSTANCE = "invalid_instance";
