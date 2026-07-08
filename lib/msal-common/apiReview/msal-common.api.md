@@ -1058,7 +1058,8 @@ declare namespace ClientAuthErrorCodes {
         resourceParameterRequired,
         misplacedResourceParam,
         mtlsPopUnsupportedCloud,
-        mtlsPopNonTenantedAuthority
+        mtlsPopNonTenantedAuthority,
+        tokenTypeMismatch
     }
 }
 export { ClientAuthErrorCodes }
@@ -3329,6 +3330,9 @@ const tokenRefreshRequired = "token_refresh_required";
 
 // @public (undocumented)
 const tokenRequestEmpty = "token_request_empty";
+
+// @public (undocumented)
+const tokenTypeMismatch = "token_type_mismatch";
 
 // @public
 function toSecondsFromDate(date: Date): number;

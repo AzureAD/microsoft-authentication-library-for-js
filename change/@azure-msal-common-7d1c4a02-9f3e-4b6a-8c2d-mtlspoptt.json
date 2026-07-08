@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "mTLS Proof-of-Possession fails closed: add token_type_mismatch (ClientAuthError) surfaced when an mtls_pop request receives a non-mtls_pop token_type from the identity provider [#8693](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8693)",
+  "packageName": "@azure/msal-common",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}

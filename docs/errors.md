@@ -180,6 +180,18 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Neither `userObjectId` nor `username` was provided to `acquireTokenByUserFederatedIdentityCredential`. Exactly one user identifier is required.
 
+### `mtls_pop_unsupported_cloud`
+
+-   mTLS Proof-of-Possession was requested against a cloud that does not support it. Today mTLS PoP is available in the public cloud only; sovereign clouds (US Gov, China) are rejected.
+
+### `mtls_pop_non_tenanted_authority`
+
+-   mTLS Proof-of-Possession was requested with a non-tenanted authority (`/common` or `/organizations`). Use a tenanted authority such as `https://login.microsoftonline.com/<tenantId>`.
+
+### `token_type_mismatch`
+
+-   A token was requested with a specific authentication scheme (for example mTLS Proof-of-Possession, `mtls_pop`) but the identity provider returned a token with a different `token_type`. MSAL fails closed and rejects the response rather than returning a token that is not bound as requested.
+
 ## Client configuration errors
 
 ### `redirect_uri_empty`
