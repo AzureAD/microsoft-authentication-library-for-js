@@ -310,13 +310,15 @@ export class Authority {
         if (Constants.KNOWN_PUBLIC_CLOUDS.includes(lower)) {
             return Constants.MTLS_AUTH_PUBLIC_CLOUD_HOST;
         }
-        // Rewrite the `login.` DNS label to `mtlsauth.` (handles regional + generic AAD hosts).
-        // The match is anchored to a label boundary (host start, or immediately after a dot):
-        // an unanchored substring match would corrupt non-AAD hosts that merely contain the
-        // literal `login.`, rewriting them across a registrable-domain boundary — e.g.
-        // `contoso.b2clogin.com` -> `contoso.b2cmtlsauth.com` or `t.ciamlogin.com` ->
-        // `t.ciammtlsauth.com`. mTLS PoP is AAD-only, so B2C/CIAM hosts are rejected here
-        // (mirrors MSAL .NET's `host.StartsWith("login.")` gate in RegionAndMtlsDiscoveryProvider).
+        /*
+         * Rewrite the `login.` DNS label to `mtlsauth.` (handles regional + generic AAD hosts).
+         * The match is anchored to a label boundary (host start, or immediately after a dot): an
+         * unanchored substring match would corrupt non-AAD hosts that merely contain the literal
+         * `login.`, rewriting them across a registrable-domain boundary — e.g.
+         * `contoso.b2clogin.com` -> `contoso.b2cmtlsauth.com` or `t.ciamlogin.com` ->
+         * `t.ciammtlsauth.com`. mTLS PoP is AAD-only, so B2C/CIAM hosts are rejected here (mirrors
+         * MSAL .NET's `host.StartsWith("login.")` gate in RegionAndMtlsDiscoveryProvider).
+         */
         const prefix = Constants.MTLS_AUTH_LOGIN_PREFIX;
         let idx = -1;
         if (lower.startsWith(prefix)) {
