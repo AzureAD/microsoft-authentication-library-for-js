@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "mTLS Proof-of-Possession: anchor the `login.` host rewrite to a DNS label boundary so non-AAD hosts that merely contain `login.` (e.g. B2C `*.b2clogin.com`, CIAM `*.ciamlogin.com`) are rejected with mtls_pop_unsupported_cloud instead of being rewritten across a registrable-domain boundary [#8693](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8693)",
+  "packageName": "@azure/msal-common",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
