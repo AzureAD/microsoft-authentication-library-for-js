@@ -416,4 +416,182 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
             expect(result.bindingCertificate).toBeUndefined();
         });
     });
+
+    describe("fail-closed on token_type downgrade", () => {
+        const mtlsPopRequest = (): CommonClientCredentialRequest => ({
+            authority: TENANTED_AUTHORITY,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            authenticationScheme: Constants.AuthenticationScheme.MTLS_POP,
+        });
+
+        it("rejects with token_type_mismatch when the identity provider downgrades to Bearer", async () => {
+            const { config, postSpy } = await buildMtlsConfig({
+                mtlsBindingCertificate: APP_CERT,
+            });
+            postSpy.mockResolvedValue({
+                headers: {},
+                status: 200,
+                body: {
+                    ...MTLS_POP_TOKEN_RESPONSE,
+                    token_type: Constants.AuthenticationScheme.BEARER,
+                },
+            });
+            const client = new ClientCredentialClient(config);
+
+            await expect(client.acquireToken(mtlsPopRequest())).rejects.toThrow(
+                /token_type_mismatch/
+            );
+        });
+
+        it("rejects with token_type_mismatch when the identity provider omits token_type", async () => {
+            const { config, postSpy } = await buildMtlsConfig({
+                mtlsBindingCertificate: APP_CERT,
+            });
+            postSpy.mockResolvedValue({
+                headers: {},
+                status: 200,
+                body: {
+                    expires_in: 3599,
+                    ext_expires_in: 3599,
+                    access_token: "thisIs.an.mtlsPop.accessT0ken",
+                } as ServerAuthorizationTokenResponse,
+            });
+            const client = new ClientCredentialClient(config);
+
+            await expect(client.acquireToken(mtlsPopRequest())).rejects.toThrow(
+                /token_type_mismatch/
+            );
+        });
+
+        it("does not cache the downgraded token (fails closed before the cache write)", async () => {
+            const { config, postSpy } = await buildMtlsConfig({
+                mtlsBindingCertificate: APP_CERT,
+            });
+            postSpy.mockResolvedValue({
+                headers: {},
+                status: 200,
+                body: {
+                    ...MTLS_POP_TOKEN_RESPONSE,
+                    token_type: Constants.AuthenticationScheme.BEARER,
+                },
+            });
+            const client = new ClientCredentialClient(config);
+
+            await expect(client.acquireToken(mtlsPopRequest())).rejects.toThrow(
+                /token_type_mismatch/
+            );
+
+            const accessTokenKey = config.storageInterface
+                ?.getKeys()
+                .find((key) => key.indexOf("accesstoken") >= 0);
+            expect(accessTokenKey).toBeUndefined();
+        });
+    });
+
+    describe("cache isolation", () => {
+        const mtlsPopRequest = (): CommonClientCredentialRequest => ({
+            authority: TENANTED_AUTHORITY,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            authenticationScheme: Constants.AuthenticationScheme.MTLS_POP,
+        });
+
+        // A second SN/I certificate distinct from APP_CERT (different x5c => different thumbprint).
+        const OTHER_CERT: MtlsBindingCertificate = {
+            x5c: Buffer.from("other-sni-leaf-cert-der-bytes").toString(
+                "base64"
+            ),
+            privateKey:
+                "-----BEGIN PRIVATE KEY-----\nother-sni-private-key\n-----END PRIVATE KEY-----\n",
+        };
+
+        it("returns the mtls_pop token from the cache on a second request, with the binding certificate", async () => {
+            const { config, postSpy } = await buildMtlsConfig({
+                mtlsBindingCertificate: APP_CERT,
+            });
+            const client = new ClientCredentialClient(config);
+
+            const networkResult = (await client.acquireToken(
+                mtlsPopRequest()
+            )) as AuthenticationResult;
+            expect(networkResult.fromCache).toBe(false);
+
+            const cachedResult = (await client.acquireToken(
+                mtlsPopRequest()
+            )) as AuthenticationResult;
+
+            expect(cachedResult.fromCache).toBe(true);
+            expect(postSpy).toHaveBeenCalledTimes(1);
+            expect(cachedResult.tokenType).toBe("mtls_pop");
+            expect(cachedResult.bindingCertificate).toEqual({
+                x5c: APP_CERT.x5c,
+                thumbprintSha256: computeX5tSha256(APP_CERT.x5c),
+            });
+        });
+
+        it("isolates tokens by binding certificate (a different certificate does not reuse the cached token)", async () => {
+            const { config: configA } = await buildMtlsConfig({
+                mtlsBindingCertificate: APP_CERT,
+            });
+            const { config: configB, postSpy: postSpyB } =
+                await buildMtlsConfig({
+                    mtlsBindingCertificate: OTHER_CERT,
+                });
+            // Share one cache between the two clients so a cross-certificate hit is even possible.
+            configB.storageInterface = configA.storageInterface;
+
+            const clientA = new ClientCredentialClient(configA);
+            const clientB = new ClientCredentialClient(configB);
+
+            const firstResult = (await clientA.acquireToken(
+                mtlsPopRequest()
+            )) as AuthenticationResult;
+            expect(firstResult.fromCache).toBe(false);
+            expect(firstResult.bindingCertificate?.thumbprintSha256).toBe(
+                computeX5tSha256(APP_CERT.x5c)
+            );
+
+            // Same client/scopes/authority but a different certificate must not reuse cert A's token.
+            const secondResult = (await clientB.acquireToken(
+                mtlsPopRequest()
+            )) as AuthenticationResult;
+
+            expect(secondResult.fromCache).toBe(false);
+            expect(postSpyB).toHaveBeenCalledTimes(1);
+            expect(secondResult.bindingCertificate?.thumbprintSha256).toBe(
+                computeX5tSha256(OTHER_CERT.x5c)
+            );
+        });
+
+        it("does not let an mtls_pop cache entry satisfy a bearer request (no cross-scheme collision)", async () => {
+            const { config, postSpy } = await buildMtlsConfig({
+                mtlsBindingCertificate: APP_CERT,
+                clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
+            });
+            const client = new ClientCredentialClient(config);
+
+            // 1) Cache an mtls_pop token.
+            const mtlsResult = (await client.acquireToken(
+                mtlsPopRequest()
+            )) as AuthenticationResult;
+            expect(mtlsResult.tokenType).toBe("mtls_pop");
+
+            // 2) A default (bearer) request for the same client/scopes must not reuse it.
+            postSpy.mockResolvedValueOnce({
+                headers: {},
+                status: 200,
+                body: CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body,
+            });
+            const bearerResult = (await client.acquireToken({
+                authority: TENANTED_AUTHORITY,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            })) as AuthenticationResult;
+
+            expect(bearerResult.fromCache).toBe(false);
+            expect(postSpy).toHaveBeenCalledTimes(2);
+            expect(bearerResult.bindingCertificate).toBeUndefined();
+        });
+    });
 });

@@ -434,6 +434,35 @@ export class ClientCredentialClient extends BaseClient {
             refreshAccessToken
         );
 
+        /*
+         * mTLS PoP must fail closed. If the identity provider returns a token_type other than
+         * mtls_pop (a Bearer downgrade, or a missing token_type), the issued token is not
+         * certificate-bound. Reject here — before handleServerTokenResponse caches the response or it
+         * is surfaced — so a caller never receives a token that only looks bound. The appTokenProvider
+         * path supplies its own (Bearer) token and is intentionally exempt.
+         */
+        if (
+            this.appTokenProvider === undefined &&
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.MTLS_POP &&
+            serverTokenResponse.token_type?.toLowerCase() !==
+                Constants.AuthenticationScheme.MTLS_POP.toLowerCase()
+        ) {
+            this.logger.error(
+                "ClientCredentialClient:executeTokenRequest - mTLS PoP token_type mismatch; the identity provider did not return an mtls_pop token. Failing closed.",
+                request.correlationId
+            );
+            throw createClientAuthError(
+                ClientAuthErrorCodes.tokenTypeMismatch,
+                request.correlationId,
+                `Requested authentication scheme "${
+                    Constants.AuthenticationScheme.MTLS_POP
+                }" but the identity provider returned token_type "${
+                    serverTokenResponse.token_type ?? ""
+                }"; the access token is not certificate-bound.`
+            );
+        }
+
         const tokenResponse = await responseHandler.handleServerTokenResponse(
             serverTokenResponse,
             this.authority,
@@ -512,6 +541,18 @@ export class ClientCredentialClient extends BaseClient {
         result: AuthenticationResult,
         request: CommonClientCredentialRequest
     ): void {
+        /*
+         * Drive the binding certificate off the issued token_type (not the request flag): only a
+         * genuine mtls_pop token is certificate-bound. This prevents surfacing a bindingCertificate on
+         * a downgraded/Bearer token (e.g. from the appTokenProvider path, which is exempt from the
+         * token_type fail-closed guard in executeTokenRequest).
+         */
+        if (
+            result.tokenType?.toLowerCase() !==
+            Constants.AuthenticationScheme.MTLS_POP.toLowerCase()
+        ) {
+            return;
+        }
         const bindingCertificate = this.getMtlsBindingCertificate(request);
         if (bindingCertificate) {
             result.bindingCertificate = {

@@ -92,6 +92,15 @@ A complete, runnable example (vanilla and FIC) lives in the sample: [client-cred
 
 `mtls_pop` tokens are cached separately from Bearer tokens and from tokens bound to a different certificate — the cache key includes the token type and the binding certificate's key id (`x5t#S256`). Existing Bearer cache entries are unaffected.
 
+## Error handling
+
+mTLS PoP **fails closed** — because the whole point of `mtls_pop` is a certificate-bound token, MSAL never silently downgrades to a Bearer token:
+
+-   **`token_type_mismatch` (`ClientAuthError`).** `mtlsProofOfPossession: true` was requested but the identity provider returned a token whose `token_type` is not `mtls_pop` (for example a Bearer downgrade, or a response with no `token_type`). MSAL throws before the token is cached or returned, so a caller never receives a token that only looks bound; the error message reports the requested scheme and the `token_type` that was actually returned. Treat this as a resource-allow-listing or configuration problem (see [Requirements and limitations](#requirements-and-limitations)) rather than retrying.
+-   **`mtls_binding_certificate_missing` (`NodeAuthError`).** `mtlsProofOfPossession: true` was requested but no usable binding certificate is configured. Configure `auth.clientCertificate` with **both** an `x5c` (certificate or chain) and a `privateKey`; a thumbprint-only certificate is not sufficient for mTLS PoP.
+-   **`mtls_binding_certificate_missing_private_key` (`NodeAuthError`).** The configured certificate has no `privateKey`. mTLS PoP needs the private key to complete the mutual-TLS handshake.
+-   **`mtls_custom_network_client_unsupported` (`NodeAuthError`).** `mtlsProofOfPossession: true` was combined with a custom `networkClient`. MSAL must own the transport to attach the client certificate — remove the custom `networkClient` for mTLS PoP requests.
+
 ## Backward compatibility
 
 All new fields are optional. When `mtlsProofOfPossession` is not set, the certificate is used exactly as before to sign a client assertion (SNI + Bearer). The Signed HTTP Request (`pop`) scheme is also unchanged.

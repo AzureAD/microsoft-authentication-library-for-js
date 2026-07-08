@@ -47,7 +47,7 @@ export const NodeAuthErrorMessage = {
     },
     mtlsBindingCertificateMissing: {
         code: "mtls_binding_certificate_missing",
-        desc: "mTLS Proof-of-Possession was requested but no binding certificate is available. Configure a clientCertificate on the application, or supply tokenBindingCertificate on the request.",
+        desc: "mTLS Proof-of-Possession was requested but no usable binding certificate is available. Configure a clientCertificate with both an x5c (public certificate or chain) and a privateKey on the application, or supply a tokenBindingCertificate on the request; a thumbprint-only certificate is not sufficient for mtls_pop.",
     },
     mtlsBindingCertificateMissingPrivateKey: {
         code: "mtls_binding_certificate_missing_private_key",
@@ -185,6 +185,7 @@ export class NodeAuthError extends AuthError {
     static createMtlsBindingCertificateMissingError(): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.mtlsBindingCertificateMissing.code,
+            "",
             NodeAuthErrorMessage.mtlsBindingCertificateMissing.desc
         );
     }
@@ -195,6 +196,7 @@ export class NodeAuthError extends AuthError {
     static createMtlsBindingCertificateMissingPrivateKeyError(): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.mtlsBindingCertificateMissingPrivateKey.code,
+            "",
             NodeAuthErrorMessage.mtlsBindingCertificateMissingPrivateKey.desc
         );
     }
@@ -216,6 +218,7 @@ export class NodeAuthError extends AuthError {
     static createMtlsCustomNetworkClientUnsupportedError(): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.mtlsCustomNetworkClientUnsupported.code,
+            "",
             NodeAuthErrorMessage.mtlsCustomNetworkClientUnsupported.desc
         );
     }

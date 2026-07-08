@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "mTLS Proof-of-Possession fails closed on a token_type downgrade (throws token_type_mismatch instead of caching or returning a non-bound token), binds result.bindingCertificate off the issued token_type, and clarifies the mTLS binding-certificate error messages [#8693](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8693)",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
