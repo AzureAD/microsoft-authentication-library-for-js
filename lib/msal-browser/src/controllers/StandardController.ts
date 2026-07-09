@@ -494,6 +494,10 @@ export class StandardController implements IController {
                     "handleRedirectPromise - acquiring token from native platform",
                     correlationId
                 );
+                // Cached nativeAccountId routes directly to the broker (no /authorize call)
+                rootMeasurement.add({
+                    isPlatformBrokerRequest: true,
+                });
                 const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -836,6 +840,10 @@ export class StandardController implements IController {
         const pkce = this.getPreGeneratedPkceCodes(correlationId);
 
         if (this.canUsePlatformBroker(request)) {
+            // Cached nativeAccountId routes directly to the broker (no /authorize call)
+            atPopupMeasurement.add({
+                isPlatformBrokerRequest: true,
+            });
             result = this.acquireTokenNative(
                 {
                     ...request,
@@ -1193,6 +1201,10 @@ export class StandardController implements IController {
         let result: Promise<AuthenticationResult>;
 
         if (this.canUsePlatformBroker(validRequest)) {
+            // Cached nativeAccountId routes directly to the broker (no /authorize call)
+            this.ssoSilentMeasurement?.add({
+                isPlatformBrokerRequest: true,
+            });
             result = this.acquireTokenNative(
                 validRequest,
                 ApiId.ssoSilent

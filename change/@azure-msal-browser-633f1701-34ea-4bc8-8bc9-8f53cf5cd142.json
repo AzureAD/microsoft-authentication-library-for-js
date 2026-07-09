@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Align platform broker telemetry signals to the signal matrix: stop emitting isPlatformBrokerRequest in interactive flows (acquireTokenPopup, ssoSilent, handleRedirectPromise) so it is set only for the direct-broker silent flow, and set isNativeBroker plus brokerErrorName/brokerErrorCode on terminal (no-fallback) native broker errors while leaving isNativeBroker unset when the error falls back to a web flow [#8699](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8699)",
+  "comment": "Align platform broker telemetry signals to the signal matrix: emit isPlatformBrokerRequest whenever a request goes directly to the broker (including popup/redirect/ssoSilent served from a cached nativeAccountId, which skip the /authorize call), set isNativeBroker on broker-delivered results and terminal (no-fallback) broker errors while leaving it unset when the flow falls back to a web flow, and always record brokerErrorName/brokerErrorCode on broker failures [#8699](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8699)",
   "packageName": "@azure/msal-browser",
   "email": "lalima.sharda@gmail.com",
   "dependentChangeType": "patch"
