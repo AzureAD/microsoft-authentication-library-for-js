@@ -40,21 +40,6 @@ export const JsonWebTokenAlgorithms = {
     ES256: "ES256",
 } as const;
 /**
- * Shared JWK literal for MSAL package internals that validate or construct
- * Elliptic Curve public JWKs.
- */
-export const JSON_WEB_KEY_TYPE_EC = "EC";
-/**
- * Shared JWK literal for MSAL package internals that validate or construct RSA
- * public JWKs.
- */
-export const JSON_WEB_KEY_TYPE_RSA = "RSA";
-/**
- * Shared JWK literal for MSAL package internals that validate or construct
- * P-256 public JWKs.
- */
-export const JSON_WEB_KEY_CURVE_P256 = "P-256";
-/**
  * Interface for crypto functions used by library
  */
 export interface ICrypto {

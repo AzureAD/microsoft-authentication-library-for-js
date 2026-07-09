@@ -2047,15 +2047,6 @@ export class JoseHeader {
     typ?: JsonWebTokenTypes;
 }
 
-// @public
-export const JSON_WEB_KEY_CURVE_P256 = "P-256";
-
-// @public
-export const JSON_WEB_KEY_TYPE_EC = "EC";
-
-// @public
-export const JSON_WEB_KEY_TYPE_RSA = "RSA";
-
 // @public (undocumented)
 const JsonWebTokenTypes: {
     readonly Jwt: "JWT";

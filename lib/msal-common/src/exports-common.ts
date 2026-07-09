@@ -103,9 +103,6 @@ export {
     ICrypto,
     PkceCodes,
     DEFAULT_CRYPTO_IMPLEMENTATION,
-    JSON_WEB_KEY_CURVE_P256,
-    JSON_WEB_KEY_TYPE_EC,
-    JSON_WEB_KEY_TYPE_RSA,
     SignedHttpRequestParameters,
 } from "./crypto/ICrypto.js";
 

@@ -7,11 +7,6 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
-import {
-    JSON_WEB_KEY_CURVE_P256,
-    JSON_WEB_KEY_TYPE_EC,
-    JSON_WEB_KEY_TYPE_RSA,
-} from "@azure/msal-common/browser";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants.js";
 import { base64Encode, urlEncodeArr } from "../encode/Base64Encode.js";
 import { base64Decode, base64DecToArr } from "../encode/Base64Decode.js";
@@ -30,6 +25,10 @@ const AES_GCM = "AES-GCM";
 const HKDF = "HKDF";
 // SHA-256 hashing algorithm
 const S256_HASH_ALG = "SHA-256";
+// JWK values used by browser-internal WebCrypto helpers.
+const JSON_WEB_KEY_CURVE_P256 = "P-256";
+const JSON_WEB_KEY_TYPE_EC = "EC";
+const JSON_WEB_KEY_TYPE_RSA = "RSA";
 // MOD length for PoP tokens
 const MODULUS_LENGTH = 2048;
 // Public Exponent
