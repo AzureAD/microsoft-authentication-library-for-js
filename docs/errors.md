@@ -294,6 +294,10 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Issuer returned from OpenID configuration endpoint does not match with the authority configured by the application.
 
+### `invalid_response_mode`
+
+-   The `responseMode` provided is not supported. For the msal-node interactive loopback flow only `"query"` and `"form_post"` are supported. `"fragment"` cannot be used because URL fragments are never sent to the HTTP server, which would cause the flow to hang until it times out.
+
 ## Interaction required errors
 
 ### `no_tokens_found`

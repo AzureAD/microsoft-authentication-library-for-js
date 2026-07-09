@@ -1110,7 +1110,8 @@ declare namespace ClientConfigurationErrorCodes {
         authorityMismatch,
         invalidRequestMethodForEAR,
         invalidPlatformBrokerConfiguration,
-        issuerValidationFailed
+        issuerValidationFailed,
+        invalidResponseMode
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1918,6 +1919,9 @@ const invalidPlatformBrokerConfiguration = "invalid_platform_broker_configuratio
 
 // @public (undocumented)
 const invalidRequestMethodForEAR = "invalid_request_method_for_EAR";
+
+// @public (undocumented)
+const invalidResponseMode = "invalid_response_mode";
 
 // @public (undocumented)
 const invalidState = "invalid_state";
