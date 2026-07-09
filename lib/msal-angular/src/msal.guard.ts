@@ -92,14 +92,17 @@ export class MsalGuard {
     if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
       this.authService
         .getLogger()
-        .verbose("Guard - logging in by popup", authRequest.correlationId);
+        .verbose(
+          "Guard - logging in by popup",
+          authRequest.correlationId ?? ""
+        );
       return this.authService.loginPopup(authRequest as PopupRequest).pipe(
         map((response: AuthenticationResult) => {
           this.authService
             .getLogger()
             .verbose(
               "Guard - login by popup successful, can activate, setting active account",
-              authRequest.correlationId
+              authRequest.correlationId ?? ""
             );
           this.authService.instance.setActiveAccount(response.account);
           return true;
@@ -109,7 +112,10 @@ export class MsalGuard {
 
     this.authService
       .getLogger()
-      .verbose("Guard - logging in by redirect", authRequest.correlationId);
+      .verbose(
+        "Guard - logging in by redirect",
+        authRequest.correlationId ?? ""
+      );
     const redirectStartPage = this.getDestinationUrl(state.url);
     return this.authService
       .loginRedirect({

@@ -32,45 +32,40 @@
     "format:fix": "prettier --ignore-path .gitignore --write src"
   },
   "typings": "./dist/azure-msal-angular.d.ts",
-  "beachball": {
-    "disallowedChangeTypes": [
-      "major"
-    ]
-  },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^19.2.25",
-    "@angular/animations": "^19.2.25",
-    "@angular/cli": "^19.2.25",
-    "@angular/common": "^19.2.25",
-    "@angular/compiler": "^19.2.25",
-    "@angular/compiler-cli": "^19.2.25",
-    "@angular/core": "^19.2.25",
-    "@angular/forms": "^19.2.25",
-    "@angular/platform-browser": "^19.2.25",
-    "@angular/platform-browser-dynamic": "^19.2.25",
-    "@angular/router": "^19.2.25",
+    "@angular-devkit/build-angular": "^22.0.0",
+    "@angular/animations": "^22.0.0",
+    "@angular/cli": "^22.0.0",
+    "@angular/common": "^22.0.0",
+    "@angular/compiler": "^22.0.0",
+    "@angular/compiler-cli": "^22.0.0",
+    "@angular/core": "^22.0.0",
+    "@angular/forms": "^22.0.0",
+    "@angular/platform-browser": "^22.0.0",
+    "@angular/platform-browser-dynamic": "^22.0.0",
+    "@angular/router": "^22.0.0",
     "@azure/msal-browser": "^5.16.0",
-    "@types/jasmine": "~3.6.0",
+    "@types/jasmine": "~5.1.0",
     "@types/jasminewd2": "~2.0.3",
-    "@types/node": "^12.11.1",
+    "@types/node": "^22.0.0",
     "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
-    "jasmine-core": "~4.0.0",
+    "jasmine-core": "~5.1.0",
     "jasmine-spec-reporter": "~5.0.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage-istanbul-reporter": "~3.0.2",
-    "karma-jasmine": "~5.0.0",
+    "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "^2.0.0",
-    "ng-packagr": "^19.2.0",
+    "ng-packagr": "^22.0.0",
     "prettier": "2.8.7",
     "rxjs": "^7.8.2",
-    "ts-node": "~8.3.0",
+    "ts-node": "^10.9.1",
     "tslib": "^2.0.0",
-    "typescript": "~5.8.2",
+    "typescript": "~6.0.0",
     "zone.js": "~0.15.0"
   },
   "peerDependencies": {
     "@azure/msal-browser": "^5.16.0",
-    "rxjs": "^7.0.0"
+    "rxjs": "^7.4.0"
   }
 }

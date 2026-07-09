@@ -84,7 +84,8 @@
     "dist",
     "types",
     "lib",
-    "src"
+    "src",
+    "scripts"
   ],
   "scripts": {
     "clean": "shx rm -rf dist types lib",
