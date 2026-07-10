@@ -66,10 +66,15 @@ export class OnBehalfOfClient extends BaseClient {
         /*
          * Client-originated claims participate in the cache key (unlike server-issued `claims`,
          * which bypasses the cache). Identical claims values are served from cache; different
-         * values produce separate cache entries.
+         * values produce separate cache entries. Gate on `!isEmptyObj` (not just `trim()`) so an
+         * empty/whitespace or empty-object (`{}`) value - which contributes nothing to the request
+         * body - does not fragment the cache from an omitted `clientClaims`.
          */
         let additionalCacheKeyComponents: Record<string, string> | undefined;
-        if (request.clientClaims?.trim()) {
+        if (
+            request.clientClaims &&
+            !StringUtils.isEmptyObj(request.clientClaims)
+        ) {
             additionalCacheKeyComponents = {
                 client_claims: request.clientClaims,
             };

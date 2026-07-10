@@ -217,6 +217,23 @@ describe("OnBehalfOfClient clientClaims tests", () => {
             expect(result2.fromCache).toBe(true);
         });
 
+        it("treats an empty-object clientClaims (`{}`) as absent for caching", async () => {
+            const client = new OnBehalfOfClient(config);
+
+            const result1 = (await client.acquireToken(
+                baseRequest()
+            )) as AuthenticationResult;
+            expect(result1.fromCache).toBe(false);
+
+            // `{}` contributes nothing to the request body, so it must reuse the
+            // non-clientClaims cache entry rather than producing a separate one.
+            const result2 = (await client.acquireToken({
+                ...baseRequest(),
+                clientClaims: "{}",
+            })) as AuthenticationResult;
+            expect(result2.fromCache).toBe(true);
+        });
+
         it("does not bypass the cache (unlike server claims) on repeated clientClaims calls", async () => {
             const client = new OnBehalfOfClient(config);
 

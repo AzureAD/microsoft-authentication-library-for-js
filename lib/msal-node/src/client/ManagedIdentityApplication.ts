@@ -37,22 +37,9 @@ import {
 } from "../utils/Constants.js";
 import { ManagedIdentityId } from "../config/ManagedIdentityId.js";
 import { HashUtils } from "../crypto/HashUtils.js";
-import {
-    ManagedIdentityErrorCodes,
-    createManagedIdentityError,
-} from "../error/ManagedIdentityError.js";
 
 const SOURCES_THAT_SUPPORT_TOKEN_REVOCATION: Array<ManagedIdentitySourceNames> =
     [ManagedIdentitySourceNames.SERVICE_FABRIC];
-
-/*
- * Managed Identity sources that are allowed to forward client-originated claims. Only the
- * IMDS-based sources have a confirmed contract for the `claims` parameter.
- */
-const SOURCES_THAT_SUPPORT_CLIENT_CLAIMS: Array<ManagedIdentitySourceNames> = [
-    ManagedIdentitySourceNames.IMDS,
-    ManagedIdentitySourceNames.DEFAULT_TO_IMDS,
-];
 
 /**
  * Class to initialize a managed identity and identify the service
@@ -153,15 +140,6 @@ export class ManagedIdentityApplication {
             );
         }
 
-        /*
-         * Treat empty/whitespace-only clientClaims as absent (no validation, no cache-key
-         * component, no forwarding). A meaningful value is preserved verbatim.
-         */
-        const clientClaims: string | undefined =
-            managedIdentityRequestParams.clientClaims?.trim()
-                ? managedIdentityRequestParams.clientClaims
-                : undefined;
-
         const managedIdentityRequest: ManagedIdentityRequest = {
             forceRefresh: managedIdentityRequestParams.forceRefresh,
             resource: managedIdentityRequestParams.resource.replace(
@@ -174,33 +152,8 @@ export class ManagedIdentityApplication {
             authority: this.fakeAuthority.canonicalAuthority,
             correlationId: this.cryptoProvider.createNewGuid(),
             claims: managedIdentityRequestParams.claims,
-            clientClaims: clientClaims,
             clientCapabilities: this.config.clientCapabilities,
         };
-
-        /*
-         * Client-originated claims are only supported for IMDS-based sources. Validate the
-         * source (and that the value is a JSON object) up front, before any cache read/write
-         * or network call, so an unsupported source fails fast instead of returning a cached
-         * token or reaching the wire. The claim keys themselves are not restricted by MSAL -
-         * IMDS decides what it accepts.
-         */
-        if (managedIdentityRequest.clientClaims) {
-            this.validateClientClaims(
-                managedIdentityRequest.clientClaims,
-                managedIdentityRequest.correlationId
-            );
-        }
-
-        /*
-         * Client-originated claims participate in the cache key (unlike server-issued `claims`,
-         * which bypasses the cache). Identical claims values are served from cache; different
-         * values produce separate cache entries.
-         */
-        const additionalCacheKeyComponents: Record<string, string> | undefined =
-            managedIdentityRequest.clientClaims
-                ? { client_claims: managedIdentityRequest.clientClaims }
-                : undefined;
 
         if (managedIdentityRequest.forceRefresh) {
             return this.acquireTokenFromManagedIdentity(
@@ -216,9 +169,7 @@ export class ManagedIdentityApplication {
                 this.config,
                 this.cryptoProvider,
                 this.fakeAuthority,
-                ManagedIdentityApplication.nodeStorage as NodeStorage,
-                undefined,
-                additionalCacheKeyComponents
+                ManagedIdentityApplication.nodeStorage as NodeStorage
             );
 
         /*
@@ -315,53 +266,5 @@ export class ManagedIdentityApplication {
             ManagedIdentityClient.sourceName ||
             this.managedIdentityClient.getManagedIdentitySource()
         );
-    }
-
-    /**
-     * Validates client-originated claims for the Managed Identity flow.
-     *
-     * Client claims are only supported for IMDS-based managed identity sources. The claim
-     * keys themselves are not restricted by MSAL - the JSON is forwarded to IMDS as-is, and
-     * IMDS decides which keys it accepts.
-     *
-     * @param clientClaims - The raw client claims JSON string supplied on the request.
-     * @param correlationId - Correlation id used when constructing errors.
-     * @throws {ManagedIdentityError} When the source is not IMDS-based.
-     * @throws {ClientConfigurationError} When the claims string is not a valid JSON object.
-     */
-    private validateClientClaims(
-        clientClaims: string,
-        correlationId: string
-    ): void {
-        const sourceName: ManagedIdentitySourceNames =
-            this.managedIdentityClient.getManagedIdentitySource();
-
-        if (!SOURCES_THAT_SUPPORT_CLIENT_CLAIMS.includes(sourceName)) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.clientClaimsUnsupportedSource,
-                correlationId
-            );
-        }
-
-        let parsedClaims: Record<string, unknown>;
-        try {
-            parsedClaims = JSON.parse(clientClaims);
-        } catch (e) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaims,
-                correlationId
-            );
-        }
-
-        if (
-            typeof parsedClaims !== "object" ||
-            parsedClaims === null ||
-            Array.isArray(parsedClaims)
-        ) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaims,
-                correlationId
-            );
-        }
     }
 }

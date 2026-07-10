@@ -180,6 +180,32 @@ describe("ClientCredentialClient clientClaims tests", () => {
             expect(cachedToken!.additionalCacheKeyComponents).toBeUndefined();
         });
 
+        it("treats an empty-object clientClaims (`{}`) as absent (no additionalCacheKeyComponents)", async () => {
+            const client = new ClientCredentialClient(config);
+
+            const request: CommonClientCredentialRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                clientClaims: "{}",
+            };
+
+            await client.acquireToken(request);
+
+            const tokenKeys = config.storageInterface!.getTokenKeys();
+            const accessTokenKeys = tokenKeys.accessToken;
+            expect(accessTokenKeys.length).toBeGreaterThan(0);
+            const cachedToken =
+                config.storageInterface!.getAccessTokenCredential(
+                    accessTokenKeys[0],
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            expect(cachedToken).not.toBeNull();
+            // `{}` contributes nothing to the request body, so it must not fragment
+            // the cache from an omitted clientClaims.
+            expect(cachedToken!.additionalCacheKeyComponents).toBeUndefined();
+        });
+
         it("returns from network (not cache) on the first call", async () => {
             const client = new ClientCredentialClient(config);
 

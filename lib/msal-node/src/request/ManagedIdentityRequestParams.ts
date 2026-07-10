@@ -13,13 +13,6 @@ export type ManagedIdentityRequestParams = {
      */
     claims?: string;
     /**
-     * Client-originated claims to forward to the managed identity endpoint, sent as the `claims` query parameter.
-     * Unlike `claims` (a server-issued challenge, which bypasses the token cache), client claims are cached and the
-     * cache entry is keyed on the claims value: identical values are served from cache, while different values produce
-     * separate cache entries. Only supported for the IMDS source.
-     */
-    clientClaims?: string;
-    /**
      * Forces managed identity requests to skip the cache and make network calls if true
      */
     forceRefresh?: boolean;
