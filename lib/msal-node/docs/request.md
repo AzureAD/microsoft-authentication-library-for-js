@@ -321,7 +321,7 @@ All confidential client flows — `acquireTokenByClientCredential`, `acquireToke
 
 Unlike `claims` (a server-issued challenge, which **bypasses** the token cache), `clientClaims` does **not** bypass the cache. Tokens are cached and the cache entry is **keyed on the `clientClaims` value** (using the same extended cache-key hash as `fmiPath`): identical values are served from cache, while different values produce separate cache entries. Because the entry is keyed on the value, send the **same `clientClaims` value on every request** for which you want the cached token to be reused — a different value (or omitting it) produces a separate cache entry and a new network call. Use stable, non-dynamic values to avoid unbounded cache growth. Empty, whitespace-only, or empty-object (`{}`) values are ignored.
 
-> Note: `acquireTokenByUserFederatedIdentityCredential` always calls the network, so `clientClaims` is forwarded on every request but is not cached by that method.
+> Note: `acquireTokenByUserFederatedIdentityCredential` always calls the network, so `clientClaims` is forwarded on every request and does not participate in that flow's cache key (tokens are still cached, just not partitioned by `clientClaims`).
 
 ```javascript
 const clientCredentialRequest = {

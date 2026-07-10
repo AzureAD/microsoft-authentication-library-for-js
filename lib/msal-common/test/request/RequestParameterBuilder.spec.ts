@@ -810,6 +810,26 @@ describe("RequestParameterBuilder unit tests", () => {
                 );
             }
         );
+
+        it("returns a single-sided value verbatim without validating it (no parse/throw)", () => {
+            // Only one side present -> passthrough. mergeClaims does not parse or validate it;
+            // downstream callers gate on StringUtils.isEmptyObj (which treats invalid JSON as
+            // empty), so an invalid single-sided value is dropped rather than sent - consistent
+            // with the existing `claims` convention in msal-js.
+            const invalid = "not-json";
+            expect(() =>
+                RequestParameterBuilder.mergeClaims(invalid, undefined)
+            ).not.toThrow();
+            expect(
+                RequestParameterBuilder.mergeClaims(invalid, undefined)
+            ).toBe(invalid);
+            expect(() =>
+                RequestParameterBuilder.mergeClaims(undefined, invalid)
+            ).not.toThrow();
+            expect(
+                RequestParameterBuilder.mergeClaims(undefined, invalid)
+            ).toBe(invalid);
+        });
     });
 
     describe("addExtraParameters tests", () => {

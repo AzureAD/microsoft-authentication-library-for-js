@@ -557,12 +557,16 @@ function deepMergeClaims(
 }
 
 /**
- * Merges two claims JSON strings into one. If either side is empty/whitespace/undefined the
- * other is returned verbatim (and `undefined` is returned when both are empty). When both are
- * present they are parsed and recursively deep-merged, with values from `claimsToMergeIn`
+ * Merges two claims JSON strings into one. If only one side is non-empty it is returned
+ * verbatim (a single-sided value is a passthrough and is NOT parsed or validated here), and
+ * `undefined` is returned when both are empty/whitespace/undefined. Only when both sides are
+ * present are they parsed and recursively deep-merged, with values from `claimsToMergeIn`
  * taking precedence on conflicts (nested objects are merged key-by-key; arrays and scalar values
- * are replaced). Throws a ClientConfigurationError (error code `invalid_claims`)
- * if either side is present but is not a valid JSON object.
+ * are replaced). A ClientConfigurationError (error code `invalid_claims`) is therefore thrown only
+ * on the both-sides merge path, when a side being merged is not a valid JSON object. Downstream
+ * callers gate the result on `StringUtils.isEmptyObj`, which treats invalid JSON as empty, so an
+ * invalid single-sided value is dropped rather than sent — consistent with the existing `claims`
+ * convention in msal-js.
  *
  * Unlike `claims` (a server-issued challenge that bypasses the cache), this is used to combine a
  * server-issued challenge with client-originated claims so both are sent on the wire.
