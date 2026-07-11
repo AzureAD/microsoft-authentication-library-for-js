@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Add invalid_response_mode ClientConfigurationError code [#8694](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8694)",
-    "packageName": "@azure/msal-common",
-    "email": "joarroyo@microsoft.com",
-    "dependentChangeType": "patch"
-}
