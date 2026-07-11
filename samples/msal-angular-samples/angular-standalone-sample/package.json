@@ -13,15 +13,15 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^21.2.14",
-    "@angular/common": "^21.2.14",
-    "@angular/compiler": "^21.2.14",
-    "@angular/core": "^21.2.14",
-    "@angular/forms": "^21.2.14",
-    "@angular/material": "^21.2.14",
-    "@angular/platform-browser": "^21.2.14",
-    "@angular/platform-browser-dynamic": "^21.2.14",
-    "@angular/router": "^21.2.14",
+    "@angular/animations": "^22.0.0",
+    "@angular/common": "^22.0.0",
+    "@angular/compiler": "^22.0.0",
+    "@angular/core": "^22.0.0",
+    "@angular/forms": "^22.0.0",
+    "@angular/material": "^22.0.0",
+    "@angular/platform-browser": "^22.0.0",
+    "@angular/platform-browser-dynamic": "^22.0.0",
+    "@angular/router": "^22.0.0",
     "@azure/msal-angular": "^5.0.0",
     "@azure/msal-browser": "^5.1.0",
     "rxjs": "~7.8.2",
@@ -29,9 +29,9 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular/build": "^21.2.14",
-    "@angular/cli": "^21.2.14",
-    "@angular/compiler-cli": "^21.2.14",
+    "@angular/build": "^22.0.0",
+    "@angular/cli": "^22.0.0",
+    "@angular/compiler-cli": "^22.0.0",
     "@types/jasmine": "~5.1.0",
     "@types/jest": "^29.5.12",
     "e2e-test-utils": "file:../../e2eTestUtils",
@@ -44,6 +44,6 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "ts-jest": "^29.4.11",
-    "typescript": "~5.9.3"
+    "typescript": "~6.0.0"
   }
 }

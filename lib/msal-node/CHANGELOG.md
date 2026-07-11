@@ -1,8 +1,25 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 23 Jun 2026 22:19:30 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 07 Jul 2026 22:16:01 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.4.0
+
+Tue, 07 Jul 2026 22:16:01 GMT
+
+### Minor changes
+
+- Add form_post response mode support, preferredPort option, and deprecate custom loopbackClient [#8694](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8694) (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v16.11.1
+
+## 5.3.1
+
+Tue, 30 Jun 2026 21:04:20 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.11.0
 
 ## 5.3.0
 

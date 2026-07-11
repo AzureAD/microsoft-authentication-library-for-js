@@ -2,6 +2,44 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 07 Jul 2026 22:16:01 GMT",
+      "version": "16.11.1",
+      "tag": "@azure/msal-common_v16.11.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "aa48c36402b908a4a7ef36a1b254d73fc66e4b3f",
+            "comment": "Add invalid_response_mode ClientConfigurationError code [#8694](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8694)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 30 Jun 2026 21:04:20 GMT",
+      "version": "16.11.0",
+      "tag": "@azure/msal-common_v16.11.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "8bb8acbc03c6bf968b8577e7d9e8b0a9b20ca65f",
+            "comment": "Add addGlobalFields method to PerformanceClient [#8688](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8688)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "8bb8acbc03c6bf968b8577e7d9e8b0a9b20ca65f",
+            "comment": "Include resource in the silent request thumbprint so concurrent MCP token requests for different resources are not deduplicated [#8680](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8680)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 23 Jun 2026 22:19:29 GMT",
       "version": "16.10.0",
       "tag": "@azure/msal-common_v16.10.0",

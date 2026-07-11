@@ -267,6 +267,7 @@ export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "sc
     errorTemplate?: string;
     windowHandle?: Buffer;
     loopbackClient?: ILoopbackClient;
+    preferredPort?: number;
 };
 
 declare namespace internals {
@@ -574,6 +575,6 @@ export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest
 export { ValidCacheType }
 
 // @public (undocumented)
-export const version = "5.3.0";
+export const version = "5.4.0";
 
 ```

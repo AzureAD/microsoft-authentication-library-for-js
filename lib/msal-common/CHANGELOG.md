@@ -1,8 +1,28 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 23 Jun 2026 22:19:29 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 07 Jul 2026 22:16:01 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.11.1
+
+Tue, 07 Jul 2026 22:16:01 GMT
+
+### Patches
+
+- Add invalid_response_mode ClientConfigurationError code [#8694](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8694) (joarroyo@microsoft.com)
+
+## 16.11.0
+
+Tue, 30 Jun 2026 21:04:20 GMT
+
+### Minor changes
+
+- Add addGlobalFields method to PerformanceClient [#8688](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8688) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Include resource in the silent request thumbprint so concurrent MCP token requests for different resources are not deduplicated [#8680](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8680) (joarroyo@microsoft.com)
 
 ## 16.10.0
 

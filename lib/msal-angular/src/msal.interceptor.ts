@@ -31,7 +31,7 @@ import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
-  private _document?: Document;
+  private _document: Document;
 
   constructor(
     @Inject(MSAL_INTERCEPTOR_CONFIG)
@@ -39,10 +39,9 @@ export class MsalInterceptor implements HttpInterceptor {
     private authService: MsalService,
     private location: Location,
     private msalBroadcastService: MsalBroadcastService,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-    @Inject(DOCUMENT) document?: any
+    @Inject(DOCUMENT) document: Document
   ) {
-    this._document = document as Document;
+    this._document = document;
 
     if (this.msalInterceptorConfig.strictMatching === undefined) {
       this.authService
@@ -83,11 +82,12 @@ export class MsalInterceptor implements HttpInterceptor {
 
     // Sets account as active account or first account
     let account: AccountInfo;
-    if (!!this.authService.instance.getActiveAccount()) {
+    const activeAccount = this.authService.instance.getActiveAccount();
+    if (activeAccount) {
       this.authService
         .getLogger()
         .verbose("Interceptor - active account selected", "");
-      account = this.authService.instance.getActiveAccount();
+      account = activeAccount;
     } else {
       this.authService
         .getLogger()
@@ -149,7 +149,7 @@ export class MsalInterceptor implements HttpInterceptor {
             .getLogger()
             .error(
               "Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve.",
-              authRequest.correlationId
+              authRequest.correlationId ?? ""
             );
           return this.msalBroadcastService.inProgress$.pipe(
             take(1),
@@ -175,7 +175,7 @@ export class MsalInterceptor implements HttpInterceptor {
               .getLogger()
               .error(
                 "Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve.",
-                authRequest.correlationId
+                authRequest.correlationId ?? ""
               );
             return this.msalBroadcastService.inProgress$.pipe(
               filter(
@@ -207,7 +207,7 @@ export class MsalInterceptor implements HttpInterceptor {
         .getLogger()
         .verbose(
           "Interceptor - error acquiring token silently, acquiring by popup",
-          authRequest.correlationId
+          authRequest.correlationId ?? ""
         );
       return this.authService.acquireTokenPopup({ ...authRequest, scopes });
     }
@@ -215,7 +215,7 @@ export class MsalInterceptor implements HttpInterceptor {
       .getLogger()
       .verbose(
         "Interceptor - error acquiring token silently, acquiring by redirect",
-        authRequest.correlationId
+        authRequest.correlationId ?? ""
       );
     const redirectStartPage = window.location.href;
     this.authService.acquireTokenRedirect({
@@ -304,7 +304,13 @@ export class MsalInterceptor implements HttpInterceptor {
     endpointComponents: URL
   ): boolean {
     // URL properties from https://developer.mozilla.org/en-US/docs/Web/API/URL
-    const urlProperties = ["protocol", "host", "pathname", "search", "hash"];
+    const urlProperties = [
+      "protocol",
+      "host",
+      "pathname",
+      "search",
+      "hash",
+    ] as const;
 
     // Maps URL property names to the component identifiers used by matchPatternStrict.
     const componentMap: Record<
@@ -377,16 +383,20 @@ export class MsalInterceptor implements HttpInterceptor {
     endpointArray: string[],
     httpMethod: string
   ): Array<string> | null {
-    const allMatchedScopes = [];
+    const allMatchedScopes: Array<string[] | null> = [];
 
     // Check each matched endpoint for matching HttpMethod and scopes
     endpointArray.forEach((matchedEndpoint) => {
-      const scopesForEndpoint = [];
+      const scopesForEndpoint: string[] = [];
       const methodAndScopesArray = protectedResourceMap.get(matchedEndpoint);
 
       // Return if resource is unprotected
       if (methodAndScopesArray === null) {
         allMatchedScopes.push(null);
+        return;
+      }
+
+      if (methodAndScopesArray === undefined) {
         return;
       }
 
