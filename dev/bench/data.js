@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1783739951797,
+  "lastUpdate": 1783792614026,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22289,6 +22289,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.79%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1be16ad9be8180ed763d98075813f31c30af4407",
+          "message": "Bump nightly-build pipeline to Node 22 for Angular 22 (#8703)",
+          "timestamp": "2026-07-11T13:48:39-04:00",
+          "tree_id": "b932bba6572561253035957d06ee4e62a81775e2",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1be16ad9be8180ed763d98075813f31c30af4407"
+        },
+        "date": 1783792610530,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 378658,
+            "range": "±0.83%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 366321,
+            "range": "±0.92%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
           }
         ]
       }
