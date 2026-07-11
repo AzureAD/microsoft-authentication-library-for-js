@@ -22,7 +22,7 @@ jobs:
           - task: NodeTool@0
             displayName: "Install Node.js"
             inputs:
-                versionSpec: "20.x"
+                versionSpec: "22.x"
 
           - task: Npm@1
             displayName: "Install Dependencies"
