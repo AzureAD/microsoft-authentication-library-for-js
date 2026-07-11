@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781565839816,
+  "lastUpdate": 1783739951797,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22251,6 +22251,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.79%",
             "unit": "ops/sec",
             "extra": "215 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "152663010+msal-js-release-automation[bot]@users.noreply.github.com",
+            "name": "msal-js-release-automation[bot]",
+            "username": "msal-js-release-automation[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "48f4b3b0a6c26585afb7bb79437f7bc06f0c8e79",
+          "message": "Post-release PR (#8701)\n\nThis PR contains the changelogs and version bumps for the MSAL.js 3P\nreleases.\n\n---------\n\nCo-authored-by: MSAL.js Release Automation <msaljsbuilds@microsoft.com>\nCo-authored-by: Sameera Gajjarapu <sameera.gajjarapu@microsoft.com>\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-07-10T20:10:34-07:00",
+          "tree_id": "c5d921c392f694239ef3b7e63c9fe1b4ad57ac8d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/48f4b3b0a6c26585afb7bb79437f7bc06f0c8e79"
+        },
+        "date": 1783739947800,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 383684,
+            "range": "±0.62%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 372160,
+            "range": "±0.79%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
