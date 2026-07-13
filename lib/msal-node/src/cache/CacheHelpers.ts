@@ -36,9 +36,9 @@ function escapeComponent(value: string): string {
  * Computes a combined hash from additional cache key components.
  * Keys are sorted for determinism, then each key/value pair is escaped and joined
  * with delimiters ("key:value" pairs separated by "|") before hashing. The
- * delimiters and escaping guarantee an unambiguous serialization so that
- * semantically different component sets (e.g. { "ab": "c" } vs { "a": "bc" })
- * cannot collide into the same hash. The result is SHA-256 → Base64URL (no padding).
+ * delimiters and escaping guarantee an unambiguous serialization so that boundary
+ * ambiguity between component sets (e.g. { "ab": "c" } vs { "a": "bc" }) cannot
+ * produce identical hash inputs. The result is SHA-256 → Base64URL (no padding).
  * @param components - The additional cache key components to hash.
  * @returns The Base64URL-encoded SHA-256 hash of the serialized components.
  */
