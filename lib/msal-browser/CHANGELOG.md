@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 30 Jun 2026 21:04:19 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 07 Jul 2026 22:16:01 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.17.0
+
+Tue, 07 Jul 2026 22:16:01 GMT
+
+### Minor changes
+
+- Add auth.popupRelayUri: a double-popup option for apps that customize COOP/storage-partitioning, relaying acquireTokenPopup/logoutPopup through a top-level same-origin relay page (runPopupRelay) so tokens can be acquired from an untrusted cross-origin iframe. [#8687](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8687) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.11.1
+
+### Patches
+
+- Fix decode logs script for the standalone mode [#8697](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8697) (kshabelko@microsoft.com)
 
 ## 5.16.0
 
