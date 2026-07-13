@@ -572,5 +572,18 @@ describe("ClientCredentialClient FMI tests", () => {
                 generateCredentialKey(entityB)
             );
         });
+
+        it("values containing the escape character are escaped and do not collide", () => {
+            const entityA = makeEntity({
+                additionalCacheKeyComponents: { key: "a\\\\:b\\|c" },
+            });
+            const entityB = makeEntity({
+                additionalCacheKeyComponents: { key: "a:b|c" },
+            });
+
+            expect(generateCredentialKey(entityA)).not.toBe(
+                generateCredentialKey(entityB)
+            );
+        });
     });
 });
