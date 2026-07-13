@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Add delimiters and escaping when hashing additionalCacheKeyComponents so semantically different component sets can no longer collide into the same credential cache key",
+    "comment": "Add delimiters and escaping when hashing additionalCacheKeyComponents so semantically different component sets can no longer collide into the same credential cache key [#8705](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8705)",
     "packageName": "@azure/msal-node",
     "email": "sameera.gajjarapu@microsoft.com",
     "dependentChangeType": "patch"
