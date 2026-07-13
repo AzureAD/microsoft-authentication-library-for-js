@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Upgrade MSAL Angular to Angular 22 [#8646](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8646)",
-  "packageName": "@azure/msal-angular",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
-}
