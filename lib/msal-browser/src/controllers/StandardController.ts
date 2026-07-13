@@ -601,8 +601,8 @@ export class StandardController implements IController {
                      * Instrument an event only if an error code is set. Otherwise, discard it when the redirect response
                      * is empty and the error code is missing.
                      */
-                    if (rootMeasurement.event.errorCode) {
-                        rootMeasurement.end({ success: false }, undefined);
+                    if (!!rootMeasurement.event.errorCode) {
+                        rootMeasurement.end({ success: false }, rootMeasurement.event.errorCode);
                     } else {
                         rootMeasurement.discard();
                     }
