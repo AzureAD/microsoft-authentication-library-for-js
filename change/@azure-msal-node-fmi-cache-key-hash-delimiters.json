@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add delimiters and escaping when hashing additionalCacheKeyComponents so semantically different component sets can no longer collide into the same credential cache key",
+    "packageName": "@azure/msal-node",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "patch"
+}

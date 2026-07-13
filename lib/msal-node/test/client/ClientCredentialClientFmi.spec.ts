@@ -528,5 +528,49 @@ describe("ClientCredentialClient FMI tests", () => {
             // But should end with the same hash (same components)
             expect(bearerKey).toMatch(/[a-z0-9_-]{43}$/);
         });
+
+        it("semantically different components with ambiguous boundaries do not collide (delimiters + escaping)", () => {
+            // Without delimiters, both of these serialize to the raw string
+            // "fmi_pathvalue" and would collide. Delimiters/escaping keep them distinct.
+            const entityA = makeEntity({
+                additionalCacheKeyComponents: { fmi_path: "value" },
+            });
+            const entityB = makeEntity({
+                additionalCacheKeyComponents: { fmi_pat: "hvalue" },
+            });
+
+            expect(generateCredentialKey(entityA)).not.toBe(
+                generateCredentialKey(entityB)
+            );
+        });
+
+        it("multi-component boundary ambiguity does not collide (delimiters + escaping)", () => {
+            // Without delimiters both serialize to "abcde" and collide.
+            const entityA = makeEntity({
+                additionalCacheKeyComponents: { a: "b", cd: "e" },
+            });
+            const entityB = makeEntity({
+                additionalCacheKeyComponents: { ab: "c", d: "e" },
+            });
+
+            expect(generateCredentialKey(entityA)).not.toBe(
+                generateCredentialKey(entityB)
+            );
+        });
+
+        it("values containing the delimiter characters are escaped and do not collide", () => {
+            // A value that contains the key/value and entry separators must not be
+            // able to impersonate a different component structure.
+            const entityA = makeEntity({
+                additionalCacheKeyComponents: { key: "a:b|c" },
+            });
+            const entityB = makeEntity({
+                additionalCacheKeyComponents: { key: "a", b: "c" },
+            });
+
+            expect(generateCredentialKey(entityA)).not.toBe(
+                generateCredentialKey(entityB)
+            );
+        });
     });
 });

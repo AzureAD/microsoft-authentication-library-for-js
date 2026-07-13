@@ -11,15 +11,51 @@ import {
 import { createHash } from "crypto";
 import { CACHE } from "../utils/Constants.js";
 
+const COMPONENT_KEY_VALUE_SEPARATOR = ":";
+const COMPONENT_ENTRY_SEPARATOR = "|";
+const COMPONENT_ESCAPE_CHAR = "\\";
+
+/**
+ * Escapes the delimiter and escape characters within a component key or value so
+ * that the serialized form is unambiguous. The escape character is escaped first
+ * to avoid double-processing already-escaped sequences.
+ * @param value - The raw component key or value to escape.
+ * @returns The escaped string, safe to concatenate with delimiters.
+ */
+function escapeComponent(value: string): string {
+    return value
+        .split(COMPONENT_ESCAPE_CHAR)
+        .join(COMPONENT_ESCAPE_CHAR + COMPONENT_ESCAPE_CHAR)
+        .split(COMPONENT_KEY_VALUE_SEPARATOR)
+        .join(COMPONENT_ESCAPE_CHAR + COMPONENT_KEY_VALUE_SEPARATOR)
+        .split(COMPONENT_ENTRY_SEPARATOR)
+        .join(COMPONENT_ESCAPE_CHAR + COMPONENT_ENTRY_SEPARATOR);
+}
+
 /**
  * Computes a combined hash from additional cache key components.
- * Matches the cross-SDK algorithm: sort keys → concatenate key+value → SHA-256 → Base64URL (no padding).
+ * Keys are sorted for determinism, then each key/value pair is escaped and joined
+ * with delimiters ("key:value" pairs separated by "|") before hashing. The
+ * delimiters and escaping guarantee an unambiguous serialization so that
+ * semantically different component sets (e.g. { "ab": "c" } vs { "a": "bc" })
+ * cannot collide into the same hash. The result is SHA-256 → Base64URL (no padding).
+ * @param components - The additional cache key components to hash.
+ * @returns The Base64URL-encoded SHA-256 hash of the serialized components.
  */
 function computeAdditionalCacheKeyHash(
     components: Record<string, string>
 ): string {
     const sortedKeys = Object.keys(components).sort();
-    const input = sortedKeys.map((k) => k + components[k]).join("");
+    const input = sortedKeys
+        .map(
+            (k) =>
+                `${escapeComponent(
+                    k
+                )}${COMPONENT_KEY_VALUE_SEPARATOR}${escapeComponent(
+                    components[k]
+                )}`
+        )
+        .join(COMPONENT_ENTRY_SEPARATOR);
     return createHash("sha256").update(input, "utf8").digest("base64url");
 }
 
