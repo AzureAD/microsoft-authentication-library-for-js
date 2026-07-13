@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "disallow major changes in MSAL angular",
+  "packageName": "@azure/msal-angular",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
