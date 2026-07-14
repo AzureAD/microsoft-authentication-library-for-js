@@ -29,6 +29,10 @@ const S256_HASH_ALG = "SHA-256";
 const JSON_WEB_KEY_CURVE_P256 = "P-256";
 const JSON_WEB_KEY_TYPE_EC = "EC";
 const JSON_WEB_KEY_TYPE_RSA = "RSA";
+const MISSING_JWK_KTY_SUBERROR = "missing_jwk_kty";
+const UNSUPPORTED_JWK_KTY_SUBERROR = "unsupported_jwk_kty";
+const MISSING_JWK_MEMBER_SUBERROR = "missing_jwk_member";
+const EMPTY_JWK_MEMBER_SUBERROR = "empty_jwk_member";
 // MOD length for PoP tokens
 const MODULUS_LENGTH = 2048;
 // Public Exponent
@@ -462,21 +466,38 @@ function getJwkThumbprintMembers(
     publicJwk: JsonWebKey
 ): Record<string, string> {
     const kty = publicJwk.kty;
-    const requiredMembers =
-        typeof kty === "string" ? JWK_THUMBPRINT_REQUIRED_MEMBERS[kty] : null;
+    if (typeof kty !== "string" || kty.length === 0) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.invalidPublicJwk,
+            "",
+            MISSING_JWK_KTY_SUBERROR
+        );
+    }
+
+    const requiredMembers = JWK_THUMBPRINT_REQUIRED_MEMBERS[kty];
     if (!requiredMembers) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.invalidPublicJwk,
-            ""
+            "",
+            UNSUPPORTED_JWK_KTY_SUBERROR
         );
     }
 
     return requiredMembers.reduce((thumbprintMembers, memberName) => {
         const memberValue = publicJwk[memberName as keyof JsonWebKey];
-        if (typeof memberValue !== "string" || memberValue.length === 0) {
+        if (typeof memberValue !== "string") {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.invalidPublicJwk,
-                ""
+                "",
+                MISSING_JWK_MEMBER_SUBERROR
+            );
+        }
+
+        if (memberValue.length === 0) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.invalidPublicJwk,
+                "",
+                EMPTY_JWK_MEMBER_SUBERROR
             );
         }
 

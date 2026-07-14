@@ -457,6 +457,20 @@ describe("CryptoOps.ts Unit Tests", () => {
                 })
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+                subError: "unsupported_jwk_kty",
+            });
+        });
+
+        it("computeJwkThumbprint rejects missing public JWK key types", async () => {
+            await expect(
+                BrowserCrypto.computeJwkThumbprint({
+                    crv: "P-256",
+                    x: "x-coordinate",
+                    y: "y-coordinate",
+                })
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+                subError: "missing_jwk_kty",
             });
         });
 
@@ -469,6 +483,7 @@ describe("CryptoOps.ts Unit Tests", () => {
                 })
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+                subError: "missing_jwk_member",
             });
 
             await expect(
@@ -480,6 +495,7 @@ describe("CryptoOps.ts Unit Tests", () => {
                 })
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+                subError: "empty_jwk_member",
             });
         });
 
