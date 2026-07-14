@@ -61,19 +61,13 @@ export type DpopJktGenerationParams = {
 };
 
 /**
- * Public JWK embedded in the DPoP proof header.
- * @internal
- */
-export type DpopPublicJwk = Record<string, unknown>;
-
-/**
  * RFC 9449 DPoP proof JWT header.
  * @internal
  */
 export type DpopProofHeader = {
     typ: typeof JsonWebTokenTypes.Dpop;
     alg: string;
-    jwk: DpopPublicJwk;
+    jwk: JsonWebKey;
 };
 
 /**
@@ -81,7 +75,6 @@ export type DpopProofHeader = {
  * @internal
  */
 export type DpopProofGenerationParams = {
-    publicJwk: DpopPublicJwk;
     keyId: string;
     keyContext: TokenBindingKeyContext;
 };
@@ -92,13 +85,13 @@ export const DPOP_JWT_HEADER_TYPE = JsonWebTokenTypes.Dpop;
 export const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
 
 function buildProofHeader(
-    params: DpopProofGenerationParams,
+    publicJwk: JsonWebKey,
     correlationId: string
 ): JoseHeader {
     return JoseHeader.getDpopHeader(
         {
             alg: DPOP_JWT_HEADER_ALGORITHM,
-            jwk: params.publicJwk,
+            jwk: publicJwk,
         },
         correlationId
     );
@@ -262,8 +255,14 @@ export class DpopProofGenerator {
         params: DpopProofGenerationParams,
         correlationId: string
     ): Promise<string> {
+        const publicJwk = await this.cryptoUtils.getTokenBindingPublicKeyJwk(
+            params.keyId,
+            correlationId,
+            params.keyContext
+        );
+
         return this.cryptoUtils.signTokenBindingJwt(
-            buildProofHeader(params, correlationId),
+            buildProofHeader(publicJwk, correlationId),
             claims,
             params.keyId,
             correlationId,

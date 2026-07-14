@@ -996,7 +996,6 @@ describe("CryptoOps.ts Unit Tests", () => {
             const proof = await dpopProofGenerator.generateTokenProof(
                 {
                     tokenEndpoint: TEST_URIS.TEST_AUTH_ENDPT,
-                    publicJwk: dpopPublicJwk,
                     keyId,
                     keyContext: DPOP_KEY_CONTEXT,
                 },

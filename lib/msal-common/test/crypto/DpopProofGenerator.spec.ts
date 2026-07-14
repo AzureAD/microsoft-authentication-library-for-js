@@ -38,6 +38,10 @@ describe("DpopProofGenerator Unit Tests", () => {
 
     beforeEach(() => {
         generator = new DpopProofGenerator(cryptoInterface);
+        jest.spyOn(
+            cryptoInterface,
+            "getTokenBindingPublicKeyJwk"
+        ).mockResolvedValue(publicJwk);
         jest.spyOn(cryptoInterface, "signTokenBindingJwt").mockImplementation(
             async (header, payload) => {
                 return `${cryptoInterface.base64UrlEncode(
@@ -568,7 +572,6 @@ describe("DpopProofGenerator Unit Tests", () => {
                     tokenEndpoint:
                         "https://login.microsoftonline.com/tenant/oauth2/v2.0/token?client_id=abc",
                     nonce: "server-nonce",
-                    publicJwk,
                     keyId: dpopKeyId,
                     keyContext: dpopKeyContext,
                 },
@@ -588,6 +591,13 @@ describe("DpopProofGenerator Unit Tests", () => {
                 iat: currTime,
                 nonce: "server-nonce",
             });
+            expect(
+                cryptoInterface.getTokenBindingPublicKeyJwk
+            ).toHaveBeenCalledWith(
+                dpopKeyId,
+                TEST_CONFIG.CORRELATION_ID,
+                dpopKeyContext
+            );
             expect(cryptoInterface.signTokenBindingJwt).toHaveBeenCalledWith(
                 decodedProof.header,
                 decodedProof.claims,
@@ -602,7 +612,6 @@ describe("DpopProofGenerator Unit Tests", () => {
             const proof = await generator.generateTokenProof({
                 tokenEndpoint:
                     "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
-                publicJwk,
                 keyId: dpopKeyId,
                 keyContext: dpopKeyContext,
             });
@@ -611,23 +620,17 @@ describe("DpopProofGenerator Unit Tests", () => {
             expect(decodedProof.header.alg).toBe(DPOP_JWT_HEADER_ALGORITHM);
         });
 
-        it("passes the public JWK through", async () => {
-            const rsaPublicJwk = {
-                kty: "RSA",
-                n: "test-modulus",
-                e: "AQAB",
-            };
+        it("uses the public JWK resolved from the token-binding key", async () => {
             const proof = await generator.generateTokenProof({
                 tokenEndpoint:
                     "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
-                publicJwk: rsaPublicJwk,
                 keyId: dpopKeyId,
                 keyContext: dpopKeyContext,
             });
             const decodedProof = decodeDpopProof(proof);
 
             expect(decodedProof.header.alg).toBe(DPOP_JWT_HEADER_ALGORITHM);
-            expect(decodedProof.header.jwk).toEqual(rsaPublicJwk);
+            expect(decodedProof.header.jwk).toEqual(publicJwk);
         });
     });
 
@@ -643,7 +646,6 @@ describe("DpopProofGenerator Unit Tests", () => {
                     htm: "get",
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                     nonce: "resource-nonce",
-                    publicJwk,
                     keyId: dpopKeyId,
                     keyContext: dpopKeyContext,
                 },
@@ -664,6 +666,13 @@ describe("DpopProofGenerator Unit Tests", () => {
                 iat: currTime,
                 nonce: "resource-nonce",
             });
+            expect(
+                cryptoInterface.getTokenBindingPublicKeyJwk
+            ).toHaveBeenCalledWith(
+                dpopKeyId,
+                TEST_CONFIG.CORRELATION_ID,
+                dpopKeyContext
+            );
             expect(cryptoInterface.signTokenBindingJwt).toHaveBeenCalledWith(
                 decodedProof.header,
                 decodedProof.claims,
