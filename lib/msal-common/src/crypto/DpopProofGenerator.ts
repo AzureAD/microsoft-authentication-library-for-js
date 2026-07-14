@@ -3,12 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, JsonWebTokenAlgorithms } from "./ICrypto.js";
+import {
+    ICrypto,
+    JsonWebTokenAlgorithms,
+    TokenBindingKeyContext,
+} from "./ICrypto.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError.js";
+import { JoseHeader } from "./JoseHeader.js";
+import { JsonWebTokenTypes } from "../utils/Constants.js";
 
 /**
  * RFC 9449 DPoP proof JWT payload claims.
@@ -45,6 +51,16 @@ export type DpopResourceProofParams = {
 };
 
 /**
+ * Parameters for provisioning a DPoP key and producing its JWK thumbprint
+ * (`dpop_jkt`).
+ * @internal
+ */
+export type DpopJktGenerationParams = {
+    clientId: string;
+    authority: string;
+};
+
+/**
  * Public JWK embedded in the DPoP proof header.
  * @internal
  */
@@ -55,19 +71,9 @@ export type DpopPublicJwk = Record<string, unknown>;
  * @internal
  */
 export type DpopProofHeader = {
-    typ: typeof DPOP_JWT_HEADER_TYPE;
+    typ: typeof JsonWebTokenTypes.Dpop;
     alg: string;
     jwk: DpopPublicJwk;
-};
-
-/**
- * Signs the ASCII DPoP JWT signing input with the declared JOSE alg
- * and returns a base64url-encoded signature.
- * @internal
- */
-export type DpopProofSigner = {
-    alg: string;
-    sign: (signingInput: string, correlationId: string) => Promise<string>;
 };
 
 /**
@@ -76,19 +82,26 @@ export type DpopProofSigner = {
  */
 export type DpopProofGenerationParams = {
     publicJwk: DpopPublicJwk;
-    signer: DpopProofSigner;
+    keyId: string;
+    keyContext: TokenBindingKeyContext;
 };
 
 const DPOP_HTM_REGEX = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
-export const DPOP_JWT_HEADER_TYPE = "dpop+jwt";
+const DPOP_TOKEN_BINDING_KEY_TYPE = "dpop";
+export const DPOP_JWT_HEADER_TYPE = JsonWebTokenTypes.Dpop;
 export const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
 
-function buildProofHeader(params: DpopProofGenerationParams): DpopProofHeader {
-    return {
-        typ: DPOP_JWT_HEADER_TYPE,
-        alg: params.signer.alg,
-        jwk: params.publicJwk,
-    };
+function buildProofHeader(
+    params: DpopProofGenerationParams,
+    correlationId: string
+): JoseHeader {
+    return JoseHeader.getDpopHeader(
+        {
+            alg: DPOP_JWT_HEADER_ALGORITHM,
+            jwk: params.publicJwk,
+        },
+        correlationId
+    );
 }
 
 function normalizeHtm(htm: string, correlationId: string): string {
@@ -152,6 +165,22 @@ export class DpopProofGenerator {
 
     constructor(cryptoUtils: ICrypto) {
         this.cryptoUtils = cryptoUtils;
+    }
+
+    /**
+     * Provisions or reuses the DPoP key for a client/authority pair and
+     * returns the RFC 7638 JWK thumbprint used as `dpop_jkt`.
+     */
+    async generateJkt(
+        params: DpopJktGenerationParams,
+        correlationId: string = ""
+    ): Promise<string> {
+        return this.cryptoUtils.provisionTokenBindingKey({
+            tokenBindingKeyType: DPOP_TOKEN_BINDING_KEY_TYPE,
+            tokenBindingKeyAlgorithm: DPOP_JWT_HEADER_ALGORITHM,
+            keyScope: this.getKeyScope(params),
+            correlationId,
+        });
     }
 
     /**
@@ -233,15 +262,16 @@ export class DpopProofGenerator {
         params: DpopProofGenerationParams,
         correlationId: string
     ): Promise<string> {
-        const encodedHeader = this.cryptoUtils.base64UrlEncode(
-            JSON.stringify(buildProofHeader(params))
+        return this.cryptoUtils.signTokenBindingJwt(
+            buildProofHeader(params, correlationId),
+            claims,
+            params.keyId,
+            correlationId,
+            params.keyContext
         );
-        const encodedClaims = this.cryptoUtils.base64UrlEncode(
-            JSON.stringify(claims)
-        );
-        const signingInput = `${encodedHeader}.${encodedClaims}`;
-        const signature = await params.signer.sign(signingInput, correlationId);
+    }
 
-        return `${signingInput}.${signature}`;
+    private getKeyScope(params: DpopJktGenerationParams): string {
+        return `${DPOP_TOKEN_BINDING_KEY_TYPE}.${params.clientId}.${params.authority}`;
     }
 }

@@ -123,6 +123,12 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
             ""
         );
     },
+    async provisionTokenBindingKey(): Promise<string> {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
+    },
     async removeTokenBindingKey(): Promise<void> {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
@@ -130,6 +136,18 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
         );
     },
     async clearKeystore(): Promise<boolean> {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
+    },
+    async getTokenBindingPublicKeyJwk(): Promise<JsonWebKey> {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
+    },
+    async signTokenBindingJwt(): Promise<string> {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
             ""

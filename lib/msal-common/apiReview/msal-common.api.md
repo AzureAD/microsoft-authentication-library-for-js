@@ -1754,10 +1754,18 @@ export interface ICrypto {
     clearKeystore(correlationId: string): Promise<boolean>;
     createNewGuid(): string;
     encodeKid(inputKid: string): string;
-    getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string>;
+    // @deprecated
+    getPublicKeyThumbprint(request: PublicKeyThumbprintParameters): Promise<string>;
+    // @internal
+    getTokenBindingPublicKeyJwk(kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<JsonWebKey>;
     hashString(plainText: string): Promise<string>;
-    removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
+    // @internal
+    provisionTokenBindingKey(request: TokenBindingKeyProvisioningParameters): Promise<string>;
+    removeTokenBindingKey(kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<void>;
+    // @deprecated
     signJwt(payload: SignedHttpRequest, kid: string, shrOptions?: ShrOptions, correlationId?: string): Promise<string>;
+    // @internal
+    signTokenBindingJwt(header: object, payload: object, kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<string>;
 }
 
 // @public (undocumented)
@@ -2040,18 +2048,29 @@ export class JoseHeader {
     constructor(options: JoseHeaderOptions);
     // (undocumented)
     alg?: string;
-    static getShrHeaderString(shrHeaderOptions: JoseHeaderOptions): string;
+    static getDpopHeader(dpopHeaderOptions: JoseHeaderOptions, correlationId?: string): JoseHeader;
+    static getShrHeader(shrHeaderOptions: JoseHeaderOptions, correlationId?: string): JoseHeader;
+    static getShrHeaderString(shrHeaderOptions: JoseHeaderOptions, correlationId?: string): string;
+    // (undocumented)
+    jwk?: object;
     // (undocumented)
     kid?: string;
     // (undocumented)
     typ?: JsonWebTokenTypes;
 }
 
+// @public
+export const JsonWebTokenAlgorithms: {
+    readonly ES256: "ES256";
+    readonly RS256: "RS256";
+};
+
 // @public (undocumented)
 const JsonWebTokenTypes: {
     readonly Jwt: "JWT";
     readonly Jwk: "JWK";
     readonly Pop: "pop";
+    readonly Dpop: "dpop+jwt";
 };
 
 // @public (undocumented)
@@ -2376,6 +2395,9 @@ export type PerformanceEvent = {
     requestId?: string;
     cacheLookupPolicy?: number | undefined;
     cacheOutcome?: number;
+    tokenBindingKeyType?: string;
+    tokenBindingKeyAlgorithm?: string;
+    tokenBindingKeyCacheHit?: boolean;
     incompleteSubMeasurements?: Map<string, SubMeasurement>;
     visibilityChangeCount?: number;
     onlineStatusChangeCount?: number;
@@ -2623,6 +2645,9 @@ declare namespace ProtocolUtils {
         parseRequestState
     }
 }
+
+// @public
+export type PublicKeyThumbprintParameters = SignedHttpRequestParameters;
 
 // @public (undocumented)
 const REDIRECT_URI = "redirect_uri";
@@ -3215,6 +3240,19 @@ function toDateFromSeconds(seconds: number | string | undefined): Date;
 
 // @public (undocumented)
 const TOKEN_TYPE = "token_type";
+
+// @public
+export type TokenBindingKeyContext = {
+    keyScope?: string;
+};
+
+// @public
+export type TokenBindingKeyProvisioningParameters = {
+    tokenBindingKeyType: string;
+    tokenBindingKeyAlgorithm: string;
+    correlationId: string;
+    keyScope?: string;
+};
 
 // @public
 export class TokenCacheContext {

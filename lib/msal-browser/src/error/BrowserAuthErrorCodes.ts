@@ -60,6 +60,10 @@ export const uninitializedPublicClientApplication =
 export const nativePromptNotSupported = "native_prompt_not_supported";
 export const invalidBase64String = "invalid_base64_string";
 export const invalidPopTokenRequest = "invalid_pop_token_request";
+export const missingTokenBindingJwtAlgorithm =
+    "missing_token_binding_jwt_algorithm";
+export const unsupportedTokenBindingAlgorithm =
+    "unsupported_token_binding_algorithm";
 export const failedToBuildHeaders = "failed_to_build_headers";
 export const failedToParseHeaders = "failed_to_parse_headers";
 export const failedToDecryptEarResponse = "failed_to_decrypt_ear_response";

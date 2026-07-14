@@ -213,6 +213,8 @@ declare namespace BrowserAuthErrorCodes {
         nativePromptNotSupported,
         invalidBase64String,
         invalidPopTokenRequest,
+        missingTokenBindingJwtAlgorithm,
+        unsupportedTokenBindingAlgorithm,
         failedToBuildHeaders,
         failedToParseHeaders,
         failedToDecryptEarResponse,
@@ -736,6 +738,7 @@ export const JsonWebTokenTypes: {
     readonly Jwt: "JWT";
     readonly Jwk: "JWK";
     readonly Pop: "pop";
+    readonly Dpop: "dpop+jwt";
 };
 
 // @public (undocumented)
@@ -809,6 +812,9 @@ export class MemoryStorage<T> implements IWindowStorage<T> {
     // (undocumented)
     setUserData(key: string, value: T): Promise<void>;
 }
+
+// @public (undocumented)
+const missingTokenBindingJwtAlgorithm = "missing_token_binding_jwt_algorithm";
 
 // @public (undocumented)
 const nativeConnectionNotEstablished = "native_connection_not_established";
@@ -1104,6 +1110,9 @@ const unableToParseTokenRequestCacheError = "unable_to_parse_token_request_cache
 
 // @public (undocumented)
 const uninitializedPublicClientApplication = "uninitialized_public_client_application";
+
+// @public (undocumented)
+const unsupportedTokenBindingAlgorithm = "unsupported_token_binding_algorithm";
 
 // @public (undocumented)
 const userCancelled = "user_cancelled";

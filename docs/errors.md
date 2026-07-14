@@ -342,6 +342,10 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   The JOSE Header for the requested JWT, JWS or JWK object requires an algorithm to be specified as the 'alg' header claim. No 'alg' value was provided.
 
+### `missing_jwk_error`
+
+-   The JOSE Header for the requested JWT, JWS or JWK object requires a public key to be specified as the 'jwk' header claim. No 'jwk' value was provided.
+
 ## Browser auth errors
 
 ### `pkce_not_created`
@@ -840,6 +844,14 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 ### `invalid_pop_token_request`
 
 -   Invalid PoP token request. The request should not have both a popKid value and signPopToken set to true.
+
+### `missing_token_binding_jwt_algorithm`
+
+-   The token-binding JWT header is missing the required alg value.
+
+### `unsupported_token_binding_algorithm`
+
+-   The token-binding key algorithm is not supported by the browser crypto implementation.
 
 ### `failed_to_build_headers`
 

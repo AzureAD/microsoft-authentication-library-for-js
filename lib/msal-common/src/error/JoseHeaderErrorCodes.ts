@@ -5,3 +5,4 @@
 
 export const missingKidError = "missing_kid_error";
 export const missingAlgError = "missing_alg_error";
+export const missingJwkError = "missing_jwk_error";

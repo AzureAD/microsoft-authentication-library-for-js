@@ -10,7 +10,6 @@ import { BaseAuthRequest } from "../../src/request/BaseAuthRequest.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { UrlString } from "../../src/url/UrlString.js";
 import { AuthenticationScheme } from "../../src/utils/Constants.js";
-import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest.js";
 import { Logger } from "../../src/logger/Logger.js";
 import { mockCrypto } from "../client/ClientTestUtils.js";
 import { StubPerformanceClient } from "../../src/index.js";
@@ -35,10 +34,19 @@ describe("PopTokenGenerator Unit Tests", () => {
                 cryptoInterface,
                 new StubPerformanceClient()
             );
+            const provisionTokenBindingKeySpy = jest.spyOn(
+                cryptoInterface,
+                "provisionTokenBindingKey"
+            );
             const reqCnfData = await popTokenGenerator.generateCnf(
                 testRequest,
                 new Logger({})
             );
+            expect(provisionTokenBindingKeySpy).toHaveBeenCalledWith({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                tokenBindingKeyType: "shr",
+                tokenBindingKeyAlgorithm: "RS256",
+            });
             expect(reqCnfData.reqCnfString).toBe(
                 TEST_POP_VALUES.ENCODED_REQ_CNF
             );
@@ -84,10 +92,10 @@ describe("PopTokenGenerator Unit Tests", () => {
                 shrNonce: shrNonce,
             };
 
-            cryptoInterface.signJwt = (
-                payload: SignedHttpRequest,
-                kid: string
-            ): Promise<string> => {
+            jest.spyOn(
+                cryptoInterface,
+                "signTokenBindingJwt"
+            ).mockImplementation((header, payload, kid, correlationId) => {
                 expect(kid).toBe(TEST_POP_VALUES.KID);
                 const expectedPayload = {
                     at: accessToken,
@@ -98,12 +106,28 @@ describe("PopTokenGenerator Unit Tests", () => {
                     p: resourceUrlComponents.AbsolutePath,
                     q: [[], resourceUrlComponents.QueryString],
                     client_claims: shrClaims,
+                    cnf: {
+                        jwk: {
+                            alg: "RS256",
+                            e: "AQAB",
+                            kty: "RSA",
+                            n: "test",
+                        },
+                    },
                 };
 
+                expect(header).toEqual({
+                    typ: "pop",
+                    alg: "RS256",
+                    kid: cryptoInterface.base64UrlEncode(
+                        JSON.stringify({ kid: TEST_POP_VALUES.KID })
+                    ),
+                });
                 expect(payload).toEqual(expectedPayload);
+                expect(correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
                 done();
                 return Promise.resolve("");
-            };
+            });
             popTokenGenerator.signPopToken(
                 accessToken,
                 TEST_POP_VALUES.KID,
@@ -118,10 +142,10 @@ describe("PopTokenGenerator Unit Tests", () => {
             );
             const accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
             const currTime = TimeUtils.nowSeconds();
-            cryptoInterface.signJwt = (
-                payload: SignedHttpRequest,
-                kid: string
-            ): Promise<string> => {
+            jest.spyOn(
+                cryptoInterface,
+                "signTokenBindingJwt"
+            ).mockImplementation((header, payload, kid, correlationId) => {
                 expect(kid).toBe(TEST_POP_VALUES.KID);
                 const expectedPayload = {
                     at: accessToken,
@@ -132,12 +156,28 @@ describe("PopTokenGenerator Unit Tests", () => {
                     p: undefined,
                     q: undefined,
                     client_claims: undefined,
+                    cnf: {
+                        jwk: {
+                            alg: "RS256",
+                            e: "AQAB",
+                            kty: "RSA",
+                            n: "test",
+                        },
+                    },
                 };
 
+                expect(header).toEqual({
+                    typ: "pop",
+                    alg: "RS256",
+                    kid: cryptoInterface.base64UrlEncode(
+                        JSON.stringify({ kid: TEST_POP_VALUES.KID })
+                    ),
+                });
                 expect(payload).toEqual(expectedPayload);
+                expect(correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
                 done();
                 return Promise.resolve("");
-            };
+            });
             popTokenGenerator.signPopToken(
                 accessToken,
                 TEST_POP_VALUES.KID,

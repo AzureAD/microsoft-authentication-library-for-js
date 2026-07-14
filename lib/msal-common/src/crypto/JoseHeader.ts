@@ -13,6 +13,7 @@ export type JoseHeaderOptions = {
     typ?: JsonWebTokenTypes;
     alg?: string;
     kid?: string;
+    jwk?: object;
 };
 
 /** @internal */
@@ -20,11 +21,13 @@ export class JoseHeader {
     public typ?: JsonWebTokenTypes;
     public alg?: string;
     public kid?: string;
+    public jwk?: object;
 
     constructor(options: JoseHeaderOptions) {
         this.typ = options.typ;
         this.alg = options.alg;
         this.kid = options.kid;
+        this.jwk = options.jwk;
     }
 
     /**
@@ -33,14 +36,18 @@ export class JoseHeader {
      * the stringified header object.
      * Throws if keyId or algorithm aren't provided since they are required for Access Token Binding.
      * @param shrHeaderOptions
+     * @param correlationId
      * @returns
      */
-    static getShrHeaderString(shrHeaderOptions: JoseHeaderOptions): string {
+    static getShrHeader(
+        shrHeaderOptions: JoseHeaderOptions,
+        correlationId: string = ""
+    ): JoseHeader {
         // KeyID is required on the SHR header
         if (!shrHeaderOptions.kid) {
             throw createJoseHeaderError(
                 JoseHeaderErrorCodes.missingKidError,
-                ""
+                correlationId
             );
         }
 
@@ -48,17 +55,65 @@ export class JoseHeader {
         if (!shrHeaderOptions.alg) {
             throw createJoseHeaderError(
                 JoseHeaderErrorCodes.missingAlgError,
-                ""
+                correlationId
             );
         }
 
-        const shrHeader = new JoseHeader({
+        return new JoseHeader({
             // Access Token PoP headers must have type pop, but the type header can be overriden for special cases
             typ: shrHeaderOptions.typ || JsonWebTokenTypes.Pop,
             kid: shrHeaderOptions.kid,
             alg: shrHeaderOptions.alg,
         });
+    }
 
-        return JSON.stringify(shrHeader);
+    /**
+     * Builds SignedHttpRequest formatted JOSE Header from the
+     * JOSE Header options provided or previously set on the object and returns
+     * the stringified header object.
+     * Throws if keyId or algorithm aren't provided since they are required for Access Token Binding.
+     * @param shrHeaderOptions
+     * @param correlationId
+     * @returns
+     */
+    static getShrHeaderString(
+        shrHeaderOptions: JoseHeaderOptions,
+        correlationId: string = ""
+    ): string {
+        return JSON.stringify(
+            JoseHeader.getShrHeader(shrHeaderOptions, correlationId)
+        );
+    }
+
+    /**
+     * Builds a DPoP formatted JOSE Header from the JOSE Header options provided.
+     * Throws if public JWK or algorithm aren't provided since they are required for DPoP.
+     * @param dpopHeaderOptions
+     * @param correlationId
+     * @returns
+     */
+    static getDpopHeader(
+        dpopHeaderOptions: JoseHeaderOptions,
+        correlationId: string = ""
+    ): JoseHeader {
+        if (!dpopHeaderOptions.jwk) {
+            throw createJoseHeaderError(
+                JoseHeaderErrorCodes.missingJwkError,
+                correlationId
+            );
+        }
+
+        if (!dpopHeaderOptions.alg) {
+            throw createJoseHeaderError(
+                JoseHeaderErrorCodes.missingAlgError,
+                correlationId
+            );
+        }
+
+        return new JoseHeader({
+            typ: JsonWebTokenTypes.Dpop,
+            alg: dpopHeaderOptions.alg,
+            jwk: dpopHeaderOptions.jwk,
+        });
     }
 }

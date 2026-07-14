@@ -278,8 +278,22 @@ export const mockCrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },
+    async provisionTokenBindingKey(): Promise<string> {
+        return TEST_POP_VALUES.KID;
+    },
     async removeTokenBindingKey(keyId: string): Promise<void> {
         return Promise.resolve();
+    },
+    async getTokenBindingPublicKeyJwk(): Promise<JsonWebKey> {
+        return {
+            alg: "RS256",
+            kty: "RSA",
+            e: "AQAB",
+            n: "test",
+        };
+    },
+    async signTokenBindingJwt(): Promise<string> {
+        return TEST_TOKENS.POP_TOKEN;
     },
     async signJwt(): Promise<string> {
         return TEST_TOKENS.POP_TOKEN;

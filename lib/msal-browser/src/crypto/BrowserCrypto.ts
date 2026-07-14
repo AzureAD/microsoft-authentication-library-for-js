@@ -237,7 +237,7 @@ export async function importJwk(
  */
 export async function sign(
     key: CryptoKey,
-    data: ArrayBuffer,
+    data: BufferSource,
     algorithm: AlgorithmIdentifier
 ): Promise<ArrayBuffer> {
     return window.crypto.subtle.sign(
