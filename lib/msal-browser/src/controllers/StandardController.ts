@@ -918,7 +918,7 @@ export class StandardController implements IController {
                 atPopupMeasurement.end(
                     {
                         success: true,
-                        isNativeBroker: false,
+                        isNativeBroker: result.fromPlatformBroker,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
                     },
