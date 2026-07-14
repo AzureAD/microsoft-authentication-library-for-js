@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784038398062,
+  "lastUpdate": 1784068748670,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22403,6 +22403,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.75%",
             "unit": "ops/sec",
             "extra": "219 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "198982749+Copilot@users.noreply.github.com",
+            "name": "Copilot",
+            "username": "Copilot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5d1a16e9103853601886375dbcb15f06a02bc545",
+          "message": "feat(msal-common/msal-browser): Add internal DPoP proof seams (RFC 9449) — internals-only, no public API changes (#8683)\n\nAdds the internal-only DPoP (RFC 9449) proof-generation and browser\ncrypto seams needed as a prerequisite for L1 DPoP acquisition flows. No\napp-facing opt-in, no runtime acquisition behavior changes, and no DPoP\nprotocol behavior reachable through app-callable MSAL Browser APIs.\n\nFixes AB#3677515\n\n## Forge validation context\n\nOriginating work item: AB#3677515\n\n## Public API and release-safety clarification\n\nThis PR does include internal API-review deltas for shared `msal-common`\nproof-generation types and `msal-browser` browser-crypto seams. Those\nchanges are prerequisite implementation seams, not an app-facing DPoP\nfeature surface.\n\nThe release-safety boundary is that the DPoP protocol is not wired into,\nenabled by, or reachable through existing app-callable **msal-browser**\nAPIs, configuration, docs, or acquisition flows in this PR. Applications\ncannot opt into DPoP, request DPoP tokens, or cause MSAL Browser to send\nDPoP proofs from this PR alone.\n\nThe `msal-common` API review changes in this PR are intentional.\nAlthough `msal-common` is published as a package, it functions as shared\ninternal implementation for `msal-browser` and `msal-node`; it is not\nintended for direct application consumption and does not follow semver\nin practice the way app-facing MSAL Browser APIs do.\n\n## Review rationale: internal WebCrypto output trust boundary\n\n`DpopProofGenerator` intentionally does **not** defensively validate\nvalues that will be produced by MSAL-controlled browser crypto wiring:\n\n- `publicJwk` is exported from WebCrypto-generated keys by MSAL Browser.\n- `signature` is produced by the MSAL Browser signer over the generated\nsigning input.\n- `alg` is declared by the MSAL-owned signer paired with the key\nimplementation.\n- `ath` is produced by MSAL from the access token hash before resource\nproof generation.\n\nThose values are not app-provided inputs in this PR. Re-validating them\ninside `msal-common` would treat this internal seam as an adversarial\npublic API and duplicate checks that belong at the future wiring\nboundary if MSAL Browser ever exposes or accepts external key/signing\nmaterial. The generator keeps validation/normalization only for\nrequest-derived proof claims (`htu` and `htm`) where it is responsible\nfor RFC 9449 claim construction.\n\n## Acceptance criteria\n\n- DPoP token proof builder tests cover `htm=POST`, normalized token\nendpoint `htu`, `iat`, unique CSPRNG-backed `jti`, and optional nonce.\n- DPoP resource proof tests cover uppercase method, normalized resource\n`htu`, `ath`, `iat`, unique CSPRNG-backed `jti`, and optional resource\nnonce.\n- DPoP proof signing tests cover compact JWT construction,\nsigner-declared `alg`, and public JWK headers.\n- DPoP proofs do not contain SHR fields: `at`, `ts`, `m`, `u`, `p`, `q`.\n- Browser crypto seam tests pass for EC P-256 key generation,\npublic-only JWK export, non-extractable private key import, RFC 7638 JWK\nthumbprints, and ECDSA-SHA-256 signing.\n- Bearer, POP, and SSH behavior remains unchanged.\n- No runtime acquisition path accepts or processes DPoP.\n- Affected 3P build, lint, unit tests, format check, and API extractor\nare green.\n\n## msal-common - DPoP proof generator\n\nNew `DpopProofGenerator` class (not exported from package entry) with\ntoken and resource proof paths:\n\n```ts\n// Token-endpoint proof: htm fixed to \"POST\", htu normalized (no query/fragment), CSPRNG jti\nbuildTokenProofClaims(params: DpopTokenProofParams): DpopProofClaims\ngenerateTokenProof(params: DpopTokenProofParams & DpopProofGenerationParams): Promise<string>\n\n// Resource-endpoint proof: uppercase htm, normalized htu, ath (access token hash), CSPRNG jti\nbuildResourceProofClaims(params: DpopResourceProofParams): DpopProofClaims\ngenerateResourceProof(params: DpopResourceProofParams & DpopProofGenerationParams): Promise<string>\n```\n\n- `htu` is serialized with the WHATWG URL API and strips query string\nand fragment per RFC 9449 section 4.2 while rejecting unparseable URLs,\nnon-HTTPS URLs, and URLs with userinfo. URL serialization lowercases\nscheme/host, elides default ports, preserves non-default ports, and\npercent-encodes repaired path characters.\n- `htm` is validated as a non-empty RFC HTTP method token before\nuppercasing.\n- `ath`, `alg`, public JWK, and signature values are passed through from\nMSAL-owned hashing/signing/key-generation seams rather than revalidated\nin the proof generator.\n- `jti` is sourced from `ICrypto.createNewGuid()` (CSPRNG-backed in\nproduction) and is unique per call.\n- Proofs contain no SHR fields: `at`, `ts`, `m`, `u`, `p`, `q`.\n\n## msal-browser - browser crypto seams\n\nExisting internal `BrowserCrypto.ts` helpers are generalized so DPoP can\nreuse the same browser crypto seam later without adding app-facing DPoP\nprotocol APIs:\n\n| Helper | Purpose |\n|---|---|\n| `generateKeyPair(extractable, usages, algorithm)` | Generates key\npairs for caller-supplied WebCrypto algorithm options, including EC\nP-256 in tests. |\n| `exportJwk(key)` | Exports public or private keys as JWKs; DPoP tests\nverify public-only JWK export for generated EC keys. |\n| `importJwk(key, extractable, usages, algorithm)` | Imports JWKs with\ncaller-supplied extractability/usages; DPoP tests verify private EC keys\ncan be re-imported as non-extractable. |\n| `computeJwkThumbprint(publicJwk)` | Computes RFC 7638 thumbprints for\nEC and RSA public JWKs. |\n| `sign(key, data, algorithm)` | Signs data using caller-supplied\nWebCrypto signing parameters, including ECDSA-SHA-256 in tests. |\n\nThis PR also adds shared WebCrypto algorithm option constants for ECDSA\nP-256 key generation and ECDSA-SHA-256 signing. These helpers remain\ninternal implementation seams and do not make DPoP reachable from\nacquisition flows.\n\n## Telemetry deferral\n\nDPoP proof-generation telemetry is intentionally deferred to the wiring\nPR. This PR only adds internal proof-generation and crypto seams with no\nproduction acquisition path, so there is no request boundary yet that\ncan provide meaningful operation context, token-vs-resource attribution,\nnonce/retry context, or correlation with acquisition failures. Telemetry\nshould be added where DPoP is wired into token/resource acquisition to\navoid premature helper-level instrumentation or duplicate nested events.\n\n## Constraints honored\n\n- Bearer, POP, and SSH flows are unchanged.\n- No `AuthenticationScheme.DPOP` exposure.\n- No DPoP protocol path is reachable through existing app-callable MSAL\nBrowser APIs.\n- Shared/internal API review changes are limited to implementation seams\nneeded before wiring.\n- `DpopProofGenerator` is an internal seam; validation of key\nprovenance, signer output, algorithm selection, and access-token-hash\nproduction belongs to the future MSAL Browser wiring boundary if\nexternal inputs are ever accepted there.\n- DPoP remains inaccessible through app-callable MSAL Browser config,\ndocs, and acquisition paths.\n- Helpers are unreferenced by any production acquisition path.\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: Hector Morales <hemoral@microsoft.com>\nCo-authored-by: Forge <forge-bot@entra.github.io>\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-07-14T15:30:58-07:00",
+          "tree_id": "a2cb169a71b31132dd36b297e79d7a1ea785bf7e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5d1a16e9103853601886375dbcb15f06a02bc545"
+        },
+        "date": 1784068745198,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 372981,
+            "range": "±0.67%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 374758,
+            "range": "±0.56%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
           }
         ]
       }
