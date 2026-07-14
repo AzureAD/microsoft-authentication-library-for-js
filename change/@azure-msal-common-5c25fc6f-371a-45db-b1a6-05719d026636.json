@@ -1,6 +1,6 @@
 {
   "dependentChangeType": "patch",
-  "comment": "Harden authorize response deserialization against URLSearchParams iterator typing changes in newer @types/node",
+  "comment": "Harden authorize response deserialization against URLSearchParams iterator typing changes in newer @types/node [#8707](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8707)",
   "type": "patch",
   "packageName": "@azure/msal-common",
   "email": "lalima.sharda@gmail.com"
