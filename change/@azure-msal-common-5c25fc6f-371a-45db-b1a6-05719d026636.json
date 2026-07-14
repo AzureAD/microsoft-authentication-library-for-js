@@ -1,0 +1,7 @@
+{
+  "dependentChangeType": "patch",
+  "comment": "Harden authorize response deserialization against URLSearchParams iterator typing changes in newer @types/node",
+  "type": "patch",
+  "packageName": "@azure/msal-common",
+  "email": "lalima.sharda@gmail.com"
+}

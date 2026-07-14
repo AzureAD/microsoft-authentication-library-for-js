@@ -45,9 +45,10 @@ export function getDeserializedResponse(
         // Strip the # or ? symbol if present
         const normalizedResponse = stripLeadingHashOrQuery(responseString);
         // If # symbol was not present, above will return empty string, so give original hash value
-        const deserializedHash: AuthorizeResponse = Object.fromEntries(
-            new URLSearchParams(normalizedResponse)
-        );
+        const deserializedHash: AuthorizeResponse = {};
+        new URLSearchParams(normalizedResponse).forEach((value, key) => {
+            deserializedHash[key as keyof AuthorizeResponse] = value;
+        });
 
         // Check for known response properties
         if (
