@@ -42,6 +42,7 @@ export const getRequestFailed = "get_request_failed";
 export const failedToParseResponse = "failed_to_parse_response";
 export const unableToLoadToken = "unable_to_load_token";
 export const cryptoKeyNotFound = "crypto_key_not_found";
+export const invalidPublicJwk = "invalid_public_jwk";
 export const authCodeRequired = "auth_code_required";
 export const authCodeOrNativeAccountIdRequired =
     "auth_code_or_nativeAccountId_required";

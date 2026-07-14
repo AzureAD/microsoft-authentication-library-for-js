@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add internal DPoP proof payload builder (DpopProofGenerator) with RFC 9449 token-endpoint and resource-endpoint claim helpers [#8683](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8683)",
+    "packageName": "@azure/msal-common",
+    "email": "hectormmg@microsoft.com",
+    "dependentChangeType": "patch"
+}

@@ -25,6 +25,14 @@ const AES_GCM = "AES-GCM";
 const HKDF = "HKDF";
 // SHA-256 hashing algorithm
 const S256_HASH_ALG = "SHA-256";
+// JWK values used by browser-internal WebCrypto helpers.
+const JSON_WEB_KEY_CURVE_P256 = "P-256";
+const JSON_WEB_KEY_TYPE_EC = "EC";
+const JSON_WEB_KEY_TYPE_RSA = "RSA";
+const MISSING_JWK_KTY_SUBERROR = "missing_jwk_kty";
+const UNSUPPORTED_JWK_KTY_SUBERROR = "unsupported_jwk_kty";
+const MISSING_JWK_MEMBER_SUBERROR = "missing_jwk_member";
+const EMPTY_JWK_MEMBER_SUBERROR = "empty_jwk_member";
 // MOD length for PoP tokens
 const MODULUS_LENGTH = 2048;
 // Public Exponent
@@ -44,11 +52,25 @@ const DERIVE_KEY = "deriveKey";
 // Suberror
 const SUBTLE_SUBERROR = "crypto_subtle_undefined";
 
-const keygenAlgorithmOptions: RsaHashedKeyGenParams = {
+export const RSA_KEYGEN_ALGORITHM_OPTIONS: RsaHashedKeyGenParams = {
     name: PKCS1_V15_KEYGEN_ALG,
     hash: S256_HASH_ALG,
     modulusLength: MODULUS_LENGTH,
     publicExponent: PUBLIC_EXPONENT,
+};
+
+export const RSA_SIGN_ALGORITHM_OPTIONS: Algorithm = {
+    name: PKCS1_V15_KEYGEN_ALG,
+};
+
+export const ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS: EcKeyGenParams = {
+    name: "ECDSA",
+    namedCurve: JSON_WEB_KEY_CURVE_P256,
+};
+
+export const ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS: EcdsaParams = {
+    name: "ECDSA",
+    hash: { name: S256_HASH_ALG },
 };
 
 /**
@@ -157,16 +179,18 @@ export function createNewGuid(): string {
 }
 
 /**
- * Generates a keypair based on current keygen algorithm config.
+ * Generates a keypair based on the provided algorithm config.
  * @param extractable
  * @param usages
+ * @param algorithm
  */
 export async function generateKeyPair(
     extractable: boolean,
-    usages: Array<KeyUsage>
+    usages: Array<KeyUsage>,
+    algorithm: AlgorithmIdentifier
 ): Promise<CryptoKeyPair> {
     return window.crypto.subtle.generateKey(
-        keygenAlgorithmOptions,
+        algorithm,
         extractable,
         usages
     ) as Promise<CryptoKeyPair>;
@@ -188,32 +212,36 @@ export async function exportJwk(key: CryptoKey): Promise<JsonWebKey> {
  * @param key
  * @param extractable
  * @param usages
+ * @param algorithm
  */
 export async function importJwk(
     key: JsonWebKey,
     extractable: boolean,
-    usages: Array<KeyUsage>
+    usages: Array<KeyUsage>,
+    algorithm: AlgorithmIdentifier
 ): Promise<CryptoKey> {
     return window.crypto.subtle.importKey(
         KEY_FORMAT_JWK,
         key,
-        keygenAlgorithmOptions,
+        algorithm,
         extractable,
         usages
     ) as Promise<CryptoKey>;
 }
 
 /**
- * Signs given data with given key
+ * Signs given data with given key.
  * @param key
  * @param data
+ * @param algorithm
  */
 export async function sign(
     key: CryptoKey,
-    data: ArrayBuffer
+    data: ArrayBuffer,
+    algorithm: AlgorithmIdentifier
 ): Promise<ArrayBuffer> {
     return window.crypto.subtle.sign(
-        keygenAlgorithmOptions,
+        algorithm,
         key,
         data
     ) as Promise<ArrayBuffer>;
@@ -427,4 +455,71 @@ export async function hashString(plainText: string): Promise<string> {
     const hashBuffer: ArrayBuffer = await sha256Digest(plainText);
     const hashBytes = new Uint8Array(hashBuffer);
     return urlEncodeArr(hashBytes);
+}
+
+const JWK_THUMBPRINT_REQUIRED_MEMBERS: Record<string, Array<string>> = {
+    [JSON_WEB_KEY_TYPE_EC]: ["crv", "kty", "x", "y"],
+    [JSON_WEB_KEY_TYPE_RSA]: ["e", "kty", "n"],
+};
+
+function getJwkThumbprintMembers(
+    publicJwk: JsonWebKey
+): Record<string, string> {
+    const kty = publicJwk.kty;
+    if (typeof kty !== "string" || kty.length === 0) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.invalidPublicJwk,
+            "",
+            MISSING_JWK_KTY_SUBERROR
+        );
+    }
+
+    const requiredMembers = JWK_THUMBPRINT_REQUIRED_MEMBERS[kty];
+    if (!requiredMembers) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.invalidPublicJwk,
+            "",
+            UNSUPPORTED_JWK_KTY_SUBERROR
+        );
+    }
+
+    return requiredMembers.reduce((thumbprintMembers, memberName) => {
+        const memberValue = publicJwk[memberName as keyof JsonWebKey];
+        if (typeof memberValue !== "string") {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.invalidPublicJwk,
+                "",
+                MISSING_JWK_MEMBER_SUBERROR
+            );
+        }
+
+        if (memberValue.length === 0) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.invalidPublicJwk,
+                "",
+                EMPTY_JWK_MEMBER_SUBERROR
+            );
+        }
+
+        thumbprintMembers[memberName] = memberValue;
+        return thumbprintMembers;
+    }, {} as Record<string, string>);
+}
+
+/**
+ * Computes an RFC 7638 JWK thumbprint for a public key.
+ * The required members for the JWK key type are serialised in lexicographic order
+ * and the SHA-256 digest is returned as a base64url string.
+ * @internal
+ */
+export async function computeJwkThumbprint(
+    publicJwk: JsonWebKey
+): Promise<string> {
+    const thumbprintMembers = getJwkThumbprintMembers(publicJwk);
+    // RFC 7638 §3.3: use only required members, sorted lexicographically
+    const thumbprintJson = JSON.stringify(
+        thumbprintMembers,
+        Object.keys(thumbprintMembers).sort()
+    );
+    return hashString(thumbprintJson);
 }
