@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add browser token-binding key lifecycle support for scoped ES256 DPoP keys.",
+    "packageName": "@azure/msal-browser",
+    "email": "hectormmg@microsoft.com",
+    "dependentChangeType": "patch"
+}

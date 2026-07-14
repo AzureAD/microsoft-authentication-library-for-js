@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add node crypto stubs for token-binding key lifecycle contracts.",
+    "packageName": "@azure/msal-node",
+    "email": "hectormmg@microsoft.com",
+    "dependentChangeType": "patch"
+}

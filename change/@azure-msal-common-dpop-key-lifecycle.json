@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add internal token-binding key lifecycle contracts for DPoP proof generation.",
+    "packageName": "@azure/msal-common",
+    "email": "hectormmg@microsoft.com",
+    "dependentChangeType": "patch"
+}
