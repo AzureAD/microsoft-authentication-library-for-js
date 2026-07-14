@@ -3804,7 +3804,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .mockResolvedValue(testTokenResponse);
 
             const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events[0].isNativeBroker).toBe(undefined);
+                expect(events[0].isNativeBroker).toBe(false);
                 expect(events[0].isPlatformAuthorizeRequest).toBe(undefined);
                 expect(events[0].isPlatformBrokerRequest).toBe(true);
                 expect(events[0].brokerErrorName).toBeDefined();
@@ -6511,7 +6511,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].fromCache).toBe(false);
                 expect(events[0].accessTokenSize).toBe(16);
                 expect(events[0].idTokenSize).toBe(12);
-                expect(events[0].isNativeBroker).toBe(undefined);
+                expect(events[0].isNativeBroker).toBe(false);
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(0);
                 expect(events[0].accountType).toBe("AAD");
@@ -6563,7 +6563,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].fromCache).toBe(false);
                 expect(events[0].accessTokenSize).toBe(16);
                 expect(events[0].idTokenSize).toBe(12);
-                expect(events[0].isNativeBroker).toBe(undefined);
+                expect(events[0].isNativeBroker).toBe(false);
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(1);
 
