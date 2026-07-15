@@ -16,7 +16,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v6
-            - uses: actions/setup-node@v6
+            - uses: actions/setup-node@v7
 
             - name: Install dependencies
               run: npm install --workspace=lib/msal-common --workspace=lib/msal-node
