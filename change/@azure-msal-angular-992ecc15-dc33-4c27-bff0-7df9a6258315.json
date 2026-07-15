@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Disallow major changes in MSAL Angular [#8702](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8702)",
+  "packageName": "@azure/msal-angular",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
