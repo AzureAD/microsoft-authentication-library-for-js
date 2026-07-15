@@ -853,6 +853,10 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 
 -   The token-binding key algorithm is not supported by the browser crypto implementation.
 
+### `token_binding_key_algorithm_mismatch`
+
+-   The requested token-binding JWT alg is supported, but is incompatible with the stored key material.
+
 ### `failed_to_build_headers`
 
 -   Failed to build request headers object.

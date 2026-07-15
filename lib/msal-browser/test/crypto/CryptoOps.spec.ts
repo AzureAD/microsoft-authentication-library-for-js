@@ -369,6 +369,55 @@ describe("CryptoOps.ts Unit Tests", () => {
         );
     }, 30000);
 
+    it("signJwt() falls back to caller and default SHR algorithms when public JWK alg is missing", async () => {
+        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({
+            resourceRequestMethod: "POST",
+            resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS,
+        } as BaseAuthRequest);
+        const publicJwk = await BrowserCrypto.exportJwk(
+            mockDatabase["TestDB.keys"][pkThumbprint].publicKey
+        );
+        jest.spyOn(BrowserCrypto, "exportJwk").mockResolvedValue({
+            ...publicJwk,
+            alg: "",
+        });
+
+        const signedJwtWithCallerAlg = await cryptoObj.signJwt(
+            { at: "access-token" },
+            pkThumbprint,
+            {
+                header: {
+                    alg: "RS256",
+                },
+            },
+            TEST_CONFIG.CORRELATION_ID
+        );
+        const [encodedHeaderWithCallerAlg] = signedJwtWithCallerAlg.split(".");
+        const headerWithCallerAlg = JSON.parse(
+            Buffer.from(encodedHeaderWithCallerAlg, "base64url").toString(
+                "utf8"
+            )
+        );
+
+        expect(headerWithCallerAlg.alg).toBe("RS256");
+
+        const signedJwtWithDefaultAlg = await cryptoObj.signJwt(
+            { at: "access-token" },
+            pkThumbprint,
+            undefined,
+            TEST_CONFIG.CORRELATION_ID
+        );
+        const [encodedHeaderWithDefaultAlg] =
+            signedJwtWithDefaultAlg.split(".");
+        const headerWithDefaultAlg = JSON.parse(
+            Buffer.from(encodedHeaderWithDefaultAlg, "base64url").toString(
+                "utf8"
+            )
+        );
+
+        expect(headerWithDefaultAlg.alg).toBe("RS256");
+    }, 30000);
+
     it("emits token-binding key metadata for SHR and DPoP key generation", async () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
@@ -859,7 +908,7 @@ describe("CryptoOps.ts Unit Tests", () => {
                 )
             ).rejects.toThrow(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.unsupportedTokenBindingAlgorithm,
+                    BrowserAuthErrorCodes.tokenBindingKeyAlgorithmMismatch,
                     TEST_CONFIG.CORRELATION_ID
                 )
             );

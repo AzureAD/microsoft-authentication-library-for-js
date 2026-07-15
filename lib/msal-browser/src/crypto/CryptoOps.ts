@@ -234,10 +234,14 @@ export class CryptoOps implements ICrypto {
             );
         const publicKeyJwkString = getSortedObjectString(publicKeyJwk);
         const encodedKeyIdThumbprint = urlEncode(JSON.stringify({ kid: kid }));
+        const shrAlgorithm =
+            shrOptions?.header?.alg ||
+            publicKeyJwk.alg ||
+            TOKEN_BINDING_KEY_ALGORITHMS.RS256;
         const shrHeader = JoseHeader.getShrHeader(
             {
                 ...shrOptions?.header,
-                alg: publicKeyJwk.alg,
+                alg: shrAlgorithm,
                 kid: encodedKeyIdThumbprint,
             },
             resolvedCorrelationId
@@ -306,6 +310,16 @@ export class CryptoOps implements ICrypto {
                 signAlgorithm:
                     BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS,
             };
+        }
+
+        if (
+            requestedAlgorithm === TOKEN_BINDING_KEY_ALGORITHMS.RS256 ||
+            requestedAlgorithm === TOKEN_BINDING_KEY_ALGORITHMS.ES256
+        ) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.tokenBindingKeyAlgorithmMismatch,
+                correlationId
+            );
         }
 
         throw createBrowserAuthError(

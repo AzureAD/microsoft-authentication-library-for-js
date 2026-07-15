@@ -215,6 +215,7 @@ declare namespace BrowserAuthErrorCodes {
         invalidPopTokenRequest,
         missingTokenBindingJwtAlgorithm,
         unsupportedTokenBindingAlgorithm,
+        tokenBindingKeyAlgorithmMismatch,
         failedToBuildHeaders,
         failedToParseHeaders,
         failedToDecryptEarResponse,
@@ -1095,6 +1096,9 @@ export { TenantProfile }
 
 // @public (undocumented)
 const timedOut = "timed_out";
+
+// @public (undocumented)
+const tokenBindingKeyAlgorithmMismatch = "token_binding_key_algorithm_mismatch";
 
 // @public (undocumented)
 const unableToAcquireTokenFromNativePlatform = "unable_to_acquire_token_from_native_platform";
