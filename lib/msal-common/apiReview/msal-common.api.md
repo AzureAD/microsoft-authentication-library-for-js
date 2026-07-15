@@ -1099,7 +1099,9 @@ declare namespace ClientConfigurationErrorCodes {
         invalidRequestMethodForEAR,
         invalidPlatformBrokerConfiguration,
         issuerValidationFailed,
-        invalidResponseMode
+        invalidResponseMode,
+        invalidDpopHtm,
+        invalidDpopHtu
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1423,7 +1425,7 @@ const DEFAULT_AUTHORITY_HOST = "login.microsoftonline.com";
 // @public (undocumented)
 const DEFAULT_COMMON_TENANT = "common";
 
-// @public (undocumented)
+// @public
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto;
 
 // @public (undocumented)
@@ -1897,6 +1899,12 @@ const invalidCloudDiscoveryMetadata = "invalid_cloud_discovery_metadata";
 
 // @public (undocumented)
 const invalidCodeChallengeMethod = "invalid_code_challenge_method";
+
+// @public (undocumented)
+const invalidDpopHtm = "invalid_dpop_htm";
+
+// @public (undocumented)
+const invalidDpopHtu = "invalid_dpop_htu";
 
 // @public (undocumented)
 const invalidPlatformBrokerConfiguration = "invalid_platform_broker_configuration";
@@ -3010,7 +3018,7 @@ export type SignedHttpRequest = {
     client_claims?: string;
 };
 
-// @public (undocumented)
+// @public
 export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequestMethod" | "resourceRequestUri" | "shrClaims" | "shrNonce" | "shrOptions"> & {
     correlationId: string;
 };
