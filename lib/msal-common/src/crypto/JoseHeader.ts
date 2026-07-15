@@ -110,6 +110,13 @@ export class JoseHeader {
             );
         }
 
+        if (Object.keys(dpopHeaderOptions.jwk).length === 0) {
+            throw createJoseHeaderError(
+                JoseHeaderErrorCodes.invalidJwkError,
+                correlationId
+            );
+        }
+
         return new JoseHeader({
             typ: JsonWebTokenTypes.Dpop,
             alg: dpopHeaderOptions.alg,

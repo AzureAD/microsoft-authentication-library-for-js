@@ -76,6 +76,27 @@ describe("JoseHeader.ts Unit Tests", () => {
     });
 
     describe("getDpopHeader", () => {
+        it("should return a DPoP header with the provided JWK", () => {
+            const jwk = {
+                kty: "EC",
+                crv: "P-256",
+                x: "A".repeat(43),
+                y: "B".repeat(43),
+            };
+            const dpopHeader = JoseHeader.getDpopHeader({
+                alg: "ES256",
+                jwk,
+            });
+
+            expect(dpopHeader).toEqual(
+                new JoseHeader({
+                    typ: JsonWebTokenTypes.Dpop,
+                    alg: "ES256",
+                    jwk,
+                })
+            );
+        });
+
         it("should include correlationId in missing jwk errors when provided", () => {
             try {
                 JoseHeader.getDpopHeader(
@@ -91,6 +112,17 @@ describe("JoseHeader.ts Unit Tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
             }
+        });
+
+        it("should throw if DPoP public JWK is empty", () => {
+            expect(() =>
+                JoseHeader.getDpopHeader({
+                    alg: "ES256",
+                    jwk: {},
+                })
+            ).toThrowError(
+                getDefaultErrorMessage(JoseHeaderErrorCodes.invalidJwkError)
+            );
         });
     });
 });
