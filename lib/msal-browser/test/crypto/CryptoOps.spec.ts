@@ -21,6 +21,7 @@ import { generatePkceCodes } from "../../src/crypto/PkceGenerator";
 import { StubPerformanceClient } from "@azure/msal-common";
 import { DpopProofGenerator } from "../../../msal-common/src/crypto/DpopProofGenerator.js";
 import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents";
+import { TokenBindingKeyManager } from "../../src/crypto/TokenBindingKeyManager";
 
 let mockDatabase = {
     "TestDB.keys": {},
@@ -52,9 +53,11 @@ function getCacheKeysByScope(keyScope: string): Array<string> {
 
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
+    let tokenBindingKeyManager: TokenBindingKeyManager;
 
     beforeEach(() => {
         cryptoObj = new CryptoOps(new Logger({}));
+        tokenBindingKeyManager = new TokenBindingKeyManager(new Logger({}));
 
         // Mock DatabaseStorage
         jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
@@ -388,11 +391,14 @@ describe("CryptoOps.ts Unit Tests", () => {
                 },
             })
         );
-        cryptoObj = new CryptoOps(new Logger({}), performanceClient);
+        tokenBindingKeyManager = new TokenBindingKeyManager(
+            new Logger({}),
+            performanceClient
+        );
 
-        await cryptoObj.provisionTokenBindingKey(SHR_KEY_CONTEXT);
-        await cryptoObj.provisionTokenBindingKey(DPOP_KEY_CONTEXT);
-        await cryptoObj.provisionTokenBindingKey(DPOP_KEY_CONTEXT);
+        await tokenBindingKeyManager.provisionTokenBindingKey(SHR_KEY_CONTEXT);
+        await tokenBindingKeyManager.provisionTokenBindingKey(DPOP_KEY_CONTEXT);
+        await tokenBindingKeyManager.provisionTokenBindingKey(DPOP_KEY_CONTEXT);
 
         expect(performanceClient.startMeasurement).toHaveBeenCalledWith(
             BrowserPerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
@@ -443,10 +449,13 @@ describe("CryptoOps.ts Unit Tests", () => {
         jest.spyOn(BrowserCrypto, "generateKeyPair").mockRejectedValue(
             new Error("key generation failed")
         );
-        cryptoObj = new CryptoOps(new Logger({}), performanceClient);
+        tokenBindingKeyManager = new TokenBindingKeyManager(
+            new Logger({}),
+            performanceClient
+        );
 
         await expect(
-            cryptoObj.provisionTokenBindingKey(DPOP_KEY_CONTEXT)
+            tokenBindingKeyManager.provisionTokenBindingKey(DPOP_KEY_CONTEXT)
         ).rejects.toThrow("key generation failed");
 
         expect(endMeasurement).toHaveBeenCalledWith({
@@ -482,10 +491,13 @@ describe("CryptoOps.ts Unit Tests", () => {
         jest.spyOn(BrowserCrypto, "generateKeyPair").mockRejectedValue(
             new Error("key generation failed")
         );
-        cryptoObj = new CryptoOps(new Logger({}), performanceClient);
+        tokenBindingKeyManager = new TokenBindingKeyManager(
+            new Logger({}),
+            performanceClient
+        );
 
         await expect(
-            cryptoObj.provisionTokenBindingKey(SHR_KEY_CONTEXT)
+            tokenBindingKeyManager.provisionTokenBindingKey(SHR_KEY_CONTEXT)
         ).rejects.toThrow("key generation failed");
 
         expect(endMeasurement).toHaveBeenCalledWith({
@@ -520,11 +532,11 @@ describe("CryptoOps.ts Unit Tests", () => {
         );
         cryptoObj = new CryptoOps(new Logger({}), performanceClient);
 
-        const popKeyId = await cryptoObj.provisionTokenBindingKey(
+        const popKeyId = await tokenBindingKeyManager.provisionTokenBindingKey(
             SHR_KEY_CONTEXT
         );
-        await cryptoObj.provisionTokenBindingKey(DPOP_KEY_CONTEXT);
-        const dpopKeyId = await cryptoObj.provisionTokenBindingKey(
+        await tokenBindingKeyManager.provisionTokenBindingKey(DPOP_KEY_CONTEXT);
+        const dpopKeyId = await tokenBindingKeyManager.provisionTokenBindingKey(
             DPOP_KEY_CONTEXT
         );
         endMeasurement.mockClear();
@@ -902,7 +914,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         });
 
         it("signTokenBindingJwt rejects missing JWT header algorithm", async () => {
-            const keyId = await cryptoObj.provisionTokenBindingKey(
+            const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
                 DPOP_KEY_CONTEXT
             );
 
@@ -932,12 +944,13 @@ describe("CryptoOps.ts Unit Tests", () => {
                 BrowserCrypto,
                 "generateKeyPair"
             );
-            const keyId = await cryptoObj.provisionTokenBindingKey(
+            const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
                 DPOP_KEY_CONTEXT
             );
-            const reusedKeyId = await cryptoObj.provisionTokenBindingKey(
-                DPOP_KEY_CONTEXT
-            );
+            const reusedKeyId =
+                await tokenBindingKeyManager.provisionTokenBindingKey(
+                    DPOP_KEY_CONTEXT
+                );
             const dpopCacheKeys = getCacheKeysByScope(
                 DPOP_KEY_CONTEXT.keyScope
             );
@@ -954,11 +967,11 @@ describe("CryptoOps.ts Unit Tests", () => {
         }, 10000);
 
         it("provisionTokenBindingKey isolates keys by caller-owned scope", async () => {
-            const keyId = await cryptoObj.provisionTokenBindingKey(
+            const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
                 DPOP_KEY_CONTEXT
             );
             const alternateAuthorityKeyId =
-                await cryptoObj.provisionTokenBindingKey(
+                await tokenBindingKeyManager.provisionTokenBindingKey(
                     ALTERNATE_DPOP_KEY_CONTEXT
                 );
 
@@ -969,7 +982,7 @@ describe("CryptoOps.ts Unit Tests", () => {
                 )
             ).toHaveLength(2);
             await expect(
-                cryptoObj.getTokenBindingPublicKeyJwk(
+                tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
                     keyId,
                     TEST_CONFIG.CORRELATION_ID,
                     ALTERNATE_DPOP_KEY_CONTEXT
@@ -980,19 +993,23 @@ describe("CryptoOps.ts Unit Tests", () => {
         }, 10000);
 
         it("generates a DPoP proof whose embedded public key verifies the signature", async () => {
-            const keyId = await cryptoObj.provisionTokenBindingKey(
+            const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
                 DPOP_KEY_CONTEXT
             );
-            const publicJwk = await cryptoObj.getTokenBindingPublicKeyJwk(
-                keyId,
-                TEST_CONFIG.CORRELATION_ID,
-                DPOP_KEY_CONTEXT
-            );
+            const publicJwk =
+                await tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                    keyId,
+                    TEST_CONFIG.CORRELATION_ID,
+                    DPOP_KEY_CONTEXT
+                );
             const dpopPublicJwk: Record<string, unknown> = {};
             Object.entries(publicJwk).forEach(([key, value]) => {
                 dpopPublicJwk[key] = value;
             });
-            const dpopProofGenerator = new DpopProofGenerator(cryptoObj);
+            const dpopProofGenerator = new DpopProofGenerator(
+                cryptoObj,
+                tokenBindingKeyManager
+            );
             const proof = await dpopProofGenerator.generateTokenProof(
                 {
                     tokenEndpoint: TEST_URIS.TEST_AUTH_ENDPT,
@@ -1026,12 +1043,12 @@ describe("CryptoOps.ts Unit Tests", () => {
         }, 10000);
 
         it("detects and removes missing DPoP keys by thumbprint and authority partition", async () => {
-            const keyId = await cryptoObj.provisionTokenBindingKey(
+            const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
                 DPOP_KEY_CONTEXT
             );
 
             await expect(
-                cryptoObj.getTokenBindingPublicKeyJwk(
+                tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
                     keyId,
                     TEST_CONFIG.CORRELATION_ID,
                     DPOP_KEY_CONTEXT
@@ -1040,13 +1057,13 @@ describe("CryptoOps.ts Unit Tests", () => {
                 crv: "P-256",
                 kty: "EC",
             });
-            await cryptoObj.removeTokenBindingKey(
+            await tokenBindingKeyManager.removeTokenBindingKey(
                 keyId,
                 TEST_CONFIG.CORRELATION_ID,
                 DPOP_KEY_CONTEXT
             );
             await expect(
-                cryptoObj.getTokenBindingPublicKeyJwk(
+                tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
                     keyId,
                     TEST_CONFIG.CORRELATION_ID,
                     DPOP_KEY_CONTEXT
@@ -1076,15 +1093,17 @@ describe("CryptoOps.ts Unit Tests", () => {
         }, 10000);
 
         it("clearKeystore removes stored DPoP keys with the shared browser keystore", async () => {
-            const keyId = await cryptoObj.provisionTokenBindingKey(
+            const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
                 DPOP_KEY_CONTEXT
             );
 
             expect(
-                await cryptoObj.clearKeystore(TEST_CONFIG.CORRELATION_ID)
+                await tokenBindingKeyManager.clearKeystore(
+                    TEST_CONFIG.CORRELATION_ID
+                )
             ).toBe(true);
             await expect(
-                cryptoObj.getTokenBindingPublicKeyJwk(
+                tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
                     keyId,
                     TEST_CONFIG.CORRELATION_ID,
                     DPOP_KEY_CONTEXT

@@ -1756,16 +1756,10 @@ export interface ICrypto {
     encodeKid(inputKid: string): string;
     // @deprecated
     getPublicKeyThumbprint(request: PublicKeyThumbprintParameters): Promise<string>;
-    // @internal
-    getTokenBindingPublicKeyJwk(kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<JsonWebKey>;
     hashString(plainText: string): Promise<string>;
-    // @internal
-    provisionTokenBindingKey(request: TokenBindingKeyProvisioningParameters): Promise<string>;
-    removeTokenBindingKey(kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<void>;
+    removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
     // @deprecated
     signJwt(payload: SignedHttpRequest, kid: string, shrOptions?: ShrOptions, correlationId?: string): Promise<string>;
-    // @internal
-    signTokenBindingJwt(header: object, payload: object, kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<string>;
 }
 
 // @public (undocumented)
@@ -2058,12 +2052,6 @@ export class JoseHeader {
     // (undocumented)
     typ?: JsonWebTokenTypes;
 }
-
-// @public
-export const JsonWebTokenAlgorithms: {
-    readonly ES256: "ES256";
-    readonly RS256: "RS256";
-};
 
 // @public (undocumented)
 const JsonWebTokenTypes: {
@@ -3240,19 +3228,6 @@ function toDateFromSeconds(seconds: number | string | undefined): Date;
 
 // @public (undocumented)
 const TOKEN_TYPE = "token_type";
-
-// @public
-export type TokenBindingKeyContext = {
-    keyScope?: string;
-};
-
-// @public
-export type TokenBindingKeyProvisioningParameters = {
-    tokenBindingKeyType: string;
-    tokenBindingKeyAlgorithm: string;
-    correlationId: string;
-    keyScope?: string;
-};
 
 // @public
 export class TokenCacheContext {

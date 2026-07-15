@@ -3,19 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import {
-    ICrypto,
-    JsonWebTokenAlgorithms,
-    SignedHttpRequestParameters,
-} from "./ICrypto.js";
+import { ICrypto, SignedHttpRequestParameters } from "./ICrypto.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import { UrlString } from "../url/UrlString.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { Logger } from "../logger/Logger.js";
-import { JoseHeader } from "./JoseHeader.js";
-import { SignedHttpRequest } from "./SignedHttpRequest.js";
 
 /**
  * See eSTS docs for more info.
@@ -83,11 +77,9 @@ export class PopTokenGenerator {
      * @returns
      */
     async generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf> {
-        const kidThumbprint = await this.cryptoUtils.provisionTokenBindingKey({
-            correlationId: request.correlationId,
-            tokenBindingKeyType: "shr",
-            tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.RS256,
-        });
+        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(
+            request
+        );
 
         return {
             kid: kidThumbprint,
@@ -136,47 +128,22 @@ export class PopTokenGenerator {
             ? new UrlString(resourceRequestUri, request.correlationId)
             : undefined;
         const resourceUrlComponents = resourceUrlString?.getUrlComponents();
-        const publicKeyJwk = await this.cryptoUtils.getTokenBindingPublicKeyJwk(
-            keyId,
-            request.correlationId
-        );
-        const publicKeyJwkString = JSON.stringify(
-            publicKeyJwk,
-            Object.keys(publicKeyJwk).sort()
-        );
-        const encodedKeyIdThumbprint = this.cryptoUtils.base64UrlEncode(
-            JSON.stringify({ kid: keyId })
-        );
-        const tokenBindingKeyAlgorithm = publicKeyJwk.alg || "";
-        const shrHeader = JoseHeader.getShrHeader(
+        return this.cryptoUtils.signJwt(
             {
-                ...shrOptions?.header,
-                alg: tokenBindingKeyAlgorithm,
-                kid: encodedKeyIdThumbprint,
+                at: payload,
+                ts: TimeUtils.nowSeconds(),
+                m: resourceRequestMethod?.toUpperCase(),
+                u: resourceUrlComponents?.HostNameAndPort,
+                nonce: shrNonce || this.cryptoUtils.createNewGuid(),
+                p: resourceUrlComponents?.AbsolutePath,
+                q: resourceUrlComponents?.QueryString
+                    ? [[], resourceUrlComponents.QueryString]
+                    : undefined,
+                client_claims: shrClaims || undefined,
+                ...claims,
             },
-            request.correlationId
-        );
-        const signedHttpRequestPayload: SignedHttpRequest = {
-            at: payload,
-            ts: TimeUtils.nowSeconds(),
-            m: resourceRequestMethod?.toUpperCase(),
-            u: resourceUrlComponents?.HostNameAndPort,
-            nonce: shrNonce || this.cryptoUtils.createNewGuid(),
-            p: resourceUrlComponents?.AbsolutePath,
-            q: resourceUrlComponents?.QueryString
-                ? [[], resourceUrlComponents.QueryString]
-                : undefined,
-            client_claims: shrClaims || undefined,
-            cnf: {
-                jwk: JSON.parse(publicKeyJwkString),
-            },
-            ...claims,
-        };
-
-        return this.cryptoUtils.signTokenBindingJwt(
-            shrHeader,
-            signedHttpRequestPayload,
             keyId,
+            shrOptions,
             request.correlationId
         );
     }

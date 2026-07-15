@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
+import { ICrypto, JsonWebTokenAlgorithms } from "./ICrypto.js";
 import {
-    ICrypto,
-    JsonWebTokenAlgorithms,
+    ITokenBindingKeyManager,
     TokenBindingKeyContext,
-} from "./ICrypto.js";
+} from "./ITokenBindingKeyManager.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import {
     createClientConfigurationError,
@@ -78,6 +78,20 @@ export type DpopProofGenerationParams = {
     keyId: string;
     keyContext: TokenBindingKeyContext;
 };
+
+/**
+ * Internal crypto operation used to sign compact JWTs with token-binding keys.
+ * @internal
+ */
+export interface ITokenBindingJwtSigner {
+    signTokenBindingJwt(
+        header: object,
+        payload: object,
+        kid: string,
+        correlationId: string,
+        context?: TokenBindingKeyContext
+    ): Promise<string>;
+}
 
 const DPOP_HTM_REGEX = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
 const DPOP_TOKEN_BINDING_KEY_TYPE = "dpop";
@@ -154,10 +168,15 @@ function normalizeHtu(url: string, correlationId: string): string {
  * @internal
  */
 export class DpopProofGenerator {
-    private cryptoUtils: ICrypto;
+    private cryptoUtils: ICrypto & ITokenBindingJwtSigner;
+    private tokenBindingKeyManager: ITokenBindingKeyManager;
 
-    constructor(cryptoUtils: ICrypto) {
+    constructor(
+        cryptoUtils: ICrypto & ITokenBindingJwtSigner,
+        tokenBindingKeyManager: ITokenBindingKeyManager
+    ) {
         this.cryptoUtils = cryptoUtils;
+        this.tokenBindingKeyManager = tokenBindingKeyManager;
     }
 
     /**
@@ -168,7 +187,7 @@ export class DpopProofGenerator {
         params: DpopJktGenerationParams,
         correlationId: string = ""
     ): Promise<string> {
-        return this.cryptoUtils.provisionTokenBindingKey({
+        return this.tokenBindingKeyManager.provisionTokenBindingKey({
             tokenBindingKeyType: DPOP_TOKEN_BINDING_KEY_TYPE,
             tokenBindingKeyAlgorithm: DPOP_JWT_HEADER_ALGORITHM,
             keyScope: this.getKeyScope(params),
@@ -255,11 +274,12 @@ export class DpopProofGenerator {
         params: DpopProofGenerationParams,
         correlationId: string
     ): Promise<string> {
-        const publicJwk = await this.cryptoUtils.getTokenBindingPublicKeyJwk(
-            params.keyId,
-            correlationId,
-            params.keyContext
-        );
+        const publicJwk =
+            await this.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                params.keyId,
+                correlationId,
+                params.keyContext
+            );
 
         return this.cryptoUtils.signTokenBindingJwt(
             buildProofHeader(publicJwk, correlationId),

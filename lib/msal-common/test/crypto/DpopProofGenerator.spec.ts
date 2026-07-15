@@ -9,8 +9,13 @@ import {
     DpopProofClaims,
     DpopProofHeader,
     DpopProofGenerator,
+    ITokenBindingJwtSigner,
 } from "../../src/crypto/DpopProofGenerator.js";
-import { ICrypto, TokenBindingKeyContext } from "../../src/crypto/ICrypto.js";
+import { ICrypto } from "../../src/crypto/ICrypto.js";
+import {
+    ITokenBindingKeyManager,
+    TokenBindingKeyContext,
+} from "../../src/crypto/ITokenBindingKeyManager.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { ClientConfigurationErrorCodes } from "../../src/error/ClientConfigurationError.js";
 import crypto from "crypto";
@@ -23,7 +28,15 @@ import {
 
 describe("DpopProofGenerator Unit Tests", () => {
     let generator: DpopProofGenerator;
-    const cryptoInterface: ICrypto = { ...mockCrypto };
+    const cryptoInterface: ICrypto & ITokenBindingJwtSigner = {
+        ...mockCrypto,
+        signTokenBindingJwt: jest.fn(),
+    };
+    const tokenBindingKeyManager: ITokenBindingKeyManager = {
+        provisionTokenBindingKey: jest.fn(),
+        removeTokenBindingKey: jest.fn(),
+        getTokenBindingPublicKeyJwk: jest.fn(),
+    };
     const publicJwk = {
         kty: "EC",
         crv: "P-256",
@@ -37,9 +50,12 @@ describe("DpopProofGenerator Unit Tests", () => {
     };
 
     beforeEach(() => {
-        generator = new DpopProofGenerator(cryptoInterface);
-        jest.spyOn(
+        generator = new DpopProofGenerator(
             cryptoInterface,
+            tokenBindingKeyManager
+        );
+        jest.spyOn(
+            tokenBindingKeyManager,
             "getTokenBindingPublicKeyJwk"
         ).mockResolvedValue(publicJwk);
         jest.spyOn(cryptoInterface, "signTokenBindingJwt").mockImplementation(
@@ -80,7 +96,7 @@ describe("DpopProofGenerator Unit Tests", () => {
     describe("generateJkt", () => {
         it("provisions a DPoP ES256 key and returns the generated JWK thumbprint", async () => {
             const provisionTokenBindingKeySpy = jest
-                .spyOn(cryptoInterface, "provisionTokenBindingKey")
+                .spyOn(tokenBindingKeyManager, "provisionTokenBindingKey")
                 .mockResolvedValue(dpopKeyId);
 
             const dpopJkt = await generator.generateJkt(
@@ -592,7 +608,7 @@ describe("DpopProofGenerator Unit Tests", () => {
                 nonce: "server-nonce",
             });
             expect(
-                cryptoInterface.getTokenBindingPublicKeyJwk
+                tokenBindingKeyManager.getTokenBindingPublicKeyJwk
             ).toHaveBeenCalledWith(
                 dpopKeyId,
                 TEST_CONFIG.CORRELATION_ID,
@@ -667,7 +683,7 @@ describe("DpopProofGenerator Unit Tests", () => {
                 nonce: "resource-nonce",
             });
             expect(
-                cryptoInterface.getTokenBindingPublicKeyJwk
+                tokenBindingKeyManager.getTokenBindingPublicKeyJwk
             ).toHaveBeenCalledWith(
                 dpopKeyId,
                 TEST_CONFIG.CORRELATION_ID,
@@ -687,13 +703,16 @@ describe("DpopProofGenerator Unit Tests", () => {
     describe("jti uniqueness (UT-03, RT-01)", () => {
         it("UT-03: jti values are unique across consecutive token proof builds", () => {
             let callCount = 0;
-            const uniqueGuidCrypto: ICrypto = {
+            const uniqueGuidCrypto: ICrypto & ITokenBindingJwtSigner = {
                 ...cryptoInterface,
                 createNewGuid(): string {
                     return `unique-jti-${++callCount}`;
                 },
             };
-            const uniqueGenerator = new DpopProofGenerator(uniqueGuidCrypto);
+            const uniqueGenerator = new DpopProofGenerator(
+                uniqueGuidCrypto,
+                tokenBindingKeyManager
+            );
             const endpoint =
                 "https://login.microsoftonline.com/common/oauth2/v2.0/token";
 
@@ -734,13 +753,16 @@ describe("DpopProofGenerator Unit Tests", () => {
 
         it("UT-03: resource proof jti values are unique across consecutive builds", () => {
             let callCount = 0;
-            const uniqueGuidCrypto: ICrypto = {
+            const uniqueGuidCrypto: ICrypto & ITokenBindingJwtSigner = {
                 ...cryptoInterface,
                 createNewGuid(): string {
                     return `res-unique-jti-${++callCount}`;
                 },
             };
-            const uniqueGenerator = new DpopProofGenerator(uniqueGuidCrypto);
+            const uniqueGenerator = new DpopProofGenerator(
+                uniqueGuidCrypto,
+                tokenBindingKeyManager
+            );
 
             const proof1 = uniqueGenerator.buildResourceProofClaims(
                 {

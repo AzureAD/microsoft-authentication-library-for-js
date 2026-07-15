@@ -101,13 +101,10 @@ export { IUri } from "./url/IUri.js";
 export { UrlString } from "./url/UrlString.js";
 export {
     ICrypto,
-    JsonWebTokenAlgorithms,
     PkceCodes,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     PublicKeyThumbprintParameters,
     SignedHttpRequestParameters,
-    TokenBindingKeyContext,
-    TokenBindingKeyProvisioningParameters,
 } from "./crypto/ICrypto.js";
 
 export * as AuthorizeProtocol from "./protocol/Authorize.js";

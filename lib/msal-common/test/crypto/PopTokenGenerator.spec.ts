@@ -34,19 +34,15 @@ describe("PopTokenGenerator Unit Tests", () => {
                 cryptoInterface,
                 new StubPerformanceClient()
             );
-            const provisionTokenBindingKeySpy = jest.spyOn(
+            const getPublicKeyThumbprintSpy = jest.spyOn(
                 cryptoInterface,
-                "provisionTokenBindingKey"
+                "getPublicKeyThumbprint"
             );
             const reqCnfData = await popTokenGenerator.generateCnf(
                 testRequest,
                 new Logger({})
             );
-            expect(provisionTokenBindingKeySpy).toHaveBeenCalledWith({
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                tokenBindingKeyType: "shr",
-                tokenBindingKeyAlgorithm: "RS256",
-            });
+            expect(getPublicKeyThumbprintSpy).toHaveBeenCalledWith(testRequest);
             expect(reqCnfData.reqCnfString).toBe(
                 TEST_POP_VALUES.ENCODED_REQ_CNF
             );
@@ -92,42 +88,27 @@ describe("PopTokenGenerator Unit Tests", () => {
                 shrNonce: shrNonce,
             };
 
-            jest.spyOn(
-                cryptoInterface,
-                "signTokenBindingJwt"
-            ).mockImplementation((header, payload, kid, correlationId) => {
-                expect(kid).toBe(TEST_POP_VALUES.KID);
-                const expectedPayload = {
-                    at: accessToken,
-                    ts: currTime,
-                    m: resourceReqMethod,
-                    u: resourceUrlComponents.HostNameAndPort,
-                    nonce: shrNonce,
-                    p: resourceUrlComponents.AbsolutePath,
-                    q: [[], resourceUrlComponents.QueryString],
-                    client_claims: shrClaims,
-                    cnf: {
-                        jwk: {
-                            alg: "RS256",
-                            e: "AQAB",
-                            kty: "RSA",
-                            n: "test",
-                        },
-                    },
-                };
+            jest.spyOn(cryptoInterface, "signJwt").mockImplementation(
+                (payload, kid, shrOptions, correlationId) => {
+                    expect(kid).toBe(TEST_POP_VALUES.KID);
+                    const expectedPayload = {
+                        at: accessToken,
+                        ts: currTime,
+                        m: resourceReqMethod,
+                        u: resourceUrlComponents.HostNameAndPort,
+                        nonce: shrNonce,
+                        p: resourceUrlComponents.AbsolutePath,
+                        q: [[], resourceUrlComponents.QueryString],
+                        client_claims: shrClaims,
+                    };
 
-                expect(header).toEqual({
-                    typ: "pop",
-                    alg: "RS256",
-                    kid: cryptoInterface.base64UrlEncode(
-                        JSON.stringify({ kid: TEST_POP_VALUES.KID })
-                    ),
-                });
-                expect(payload).toEqual(expectedPayload);
-                expect(correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
-                done();
-                return Promise.resolve("");
-            });
+                    expect(payload).toEqual(expectedPayload);
+                    expect(shrOptions).toBeUndefined();
+                    expect(correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
+                    done();
+                    return Promise.resolve("");
+                }
+            );
             popTokenGenerator.signPopToken(
                 accessToken,
                 TEST_POP_VALUES.KID,
@@ -142,42 +123,27 @@ describe("PopTokenGenerator Unit Tests", () => {
             );
             const accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
             const currTime = TimeUtils.nowSeconds();
-            jest.spyOn(
-                cryptoInterface,
-                "signTokenBindingJwt"
-            ).mockImplementation((header, payload, kid, correlationId) => {
-                expect(kid).toBe(TEST_POP_VALUES.KID);
-                const expectedPayload = {
-                    at: accessToken,
-                    ts: currTime,
-                    m: undefined,
-                    u: undefined,
-                    nonce: RANDOM_TEST_GUID,
-                    p: undefined,
-                    q: undefined,
-                    client_claims: undefined,
-                    cnf: {
-                        jwk: {
-                            alg: "RS256",
-                            e: "AQAB",
-                            kty: "RSA",
-                            n: "test",
-                        },
-                    },
-                };
+            jest.spyOn(cryptoInterface, "signJwt").mockImplementation(
+                (payload, kid, shrOptions, correlationId) => {
+                    expect(kid).toBe(TEST_POP_VALUES.KID);
+                    const expectedPayload = {
+                        at: accessToken,
+                        ts: currTime,
+                        m: undefined,
+                        u: undefined,
+                        nonce: RANDOM_TEST_GUID,
+                        p: undefined,
+                        q: undefined,
+                        client_claims: undefined,
+                    };
 
-                expect(header).toEqual({
-                    typ: "pop",
-                    alg: "RS256",
-                    kid: cryptoInterface.base64UrlEncode(
-                        JSON.stringify({ kid: TEST_POP_VALUES.KID })
-                    ),
-                });
-                expect(payload).toEqual(expectedPayload);
-                expect(correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
-                done();
-                return Promise.resolve("");
-            });
+                    expect(payload).toEqual(expectedPayload);
+                    expect(shrOptions).toBeUndefined();
+                    expect(correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
+                    done();
+                    return Promise.resolve("");
+                }
+            );
             popTokenGenerator.signPopToken(
                 accessToken,
                 TEST_POP_VALUES.KID,

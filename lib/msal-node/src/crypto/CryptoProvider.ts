@@ -80,13 +80,6 @@ export class CryptoProvider implements ICrypto {
     }
 
     /**
-     * Generates a token-binding key and returns its public JWK thumbprint - not yet implemented for node
-     */
-    provisionTokenBindingKey(): Promise<string> {
-        throw new Error("Method not implemented.");
-    }
-
-    /**
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid - public key id
      */
@@ -98,20 +91,6 @@ export class CryptoProvider implements ICrypto {
      * Removes all cryptographic keys from Keystore
      */
     clearKeystore(): Promise<boolean> {
-        throw new Error("Method not implemented.");
-    }
-
-    /**
-     * Gets the public JWK for a token-binding key - currently not implemented for node
-     */
-    getTokenBindingPublicKeyJwk(): Promise<JsonWebKey> {
-        throw new Error("Method not implemented.");
-    }
-
-    /**
-     * Signs a compact JWT with a token-binding key - currently not implemented for node
-     */
-    signTokenBindingJwt(): Promise<string> {
         throw new Error("Method not implemented.");
     }
 

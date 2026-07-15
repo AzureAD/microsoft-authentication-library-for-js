@@ -174,13 +174,10 @@ export class CryptoProvider implements ICrypto {
     encodeKid(): string;
     generatePkceCodes(): Promise<PkceCodes>;
     getPublicKeyThumbprint(): Promise<string>;
-    getTokenBindingPublicKeyJwk(): Promise<JsonWebKey>;
     hashString(plainText: string): Promise<string>;
-    provisionTokenBindingKey(): Promise<string>;
     removeTokenBindingKey(): Promise<void>;
     // @deprecated
     signJwt(): Promise<string>;
-    signTokenBindingJwt(): Promise<string>;
 }
 
 // @internal
