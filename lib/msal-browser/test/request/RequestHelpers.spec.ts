@@ -87,6 +87,30 @@ describe("RequestHelpers tests", () => {
                 )
             );
         });
+
+        it("should throw an error if DPoP authentication scheme is requested while runtime-disabled", async () => {
+            const request: Partial<BaseAuthRequest> & {
+                correlationId: string;
+            } = {
+                correlationId: "test-correlation-id",
+                authenticationScheme: "dpop" as Constants.AuthenticationScheme,
+            };
+
+            await expect(
+                RequestHelpers.initializeBaseRequest(
+                    request,
+                    mockConfig,
+                    mockPerformanceClient,
+                    mockLogger,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toThrowError(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.unsupportedAuthenticationScheme,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+        });
     });
 
     describe("initializeSilentRequest", () => {

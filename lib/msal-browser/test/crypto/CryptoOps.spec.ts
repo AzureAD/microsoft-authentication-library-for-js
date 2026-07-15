@@ -98,7 +98,9 @@ describe("CryptoOps.ts Unit Tests", () => {
         });
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        await cryptoObj.clearKeystore(TEST_CONFIG.CORRELATION_ID);
+        await tokenBindingKeyManager.clearKeystore(TEST_CONFIG.CORRELATION_ID);
         jest.restoreAllMocks();
         mockDatabase = {
             "TestDB.keys": {},
@@ -1130,6 +1132,43 @@ describe("CryptoOps.ts Unit Tests", () => {
             );
         }, 10000);
 
+        it("provisionTokenBindingKey does not coalesce distinct scoped requests with colliding dot-joined values", async () => {
+            const generateKeyPairSpy = jest.spyOn(
+                BrowserCrypto,
+                "generateKeyPair"
+            );
+            const collidingScopeContext = {
+                tokenBindingKeyType: "c",
+                tokenBindingKeyAlgorithm: "ES256",
+                keyScope: "a.b",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            };
+            const collidingTypeContext = {
+                tokenBindingKeyType: "b.c",
+                tokenBindingKeyAlgorithm: "ES256",
+                keyScope: "a",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            };
+
+            const [scopedKeyId, typedKeyId] = await Promise.all([
+                tokenBindingKeyManager.provisionTokenBindingKey(
+                    collidingScopeContext
+                ),
+                tokenBindingKeyManager.provisionTokenBindingKey(
+                    collidingTypeContext
+                ),
+            ]);
+
+            expect(typedKeyId).not.toBe(scopedKeyId);
+            expect(generateKeyPairSpy).toHaveBeenCalledTimes(2);
+            expect(
+                getCacheKeysByScope(collidingScopeContext.keyScope)
+            ).toHaveLength(1);
+            expect(
+                getCacheKeysByScope(collidingTypeContext.keyScope)
+            ).toHaveLength(1);
+        }, 10000);
+
         it("provisionTokenBindingKey isolates keys by caller-owned scope", async () => {
             const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
                 DPOP_KEY_CONTEXT
@@ -1204,6 +1243,48 @@ describe("CryptoOps.ts Unit Tests", () => {
 
             expect(proofHeader.jwk).toEqual(dpopPublicJwk);
             expect(verified).toBe(true);
+        }, 10000);
+
+        it("generates a DPoP proof when IndexedDB is unavailable and signing uses a separate manager", async () => {
+            jest.spyOn(DatabaseStorage.prototype, "setItem").mockRejectedValue(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.databaseUnavailable,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+            jest.spyOn(DatabaseStorage.prototype, "getItem").mockRejectedValue(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.databaseUnavailable,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+            jest.spyOn(DatabaseStorage.prototype, "getKeys").mockRejectedValue(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.databaseUnavailable,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+            const provisioningKeyManager = new TokenBindingKeyManager(
+                new Logger({})
+            );
+            const dpopProofGenerator = new DpopProofGenerator(
+                cryptoObj,
+                provisioningKeyManager
+            );
+
+            const keyId = await provisioningKeyManager.provisionTokenBindingKey(
+                DPOP_KEY_CONTEXT
+            );
+            const proof = await dpopProofGenerator.generateTokenProof(
+                {
+                    tokenEndpoint: TEST_URIS.TEST_AUTH_ENDPT,
+                    keyId,
+                    keyContext: DPOP_KEY_CONTEXT,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            expect(proof.split(".")).toHaveLength(3);
         }, 10000);
 
         it("detects and removes missing DPoP keys by thumbprint and authority partition", async () => {

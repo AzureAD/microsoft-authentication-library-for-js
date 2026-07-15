@@ -48,6 +48,8 @@ import {
     ValidCredentialType,
 } from "./utils/CacheTypes.js";
 
+const DPOP_AUTHENTICATION_SCHEME = "dpop";
+
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
  * @internal
@@ -884,18 +886,8 @@ export abstract class CacheManager implements ICacheManager {
             entity.credentialType ===
             Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
         ) {
-            if (
-                !!filter.tokenType &&
-                !this.matchTokenType(entity, filter.tokenType)
-            ) {
+            if (!this.matchAccessTokenWithAuthScheme(entity, filter)) {
                 return false;
-            }
-
-            // KeyId (sshKid) in request must match cached SSH certificate keyId because SSH cert is bound to a specific key
-            if (filter.tokenType === Constants.AuthenticationScheme.SSH) {
-                if (filter.keyId && !this.matchKeyId(entity, filter.keyId)) {
-                    return false;
-                }
             }
         }
 
@@ -1938,6 +1930,41 @@ export abstract class CacheManager implements ICacheManager {
         tokenType: Constants.AuthenticationScheme
     ): boolean {
         return !!(entity.tokenType && entity.tokenType === tokenType);
+    }
+
+    private matchAccessTokenWithAuthScheme(
+        entity: CredentialEntity,
+        filter: CredentialFilter
+    ): boolean {
+        const filterTokenType = filter.tokenType as string | undefined;
+
+        if (
+            !!filter.tokenType &&
+            !this.matchTokenType(entity, filter.tokenType)
+        ) {
+            return false;
+        }
+
+        switch (filterTokenType) {
+            case DPOP_AUTHENTICATION_SCHEME:
+                return this.matchKeyBoundAccessToken(entity, filter, true);
+            case Constants.AuthenticationScheme.SSH:
+                return this.matchKeyBoundAccessToken(entity, filter, false);
+            default:
+                return true;
+        }
+    }
+
+    private matchKeyBoundAccessToken(
+        entity: CredentialEntity,
+        filter: CredentialFilter,
+        requireKeyId: boolean
+    ): boolean {
+        if (!filter.keyId) {
+            return !requireKeyId;
+        }
+
+        return this.matchKeyId(entity, filter.keyId);
     }
 
     /**

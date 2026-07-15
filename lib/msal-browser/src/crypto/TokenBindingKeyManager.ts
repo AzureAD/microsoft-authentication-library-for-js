@@ -114,6 +114,7 @@ export class TokenBindingKeyManager {
         "sign",
         "verify",
     ];
+    private static tokenBindingKeyStorage: AsyncMemoryStorage<CachedKeyPair>;
     private cache: AsyncMemoryStorage<CachedKeyPair>;
     private logger: Logger;
     private performanceClient: IPerformanceClient | undefined;
@@ -121,9 +122,22 @@ export class TokenBindingKeyManager {
 
     constructor(logger: Logger, performanceClient?: IPerformanceClient) {
         this.logger = logger;
-        this.cache = new AsyncMemoryStorage<CachedKeyPair>(this.logger);
+        this.cache = TokenBindingKeyManager.getTokenBindingKeyStorage(
+            this.logger
+        );
         this.performanceClient = performanceClient;
         this.activeScopedKeyRequests = new Map();
+    }
+
+    private static getTokenBindingKeyStorage(
+        logger: Logger
+    ): AsyncMemoryStorage<CachedKeyPair> {
+        if (!TokenBindingKeyManager.tokenBindingKeyStorage) {
+            TokenBindingKeyManager.tokenBindingKeyStorage =
+                new AsyncMemoryStorage<CachedKeyPair>(logger);
+        }
+
+        return TokenBindingKeyManager.tokenBindingKeyStorage;
     }
 
     /**
@@ -454,10 +468,10 @@ export class TokenBindingKeyManager {
     private getScopedRequestFingerprint(
         request: TokenBindingKeyProvisioningParameters
     ): string {
-        return [
+        return JSON.stringify([
             request.keyScope,
             request.tokenBindingKeyType,
             request.tokenBindingKeyAlgorithm,
-        ].join(".");
+        ]);
     }
 }
