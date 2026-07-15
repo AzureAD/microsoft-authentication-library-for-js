@@ -858,7 +858,8 @@ export class StandardController implements IController {
                     atPopupMeasurement.end(
                         {
                             success: true,
-                            isNativeBroker: response.fromPlatformBroker ?? false,
+                            isNativeBroker:
+                                response.fromPlatformBroker ?? false,
                         },
                         undefined,
                         response.account
@@ -2483,7 +2484,8 @@ export class StandardController implements IController {
                     this.performanceClient.addFields(
                         {
                             fromCache: response.fromCache,
-                            isNativeBroker: response.fromPlatformBroker ?? false,
+                            isNativeBroker:
+                                response.fromPlatformBroker ?? false,
                         },
                         request.correlationId
                     );
