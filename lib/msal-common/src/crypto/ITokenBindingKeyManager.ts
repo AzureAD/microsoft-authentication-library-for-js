@@ -36,14 +36,30 @@ export type TokenBindingKeyContext = {
  * @internal
  */
 export interface ITokenBindingKeyManager {
+    /**
+     * Provisions or reuses a token-binding key and returns the key identifier.
+     * @param request - Key provisioning policy and cache scope.
+     */
     provisionTokenBindingKey(
         request: TokenBindingKeyProvisioningParameters
     ): Promise<string>;
+    /**
+     * Removes a token-binding key by identifier and optional lookup context.
+     * @param kid - Token-binding key identifier.
+     * @param correlationId - Request correlation identifier.
+     * @param context - Optional scoped lookup context.
+     */
     removeTokenBindingKey(
         kid: string,
         correlationId: string,
         context?: TokenBindingKeyContext
     ): Promise<void>;
+    /**
+     * Gets a token-binding public key as a JWK by identifier and optional lookup context.
+     * @param kid - Token-binding key identifier.
+     * @param correlationId - Request correlation identifier.
+     * @param context - Optional scoped lookup context.
+     */
     getTokenBindingPublicKeyJwk(
         kid: string,
         correlationId: string,

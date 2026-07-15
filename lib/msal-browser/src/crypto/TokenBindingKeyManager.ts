@@ -18,14 +18,35 @@ import {
 } from "../error/BrowserAuthError.js";
 import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage.js";
 
+/**
+ * Parameters used to provision a browser token-binding key.
+ */
 export type TokenBindingKeyProvisioningParameters = {
+    /**
+     * Protocol or token-binding family that owns the key.
+     */
     tokenBindingKeyType: string;
+    /**
+     * JOSE algorithm policy for generated or reused key material.
+     */
     tokenBindingKeyAlgorithm: string;
+    /**
+     * Request correlation identifier.
+     */
     correlationId: string;
+    /**
+     * Optional stable scope used to reuse a key before its thumbprint is known.
+     */
     keyScope?: string;
 };
 
+/**
+ * Lookup context for existing browser token-binding keys.
+ */
 export type TokenBindingKeyContext = {
+    /**
+     * Optional stable scope used to resolve scoped keys.
+     */
     keyScope?: string;
 };
 
@@ -33,22 +54,52 @@ export type TokenBindingKeyContext = {
  * Browser keystore record for asymmetric token-binding keys.
  */
 export type CachedKeyPair = {
+    /**
+     * Public WebCrypto key.
+     */
     publicKey: CryptoKey;
+    /**
+     * Private WebCrypto key used for signing.
+     */
     privateKey: CryptoKey;
+    /**
+     * Protocol or token-binding family that owns the key.
+     */
     tokenBindingKeyType?: string;
+    /**
+     * JOSE algorithm policy associated with the key.
+     */
     tokenBindingKeyAlgorithm?: string;
+    /**
+     * Optional stable scope used to resolve scoped keys.
+     */
     keyScope?: string;
+    /**
+     * JWK thumbprint used as the key identifier.
+     */
     keyId?: string;
 };
 
 type GeneratedKeyPair = CachedKeyPair & { keyId: string };
 
+/**
+ * Token-binding key metadata emitted in performance measurements.
+ */
 export type TokenBindingKeyTelemetry = {
+    /**
+     * Protocol or token-binding family that owns the key.
+     */
     tokenBindingKeyType?: string;
+    /**
+     * JOSE algorithm policy associated with the key.
+     */
     tokenBindingKeyAlgorithm?: string;
 };
 
-/** @internal */
+/**
+ * Supported token-binding key algorithm names.
+ * @internal
+ */
 export const TOKEN_BINDING_KEY_ALGORITHMS = {
     ES256: "ES256",
     RS256: "RS256",
@@ -75,6 +126,10 @@ export class TokenBindingKeyManager {
         this.activeScopedKeyRequests = new Map();
     }
 
+    /**
+     * Provisions or reuses a browser token-binding key and returns its key identifier.
+     * @param request - Key provisioning policy and cache scope.
+     */
     async provisionTokenBindingKey(
         request: TokenBindingKeyProvisioningParameters
     ): Promise<string> {
@@ -133,6 +188,12 @@ export class TokenBindingKeyManager {
         }
     }
 
+    /**
+     * Removes a browser token-binding key by identifier and optional lookup context.
+     * @param kid - Token-binding key identifier.
+     * @param correlationId - Request correlation identifier.
+     * @param context - Optional scoped lookup context.
+     */
     async removeTokenBindingKey(
         kid: string,
         correlationId: string,
@@ -144,6 +205,10 @@ export class TokenBindingKeyManager {
         );
     }
 
+    /**
+     * Clears browser token-binding keys from memory and persistent storage.
+     * @param correlationId - Request correlation identifier.
+     */
     async clearKeystore(correlationId: string): Promise<boolean> {
         this.cache.clearInMemory(correlationId);
 
@@ -167,6 +232,12 @@ export class TokenBindingKeyManager {
         }
     }
 
+    /**
+     * Gets a token-binding public key as a JWK by identifier and optional lookup context.
+     * @param keyId - Token-binding key identifier.
+     * @param correlationId - Request correlation identifier.
+     * @param context - Optional scoped lookup context.
+     */
     async getTokenBindingPublicKeyJwk(
         keyId: string,
         correlationId: string,
