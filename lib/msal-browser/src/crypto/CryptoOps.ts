@@ -112,10 +112,8 @@ export class CryptoOps implements ICrypto {
      * Provisions or reuses a browser token-binding key and returns the public JWK
      * thumbprint.
      *
-     * @deprecated Compatibility wrapper for the legacy get-or-create API. New
-     * token-binding flows should provision a key with protocol-owned key type
-     * and JOSE algorithm policy, then use lookup/signing APIs with the returned
-     * key id.
+     * @deprecated Legacy SHR compatibility wrapper. New MSAL token-binding
+     * flows should use protocol-specific key lifecycle and signing helpers.
      *
      * @param request - PoP/SHR request parameters.
      * @returns RFC 7638 public JWK thumbprint for the selected key.
@@ -216,7 +214,8 @@ export class CryptoOps implements ICrypto {
 
     /**
      * Signs the given object as an SHR JWT payload with the private key retrieved by the given kid.
-     * @deprecated Build SHR payloads in PopTokenGenerator and call signTokenBindingJwt instead.
+     * @deprecated Legacy SHR signing helper. New MSAL token-binding flows should
+     * use protocol-specific proof builders and signing helpers.
      * @param payload
      * @param kid
      */

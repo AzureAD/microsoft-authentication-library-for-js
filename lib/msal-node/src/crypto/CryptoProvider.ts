@@ -96,7 +96,8 @@ export class CryptoProvider implements ICrypto {
 
     /**
      * Signs the given object as a jwt payload with private key retrieved by given kid - currently not implemented for node
-     * @deprecated Build SHR payloads in PopTokenGenerator and call signTokenBindingJwt instead.
+     * @deprecated Legacy SHR signing helper. New MSAL token-binding flows should
+     * use protocol-specific proof builders and signing helpers.
      */
     signJwt(): Promise<string> {
         throw new Error("Method not implemented.");

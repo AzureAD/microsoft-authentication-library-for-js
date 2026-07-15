@@ -76,10 +76,8 @@ export interface ICrypto {
     /**
      * Provisions or reuses a public JWK thumbprint.
      *
-     * @deprecated Compatibility wrapper for the legacy get-or-create API. New
-     * token-binding flows should provision a key with protocol-owned key type
-     * and JOSE algorithm policy, then use lookup/signing APIs with the returned
-     * key id.
+     * @deprecated Legacy SHR compatibility wrapper. New MSAL token-binding
+     * flows should use protocol-specific key lifecycle and signing helpers.
      *
      * @param request
      */
@@ -99,7 +97,8 @@ export interface ICrypto {
     clearKeystore(correlationId: string): Promise<boolean>;
     /**
      * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
-     * @deprecated Build SHR payloads in PopTokenGenerator and call signTokenBindingJwt instead.
+     * @deprecated Legacy SHR signing helper. New MSAL token-binding flows should
+     * use protocol-specific proof builders and signing helpers.
      * @param payload
      * @param kid
      */
