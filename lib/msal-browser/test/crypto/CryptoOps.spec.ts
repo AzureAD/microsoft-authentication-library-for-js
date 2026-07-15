@@ -515,6 +515,48 @@ describe("CryptoOps.ts Unit Tests", () => {
         });
     }, 30000);
 
+    it("emits token-binding key metadata when scoped key lookup fails", async () => {
+        const performanceClient = new StubPerformanceClient();
+        const endMeasurement = jest.fn();
+        jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
+            (measureName, correlationId) => ({
+                end: endMeasurement,
+                discard: jest.fn(),
+                add: jest.fn(),
+                increment: jest.fn(),
+                event: {
+                    eventId: "test-event-id",
+                    status: PerformanceEventStatus.InProgress,
+                    authority: "",
+                    libraryName: "",
+                    libraryVersion: "",
+                    clientId: "",
+                    name: measureName,
+                    startTimeMs: Date.now(),
+                    correlationId: correlationId || "",
+                },
+            })
+        );
+        jest.spyOn(DatabaseStorage.prototype, "getKeys").mockRejectedValueOnce(
+            new Error("scoped lookup failed")
+        );
+        tokenBindingKeyManager = new TokenBindingKeyManager(
+            new Logger({}),
+            performanceClient
+        );
+
+        await expect(
+            tokenBindingKeyManager.provisionTokenBindingKey(DPOP_KEY_CONTEXT)
+        ).rejects.toThrow("scoped lookup failed");
+
+        expect(endMeasurement).toHaveBeenCalledWith({
+            success: false,
+            tokenBindingKeyType: "dpop",
+            tokenBindingKeyAlgorithm: "ES256",
+            tokenBindingKeyCacheHit: false,
+        });
+    }, 30000);
+
     it("emits SHR key generation metadata when key generation fails", async () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
@@ -1013,6 +1055,79 @@ describe("CryptoOps.ts Unit Tests", () => {
             expect(cachedKeyPair.tokenBindingKeyAlgorithm).toBe("ES256");
             expect(cachedKeyPair.privateKey.extractable).toBe(false);
             expect(cachedKeyPair.publicJwk).toBeUndefined();
+        }, 10000);
+
+        it("provisionTokenBindingKey reuses persisted scoped keys when memory contains unrelated keys", async () => {
+            const generateKeyPairSpy = jest.spyOn(
+                BrowserCrypto,
+                "generateKeyPair"
+            );
+            const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
+                DPOP_KEY_CONTEXT
+            );
+            tokenBindingKeyManager = new TokenBindingKeyManager(new Logger({}));
+            await tokenBindingKeyManager.provisionTokenBindingKey(
+                SHR_KEY_CONTEXT
+            );
+
+            const reusedKeyId =
+                await tokenBindingKeyManager.provisionTokenBindingKey(
+                    DPOP_KEY_CONTEXT
+                );
+
+            expect(reusedKeyId).toBe(keyId);
+            expect(generateKeyPairSpy).toHaveBeenCalledTimes(2);
+            expect(getCacheKeysByScope(DPOP_KEY_CONTEXT.keyScope)).toHaveLength(
+                1
+            );
+        }, 10000);
+
+        it("provisionTokenBindingKey does not reuse scoped keys with mismatched policy metadata", async () => {
+            const generateKeyPairSpy = jest.spyOn(
+                BrowserCrypto,
+                "generateKeyPair"
+            );
+            const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
+                DPOP_KEY_CONTEXT
+            );
+            const alternateAlgorithmKeyId =
+                await tokenBindingKeyManager.provisionTokenBindingKey({
+                    ...DPOP_KEY_CONTEXT,
+                    tokenBindingKeyAlgorithm: "RS256",
+                });
+            const alternateTypeKeyId =
+                await tokenBindingKeyManager.provisionTokenBindingKey({
+                    ...DPOP_KEY_CONTEXT,
+                    tokenBindingKeyType: "shr",
+                });
+
+            expect(alternateAlgorithmKeyId).not.toBe(keyId);
+            expect(alternateTypeKeyId).not.toBe(keyId);
+            expect(generateKeyPairSpy).toHaveBeenCalledTimes(3);
+            expect(getCacheKeysByScope(DPOP_KEY_CONTEXT.keyScope)).toHaveLength(
+                3
+            );
+        }, 30000);
+
+        it("provisionTokenBindingKey serializes concurrent scoped key provisioning", async () => {
+            const generateKeyPairSpy = jest.spyOn(
+                BrowserCrypto,
+                "generateKeyPair"
+            );
+            const [keyId, concurrentKeyId] = await Promise.all([
+                tokenBindingKeyManager.provisionTokenBindingKey(
+                    DPOP_KEY_CONTEXT
+                ),
+                tokenBindingKeyManager.provisionTokenBindingKey(
+                    DPOP_KEY_CONTEXT
+                ),
+            ]);
+
+            expect(concurrentKeyId).toBe(keyId);
+            expect(generateKeyPairSpy).toHaveBeenCalledTimes(1);
+            expect(getCacheKeysByScope(DPOP_KEY_CONTEXT.keyScope)).toHaveLength(
+                1
+            );
         }, 10000);
 
         it("provisionTokenBindingKey isolates keys by caller-owned scope", async () => {

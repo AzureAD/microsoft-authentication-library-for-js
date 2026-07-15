@@ -66,14 +66,35 @@ export class TokenBindingKeyManager {
     private cache: AsyncMemoryStorage<CachedKeyPair>;
     private logger: Logger;
     private performanceClient: IPerformanceClient | undefined;
+    private activeScopedKeyRequests: Map<string, Promise<string>>;
 
     constructor(logger: Logger, performanceClient?: IPerformanceClient) {
         this.logger = logger;
         this.cache = new AsyncMemoryStorage<CachedKeyPair>(this.logger);
         this.performanceClient = performanceClient;
+        this.activeScopedKeyRequests = new Map();
     }
 
     async provisionTokenBindingKey(
+        request: TokenBindingKeyProvisioningParameters
+    ): Promise<string> {
+        if (!request.keyScope) {
+            return this.provisionTokenBindingKeyInternal(request);
+        }
+
+        const scopedRequestFingerprint =
+            this.getScopedRequestFingerprint(request);
+        const activeRequest = this.activeScopedKeyRequests.get(
+            scopedRequestFingerprint
+        );
+        if (activeRequest) {
+            return activeRequest;
+        }
+
+        return this.startScopedKeyRequest(scopedRequestFingerprint, request);
+    }
+
+    private async provisionTokenBindingKeyInternal(
         request: TokenBindingKeyProvisioningParameters
     ): Promise<string> {
         const publicKeyThumbMeasurement =
@@ -81,13 +102,11 @@ export class TokenBindingKeyManager {
                 BrowserPerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
                 request.correlationId
             );
-        const cachedKeyPair = request.keyScope
-            ? await this.getScopedTokenBindingKeyPair(
-                  request.keyScope,
-                  request.correlationId
-              )
-            : null;
+        let cachedKeyPair: GeneratedKeyPair | null = null;
         try {
+            cachedKeyPair = request.keyScope
+                ? await this.getScopedTokenBindingKeyPair(request)
+                : null;
             const activeKeyPair =
                 cachedKeyPair || (await this.createTokenBindingKey(request));
 
@@ -213,31 +232,38 @@ export class TokenBindingKeyManager {
     }
 
     private async getScopedTokenBindingKeyPair(
-        keyScope: string,
-        correlationId: string
+        request: TokenBindingKeyProvisioningParameters
     ): Promise<GeneratedKeyPair | null> {
-        const scopedCacheKeyPrefix =
-            this.getScopedTokenBindingCacheKeyPrefix(keyScope);
-        const cacheKeys = (await this.cache.getKeys(correlationId)) || [];
-        const scopedCacheKey = cacheKeys.find((cacheKey) =>
-            cacheKey.startsWith(scopedCacheKeyPrefix)
+        const scopedCacheKeyPrefix = this.getScopedTokenBindingCacheKeyPrefix(
+            request.keyScope || ""
         );
-        if (!scopedCacheKey) {
-            return null;
+        const cacheKeys =
+            (await this.cache.getAllKeys(request.correlationId)) || [];
+        const scopedCacheKeys = cacheKeys
+            .filter((cacheKey) => cacheKey.startsWith(scopedCacheKeyPrefix))
+            .sort();
+
+        for (const scopedCacheKey of scopedCacheKeys) {
+            const cachedKeyPair = await this.cache.getItem(
+                scopedCacheKey,
+                request.correlationId
+            );
+            if (
+                cachedKeyPair?.keyId &&
+                cachedKeyPair.keyScope === request.keyScope &&
+                cachedKeyPair.tokenBindingKeyType ===
+                    request.tokenBindingKeyType &&
+                cachedKeyPair.tokenBindingKeyAlgorithm ===
+                    request.tokenBindingKeyAlgorithm
+            ) {
+                return {
+                    ...cachedKeyPair,
+                    keyId: cachedKeyPair.keyId,
+                };
+            }
         }
 
-        const cachedKeyPair = await this.cache.getItem(
-            scopedCacheKey,
-            correlationId
-        );
-        if (!cachedKeyPair?.keyId) {
-            return null;
-        }
-
-        return {
-            ...cachedKeyPair,
-            keyId: cachedKeyPair.keyId,
-        };
+        return null;
     }
 
     /** @internal */
@@ -331,5 +357,36 @@ export class TokenBindingKeyManager {
 
     private getScopedTokenBindingCacheKeyPrefix(keyScope: string): string {
         return `${urlEncode(keyScope)}.`;
+    }
+
+    private startScopedKeyRequest(
+        scopedRequestFingerprint: string,
+        request: TokenBindingKeyProvisioningParameters
+    ): Promise<string> {
+        const requestPromise = this.provisionTokenBindingKeyInternal(
+            request
+        ).finally(() => {
+            if (
+                this.activeScopedKeyRequests.get(scopedRequestFingerprint) ===
+                requestPromise
+            ) {
+                this.activeScopedKeyRequests.delete(scopedRequestFingerprint);
+            }
+        });
+        this.activeScopedKeyRequests.set(
+            scopedRequestFingerprint,
+            requestPromise
+        );
+        return requestPromise;
+    }
+
+    private getScopedRequestFingerprint(
+        request: TokenBindingKeyProvisioningParameters
+    ): string {
+        return [
+            request.keyScope,
+            request.tokenBindingKeyType,
+            request.tokenBindingKeyAlgorithm,
+        ].join(".");
     }
 }

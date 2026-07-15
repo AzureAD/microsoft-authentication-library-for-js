@@ -117,6 +117,22 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     }
 
     /**
+     * Get all keys from both in-memory and persistent storage.
+     * @param correlationId
+     */
+    async getAllKeys(correlationId: string): Promise<string[]> {
+        const cacheKeys = this.inMemoryCache.getKeys();
+        try {
+            const persistentCacheKeys = await this.indexedDBCache.getKeys();
+            return Array.from(new Set([...cacheKeys, ...persistentCacheKeys]));
+        } catch (e) {
+            this.handleDatabaseAccessError(e, correlationId);
+        }
+
+        return cacheKeys;
+    }
+
+    /**
      * Returns true or false if the given key is present in the cache.
      * @param key
      * @param correlationId
