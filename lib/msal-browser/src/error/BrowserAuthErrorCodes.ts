@@ -66,6 +66,8 @@ export const unsupportedTokenBindingAlgorithm =
     "unsupported_token_binding_algorithm";
 export const tokenBindingKeyAlgorithmMismatch =
     "token_binding_key_algorithm_mismatch";
+export const tokenBindingKeyJwkThumbprintMismatch =
+    "token_binding_key_jwk_thumbprint_mismatch";
 export const failedToBuildHeaders = "failed_to_build_headers";
 export const failedToParseHeaders = "failed_to_parse_headers";
 export const failedToDecryptEarResponse = "failed_to_decrypt_ear_response";

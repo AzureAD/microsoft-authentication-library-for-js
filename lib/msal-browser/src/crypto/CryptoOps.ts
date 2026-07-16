@@ -36,6 +36,11 @@ type TokenBindingKeySigningAlgorithm = {
     signAlgorithm: AlgorithmIdentifier;
 };
 
+type TokenBindingJwtHeader = {
+    alg?: unknown;
+    jwk?: JsonWebKey;
+};
+
 /**
  * This class implements MSAL's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and
  * implementing Proof Key for Code Exchange specs for the OAuth Authorization Code Flow using PKCE (rfc here: https://tools.ietf.org/html/rfc7636).
@@ -176,6 +181,11 @@ export class CryptoOps implements ICrypto {
                 );
             const jwtHeaderAlgorithm = this.getTokenBindingJwtHeaderAlgorithm(
                 header,
+                correlationId
+            );
+            await this.validateTokenBindingJwtHeaderKey(
+                header,
+                kid,
                 correlationId
             );
             telemetry = this.tokenBindingKeyManager.getTokenBindingKeyTelemetry(
@@ -331,7 +341,7 @@ export class CryptoOps implements ICrypto {
         header: object,
         correlationId: string
     ): string {
-        const requestedAlgorithm = (header as { alg?: unknown }).alg;
+        const requestedAlgorithm = (header as TokenBindingJwtHeader).alg;
         if (typeof requestedAlgorithm === "string" && requestedAlgorithm) {
             return requestedAlgorithm;
         }
@@ -340,6 +350,25 @@ export class CryptoOps implements ICrypto {
             BrowserAuthErrorCodes.missingTokenBindingJwtAlgorithm,
             correlationId
         );
+    }
+
+    private async validateTokenBindingJwtHeaderKey(
+        header: object,
+        kid: string,
+        correlationId: string
+    ): Promise<void> {
+        const publicJwk = (header as TokenBindingJwtHeader).jwk;
+        if (!publicJwk) {
+            return;
+        }
+
+        const headerKeyId = await BrowserCrypto.computeJwkThumbprint(publicJwk);
+        if (headerKeyId !== kid) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch,
+                correlationId
+            );
+        }
     }
 }
 

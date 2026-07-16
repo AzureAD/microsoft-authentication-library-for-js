@@ -865,6 +865,10 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 
 -   The requested token-binding JWT alg is supported, but is incompatible with the stored key material.
 
+### `token_binding_key_jwk_thumbprint_mismatch`
+
+-   The token-binding JWT header JWK thumbprint does not match the signing key identifier.
+
 ### `failed_to_build_headers`
 
 -   Failed to build request headers object.

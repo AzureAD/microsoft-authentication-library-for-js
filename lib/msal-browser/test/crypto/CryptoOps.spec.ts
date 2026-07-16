@@ -632,6 +632,12 @@ describe("CryptoOps.ts Unit Tests", () => {
         const dpopKeyId = await tokenBindingKeyManager.provisionTokenBindingKey(
             DPOP_KEY_CONTEXT
         );
+        const dpopPublicJwk =
+            await tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                dpopKeyId,
+                TEST_CONFIG.CORRELATION_ID,
+                DPOP_KEY_CONTEXT
+            );
         endMeasurement.mockClear();
 
         await cryptoObj.signTokenBindingJwt(
@@ -641,7 +647,7 @@ describe("CryptoOps.ts Unit Tests", () => {
             TEST_CONFIG.CORRELATION_ID
         );
         await cryptoObj.signTokenBindingJwt(
-            { alg: "ES256", typ: "dpop+jwt", jwk: {} },
+            { alg: "ES256", typ: "dpop+jwt", jwk: dpopPublicJwk },
             { htm: "POST", htu: TEST_URIS.TEST_AUTH_ENDPT, iat: 1, jti: "jti" },
             dpopKeyId,
             TEST_CONFIG.CORRELATION_ID,
@@ -900,6 +906,53 @@ describe("CryptoOps.ts Unit Tests", () => {
             expect(verified).toBe(true);
         }, 10000);
 
+        it("signTokenBindingJwt rejects DPoP header JWKs that do not match the signing key", async () => {
+            const signingKeyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const signingPublicJwk = await BrowserCrypto.exportJwk(
+                signingKeyPair.publicKey
+            );
+            const signingKeyId = await BrowserCrypto.computeJwkThumbprint(
+                signingPublicJwk
+            );
+            mockDatabase["TestDB.keys"][signingKeyId] = {
+                privateKey: signingKeyPair.privateKey,
+                publicKey: signingKeyPair.publicKey,
+                tokenBindingKeyType: "dpop",
+                tokenBindingKeyAlgorithm: "ES256",
+            };
+            const mismatchedKeyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const mismatchedPublicJwk = await BrowserCrypto.exportJwk(
+                mismatchedKeyPair.publicKey
+            );
+
+            await expect(
+                cryptoObj.signTokenBindingJwt(
+                    { alg: "ES256", typ: "dpop+jwt", jwk: mismatchedPublicJwk },
+                    {
+                        htm: "POST",
+                        htu: TEST_URIS.TEST_AUTH_ENDPT,
+                        iat: 1,
+                        jti: "jti",
+                    },
+                    signingKeyId,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toThrow(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+        }, 10000);
+
         it("signTokenBindingJwt rejects requested algorithms incompatible with the stored key", async () => {
             const performanceClient = new StubPerformanceClient();
             const endMeasurement = jest.fn();
@@ -988,7 +1041,7 @@ describe("CryptoOps.ts Unit Tests", () => {
 
             await expect(
                 cryptoObj.signTokenBindingJwt(
-                    { alg: "ES384", typ: "dpop+jwt", jwk: {} },
+                    { alg: "ES384", typ: "dpop+jwt" },
                     {
                         htm: "POST",
                         htu: TEST_URIS.TEST_AUTH_ENDPT,
