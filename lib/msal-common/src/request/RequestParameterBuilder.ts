@@ -209,13 +209,15 @@ export function addSid(parameters: Map<string, string>, sid: string): void {
  * @param claims - The claims string from the request
  * @param clientCapabilities - The client capabilities from configuration
  * @param skipBrokerClaims - When true and BROKER_CLIENT_ID is present, excludes clientCapabilities from claims
+ * @param claimsToMergeIn - Optional client-originated claims JSON string (e.g. `clientClaims`) deep-merged into `claims` with precedence on conflicts
  */
 export function addClaims(
     parameters: Map<string, string>,
     correlationId: string,
     claims?: string,
     clientCapabilities?: Array<string>,
-    skipBrokerClaims?: boolean
+    skipBrokerClaims?: boolean,
+    claimsToMergeIn?: string
 ): void {
     // Skip clientCapabilities if skipBrokerClaims is set to true and this is a brokered authentication flow
     const configClaims =
@@ -223,7 +225,12 @@ export function addClaims(
             ? undefined
             : clientCapabilities;
 
-    const mergedClaims = buildMergedClaims(claims, configClaims, correlationId);
+    const mergedClaims = buildMergedClaims(
+        claims,
+        configClaims,
+        correlationId,
+        claimsToMergeIn
+    );
     parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
 }
 
@@ -504,11 +511,7 @@ function parseClaimsOrThrow(
 ): Record<string, unknown> {
     try {
         const parsed = JSON.parse(claims);
-        if (
-            typeof parsed !== "object" ||
-            parsed === null ||
-            Array.isArray(parsed)
-        ) {
+        if (!isPlainObject(parsed)) {
             // Valid JSON, but not an object (e.g. an array, a scalar, or the literal `null`).
             throw new Error("Claims must be a JSON object");
         }
@@ -557,60 +560,37 @@ function deepMergeClaims(
 }
 
 /**
- * Merges two claims JSON strings into one. If only one side is non-empty it is returned
- * verbatim (a single-sided value is a passthrough and is NOT parsed or validated here), and
- * `undefined` is returned when both are empty/whitespace/undefined. Only when both sides are
- * present are they parsed and recursively deep-merged, with values from `claimsToMergeIn`
- * taking precedence on conflicts (nested objects are merged key-by-key; arrays and scalar values
- * are replaced). A ClientConfigurationError (error code `invalid_claims`) is therefore thrown only
- * on the both-sides merge path, when a side being merged is not a valid JSON object. Downstream
- * callers gate the result on `StringUtils.isEmptyObj`, which treats invalid JSON as empty, so an
- * invalid single-sided value is dropped rather than sent — consistent with the existing `claims`
- * convention in msal-js.
- *
- * Unlike `claims` (a server-issued challenge that bypasses the cache), this is used to combine a
- * server-issued challenge with client-originated claims so both are sent on the wire.
- * @param baseClaims - The base claims JSON string (e.g. server-issued `claims`)
- * @param claimsToMergeIn - The claims JSON string merged in with precedence (e.g. `clientClaims`)
- * @param correlationId - The request correlation id
- * @returns The merged claims JSON string, or undefined when both inputs are empty
- */
-export function mergeClaims(
-    baseClaims?: string,
-    claimsToMergeIn?: string,
-    correlationId: string = ""
-): string | undefined {
-    if (!baseClaims?.trim()) {
-        return claimsToMergeIn?.trim() ? claimsToMergeIn : undefined;
-    }
-    if (!claimsToMergeIn?.trim()) {
-        return baseClaims;
-    }
-
-    const merged = deepMergeClaims(
-        parseClaimsOrThrow(baseClaims, correlationId),
-        parseClaimsOrThrow(claimsToMergeIn, correlationId)
-    );
-    return JSON.stringify(merged);
-}
-
-/**
- * Parses claims JSON, merges default optional idToken claims (signin_state, login_hint),
- * and appends client capabilities (xms_cc) to the access_token section.
+ * Parses claims JSON, optionally deep-merges a second client-originated claims string
+ * (`claimsToMergeIn`, e.g. `clientClaims`) with precedence on conflicting keys, merges
+ * default optional idToken claims (signin_state, login_hint), and appends client
+ * capabilities (xms_cc) to the access_token section.
  * Does not overwrite idToken claims already specified by the caller.
  * @param claims - Existing claims JSON string from the request (may be undefined)
  * @param clientCapabilities - Client capabilities array from configuration
+ * @param correlationId - The request correlation id
+ * @param claimsToMergeIn - Optional second claims JSON string (e.g. client-originated `clientClaims`)
+ * deep-merged into `claims` with precedence on conflicts; parsed and validated when present. Nested
+ * objects are merged recursively; arrays and scalar values are replaced.
  * @returns Merged claims JSON string
  */
 export function buildMergedClaims(
     claims?: string,
     clientCapabilities?: Array<string>,
-    correlationId: string = ""
+    correlationId: string = "",
+    claimsToMergeIn?: string
 ): string {
     // Parse provided claims into JSON object or initialize empty object
-    const mergedClaims: object = claims
+    let mergedClaims: object = claims
         ? parseClaimsOrThrow(claims, correlationId)
         : {};
+
+    // Deep-merge client-originated claims (e.g. `clientClaims`) with precedence on conflicts
+    if (claimsToMergeIn?.trim()) {
+        mergedClaims = deepMergeClaims(
+            mergedClaims as Record<string, unknown>,
+            parseClaimsOrThrow(claimsToMergeIn, correlationId)
+        );
+    }
 
     // Add default optional idToken claims
     if (

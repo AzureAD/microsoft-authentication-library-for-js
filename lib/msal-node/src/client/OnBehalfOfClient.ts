@@ -445,25 +445,23 @@ export class OnBehalfOfClient extends BaseClient {
         }
 
         /*
-         * Merge the server-issued `claims` challenge with client-originated `clientClaims` so both
-         * are sent on the wire. Client capabilities are appended by addClaims/buildMergedClaims.
+         * Deep-merge the server-issued `claims` challenge with client-originated `clientClaims`
+         * (via addClaims -> buildMergedClaims) so both are sent on the wire. Client capabilities
+         * are appended by buildMergedClaims.
          */
-        const mergedClaims = RequestParameterBuilder.mergeClaims(
-            request.claims,
-            request.clientClaims,
-            request.correlationId
-        );
-
         if (
-            !StringUtils.isEmptyObj(mergedClaims) ||
+            !StringUtils.isEmptyObj(request.claims) ||
+            !StringUtils.isEmptyObj(request.clientClaims) ||
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
             RequestParameterBuilder.addClaims(
                 parameters,
                 request.correlationId,
-                mergedClaims,
-                this.config.authOptions.clientCapabilities
+                request.claims,
+                this.config.authOptions.clientCapabilities,
+                undefined,
+                request.clientClaims
             );
         }
 
