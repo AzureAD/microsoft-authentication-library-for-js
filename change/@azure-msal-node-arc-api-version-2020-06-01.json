@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Upgrade Azure Arc HIMDS token endpoint api-version from 2019-11-01 to 2020-06-01 [#8711](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8711)",
+    "packageName": "@azure/msal-node",
+    "email": "gladjohn@microsoft.com",
+    "dependentChangeType": "patch"
+}
