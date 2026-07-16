@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Add internal ES256/P-256 DPoP crypto support to BrowserCrypto [#8683](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8683)",
-    "packageName": "@azure/msal-browser",
-    "email": "hectormmg@microsoft.com",
-    "dependentChangeType": "patch"
-}
