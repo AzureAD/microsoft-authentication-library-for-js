@@ -1165,7 +1165,6 @@ describe("CryptoOps.ts Unit Tests", () => {
 
             expect(proof.split(".")).toHaveLength(3);
         }, 10000);
-
     });
 
     it("throws if crypto is unavailable", () => {

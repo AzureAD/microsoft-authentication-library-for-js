@@ -92,10 +92,7 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
     });
 
     it("provisions and reuses an ES256 scoped key", async () => {
-        const generateKeyPairSpy = jest.spyOn(
-            BrowserCrypto,
-            "generateKeyPair"
-        );
+        const generateKeyPairSpy = jest.spyOn(BrowserCrypto, "generateKeyPair");
 
         const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
             DPOP_KEY_CONTEXT
@@ -121,10 +118,7 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
     }, 10000);
 
     it("reuses persisted scoped keys when memory contains unrelated keys", async () => {
-        const generateKeyPairSpy = jest.spyOn(
-            BrowserCrypto,
-            "generateKeyPair"
-        );
+        const generateKeyPairSpy = jest.spyOn(BrowserCrypto, "generateKeyPair");
         const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
             DPOP_KEY_CONTEXT
         );
@@ -143,10 +137,7 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
     }, 10000);
 
     it("does not reuse scoped keys with mismatched policy metadata", async () => {
-        const generateKeyPairSpy = jest.spyOn(
-            BrowserCrypto,
-            "generateKeyPair"
-        );
+        const generateKeyPairSpy = jest.spyOn(BrowserCrypto, "generateKeyPair");
         const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
             DPOP_KEY_CONTEXT
         );
@@ -168,10 +159,7 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
     }, 30000);
 
     it("serializes concurrent scoped key provisioning", async () => {
-        const generateKeyPairSpy = jest.spyOn(
-            BrowserCrypto,
-            "generateKeyPair"
-        );
+        const generateKeyPairSpy = jest.spyOn(BrowserCrypto, "generateKeyPair");
 
         const [keyId, concurrentKeyId] = await Promise.all([
             tokenBindingKeyManager.provisionTokenBindingKey(DPOP_KEY_CONTEXT),
@@ -184,10 +172,7 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
     }, 10000);
 
     it("does not coalesce distinct scoped requests with colliding dot-joined values", async () => {
-        const generateKeyPairSpy = jest.spyOn(
-            BrowserCrypto,
-            "generateKeyPair"
-        );
+        const generateKeyPairSpy = jest.spyOn(BrowserCrypto, "generateKeyPair");
         const collidingScopeContext = {
             tokenBindingKeyType: "c",
             tokenBindingKeyAlgorithm: TOKEN_BINDING_KEY_ALGORITHMS.ES256,
