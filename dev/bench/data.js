@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784161234048,
+  "lastUpdate": 1784223400251,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22479,6 +22479,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.58%",
             "unit": "ops/sec",
             "extra": "226 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "198982749+Copilot@users.noreply.github.com",
+            "name": "Copilot",
+            "username": "Copilot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "487edc902ed4e0a13415a82c3cd3946228499935",
+          "message": "feat(msal-node): upgrade Azure Arc HIMDS api-version to 2020-06-01 (#8711)\n\nAligns MSAL Node with MSAL.NET\n([#6130](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/pull/6130)),\nMSAL Python, and Azure Arc team guidance by bumping the HIMDS token\nendpoint `api-version` from `2019-11-01` to `2020-06-01`.\n\n## Changes\n\n- **`lib/msal-node/src/client/ManagedIdentitySources/AzureArc.ts`** —\nupdate `ARC_API_VERSION` constant:\n  ```typescript\n  // Before\n  export const ARC_API_VERSION: string = \"2019-11-01\";\n  // After\n  export const ARC_API_VERSION: string = \"2020-06-01\";\n  ```\n\n- **`change/@azure-msal-node-arc-api-version-2020-06-01.json`** —\nbeachball patch changefile.\n\nNo test changes required — existing Azure Arc specs import\n`ARC_API_VERSION` by reference rather than hardcoding the version\nstring.\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-07-16T10:28:24-07:00",
+          "tree_id": "5e59798f44bf46d70e1097c37bbf892443c34317",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/487edc902ed4e0a13415a82c3cd3946228499935"
+        },
+        "date": 1784223395757,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 394258,
+            "range": "±0.53%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 388643,
+            "range": "±0.55%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
