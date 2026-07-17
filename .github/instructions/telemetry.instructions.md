@@ -19,7 +19,7 @@ applyTo: "**"
 
 ## 1. PR labels (required)
 
-Apply two ADO labels on every PR:
+Apply two labels on every PR:
 - one of: `agentic-cli`, `agentic-ide`, `agentic-mixed`, `manual`
   - `agentic-cli` — Copilot CLI / Claude CLI / any terminal agent drove the bulk of the edits
   - `agentic-ide` — Copilot Chat / Cursor / inline-suggest in VS Code / Visual Studio drove the bulk of the edits
