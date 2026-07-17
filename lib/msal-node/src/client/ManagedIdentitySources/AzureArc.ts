@@ -41,7 +41,7 @@ import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityToke
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import path from "path";
 
-export const ARC_API_VERSION: string = "2019-11-01";
+export const ARC_API_VERSION: string = "2020-06-01";
 export const DEFAULT_AZURE_ARC_IDENTITY_ENDPOINT: string =
     "http://127.0.0.1:40342/metadata/identity/oauth2/token";
 const HIMDS_EXECUTABLE_HELPER_STRING = "N/A: himds executable exists";

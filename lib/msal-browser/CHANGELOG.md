@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 07 Jul 2026 22:16:01 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 15 Jul 2026 22:35:35 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.17.1
+
+Wed, 15 Jul 2026 22:35:35 GMT
+
+### Patches
+
+- Add internal ES256/P-256 DPoP crypto support to BrowserCrypto [#8683](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8683) (hectormmg@microsoft.com)
+- Bump @azure/msal-common to v16.11.2
 
 ## 5.17.0
 
