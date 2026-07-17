@@ -36,8 +36,8 @@ type TokenBindingKeySigningAlgorithm = {
     signAlgorithm: AlgorithmIdentifier;
 };
 
-type TokenBindingJwtHeader = {
-    alg?: unknown;
+type TokenBindingSigningHeader = {
+    alg: string;
     jwk?: JsonWebKey;
 };
 
@@ -179,23 +179,23 @@ export class CryptoOps implements ICrypto {
                     correlationId,
                     context
                 );
-            const jwtHeaderAlgorithm = this.getTokenBindingJwtHeaderAlgorithm(
+            const jwtHeader = validateTokenBindingSigningHeader(
                 header,
                 correlationId
             );
             await this.validateTokenBindingJwtHeaderKey(
-                header,
+                jwtHeader,
                 kid,
                 correlationId
             );
             telemetry = this.tokenBindingKeyManager.getTokenBindingKeyTelemetry(
                 cachedKeyPair,
-                jwtHeaderAlgorithm
+                jwtHeader.alg
             );
 
             const signingAlgorithm = this.getTokenBindingKeySigningAlgorithm(
                 cachedKeyPair,
-                jwtHeaderAlgorithm,
+                jwtHeader.alg,
                 correlationId
             );
 
@@ -241,7 +241,6 @@ export class CryptoOps implements ICrypto {
                 kid,
                 resolvedCorrelationId
             );
-        const publicKeyJwkString = getSortedObjectString(publicKeyJwk);
         const encodedKeyIdThumbprint = urlEncode(JSON.stringify({ kid: kid }));
         const shrAlgorithm =
             shrOptions?.header?.alg ||
@@ -258,7 +257,7 @@ export class CryptoOps implements ICrypto {
         const shrPayload: SignedHttpRequest = {
             ...payload,
             cnf: {
-                jwk: JSON.parse(publicKeyJwkString),
+                jwk: publicKeyJwk,
             },
         };
 
@@ -337,32 +336,18 @@ export class CryptoOps implements ICrypto {
         );
     }
 
-    private getTokenBindingJwtHeaderAlgorithm(
-        header: object,
-        correlationId: string
-    ): string {
-        const requestedAlgorithm = (header as TokenBindingJwtHeader).alg;
-        if (typeof requestedAlgorithm === "string" && requestedAlgorithm) {
-            return requestedAlgorithm;
-        }
-
-        throw createBrowserAuthError(
-            BrowserAuthErrorCodes.missingTokenBindingJwtAlgorithm,
-            correlationId
-        );
-    }
-
     private async validateTokenBindingJwtHeaderKey(
-        header: object,
+        header: TokenBindingSigningHeader,
         kid: string,
         correlationId: string
     ): Promise<void> {
-        const publicJwk = (header as TokenBindingJwtHeader).jwk;
-        if (!publicJwk) {
+        if (!header.jwk) {
             return;
         }
 
-        const headerKeyId = await BrowserCrypto.computeJwkThumbprint(publicJwk);
+        const headerKeyId = await BrowserCrypto.computeJwkThumbprint(
+            header.jwk
+        );
         if (headerKeyId !== kid) {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch,
@@ -370,8 +355,41 @@ export class CryptoOps implements ICrypto {
             );
         }
     }
+
 }
 
-function getSortedObjectString(obj: object): string {
-    return JSON.stringify(obj, Object.keys(obj).sort());
+function validateTokenBindingSigningHeader(
+    header: object,
+    correlationId: string
+): TokenBindingSigningHeader {
+    if (!isRecord(header) || typeof header.alg !== "string" || !header.alg) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.missingTokenBindingJwtAlgorithm,
+            correlationId
+        );
+    }
+
+    const tokenBindingJwtHeader: TokenBindingSigningHeader = {
+        alg: header.alg,
+    };
+
+    if (!("jwk" in header) || typeof header.jwk === "undefined") {
+        return tokenBindingJwtHeader;
+    }
+
+    if (isRecord(header.jwk)) {
+        return {
+            ...tokenBindingJwtHeader,
+            jwk: header.jwk,
+        };
+    }
+
+    throw createBrowserAuthError(
+        BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch,
+        correlationId
+    );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
 }
