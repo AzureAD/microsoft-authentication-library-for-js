@@ -323,7 +323,7 @@ export class TokenBindingKeyManager {
             request.keyScope || ""
         );
         const cacheKeys =
-            (await this.cache.getAllKeys(request.correlationId)) || [];
+            (await this.cache.getKeys(request.correlationId)) || [];
         const scopedCacheKeys = cacheKeys
             .filter((cacheKey) => cacheKey.startsWith(scopedCacheKeyPrefix))
             .sort();

@@ -168,7 +168,23 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
 
         expect(concurrentKeyId).toBe(keyId);
         expect(generateKeyPairSpy).toHaveBeenCalledTimes(1);
+        expect(DatabaseStorage.prototype.getKeys).toHaveBeenCalledTimes(1);
         expect(getCacheKeysByScope(DPOP_KEY_CONTEXT.keyScope)).toHaveLength(1);
+    }, 10000);
+
+    it("enumerates storage keys once per scoped key lookup", async () => {
+        const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
+            DPOP_KEY_CONTEXT
+        );
+        jest.clearAllMocks();
+
+        const reusedKeyId =
+            await tokenBindingKeyManager.provisionTokenBindingKey(
+                DPOP_KEY_CONTEXT
+            );
+
+        expect(reusedKeyId).toBe(keyId);
+        expect(DatabaseStorage.prototype.getKeys).toHaveBeenCalledTimes(1);
     }, 10000);
 
     it("does not coalesce distinct scoped requests with colliding dot-joined values", async () => {
