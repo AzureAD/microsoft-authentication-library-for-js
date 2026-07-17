@@ -677,13 +677,13 @@ describe("RequestParameterBuilder unit tests", () => {
         });
     });
 
-    describe("buildMergedClaims claimsToMergeIn (client-originated claims) tests", () => {
+    describe("buildMergedClaims claimsToMerge (client-originated claims) tests", () => {
         /*
-         * `claimsToMergeIn` is deep-merged into the base claims with precedence; buildMergedClaims
+         * `claimsToMerge` is deep-merged into the base claims with precedence; buildMergedClaims
          * also injects the default idToken claims, so assertions parse the result and check the
          * merged sections rather than exact-matching the whole string.
          */
-        it("returns just the base claims when claimsToMergeIn is empty/whitespace/undefined", () => {
+        it("returns just the base claims when claimsToMerge is empty/whitespace/undefined", () => {
             const base = '{"nsp":{"essential":true}}';
             const fromUndefined = RequestParameterBuilder.buildMergedClaims(
                 base,
@@ -701,7 +701,7 @@ describe("RequestParameterBuilder unit tests", () => {
             expect(JSON.parse(fromUndefined)).toHaveProperty("nsp");
         });
 
-        it("returns just claimsToMergeIn when base claims are empty", () => {
+        it("returns just claimsToMerge when base claims are empty", () => {
             const clientClaims = '{"nsp":{"essential":true}}';
             const parsed = JSON.parse(
                 RequestParameterBuilder.buildMergedClaims(
@@ -730,7 +730,7 @@ describe("RequestParameterBuilder unit tests", () => {
             expect(parsed).toHaveProperty("userinfo");
         });
 
-        it("lets claimsToMergeIn win on overlapping keys", () => {
+        it("lets claimsToMerge win on overlapping keys", () => {
             const base = '{"nsp":{"value":"v1"}}';
             const clientClaims = '{"nsp":{"value":"v2"}}';
             const parsed = JSON.parse(
@@ -777,7 +777,7 @@ describe("RequestParameterBuilder unit tests", () => {
             expect(parsed.c).toEqual({ essential: true });
         });
 
-        it("replaces arrays and scalars (no element merging) with claimsToMergeIn winning", () => {
+        it("replaces arrays and scalars (no element merging) with claimsToMerge winning", () => {
             const base =
                 '{"access_token":{"groups":{"values":["a","b"]},"scalar":1}}';
             const clientClaims =
@@ -830,7 +830,7 @@ describe("RequestParameterBuilder unit tests", () => {
             );
         });
 
-        it("throws invalidClaims when claimsToMergeIn is invalid JSON", () => {
+        it("throws invalidClaims when claimsToMerge is invalid JSON", () => {
             const valid = '{"a":1}';
             expect(() =>
                 RequestParameterBuilder.buildMergedClaims(
@@ -848,7 +848,7 @@ describe("RequestParameterBuilder unit tests", () => {
         });
 
         it.each(["[]", '"string"', "null", "5"])(
-            "throws invalidClaims when claimsToMergeIn is valid JSON but not an object (%s)",
+            "throws invalidClaims when claimsToMerge is valid JSON but not an object (%s)",
             (nonObjectJson: string) => {
                 const valid = '{"a":1}';
                 expect(() =>

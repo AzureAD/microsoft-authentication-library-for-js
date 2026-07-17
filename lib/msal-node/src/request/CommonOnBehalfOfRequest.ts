@@ -23,8 +23,7 @@ export type CommonOnBehalfOfRequest = Omit<
     /**
      * Client-originated claims to forward to the token endpoint, sent as the `claims` parameter on the wire.
      * Unlike `claims` (a server-issued challenge, which bypasses the token cache), client claims are cached and
-     * the cache entry is keyed on the claims value: identical values are served from cache, while different values
-     * produce separate cache entries. Use stable, non-dynamic values to avoid unbounded cache growth.
+     * the cache entry is keyed on the claims value. Must use stable, non-dynamic values to avoid unbounded cache growth.
      */
     clientClaims?: string;
 };
