@@ -189,7 +189,7 @@ export type ActiveAccountFilters = {
 function addApplicationTelemetry(parameters: Map<string, string>, appTelemetry: ApplicationTelemetry): void;
 
 // @public
-function addAttributeTokens(parameters: Map<string, string>, attributeTokens?: Array<string>): void;
+function addAttributeTokens(parameters: Map<string, string>, attributeTokens: Array<string>): void;
 
 // @public
 function addAuthorizationCode(parameters: Map<string, string>, code: string): void;
@@ -2828,7 +2828,7 @@ export type RequestThumbprint = {
     shrOptions?: ShrOptions;
     embeddedClientId?: string;
     resource?: string;
-    attributeTokenPartition?: string;
+    attributeTokens?: string;
 };
 
 // @public (undocumented)

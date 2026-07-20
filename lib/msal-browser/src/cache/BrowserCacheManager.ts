@@ -2118,15 +2118,12 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Generate Credential Key. All changes to the key REQUIRE a schema version update.
-     * Cache Key: msal.<schema_version>|<home_account_id>|<environment>|<credential_type>|<client_id or familyId>|<realm>|<scopes>|<scheme>[|<additional_cache_key_components_hash>]
+     * Cache Key: msal.<schema_version>|<home_account_id>|<environment>|<credential_type>|<client_id or familyId>|<realm>|<scopes>|<scheme>|<additional_cache_key_components_hash>
      *
-     * When the credential carries `additionalCacheKeyComponents` (e.g., attribute-token
-     * partition, FMI path), the precomputed `additionalCacheKeyComponentsHash` written by
-     * `ResponseHandler` at write time is appended as an additional segment so that entries
-     * differing only by partition receive distinct persisted keys. Existing bearer-mode
-     * entries carry neither field and their key format is unchanged (backward-compatible).
-     * Because this is an additive optional suffix and legacy key shape remains valid/readable,
-     * the current credential schema version remains unchanged.
+     * When the credential carries `additionalCacheKeyComponents` (e.g., attribute-token,
+     * partition, FMI path), cache is persisted distinctly based on this value for similar
+     * tokens. The current credential schema version remains unchanged because the suffix is
+     * optional.
      * @param credentialEntity
      * @returns
      */

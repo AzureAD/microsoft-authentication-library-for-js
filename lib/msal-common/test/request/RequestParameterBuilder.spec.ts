@@ -980,18 +980,9 @@ describe("RequestParameterBuilder unit tests", () => {
             );
         });
 
-        it("does not mutate parameters when attributeTokens is undefined", () => {
+        it("deletes attribute_tokens when passed an empty array", () => {
             const parameters = new Map<string, string>();
             parameters.set(AADServerParamKeys.ATTRIBUTE_TOKENS, "keep");
-            RequestParameterBuilder.addAttributeTokens(parameters, undefined);
-            expect(parameters.get(AADServerParamKeys.ATTRIBUTE_TOKENS)).toBe(
-                "keep"
-            );
-        });
-
-        it("deletes attribute_tokens when passed an explicitly empty array", () => {
-            const parameters = new Map<string, string>();
-            parameters.set(AADServerParamKeys.ATTRIBUTE_TOKENS, "existing");
             RequestParameterBuilder.addAttributeTokens(parameters, []);
             expect(parameters.has(AADServerParamKeys.ATTRIBUTE_TOKENS)).toBe(
                 false

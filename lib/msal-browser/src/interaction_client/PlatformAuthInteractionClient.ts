@@ -1036,13 +1036,15 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             configClaims?.length ? configClaims : undefined
         );
 
+        const hasAttributeTokens = !!requestAttributeTokens?.length;
+
         const serializedAttributeTokens =
-            requestAttributeTokens && requestAttributeTokens.length > 0
+            hasAttributeTokens
                 ? [...requestAttributeTokens].sort().join(" ")
                 : undefined;
         this.performanceClient?.addFields(
             {
-                hasAttributeTokens: Boolean(requestAttributeTokens?.length),
+                hasAttributeTokens,
             },
             this.correlationId
         );
@@ -1069,8 +1071,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             },
             extendedExpiryToken: false, // Make this configurable?
             keyId: request.popKid,
-            attributeTokens: serializedAttributeTokens,
         };
+
+        if (hasAttributeTokens) {
+            validatedRequest.attributeTokens = serializedAttributeTokens;
+        }
 
         // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
         if (validatedRequest.signPopToken && !!request.popKid) {

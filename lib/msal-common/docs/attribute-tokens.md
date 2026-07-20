@@ -20,13 +20,3 @@ Serialization is deterministic:
 - duplicates are preserved
 - values are not trimmed
 
-## Cache partition isolation behavior
-
-Attribute tokens affect cache partitioning for access tokens.
-
-MSAL computes an attribute-token partition and uses a persisted hash (`additionalCacheKeyComponentsHash`) to isolate cache keys so requests with different attribute-token sets do not collide.
-
-This isolation is additive and backward-compatible:
-
-- entries without additional cache key components keep the legacy key format
-- entries with additional cache key components append the persisted hash segment

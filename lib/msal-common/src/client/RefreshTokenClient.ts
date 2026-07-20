@@ -445,13 +445,15 @@ export class RefreshTokenClient {
             request.refreshToken
         );
 
-        RequestParameterBuilder.addAttributeTokens(
-            parameters,
-            request.attributeTokens
-        );
+        if (request.attributeTokens) {
+            RequestParameterBuilder.addAttributeTokens(
+                parameters,
+                request.attributeTokens
+            );
+        }
         this.performanceClient?.addFields(
             {
-                hasAttributeTokens: Boolean(request.attributeTokens?.length),
+                hasAttributeTokens: !!request.attributeTokens?.length,
             },
             request.correlationId
         );

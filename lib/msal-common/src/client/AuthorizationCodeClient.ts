@@ -344,13 +344,15 @@ export class AuthorizationCodeClient {
 
         RequestParameterBuilder.addResource(parameters, request.resource);
 
-        RequestParameterBuilder.addAttributeTokens(
-            parameters,
-            request.attributeTokens
-        );
+        if (request.attributeTokens) {
+            RequestParameterBuilder.addAttributeTokens(
+                parameters,
+                request.attributeTokens
+            );
+        }
         this.performanceClient?.addFields(
             {
-                hasAttributeTokens: Boolean(request.attributeTokens?.length),
+                hasAttributeTokens: !!request.attributeTokens?.length,
             },
             request.correlationId
         );

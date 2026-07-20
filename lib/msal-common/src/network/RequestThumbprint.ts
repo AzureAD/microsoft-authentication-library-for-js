@@ -32,7 +32,7 @@ export type RequestThumbprint = {
      * distinct attribute-token sets with each other. Value comes from
      * `AttributeTokenCacheHelpers.getAttributeTokenPartitionKey`.
      */
-    attributeTokenPartition?: string;
+    attributeTokens?: string;
 };
 
 export function getRequestThumbprint(
@@ -54,7 +54,7 @@ export function getRequestThumbprint(
         embeddedClientId:
             request.embeddedClientId || request.extraParameters?.clientId,
         resource: request.resource,
-        attributeTokenPartition:
+        attributeTokens:
             AttributeTokenCacheHelpers.getAttributeTokenPartitionKey(
                 request.attributeTokens
             ),
