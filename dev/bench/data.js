@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784223400251,
+  "lastUpdate": 1784568015266,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22517,6 +22517,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.55%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "32259ab11239f3777045db30cd145d215e46539f",
+          "message": "NPF AI Readiness (#8712)\n\nThis pull request adds important documentation updates to clarify\nrepository instructions and establish mandatory telemetry tagging for\nPRs and ADO work items. The main changes include introducing a\ncomprehensive telemetry tagging guide and redirecting contributors to\nthe appropriate instructions file.\n\n**Documentation and Telemetry Tagging:**\n\n* Added a new `.github/instructions/telemetry.instructions.md` file\ndetailing mandatory rules for telemetry tagging on PRs and ADO work\nitems, including required labels, description footers, and tagging\nvocabularies. This ensures consistent agentic-vs-manual reporting and\nproper data collection for Kusto dashboards.\n\n**Contributor Guidance:**\n\n* Updated `copilot-instructions.md` to direct contributors to the\n`AGENTS.md` file for repository instructions, improving clarity on where\nto find authoritative guidelines.\n\n---------\n\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-07-20T10:11:51-07:00",
+          "tree_id": "0dcd18d55e5b581c683f4676ba8aa42a5b92e93e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/32259ab11239f3777045db30cd145d215e46539f"
+        },
+        "date": 1784568010985,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 376272,
+            "range": "±0.75%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 374963,
+            "range": "±1.10%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
           }
         ]
       }
