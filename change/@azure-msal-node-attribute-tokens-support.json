@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Support attribute-tokens cache partition support in generateCredentialKey [#8700](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8700)",
+  "comment": "Add attribute-tokens support [#8700](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8700)",
   "packageName": "@azure/msal-node",
   "email": "spingale@microsoft.com",
   "dependentChangeType": "patch"

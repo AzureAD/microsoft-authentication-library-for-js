@@ -58,8 +58,8 @@ const TOKEN_KEYS = "TOKEN_KEYS";
 export class MockStorageClass extends CacheManager {
     store = {};
 
-    generateCredentialKey(credential: CredentialEntity): string {
-        return generateCredentialKey(credential);
+    generateCredentialKey(credential: CredentialEntity, hash?: string): string {
+        return generateCredentialKey(credential, hash);
     }
 
     generateAccountKey(account: AccountInfo): string {

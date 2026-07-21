@@ -1571,19 +1571,23 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * set accessToken credential to the platform cache
-     * @param accessToken
+     * Set accessToken credential to the platform cache
+     * @param accessToken - the access token entity to cache
+     * @param correlationId - unique identifier for the request
+     * @param kmsi - keep me signed in flag
+     * @param additionalCacheKeyHash - optional precomputed hash of additionalCacheKeyComponents used in key generation
      */
     async setAccessTokenCredential(
         accessToken: AccessTokenEntity,
         correlationId: string,
-        kmsi: boolean
+        kmsi: boolean,
+        additionalCacheKeyHash?: string
     ): Promise<void> {
         this.logger.trace(
             "BrowserCacheManager.setAccessTokenCredential called",
             correlationId
         );
-        const accessTokenKey = this.generateCredentialKey(accessToken);
+        const accessTokenKey = this.generateCredentialKey(accessToken, additionalCacheKeyHash);
         const timestamp = Date.now().toString();
         accessToken.lastUpdatedAt = timestamp;
 
@@ -2120,14 +2124,13 @@ export class BrowserCacheManager extends CacheManager {
      * Generate Credential Key. All changes to the key REQUIRE a schema version update.
      * Cache Key: msal.<schema_version>|<home_account_id>|<environment>|<credential_type>|<client_id or familyId>|<realm>|<scopes>|<scheme>|<additional_cache_key_components_hash>
      *
-     * When the credential carries `additionalCacheKeyComponents` (e.g., attribute-token,
-     * partition, FMI path), cache is persisted distinctly based on this value for similar
-     * tokens. The current credential schema version remains unchanged because the suffix is
-     * optional.
+     * If `additionalCacheKeyComponents` exists, append its hash to isolate cache partitions.
+     * The hash suffix is optional, so the credential schema version is unchanged.
      * @param credentialEntity
+     * @param hash - optional precomputed hash of additionalCacheKeyComponents
      * @returns
      */
-    generateCredentialKey(credential: CredentialEntity): string {
+    generateCredentialKey(credential: CredentialEntity, additionalCacheKeyHash?: string): string {
         const familyId =
             (credential.credentialType ===
                 Constants.CredentialType.REFRESH_TOKEN &&
@@ -2150,15 +2153,13 @@ export class BrowserCacheManager extends CacheManager {
             scheme,
         ];
 
-        /*
-         * Append the precomputed component-hash segment.
-         */
+        // Append precomputed component-hash segment.
         if (
             credential.additionalCacheKeyComponents &&
             Object.keys(credential.additionalCacheKeyComponents).length > 0 &&
-            credential.additionalCacheKeyComponentsHash
+            additionalCacheKeyHash
         ) {
-            credentialKey.push(credential.additionalCacheKeyComponentsHash);
+            credentialKey.push(additionalCacheKeyHash);
         }
 
         return credentialKey.join(CacheKeys.CACHE_KEY_SEPARATOR).toLowerCase();

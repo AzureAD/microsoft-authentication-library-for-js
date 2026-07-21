@@ -11,6 +11,7 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../../error/ClientAuthError.js";
+import * as AADServerParamKeys from "../../constants/AADServerParamKeys.js";
 import * as Constants from "../../utils/Constants.js";
 import * as TimeUtils from "../../utils/TimeUtils.js";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity.js";
@@ -73,8 +74,7 @@ export function createAccessTokenEntity(
     tokenType?: Constants.AuthenticationScheme,
     userAssertionHash?: string,
     keyId?: string,
-    additionalCacheKeyComponents?: Record<string, string>,
-    additionalCacheKeyComponentsHash?: string
+    additionalCacheKeyComponents?: Record<string, string>
 ): AccessTokenEntity {
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
@@ -136,10 +136,6 @@ export function createAccessTokenEntity(
         Object.keys(additionalCacheKeyComponents).length > 0
     ) {
         atEntity.additionalCacheKeyComponents = additionalCacheKeyComponents;
-        if (additionalCacheKeyComponentsHash) {
-            atEntity.additionalCacheKeyComponentsHash =
-                additionalCacheKeyComponentsHash;
-        }
     }
 
     return atEntity;
@@ -394,4 +390,60 @@ export function isAuthorityMetadataExpired(
     metadata: AuthorityMetadataEntity
 ): boolean {
     return metadata.expiresAt <= TimeUtils.nowSeconds();
+}
+
+/**
+ * Serialize attribute tokens into the request-body format used across MSAL.
+ * Values are sorted lexicographically and joined with a single space.
+ */
+export function serializeAttributeTokens(
+    attributeTokens: Array<string>
+): string {
+    return [...attributeTokens].sort().join(" ");
+}
+
+/**
+ * Derive a deterministic attribute-token partition string.
+ * Returns `undefined` when no attribute tokens are present.
+ */
+export function getAttributeTokenPartitionKey(
+    attributeTokens?: Array<string>
+): string | undefined {
+    if (!attributeTokens || attributeTokens.length === 0) {
+        return undefined;
+    }
+
+    return serializeAttributeTokens(attributeTokens);
+}
+
+/**
+ * Build the cache-key component record for a partition string.
+ */
+export function buildAttributeTokenAdditionalCacheKeyComponents(
+    partition?: string
+): Record<string, string> | undefined {
+    if (!partition) {
+        return undefined;
+    }
+
+    return {
+        [AADServerParamKeys.ATTRIBUTE_TOKENS]: partition,
+    };
+}
+
+/**
+ * Deterministic payload derived from cache-key components for hashing.
+ */
+export function getAdditionalCacheKeyComponentsHashPayload(
+    components?: Record<string, string>
+): string | undefined {
+    if (!components || Object.keys(components).length === 0) {
+        return undefined;
+    }
+
+    const sortedEntries = Object.entries(components).sort(([a], [b]) =>
+        a.localeCompare(b)
+    );
+
+    return JSON.stringify(Object.fromEntries(sortedEntries));
 }

@@ -26,7 +26,6 @@ import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCa
 import { TokenCacheContext } from "../cache/persistence/TokenCacheContext.js";
 import * as AccountEntityUtils from "../cache/utils/AccountEntityUtils.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
-import * as AttributeTokenCacheHelpers from "../cache/utils/AttributeTokenCacheHelpers.js";
 import { ICrypto } from "../crypto/ICrypto.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
 import {
@@ -240,37 +239,14 @@ export class ResponseHandler {
             serverTokenResponse.key_id || request.sshKid || undefined;
 
         /*
-         * Merge caller-provided additionalCacheKeyComponents with an attribute-token
-         * partition derived from `request.attributeTokens`. This ensures cache write
-         * identity isolates bearer-mode entries from attribute-token entries and also
-         * isolates distinct joined attribute-token strings from each other (R4).
-         */
-        const attributeTokenPartition =
-            AttributeTokenCacheHelpers.getAttributeTokenPartitionKey(
-                request.attributeTokens
-            );
-        const attributeTokenComponents =
-            AttributeTokenCacheHelpers.buildAttributeTokenAdditionalCacheKeyComponents(
-                attributeTokenPartition
-            );
-        const mergedAdditionalCacheKeyComponents:
-            | Record<string, string>
-            | undefined =
-            additionalCacheKeyComponents || attributeTokenComponents
-                ? {
-                      ...(additionalCacheKeyComponents || {}),
-                      ...(attributeTokenComponents || {}),
-                  }
-                : undefined;
-        /*
          * Precompute the SHA-256 base64url hash of the deterministic component payload
          * once here (async context) so that synchronous credential-key generators can
          * append the fixed-size hash segment without needing async crypto themselves.
          */
         let additionalCacheKeyComponentsHash: string | undefined;
         const componentHashPayload =
-            AttributeTokenCacheHelpers.getAdditionalCacheKeyComponentsHashPayload(
-                mergedAdditionalCacheKeyComponents
+            CacheHelpers.getAdditionalCacheKeyComponentsHashPayload(
+                additionalCacheKeyComponents
             );
         if (componentHashPayload) {
             additionalCacheKeyComponentsHash = await this.cryptoObj.hashString(
@@ -286,9 +262,11 @@ export class ResponseHandler {
             idTokenClaims,
             userAssertionHash,
             authCodePayload,
-            mergedAdditionalCacheKeyComponents,
-            additionalCacheKeyComponentsHash
+            additionalCacheKeyComponents
         );
+        // Thread the hash through CacheRecord so generateCredentialKey receives it
+        // without it being persisted on the entity itself.
+        cacheRecord.accessTokenCacheKeyHash = additionalCacheKeyComponentsHash;
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {
@@ -346,6 +324,9 @@ export class ResponseHandler {
                     );
                 }
             }
+            // TEMPORARY TRACE: Network token request
+            // eslint-disable-next-line no-console
+            console.log(`[TRACE] Sampada network call was made to server this request.`);
             await this.cacheStorage.saveCacheRecord(
                 cacheRecord,
                 request.correlationId,
@@ -395,8 +376,7 @@ export class ResponseHandler {
         idTokenClaims?: TokenClaims,
         userAssertionHash?: string,
         authCodePayload?: AuthorizationCodePayload,
-        additionalCacheKeyComponents?: Record<string, string>,
-        additionalCacheKeyComponentsHash?: string
+        additionalCacheKeyComponents?: Record<string, string>
     ): CacheRecord {
         const env = authority.getPreferredCache();
         if (!env) {
@@ -488,8 +468,7 @@ export class ResponseHandler {
                 serverTokenResponse.token_type,
                 userAssertionHash,
                 serverTokenResponse.key_id,
-                additionalCacheKeyComponents,
-                additionalCacheKeyComponentsHash
+                additionalCacheKeyComponents
             );
             // Set resource (to be used for MCP scenarios)
             const resource = request.resource || null;

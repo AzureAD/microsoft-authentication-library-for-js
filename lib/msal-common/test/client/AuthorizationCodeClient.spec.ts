@@ -36,6 +36,7 @@ import {
 import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import * as TokenProtocol from "../../src/protocol/Token.js";
 import * as AuthorityFactory from "../../src/authority/AuthorityFactory.js";
+import { ResponseHandler } from "../../src/response/ResponseHandler.js";
 
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
     '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
@@ -860,6 +861,63 @@ describe("AuthorizationCodeClient unit tests", () => {
             client.acquireToken(authorizationCodeRequest, 0).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
             });
+        });
+
+        it("passes attribute token cache components to ResponseHandler during auth code redemption", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT as any);
+
+            const validateTokenResponseSpy = jest
+                .spyOn(ResponseHandler.prototype, "validateTokenResponse")
+                .mockImplementation(() => undefined);
+            const handleServerTokenResponseSpy = jest
+                .spyOn(ResponseHandler.prototype, "handleServerTokenResponse")
+                .mockResolvedValue(AUTHENTICATION_RESULT as any);
+
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                attributeTokens: ["zeta", "alpha", "mike"],
+            };
+
+            await client.acquireToken(authorizationCodeRequest, 0, {
+                code: authorizationCodeRequest.code,
+                state: "test-state",
+            });
+
+            expect(validateTokenResponseSpy).toHaveBeenCalled();
+            expect(handleServerTokenResponseSpy).toHaveBeenCalledWith(
+                AUTHENTICATION_RESULT.body,
+                expect.anything(),
+                expect.any(Number),
+                authorizationCodeRequest,
+                0,
+                expect.objectContaining({ state: "test-state" }),
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                { attribute_tokens: "alpha mike zeta" }
+            );
         });
 
         it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {

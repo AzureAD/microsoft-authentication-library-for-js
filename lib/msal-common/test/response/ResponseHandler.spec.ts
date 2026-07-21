@@ -459,10 +459,12 @@ describe("ResponseHandler.ts", () => {
                 authority: testAuthority.canonicalAuthority,
                 correlationId: "CORRELATION_ID",
                 scopes: ["openid", "profile", "User.Read", "email"],
-                attributeTokens: ["zeta", "alpha"],
             };
             const testResponse: ServerAuthorizationTokenResponse = {
                 ...AUTHENTICATION_RESULT.body,
+            };
+            const additionalCacheKeyComponents = {
+                attribute_tokens: "alpha zeta",
             };
             const hashStringSpy = jest.spyOn(cryptoInterface, "hashString");
 
@@ -496,15 +498,18 @@ describe("ResponseHandler.ts", () => {
                             cacheRecord.accessToken
                                 ?.additionalCacheKeyComponents
                         ).toEqual({
-                            attribute_tokens: "attribute_tokens:alpha zeta",
+                            attribute_tokens: "alpha zeta",
                         });
                         expect(hashStringSpy).toHaveBeenCalledWith(
-                            "attribute_tokensattribute_tokens:alpha zeta"
+                            '{"attribute_tokens":"alpha zeta"}'
                         );
-                        expect(
-                            cacheRecord.accessToken
-                                ?.additionalCacheKeyComponentsHash
-                        ).toBe(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+                        // hash is now on cacheRecord, not on the entity
+                        expect(cacheRecord.accessTokenCacheKeyHash).toBe(
+                            TEST_CRYPTO_VALUES.TEST_SHA256_HASH
+                        );
+                        // The entity itself must not carry the hash field
+                        const entityAsRecord = cacheRecord.accessToken as Record<string, unknown>;
+                        expect(entityAsRecord["additionalCacheKeyComponentsHash"]).toBeUndefined();
                         done();
                     } catch (error) {
                         done(error);
@@ -520,6 +525,13 @@ describe("ResponseHandler.ts", () => {
                 timestamp,
                 testRequest,
                 0
+                ,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                additionalCacheKeyComponents
             );
         });
 

@@ -1756,7 +1756,7 @@ describe("SilentIframeClient", () => {
                 ).mockResolvedValue(
                     `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
                 );
-                jest.spyOn(
+                const handleResponseCodeSpy = jest.spyOn(
                     AuthorizeProtocol,
                     "handleResponseCode"
                 ).mockResolvedValue(getTestAuthenticationResult());
@@ -1764,9 +1764,32 @@ describe("SilentIframeClient", () => {
                     .spyOn(SilentHandler, "initiateEarRequest")
                     .mockResolvedValue(document.createElement("iframe"));
 
-                const result = await pca.ssoSilent(validRequest);
+                const result = await pca.ssoSilent({
+                    ...validRequest,
+                    attributeTokens: ["zeta", "alpha", "mike"],
+                });
                 expect(result).toEqual(getTestAuthenticationResult());
                 expect(earFormSpy).toHaveBeenCalled();
+                expect(handleResponseCodeSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        attributeTokens: expect.arrayContaining([
+                            "zeta",
+                            "alpha",
+                            "mike",
+                        ]),
+                    }),
+                    expect.anything(),
+                    expect.any(String),
+                    expect.any(Number),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    undefined
+                );
             });
 
             it("throws if protocolMode is set to EAR and httpMethod is set to GET", async () => {

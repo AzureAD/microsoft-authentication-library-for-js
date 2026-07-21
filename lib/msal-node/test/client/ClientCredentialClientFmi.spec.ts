@@ -529,14 +529,13 @@ describe("ClientCredentialClient FMI tests", () => {
             expect(bearerKey).toMatch(/[a-z0-9_-]{43}$/);
         });
 
-        it("prefers persisted additionalCacheKeyComponentsHash over inline compute", () => {
+        it("explicit hash param takes precedence over inline compute", () => {
             const entity = makeEntity({
                 additionalCacheKeyComponents: { fmi_path: "agent-a" },
-                additionalCacheKeyComponentsHash: "precomputed-hash-segment",
             });
 
-            const key = generateCredentialKey(entity);
-            expect(key.endsWith("precomputed-hash-segment")).toBe(true);
+            const key = generateCredentialKey(entity, "explicit-hash-segment");
+            expect(key.endsWith("explicit-hash-segment")).toBe(true);
         });
     });
 });

@@ -38,7 +38,7 @@ import { ServerTelemetryEntity } from "./entities/ServerTelemetryEntity.js";
 import { ThrottlingEntity } from "./entities/ThrottlingEntity.js";
 import { ICacheManager } from "./interface/ICacheManager.js";
 import * as AccountEntityUtils from "./utils/AccountEntityUtils.js";
-import * as AttributeTokenCacheHelpers from "./utils/AttributeTokenCacheHelpers.js";
+import * as CacheHelpers from "./utils/CacheHelpers.js";
 import {
     AccountFilter,
     AppMetadataCache,
@@ -126,14 +126,17 @@ export abstract class CacheManager implements ICacheManager {
     ): AccessTokenEntity | null;
 
     /**
-     * set accessToken entity to the platform cache
-     * @param accessToken
-     * @param correlationId
+     * Set accessToken entity to the platform cache
+     * @param accessToken - the access token entity to cache
+     * @param correlationId - unique identifier for the request
+     * @param kmsi - keep me signed in flag
+     * @param additionalCacheKeyHash - optional precomputed hash of additionalCacheKeyComponents used in credential key generation.
      */
     abstract setAccessTokenCredential(
         accessToken: AccessTokenEntity,
         correlationId: string,
-        kmsi: boolean
+        kmsi: boolean,
+        additionalCacheKeyHash?: string
     ): Promise<void>;
 
     /**
@@ -269,8 +272,9 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * Returns credential cache key from the entity
      * @param credential
+     * @param additionalCacheKeyHash - optional precomputed hash of additionalCacheKeyComponents
      */
-    abstract generateCredentialKey(credential: CredentialEntity): string;
+    abstract generateCredentialKey(credential: CredentialEntity, additionalCacheKeyHash?: string): string;
 
     /**
      * Returns the account cache key from the account info
@@ -641,7 +645,8 @@ export abstract class CacheManager implements ICacheManager {
                 await this.saveAccessToken(
                     cacheRecord.accessToken,
                     correlationId,
-                    kmsi
+                    kmsi,
+                    cacheRecord.accessTokenCacheKeyHash
                 );
             }
 
@@ -674,12 +679,16 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * saves access token credential
-     * @param credential
+     * @param credential - the access token entity to save
+     * @param correlationId - unique identifier for the request
+     * @param kmsi - keep me signed in flag
+     * @param additionalCacheKeyHash - optional precomputed hash of additionalCacheKeyComponents
      */
     private async saveAccessToken(
         credential: AccessTokenEntity,
         correlationId: string,
-        kmsi: boolean
+        kmsi: boolean,
+        additionalCacheKeyHash?: string
     ): Promise<void> {
         const accessTokenFilter: CredentialFilter = {
             clientId: credential.clientId,
@@ -725,7 +734,7 @@ export abstract class CacheManager implements ICacheManager {
                 }
             }
         });
-        await this.setAccessTokenCredential(credential, correlationId, kmsi);
+        await this.setAccessTokenCredential(credential, correlationId, kmsi, additionalCacheKeyHash);
     }
 
     /**
@@ -1363,8 +1372,8 @@ export abstract class CacheManager implements ICacheManager {
              * semantics are preserved.
              */
             additionalCacheKeyComponents:
-                AttributeTokenCacheHelpers.buildAttributeTokenAdditionalCacheKeyComponents(
-                    AttributeTokenCacheHelpers.getAttributeTokenPartitionKey(
+                CacheHelpers.buildAttributeTokenAdditionalCacheKeyComponents(
+                    CacheHelpers.getAttributeTokenPartitionKey(
                         request.attributeTokens
                     )
                 ),
@@ -1373,7 +1382,7 @@ export abstract class CacheManager implements ICacheManager {
         const accessTokenKeys =
             (tokenKeys && tokenKeys.accessToken) ||
             this.getTokenKeys().accessToken;
-        const accessTokens: AccessTokenEntity[] = [];
+        const accessTokens: Array<{ key: string; entity: AccessTokenEntity }> = [];
 
         accessTokenKeys.forEach((key) => {
             // Validate key
@@ -1394,7 +1403,7 @@ export abstract class CacheManager implements ICacheManager {
                         correlationId
                     )
                 ) {
-                    accessTokens.push(accessToken);
+                    accessTokens.push({ key, entity: accessToken });
                 }
             }
         });
@@ -1411,11 +1420,8 @@ export abstract class CacheManager implements ICacheManager {
                 "CacheManager:getAccessToken - Multiple access tokens found, clearing them",
                 correlationId
             );
-            accessTokens.forEach((accessToken) => {
-                this.removeAccessToken(
-                    this.generateCredentialKey(accessToken),
-                    correlationId
-                );
+            accessTokens.forEach(({ key }) => {
+                this.removeAccessToken(key, correlationId);
             });
             this.performanceClient.addFields(
                 { multiMatchedAT: accessTokens.length },
@@ -1428,7 +1434,7 @@ export abstract class CacheManager implements ICacheManager {
             "CacheManager:getAccessToken - Returning access token",
             correlationId
         );
-        return accessTokens[0];
+        return accessTokens[0].entity;
     }
 
     /**
@@ -2127,7 +2133,7 @@ export class DefaultStorageClass extends CacheManager {
             ""
         );
     }
-    generateCredentialKey(): string {
+    generateCredentialKey(credential: CredentialEntity, hash?: string): string {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
             ""

@@ -6,6 +6,7 @@
 import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCodeRequest.js";
 import { Authority } from "../authority/Authority.js";
 import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
+import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import * as UrlUtils from "../utils/UrlUtils.js";
 import * as Constants from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
@@ -157,6 +158,13 @@ export class AuthorizationCodeClient {
             request.correlationId
         )(this.authority, request, this.serverTelemetryManager);
 
+        const additionalCacheKeyComponents =
+            CacheHelpers.buildAttributeTokenAdditionalCacheKeyComponents(
+                CacheHelpers.getAttributeTokenPartitionKey(
+                    request.attributeTokens
+                )
+            );
+
         // Retrieve requestId from response headers
         const requestId =
             response.headers?.[Constants.HeaderNames.X_MS_REQUEST_ID];
@@ -193,7 +201,8 @@ export class AuthorizationCodeClient {
             undefined,
             undefined,
             undefined,
-            requestId
+            requestId,
+            additionalCacheKeyComponents
         );
     }
 

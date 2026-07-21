@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add attribute-tokens support to NAA, Platform Broker and cache [#8700](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8700)",
+  "comment": "Add attribute-tokens support [#8700](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8700)",
   "packageName": "@azure/msal-browser",
   "email": "spingale@microsoft.com",
   "dependentChangeType": "patch"

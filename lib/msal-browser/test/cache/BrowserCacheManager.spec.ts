@@ -5057,36 +5057,28 @@ describe("BrowserCacheManager tests", () => {
             expect(segments.length).toBeGreaterThan(0);
         });
 
-        it("appends persisted additionalCacheKeyComponentsHash when present", () => {
+        it("appends hash passed as parameter when present", () => {
             const partitioned = {
                 ...TEST_ACCESS_TOKEN_ENTITY,
                 additionalCacheKeyComponents: {
                     attribute_tokens: "attribute_tokens:alpha zeta",
                 },
-                additionalCacheKeyComponentsHash: "precomputed-hash-abc",
             };
-            const key = browserCacheManager.generateCredentialKey(partitioned);
+            const key = browserCacheManager.generateCredentialKey(partitioned, "precomputed-hash-abc");
             expect(key.endsWith("precomputed-hash-abc")).toBe(true);
         });
 
-        it("omits appended segment when hash is missing (defensive)", () => {
+        it("omits appended segment when hash param is not passed", () => {
             const partitionedNoHash = {
                 ...TEST_ACCESS_TOKEN_ENTITY,
                 additionalCacheKeyComponents: {
                     attribute_tokens: "attribute_tokens:alpha",
                 },
             };
-            const partitioned = {
-                ...TEST_ACCESS_TOKEN_ENTITY,
-                additionalCacheKeyComponents: {
-                    attribute_tokens: "attribute_tokens:alpha",
-                },
-                additionalCacheKeyComponentsHash: "hash-xyz",
-            };
             const noHashKey =
                 browserCacheManager.generateCredentialKey(partitionedNoHash);
             const withHashKey =
-                browserCacheManager.generateCredentialKey(partitioned);
+                browserCacheManager.generateCredentialKey(partitionedNoHash, "hash-xyz");
             expect(withHashKey).not.toBe(noHashKey);
             expect(withHashKey.endsWith("hash-xyz")).toBe(true);
         });
@@ -5100,10 +5092,9 @@ describe("BrowserCacheManager tests", () => {
                 additionalCacheKeyComponents: {
                     attribute_tokens: "attribute_tokens:alpha",
                 },
-                additionalCacheKeyComponentsHash: "hash-1",
             };
             const attrKey =
-                browserCacheManager.generateCredentialKey(partitioned);
+                browserCacheManager.generateCredentialKey(partitioned, "hash-1");
             expect(bearerKey).not.toBe(attrKey);
         });
     });

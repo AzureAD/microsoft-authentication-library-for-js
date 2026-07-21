@@ -39,65 +39,6 @@ export async function verifyCacheWasUsed(page: puppeteer.Page, screenshot: Scree
 }
 
 /**
- * Navigates to the Playground page and waits for the request editor to load.
- */
-export async function openPlayground(
-    page: puppeteer.Page,
-    screenshot: Screenshot
-) {
-    await page.locator('a[href="/playground"]').click();
-    await page.locator("textarea#tokenRequest").waitHandle();
-    await screenshot.takeScreenshot(page, "Playground loaded");
-}
-
-/**
- * Applies the current Playground config and waits for initialization.
- */
-export async function applyPlaygroundConfig(
-    page: puppeteer.Page,
-    screenshot: Screenshot
-) {
-    await page.locator("button#applyConfig").click();
-    await page.waitForFunction(() => {
-        const responseContent = document.getElementById("responseContent");
-        const text = responseContent?.textContent || "";
-
-        return (
-            text.includes("MSAL instance created and initialized") ||
-            text.includes("Redirect response received")
-        );
-    });
-    await screenshot.takeScreenshot(page, "Playground configuration applied");
-}
-
-/**
- * Waits for an acquireTokenSilent response to be rendered and returns the parsed JSON.
- */
-export async function waitForAcquireTokenSilentResponse(
-    page: puppeteer.Page,
-    screenshot: Screenshot
-) {
-    await page.waitForFunction(() => {
-        const responseContent = document.getElementById("responseContent");
-        const text = responseContent?.textContent || "";
-
-        return (
-            text.includes('"api": "acquireTokenSilent"') &&
-            text.includes('"result"') &&
-            !text.includes('"status": "Executing..."')
-        );
-    });
-
-    const responseText = await page.evaluate(() => {
-        const responseContent = document.getElementById("responseContent");
-        return responseContent?.textContent || "";
-    });
-    await screenshot.takeScreenshot(page, "acquireTokenSilent response rendered");
-
-    return JSON.parse(responseText);
-}
-
-/**
  * Force refresh tokens after an upgrade and verify the cache does not contain more or less token entries than before.
  * @param page
  * @param screenshot
@@ -110,8 +51,17 @@ export async function forceRefreshAndVerifyTokenCountsDoNotChange(
 ) {
     const tokenKeysBefore = await browserCache.getTokens();
 
-    await openPlayground(page, screenshot);
-    await applyPlaygroundConfig(page, screenshot);
+    await page.locator('a[href="/playground"]').click();
+    await page.locator("button#applyConfig").waitHandle();
+    await screenshot.takeScreenshot(page, "Playground loaded");
+
+    await page.locator("button#applyConfig").click();
+    await page.waitForFunction(() => {
+        const responseContent = document.getElementById("responseContent");
+        return !!responseContent?.textContent?.includes(
+            'MSAL instance created and initialized'
+        );
+    });
 
     await page.evaluate(() => {
         const requestElement = document.getElementById(
@@ -131,7 +81,17 @@ export async function forceRefreshAndVerifyTokenCountsDoNotChange(
     await screenshot.takeScreenshot(page, "Force refresh configured");
 
     await page.locator("button#btnAcquireTokenSilent").click();
-    await waitForAcquireTokenSilentResponse(page, screenshot);
+    await page.waitForFunction(() => {
+        const responseContent = document.getElementById("responseContent");
+        const text = responseContent?.textContent || "";
+
+        return (
+            text.includes('"api": "acquireTokenSilent"') &&
+            text.includes('"result"') &&
+            !text.includes('"status": "Executing..."')
+        );
+    });
+    await screenshot.takeScreenshot(page, "Force refresh completed");
 
     const tokenKeysAfter = await browserCache.getTokens();
 

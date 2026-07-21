@@ -2642,6 +2642,172 @@ describe("CacheManager.ts test cases", () => {
         ).toEqual(mockedSshAtEntity);
     });
 
+    it("schema-compat upgrade: legacy and partitioned access tokens can coexist and resolve correctly", async () => {
+        await mockCache.cacheManager.clear();
+
+        const legacyAtEntity: AccessTokenEntity =
+            CacheHelpers.createAccessTokenEntity(
+                "uid.utid",
+                "login.microsoftonline.com",
+                "legacy_access_token",
+                CACHE_MOCKS.MOCK_CLIENT_ID,
+                TEST_CONFIG.TENANT,
+                TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
+                4600,
+                4600,
+                mockCrypto.base64Decode,
+                "",
+                500,
+                AuthenticationScheme.BEARER,
+                TEST_TOKENS.ACCESS_TOKEN
+            );
+
+        const partitionedAtEntity: AccessTokenEntity =
+            CacheHelpers.createAccessTokenEntity(
+                "uid.utid",
+                "login.microsoftonline.com",
+                "partitioned_access_token",
+                CACHE_MOCKS.MOCK_CLIENT_ID,
+                TEST_CONFIG.TENANT,
+                TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
+                4600,
+                4600,
+                mockCrypto.base64Decode,
+                "",
+                500,
+                AuthenticationScheme.BEARER,
+                TEST_TOKENS.ACCESS_TOKEN
+            );
+        partitionedAtEntity.additionalCacheKeyComponents = {
+            attribute_tokens: "alpha zeta",
+        };
+        // hash is computed from additionalCacheKeyComponents at key-generation time (not stored on entity)
+
+        const accountData = {
+            username: "John Doe",
+            localAccountId: "uid",
+            realm: "common",
+            environment: "login.microsoftonline.com",
+            homeAccountId: "uid.utid",
+            authorityType: "MSSTS",
+            clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+        };
+        const mockedAccount: AccountEntity = CacheManager.toObject(
+            {} as AccountEntity,
+            accountData
+        );
+
+        await mockCache.cacheManager.setAccessTokenCredential(legacyAtEntity);
+        await mockCache.cacheManager.setAccessTokenCredential(
+            partitionedAtEntity
+        );
+        await mockCache.cacheManager.setAccount(mockedAccount);
+
+        const mockedAccountInfo: AccountInfo = {
+            homeAccountId: "uid.utid",
+            localAccountId: "uid",
+            environment: "login.microsoftonline.com",
+            tenantId: TEST_CONFIG.TENANT,
+            username: "John Doe",
+            loginHint: "testLoginHint",
+        };
+
+        const legacyRequest: CommonSilentFlowRequest = {
+            scopes: ["user.read"],
+            account: mockedAccountInfo,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false,
+        };
+
+        const partitionedRequest: CommonSilentFlowRequest = {
+            ...legacyRequest,
+            attributeTokens: ["zeta", "alpha"],
+        };
+
+        expect(
+            mockCache.cacheManager.getAccessToken(
+                mockedAccountInfo,
+                legacyRequest
+            )
+        ).toEqual(legacyAtEntity);
+
+        expect(
+            mockCache.cacheManager.getAccessToken(
+                mockedAccountInfo,
+                partitionedRequest
+            )
+        ).toEqual(partitionedAtEntity);
+    });
+
+    it("schema-compat downgrade: legacy requests do not resolve partitioned-only access tokens", async () => {
+        await mockCache.cacheManager.clear();
+
+        const partitionedAtEntity: AccessTokenEntity =
+            CacheHelpers.createAccessTokenEntity(
+                "uid.utid",
+                "login.microsoftonline.com",
+                "partitioned_access_token",
+                CACHE_MOCKS.MOCK_CLIENT_ID,
+                TEST_CONFIG.TENANT,
+                TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
+                4600,
+                4600,
+                mockCrypto.base64Decode,
+                "",
+                500,
+                AuthenticationScheme.BEARER,
+                TEST_TOKENS.ACCESS_TOKEN
+            );
+        partitionedAtEntity.additionalCacheKeyComponents = {
+            attribute_tokens: "alpha zeta",
+        };
+        // hash is computed from additionalCacheKeyComponents at key-generation time (not stored on entity)
+
+        const accountData = {
+            username: "John Doe",
+            localAccountId: "uid",
+            realm: "common",
+            environment: "login.microsoftonline.com",
+            homeAccountId: "uid.utid",
+            authorityType: "MSSTS",
+            clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+        };
+        const mockedAccount: AccountEntity = CacheManager.toObject(
+            {} as AccountEntity,
+            accountData
+        );
+
+        await mockCache.cacheManager.setAccessTokenCredential(
+            partitionedAtEntity
+        );
+        await mockCache.cacheManager.setAccount(mockedAccount);
+
+        const mockedAccountInfo: AccountInfo = {
+            homeAccountId: "uid.utid",
+            localAccountId: "uid",
+            environment: "login.microsoftonline.com",
+            tenantId: TEST_CONFIG.TENANT,
+            username: "John Doe",
+            loginHint: "testLoginHint",
+        };
+
+        const legacyRequest: CommonSilentFlowRequest = {
+            scopes: ["user.read"],
+            account: mockedAccountInfo,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false,
+        };
+
+        expect(
+            mockCache.cacheManager.getAccessToken(
+                mockedAccountInfo,
+                legacyRequest
+            )
+        ).toBeNull();
+    });
+
     it("getAccountsFilteredBy nativeAccountId", () => {
         const account = mockCache.cacheManager.getAccountsFilteredBy(
             {

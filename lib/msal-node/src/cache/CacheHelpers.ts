@@ -15,7 +15,7 @@ import { CACHE } from "../utils/Constants.js";
  * Computes a combined hash from additional cache key components.
  * Matches the cross-SDK algorithm: sort keys → concatenate key+value → SHA-256 → Base64URL (no padding).
  */
-function computeAdditionalCacheKeyHash(
+export function computeAdditionalCacheKeyHash(
     components: Record<string, string>
 ): string {
     const sortedKeys = Object.keys(components).sort();
@@ -23,7 +23,7 @@ function computeAdditionalCacheKeyHash(
     return createHash("sha256").update(input, "utf8").digest("base64url");
 }
 
-export function generateCredentialKey(credential: CredentialEntity): string {
+export function generateCredentialKey(credential: CredentialEntity, hash?: string): string {
     const familyId =
         (credential.credentialType === Constants.CredentialType.REFRESH_TOKEN &&
             credential.familyId) ||
@@ -46,17 +46,15 @@ export function generateCredentialKey(credential: CredentialEntity): string {
 
     /*
      * Compute and append a combined hash from additional cache key components (e.g., fmi_path).
-     * Prefer the precomputed hash persisted on the entity (written at cache-write time in
-     * ResponseHandler via the async `ICrypto.hashString`) so that all runtimes agree on the
-     * same hashed value even when they cannot recompute it synchronously. Fall back to the
-     * legacy inline compute for entities persisted before the precompute contract landed.
+     * Use the explicitly passed hash if available; fall back to synchronous inline compute
+     * for lookup paths where the entity was read from storage without a cached hash.
      */
     if (
         credential.additionalCacheKeyComponents &&
         Object.keys(credential.additionalCacheKeyComponents).length > 0
     ) {
         credentialKey.push(
-            credential.additionalCacheKeyComponentsHash ||
+            hash ??
                 computeAdditionalCacheKeyHash(
                     credential.additionalCacheKeyComponents
                 )

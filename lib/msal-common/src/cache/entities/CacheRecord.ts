@@ -14,6 +14,7 @@ export type CacheRecord = {
     account?: AccountEntity | null;
     idToken?: IdTokenEntity | null;
     accessToken?: AccessTokenEntity | null;
+    accessTokenCacheKeyHash?: string;
     refreshToken?: RefreshTokenEntity | null;
     appMetadata?: AppMetadataEntity | null;
 };

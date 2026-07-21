@@ -360,21 +360,8 @@ export type AppTokenProviderResult = {
     refreshInSeconds?: number;
 };
 
-// @public
-const ATTRIBUTE_TOKEN_BEARER_PARTITION = "bearer";
-
 // @public (undocumented)
 const ATTRIBUTE_TOKENS = "attribute_tokens";
-
-declare namespace AttributeTokenCacheHelpers {
-    export {
-        getAttributeTokenPartitionKey,
-        buildAttributeTokenAdditionalCacheKeyComponents,
-        getAdditionalCacheKeyComponentsHashPayload,
-        ATTRIBUTE_TOKEN_BEARER_PARTITION
-    }
-}
-export { AttributeTokenCacheHelpers }
 
 // @public (undocumented)
 const AuthClientCreateTokenRequestBody = "authClientCreateTokenRequestBody";
@@ -743,7 +730,7 @@ const BROKER_REDIRECT_URI = "brk_redirect_uri";
 export function buildAccountToCache(cacheStorage: CacheManager, authority: Authority, homeAccountId: string, base64Decode: (input: string) => string, correlationId: string, idTokenClaims?: TokenClaims, clientInfo?: string, environment?: string, claimsTenantId?: string | null, authCodePayload?: AuthorizationCodePayload, nativeAccountId?: string, logger?: Logger, performanceClient?: IPerformanceClient): AccountEntity;
 
 // @public
-function buildAttributeTokenAdditionalCacheKeyComponents(partition: string): Record<string, string> | undefined;
+function buildAttributeTokenAdditionalCacheKeyComponents(partition?: string): Record<string, string> | undefined;
 
 // @internal
 export function buildClientConfiguration(input: ClientConfiguration): CommonClientConfiguration;
@@ -813,7 +800,11 @@ declare namespace CacheHelpers {
         generateAuthorityMetadataExpiresAt,
         updateAuthorityEndpointMetadata,
         updateCloudDiscoveryMetadata,
-        isAuthorityMetadataExpired
+        isAuthorityMetadataExpired,
+        serializeAttributeTokens,
+        getAttributeTokenPartitionKey,
+        buildAttributeTokenAdditionalCacheKeyComponents,
+        getAdditionalCacheKeyComponentsHashPayload
     }
 }
 export { CacheHelpers }
@@ -829,7 +820,7 @@ export abstract class CacheManager implements ICacheManager {
     protected cryptoImpl: ICrypto;
     abstract generateAccountKey(account: AccountInfo): string;
     generateAuthorityMetadataCacheKey(authority: string): string;
-    abstract generateCredentialKey(credential: CredentialEntity): string;
+    abstract generateCredentialKey(credential: CredentialEntity, additionalCacheKeyHash?: string): string;
     getAccessToken(account: AccountInfo, request: BaseAuthRequest, tokenKeys?: TokenKeys, targetRealm?: string): AccessTokenEntity | null;
     abstract getAccessTokenCredential(accessTokenKey: string, correlationId: string): AccessTokenEntity | null;
     getAccessTokensByFilter(filter: CredentialFilter, correlationId: string): AccessTokenEntity[];
@@ -870,7 +861,7 @@ export abstract class CacheManager implements ICacheManager {
     abstract removeItem(key: string, correlationId: string): void;
     removeRefreshToken(key: string, correlationId: string): void;
     saveCacheRecord(cacheRecord: CacheRecord, correlationId: string, kmsi: boolean, apiId: number, storeInCache?: StoreInCache): Promise<void>;
-    abstract setAccessTokenCredential(accessToken: AccessTokenEntity, correlationId: string, kmsi: boolean): Promise<void>;
+    abstract setAccessTokenCredential(accessToken: AccessTokenEntity, correlationId: string, kmsi: boolean, additionalCacheKeyHash?: string): Promise<void>;
     abstract setAccount(account: AccountEntity, correlationId: string, kmsi: boolean, apiId: number): Promise<void>;
     abstract setAppMetadata(appMetadata: AppMetadataEntity, correlationId: string): void;
     abstract setAuthorityMetadata(key: string, value: AuthorityMetadataEntity, correlationId: string): void;
@@ -904,6 +895,7 @@ export type CacheRecord = {
     account?: AccountEntity | null;
     idToken?: IdTokenEntity | null;
     accessToken?: AccessTokenEntity | null;
+    accessTokenCacheKeyHash?: string;
     refreshToken?: RefreshTokenEntity | null;
     appMetadata?: AppMetadataEntity | null;
 };
@@ -1345,7 +1337,7 @@ declare namespace Constants {
 const CONSUMER_UTID = "9188040d-6c67-4c5b-b112-36a304b66dad";
 
 // @public
-function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, correlationId: string, refreshOn?: number, tokenType?: Constants_2.AuthenticationScheme, userAssertionHash?: string, keyId?: string, additionalCacheKeyComponents?: Record<string, string>, additionalCacheKeyComponentsHash?: string): AccessTokenEntity;
+function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, correlationId: string, refreshOn?: number, tokenType?: Constants_2.AuthenticationScheme, userAssertionHash?: string, keyId?: string, additionalCacheKeyComponents?: Record<string, string>): AccessTokenEntity;
 
 // @internal
 function createAccountEntity(accountDetails: {
@@ -1409,7 +1401,6 @@ export type CredentialEntity = {
     tokenType?: AuthenticationScheme;
     keyId?: string;
     additionalCacheKeyComponents?: Record<string, string>;
-    additionalCacheKeyComponentsHash?: string;
     lastUpdatedAt: string;
 };
 
@@ -1468,7 +1459,7 @@ export class DefaultStorageClass extends CacheManager {
     // (undocumented)
     generateAccountKey(): string;
     // (undocumented)
-    generateCredentialKey(): string;
+    generateCredentialKey(credential: CredentialEntity, hash?: string): string;
     // (undocumented)
     getAccessTokenCredential(): AccessTokenEntity;
     // (undocumented)
@@ -1624,7 +1615,7 @@ function getAccountInfo(accountEntity: AccountEntity): AccountInfo;
 function getAdditionalCacheKeyComponentsHashPayload(components?: Record<string, string>): string | undefined;
 
 // @public
-function getAttributeTokenPartitionKey(attributeTokens?: Array<string>): string;
+function getAttributeTokenPartitionKey(attributeTokens?: Array<string>): string | undefined;
 
 // @public
 const GetAuthCodeUrl = "getAuthCodeUrl";
@@ -2895,6 +2886,9 @@ export class ScopeSet {
 
 // @internal
 function sendPostRequest<T extends ServerAuthorizationTokenResponse>(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions, correlationId: string, cacheManager: CacheManager, networkClient: INetworkModule, logger: Logger, performanceClient: IPerformanceClient): Promise<NetworkResponse<T>>;
+
+// @public
+function serializeAttributeTokens(attributeTokens: Array<string>): string;
 
 // @public (undocumented)
 const SERVER_TELEM_CACHE_KEY: string;
