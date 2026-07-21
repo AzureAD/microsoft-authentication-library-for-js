@@ -13,13 +13,34 @@ import { CACHE } from "../utils/Constants.js";
 
 /**
  * Computes a combined hash from additional cache key components.
- * Matches the cross-SDK algorithm: sort keys → concatenate key+value → SHA-256 → Base64URL (no padding).
+ *
+ * Matches the cross-SDK algorithm: sort keys ascending → for each key append a
+ * length-prefixed (netstring-style) encoding of the key and value → SHA-256 →
+ * Base64URL (no padding).
+ *
+ * Each entry is encoded as `<byteLen(key)>:<key><byteLen(value)>:<value>` where the
+ * lengths are the UTF-8 **byte** lengths (via `Buffer.byteLength`, not `String.length`
+ * which counts UTF-16 code units). The length prefixes make the serialization injective
+ * so that semantically different component sets can never serialize to the same byte
+ * string. A plain delimiter-less concatenation of key+value is ambiguous
+ * (e.g. `{fmi_path:"value"}` and `{fmi_pat:"hvalue"}` would both yield `fmi_pathvalue`),
+ * which would collide into the same credential cache slot.
+ *
+ * The encoding is byte-identical to the other MSAL SDKs (Go/.NET/Java/Python), so the
+ * resulting hash is a stable cross-SDK cache key. The final credential key is lowercased
+ * downstream in `generateCredentialKey`.
  */
 function computeAdditionalCacheKeyHash(
     components: Record<string, string>
 ): string {
     const sortedKeys = Object.keys(components).sort();
-    const input = sortedKeys.map((k) => k + components[k]).join("");
+    let input = "";
+    for (const key of sortedKeys) {
+        const value = components[key];
+        input +=
+            `${Buffer.byteLength(key, "utf8")}:${key}` +
+            `${Buffer.byteLength(value, "utf8")}:${value}`;
+    }
     return createHash("sha256").update(input, "utf8").digest("base64url");
 }
 
