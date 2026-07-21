@@ -264,15 +264,6 @@ export const mockCrypto = {
             verifier: TEST_CONFIG.TEST_VERIFIER,
         };
     },
-    async provisionTokenBindingKey(): Promise<string> {
-        return TEST_POP_VALUES.KID;
-    },
-    async getTokenBindingPublicKeyJwk(): Promise<JsonWebKey> {
-        return {
-            kty: "RSA",
-            alg: "RS256",
-        };
-    },
     async removeTokenBindingKey(): Promise<void> {
         return Promise.resolve();
     },
