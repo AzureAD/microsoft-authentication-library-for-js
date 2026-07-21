@@ -8,6 +8,7 @@ import {
     IPerformanceClient,
     Logger,
 } from "@azure/msal-common/browser";
+import type { TokenBindingKeyContext } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     base64Encode,
@@ -19,7 +20,6 @@ import * as BrowserCrypto from "./BrowserCrypto.js";
 import {
     CachedKeyPair,
     TOKEN_BINDING_KEY_ALGORITHMS,
-    TokenBindingKeyContext,
     TokenBindingKeyTelemetry,
     TokenBindingKeyManager,
 } from "./TokenBindingKeyManager.js";

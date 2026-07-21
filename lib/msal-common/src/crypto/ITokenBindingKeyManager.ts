@@ -76,22 +76,30 @@ export interface ITokenBindingKeyManager {
  * @internal
  */
 export const DEFAULT_TOKEN_BINDING_KEY_MANAGER: ITokenBindingKeyManager = {
-    async provisionTokenBindingKey(): Promise<string> {
+    async provisionTokenBindingKey(
+        request: TokenBindingKeyProvisioningParameters
+    ): Promise<string> {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
-            ""
+            request.correlationId
         );
     },
-    async removeTokenBindingKey(): Promise<void> {
+    async removeTokenBindingKey(
+        _kid: string,
+        correlationId: string
+    ): Promise<void> {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
-            ""
+            correlationId
         );
     },
-    async getTokenBindingPublicKeyJwk(): Promise<JsonWebKey> {
+    async getTokenBindingPublicKeyJwk(
+        _kid: string,
+        correlationId: string
+    ): Promise<JsonWebKey> {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
-            ""
+            correlationId
         );
     },
 };

@@ -9,6 +9,11 @@ import {
     IPerformanceClient,
     Logger,
 } from "@azure/msal-common/browser";
+import type {
+    ITokenBindingKeyManager,
+    TokenBindingKeyContext,
+    TokenBindingKeyProvisioningParameters,
+} from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { urlEncode } from "../encode/Base64Encode.js";
 import * as BrowserCrypto from "./BrowserCrypto.js";
@@ -17,38 +22,6 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage.js";
-
-/**
- * Parameters used to provision a browser token-binding key.
- */
-export type TokenBindingKeyProvisioningParameters = {
-    /**
-     * Protocol or token-binding family that owns the key.
-     */
-    tokenBindingKeyType: string;
-    /**
-     * JOSE algorithm policy for generated or reused key material.
-     */
-    tokenBindingKeyAlgorithm: string;
-    /**
-     * Request correlation identifier.
-     */
-    correlationId: string;
-    /**
-     * Optional stable scope used to reuse a key before its thumbprint is known.
-     */
-    keyScope?: string;
-};
-
-/**
- * Lookup context for existing browser token-binding keys.
- */
-export type TokenBindingKeyContext = {
-    /**
-     * Optional stable scope used to resolve scoped keys.
-     */
-    keyScope?: string;
-};
 
 /**
  * Browser keystore record for asymmetric token-binding keys.
@@ -109,7 +82,7 @@ export const TOKEN_BINDING_KEY_ALGORITHMS = {
  * Owns browser token-binding key lifecycle and storage lookup.
  * @internal
  */
-export class TokenBindingKeyManager {
+export class TokenBindingKeyManager implements ITokenBindingKeyManager {
     private static TOKEN_BINDING_KEY_USAGES: Array<KeyUsage> = [
         "sign",
         "verify",
