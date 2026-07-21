@@ -1815,6 +1815,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(nativeRequest.resource).toEqual(
                 "https://graph.microsoft.com"
             );
+            // resource is also forwarded via extraParameters so it reaches ESTS
+            // on both the extension and DOM broker transport paths
+            expect(nativeRequest.extraParameters?.resource).toEqual(
+                "https://graph.microsoft.com"
+            );
         });
 
         it("forwards broker-contract params and drops non-contract SDK/ESTS fields", async () => {

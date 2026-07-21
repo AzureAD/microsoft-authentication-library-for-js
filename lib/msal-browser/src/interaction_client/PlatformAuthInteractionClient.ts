@@ -1057,6 +1057,14 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             claims: mergedClaims,
             extraParameters: {
                 ...request.extraParameters,
+                /*
+                 * resource is not a broker-contract param; forward it via extraParameters
+                 * (passed to the broker's token/authorize call) so it reaches ESTS on both
+                 * the extension and DOM transport paths, matching the web /token flow.
+                 */
+                ...(request.resource
+                    ? { [AADServerParamKeys.RESOURCE]: request.resource }
+                    : {}),
             },
             // Internal-only fields - used by MSAL JS after the broker response, not contract params
             keyId: request.popKid,
