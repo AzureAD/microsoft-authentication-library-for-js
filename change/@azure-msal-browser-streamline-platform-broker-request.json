@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Streamline the platform broker request to only include the MSAL JS acquire-token parameters defined in the platform broker contract, dropping non-contract SDK/ESTS-only fields [#8714](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8714)",
+    "comment": "Streamline the platform broker request to only include the MSAL JS acquire-token parameters defined in the platform broker contract and params required on the ESTS /token call [#8714](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8714)",
     "packageName": "@azure/msal-browser",
     "email": "lalima.sharda@gmail.com",
     "dependentChangeType": "patch"
