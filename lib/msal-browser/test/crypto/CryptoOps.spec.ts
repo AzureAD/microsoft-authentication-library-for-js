@@ -896,8 +896,9 @@ describe("CryptoOps.ts Unit Tests", () => {
                 )
             ).rejects.toThrow(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch,
-                    TEST_CONFIG.CORRELATION_ID
+                    BrowserAuthErrorCodes.invalidPublicJwk,
+                    TEST_CONFIG.CORRELATION_ID,
+                    BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch
                 )
             );
         }, 10000);
@@ -954,8 +955,9 @@ describe("CryptoOps.ts Unit Tests", () => {
                 )
             ).rejects.toThrow(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.tokenBindingKeyAlgorithmMismatch,
-                    TEST_CONFIG.CORRELATION_ID
+                    BrowserAuthErrorCodes.unsupportedTokenBindingAlgorithm,
+                    TEST_CONFIG.CORRELATION_ID,
+                    BrowserAuthErrorCodes.tokenBindingKeyAlgorithmMismatch
                 )
             );
 

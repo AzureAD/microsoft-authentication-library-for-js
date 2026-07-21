@@ -254,8 +254,9 @@ export class CryptoOps implements ICrypto {
             requestedAlgorithm === TOKEN_BINDING_KEY_ALGORITHMS.ES256
         ) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.tokenBindingKeyAlgorithmMismatch,
-                correlationId
+                BrowserAuthErrorCodes.unsupportedTokenBindingAlgorithm,
+                correlationId,
+                BrowserAuthErrorCodes.tokenBindingKeyAlgorithmMismatch
             );
         }
 
@@ -279,8 +280,9 @@ export class CryptoOps implements ICrypto {
         );
         if (headerKeyId !== kid) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch,
-                correlationId
+                BrowserAuthErrorCodes.invalidPublicJwk,
+                correlationId,
+                BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch
             );
         }
     }
@@ -313,8 +315,9 @@ function validateTokenBindingSigningHeader(
     }
 
     throw createBrowserAuthError(
-        BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch,
-        correlationId
+        BrowserAuthErrorCodes.invalidPublicJwk,
+        correlationId,
+        BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch
     );
 }
 

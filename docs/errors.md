@@ -762,6 +762,8 @@ If you do not want to use a dedicated `redirectUri` for this purpose, you should
 ### `invalid_public_jwk`
 
 -   Public JWK must include the required RFC 7638 thumbprint members for its supported key type.
+-   This error may include one of the following sub-errors:
+    -   `token_binding_key_jwk_thumbprint_mismatch` - The token-binding JWT header JWK thumbprint does not match the signing key identifier.
 
 ### `auth_code_required`
 
@@ -860,14 +862,8 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 ### `unsupported_token_binding_algorithm`
 
 -   The token-binding key algorithm is not supported by the browser crypto implementation.
-
-### `token_binding_key_algorithm_mismatch`
-
--   The requested token-binding JWT alg is supported, but is incompatible with the stored key material.
-
-### `token_binding_key_jwk_thumbprint_mismatch`
-
--   The token-binding JWT header JWK thumbprint does not match the signing key identifier.
+-   This error may include one of the following sub-errors:
+    -   `token_binding_key_algorithm_mismatch` - The requested token-binding JWT alg is supported, but is incompatible with the stored key material.
 
 ### `failed_to_build_headers`
 
