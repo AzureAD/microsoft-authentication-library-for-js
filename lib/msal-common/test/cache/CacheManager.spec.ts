@@ -2709,8 +2709,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getAccessTokensByFilter matches DPoP access tokens by tokenType and jkt", async () => {
-        const SPEC_DPOP_AUTHENTICATION_SCHEME =
-            "DPoP" as AuthenticationScheme;
+        const SPEC_DPOP_AUTHENTICATION_SCHEME = "DPoP" as AuthenticationScheme;
         const mockedDpopAtEntity = CacheHelpers.createAccessTokenEntity(
             "uid.utid",
             "login.microsoftonline.com",

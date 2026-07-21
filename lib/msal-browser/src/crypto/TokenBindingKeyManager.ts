@@ -126,9 +126,10 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
 
         const scopedRequestFingerprint =
             this.getScopedRequestFingerprint(request);
-        const activeRequest = TokenBindingKeyManager.activeScopedKeyRequests.get(
-            scopedRequestFingerprint
-        );
+        const activeRequest =
+            TokenBindingKeyManager.activeScopedKeyRequests.get(
+                scopedRequestFingerprint
+            );
         if (activeRequest) {
             return activeRequest;
         }
