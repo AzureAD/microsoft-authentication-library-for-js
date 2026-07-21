@@ -1817,6 +1817,54 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
         });
 
+        it("forwards broker-contract params and drops non-contract SDK/ESTS fields", async () => {
+            // Cast to any so non-contract SDK/ESTS-only fields can be supplied without type errors
+            const requestWithExtraFields: any = {
+                scopes: ["User.Read"],
+                // Broker-contract MSAL JS acquire-token params
+                loginHint: "user@contoso.com",
+                nonce: "test-nonce",
+                state: "test-state",
+                prompt: Constants.PromptValue.LOGIN,
+                // Non-contract SDK/ESTS-only fields that must NOT reach the broker
+                azureCloudOptions: { azureCloudInstance: 1 },
+                maxAge: 3600,
+                sshJwk: "test-ssh-jwk",
+                sshKid: "test-ssh-kid",
+                scenarioId: "test-scenario",
+                skipBrokerClaims: true,
+                extraQueryParameters: { eqp: "value" },
+                sid: "test-sid",
+                domainHint: "contoso.com",
+            };
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializePlatformRequest(
+                    requestWithExtraFields
+                );
+
+            // Contract params are forwarded
+            expect(nativeRequest.loginHint).toEqual("user@contoso.com");
+            expect(nativeRequest.nonce).toEqual("test-nonce");
+            expect(nativeRequest.state).toEqual("test-state");
+            expect(nativeRequest.prompt).toEqual(Constants.PromptValue.LOGIN);
+
+            // Non-contract fields are not present on the request sent to the broker
+            [
+                "azureCloudOptions",
+                "maxAge",
+                "sshJwk",
+                "sshKid",
+                "scenarioId",
+                "skipBrokerClaims",
+                "extraQueryParameters",
+                "sid",
+                "domainHint",
+            ].forEach((field) => {
+                expect(nativeRequest).not.toHaveProperty(field);
+            });
+        });
+
         it("merges client capabilities with empty claims", async () => {
             const pcaWithClientCapabilities = new PublicClientApplication({
                 auth: {

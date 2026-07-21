@@ -21,6 +21,7 @@ export type PlatformAuthRequest = {
     nonce?: string;
     claims?: string;
     state?: string;
+    loginHint?: string; // Upn of the user. Contract param forwarded to the platform broker.
     reqCnf?: string;
     keyId?: string;
     tokenType?: string;

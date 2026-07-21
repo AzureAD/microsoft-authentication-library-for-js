@@ -1018,8 +1018,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 ? undefined
                 : this.config.auth.clientCapabilities;
 
-        // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
-        const { scopes, claims, ...remainingProperties } = request;
+        // scopes are expected to be received by the native broker as "scope" and will be added to the request below.
+        const { scopes, claims } = request;
         const scopeSet = new ScopeSet(scopes || [], this.correlationId);
         scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
 
@@ -1028,9 +1028,15 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             configClaims?.length ? configClaims : undefined
         );
 
+        /**
+         * Only the parameters defined as MSAL JS "Acquire token parameters" in the platform
+         * broker contract are forwarded to the platform broker. The full developer request must
+         * NOT be spread here, otherwise ESTS/token-endpoint-only and SDK-only fields (e.g.
+         * azureCloudOptions, maxAge, sshJwk, account, scenarioId, httpMethod, skipBrokerClaims,
+         * extraQueryParameters, sid, domainHint, instanceAware) would leak into the broker payload.
+         */
         const validatedRequest: PlatformAuthRequest = {
-            ...remainingProperties,
-            claims: mergedClaims,
+            // Broker contract - MSAL JS "Acquire token parameters"
             accountId: this.accountId,
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
@@ -1041,15 +1047,26 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.logger,
                 this.correlationId
             ),
-            prompt: this.getPrompt(request.prompt),
             correlationId: this.correlationId,
-            tokenType: request.authenticationScheme,
+            prompt: this.getPrompt(request.prompt),
+            nonce: request.nonce,
+            state: request.state,
+            loginHint: request.loginHint,
             windowTitleSubstring: document.title,
+            tokenType: request.authenticationScheme,
+            claims: mergedClaims,
             extraParameters: {
                 ...request.extraParameters,
             },
-            extendedExpiryToken: false, // Make this configurable?
+            // Internal-only fields - used by MSAL JS after the broker response, not contract params
             keyId: request.popKid,
+            storeInCache: request.storeInCache,
+            embeddedClientId: request.embeddedClientId,
+            resource: request.resource,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims,
+            shrNonce: request.shrNonce,
         };
 
         // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
