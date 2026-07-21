@@ -319,9 +319,7 @@ export class TokenBindingKeyManager {
     private async getScopedTokenBindingKeyPair(
         request: TokenBindingKeyProvisioningParameters
     ): Promise<GeneratedKeyPair | null> {
-        const scopedCacheKeyPrefix = this.getScopedTokenBindingCacheKeyPrefix(
-            request.keyScope || ""
-        );
+        const scopedCacheKeyPrefix = `${urlEncode(request.keyScope || "")}.`;
         const cacheKeys =
             (await this.cache.getKeys(request.correlationId)) || [];
         const scopedCacheKeys = cacheKeys
@@ -434,14 +432,8 @@ export class TokenBindingKeyManager {
         context?: TokenBindingKeyContext
     ): string {
         return context?.keyScope
-            ? `${this.getScopedTokenBindingCacheKeyPrefix(
-                  context.keyScope
-              )}${keyId}`
+            ? `${urlEncode(context.keyScope)}.${keyId}`
             : keyId;
-    }
-
-    private getScopedTokenBindingCacheKeyPrefix(keyScope: string): string {
-        return `${urlEncode(keyScope)}.`;
     }
 
     private startScopedKeyRequest(
