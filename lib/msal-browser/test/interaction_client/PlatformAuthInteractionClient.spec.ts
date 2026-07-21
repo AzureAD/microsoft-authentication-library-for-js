@@ -1762,10 +1762,12 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     scopes: ["User.Read"],
                     prompt: Constants.PromptValue.LOGIN,
                     redirectUri: "localhost",
+                    resource: "https://graph.microsoft.com",
                     extraParameters: {
                         brk_client_id: "broker_client_id",
                         brk_redirect_uri: "https://broker_redirect_uri.com",
                         client_id: "parent_client_id",
+                        userEQP: "customUserParam",
                     },
                 });
 
@@ -1778,6 +1780,23 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).toEqual("localhost");
             expect(nativeRequest.redirectUri).toEqual(
                 "https://broker_redirect_uri.com"
+            );
+            // Translated brk_* / client_id keys are stripped from extraParameters
+            expect(nativeRequest.extraParameters).not.toHaveProperty(
+                "brk_client_id"
+            );
+            expect(nativeRequest.extraParameters).not.toHaveProperty(
+                "brk_redirect_uri"
+            );
+            expect(nativeRequest.extraParameters).not.toHaveProperty(
+                "client_id"
+            );
+            // Other extraParameters (resource, developer-supplied params) are preserved
+            expect(nativeRequest.extraParameters!["resource"]).toEqual(
+                "https://graph.microsoft.com"
+            );
+            expect(nativeRequest.extraParameters!["userEQP"]).toEqual(
+                "customUserParam"
             );
         });
 
@@ -1819,6 +1838,35 @@ describe("PlatformAuthInteractionClient Tests", () => {
             // on both the extension and DOM broker transport paths
             expect(nativeRequest.extraParameters?.resource).toEqual(
                 "https://graph.microsoft.com"
+            );
+        });
+
+        it("preserves resource and developer extraParameters when embeddedClientId is set", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializePlatformRequest({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    resource: "https://graph.microsoft.com",
+                    embeddedClientId: "embedded-client-id",
+                    extraParameters: {
+                        userEQP: "customUserParam",
+                    },
+                });
+
+            // Child fields are set from embeddedClientId
+            expect(nativeRequest.extraParameters!["child_client_id"]).toEqual(
+                "embedded-client-id"
+            );
+            expect(
+                nativeRequest.extraParameters!["child_redirect_uri"]
+            ).toEqual("localhost");
+            // resource and developer-supplied extraParameters survive the embedded path
+            expect(nativeRequest.extraParameters!["resource"]).toEqual(
+                "https://graph.microsoft.com"
+            );
+            expect(nativeRequest.extraParameters!["userEQP"]).toEqual(
+                "customUserParam"
             );
         });
 

@@ -1036,7 +1036,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
          * extraQueryParameters, sid, domainHint, instanceAware) would leak into the broker payload.
          */
         const validatedRequest: PlatformAuthRequest = {
-            // Broker contract - MSAL JS "Acquire token parameters"
             accountId: this.accountId,
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
@@ -1248,9 +1247,19 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
 
         request.extraParameters = {
+            ...request.extraParameters,
             child_client_id,
             child_redirect_uri,
         };
+
+        /*
+         * Remove the brk_client_id / brk_redirect_uri / client_id keys that were just
+         * translated into the child_client_id / child_redirect_uri fields, while preserving
+         * any other extraParameters (e.g. resource, developer-supplied params).
+         */
+        delete request.extraParameters[AADServerParamKeys.BROKER_CLIENT_ID];
+        delete request.extraParameters[AADServerParamKeys.BROKER_REDIRECT_URI];
+        delete request.extraParameters[AADServerParamKeys.CLIENT_ID];
 
         this.performanceClient?.addFields(
             {
