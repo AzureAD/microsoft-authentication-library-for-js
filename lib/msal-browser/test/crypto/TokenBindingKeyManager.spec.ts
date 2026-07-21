@@ -113,8 +113,19 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
         expect(cachedKeyPair.tokenBindingKeyAlgorithm).toBe(
             TOKEN_BINDING_KEY_ALGORITHMS.ES256
         );
+        expect(cachedKeyPair.publicKey.extractable).toBe(true);
         expect(cachedKeyPair.privateKey.extractable).toBe(false);
         expect(cachedKeyPair.publicJwk).toBeUndefined();
+        await expect(
+            tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                keyId,
+                TEST_CONFIG.CORRELATION_ID,
+                DPOP_KEY_CONTEXT
+            )
+        ).resolves.toMatchObject({
+            crv: "P-256",
+            kty: "EC",
+        });
     }, 10000);
 
     it("reuses persisted scoped keys when memory contains unrelated keys", async () => {
