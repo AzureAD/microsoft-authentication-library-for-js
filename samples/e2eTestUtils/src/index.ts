@@ -51,7 +51,29 @@ export {
     AppConfigSecrets,
 } from "./Constants";
 export { BrowserCacheUtils } from "./BrowserCacheTestUtils";
-export { Browser, Page, BrowserContext } from "puppeteer";
+export {
+    KMSI_SIGNIN_STATE,
+    KmsiSelectors,
+    decodeJwtPayload,
+    getIdTokenClaimsFromCache,
+    selectKmsiOption,
+    assertKmsiSigninState,
+    verifyKmsiFromCache,
+} from "./KmsiTestUtils";
+export type { IdTokenClaims } from "./KmsiTestUtils";
+export {
+    DEFAULT_BROKER_FRAME_TIMEOUT,
+    BrokerFrameSelectors,
+    verifyBrokerTokenStore,
+    verifyBrokeredTokenStore,
+    verifyEmptyCache,
+    getBrokerFrame,
+    getEmbeddedFrame,
+    getAuthenticatedEmbeddedFrame,
+    loginWidget,
+} from "./BrokerTestUtils";
+export type { BrokerCacheSnapshot } from "./BrokerTestUtils";
+export { Browser, Page, BrowserContext, Frame } from "puppeteer";
 export { NodeCacheTestUtils } from "./NodeCacheTestUtils";
 export { storagePoller } from "./TestUtils";
 export { getKeyVaultSecretClient, getCredentials } from "./KeyVaultUtils";
