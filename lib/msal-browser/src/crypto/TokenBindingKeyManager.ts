@@ -115,10 +115,11 @@ export class TokenBindingKeyManager {
         "verify",
     ];
     private static tokenBindingKeyStorage: AsyncMemoryStorage<CachedKeyPair>;
+    private static activeScopedKeyRequests: Map<string, Promise<string>> =
+        new Map();
     private cache: AsyncMemoryStorage<CachedKeyPair>;
     private logger: Logger;
     private performanceClient: IPerformanceClient | undefined;
-    private activeScopedKeyRequests: Map<string, Promise<string>>;
 
     constructor(logger: Logger, performanceClient?: IPerformanceClient) {
         this.logger = logger;
@@ -126,7 +127,6 @@ export class TokenBindingKeyManager {
             this.logger
         );
         this.performanceClient = performanceClient;
-        this.activeScopedKeyRequests = new Map();
     }
 
     private static getTokenBindingKeyStorage(
@@ -153,7 +153,7 @@ export class TokenBindingKeyManager {
 
         const scopedRequestFingerprint =
             this.getScopedRequestFingerprint(request);
-        const activeRequest = this.activeScopedKeyRequests.get(
+        const activeRequest = TokenBindingKeyManager.activeScopedKeyRequests.get(
             scopedRequestFingerprint
         );
         if (activeRequest) {
@@ -452,13 +452,16 @@ export class TokenBindingKeyManager {
             request
         ).finally(() => {
             if (
-                this.activeScopedKeyRequests.get(scopedRequestFingerprint) ===
-                requestPromise
+                TokenBindingKeyManager.activeScopedKeyRequests.get(
+                    scopedRequestFingerprint
+                ) === requestPromise
             ) {
-                this.activeScopedKeyRequests.delete(scopedRequestFingerprint);
+                TokenBindingKeyManager.activeScopedKeyRequests.delete(
+                    scopedRequestFingerprint
+                );
             }
         });
-        this.activeScopedKeyRequests.set(
+        TokenBindingKeyManager.activeScopedKeyRequests.set(
             scopedRequestFingerprint,
             requestPromise
         );

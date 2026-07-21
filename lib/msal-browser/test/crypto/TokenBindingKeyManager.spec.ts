@@ -183,6 +183,25 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
         expect(getCacheKeysByScope(DPOP_KEY_CONTEXT.keyScope)).toHaveLength(1);
     }, 10000);
 
+    it("serializes concurrent scoped key provisioning across manager instances", async () => {
+        const generateKeyPairSpy = jest.spyOn(BrowserCrypto, "generateKeyPair");
+        const concurrentTokenBindingKeyManager = new TokenBindingKeyManager(
+            new Logger({})
+        );
+
+        const [keyId, concurrentKeyId] = await Promise.all([
+            tokenBindingKeyManager.provisionTokenBindingKey(DPOP_KEY_CONTEXT),
+            concurrentTokenBindingKeyManager.provisionTokenBindingKey(
+                DPOP_KEY_CONTEXT
+            ),
+        ]);
+
+        expect(concurrentKeyId).toBe(keyId);
+        expect(generateKeyPairSpy).toHaveBeenCalledTimes(1);
+        expect(DatabaseStorage.prototype.getKeys).toHaveBeenCalledTimes(1);
+        expect(getCacheKeysByScope(DPOP_KEY_CONTEXT.keyScope)).toHaveLength(1);
+    }, 10000);
+
     it("enumerates storage keys once per scoped key lookup", async () => {
         const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
             DPOP_KEY_CONTEXT
