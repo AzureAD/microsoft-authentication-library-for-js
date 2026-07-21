@@ -58,6 +58,7 @@ import {
 } from "./BaseInteractionClient.js";
 
 import type { WaitForBridgeRequest } from "../utils/BrowserUtils.js";
+import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 /**
  * Minimal request shape accepted by the iframe-response hook.
@@ -99,7 +100,8 @@ export class SilentIframeClient extends StandardInteractionClient {
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
         platformAuthProvider?: IPlatformAuthHandler,
-        waitForIframeResponseHook?: WaitForIframeResponseFn
+        waitForIframeResponseHook?: WaitForIframeResponseFn,
+        tokenBindingKeyManager?: TokenBindingKeyManager
     ) {
         super(
             config,
@@ -110,7 +112,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            platformAuthProvider
+            platformAuthProvider,
+            tokenBindingKeyManager
         );
         this.apiId = apiId;
         this.nativeStorage = nativeStorageImpl;

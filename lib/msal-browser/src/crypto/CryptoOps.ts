@@ -6,11 +6,7 @@
 import {
     ICrypto,
     IPerformanceClient,
-    JoseHeader,
     Logger,
-    PublicKeyThumbprintParameters,
-    ShrOptions,
-    SignedHttpRequest,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
@@ -114,26 +110,6 @@ export class CryptoOps implements ICrypto {
     }
 
     /**
-     * Provisions or reuses a browser token-binding key and returns the public JWK
-     * thumbprint.
-     *
-     * @deprecated Legacy SHR compatibility wrapper. New MSAL token-binding
-     * flows should use protocol-specific key lifecycle and signing helpers.
-     *
-     * @param request - PoP/SHR request parameters.
-     * @returns RFC 7638 public JWK thumbprint for the selected key.
-     */
-    async getPublicKeyThumbprint(
-        request: PublicKeyThumbprintParameters
-    ): Promise<string> {
-        return this.tokenBindingKeyManager.provisionTokenBindingKey({
-            correlationId: request.correlationId || "",
-            tokenBindingKeyType: "shr",
-            tokenBindingKeyAlgorithm: TOKEN_BINDING_KEY_ALGORITHMS.RS256,
-        });
-    }
-
-    /**
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid
      * @param correlationId
@@ -223,53 +199,6 @@ export class CryptoOps implements ICrypto {
     }
 
     /**
-     * Signs the given object as an SHR JWT payload with the private key retrieved by the given kid.
-     * @deprecated Legacy SHR signing helper. New MSAL token-binding flows should
-     * use protocol-specific proof builders and signing helpers.
-     * @param payload
-     * @param kid
-     */
-    async signJwt(
-        payload: SignedHttpRequest,
-        kid: string,
-        shrOptions?: ShrOptions,
-        correlationId?: string
-    ): Promise<string> {
-        const resolvedCorrelationId = correlationId || "";
-        const publicKeyJwk =
-            await this.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
-                kid,
-                resolvedCorrelationId
-            );
-        const encodedKeyIdThumbprint = urlEncode(JSON.stringify({ kid: kid }));
-        const shrAlgorithm =
-            shrOptions?.header?.alg ||
-            publicKeyJwk.alg ||
-            TOKEN_BINDING_KEY_ALGORITHMS.RS256;
-        const shrHeader = JoseHeader.getShrHeader(
-            {
-                ...shrOptions?.header,
-                alg: shrAlgorithm,
-                kid: encodedKeyIdThumbprint,
-            },
-            resolvedCorrelationId
-        );
-        const shrPayload: SignedHttpRequest = {
-            ...payload,
-            cnf: {
-                jwk: publicKeyJwk,
-            },
-        };
-
-        return this.signTokenBindingJwt(
-            shrHeader,
-            shrPayload,
-            kid,
-            resolvedCorrelationId
-        );
-    }
-
-    /**
      * Returns the SHA-256 hash of an input string
      * @param plainText
      */
@@ -355,7 +284,6 @@ export class CryptoOps implements ICrypto {
             );
         }
     }
-
 }
 
 function validateTokenBindingSigningHeader(

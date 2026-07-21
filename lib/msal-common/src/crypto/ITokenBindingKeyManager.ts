@@ -3,12 +3,16 @@
  * Licensed under the MIT License.
  */
 
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError.js";
+
 /**
  * Parameters used by token-binding key managers to provision browser-managed
  * token-binding keys. Callers own the protocol policy (key type, JOSE
  * algorithm, and optional cache scope); implementations generate, store,
  * retrieve, and use the requested key material.
- * @internal
  */
 export type TokenBindingKeyProvisioningParameters = {
     tokenBindingKeyType: string;
@@ -25,7 +29,6 @@ export type TokenBindingKeyProvisioningParameters = {
 /**
  * Parameters used by token-binding key managers to resolve existing keys.
  * Lookup/signing APIs do not carry key generation policy.
- * @internal
  */
 export type TokenBindingKeyContext = {
     keyScope?: string;
@@ -66,3 +69,29 @@ export interface ITokenBindingKeyManager {
         context?: TokenBindingKeyContext
     ): Promise<JsonWebKey>;
 }
+
+/**
+ * Default token-binding key manager used when a platform-specific implementation
+ * has not been provided.
+ * @internal
+ */
+export const DEFAULT_TOKEN_BINDING_KEY_MANAGER: ITokenBindingKeyManager = {
+    async provisionTokenBindingKey(): Promise<string> {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
+    },
+    async removeTokenBindingKey(): Promise<void> {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
+    },
+    async getTokenBindingPublicKeyJwk(): Promise<JsonWebKey> {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
+    },
+};

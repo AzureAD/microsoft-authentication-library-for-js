@@ -36,6 +36,7 @@ import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;
@@ -48,6 +49,7 @@ export abstract class BaseInteractionClient {
     protected platformAuthProvider: IPlatformAuthHandler | undefined;
     protected correlationId: string;
     protected performanceClient: IPerformanceClient;
+    protected tokenBindingKeyManager: TokenBindingKeyManager;
 
     constructor(
         config: BrowserConfiguration,
@@ -58,7 +60,8 @@ export abstract class BaseInteractionClient {
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         correlationId: string,
-        platformAuthProvider?: IPlatformAuthHandler
+        platformAuthProvider?: IPlatformAuthHandler,
+        tokenBindingKeyManager?: TokenBindingKeyManager
     ) {
         this.config = config;
         this.browserStorage = storageImpl;
@@ -70,6 +73,9 @@ export abstract class BaseInteractionClient {
         this.correlationId = correlationId;
         this.logger = logger.clone(name, version);
         this.performanceClient = performanceClient;
+        this.tokenBindingKeyManager =
+            tokenBindingKeyManager ||
+            new TokenBindingKeyManager(this.logger, this.performanceClient);
     }
 
     abstract acquireToken(

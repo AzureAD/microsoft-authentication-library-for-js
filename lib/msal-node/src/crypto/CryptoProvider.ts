@@ -73,13 +73,6 @@ export class CryptoProvider implements ICrypto {
     }
 
     /**
-     * Generates a keypair, stores it and returns a thumbprint - not yet implemented for node
-     */
-    getPublicKeyThumbprint(): Promise<string> {
-        throw new Error("Method not implemented.");
-    }
-
-    /**
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid - public key id
      */
@@ -95,11 +88,9 @@ export class CryptoProvider implements ICrypto {
     }
 
     /**
-     * Signs the given object as a jwt payload with private key retrieved by given kid - currently not implemented for node
-     * @deprecated Legacy SHR signing helper. New MSAL token-binding flows should
-     * use protocol-specific proof builders and signing helpers.
+     * Signs a compact JWT with a token-binding key - not yet implemented for node
      */
-    signJwt(): Promise<string> {
+    signTokenBindingJwt(): Promise<string> {
         throw new Error("Method not implemented.");
     }
 

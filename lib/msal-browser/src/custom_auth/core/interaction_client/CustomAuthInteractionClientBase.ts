@@ -26,6 +26,7 @@ import { EndSessionRequest } from "../../../request/EndSessionRequest.js";
 import { ClearCacheRequest } from "../../../request/ClearCacheRequest.js";
 import { AuthenticationResult } from "../../../response/AuthenticationResult.js";
 import { SignInTokenResponse } from "../network_client/custom_auth_api/types/ApiResponseTypes.js";
+import { TokenBindingKeyManager } from "../../../crypto/TokenBindingKeyManager.js";
 
 export abstract class CustomAuthInteractionClientBase extends StandardInteractionClient {
     private readonly tokenResponseHandler: ResponseHandler;
@@ -39,7 +40,8 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         protected customAuthApiClient: ICustomAuthApiClient,
-        protected customAuthAuthority: CustomAuthAuthority
+        protected customAuthAuthority: CustomAuthAuthority,
+        tokenBindingKeyManager?: TokenBindingKeyManager
     ) {
         super(
             config,
@@ -49,7 +51,9 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
             eventHandler,
             navigationClient,
             performanceClient,
-            ""
+            "",
+            undefined,
+            tokenBindingKeyManager
         );
 
         this.tokenResponseHandler = new ResponseHandler(
@@ -59,7 +63,8 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
             this.logger,
             this.performanceClient,
             null,
-            null
+            null,
+            this.tokenBindingKeyManager
         );
     }
 

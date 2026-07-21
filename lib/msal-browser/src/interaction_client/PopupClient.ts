@@ -61,6 +61,7 @@ import {
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
 import { validateRequestMethod } from "../request/RequestHelpers.js";
+import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 /**
  * Signature of the popup-response handler supplied by
@@ -100,7 +101,8 @@ export class PopupClient extends StandardInteractionClient {
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
         platformAuthHandler?: IPlatformAuthHandler,
-        waitForPopupResponseHook?: WaitForPopupResponseFn
+        waitForPopupResponseHook?: WaitForPopupResponseFn,
+        tokenBindingKeyManager?: TokenBindingKeyManager
     ) {
         super(
             config,
@@ -111,7 +113,8 @@ export class PopupClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            platformAuthHandler
+            platformAuthHandler,
+            tokenBindingKeyManager
         );
         this.nativeStorage = nativeStorageImpl;
         this.eventHandler = eventHandler;

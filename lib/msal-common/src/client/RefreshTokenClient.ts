@@ -139,7 +139,8 @@ export class RefreshTokenClient {
             this.logger,
             this.performanceClient,
             this.config.serializableCache,
-            this.config.persistencePlugin
+            this.config.persistencePlugin,
+            this.config.tokenBindingKeyManager
         );
         responseHandler.validateTokenResponse(
             response.body,
@@ -475,6 +476,7 @@ export class RefreshTokenClient {
         ) {
             const popTokenGenerator = new PopTokenGenerator(
                 this.cryptoUtils,
+                this.config.tokenBindingKeyManager,
                 this.performanceClient
             );
 

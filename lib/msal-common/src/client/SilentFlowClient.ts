@@ -263,7 +263,11 @@ export class SilentFlowClient {
             true,
             request,
             this.performanceClient,
-            idTokenClaims
+            idTokenClaims,
+            undefined,
+            undefined,
+            undefined,
+            this.config.tokenBindingKeyManager
         );
     }
 }

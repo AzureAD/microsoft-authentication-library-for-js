@@ -33,6 +33,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { initializeServerTelemetryManager } from "./BaseInteractionClient.js";
+import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;
@@ -47,7 +48,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         apiId: ApiId,
         performanceClient: IPerformanceClient,
         correlationId: string,
-        platformAuthProvider?: IPlatformAuthHandler
+        platformAuthProvider?: IPlatformAuthHandler,
+        tokenBindingKeyManager?: TokenBindingKeyManager
     ) {
         super(
             config,
@@ -58,7 +60,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            platformAuthProvider
+            platformAuthProvider,
+            tokenBindingKeyManager
         );
         this.apiId = apiId;
     }

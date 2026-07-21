@@ -275,13 +275,19 @@ export const mockCrypto = {
             EncodingTypes.UTF8
         ).toString("base64url");
     },
-    async getPublicKeyThumbprint(): Promise<string> {
+    async provisionTokenBindingKey(): Promise<string> {
         return TEST_POP_VALUES.KID;
+    },
+    async getTokenBindingPublicKeyJwk(): Promise<JsonWebKey> {
+        return {
+            kty: "RSA",
+            alg: "RS256",
+        };
     },
     async removeTokenBindingKey(keyId: string): Promise<void> {
         return Promise.resolve();
     },
-    async signJwt(): Promise<string> {
+    async signTokenBindingJwt(): Promise<string> {
         return TEST_TOKENS.POP_TOKEN;
     },
     async clearKeystore(): Promise<boolean> {

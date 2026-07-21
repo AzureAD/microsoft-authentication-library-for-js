@@ -117,7 +117,13 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
             ""
         );
     },
-    async getPublicKeyThumbprint(): Promise<string> {
+    async provisionTokenBindingKey(): Promise<string> {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            ""
+        );
+    },
+    async getTokenBindingPublicKeyJwk(): Promise<JsonWebKey> {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
             ""
@@ -135,7 +141,7 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
             ""
         );
     },
-    async signJwt(): Promise<string> {
+    async signTokenBindingJwt(): Promise<string> {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
             ""

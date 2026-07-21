@@ -13,6 +13,7 @@ import { AuthenticationScheme } from "../../src/utils/Constants.js";
 import { Logger } from "../../src/logger/Logger.js";
 import { mockCrypto } from "../client/ClientTestUtils.js";
 import { StubPerformanceClient } from "../../src/index.js";
+import { ITokenBindingKeyManager } from "../../src/crypto/ITokenBindingKeyManager.js";
 
 describe("PopTokenGenerator Unit Tests", () => {
     afterEach(() => {
@@ -20,6 +21,16 @@ describe("PopTokenGenerator Unit Tests", () => {
     });
 
     const cryptoInterface: ICrypto = mockCrypto;
+    const tokenBindingKeyManager: ITokenBindingKeyManager = {
+        provisionTokenBindingKey: jest
+            .fn()
+            .mockResolvedValue(TEST_POP_VALUES.KID),
+        removeTokenBindingKey: jest.fn().mockResolvedValue(undefined),
+        getTokenBindingPublicKeyJwk: jest.fn().mockResolvedValue({
+            kty: "RSA",
+            alg: "RS256",
+        }),
+    };
 
     describe("generateCnf", () => {
         const testRequest = {
@@ -32,17 +43,22 @@ describe("PopTokenGenerator Unit Tests", () => {
         it("Generates the req_cnf correctly", async () => {
             const popTokenGenerator = new PopTokenGenerator(
                 cryptoInterface,
+                tokenBindingKeyManager,
                 new StubPerformanceClient()
             );
-            const getPublicKeyThumbprintSpy = jest.spyOn(
-                cryptoInterface,
-                "getPublicKeyThumbprint"
+            const provisionTokenBindingKeySpy = jest.spyOn(
+                tokenBindingKeyManager,
+                "provisionTokenBindingKey"
             );
             const reqCnfData = await popTokenGenerator.generateCnf(
                 testRequest,
                 new Logger({})
             );
-            expect(getPublicKeyThumbprintSpy).toHaveBeenCalledWith(testRequest);
+            expect(provisionTokenBindingKeySpy).toHaveBeenCalledWith({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                tokenBindingKeyType: "shr",
+                tokenBindingKeyAlgorithm: "RS256",
+            });
             expect(reqCnfData.reqCnfString).toBe(
                 TEST_POP_VALUES.ENCODED_REQ_CNF
             );
@@ -67,6 +83,7 @@ describe("PopTokenGenerator Unit Tests", () => {
         it("Signs the proof-of-possession JWT token with all PoP parameters in the request", (done) => {
             const popTokenGenerator = new PopTokenGenerator(
                 cryptoInterface,
+                tokenBindingKeyManager,
                 new StubPerformanceClient()
             );
             const accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
@@ -88,27 +105,40 @@ describe("PopTokenGenerator Unit Tests", () => {
                 shrNonce: shrNonce,
             };
 
-            jest.spyOn(cryptoInterface, "signJwt").mockImplementation(
-                (payload, kid, shrOptions, correlationId) => {
-                    expect(kid).toBe(TEST_POP_VALUES.KID);
-                    const expectedPayload = {
-                        at: accessToken,
-                        ts: currTime,
-                        m: resourceReqMethod,
-                        u: resourceUrlComponents.HostNameAndPort,
-                        nonce: shrNonce,
-                        p: resourceUrlComponents.AbsolutePath,
-                        q: [[], resourceUrlComponents.QueryString],
-                        client_claims: shrClaims,
-                    };
+            jest.spyOn(
+                cryptoInterface,
+                "signTokenBindingJwt"
+            ).mockImplementation((header, payload, kid, correlationId) => {
+                expect(kid).toBe(TEST_POP_VALUES.KID);
+                const expectedPayload = {
+                    at: accessToken,
+                    ts: currTime,
+                    m: resourceReqMethod,
+                    u: resourceUrlComponents.HostNameAndPort,
+                    nonce: shrNonce,
+                    p: resourceUrlComponents.AbsolutePath,
+                    q: [[], resourceUrlComponents.QueryString],
+                    client_claims: shrClaims,
+                    cnf: {
+                        jwk: {
+                            kty: "RSA",
+                            alg: "RS256",
+                        },
+                    },
+                };
 
-                    expect(payload).toEqual(expectedPayload);
-                    expect(shrOptions).toBeUndefined();
-                    expect(correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
-                    done();
-                    return Promise.resolve("");
-                }
-            );
+                expect(header).toEqual({
+                    typ: "pop",
+                    alg: "RS256",
+                    kid: cryptoInterface.base64UrlEncode(
+                        JSON.stringify({ kid: TEST_POP_VALUES.KID })
+                    ),
+                });
+                expect(payload).toEqual(expectedPayload);
+                expect(correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
+                done();
+                return Promise.resolve("");
+            });
             popTokenGenerator.signPopToken(
                 accessToken,
                 TEST_POP_VALUES.KID,
@@ -119,36 +149,92 @@ describe("PopTokenGenerator Unit Tests", () => {
         it("Signs the proof-of-possession JWT token when PoP parameters are undefined", (done) => {
             const popTokenGenerator = new PopTokenGenerator(
                 cryptoInterface,
+                tokenBindingKeyManager,
                 new StubPerformanceClient()
             );
             const accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
             const currTime = TimeUtils.nowSeconds();
-            jest.spyOn(cryptoInterface, "signJwt").mockImplementation(
-                (payload, kid, shrOptions, correlationId) => {
-                    expect(kid).toBe(TEST_POP_VALUES.KID);
-                    const expectedPayload = {
-                        at: accessToken,
-                        ts: currTime,
-                        m: undefined,
-                        u: undefined,
-                        nonce: RANDOM_TEST_GUID,
-                        p: undefined,
-                        q: undefined,
-                        client_claims: undefined,
-                    };
+            jest.spyOn(
+                cryptoInterface,
+                "signTokenBindingJwt"
+            ).mockImplementation((header, payload, kid, correlationId) => {
+                expect(kid).toBe(TEST_POP_VALUES.KID);
+                const expectedPayload = {
+                    at: accessToken,
+                    ts: currTime,
+                    m: undefined,
+                    u: undefined,
+                    nonce: RANDOM_TEST_GUID,
+                    p: undefined,
+                    q: undefined,
+                    client_claims: undefined,
+                    cnf: {
+                        jwk: {
+                            kty: "RSA",
+                            alg: "RS256",
+                        },
+                    },
+                };
 
-                    expect(payload).toEqual(expectedPayload);
-                    expect(shrOptions).toBeUndefined();
-                    expect(correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
-                    done();
-                    return Promise.resolve("");
-                }
-            );
+                expect(header).toEqual({
+                    typ: "pop",
+                    alg: "RS256",
+                    kid: cryptoInterface.base64UrlEncode(
+                        JSON.stringify({ kid: TEST_POP_VALUES.KID })
+                    ),
+                });
+                expect(payload).toEqual(expectedPayload);
+                expect(correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
+                done();
+                return Promise.resolve("");
+            });
             popTokenGenerator.signPopToken(
                 accessToken,
                 TEST_POP_VALUES.KID,
                 testRequest
             );
+        });
+
+        it("falls back to caller and default SHR algorithms when public JWK alg is missing", async () => {
+            const popTokenGenerator = new PopTokenGenerator(
+                cryptoInterface,
+                tokenBindingKeyManager,
+                new StubPerformanceClient()
+            );
+            jest.spyOn(
+                tokenBindingKeyManager,
+                "getTokenBindingPublicKeyJwk"
+            ).mockResolvedValue({
+                kty: "RSA",
+            });
+            const signTokenBindingJwtSpy = jest
+                .spyOn(cryptoInterface, "signTokenBindingJwt")
+                .mockResolvedValue("");
+
+            await popTokenGenerator.signPopToken(
+                TEST_POP_VALUES.SAMPLE_POP_AT,
+                TEST_POP_VALUES.KID,
+                {
+                    ...testRequest,
+                    shrOptions: {
+                        header: {
+                            alg: "RS256",
+                        },
+                    },
+                }
+            );
+            expect(signTokenBindingJwtSpy.mock.calls[0][0]).toMatchObject({
+                alg: "RS256",
+            });
+
+            await popTokenGenerator.signPopToken(
+                TEST_POP_VALUES.SAMPLE_POP_AT,
+                TEST_POP_VALUES.KID,
+                testRequest
+            );
+            expect(signTokenBindingJwtSpy.mock.calls[1][0]).toMatchObject({
+                alg: "RS256",
+            });
         });
     });
 });
