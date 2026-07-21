@@ -207,9 +207,6 @@ export class SilentFlowClient {
         if (this.config.serverTelemetryManager) {
             this.config.serverTelemetryManager.incrementCacheHits();
         }
-        
-        // eslint-disable-next-line no-console
-        console.log(`[TRACE] Sampada Cache was used to serve this request. CacheOutcome: ${lastCacheOutcome}`);
         return [
             await invokeAsync(
                 this.generateResultFromCacheRecord.bind(this),
