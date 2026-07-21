@@ -324,9 +324,6 @@ export class ResponseHandler {
                     );
                 }
             }
-            // TEMPORARY TRACE: Network token request
-            // eslint-disable-next-line no-console
-            console.log(`[TRACE] Sampada network call was made to server this request.`);
             await this.cacheStorage.saveCacheRecord(
                 cacheRecord,
                 request.correlationId,
