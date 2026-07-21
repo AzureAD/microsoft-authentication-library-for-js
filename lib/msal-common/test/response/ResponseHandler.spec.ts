@@ -524,8 +524,7 @@ describe("ResponseHandler.ts", () => {
                 testAuthority,
                 timestamp,
                 testRequest,
-                0
-                ,
+                0,
                 undefined,
                 undefined,
                 undefined,
