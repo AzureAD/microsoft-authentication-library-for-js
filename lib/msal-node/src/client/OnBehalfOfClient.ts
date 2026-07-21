@@ -177,7 +177,11 @@ export class OnBehalfOfClient extends BaseClient {
             true,
             request,
             this.performanceClient,
-            idTokenClaims
+            idTokenClaims,
+            undefined,
+            undefined,
+            undefined,
+            this.config.tokenBindingKeyManager
         );
     }
 
@@ -308,7 +312,8 @@ export class OnBehalfOfClient extends BaseClient {
             this.logger,
             this.performanceClient,
             this.config.serializableCache,
-            this.config.persistencePlugin
+            this.config.persistencePlugin,
+            this.config.tokenBindingKeyManager
         );
 
         responseHandler.validateTokenResponse(
