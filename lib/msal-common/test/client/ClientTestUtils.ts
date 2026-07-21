@@ -43,6 +43,7 @@ import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 import { CredentialEntity } from "../../src/cache/entities/CredentialEntity.js";
 import { AccountInfo } from "../../src/account/AccountInfo.js";
+import { ITokenBindingKeyManager } from "../../src/crypto/ITokenBindingKeyManager.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
@@ -289,6 +290,21 @@ export const mockCrypto = {
     },
 };
 
+export const mockShrTokenBindingKeyManager: ITokenBindingKeyManager = {
+    async provisionTokenBindingKey(): Promise<string> {
+        return TEST_POP_VALUES.KID;
+    },
+    async getTokenBindingPublicKeyJwk(): Promise<JsonWebKey> {
+        return {
+            kty: "RSA",
+            alg: "RS256",
+        };
+    },
+    async removeTokenBindingKey(): Promise<void> {
+        return Promise.resolve();
+    },
+};
+
 export const mockNetworkClient = {
     sendGetRequestAsync<T>(): T {
         return {} as T;
@@ -344,6 +360,7 @@ export class ClientTestUtils {
             storageInterface: mockStorage,
             networkInterface: mockNetworkClient,
             cryptoInterface: mockCrypto,
+            tokenBindingKeyManager: mockShrTokenBindingKeyManager,
             loggerOptions: {
                 loggerCallback: testLoggerCallback,
             },
