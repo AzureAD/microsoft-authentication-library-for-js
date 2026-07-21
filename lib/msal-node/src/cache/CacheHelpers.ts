@@ -13,14 +13,17 @@ import { CACHE } from "../utils/Constants.js";
 
 /**
  * Computes a combined hash from additional cache key components.
- * Matches the cross-SDK algorithm: sort keys → concatenate key+value → SHA-256 → Base64URL (no padding).
+ * Uses the same algorithm as msal-common's getAdditionalCacheKeyComponentsHashPayload:
+ * sort keys lexicographically, JSON.stringify the sorted object, SHA-256 → Base64URL (no padding).
  */
 export function computeAdditionalCacheKeyHash(
     components: Record<string, string>
 ): string {
-    const sortedKeys = Object.keys(components).sort();
-    const input = sortedKeys.map((k) => k + components[k]).join("");
-    return createHash("sha256").update(input, "utf8").digest("base64url");
+    const sortedEntries = Object.entries(components).sort(([a], [b]) =>
+        a.localeCompare(b)
+    );
+    const payload = JSON.stringify(Object.fromEntries(sortedEntries));
+    return createHash("sha256").update(payload, "utf8").digest("base64url");
 }
 
 export function generateCredentialKey(credential: CredentialEntity, hash?: string): string {
