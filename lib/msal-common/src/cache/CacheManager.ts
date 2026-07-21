@@ -2133,7 +2133,8 @@ export class DefaultStorageClass extends CacheManager {
             ""
         );
     }
-    generateCredentialKey(credential: CredentialEntity, hash?: string): string {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    generateCredentialKey(_credential: CredentialEntity, _hash?: string): string {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
             ""

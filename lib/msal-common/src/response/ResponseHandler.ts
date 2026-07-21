@@ -264,8 +264,10 @@ export class ResponseHandler {
             authCodePayload,
             additionalCacheKeyComponents
         );
-        // Thread the hash through CacheRecord so generateCredentialKey receives it
-        // without it being persisted on the entity itself.
+        /*
+         * Thread the hash through CacheRecord so generateCredentialKey receives it
+         * without it being persisted on the entity itself.
+         */
         cacheRecord.accessTokenCacheKeyHash = additionalCacheKeyComponentsHash;
         let cacheContext;
         try {
