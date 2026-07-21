@@ -1028,14 +1028,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             configClaims?.length ? configClaims : undefined
         );
 
-        /**
-         * Only the parameters defined as MSAL JS "Acquire token parameters" in the platform
-         * broker contract are forwarded to the platform broker. The full developer request must
-         * NOT be spread here, otherwise ESTS/token-endpoint-only and SDK-only fields (e.g.
-         * azureCloudOptions, maxAge, sshJwk, account, scenarioId, httpMethod, skipBrokerClaims,
-         * extraQueryParameters, sid, domainHint, instanceAware) would leak into the broker payload.
-         */
         const validatedRequest: PlatformAuthRequest = {
+            claims: mergedClaims,
             accountId: this.accountId,
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
@@ -1046,19 +1040,18 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.logger,
                 this.correlationId
             ),
-            correlationId: this.correlationId,
             prompt: this.getPrompt(request.prompt),
+            correlationId: this.correlationId,
+            tokenType: request.authenticationScheme,
+            windowTitleSubstring: document.title,
             nonce: request.nonce,
             state: request.state,
             loginHint: request.loginHint,
-            windowTitleSubstring: document.title,
-            tokenType: request.authenticationScheme,
-            claims: mergedClaims,
             extraParameters: {
                 ...request.extraParameters,
                 ...(request.resource && { resource: request.resource }), // resource is set for McP scenarios
             },
-            // Internal-only fields - used by MSAL JS after the broker response, not contract params
+            extendedExpiryToken: false, // Make this configurable?
             keyId: request.popKid,
             storeInCache: request.storeInCache,
             embeddedClientId: request.embeddedClientId,
