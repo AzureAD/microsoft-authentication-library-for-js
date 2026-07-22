@@ -18,6 +18,7 @@ import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents
 import { urlEncode } from "../encode/Base64Encode.js";
 import * as BrowserCrypto from "./BrowserCrypto.js";
 import {
+    BrowserAuthError,
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
@@ -131,7 +132,10 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
                 scopedRequestFingerprint
             );
         if (activeRequest) {
-            return activeRequest;
+            return this.observeCoalescedScopedKeyRequest(
+                request,
+                activeRequest
+            );
         }
 
         return this.startScopedKeyRequest(scopedRequestFingerprint, request);
@@ -249,7 +253,8 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
         );
         const generatedKeyPair = await this.generateKeyPairAndThumbprint(
             TokenBindingKeyManager.TOKEN_BINDING_KEY_USAGES,
-            keyGenAlgorithm
+            keyGenAlgorithm,
+            request.correlationId
         );
         await this.cache.setItem(
             this.getTokenBindingCacheKey(generatedKeyPair.keyId, request),
@@ -272,7 +277,8 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
 
     private async generateKeyPairAndThumbprint(
         usages: Array<KeyUsage>,
-        keyGenAlgorithm: AlgorithmIdentifier
+        keyGenAlgorithm: AlgorithmIdentifier,
+        correlationId: string
     ): Promise<GeneratedKeyPair> {
         const keyPair: CryptoKeyPair = await BrowserCrypto.generateKeyPair(
             false,
@@ -282,7 +288,10 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
         const publicJwk: JsonWebKey = await BrowserCrypto.exportJwk(
             keyPair.publicKey
         );
-        const keyId = await BrowserCrypto.computeJwkThumbprint(publicJwk);
+        const keyId = await BrowserCrypto.computeJwkThumbprint(
+            publicJwk,
+            correlationId
+        );
         return {
             publicKey: keyPair.publicKey,
             privateKey: keyPair.privateKey,
@@ -432,6 +441,41 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
             requestPromise
         );
         return requestPromise;
+    }
+
+    private async observeCoalescedScopedKeyRequest(
+        request: TokenBindingKeyProvisioningParameters,
+        activeRequest: Promise<string>
+    ): Promise<string> {
+        const measurement = this.performanceClient?.startMeasurement(
+            BrowserPerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
+            request.correlationId
+        );
+        try {
+            const keyId = await activeRequest;
+            measurement?.end({
+                success: true,
+                tokenBindingKeyType: request.tokenBindingKeyType,
+                tokenBindingKeyAlgorithm: request.tokenBindingKeyAlgorithm,
+                tokenBindingKeyRequestCoalesced: true,
+            });
+            return keyId;
+        } catch (e) {
+            measurement?.end({
+                success: false,
+                tokenBindingKeyType: request.tokenBindingKeyType,
+                tokenBindingKeyAlgorithm: request.tokenBindingKeyAlgorithm,
+                tokenBindingKeyRequestCoalesced: true,
+            });
+            if (e instanceof BrowserAuthError) {
+                throw createBrowserAuthError(
+                    e.errorCode,
+                    request.correlationId,
+                    e.subError
+                );
+            }
+            throw e;
+        }
     }
 
     private getScopedRequestFingerprint(

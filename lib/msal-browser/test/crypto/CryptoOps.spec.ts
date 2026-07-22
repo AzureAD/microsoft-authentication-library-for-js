@@ -903,6 +903,54 @@ describe("CryptoOps.ts Unit Tests", () => {
             );
         }, 10000);
 
+        it("signTokenBindingJwt rejects malformed DPoP header JWKs with caller correlation", async () => {
+            const signingKeyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const signingPublicJwk = await BrowserCrypto.exportJwk(
+                signingKeyPair.publicKey
+            );
+            const signingKeyId = await BrowserCrypto.computeJwkThumbprint(
+                signingPublicJwk
+            );
+            mockDatabase["TestDB.keys"][signingKeyId] = {
+                privateKey: signingKeyPair.privateKey,
+                publicKey: signingKeyPair.publicKey,
+                tokenBindingKeyType: "dpop",
+                tokenBindingKeyAlgorithm: "ES256",
+            };
+
+            await expect(
+                cryptoObj.signTokenBindingJwt(
+                    {
+                        alg: "ES256",
+                        typ: "dpop+jwt",
+                        jwk: {
+                            crv: "P-256",
+                            x: "x-coordinate",
+                            y: "y-coordinate",
+                        },
+                    },
+                    {
+                        htm: "POST",
+                        htu: TEST_URIS.TEST_AUTH_ENDPT,
+                        iat: 1,
+                        jti: "jti",
+                    },
+                    signingKeyId,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toThrow(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.invalidPublicJwk,
+                    TEST_CONFIG.CORRELATION_ID,
+                    "missing_jwk_kty"
+                )
+            );
+        }, 10000);
+
         it("signTokenBindingJwt rejects requested algorithms incompatible with the stored key", async () => {
             const performanceClient = new StubPerformanceClient();
             const endMeasurement = jest.fn();

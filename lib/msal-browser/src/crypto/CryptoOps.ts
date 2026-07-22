@@ -276,7 +276,8 @@ export class CryptoOps implements ICrypto {
         }
 
         const headerKeyId = await BrowserCrypto.computeJwkThumbprint(
-            header.jwk
+            header.jwk,
+            correlationId
         );
         if (headerKeyId !== kid) {
             throw createBrowserAuthError(

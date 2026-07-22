@@ -2393,6 +2393,7 @@ export type PerformanceEvent = {
     tokenBindingKeyType?: string;
     tokenBindingKeyAlgorithm?: string;
     tokenBindingKeyCacheHit?: boolean;
+    tokenBindingKeyRequestCoalesced?: boolean;
     incompleteSubMeasurements?: Map<string, SubMeasurement>;
     visibilityChangeCount?: number;
     onlineStatusChangeCount?: number;
