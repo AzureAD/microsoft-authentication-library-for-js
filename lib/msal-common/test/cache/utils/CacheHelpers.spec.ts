@@ -8,11 +8,15 @@ import * as CacheHelpers from "../../../src/cache/utils/CacheHelpers.js";
 describe("CacheHelpers", () => {
     describe("getAttributeTokenPartitionKey", () => {
         it("returns undefined for undefined", () => {
-            expect(CacheHelpers.getAttributeTokenPartitionKey(undefined)).toBeUndefined();
+            expect(
+                CacheHelpers.getAttributeTokenPartitionKey(undefined)
+            ).toBeUndefined();
         });
 
         it("returns undefined for empty array", () => {
-            expect(CacheHelpers.getAttributeTokenPartitionKey([])).toBeUndefined();
+            expect(
+                CacheHelpers.getAttributeTokenPartitionKey([])
+            ).toBeUndefined();
         });
 
         it("returns sorted, space-joined partition without a key prefix", () => {
@@ -26,8 +30,16 @@ describe("CacheHelpers", () => {
         });
 
         it("is deterministic regardless of input order", () => {
-            const a = CacheHelpers.getAttributeTokenPartitionKey(["a", "b", "c"]);
-            const b = CacheHelpers.getAttributeTokenPartitionKey(["c", "b", "a"]);
+            const a = CacheHelpers.getAttributeTokenPartitionKey([
+                "a",
+                "b",
+                "c",
+            ]);
+            const b = CacheHelpers.getAttributeTokenPartitionKey([
+                "c",
+                "b",
+                "a",
+            ]);
             expect(a).toBe(b);
         });
 

@@ -1459,7 +1459,7 @@ export class DefaultStorageClass extends CacheManager {
     // (undocumented)
     generateAccountKey(): string;
     // (undocumented)
-    generateCredentialKey(credential: CredentialEntity, hash?: string): string;
+    generateCredentialKey(_credential: CredentialEntity, _hash?: string): string;
     // (undocumented)
     getAccessTokenCredential(): AccessTokenEntity;
     // (undocumented)

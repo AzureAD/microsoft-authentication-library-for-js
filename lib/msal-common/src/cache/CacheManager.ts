@@ -274,7 +274,10 @@ export abstract class CacheManager implements ICacheManager {
      * @param credential
      * @param additionalCacheKeyHash - optional precomputed hash of additionalCacheKeyComponents
      */
-    abstract generateCredentialKey(credential: CredentialEntity, additionalCacheKeyHash?: string): string;
+    abstract generateCredentialKey(
+        credential: CredentialEntity,
+        additionalCacheKeyHash?: string
+    ): string;
 
     /**
      * Returns the account cache key from the account info
@@ -734,7 +737,12 @@ export abstract class CacheManager implements ICacheManager {
                 }
             }
         });
-        await this.setAccessTokenCredential(credential, correlationId, kmsi, additionalCacheKeyHash);
+        await this.setAccessTokenCredential(
+            credential,
+            correlationId,
+            kmsi,
+            additionalCacheKeyHash
+        );
     }
 
     /**
@@ -1382,7 +1390,8 @@ export abstract class CacheManager implements ICacheManager {
         const accessTokenKeys =
             (tokenKeys && tokenKeys.accessToken) ||
             this.getTokenKeys().accessToken;
-        const accessTokens: Array<{ key: string; entity: AccessTokenEntity }> = [];
+        const accessTokens: Array<{ key: string; entity: AccessTokenEntity }> =
+            [];
 
         accessTokenKeys.forEach((key) => {
             // Validate key
@@ -2134,7 +2143,10 @@ export class DefaultStorageClass extends CacheManager {
         );
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    generateCredentialKey(_credential: CredentialEntity, _hash?: string): string {
+    generateCredentialKey(
+        _credential: CredentialEntity,
+        _hash?: string
+    ): string {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
             ""

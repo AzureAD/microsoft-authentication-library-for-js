@@ -55,7 +55,10 @@ function computeTestHash(components: Record<string, string>): string {
     return createHash("sha256").update(input, "utf8").digest("base64url");
 }
 
-export function generateCredentialKey(credential: CredentialEntity, hash?: string): string {
+export function generateCredentialKey(
+    credential: CredentialEntity,
+    hash?: string
+): string {
     const familyId =
         (credential.credentialType === CredentialType.REFRESH_TOKEN &&
             credential.familyId) ||
@@ -76,7 +79,10 @@ export function generateCredentialKey(credential: CredentialEntity, hash?: strin
         scheme,
     ];
 
-    if (credential.additionalCacheKeyComponents && Object.keys(credential.additionalCacheKeyComponents).length > 0) {
+    if (
+        credential.additionalCacheKeyComponents &&
+        Object.keys(credential.additionalCacheKeyComponents).length > 0
+    ) {
         credentialKey.push(
             hash ?? computeTestHash(credential.additionalCacheKeyComponents)
         );
@@ -179,7 +185,12 @@ export class MockStorageClass extends CacheManager {
     getAccessTokenCredential(key: string): AccessTokenEntity | null {
         return (this.store[key] as AccessTokenEntity) || null;
     }
-    async setAccessTokenCredential(value: AccessTokenEntity, _correlationId?: string, _kmsi?: boolean, additionalCacheKeyHash?: string): Promise<void> {
+    async setAccessTokenCredential(
+        value: AccessTokenEntity,
+        _correlationId?: string,
+        _kmsi?: boolean,
+        additionalCacheKeyHash?: string
+    ): Promise<void> {
         const key = this.generateCredentialKey(value, additionalCacheKeyHash);
         this.store[key] = value;
 

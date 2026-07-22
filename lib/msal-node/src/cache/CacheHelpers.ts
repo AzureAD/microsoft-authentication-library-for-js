@@ -26,7 +26,10 @@ export function computeAdditionalCacheKeyHash(
     return createHash("sha256").update(payload, "utf8").digest("base64url");
 }
 
-export function generateCredentialKey(credential: CredentialEntity, hash?: string): string {
+export function generateCredentialKey(
+    credential: CredentialEntity,
+    hash?: string
+): string {
     const familyId =
         (credential.credentialType === Constants.CredentialType.REFRESH_TOKEN &&
             credential.familyId) ||

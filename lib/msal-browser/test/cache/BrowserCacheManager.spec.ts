@@ -5064,7 +5064,10 @@ describe("BrowserCacheManager tests", () => {
                     attribute_tokens: "attribute_tokens:alpha zeta",
                 },
             };
-            const key = browserCacheManager.generateCredentialKey(partitioned, "precomputed-hash-abc");
+            const key = browserCacheManager.generateCredentialKey(
+                partitioned,
+                "precomputed-hash-abc"
+            );
             expect(key.endsWith("precomputed-hash-abc")).toBe(true);
         });
 
@@ -5077,8 +5080,10 @@ describe("BrowserCacheManager tests", () => {
             };
             const noHashKey =
                 browserCacheManager.generateCredentialKey(partitionedNoHash);
-            const withHashKey =
-                browserCacheManager.generateCredentialKey(partitionedNoHash, "hash-xyz");
+            const withHashKey = browserCacheManager.generateCredentialKey(
+                partitionedNoHash,
+                "hash-xyz"
+            );
             expect(withHashKey).not.toBe(noHashKey);
             expect(withHashKey.endsWith("hash-xyz")).toBe(true);
         });
@@ -5093,8 +5098,10 @@ describe("BrowserCacheManager tests", () => {
                     attribute_tokens: "attribute_tokens:alpha",
                 },
             };
-            const attrKey =
-                browserCacheManager.generateCredentialKey(partitioned, "hash-1");
+            const attrKey = browserCacheManager.generateCredentialKey(
+                partitioned,
+                "hash-1"
+            );
             expect(bearerKey).not.toBe(attrKey);
         });
     });

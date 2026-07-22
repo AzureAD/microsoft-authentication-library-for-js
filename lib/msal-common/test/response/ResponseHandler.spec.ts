@@ -508,8 +508,11 @@ describe("ResponseHandler.ts", () => {
                             TEST_CRYPTO_VALUES.TEST_SHA256_HASH
                         );
                         // The entity itself must not carry the hash field
-                        const entityAsRecord = cacheRecord.accessToken as Record<string, unknown>;
-                        expect(entityAsRecord["additionalCacheKeyComponentsHash"]).toBeUndefined();
+                        const entityAsRecord =
+                            cacheRecord.accessToken as Record<string, unknown>;
+                        expect(
+                            entityAsRecord["additionalCacheKeyComponentsHash"]
+                        ).toBeUndefined();
                         done();
                     } catch (error) {
                         done(error);

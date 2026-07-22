@@ -206,7 +206,10 @@ export class NodeStorage extends CacheManager {
         this.setCache(cache);
     }
 
-    generateCredentialKey(credential: CredentialEntity, additionalCacheKeyHash?: string): string {
+    generateCredentialKey(
+        credential: CredentialEntity,
+        additionalCacheKeyHash?: string
+    ): string {
         return generateCredentialKey(credential, additionalCacheKeyHash);
     }
 
@@ -301,7 +304,10 @@ export class NodeStorage extends CacheManager {
         _kmsi?: boolean,
         additionalCacheKeyHash?: string
     ): Promise<void> {
-        const accessTokenKey = this.generateCredentialKey(accessToken, additionalCacheKeyHash);
+        const accessTokenKey = this.generateCredentialKey(
+            accessToken,
+            additionalCacheKeyHash
+        );
         this.setItem(accessTokenKey, accessToken);
     }
 

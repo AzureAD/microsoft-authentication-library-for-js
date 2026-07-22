@@ -1587,7 +1587,10 @@ export class BrowserCacheManager extends CacheManager {
             "BrowserCacheManager.setAccessTokenCredential called",
             correlationId
         );
-        const accessTokenKey = this.generateCredentialKey(accessToken, additionalCacheKeyHash);
+        const accessTokenKey = this.generateCredentialKey(
+            accessToken,
+            additionalCacheKeyHash
+        );
         const timestamp = Date.now().toString();
         accessToken.lastUpdatedAt = timestamp;
 
@@ -2130,7 +2133,10 @@ export class BrowserCacheManager extends CacheManager {
      * @param hash - optional precomputed hash of additionalCacheKeyComponents
      * @returns
      */
-    generateCredentialKey(credential: CredentialEntity, additionalCacheKeyHash?: string): string {
+    generateCredentialKey(
+        credential: CredentialEntity,
+        additionalCacheKeyHash?: string
+    ): string {
         const familyId =
             (credential.credentialType ===
                 Constants.CredentialType.REFRESH_TOKEN &&

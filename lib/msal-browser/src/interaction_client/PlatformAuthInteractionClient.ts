@@ -1040,8 +1040,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         let serializedAttributeTokens: string | undefined;
         if (hasAttributeTokens) {
-            serializedAttributeTokens =
-                CacheHelpers.serializeAttributeTokens(requestAttributeTokens!);
+            serializedAttributeTokens = CacheHelpers.serializeAttributeTokens(
+                requestAttributeTokens as Array<string>
+            );
         }
         this.performanceClient?.addFields(
             {

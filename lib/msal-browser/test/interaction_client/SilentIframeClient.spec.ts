@@ -1756,10 +1756,9 @@ describe("SilentIframeClient", () => {
                 ).mockResolvedValue(
                     `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
                 );
-                const handleResponseCodeSpy = jest.spyOn(
-                    AuthorizeProtocol,
-                    "handleResponseCode"
-                ).mockResolvedValue(getTestAuthenticationResult());
+                const handleResponseCodeSpy = jest
+                    .spyOn(AuthorizeProtocol, "handleResponseCode")
+                    .mockResolvedValue(getTestAuthenticationResult());
                 const earFormSpy = jest
                     .spyOn(SilentHandler, "initiateEarRequest")
                     .mockResolvedValue(document.createElement("iframe"));

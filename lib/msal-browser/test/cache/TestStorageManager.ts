@@ -28,7 +28,10 @@ const TOKEN_KEYS = "TOKEN_KEYS";
 export class TestStorageManager extends CacheManager {
     store = {};
 
-    generateCredentialKey(credential: CredentialEntity, additionalCacheKeyHash?: string): string {
+    generateCredentialKey(
+        credential: CredentialEntity,
+        additionalCacheKeyHash?: string
+    ): string {
         const familyId =
             (credential.credentialType ===
                 Constants.CredentialType.REFRESH_TOKEN &&
@@ -51,7 +54,11 @@ export class TestStorageManager extends CacheManager {
             scheme,
         ];
 
-        if (credential.additionalCacheKeyComponents && Object.keys(credential.additionalCacheKeyComponents).length > 0 && additionalCacheKeyHash) {
+        if (
+            credential.additionalCacheKeyComponents &&
+            Object.keys(credential.additionalCacheKeyComponents).length > 0 &&
+            additionalCacheKeyHash
+        ) {
             credentialKey.push(additionalCacheKeyHash);
         }
 
@@ -146,7 +153,10 @@ export class TestStorageManager extends CacheManager {
         _kmsi?: boolean,
         additionalCacheKeyHash?: string
     ): Promise<void> {
-        const accessTokenKey = this.generateCredentialKey(accessToken, additionalCacheKeyHash);
+        const accessTokenKey = this.generateCredentialKey(
+            accessToken,
+            additionalCacheKeyHash
+        );
         this.store[accessTokenKey] = accessToken;
 
         const tokenKeys = this.getTokenKeys();
