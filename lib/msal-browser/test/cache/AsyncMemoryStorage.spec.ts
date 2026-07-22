@@ -82,6 +82,9 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                 },
                 getKeys: () => {
                     callCounter.getKeysPersistent += 1;
+                    if (mockDatabase[UNEXPECTED_ERROR] === UNEXPECTED_ERROR) {
+                        throw new Error(UNEXPECTED_ERROR);
+                    }
                     return Object.keys(mockDatabase[TEST_DB_TABLE_NAME]);
                 },
                 containsKey: (kid: string) => {
@@ -296,6 +299,37 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     "persistent-key",
                     "shared-key",
                 ]);
+            });
+
+            it("should return in-memory keys when persistent key enumeration fails", async () => {
+                mockInMemoryCache[TEST_DB_TABLE_NAME]["memory-key"] =
+                    TEST_CACHE_ITEMS.TestItem.value;
+                mockDatabase[UNEXPECTED_ERROR] = UNEXPECTED_ERROR;
+
+                const keys = await asyncMemoryStorage.getKeys(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                const lastLog = logMessages[logMessages.length - 1];
+                expect(callCounter.getKeys).toBe(1);
+                expect(callCounter.getKeysPersistent).toBe(1);
+                expect(keys).toEqual(["memory-key"]);
+                expect(lastLog["level"]).toBe(1);
+                expect(
+                    lastLog["message"].indexOf(
+                        "Persistent storage key enumeration failed. Returning in-memory keys."
+                    )
+                ).not.toBe(-1);
+            });
+
+            it("should throw unexpected key enumeration errors when no in-memory keys exist", async () => {
+                mockDatabase[UNEXPECTED_ERROR] = UNEXPECTED_ERROR;
+
+                await expect(
+                    asyncMemoryStorage.getKeys(TEST_CONFIG.CORRELATION_ID)
+                ).rejects.toThrow(UNEXPECTED_ERROR);
+                expect(callCounter.getKeys).toBe(1);
+                expect(callCounter.getKeysPersistent).toBe(1);
             });
         });
 

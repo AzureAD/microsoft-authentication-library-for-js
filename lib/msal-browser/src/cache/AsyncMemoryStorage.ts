@@ -105,6 +105,20 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
             const persistentCacheKeys = await this.indexedDBCache.getKeys();
             return Array.from(new Set([...cacheKeys, ...persistentCacheKeys]));
         } catch (e) {
+            if (
+                !(
+                    e instanceof BrowserAuthError &&
+                    e.errorCode === BrowserAuthErrorCodes.databaseUnavailable
+                ) &&
+                cacheKeys.length > 0
+            ) {
+                this.logger.warning(
+                    "Persistent storage key enumeration failed. Returning in-memory keys.",
+                    correlationId
+                );
+                return cacheKeys;
+            }
+
             this.handleDatabaseAccessError(e, correlationId);
         }
 
