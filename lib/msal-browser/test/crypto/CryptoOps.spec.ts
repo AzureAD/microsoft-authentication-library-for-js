@@ -855,6 +855,62 @@ describe("CryptoOps.ts Unit Tests", () => {
             expect(verified).toBe(true);
         }, 10000);
 
+        it("signTokenBindingJwt signs the validated header even if the caller mutates the original header", async () => {
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
+            const keyId = await BrowserCrypto.computeJwkThumbprint(publicJwk);
+            mockDatabase["TestDB.keys"][keyId] = {
+                privateKey: keyPair.privateKey,
+                publicKey: keyPair.publicKey,
+                tokenBindingKeyType: "dpop",
+                tokenBindingKeyAlgorithm: "ES256",
+            };
+            const header = { alg: "ES256", typ: "dpop+jwt", jwk: publicJwk };
+            const computeJwkThumbprint =
+                BrowserCrypto.computeJwkThumbprint.bind(BrowserCrypto);
+            jest.spyOn(
+                BrowserCrypto,
+                "computeJwkThumbprint"
+            ).mockImplementation(async (jwk, correlationId) => {
+                header.typ = "mutated+jwt";
+                return computeJwkThumbprint(jwk, correlationId);
+            });
+
+            const proof = await cryptoObj.signTokenBindingJwt(
+                header,
+                {
+                    htm: "POST",
+                    htu: TEST_URIS.TEST_AUTH_ENDPT,
+                    iat: 1,
+                    jti: "jti",
+                },
+                keyId,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const [encodedHeader, encodedPayload, signature] = proof.split(".");
+            const proofHeader = JSON.parse(
+                Buffer.from(encodedHeader, "base64url").toString("utf8")
+            );
+            const verified = await window.crypto.subtle.verify(
+                BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS,
+                keyPair.publicKey,
+                Buffer.from(signature, "base64url"),
+                new TextEncoder().encode(`${encodedHeader}.${encodedPayload}`)
+            );
+
+            expect(header.typ).toBe("mutated+jwt");
+            expect(proofHeader).toEqual({
+                alg: "ES256",
+                jwk: publicJwk,
+            });
+            expect(verified).toBe(true);
+        }, 10000);
+
         it("signTokenBindingJwt rejects DPoP header JWKs that do not match the signing key", async () => {
             const signingKeyPair = await BrowserCrypto.generateKeyPair(
                 false,

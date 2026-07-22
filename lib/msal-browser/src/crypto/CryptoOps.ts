@@ -176,7 +176,7 @@ export class CryptoOps implements ICrypto {
             );
 
             const tokenString = `${urlEncode(
-                JSON.stringify(header)
+                JSON.stringify(jwtHeader)
             )}.${urlEncode(JSON.stringify(payload))}`;
             const encodedSignature = await this.signInput(
                 cachedKeyPair,
