@@ -17,9 +17,7 @@ export type PlatformAuthRequest = {
     scope: string;
     correlationId: string;
     windowTitleSubstring: string; // The name of the document title. This helps the native prompt properly "parent" to the window making the request
-    prompt?: string;
-    isSts: boolean; // Whether the request is from STS or not
-    nonce?: string;
+    isSts?: boolean; // Whether the request is from STS or not
     claims?: string;
     state?: string;
     loginHint?: string; // UPN of the user
