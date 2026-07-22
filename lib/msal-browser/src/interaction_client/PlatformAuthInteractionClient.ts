@@ -1049,7 +1049,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             loginHint: request.loginHint,
             extraParameters: {
                 ...request.extraParameters,
-                ...(request.resource && { resource: request.resource }), // resource is set for McP scenarios
+                ...(request.resource && { resource: request.resource }), // resource is set for MCP scenarios
             },
             extendedExpiryToken: false, // Make this configurable?
             keyId: request.popKid,
