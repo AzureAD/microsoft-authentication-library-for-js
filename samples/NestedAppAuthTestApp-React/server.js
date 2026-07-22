@@ -1,0 +1,42 @@
+const { spawn } = require("child_process");
+const path = require("path");
+
+/**
+ * Spawns a child process to serve one of the sample apps.
+ *
+ * @param {string} cmd - command to run (e.g. "npm start")
+ * @param {string} directory - working directory of the app
+ * @param {number} port - port the app should listen on
+ * @param {object} [env] - extra environment variables
+ */
+function startServer(cmd, directory, port, env) {
+    const serverProcess = spawn(cmd, {
+        shell: true,
+        cwd: directory,
+        env: { ...process.env, ...env, PORT: port },
+    });
+    serverProcess.on("error", (err) => {
+        console.error("Failed to start sample.");
+        throw err;
+    });
+    serverProcess.stdout.on("data", (data) => {
+        console.log(`stdout: ${data}`);
+    });
+    serverProcess.stderr.on("data", (data) => {
+        console.error(`stderr: ${data}`);
+    });
+    serverProcess.on("close", (code) => {
+        console.log(`child process exited with code ${code}`);
+    });
+}
+
+// Nested (child) app runs on port 30667 and is embedded in an iframe by the host.
+const nestedAppPort = 30667;
+// Host (top frame) app runs on port 30668. It enables the platform broker and
+// exposes the Nested App Authentication bridge to the embedded nested app.
+const hostAppPort = 30668;
+
+startServer("npm start", path.join(__dirname, "nestedApp"), nestedAppPort);
+startServer("npm start", path.join(__dirname, "hostApp"), hostAppPort, {
+    VITE_NESTED_APP_PORT: nestedAppPort,
+});
