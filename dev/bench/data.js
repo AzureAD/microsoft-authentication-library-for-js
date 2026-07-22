@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784568015266,
+  "lastUpdate": 1784759290248,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22555,6 +22555,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.10%",
             "unit": "ops/sec",
             "extra": "218 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5c070661d3693821fde231e19ab3e71cf2d45d12",
+          "message": "Fix MCP docs (misplaced_resource_parameter) (#8723)\n\n`mcp.md` has a typo where it says `misplaced_resource_parameter` is only\nthrown if a resource is available in both the top-level `resource`\nparameter and `extraQueryParameters` and does not mention\n`extraParameters`. This PR fixes that typo.",
+          "timestamp": "2026-07-22T22:19:42Z",
+          "tree_id": "5bda76651aac1d21c0ec2c3a55c152ac5f8a2e0a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5c070661d3693821fde231e19ab3e71cf2d45d12"
+        },
+        "date": 1784759286677,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 387308,
+            "range": "±0.62%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 389080,
+            "range": "±0.85%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
