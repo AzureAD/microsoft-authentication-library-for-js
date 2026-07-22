@@ -221,7 +221,12 @@ export class ClientCredentialClient extends BaseClient {
                 },
                 true,
                 request,
-                this.performanceClient
+                this.performanceClient,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                this.config.tokenBindingKeyManager
             ),
             lastCacheOutcome,
         ];
@@ -353,7 +358,8 @@ export class ClientCredentialClient extends BaseClient {
             this.logger,
             this.performanceClient,
             this.config.serializableCache,
-            this.config.persistencePlugin
+            this.config.persistencePlugin,
+            this.config.tokenBindingKeyManager
         );
 
         responseHandler.validateTokenResponse(

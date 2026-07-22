@@ -29,6 +29,10 @@ import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import { ICrypto } from "../crypto/ICrypto.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
 import {
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+    ITokenBindingKeyManager,
+} from "../crypto/ITokenBindingKeyManager.js";
+import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
@@ -57,6 +61,7 @@ export class ResponseHandler {
     private clientId: string;
     private cacheStorage: CacheManager;
     private cryptoObj: ICrypto;
+    private tokenBindingKeyManager: ITokenBindingKeyManager;
     private logger: Logger;
     private homeAccountIdentifier: string;
     private performanceClient: IPerformanceClient;
@@ -70,11 +75,13 @@ export class ResponseHandler {
         logger: Logger,
         performanceClient: IPerformanceClient,
         serializableCache: ISerializableTokenCache | null,
-        persistencePlugin: ICachePlugin | null
+        persistencePlugin: ICachePlugin | null,
+        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER
     ) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
         this.cryptoObj = cryptoObj;
+        this.tokenBindingKeyManager = tokenBindingKeyManager;
         this.logger = logger;
         this.performanceClient = performanceClient;
         this.serializableCache = serializableCache;
@@ -301,7 +308,8 @@ export class ResponseHandler {
                         idTokenClaims,
                         requestStateObj,
                         undefined,
-                        serverRequestId
+                        serverRequestId,
+                        this.tokenBindingKeyManager
                     );
                 }
             }
@@ -336,7 +344,8 @@ export class ResponseHandler {
             idTokenClaims,
             requestStateObj,
             serverTokenResponse,
-            serverRequestId
+            serverRequestId,
+            this.tokenBindingKeyManager
         );
     }
 
@@ -525,7 +534,8 @@ export class ResponseHandler {
         idTokenClaims?: TokenClaims,
         requestState?: RequestStateObject,
         serverTokenResponse?: ServerAuthorizationTokenResponse,
-        requestId?: string
+        requestId?: string,
+        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER
     ): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
@@ -545,7 +555,11 @@ export class ResponseHandler {
                 !request.popKid
             ) {
                 const popTokenGenerator: PopTokenGenerator =
-                    new PopTokenGenerator(cryptoObj, performanceClient);
+                    new PopTokenGenerator(
+                        cryptoObj,
+                        tokenBindingKeyManager,
+                        performanceClient
+                    );
                 const { secret, keyId } = cacheRecord.accessToken;
 
                 if (!keyId) {

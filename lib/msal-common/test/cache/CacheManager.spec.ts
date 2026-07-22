@@ -2709,6 +2709,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getAccessTokensByFilter matches DPoP access tokens by tokenType and jkt", async () => {
+        const SPEC_DPOP_AUTHENTICATION_SCHEME = "DPoP" as AuthenticationScheme;
         const mockedDpopAtEntity = CacheHelpers.createAccessTokenEntity(
             "uid.utid",
             "login.microsoftonline.com",
@@ -2725,9 +2726,28 @@ describe("CacheManager.ts test cases", () => {
             undefined,
             TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
         );
+        const specCasedDpopAtEntity = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            TEST_DPOP_VALUES.ACCESS_TOKEN,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            TEST_CONFIG.TENANT,
+            "User.Read test_scope_2",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            TEST_CONFIG.CORRELATION_ID,
+            500,
+            SPEC_DPOP_AUTHENTICATION_SCHEME,
+            undefined,
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+        );
 
         await mockCache.cacheManager.setAccessTokenCredential(
             mockedDpopAtEntity
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            specCasedDpopAtEntity
         );
 
         expect(
@@ -2740,7 +2760,18 @@ describe("CacheManager.ts test cases", () => {
                 },
                 TEST_CONFIG.CORRELATION_ID
             )
-        ).toEqual([mockedDpopAtEntity]);
+        ).toEqual([mockedDpopAtEntity, specCasedDpopAtEntity]);
+        expect(
+            mockCache.cacheManager.getAccessTokensByFilter(
+                {
+                    credentialType:
+                        CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                    tokenType: SPEC_DPOP_AUTHENTICATION_SCHEME,
+                    keyId: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).toEqual([mockedDpopAtEntity, specCasedDpopAtEntity]);
         expect(
             mockCache.cacheManager.getAccessTokensByFilter(
                 {
@@ -2758,6 +2789,16 @@ describe("CacheManager.ts test cases", () => {
                     credentialType:
                         CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
                     tokenType: DPOP_AUTHENTICATION_SCHEME,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).toEqual([]);
+        expect(
+            mockCache.cacheManager.getAccessTokensByFilter(
+                {
+                    credentialType:
+                        CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                    tokenType: SPEC_DPOP_AUTHENTICATION_SCHEME,
                 },
                 TEST_CONFIG.CORRELATION_ID
             )

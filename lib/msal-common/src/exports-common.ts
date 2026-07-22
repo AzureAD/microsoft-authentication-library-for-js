@@ -103,9 +103,13 @@ export {
     ICrypto,
     PkceCodes,
     DEFAULT_CRYPTO_IMPLEMENTATION,
-    PublicKeyThumbprintParameters,
     SignedHttpRequestParameters,
 } from "./crypto/ICrypto.js";
+export {
+    ITokenBindingKeyManager,
+    TokenBindingKeyContext,
+    TokenBindingKeyProvisioningParameters,
+} from "./crypto/ITokenBindingKeyManager.js";
 
 export * as AuthorizeProtocol from "./protocol/Authorize.js";
 export * as TokenProtocol from "./protocol/Token.js";

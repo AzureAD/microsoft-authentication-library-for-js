@@ -1,4 +1,8 @@
-import { Logger } from "@azure/msal-common";
+import {
+    Logger,
+    PerformanceEventStatus,
+    StubPerformanceClient,
+} from "@azure/msal-common";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
 import {
@@ -10,6 +14,7 @@ import {
     createBrowserAuthError,
 } from "../../src/error/BrowserAuthError";
 import { TEST_CONFIG } from "../utils/StringConstants";
+import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents";
 
 let mockDatabase = {
     "TestDB.keys": {},
@@ -113,8 +118,19 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
         expect(cachedKeyPair.tokenBindingKeyAlgorithm).toBe(
             TOKEN_BINDING_KEY_ALGORITHMS.ES256
         );
+        expect(cachedKeyPair.publicKey.extractable).toBe(true);
         expect(cachedKeyPair.privateKey.extractable).toBe(false);
         expect(cachedKeyPair.publicJwk).toBeUndefined();
+        await expect(
+            tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                keyId,
+                TEST_CONFIG.CORRELATION_ID,
+                DPOP_KEY_CONTEXT
+            )
+        ).resolves.toMatchObject({
+            crv: "P-256",
+            kty: "EC",
+        });
     }, 10000);
 
     it("reuses persisted scoped keys when memory contains unrelated keys", async () => {
@@ -168,7 +184,154 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
 
         expect(concurrentKeyId).toBe(keyId);
         expect(generateKeyPairSpy).toHaveBeenCalledTimes(1);
+        expect(DatabaseStorage.prototype.getKeys).toHaveBeenCalledTimes(1);
         expect(getCacheKeysByScope(DPOP_KEY_CONTEXT.keyScope)).toHaveLength(1);
+    }, 10000);
+
+    it("serializes concurrent scoped key provisioning across manager instances", async () => {
+        const generateKeyPairSpy = jest.spyOn(BrowserCrypto, "generateKeyPair");
+        const concurrentTokenBindingKeyManager = new TokenBindingKeyManager(
+            new Logger({})
+        );
+
+        const [keyId, concurrentKeyId] = await Promise.all([
+            tokenBindingKeyManager.provisionTokenBindingKey(DPOP_KEY_CONTEXT),
+            concurrentTokenBindingKeyManager.provisionTokenBindingKey(
+                DPOP_KEY_CONTEXT
+            ),
+        ]);
+
+        expect(concurrentKeyId).toBe(keyId);
+        expect(generateKeyPairSpy).toHaveBeenCalledTimes(1);
+        expect(DatabaseStorage.prototype.getKeys).toHaveBeenCalledTimes(1);
+        expect(getCacheKeysByScope(DPOP_KEY_CONTEXT.keyScope)).toHaveLength(1);
+    }, 10000);
+
+    it("emits per-caller telemetry when joining a coalesced scoped key request", async () => {
+        const performanceClient = new StubPerformanceClient();
+        const endMeasurement = jest.fn();
+        jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
+            (measureName, correlationId) => ({
+                end: endMeasurement,
+                discard: jest.fn(),
+                add: jest.fn(),
+                increment: jest.fn(),
+                event: {
+                    eventId: "test-event-id",
+                    status: PerformanceEventStatus.InProgress,
+                    authority: "",
+                    libraryName: "",
+                    libraryVersion: "",
+                    clientId: "",
+                    name: measureName,
+                    startTimeMs: Date.now(),
+                    correlationId: correlationId || "",
+                },
+            })
+        );
+        tokenBindingKeyManager = new TokenBindingKeyManager(
+            new Logger({}),
+            performanceClient
+        );
+        const secondCorrelationId = "second-correlation-id";
+        const generateKeyPairSpy = jest.spyOn(BrowserCrypto, "generateKeyPair");
+
+        const [keyId, concurrentKeyId] = await Promise.all([
+            tokenBindingKeyManager.provisionTokenBindingKey(DPOP_KEY_CONTEXT),
+            tokenBindingKeyManager.provisionTokenBindingKey({
+                ...DPOP_KEY_CONTEXT,
+                correlationId: secondCorrelationId,
+            }),
+        ]);
+
+        expect(concurrentKeyId).toBe(keyId);
+        expect(generateKeyPairSpy).toHaveBeenCalledTimes(1);
+        expect(performanceClient.startMeasurement).toHaveBeenCalledWith(
+            BrowserPerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
+            secondCorrelationId
+        );
+        expect(endMeasurement).toHaveBeenCalledWith({
+            success: true,
+            tokenBindingKeyType: "dpop",
+            tokenBindingKeyAlgorithm: TOKEN_BINDING_KEY_ALGORITHMS.ES256,
+            tokenBindingKeyRequestCoalesced: true,
+        });
+    }, 10000);
+
+    it("correlates coalesced scoped key request failures to the joining caller", async () => {
+        const performanceClient = new StubPerformanceClient();
+        const endMeasurement = jest.fn();
+        jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
+            (measureName, correlationId) => ({
+                end: endMeasurement,
+                discard: jest.fn(),
+                add: jest.fn(),
+                increment: jest.fn(),
+                event: {
+                    eventId: "test-event-id",
+                    status: PerformanceEventStatus.InProgress,
+                    authority: "",
+                    libraryName: "",
+                    libraryVersion: "",
+                    clientId: "",
+                    name: measureName,
+                    startTimeMs: Date.now(),
+                    correlationId: correlationId || "",
+                },
+            })
+        );
+        tokenBindingKeyManager = new TokenBindingKeyManager(
+            new Logger({}),
+            performanceClient
+        );
+        const firstCorrelationId = "first-correlation-id";
+        const secondCorrelationId = "second-correlation-id";
+        const unsupportedContext = {
+            tokenBindingKeyType: "dpop",
+            tokenBindingKeyAlgorithm: "unsupported",
+            keyScope: DPOP_KEY_CONTEXT.keyScope,
+            correlationId: firstCorrelationId,
+        };
+
+        const results = await Promise.allSettled([
+            tokenBindingKeyManager.provisionTokenBindingKey(unsupportedContext),
+            tokenBindingKeyManager.provisionTokenBindingKey({
+                ...unsupportedContext,
+                correlationId: secondCorrelationId,
+            }),
+        ]);
+
+        expect(results[0].status).toBe("rejected");
+        expect(results[1].status).toBe("rejected");
+        expect((results[0] as PromiseRejectedResult).reason).toMatchObject({
+            errorCode: BrowserAuthErrorCodes.unsupportedTokenBindingAlgorithm,
+            correlationId: firstCorrelationId,
+        });
+        expect((results[1] as PromiseRejectedResult).reason).toMatchObject({
+            errorCode: BrowserAuthErrorCodes.unsupportedTokenBindingAlgorithm,
+            correlationId: secondCorrelationId,
+        });
+        expect(endMeasurement).toHaveBeenCalledWith({
+            success: false,
+            tokenBindingKeyType: "dpop",
+            tokenBindingKeyAlgorithm: "unsupported",
+            tokenBindingKeyRequestCoalesced: true,
+        });
+    }, 10000);
+
+    it("enumerates storage keys once per scoped key lookup", async () => {
+        const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
+            DPOP_KEY_CONTEXT
+        );
+        jest.clearAllMocks();
+
+        const reusedKeyId =
+            await tokenBindingKeyManager.provisionTokenBindingKey(
+                DPOP_KEY_CONTEXT
+            );
+
+        expect(reusedKeyId).toBe(keyId);
+        expect(DatabaseStorage.prototype.getKeys).toHaveBeenCalledTimes(1);
     }, 10000);
 
     it("does not coalesce distinct scoped requests with colliding dot-joined values", async () => {

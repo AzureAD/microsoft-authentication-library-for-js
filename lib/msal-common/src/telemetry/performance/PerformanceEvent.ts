@@ -218,6 +218,11 @@ export type PerformanceEvent = {
     tokenBindingKeyCacheHit?: boolean;
 
     /**
+     * Whether crypto key thumbprint generation joined an active scoped request.
+     */
+    tokenBindingKeyRequestCoalesced?: boolean;
+
+    /**
      * Sub-measurements for internal use. To be deleted before flushing.
      */
     incompleteSubMeasurements?: Map<string, SubMeasurement>;

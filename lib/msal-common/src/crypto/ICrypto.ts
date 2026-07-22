@@ -8,7 +8,7 @@ import {
     createClientAuthError,
 } from "../error/ClientAuthError.js";
 import type { BaseAuthRequest } from "../request/BaseAuthRequest.js";
-import type { ShrOptions, SignedHttpRequest } from "./SignedHttpRequest.js";
+import type { TokenBindingKeyContext } from "./ITokenBindingKeyManager.js";
 
 /**
  * PKCE code verifier and challenge pair used by authorization code flows.
@@ -32,11 +32,6 @@ export type SignedHttpRequestParameters = Pick<
 > & {
     correlationId: string;
 };
-
-/**
- * Parameters used by crypto implementations to create public key thumbprints.
- */
-export type PublicKeyThumbprintParameters = SignedHttpRequestParameters;
 
 /**
  * Shared JOSE algorithm literals used by MSAL package internals.
@@ -74,39 +69,35 @@ export interface ICrypto {
      */
     encodeKid(inputKid: string): string;
     /**
-     * Provisions or reuses a public JWK thumbprint.
-     *
-     * @deprecated Legacy SHR compatibility wrapper. New MSAL token-binding
-     * flows should use protocol-specific key lifecycle and signing helpers.
-     *
-     * @param request
-     */
-    getPublicKeyThumbprint(
-        request: PublicKeyThumbprintParameters
-    ): Promise<string>;
-    /**
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid
      * @param correlationId
+     * @param context
      */
-    removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
+    removeTokenBindingKey(
+        kid: string,
+        correlationId: string,
+        context?: TokenBindingKeyContext
+    ): Promise<void>;
     /**
      * Removes all cryptographic keys from IndexedDB storage
      * @param correlationId
      */
     clearKeystore(correlationId: string): Promise<boolean>;
     /**
-     * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
-     * @deprecated Legacy SHR signing helper. New MSAL token-binding flows should
-     * use protocol-specific proof builders and signing helpers.
+     * Signs a compact JWT with the token-binding key identified by kid.
+     * @param header
      * @param payload
      * @param kid
+     * @param correlationId
+     * @param context
      */
-    signJwt(
-        payload: SignedHttpRequest,
+    signTokenBindingJwt(
+        header: object,
+        payload: object,
         kid: string,
-        shrOptions?: ShrOptions,
-        correlationId?: string
+        correlationId: string,
+        context?: TokenBindingKeyContext
     ): Promise<string>;
     /**
      * Returns the SHA-256 hash of an input string
@@ -150,12 +141,6 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
             ""
         );
     },
-    async getPublicKeyThumbprint(): Promise<string> {
-        throw createClientAuthError(
-            ClientAuthErrorCodes.methodNotImplemented,
-            ""
-        );
-    },
     async removeTokenBindingKey(): Promise<void> {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
@@ -168,7 +153,7 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
             ""
         );
     },
-    async signJwt(): Promise<string> {
+    async signTokenBindingJwt(): Promise<string> {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
             ""

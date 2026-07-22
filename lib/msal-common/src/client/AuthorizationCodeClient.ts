@@ -168,7 +168,8 @@ export class AuthorizationCodeClient {
             this.logger,
             this.performanceClient,
             this.config.serializableCache,
-            this.config.persistencePlugin
+            this.config.persistencePlugin,
+            this.config.tokenBindingKeyManager
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
@@ -409,6 +410,7 @@ export class AuthorizationCodeClient {
         ) {
             const popTokenGenerator = new PopTokenGenerator(
                 this.cryptoUtils,
+                this.config.tokenBindingKeyManager,
                 this.performanceClient
             );
 

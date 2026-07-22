@@ -23,6 +23,7 @@ const callCounter = {
     clearInMemory: 0,
     clearPersistent: 0,
     getKeys: 0,
+    getKeysPersistent: 0,
     getItem: 0,
     setItem: 0,
     removeItem: 0,
@@ -79,6 +80,10 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
 
                     delete mockDatabase[TEST_DB_TABLE_NAME][kid];
                 },
+                getKeys: () => {
+                    callCounter.getKeysPersistent += 1;
+                    return Object.keys(mockDatabase[TEST_DB_TABLE_NAME]);
+                },
                 containsKey: (kid: string) => {
                     return !!mockDatabase[TEST_DB_TABLE_NAME][kid];
                 },
@@ -111,7 +116,6 @@ jest.mock("../../src/cache/MemoryStorage", () => {
                 },
                 getKeys: () => {
                     callCounter.getKeys += 1;
-                    const cacheKeys: string[] = [];
                     return Object.keys(mockInMemoryCache[TEST_DB_TABLE_NAME]);
                 },
                 removeItem: (kid: string) => {
@@ -260,6 +264,38 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                         TEST_CACHE_ITEMS.TestItem.key
                     ]
                 ).toBe(undefined);
+            });
+        });
+
+        describe("getKeys", () => {
+            beforeEach(() => {
+                resetCallCounter();
+                logMessages = [];
+                mockDatabase[TEST_DB_TABLE_NAME] = {};
+                mockInMemoryCache[TEST_DB_TABLE_NAME] = {};
+            });
+
+            it("should return unique keys from in-memory and persistent storage", async () => {
+                mockInMemoryCache[TEST_DB_TABLE_NAME]["memory-key"] =
+                    TEST_CACHE_ITEMS.TestItem.value;
+                mockInMemoryCache[TEST_DB_TABLE_NAME]["shared-key"] =
+                    TEST_CACHE_ITEMS.TestItem.value;
+                mockDatabase[TEST_DB_TABLE_NAME]["persistent-key"] =
+                    TEST_CACHE_ITEMS.TestItem.value;
+                mockDatabase[TEST_DB_TABLE_NAME]["shared-key"] =
+                    TEST_CACHE_ITEMS.TestItem.value;
+
+                const keys = await asyncMemoryStorage.getKeys(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(callCounter.getKeys).toBe(1);
+                expect(callCounter.getKeysPersistent).toBe(1);
+                expect(keys.sort()).toEqual([
+                    "memory-key",
+                    "persistent-key",
+                    "shared-key",
+                ]);
             });
         });
 

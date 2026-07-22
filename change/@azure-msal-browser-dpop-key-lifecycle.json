@@ -1,7 +1,7 @@
 {
-    "type": "patch",
+    "type": "minor",
     "comment": "Add browser token-binding key lifecycle support for scoped ES256 DPoP keys [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708)",
     "packageName": "@azure/msal-browser",
     "email": "hectormmg@microsoft.com",
-    "dependentChangeType": "patch"
+    "dependentChangeType": "minor"
 }

@@ -1,12 +1,7 @@
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
-import {
-    PkceCodes,
-    BaseAuthRequest,
-    Logger,
-    PerformanceEventStatus,
-} from "@azure/msal-common";
+import { PkceCodes, Logger, PerformanceEventStatus } from "@azure/msal-common";
 import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
@@ -296,7 +291,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(regExp.test(generatedCodes.verifier)).toBe(true);
     });
 
-    it("getPublicKeyThumbprint() generates a valid request thumbprint", async () => {
+    it("TokenBindingKeyManager.provisionTokenBindingKey() generates a valid request thumbprint", async () => {
         jest.setTimeout(30000);
         jest.spyOn(
             BrowserCrypto,
@@ -309,10 +304,12 @@ describe("CryptoOps.ts Unit Tests", () => {
         });
         const generateKeyPairSpy = jest.spyOn(BrowserCrypto, "generateKeyPair");
         const exportJwkSpy = jest.spyOn(BrowserCrypto, "exportJwk");
-        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({
-            resourceRequestMethod: "POST",
-            resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS,
-        } as BaseAuthRequest);
+        const pkThumbprint =
+            await tokenBindingKeyManager.provisionTokenBindingKey({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                tokenBindingKeyType: "shr",
+                tokenBindingKeyAlgorithm: "RS256",
+            });
         /**
          * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
          */
@@ -341,10 +338,12 @@ describe("CryptoOps.ts Unit Tests", () => {
                 createHash("SHA256").update(Buffer.from(data)).digest()
             );
         });
-        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({
-            resourceRequestMethod: "POST",
-            resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS,
-        } as BaseAuthRequest);
+        const pkThumbprint =
+            await tokenBindingKeyManager.provisionTokenBindingKey({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                tokenBindingKeyType: "shr",
+                tokenBindingKeyAlgorithm: "RS256",
+            });
         const key = mockDatabase["TestDB.keys"][pkThumbprint];
         await cryptoObj.removeTokenBindingKey(
             pkThumbprint,
@@ -354,59 +353,20 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(mockDatabase["TestDB.keys"][pkThumbprint]).toBe(undefined);
     }, 30000);
 
-    it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
-        expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(
-            createBrowserAuthError(BrowserAuthErrorCodes.cryptoKeyNotFound, "")
-        );
-    }, 30000);
-
-    it("signJwt() falls back to caller and default SHR algorithms when public JWK alg is missing", async () => {
-        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({
-            resourceRequestMethod: "POST",
-            resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS,
-        } as BaseAuthRequest);
-        const publicJwk = await BrowserCrypto.exportJwk(
-            mockDatabase["TestDB.keys"][pkThumbprint].publicKey
-        );
-        jest.spyOn(BrowserCrypto, "exportJwk").mockResolvedValue({
-            ...publicJwk,
-            alg: "",
-        });
-
-        const signedJwtWithCallerAlg = await cryptoObj.signJwt(
-            { at: "access-token" },
-            pkThumbprint,
-            {
-                header: {
-                    alg: "RS256",
-                },
-            },
-            TEST_CONFIG.CORRELATION_ID
-        );
-        const [encodedHeaderWithCallerAlg] = signedJwtWithCallerAlg.split(".");
-        const headerWithCallerAlg = JSON.parse(
-            Buffer.from(encodedHeaderWithCallerAlg, "base64url").toString(
-                "utf8"
+    it("signTokenBindingJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
+        await expect(
+            cryptoObj.signTokenBindingJwt(
+                { alg: "RS256" },
+                {},
+                "testString",
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).rejects.toThrow(
+            createBrowserAuthError(
+                BrowserAuthErrorCodes.cryptoKeyNotFound,
+                TEST_CONFIG.CORRELATION_ID
             )
         );
-
-        expect(headerWithCallerAlg.alg).toBe("RS256");
-
-        const signedJwtWithDefaultAlg = await cryptoObj.signJwt(
-            { at: "access-token" },
-            pkThumbprint,
-            undefined,
-            TEST_CONFIG.CORRELATION_ID
-        );
-        const [encodedHeaderWithDefaultAlg] =
-            signedJwtWithDefaultAlg.split(".");
-        const headerWithDefaultAlg = JSON.parse(
-            Buffer.from(encodedHeaderWithDefaultAlg, "base64url").toString(
-                "utf8"
-            )
-        );
-
-        expect(headerWithDefaultAlg.alg).toBe("RS256");
     }, 30000);
 
     it("emits token-binding key metadata for SHR and DPoP key generation", async () => {
@@ -936,8 +896,57 @@ describe("CryptoOps.ts Unit Tests", () => {
                 )
             ).rejects.toThrow(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch,
+                    BrowserAuthErrorCodes.invalidPublicJwk,
+                    TEST_CONFIG.CORRELATION_ID,
+                    BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch
+                )
+            );
+        }, 10000);
+
+        it("signTokenBindingJwt rejects malformed DPoP header JWKs with caller correlation", async () => {
+            const signingKeyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const signingPublicJwk = await BrowserCrypto.exportJwk(
+                signingKeyPair.publicKey
+            );
+            const signingKeyId = await BrowserCrypto.computeJwkThumbprint(
+                signingPublicJwk
+            );
+            mockDatabase["TestDB.keys"][signingKeyId] = {
+                privateKey: signingKeyPair.privateKey,
+                publicKey: signingKeyPair.publicKey,
+                tokenBindingKeyType: "dpop",
+                tokenBindingKeyAlgorithm: "ES256",
+            };
+
+            await expect(
+                cryptoObj.signTokenBindingJwt(
+                    {
+                        alg: "ES256",
+                        typ: "dpop+jwt",
+                        jwk: {
+                            crv: "P-256",
+                            x: "x-coordinate",
+                            y: "y-coordinate",
+                        },
+                    },
+                    {
+                        htm: "POST",
+                        htu: TEST_URIS.TEST_AUTH_ENDPT,
+                        iat: 1,
+                        jti: "jti",
+                    },
+                    signingKeyId,
                     TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toThrow(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.invalidPublicJwk,
+                    TEST_CONFIG.CORRELATION_ID,
+                    "missing_jwk_kty"
                 )
             );
         }, 10000);
@@ -994,8 +1003,9 @@ describe("CryptoOps.ts Unit Tests", () => {
                 )
             ).rejects.toThrow(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.tokenBindingKeyAlgorithmMismatch,
-                    TEST_CONFIG.CORRELATION_ID
+                    BrowserAuthErrorCodes.unsupportedTokenBindingAlgorithm,
+                    TEST_CONFIG.CORRELATION_ID,
+                    BrowserAuthErrorCodes.tokenBindingKeyAlgorithmMismatch
                 )
             );
 

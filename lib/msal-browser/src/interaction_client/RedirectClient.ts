@@ -59,6 +59,7 @@ import {
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -89,7 +90,8 @@ export class RedirectClient extends StandardInteractionClient {
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
-        platformAuthHandler?: IPlatformAuthHandler
+        platformAuthHandler?: IPlatformAuthHandler,
+        tokenBindingKeyManager?: TokenBindingKeyManager
     ) {
         super(
             config,
@@ -100,7 +102,8 @@ export class RedirectClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            platformAuthHandler
+            platformAuthHandler,
+            tokenBindingKeyManager
         );
         this.nativeStorage = nativeStorageImpl;
     }

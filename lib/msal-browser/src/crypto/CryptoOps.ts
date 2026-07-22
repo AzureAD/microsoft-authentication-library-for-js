@@ -6,12 +6,9 @@
 import {
     ICrypto,
     IPerformanceClient,
-    JoseHeader,
     Logger,
-    PublicKeyThumbprintParameters,
-    ShrOptions,
-    SignedHttpRequest,
 } from "@azure/msal-common/browser";
+import type { TokenBindingKeyContext } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     base64Encode,
@@ -23,7 +20,6 @@ import * as BrowserCrypto from "./BrowserCrypto.js";
 import {
     CachedKeyPair,
     TOKEN_BINDING_KEY_ALGORITHMS,
-    TokenBindingKeyContext,
     TokenBindingKeyTelemetry,
     TokenBindingKeyManager,
 } from "./TokenBindingKeyManager.js";
@@ -36,8 +32,8 @@ type TokenBindingKeySigningAlgorithm = {
     signAlgorithm: AlgorithmIdentifier;
 };
 
-type TokenBindingJwtHeader = {
-    alg?: unknown;
+type TokenBindingSigningHeader = {
+    alg: string;
     jwk?: JsonWebKey;
 };
 
@@ -114,26 +110,6 @@ export class CryptoOps implements ICrypto {
     }
 
     /**
-     * Provisions or reuses a browser token-binding key and returns the public JWK
-     * thumbprint.
-     *
-     * @deprecated Legacy SHR compatibility wrapper. New MSAL token-binding
-     * flows should use protocol-specific key lifecycle and signing helpers.
-     *
-     * @param request - PoP/SHR request parameters.
-     * @returns RFC 7638 public JWK thumbprint for the selected key.
-     */
-    async getPublicKeyThumbprint(
-        request: PublicKeyThumbprintParameters
-    ): Promise<string> {
-        return this.tokenBindingKeyManager.provisionTokenBindingKey({
-            correlationId: request.correlationId || "",
-            tokenBindingKeyType: "shr",
-            tokenBindingKeyAlgorithm: TOKEN_BINDING_KEY_ALGORITHMS.RS256,
-        });
-    }
-
-    /**
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid
      * @param correlationId
@@ -179,23 +155,23 @@ export class CryptoOps implements ICrypto {
                     correlationId,
                     context
                 );
-            const jwtHeaderAlgorithm = this.getTokenBindingJwtHeaderAlgorithm(
+            const jwtHeader = validateTokenBindingSigningHeader(
                 header,
                 correlationId
             );
             await this.validateTokenBindingJwtHeaderKey(
-                header,
+                jwtHeader,
                 kid,
                 correlationId
             );
             telemetry = this.tokenBindingKeyManager.getTokenBindingKeyTelemetry(
                 cachedKeyPair,
-                jwtHeaderAlgorithm
+                jwtHeader.alg
             );
 
             const signingAlgorithm = this.getTokenBindingKeySigningAlgorithm(
                 cachedKeyPair,
-                jwtHeaderAlgorithm,
+                jwtHeader.alg,
                 correlationId
             );
 
@@ -220,54 +196,6 @@ export class CryptoOps implements ICrypto {
             });
             throw e;
         }
-    }
-
-    /**
-     * Signs the given object as an SHR JWT payload with the private key retrieved by the given kid.
-     * @deprecated Legacy SHR signing helper. New MSAL token-binding flows should
-     * use protocol-specific proof builders and signing helpers.
-     * @param payload
-     * @param kid
-     */
-    async signJwt(
-        payload: SignedHttpRequest,
-        kid: string,
-        shrOptions?: ShrOptions,
-        correlationId?: string
-    ): Promise<string> {
-        const resolvedCorrelationId = correlationId || "";
-        const publicKeyJwk =
-            await this.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
-                kid,
-                resolvedCorrelationId
-            );
-        const publicKeyJwkString = getSortedObjectString(publicKeyJwk);
-        const encodedKeyIdThumbprint = urlEncode(JSON.stringify({ kid: kid }));
-        const shrAlgorithm =
-            shrOptions?.header?.alg ||
-            publicKeyJwk.alg ||
-            TOKEN_BINDING_KEY_ALGORITHMS.RS256;
-        const shrHeader = JoseHeader.getShrHeader(
-            {
-                ...shrOptions?.header,
-                alg: shrAlgorithm,
-                kid: encodedKeyIdThumbprint,
-            },
-            resolvedCorrelationId
-        );
-        const shrPayload: SignedHttpRequest = {
-            ...payload,
-            cnf: {
-                jwk: JSON.parse(publicKeyJwkString),
-            },
-        };
-
-        return this.signTokenBindingJwt(
-            shrHeader,
-            shrPayload,
-            kid,
-            resolvedCorrelationId
-        );
     }
 
     /**
@@ -326,8 +254,9 @@ export class CryptoOps implements ICrypto {
             requestedAlgorithm === TOKEN_BINDING_KEY_ALGORITHMS.ES256
         ) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.tokenBindingKeyAlgorithmMismatch,
-                correlationId
+                BrowserAuthErrorCodes.unsupportedTokenBindingAlgorithm,
+                correlationId,
+                BrowserAuthErrorCodes.tokenBindingKeyAlgorithmMismatch
             );
         }
 
@@ -337,41 +266,62 @@ export class CryptoOps implements ICrypto {
         );
     }
 
-    private getTokenBindingJwtHeaderAlgorithm(
-        header: object,
+    private async validateTokenBindingJwtHeaderKey(
+        header: TokenBindingSigningHeader,
+        kid: string,
         correlationId: string
-    ): string {
-        const requestedAlgorithm = (header as TokenBindingJwtHeader).alg;
-        if (typeof requestedAlgorithm === "string" && requestedAlgorithm) {
-            return requestedAlgorithm;
+    ): Promise<void> {
+        if (!header.jwk) {
+            return;
         }
 
+        const headerKeyId = await BrowserCrypto.computeJwkThumbprint(
+            header.jwk,
+            correlationId
+        );
+        if (headerKeyId !== kid) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.invalidPublicJwk,
+                correlationId,
+                BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch
+            );
+        }
+    }
+}
+
+function validateTokenBindingSigningHeader(
+    header: object,
+    correlationId: string
+): TokenBindingSigningHeader {
+    if (!isRecord(header) || typeof header.alg !== "string" || !header.alg) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.missingTokenBindingJwtAlgorithm,
             correlationId
         );
     }
 
-    private async validateTokenBindingJwtHeaderKey(
-        header: object,
-        kid: string,
-        correlationId: string
-    ): Promise<void> {
-        const publicJwk = (header as TokenBindingJwtHeader).jwk;
-        if (!publicJwk) {
-            return;
-        }
+    const tokenBindingJwtHeader: TokenBindingSigningHeader = {
+        alg: header.alg,
+    };
 
-        const headerKeyId = await BrowserCrypto.computeJwkThumbprint(publicJwk);
-        if (headerKeyId !== kid) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch,
-                correlationId
-            );
-        }
+    if (!("jwk" in header) || typeof header.jwk === "undefined") {
+        return tokenBindingJwtHeader;
     }
+
+    if (isRecord(header.jwk)) {
+        return {
+            ...tokenBindingJwtHeader,
+            jwk: header.jwk,
+        };
+    }
+
+    throw createBrowserAuthError(
+        BrowserAuthErrorCodes.invalidPublicJwk,
+        correlationId,
+        BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch
+    );
 }
 
-function getSortedObjectString(obj: object): string {
-    return JSON.stringify(obj, Object.keys(obj).sort());
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
 }

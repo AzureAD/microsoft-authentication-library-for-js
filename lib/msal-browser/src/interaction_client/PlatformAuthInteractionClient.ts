@@ -80,6 +80,7 @@ import {
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
 import { SilentCacheClient } from "./SilentCacheClient.js";
+import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -101,7 +102,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         provider: IPlatformAuthHandler,
         accountId: string,
         nativeStorageImpl: BrowserCacheManager,
-        correlationId: string
+        correlationId: string,
+        tokenBindingKeyManager?: TokenBindingKeyManager
     ) {
         super(
             config,
@@ -112,7 +114,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            provider
+            provider,
+            tokenBindingKeyManager
         );
         this.apiId = apiId;
         this.accountId = accountId;
@@ -127,7 +130,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            provider
+            provider,
+            this.tokenBindingKeyManager
         );
 
         const extensionName = this.platformAuthProvider.getExtensionName();
@@ -689,6 +693,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             // Generate SHR in msal js if WAM does not compute it when POP is enabled
             const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(
                 this.browserCrypto,
+                this.tokenBindingKeyManager,
                 this.performanceClient
             );
             const shrParameters: SignedHttpRequestParameters = {
@@ -1080,6 +1085,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
             const popTokenGenerator = new PopTokenGenerator(
                 this.browserCrypto,
+                this.tokenBindingKeyManager,
                 this.performanceClient
             );
 

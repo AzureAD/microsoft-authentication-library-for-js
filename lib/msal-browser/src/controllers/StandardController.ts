@@ -97,6 +97,7 @@ import {
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 function preflightCheck(
     initialized: boolean,
@@ -119,6 +120,9 @@ export class StandardController implements IController {
 
     // Crypto interface implementation
     protected readonly browserCrypto: ICrypto;
+
+    // Token-binding key lifecycle implementation
+    protected readonly tokenBindingKeyManager: TokenBindingKeyManager;
 
     // Storage interface implementation
     protected readonly browserStorage: BrowserCacheManager;
@@ -226,6 +230,10 @@ export class StandardController implements IController {
         this.browserCrypto = this.isBrowserEnvironment
             ? new CryptoOps(this.logger, this.performanceClient)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
+        this.tokenBindingKeyManager = new TokenBindingKeyManager(
+            this.logger,
+            this.performanceClient
+        );
 
         this.eventHandler = new EventHandler(this.logger);
 
@@ -509,7 +517,8 @@ export class StandardController implements IController {
                     this.platformAuthProvider,
                     platformBrokerRequest.accountId,
                     this.nativeInternalStorage,
-                    platformBrokerRequest.correlationId
+                    platformBrokerRequest.correlationId,
+                    this.tokenBindingKeyManager
                 );
 
                 redirectResponse = invokeAsync(
@@ -716,7 +725,8 @@ export class StandardController implements IController {
                     this.platformAuthProvider,
                     this.getNativeAccountId(request),
                     this.nativeInternalStorage,
-                    correlationId
+                    correlationId,
+                    this.tokenBindingKeyManager
                 );
                 result = invokeAsync(
                     nativeClient.acquireTokenRedirect.bind(nativeClient),
@@ -1807,7 +1817,8 @@ export class StandardController implements IController {
             this.platformAuthProvider,
             accountId || this.getNativeAccountId(request),
             this.nativeInternalStorage,
-            correlationId
+            correlationId,
+            this.tokenBindingKeyManager
         );
 
         return invokeAsync(
@@ -1920,7 +1931,8 @@ export class StandardController implements IController {
             this.nativeInternalStorage,
             correlationId,
             this.platformAuthProvider,
-            this.operatingContext.getResponseHandlers()?.waitForPopupResponse
+            this.operatingContext.getResponseHandlers()?.waitForPopupResponse,
+            this.tokenBindingKeyManager
         );
     }
 
@@ -1939,7 +1951,8 @@ export class StandardController implements IController {
             this.performanceClient,
             this.nativeInternalStorage,
             correlationId,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.tokenBindingKeyManager
         );
     }
 
@@ -1960,7 +1973,8 @@ export class StandardController implements IController {
             this.nativeInternalStorage,
             correlationId,
             this.platformAuthProvider,
-            this.operatingContext.getResponseHandlers()?.waitForIframeResponse
+            this.operatingContext.getResponseHandlers()?.waitForIframeResponse,
+            this.tokenBindingKeyManager
         );
     }
 
@@ -1979,7 +1993,8 @@ export class StandardController implements IController {
             this.navigationClient,
             this.performanceClient,
             correlationId,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.tokenBindingKeyManager
         );
     }
 
@@ -1998,7 +2013,8 @@ export class StandardController implements IController {
             this.navigationClient,
             this.performanceClient,
             correlationId,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.tokenBindingKeyManager
         );
     }
 
@@ -2018,7 +2034,8 @@ export class StandardController implements IController {
             ApiId.acquireTokenByCode,
             this.performanceClient,
             correlationId,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.tokenBindingKeyManager
         );
     }
 

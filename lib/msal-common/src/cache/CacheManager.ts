@@ -1929,14 +1929,19 @@ export abstract class CacheManager implements ICacheManager {
         entity: CredentialEntity,
         tokenType: Constants.AuthenticationScheme
     ): boolean {
-        return !!(entity.tokenType && entity.tokenType === tokenType);
+        return !!(
+            entity.tokenType &&
+            entity.tokenType.toLowerCase() === tokenType.toLowerCase()
+        );
     }
 
     private matchAccessTokenWithAuthScheme(
         entity: CredentialEntity,
         filter: CredentialFilter
     ): boolean {
-        const filterTokenType = filter.tokenType as string | undefined;
+        const normalizedFilterTokenType = (
+            filter.tokenType as string | undefined
+        )?.toLowerCase();
 
         if (
             !!filter.tokenType &&
@@ -1945,7 +1950,7 @@ export abstract class CacheManager implements ICacheManager {
             return false;
         }
 
-        switch (filterTokenType) {
+        switch (normalizedFilterTokenType) {
             case DPOP_AUTHENTICATION_SCHEME:
                 return this.matchKeyBoundAccessToken(entity, filter, true);
             case Constants.AuthenticationScheme.SSH:
