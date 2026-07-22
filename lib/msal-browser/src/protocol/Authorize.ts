@@ -26,6 +26,7 @@ import {
     AuthorizationCodePayload,
     ServerAuthorizationTokenResponse,
     Constants,
+    AADServerParamKeys,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -216,6 +217,13 @@ async function getStandardParameters(
             }
             RequestParameterBuilder.addPopToken(parameters, reqCnfData);
         }
+    }
+
+    if (
+        request.authenticationScheme === Constants.AuthenticationScheme.DPOP &&
+        request.dpopJkt
+    ) {
+        parameters.set(AADServerParamKeys.DPOP_JKT, request.dpopJkt);
     }
 
     RequestParameterBuilder.instrumentBrokerParams(

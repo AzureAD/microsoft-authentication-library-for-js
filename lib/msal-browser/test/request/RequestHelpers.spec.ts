@@ -15,6 +15,7 @@ import * as RequestHelpers from "../../src/request/RequestHelpers.js";
 import { BrowserConfiguration } from "../../src/config/Configuration.js";
 import { SilentRequest } from "../../src/request/SilentRequest.js";
 import { TEST_CONFIG } from "../utils/StringConstants.js";
+import { TokenBindingKeyManager } from "../../src/crypto/TokenBindingKeyManager.js";
 
 describe("RequestHelpers tests", () => {
     let mockConfig: BrowserConfiguration;
@@ -24,6 +25,7 @@ describe("RequestHelpers tests", () => {
     beforeEach(() => {
         mockConfig = {
             auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: "https://login.microsoftonline.com/common",
             },
         } as BrowserConfiguration;
@@ -88,12 +90,13 @@ describe("RequestHelpers tests", () => {
             );
         });
 
-        it("should throw an error if DPoP authentication scheme is requested while runtime-disabled", async () => {
+        it("should throw an error if DPoP authentication scheme is missing resource method", async () => {
             const request: Partial<BaseAuthRequest> & {
                 correlationId: string;
             } = {
                 correlationId: "test-correlation-id",
-                authenticationScheme: "dpop" as Constants.AuthenticationScheme,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
             };
 
             await expect(
@@ -106,10 +109,69 @@ describe("RequestHelpers tests", () => {
                 )
             ).rejects.toThrowError(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.unsupportedAuthenticationScheme,
+                    ClientConfigurationErrorCodes.dpopMissingResourceContext,
                     TEST_CONFIG.CORRELATION_ID
                 )
             );
+        });
+
+        it("should throw an error if DPoP authentication scheme is missing resource uri", async () => {
+            const request: Partial<BaseAuthRequest> & {
+                correlationId: string;
+            } = {
+                correlationId: "test-correlation-id",
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "GET",
+            };
+
+            await expect(
+                RequestHelpers.initializeBaseRequest(
+                    request,
+                    mockConfig,
+                    mockPerformanceClient,
+                    mockLogger,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toThrowError(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.dpopMissingResourceContext,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+        });
+
+        it("should provision dpop_jkt for DPoP authentication requests", async () => {
+            const provisionSpy = jest
+                .spyOn(
+                    TokenBindingKeyManager.prototype,
+                    "provisionTokenBindingKey"
+                )
+                .mockResolvedValue("test-dpop-jkt");
+            const request: Partial<BaseAuthRequest> & {
+                correlationId: string;
+            } = {
+                correlationId: "test-correlation-id",
+                scopes: ["User.Read"],
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            const result = await RequestHelpers.initializeBaseRequest(
+                request,
+                mockConfig,
+                mockPerformanceClient,
+                mockLogger,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            expect(result.dpopJkt).toBe("test-dpop-jkt");
+            expect(provisionSpy).toHaveBeenCalledWith({
+                tokenBindingKeyType: "dpop",
+                tokenBindingKeyAlgorithm: "ES256",
+                keyScope: `dpop.${TEST_CONFIG.MSAL_CLIENT_ID}.https://login.microsoftonline.com/common`,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            });
         });
     });
 

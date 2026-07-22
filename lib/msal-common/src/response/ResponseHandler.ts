@@ -28,6 +28,7 @@ import * as AccountEntityUtils from "../cache/utils/AccountEntityUtils.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import { ICrypto } from "../crypto/ICrypto.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
+import { DpopProofGenerator } from "../crypto/DpopProofGenerator.js";
 import {
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     ITokenBindingKeyManager,
@@ -243,7 +244,16 @@ export class ResponseHandler {
 
         // Add keyId from request to serverTokenResponse if defined
         serverTokenResponse.key_id =
-            serverTokenResponse.key_id || request.sshKid || undefined;
+            serverTokenResponse.key_id ||
+            request.dpopJkt ||
+            request.sshKid ||
+            undefined;
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            serverTokenResponse.token_type =
+                Constants.AuthenticationScheme.DPOP;
+        }
 
         const cacheRecord = this.generateCacheRecord(
             serverTokenResponse,
@@ -543,6 +553,7 @@ export class ResponseHandler {
         let extExpiresOn: Date | undefined;
         let refreshOn: Date | undefined;
         let familyId: string = "";
+        let dpopProof: string | undefined;
 
         if (cacheRecord.accessToken) {
             /*
@@ -576,6 +587,33 @@ export class ResponseHandler {
                 );
             } else {
                 accessToken = cacheRecord.accessToken.secret;
+            }
+            if (
+                cacheRecord.accessToken.tokenType ===
+                Constants.AuthenticationScheme.DPOP
+            ) {
+                if (!cacheRecord.accessToken.keyId) {
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.keyIdMissing,
+                        request.correlationId
+                    );
+                }
+                const dpopProofGenerator = new DpopProofGenerator(
+                    cryptoObj,
+                    tokenBindingKeyManager
+                );
+                dpopProof = await dpopProofGenerator.generateResourceProof(
+                    {
+                        resourceUrl: request.resourceRequestUri || "",
+                        htm: request.resourceRequestMethod || "",
+                        accessToken: cacheRecord.accessToken.secret,
+                        keyId: cacheRecord.accessToken.keyId,
+                        keyContext: {
+                            keyScope: `dpop.${cacheRecord.accessToken.clientId}.${request.authority}`,
+                        },
+                    },
+                    request.correlationId
+                );
             }
             responseScopes = ScopeSet.fromString(
                 cacheRecord.accessToken.target,
@@ -640,6 +678,7 @@ export class ResponseHandler {
             idToken: cacheRecord?.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,
+            dpopProof,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
             extExpiresOn: extExpiresOn,
@@ -647,7 +686,11 @@ export class ResponseHandler {
             correlationId: request.correlationId,
             requestId: requestId || "",
             familyId: familyId,
-            tokenType: cacheRecord.accessToken?.tokenType || "",
+            tokenType:
+                cacheRecord.accessToken?.tokenType ===
+                Constants.AuthenticationScheme.DPOP
+                    ? Constants.DPOP_TOKEN_TYPE
+                    : cacheRecord.accessToken?.tokenType || "",
             state: requestState ? requestState.userRequestState : "",
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || "",
             msGraphHost: cacheRecord.account?.msGraphHost || "",

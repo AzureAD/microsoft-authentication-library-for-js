@@ -33,7 +33,10 @@ import {
 } from "../../src/response/ResponseHandler.js";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse.js";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
-import { AuthenticationScheme } from "../../src/utils/Constants.js";
+import {
+    AuthenticationScheme,
+    DPOP_TOKEN_TYPE,
+} from "../../src/utils/Constants.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import {
     mockCrypto,
@@ -45,6 +48,7 @@ import {
     ID_TOKEN_CLAIMS,
     POP_AUTHENTICATION_RESULT,
     TEST_CONFIG,
+    TEST_DPOP_VALUES,
     TEST_DATA_CLIENT_INFO,
     TEST_POP_VALUES,
     TEST_TOKEN_LIFETIMES,
@@ -657,6 +661,62 @@ describe("ResponseHandler.ts", () => {
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
             expect(result.accessToken).toBe(TEST_TOKENS.POP_TOKEN);
+        });
+
+        it("returns raw DPoP access token with a separate resource proof", async () => {
+            const hashSpy = jest
+                .spyOn(cryptoInterface, "hashString")
+                .mockResolvedValue(TEST_DPOP_VALUES.ACCESS_TOKEN_ATH);
+            const signSpy = jest
+                .spyOn(cryptoInterface, "signTokenBindingJwt")
+                .mockResolvedValue("fresh-dpop-proof");
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                authenticationScheme: AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                access_token: TEST_DPOP_VALUES.ACCESS_TOKEN,
+            };
+            claimsStub.mockImplementation(
+                (encodedToken: string): TokenClaims | null => {
+                    switch (encodedToken) {
+                        case testResponse.id_token:
+                            return ID_TOKEN_CLAIMS as TokenClaims;
+                        default:
+                            return null;
+                    }
+                }
+            );
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null,
+                mockShrTokenBindingKeyManager
+            );
+            const result = await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                TimeUtils.nowSeconds(),
+                testRequest,
+                0
+            );
+
+            expect(result.tokenType).toBe(DPOP_TOKEN_TYPE);
+            expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
+            expect(result.dpopProof).toBe("fresh-dpop-proof");
+            expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
+            expect(signSpy).toHaveBeenCalled();
         });
 
         it("Does not sign access token when PoP kid is set and PoP scheme enabled", async () => {

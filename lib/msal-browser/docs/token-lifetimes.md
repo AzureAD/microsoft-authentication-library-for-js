@@ -22,6 +22,8 @@ Refresh tokens given to Single-Page Applications are limited-time refresh tokens
 
 Note: When a new refresh token is obtained, msal.js replaces the cached refresh token with the new refresh token, however the old refresh token is not invalidated by the server and may still be used to obtain access tokens until its expiration.
 
+For browser-native DPoP requests, refresh tokens remain bearer refresh tokens. MSAL sends a DPoP proof on refresh-token redemption to bind the newly issued access token, but does not introduce DPoP-bound refresh token behavior in this release.
+
 ## Token Renewal
 
 The `PublicClientApplication` object exposes an API called `acquireTokenSilent` which is meant to retrieve non-expired token silently. It does this in a few steps:
@@ -55,15 +57,17 @@ var request = {
     scopes: ["Mail.Read"],
     account: currentAccount,
     forceRefresh: true,
-    refreshTokenExpirationOffsetSeconds: 7200 // 2 hours * 60 minutes * 60 seconds = 7200 seconds
+    refreshTokenExpirationOffsetSeconds: 7200, // 2 hours * 60 minutes * 60 seconds = 7200 seconds
 };
 
-const tokenResponse = await msalInstance.acquireTokenSilent(request).catch(async (error) => {
-    if (error instanceof InteractionRequiredAuthError) {
-        // fallback to interaction when silent call fails
-        await msalInstance.acquireTokenRedirect(request);
-    }
-});
+const tokenResponse = await msalInstance
+    .acquireTokenSilent(request)
+    .catch(async (error) => {
+        if (error instanceof InteractionRequiredAuthError) {
+            // fallback to interaction when silent call fails
+            await msalInstance.acquireTokenRedirect(request);
+        }
+    });
 ```
 
 Note: There is never a guarantee that a token can be acquired silently even if the refresh token has not expired yet. The patterns described above are best effort attempts to minimize interaction at inconvenient times but will not eliminate the possibility of required interactions within the desired timeframes. Additionally, not all identity providers return the refresh token expiration - in those cases the `refreshTokenExpirationOffsetSeconds` request parameter will not be evaluated.
@@ -90,25 +94,29 @@ var silentRequest = {
     scopes: ["Mail.Read"],
     account: currentAccount,
     forceRefresh: false,
-    cacheLookupPolicy: CacheLookupPolicy.Default // will default to CacheLookupPolicy.Default if omitted
+    cacheLookupPolicy: CacheLookupPolicy.Default, // will default to CacheLookupPolicy.Default if omitted
 };
 
 var request = {
     scopes: ["Mail.Read"],
-    loginHint: currentAccount.username // For v1 endpoints, use upn from idToken claims
+    loginHint: currentAccount.username, // For v1 endpoints, use upn from idToken claims
 };
 
-const tokenResponse = await msalInstance.acquireTokenSilent(silentRequest).catch(async (error) => {
-    if (error instanceof InteractionRequiredAuthError) {
-        // fallback to interaction when silent call fails
-        return await msalInstance.acquireTokenPopup(request).catch(error => {
-            if (error instanceof InteractionRequiredAuthError) {
-                // fallback to interaction when silent call fails
-                return msalInstance.acquireTokenRedirect(request)
-            }
-        });
-    }
-});
+const tokenResponse = await msalInstance
+    .acquireTokenSilent(silentRequest)
+    .catch(async (error) => {
+        if (error instanceof InteractionRequiredAuthError) {
+            // fallback to interaction when silent call fails
+            return await msalInstance
+                .acquireTokenPopup(request)
+                .catch((error) => {
+                    if (error instanceof InteractionRequiredAuthError) {
+                        // fallback to interaction when silent call fails
+                        return msalInstance.acquireTokenRedirect(request);
+                    }
+                });
+        }
+    });
 ```
 
 #### Redirect
@@ -120,20 +128,22 @@ var silentRequest = {
     scopes: ["Mail.Read"],
     account: currentAccount,
     forceRefresh: false,
-    cacheLookupPolicy: CacheLookupPolicy.Default // will default to CacheLookupPolicy.Default if omitted
+    cacheLookupPolicy: CacheLookupPolicy.Default, // will default to CacheLookupPolicy.Default if omitted
 };
 
 var request = {
     scopes: ["Mail.Read"],
-    loginHint: currentAccount.username // For v1 endpoints, use upn from idToken claims
+    loginHint: currentAccount.username, // For v1 endpoints, use upn from idToken claims
 };
 
-const tokenResponse = await msalInstance.acquireTokenSilent(silentRequest).catch(error => {
-    if (error instanceof InteractionRequiredAuthError) {
-        // fallback to interaction when silent call fails
-        return msalInstance.acquireTokenRedirect(request)
-    }
-});
+const tokenResponse = await msalInstance
+    .acquireTokenSilent(silentRequest)
+    .catch((error) => {
+        if (error instanceof InteractionRequiredAuthError) {
+            // fallback to interaction when silent call fails
+            return msalInstance.acquireTokenRedirect(request);
+        }
+    });
 ```
 
 ## Next Steps

@@ -46,7 +46,7 @@ export type DpopTokenProofParams = {
 export type DpopResourceProofParams = {
     resourceUrl: string;
     htm: string;
-    ath: string;
+    accessToken: string;
     nonce?: string;
 };
 
@@ -156,6 +156,18 @@ function normalizeHtu(url: string, correlationId: string): string {
     return parsedUrl.href;
 }
 
+function validateDpopNonce(
+    nonce: string | undefined,
+    correlationId: string
+): void {
+    if (nonce !== undefined && nonce.trim().length === 0) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidDpopNonce,
+            correlationId
+        );
+    }
+}
+
 /**
  * Builds RFC 9449 DPoP proof JWT payloads for token-endpoint and
  * resource-endpoint proof bindings.
@@ -205,6 +217,7 @@ export class DpopProofGenerator {
         params: DpopTokenProofParams,
         correlationId: string = ""
     ): DpopProofClaims {
+        validateDpopNonce(params.nonce, correlationId);
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
             htm: "POST",
@@ -238,15 +251,16 @@ export class DpopProofGenerator {
      * - ath is the base64url-encoded SHA-256 hash of the ASCII access token.
      * - jti is a fresh CSPRNG-backed unique identifier for every proof.
      */
-    buildResourceProofClaims(
+    async buildResourceProofClaims(
         params: DpopResourceProofParams,
         correlationId: string = ""
-    ): DpopProofClaims {
+    ): Promise<DpopProofClaims> {
+        validateDpopNonce(params.nonce, correlationId);
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
             htm: normalizeHtm(params.htm, correlationId),
             htu: normalizeHtu(params.resourceUrl, correlationId),
-            ath: params.ath,
+            ath: await this.cryptoUtils.hashString(params.accessToken),
             iat: TimeUtils.nowSeconds(),
         };
         if (params.nonce !== undefined) {
@@ -263,7 +277,7 @@ export class DpopProofGenerator {
         correlationId: string = ""
     ): Promise<string> {
         return this.generateProof(
-            this.buildResourceProofClaims(params, correlationId),
+            await this.buildResourceProofClaims(params, correlationId),
             params,
             correlationId
         );

@@ -484,6 +484,33 @@ describe("Authorize Protocol Tests", () => {
             expect(cliDataInput).toBeTruthy();
             expect(cliDataInput.value).toEqual("1");
         });
+
+        it("Includes dpop_jkt and omits req_cnf for DPoP authorization URLs", async () => {
+            const url = await Authorize.getAuthCodeRequestUrl(
+                config,
+                authority,
+                {
+                    ...validRequest,
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    dpopJkt: "test-dpop-jkt",
+                    resourceRequestMethod: "GET",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                },
+                logger,
+                performanceClient
+            );
+
+            const authUrl = new URL(url);
+            expect(authUrl.searchParams.get(AADServerParamKeys.DPOP_JKT)).toBe(
+                "test-dpop-jkt"
+            );
+            expect(authUrl.searchParams.has(AADServerParamKeys.REQ_CNF)).toBe(
+                false
+            );
+            expect(
+                authUrl.searchParams.has(AADServerParamKeys.TOKEN_TYPE)
+            ).toBe(false);
+        });
     });
 
     describe("instrumentClientData Tests", () => {

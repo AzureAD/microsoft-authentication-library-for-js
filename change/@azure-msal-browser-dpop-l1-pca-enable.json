@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Enable browser-native PublicClientApplication DPoP acquisition flows",
+    "packageName": "@azure/msal-browser",
+    "email": "hectormmg@microsoft.com",
+    "dependentChangeType": "minor"
+}

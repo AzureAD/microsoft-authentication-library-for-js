@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Enable public L1 PCA DPoP request, cache, and AuthenticationResult support",
+    "packageName": "@azure/msal-common",
+    "email": "hectormmg@microsoft.com",
+    "dependentChangeType": "minor"
+}

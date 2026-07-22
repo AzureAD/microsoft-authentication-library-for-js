@@ -19,6 +19,7 @@ import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
+import { DpopProofGenerator } from "../crypto/DpopProofGenerator.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import {
@@ -360,6 +361,25 @@ export class RefreshTokenClient {
             this.config.systemOptions.preventCorsPreflight,
             request.ccsCredential
         );
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            const dpopProofGenerator = new DpopProofGenerator(
+                this.cryptoUtils,
+                this.config.tokenBindingKeyManager
+            );
+            headers[Constants.HeaderNames.DPOP] =
+                await dpopProofGenerator.generateTokenProof(
+                    {
+                        tokenEndpoint: endpoint,
+                        keyId: request.dpopJkt || "",
+                        keyContext: {
+                            keyScope: `dpop.${this.config.authOptions.clientId}.${request.authority}`,
+                        },
+                    },
+                    request.correlationId
+                );
+        }
 
         const thumbprint = getRequestThumbprint(
             this.config.authOptions.clientId,

@@ -11,10 +11,12 @@ import {
     ID_TOKEN_CLAIMS,
     TEST_URIS,
     TEST_TOKENS,
+    TEST_DPOP_VALUES,
 } from "../test_kit/StringConstants.js";
 import {
     AuthenticationScheme,
     CredentialType,
+    DPOP_TOKEN_TYPE,
     OPENID_SCOPE,
     PROFILE_SCOPE,
 } from "../../src/utils/Constants.js";
@@ -910,6 +912,94 @@ describe("SilentFlowClient unit tests", () => {
                 testAccessTokenEntity.secret
             );
             expect(authResult.state).toHaveLength(0);
+        });
+
+        it("acquireCachedToken returns raw DPoP token with a fresh proof from cache", async () => {
+            jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(false);
+            const dpopAccessTokenEntity: AccessTokenEntity = {
+                ...testAccessTokenEntity,
+                credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                tokenType: AuthenticationScheme.DPOP,
+                secret: TEST_DPOP_VALUES.ACCESS_TOKEN,
+                keyId: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+            };
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccessToken"
+            ).mockReturnValue(dpopAccessTokenEntity);
+            const getPublicJwkSpy = jest.spyOn(
+                config.tokenBindingKeyManager!,
+                "getTokenBindingPublicKeyJwk"
+            );
+            jest.spyOn(config.cryptoInterface!, "hashString").mockResolvedValue(
+                TEST_DPOP_VALUES.ACCESS_TOKEN_ATH
+            );
+            jest.spyOn(
+                config.cryptoInterface!,
+                "signTokenBindingJwt"
+            ).mockResolvedValueOnce("fresh-dpop-proof-1");
+
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                authenticationScheme: AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+
+            const [authResult] = await client.acquireCachedToken(
+                silentFlowRequest
+            );
+
+            expect(authResult.tokenType).toBe(DPOP_TOKEN_TYPE);
+            expect(authResult.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
+            expect(authResult.dpopProof).toBe("fresh-dpop-proof-1");
+            expect(getPublicJwkSpy).toHaveBeenCalledWith(
+                TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                TEST_CONFIG.CORRELATION_ID,
+                {
+                    keyScope: `dpop.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_CONFIG.validAuthority}`,
+                }
+            );
+        });
+
+        it("acquireCachedToken treats missing local DPoP key as cache miss", async () => {
+            jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(false);
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccessToken"
+            ).mockReturnValue({
+                ...testAccessTokenEntity,
+                credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                tokenType: AuthenticationScheme.DPOP,
+                secret: TEST_DPOP_VALUES.ACCESS_TOKEN,
+                keyId: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+            });
+            jest.spyOn(
+                config.tokenBindingKeyManager!,
+                "getTokenBindingPublicKeyJwk"
+            ).mockRejectedValue(new Error("missing key"));
+
+            await expect(
+                client.acquireCachedToken({
+                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    account: testAccount,
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    forceRefresh: false,
+                    authenticationScheme: AuthenticationScheme.DPOP,
+                    dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                    resourceRequestMethod: "GET",
+                    resourceRequestUri:
+                        TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+                })
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.tokenRefreshRequired,
+            });
         });
 
         it("acquireCachedToken throws refresh requiredError if access token is expired", async () => {

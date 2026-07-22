@@ -17,7 +17,7 @@ import {
 } from "../error/ClientAuthError.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { CacheRecord } from "../cache/entities/CacheRecord.js";
-import { CacheOutcome } from "../utils/Constants.js";
+import * as Constants from "../utils/Constants.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { StringUtils } from "../utils/StringUtils.js";
 import { extractTokenClaims } from "../account/AuthToken.js";
@@ -96,13 +96,14 @@ export class SilentFlowClient {
      */
     async acquireCachedToken(
         request: CommonSilentFlowRequest
-    ): Promise<[AuthenticationResult, CacheOutcome]> {
-        let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
+    ): Promise<[AuthenticationResult, Constants.CacheOutcome]> {
+        let lastCacheOutcome: Constants.CacheOutcome =
+            Constants.CacheOutcome.NOT_APPLICABLE;
 
         if (request.forceRefresh || !StringUtils.isEmptyObj(request.claims)) {
             // Must refresh due to present force_refresh flag.
             this.setCacheOutcome(
-                CacheOutcome.FORCE_REFRESH_OR_CLAIMS,
+                Constants.CacheOutcome.FORCE_REFRESH_OR_CLAIMS,
                 request.correlationId
             );
             throw createClientAuthError(
@@ -136,7 +137,7 @@ export class SilentFlowClient {
         if (!cachedAccessToken) {
             // must refresh due to non-existent access_token
             this.setCacheOutcome(
-                CacheOutcome.NO_CACHED_ACCESS_TOKEN,
+                Constants.CacheOutcome.NO_CACHED_ACCESS_TOKEN,
                 request.correlationId
             );
             throw createClientAuthError(
@@ -152,7 +153,7 @@ export class SilentFlowClient {
         ) {
             // must refresh due to the expires_in value
             this.setCacheOutcome(
-                CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED,
+                Constants.CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED,
                 request.correlationId
             );
             throw createClientAuthError(
@@ -163,7 +164,7 @@ export class SilentFlowClient {
             // cached access token must have a resource that matches the request resource for MCP scenarios
             if (cachedAccessToken.resource !== request.resource) {
                 this.setCacheOutcome(
-                    CacheOutcome.NO_CACHED_ACCESS_TOKEN,
+                    Constants.CacheOutcome.NO_CACHED_ACCESS_TOKEN,
                     request.correlationId
                 );
                 throw createClientAuthError(
@@ -176,9 +177,43 @@ export class SilentFlowClient {
             TimeUtils.isTokenExpired(cachedAccessToken.refreshOn, 0)
         ) {
             // must refresh (in the background) due to the refresh_in value
-            lastCacheOutcome = CacheOutcome.PROACTIVELY_REFRESHED;
+            lastCacheOutcome = Constants.CacheOutcome.PROACTIVELY_REFRESHED;
 
             // don't throw ClientAuthError.createRefreshRequiredError(), return cached token instead
+        }
+
+        if (
+            cachedAccessToken.tokenType === Constants.AuthenticationScheme.DPOP
+        ) {
+            if (!cachedAccessToken.keyId) {
+                this.setCacheOutcome(
+                    Constants.CacheOutcome.NO_CACHED_ACCESS_TOKEN,
+                    request.correlationId
+                );
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                    request.correlationId
+                );
+            }
+
+            try {
+                await this.config.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                    cachedAccessToken.keyId,
+                    request.correlationId,
+                    {
+                        keyScope: `dpop.${cachedAccessToken.clientId}.${request.authority}`,
+                    }
+                );
+            } catch {
+                this.setCacheOutcome(
+                    Constants.CacheOutcome.NO_CACHED_ACCESS_TOKEN,
+                    request.correlationId
+                );
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                    request.correlationId
+                );
+            }
         }
 
         const environment =
@@ -221,7 +256,7 @@ export class SilentFlowClient {
     }
 
     private setCacheOutcome(
-        cacheOutcome: CacheOutcome,
+        cacheOutcome: Constants.CacheOutcome,
         correlationId: string
     ): void {
         this.serverTelemetryManager?.setCacheOutcome(cacheOutcome);
@@ -231,7 +266,7 @@ export class SilentFlowClient {
             },
             correlationId
         );
-        if (cacheOutcome !== CacheOutcome.NOT_APPLICABLE) {
+        if (cacheOutcome !== Constants.CacheOutcome.NOT_APPLICABLE) {
             this.logger.info(
                 `Token refresh is required due to cache outcome: '${cacheOutcome}'`,
                 correlationId

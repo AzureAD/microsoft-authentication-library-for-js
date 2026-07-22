@@ -20,6 +20,7 @@ import {
     TEST_SSH_VALUES,
     BAD_TOKEN_ERROR_RESPONSE,
     RANDOM_TEST_GUID,
+    TEST_DPOP_VALUES,
 } from "../test_kit/StringConstants.js";
 import * as Constants from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
@@ -187,6 +188,56 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             client.acquireToken(refreshTokenRequest, 0).catch((e) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("sends DPoP proof header and omits POP body params for refresh token requests", (done) => {
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            ).mockImplementation(
+                (
+                    url: string,
+                    body: string,
+                    headers: Record<string, string>
+                ) => {
+                    try {
+                        expect(headers[Constants.HeaderNames.DPOP]).toBe(
+                            TEST_TOKENS.POP_TOKEN
+                        );
+                        const params = new URLSearchParams(body);
+                        expect(params.has(AADServerParamKeys.REQ_CNF)).toBe(
+                            false
+                        );
+                        expect(params.has(AADServerParamKeys.TOKEN_TYPE)).toBe(
+                            false
+                        );
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                    return Promise.resolve(
+                        JSON.parse(
+                            JSON.stringify(AUTHENTICATION_RESULT_WITH_HEADERS)
+                        )
+                    );
+                }
+            );
+
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const dpopRefreshTokenRequest: CommonRefreshTokenRequest = {
+                ...refreshTokenRequest,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            client.acquireToken(dpopRefreshTokenRequest, 0).catch((e) => {
                 // Catch errors thrown after the function call this test is testing
             });
         });

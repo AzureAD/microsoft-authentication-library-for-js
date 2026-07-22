@@ -20,10 +20,12 @@ import { BrowserConfiguration } from "../config/Configuration.js";
 import { SilentRequest } from "./SilentRequest.js";
 import { PopupRequest } from "./PopupRequest.js";
 import { RedirectRequest } from "./RedirectRequest.js";
+import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 const SUPPORTED_AUTHENTICATION_SCHEMES = new Set<string>([
     Constants.AuthenticationScheme.BEARER,
     Constants.AuthenticationScheme.POP,
+    Constants.AuthenticationScheme.DPOP,
     Constants.AuthenticationScheme.SSH,
 ]);
 
@@ -89,6 +91,33 @@ export async function initializeBaseRequest(
                     ""
                 );
             }
+        }
+
+        if (
+            validatedRequest.authenticationScheme ===
+            Constants.AuthenticationScheme.DPOP
+        ) {
+            if (
+                !request.resourceRequestMethod?.trim() ||
+                !request.resourceRequestUri?.trim()
+            ) {
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.dpopMissingResourceContext,
+                    correlationId
+                );
+            }
+
+            const tokenBindingKeyManager = new TokenBindingKeyManager(
+                logger,
+                performanceClient
+            );
+            validatedRequest.dpopJkt =
+                await tokenBindingKeyManager.provisionTokenBindingKey({
+                    tokenBindingKeyType: "dpop",
+                    tokenBindingKeyAlgorithm: "ES256",
+                    keyScope: `dpop.${config.auth.clientId}.${authority}`,
+                    correlationId,
+                });
         }
         logger.verbose(
             `Authentication Scheme set to "'${validatedRequest.authenticationScheme}'" as configured in Auth request`,
