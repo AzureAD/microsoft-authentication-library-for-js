@@ -1823,7 +1823,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(nativeRequest.redirectUri).toEqual("localhost");
         });
 
-        it("includes resource in native request when provided", async () => {
+        it("forwards resource via extraParameters when provided", async () => {
             const nativeRequest =
                 // @ts-ignore
                 await platformAuthInteractionClient.initializePlatformRequest({
@@ -1831,11 +1831,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     resource: "https://graph.microsoft.com",
                 });
 
-            expect(nativeRequest.resource).toEqual(
-                "https://graph.microsoft.com"
-            );
-            // resource is also forwarded via extraParameters so it reaches ESTS
-            // on both the extension and DOM broker transport paths
+            // resource is not a top-level broker-contract param; it is forwarded via
+            // extraParameters so it reaches ESTS on both the extension and DOM paths
+            expect(nativeRequest).not.toHaveProperty("resource");
             expect(nativeRequest.extraParameters?.resource).toEqual(
                 "https://graph.microsoft.com"
             );

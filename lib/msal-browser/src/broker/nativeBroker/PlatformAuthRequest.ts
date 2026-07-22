@@ -18,10 +18,11 @@ export type PlatformAuthRequest = {
     correlationId: string;
     windowTitleSubstring: string; // The name of the document title. This helps the native prompt properly "parent" to the window making the request
     prompt?: string;
+    isSts: boolean; // Whether the request is from STS or not
     nonce?: string;
     claims?: string;
     state?: string;
-    loginHint?: string; // Upn of the user. Contract param forwarded to the platform broker.
+    loginHint?: string; // UPN of the user
     reqCnf?: string;
     keyId?: string;
     tokenType?: string;
@@ -30,7 +31,6 @@ export type PlatformAuthRequest = {
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
     extendedExpiryToken?: boolean;
-    resource?: string;
     extraParameters?: StringDict;
     storeInCache?: StoreInCache; // Object of booleans indicating whether to store tokens in the cache or not (default is true)
     signPopToken?: boolean; // Set to true only if token request deos not contain a PoP keyId

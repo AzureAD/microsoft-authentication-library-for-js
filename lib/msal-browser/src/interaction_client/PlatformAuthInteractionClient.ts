@@ -806,7 +806,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             correlationId: this.correlationId,
             state: response.state,
             fromPlatformBroker: true,
-            ...(request.resource && { resource: request.resource }),
+            ...(request.extraParameters?.resource && {
+                resource: request.extraParameters.resource,
+            }),
         };
 
         return result;
@@ -1042,6 +1044,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             ),
             prompt: this.getPrompt(request.prompt),
             correlationId: this.correlationId,
+            isSts: false,
             tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
             nonce: request.nonce,
@@ -1055,7 +1058,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             keyId: request.popKid,
             storeInCache: request.storeInCache,
             embeddedClientId: request.embeddedClientId,
-            resource: request.resource,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
