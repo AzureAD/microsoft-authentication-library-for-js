@@ -222,11 +222,9 @@ export class ClientCredentialClient extends BaseClient {
                 true,
                 request,
                 this.performanceClient,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                this.config.tokenBindingKeyManager
+                {
+                    tokenBindingKeyManager: this.config.tokenBindingKeyManager,
+                }
             ),
             lastCacheOutcome,
         ];

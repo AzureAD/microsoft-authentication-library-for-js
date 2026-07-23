@@ -546,17 +546,7 @@ describe("ResponseHandler.ts", () => {
                 ResponseHandler,
                 "generateAuthenticationResult"
             ).mockImplementation(
-                async (
-                    _cryptoObj,
-                    _authority,
-                    cacheRecord,
-                    _fromTokenCache,
-                    _request,
-                    _idTokenClaims,
-                    _requestState,
-                    _serverTokenResponse,
-                    _requestId
-                ) => {
+                async (_cryptoObj, _authority, cacheRecord) => {
                     expect(cacheRecord.accessToken?.realm).toBeDefined();
 
                     done();

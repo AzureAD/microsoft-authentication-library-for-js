@@ -1588,6 +1588,15 @@ function generateAccountId(accountEntity: AccountEntity): string;
 // @public
 function generateAppMetadataKey(input: AppMetadataEntity): string;
 
+// @internal (undocumented)
+export type GenerateAuthenticationResultOptions = {
+    idTokenClaims?: TokenClaims;
+    requestState?: RequestStateObject;
+    serverTokenResponse?: ServerAuthorizationTokenResponse;
+    requestId?: string;
+    tokenBindingKeyManager?: ITokenBindingKeyManager;
+};
+
 // @public
 function generateAuthorityMetadataExpiresAt(): number;
 
@@ -2841,7 +2850,7 @@ const RESPONSE_TYPE = "response_type";
 // @internal
 export class ResponseHandler {
     constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, tokenBindingKeyManager?: ITokenBindingKeyManager);
-    static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, idTokenClaims?: TokenClaims, requestState?: RequestStateObject, serverTokenResponse?: ServerAuthorizationTokenResponse, requestId?: string, tokenBindingKeyManager?: ITokenBindingKeyManager): Promise<AuthenticationResult>;
+    static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, options?: GenerateAuthenticationResultOptions): Promise<AuthenticationResult>;
     handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
     validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse, correlationId: string, refreshAccessToken?: boolean): void;
 }

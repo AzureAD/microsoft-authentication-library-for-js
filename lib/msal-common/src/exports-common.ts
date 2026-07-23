@@ -132,6 +132,7 @@ export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload.js
 export { AuthorizeResponse } from "./response/AuthorizeResponse.js";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse.js";
 export {
+    GenerateAuthenticationResultOptions,
     ResponseHandler,
     buildAccountToCache,
 } from "./response/ResponseHandler.js";
