@@ -96,23 +96,32 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     }
 
     /**
-     * Get all the keys from the in-memory cache as an iterable array of strings. If no keys are found, query the keys in the
-     * asynchronous storage object.
+     * Get all keys from both in-memory and persistent storage.
      * @param correlationId
      */
     async getKeys(correlationId: string): Promise<string[]> {
         const cacheKeys = this.inMemoryCache.getKeys();
-        if (cacheKeys.length === 0) {
-            try {
-                this.logger.verbose(
-                    "In-memory cache is empty, now querying persistent storage.",
+        try {
+            const persistentCacheKeys = await this.indexedDBCache.getKeys();
+            return Array.from(new Set([...cacheKeys, ...persistentCacheKeys]));
+        } catch (e) {
+            if (
+                !(
+                    e instanceof BrowserAuthError &&
+                    e.errorCode === BrowserAuthErrorCodes.databaseUnavailable
+                ) &&
+                cacheKeys.length > 0
+            ) {
+                this.logger.warning(
+                    "Persistent storage key enumeration failed. Returning in-memory keys.",
                     correlationId
                 );
-                return await this.indexedDBCache.getKeys();
-            } catch (e) {
-                this.handleDatabaseAccessError(e, correlationId);
+                return cacheKeys;
             }
+
+            this.handleDatabaseAccessError(e, correlationId);
         }
+
         return cacheKeys;
     }
 

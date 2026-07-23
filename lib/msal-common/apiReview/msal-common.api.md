@@ -1060,6 +1060,7 @@ export type ClientConfiguration = {
     storageInterface?: CacheManager;
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
+    tokenBindingKeyManager?: ITokenBindingKeyManager;
     clientCredentials?: ClientCredentials;
     libraryInfo?: LibraryInfo;
     telemetry?: TelemetryOptions;
@@ -1176,6 +1177,7 @@ export type CommonClientConfiguration = {
     storageInterface: CacheManager;
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
+    tokenBindingKeyManager: ITokenBindingKeyManager;
     libraryInfo: LibraryInfo;
     telemetry: Required<TelemetryOptions>;
     serverTelemetryManager: ServerTelemetryManager | null;
@@ -1585,6 +1587,15 @@ function generateAccountId(accountEntity: AccountEntity): string;
 // @public
 function generateAppMetadataKey(input: AppMetadataEntity): string;
 
+// @internal (undocumented)
+export type GenerateAuthenticationResultOptions = {
+    idTokenClaims?: TokenClaims;
+    requestState?: RequestStateObject;
+    serverTokenResponse?: ServerAuthorizationTokenResponse;
+    requestId?: string;
+    tokenBindingKeyManager?: ITokenBindingKeyManager;
+};
+
 // @public
 function generateAuthorityMetadataExpiresAt(): number;
 
@@ -1754,10 +1765,9 @@ export interface ICrypto {
     clearKeystore(correlationId: string): Promise<boolean>;
     createNewGuid(): string;
     encodeKid(inputKid: string): string;
-    getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string>;
     hashString(plainText: string): Promise<string>;
-    removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
-    signJwt(payload: SignedHttpRequest, kid: string, shrOptions?: ShrOptions, correlationId?: string): Promise<string>;
+    removeTokenBindingKey(kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<void>;
+    signTokenBindingJwt(header: object, payload: object, kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<string>;
 }
 
 // @public (undocumented)
@@ -2017,6 +2027,13 @@ function isThrottlingEntity(key: string, entity?: object): boolean;
 // @public
 function isTokenExpired(expiresOn: string, offset: number): boolean;
 
+// @internal
+export interface ITokenBindingKeyManager {
+    getTokenBindingPublicKeyJwk(kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<JsonWebKey>;
+    provisionTokenBindingKey(request: TokenBindingKeyProvisioningParameters): Promise<string>;
+    removeTokenBindingKey(kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<void>;
+}
+
 // @public
 export interface IUri {
     // (undocumented)
@@ -2040,7 +2057,11 @@ export class JoseHeader {
     constructor(options: JoseHeaderOptions);
     // (undocumented)
     alg?: string;
-    static getShrHeaderString(shrHeaderOptions: JoseHeaderOptions): string;
+    static getDpopHeader(dpopHeaderOptions: JoseHeaderOptions, correlationId?: string): JoseHeader;
+    static getShrHeader(shrHeaderOptions: JoseHeaderOptions, correlationId?: string): JoseHeader;
+    static getShrHeaderString(shrHeaderOptions: JoseHeaderOptions, correlationId?: string): string;
+    // (undocumented)
+    jwk?: object;
     // (undocumented)
     kid?: string;
     // (undocumented)
@@ -2052,6 +2073,7 @@ const JsonWebTokenTypes: {
     readonly Jwt: "JWT";
     readonly Jwk: "JWK";
     readonly Pop: "pop";
+    readonly Dpop: "dpop+jwt";
 };
 
 // @public (undocumented)
@@ -2376,6 +2398,10 @@ export type PerformanceEvent = {
     requestId?: string;
     cacheLookupPolicy?: number | undefined;
     cacheOutcome?: number;
+    tokenBindingKeyType?: string;
+    tokenBindingKeyAlgorithm?: string;
+    tokenBindingKeyCacheHit?: boolean;
+    tokenBindingKeyRequestCoalesced?: boolean;
     incompleteSubMeasurements?: Map<string, SubMeasurement>;
     visibilityChangeCount?: number;
     onlineStatusChangeCount?: number;
@@ -2577,7 +2603,7 @@ const PopTokenGenerateCnf = "popTokenGenerateCnf";
 
 // @internal (undocumented)
 export class PopTokenGenerator {
-    constructor(cryptoUtils: ICrypto, performanceClient: IPerformanceClient);
+    constructor(cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager, performanceClient: IPerformanceClient);
     generateCnf(request: SignedHttpRequestParameters, logger: Logger): Promise<ReqCnfData>;
     generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf>;
     signPayload(payload: string, keyId: string, request: SignedHttpRequestParameters, claims?: object): Promise<string>;
@@ -2822,8 +2848,8 @@ const RESPONSE_TYPE = "response_type";
 
 // @internal
 export class ResponseHandler {
-    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null);
-    static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, idTokenClaims?: TokenClaims, requestState?: RequestStateObject, serverTokenResponse?: ServerAuthorizationTokenResponse, requestId?: string): Promise<AuthenticationResult>;
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, tokenBindingKeyManager?: ITokenBindingKeyManager);
+    static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, options?: GenerateAuthenticationResultOptions): Promise<AuthenticationResult>;
     handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
     validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse, correlationId: string, refreshAccessToken?: boolean): void;
 }
@@ -3215,6 +3241,19 @@ function toDateFromSeconds(seconds: number | string | undefined): Date;
 
 // @public (undocumented)
 const TOKEN_TYPE = "token_type";
+
+// @public
+export type TokenBindingKeyContext = {
+    keyScope?: string;
+};
+
+// @public
+export type TokenBindingKeyProvisioningParameters = {
+    tokenBindingKeyType: string;
+    tokenBindingKeyAlgorithm: string;
+    correlationId: string;
+    keyScope?: string;
+};
 
 // @public
 export class TokenCacheContext {

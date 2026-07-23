@@ -8,10 +8,14 @@ import {
     DPOP_JWT_HEADER_TYPE,
     DpopProofClaims,
     DpopProofHeader,
-    DpopProofSigner,
     DpopProofGenerator,
+    ITokenBindingJwtSigner,
 } from "../../src/crypto/DpopProofGenerator.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
+import {
+    ITokenBindingKeyManager,
+    TokenBindingKeyContext,
+} from "../../src/crypto/ITokenBindingKeyManager.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { ClientConfigurationErrorCodes } from "../../src/error/ClientConfigurationError.js";
 import crypto from "crypto";
@@ -24,7 +28,15 @@ import {
 
 describe("DpopProofGenerator Unit Tests", () => {
     let generator: DpopProofGenerator;
-    const cryptoInterface: ICrypto = { ...mockCrypto };
+    const cryptoInterface: ICrypto & ITokenBindingJwtSigner = {
+        ...mockCrypto,
+        signTokenBindingJwt: jest.fn(),
+    };
+    const tokenBindingKeyManager: ITokenBindingKeyManager = {
+        provisionTokenBindingKey: jest.fn(),
+        removeTokenBindingKey: jest.fn(),
+        getTokenBindingPublicKeyJwk: jest.fn(),
+    };
     const publicJwk = {
         kty: "EC",
         crv: "P-256",
@@ -32,19 +44,29 @@ describe("DpopProofGenerator Unit Tests", () => {
         y: "B".repeat(43),
     };
     const dpopSignature = "A".repeat(86);
-
-    function createSigner(
-        sign: jest.Mock = jest.fn().mockResolvedValue(dpopSignature),
-        alg: string = DPOP_JWT_HEADER_ALGORITHM
-    ): DpopProofSigner {
-        return {
-            alg,
-            sign,
-        };
-    }
+    const dpopKeyId = "dpop-key-id";
+    const dpopKeyContext: TokenBindingKeyContext = {
+        keyScope: `dpop.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_CONFIG.validAuthority}`,
+    };
 
     beforeEach(() => {
-        generator = new DpopProofGenerator(cryptoInterface);
+        generator = new DpopProofGenerator(
+            cryptoInterface,
+            tokenBindingKeyManager
+        );
+        jest.spyOn(
+            tokenBindingKeyManager,
+            "getTokenBindingPublicKeyJwk"
+        ).mockResolvedValue(publicJwk);
+        jest.spyOn(cryptoInterface, "signTokenBindingJwt").mockImplementation(
+            async (header, payload) => {
+                return `${cryptoInterface.base64UrlEncode(
+                    JSON.stringify(header)
+                )}.${cryptoInterface.base64UrlEncode(
+                    JSON.stringify(payload)
+                )}.${dpopSignature}`;
+            }
+        );
     });
 
     afterEach(() => {
@@ -70,6 +92,30 @@ describe("DpopProofGenerator Unit Tests", () => {
             signature,
         };
     }
+
+    describe("generateJkt", () => {
+        it("provisions a DPoP ES256 key and returns the generated JWK thumbprint", async () => {
+            const provisionTokenBindingKeySpy = jest
+                .spyOn(tokenBindingKeyManager, "provisionTokenBindingKey")
+                .mockResolvedValue(dpopKeyId);
+
+            const dpopJkt = await generator.generateJkt(
+                {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            expect(dpopJkt).toBe(dpopKeyId);
+            expect(provisionTokenBindingKeySpy).toHaveBeenCalledWith({
+                tokenBindingKeyType: "dpop",
+                tokenBindingKeyAlgorithm: DPOP_JWT_HEADER_ALGORITHM,
+                keyScope: `dpop.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_CONFIG.validAuthority}`,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            });
+        });
+    });
 
     describe("buildTokenProofClaims", () => {
         it("UT-01: Token-endpoint DPoP proof uses RFC 9449 claims (htm=POST, normalized htu, iat, jti)", () => {
@@ -535,8 +581,6 @@ describe("DpopProofGenerator Unit Tests", () => {
     describe("generateTokenProof", () => {
         it("builds and signs a compact DPoP proof JWT for token requests", async () => {
             const currTime = TimeUtils.nowSeconds();
-            const sign = jest.fn().mockResolvedValue(dpopSignature);
-            const signer = createSigner(sign);
             jest.spyOn(TimeUtils, "nowSeconds").mockReturnValue(currTime);
 
             const proof = await generator.generateTokenProof(
@@ -544,8 +588,8 @@ describe("DpopProofGenerator Unit Tests", () => {
                     tokenEndpoint:
                         "https://login.microsoftonline.com/tenant/oauth2/v2.0/token?client_id=abc",
                     nonce: "server-nonce",
-                    publicJwk,
-                    signer,
+                    keyId: dpopKeyId,
+                    keyContext: dpopKeyContext,
                 },
                 TEST_CONFIG.CORRELATION_ID
             );
@@ -563,55 +607,52 @@ describe("DpopProofGenerator Unit Tests", () => {
                 iat: currTime,
                 nonce: "server-nonce",
             });
-            expect(signer.sign).toHaveBeenCalledWith(
-                decodedProof.signingInput,
-                TEST_CONFIG.CORRELATION_ID
+            expect(
+                tokenBindingKeyManager.getTokenBindingPublicKeyJwk
+            ).toHaveBeenCalledWith(
+                dpopKeyId,
+                TEST_CONFIG.CORRELATION_ID,
+                dpopKeyContext
+            );
+            expect(cryptoInterface.signTokenBindingJwt).toHaveBeenCalledWith(
+                decodedProof.header,
+                decodedProof.claims,
+                dpopKeyId,
+                TEST_CONFIG.CORRELATION_ID,
+                dpopKeyContext
             );
             expect(decodedProof.signature).toBe(dpopSignature);
         });
 
-        it("uses the DPoP proof header algorithm declared by the signer", async () => {
+        it("uses the DPoP proof header algorithm", async () => {
             const proof = await generator.generateTokenProof({
                 tokenEndpoint:
                     "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
-                publicJwk,
-                signer: createSigner(
-                    jest.fn().mockResolvedValue(dpopSignature),
-                    "custom-alg"
-                ),
+                keyId: dpopKeyId,
+                keyContext: dpopKeyContext,
             });
             const decodedProof = decodeDpopProof(proof);
 
-            expect(decodedProof.header.alg).toBe("custom-alg");
+            expect(decodedProof.header.alg).toBe(DPOP_JWT_HEADER_ALGORITHM);
         });
 
-        it("passes signer-declared alg and matching public JWK through", async () => {
-            const rsaPublicJwk = {
-                kty: "RSA",
-                n: "test-modulus",
-                e: "AQAB",
-            };
+        it("uses the public JWK resolved from the token-binding key", async () => {
             const proof = await generator.generateTokenProof({
                 tokenEndpoint:
                     "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
-                publicJwk: rsaPublicJwk,
-                signer: createSigner(
-                    jest.fn().mockResolvedValue(dpopSignature),
-                    "PS256"
-                ),
+                keyId: dpopKeyId,
+                keyContext: dpopKeyContext,
             });
             const decodedProof = decodeDpopProof(proof);
 
-            expect(decodedProof.header.alg).toBe("PS256");
-            expect(decodedProof.header.jwk).toEqual(rsaPublicJwk);
+            expect(decodedProof.header.alg).toBe(DPOP_JWT_HEADER_ALGORITHM);
+            expect(decodedProof.header.jwk).toEqual(publicJwk);
         });
     });
 
     describe("generateResourceProof", () => {
         it("builds and signs a compact DPoP proof JWT for resource requests", async () => {
             const currTime = TimeUtils.nowSeconds();
-            const sign = jest.fn().mockResolvedValue(dpopSignature);
-            const signer = createSigner(sign);
             jest.spyOn(TimeUtils, "nowSeconds").mockReturnValue(currTime);
 
             const proof = await generator.generateResourceProof(
@@ -621,8 +662,8 @@ describe("DpopProofGenerator Unit Tests", () => {
                     htm: "get",
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                     nonce: "resource-nonce",
-                    publicJwk,
-                    signer,
+                    keyId: dpopKeyId,
+                    keyContext: dpopKeyContext,
                 },
                 TEST_CONFIG.CORRELATION_ID
             );
@@ -641,9 +682,19 @@ describe("DpopProofGenerator Unit Tests", () => {
                 iat: currTime,
                 nonce: "resource-nonce",
             });
-            expect(signer.sign).toHaveBeenCalledWith(
-                decodedProof.signingInput,
-                TEST_CONFIG.CORRELATION_ID
+            expect(
+                tokenBindingKeyManager.getTokenBindingPublicKeyJwk
+            ).toHaveBeenCalledWith(
+                dpopKeyId,
+                TEST_CONFIG.CORRELATION_ID,
+                dpopKeyContext
+            );
+            expect(cryptoInterface.signTokenBindingJwt).toHaveBeenCalledWith(
+                decodedProof.header,
+                decodedProof.claims,
+                dpopKeyId,
+                TEST_CONFIG.CORRELATION_ID,
+                dpopKeyContext
             );
             expect(decodedProof.signature).toBe(dpopSignature);
         });
@@ -652,13 +703,16 @@ describe("DpopProofGenerator Unit Tests", () => {
     describe("jti uniqueness (UT-03, RT-01)", () => {
         it("UT-03: jti values are unique across consecutive token proof builds", () => {
             let callCount = 0;
-            const uniqueGuidCrypto: ICrypto = {
+            const uniqueGuidCrypto: ICrypto & ITokenBindingJwtSigner = {
                 ...cryptoInterface,
                 createNewGuid(): string {
                     return `unique-jti-${++callCount}`;
                 },
             };
-            const uniqueGenerator = new DpopProofGenerator(uniqueGuidCrypto);
+            const uniqueGenerator = new DpopProofGenerator(
+                uniqueGuidCrypto,
+                tokenBindingKeyManager
+            );
             const endpoint =
                 "https://login.microsoftonline.com/common/oauth2/v2.0/token";
 
@@ -699,13 +753,16 @@ describe("DpopProofGenerator Unit Tests", () => {
 
         it("UT-03: resource proof jti values are unique across consecutive builds", () => {
             let callCount = 0;
-            const uniqueGuidCrypto: ICrypto = {
+            const uniqueGuidCrypto: ICrypto & ITokenBindingJwtSigner = {
                 ...cryptoInterface,
                 createNewGuid(): string {
                     return `res-unique-jti-${++callCount}`;
                 },
             };
-            const uniqueGenerator = new DpopProofGenerator(uniqueGuidCrypto);
+            const uniqueGenerator = new DpopProofGenerator(
+                uniqueGuidCrypto,
+                tokenBindingKeyManager
+            );
 
             const proof1 = uniqueGenerator.buildResourceProofClaims(
                 {

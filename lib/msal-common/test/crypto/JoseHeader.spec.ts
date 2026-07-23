@@ -3,6 +3,7 @@ import { JoseHeaderErrorCodes } from "../../src/error/JoseHeaderError";
 import { JsonWebTokenTypes } from "../../src/utils/Constants";
 import {
     TEST_CRYPTO_ALGORITHMS,
+    TEST_CONFIG,
     TEST_POP_VALUES,
 } from "../test_kit/StringConstants";
 import { getDefaultErrorMessage } from "../../src/error/AuthError.js";
@@ -44,6 +45,24 @@ describe("JoseHeader.ts Unit Tests", () => {
             );
         });
 
+        it("should include correlationId in missing kid errors when provided", () => {
+            try {
+                JoseHeader.getShrHeader(
+                    {
+                        alg: TEST_CRYPTO_ALGORITHMS.rsa,
+                        typ: JsonWebTokenTypes.Pop,
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+                throw new Error("Expected getShrHeader to throw");
+            } catch (e) {
+                expect(e).toHaveProperty(
+                    "correlationId",
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            }
+        });
+
         it("should throw if alg header is missing", () => {
             expect(() =>
                 JoseHeader.getShrHeaderString({
@@ -52,6 +71,57 @@ describe("JoseHeader.ts Unit Tests", () => {
                 })
             ).toThrowError(
                 getDefaultErrorMessage(JoseHeaderErrorCodes.missingAlgError)
+            );
+        });
+    });
+
+    describe("getDpopHeader", () => {
+        it("should return a DPoP header with the provided JWK", () => {
+            const jwk = {
+                kty: "EC",
+                crv: "P-256",
+                x: "A".repeat(43),
+                y: "B".repeat(43),
+            };
+            const dpopHeader = JoseHeader.getDpopHeader({
+                alg: "ES256",
+                jwk,
+            });
+
+            expect(dpopHeader).toEqual(
+                new JoseHeader({
+                    typ: JsonWebTokenTypes.Dpop,
+                    alg: "ES256",
+                    jwk,
+                })
+            );
+        });
+
+        it("should include correlationId in missing jwk errors when provided", () => {
+            try {
+                JoseHeader.getDpopHeader(
+                    {
+                        alg: TEST_CRYPTO_ALGORITHMS.rsa,
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+                throw new Error("Expected getDpopHeader to throw");
+            } catch (e) {
+                expect(e).toHaveProperty(
+                    "correlationId",
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            }
+        });
+
+        it("should throw if DPoP public JWK is empty", () => {
+            expect(() =>
+                JoseHeader.getDpopHeader({
+                    alg: "ES256",
+                    jwk: {},
+                })
+            ).toThrowError(
+                getDefaultErrorMessage(JoseHeaderErrorCodes.invalidJwkError)
             );
         });
     });

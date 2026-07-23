@@ -105,6 +105,11 @@ export {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     SignedHttpRequestParameters,
 } from "./crypto/ICrypto.js";
+export {
+    ITokenBindingKeyManager,
+    TokenBindingKeyContext,
+    TokenBindingKeyProvisioningParameters,
+} from "./crypto/ITokenBindingKeyManager.js";
 
 export * as AuthorizeProtocol from "./protocol/Authorize.js";
 export * as TokenProtocol from "./protocol/Token.js";
@@ -127,6 +132,7 @@ export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload.js
 export { AuthorizeResponse } from "./response/AuthorizeResponse.js";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse.js";
 export {
+    GenerateAuthenticationResultOptions,
     ResponseHandler,
     buildAccountToCache,
 } from "./response/ResponseHandler.js";

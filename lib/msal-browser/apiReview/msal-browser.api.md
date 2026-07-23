@@ -213,6 +213,10 @@ declare namespace BrowserAuthErrorCodes {
         nativePromptNotSupported,
         invalidBase64String,
         invalidPopTokenRequest,
+        missingTokenBindingJwtAlgorithm,
+        unsupportedTokenBindingAlgorithm,
+        tokenBindingKeyAlgorithmMismatch,
+        tokenBindingKeyJwkThumbprintMismatch,
         failedToBuildHeaders,
         failedToParseHeaders,
         failedToDecryptEarResponse,
@@ -736,6 +740,7 @@ export const JsonWebTokenTypes: {
     readonly Jwt: "JWT";
     readonly Jwk: "JWK";
     readonly Pop: "pop";
+    readonly Dpop: "dpop+jwt";
 };
 
 // @public (undocumented)
@@ -809,6 +814,9 @@ export class MemoryStorage<T> implements IWindowStorage<T> {
     // (undocumented)
     setUserData(key: string, value: T): Promise<void>;
 }
+
+// @public (undocumented)
+const missingTokenBindingJwtAlgorithm = "missing_token_binding_jwt_algorithm";
 
 // @public (undocumented)
 const nativeConnectionNotEstablished = "native_connection_not_established";
@@ -1091,6 +1099,12 @@ export { TenantProfile }
 const timedOut = "timed_out";
 
 // @public (undocumented)
+const tokenBindingKeyAlgorithmMismatch = "token_binding_key_algorithm_mismatch";
+
+// @public (undocumented)
+const tokenBindingKeyJwkThumbprintMismatch = "token_binding_key_jwk_thumbprint_mismatch";
+
+// @public (undocumented)
 const unableToAcquireTokenFromNativePlatform = "unable_to_acquire_token_from_native_platform";
 
 // @public (undocumented)
@@ -1104,6 +1118,9 @@ const unableToParseTokenRequestCacheError = "unable_to_parse_token_request_cache
 
 // @public (undocumented)
 const uninitializedPublicClientApplication = "uninitialized_public_client_application";
+
+// @public (undocumented)
+const unsupportedTokenBindingAlgorithm = "unsupported_token_binding_algorithm";
 
 // @public (undocumented)
 const userCancelled = "user_cancelled";
