@@ -4,7 +4,7 @@
  */
 
 import { NativeExtensionMethod } from "../../utils/BrowserConstants.js";
-import { StoreInCache, StringDict } from "@azure/msal-common/browser";
+import { StringDict } from "@azure/msal-common/browser";
 
 /**
  * Token request which native broker will use to acquire tokens
@@ -32,9 +32,7 @@ export type PlatformAuthRequest = {
     resourceRequestUri?: string;
     extendedExpiryToken?: boolean;
     extraParameters?: StringDict;
-    storeInCache?: StoreInCache; // Object of booleans indicating whether to store tokens in the cache or not (default is true)
     signPopToken?: boolean; // Set to true only if token request deos not contain a PoP keyId
-    embeddedClientId?: string;
 };
 
 /**
@@ -68,12 +66,10 @@ export type PlatformDOMTokenRequest = {
     /*
      * Known optional parameters will go into extraQueryParameters.
      * List of known parameters is:
-     * "prompt", "nonce", "claims", "loginHint", "instanceAware", "windowTitleSubstring", "extendedExpiryToken", "storeInCache",
+     * "prompt", "nonce", "claims", "loginHint", "instanceAware", "windowTitleSubstring", "extendedExpiryToken",
      * ProofOfPossessionParams: "reqCnf", "keyId", "tokenType", "shrClaims", "shrNonce", "resourceRequestMethod", "resourceRequestUri", "signPopToken"
      */
     extraParameters?: DOMExtraParameters;
-    embeddedClientId?: string;
-    storeInCache?: StoreInCache; // Object of booleans indicating whether to store tokens in the cache or not (default is true)
 };
 
 export type DOMExtraParameters = StringDict & {

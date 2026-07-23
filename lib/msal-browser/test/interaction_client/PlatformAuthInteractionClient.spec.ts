@@ -1654,6 +1654,49 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response).toEqual(testTokenResponse);
         });
 
+        it("retrieves and applies storeInCache directive persisted across the redirect", async () => {
+            // storeInCache is not a broker-contract field, so it is persisted alongside the
+            // cached native request and must be read back in handleRedirectPromise. This test
+            // proves the directive survives the redirect round-trip (cache write -> read).
+            jest.spyOn(
+                NavigationClient.prototype,
+                "navigateExternal"
+            ).mockImplementation((url: string) => {
+                expect(url).toBe(window.location.href);
+                return Promise.resolve(true);
+            });
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockResolvedValue(MOCK_WAM_RESPONSE);
+            // @ts-ignore
+            pca.browserStorage.setInteractionInProgress(true);
+            await platformAuthInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                    storeInCache: {
+                        idToken: false,
+                    },
+                },
+                perfMeasurement
+            );
+
+            const response =
+                await platformAuthInteractionClient.handleRedirectPromise();
+            expect(response).not.toBe(null);
+            // The response still surfaces the idToken to the caller...
+            expect(response!.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
+            expect(response!.accessToken).toEqual(
+                MOCK_WAM_RESPONSE.access_token
+            );
+
+            // ...but the storeInCache directive (idToken: false) was honored, so the
+            // idToken was NOT written to the cache while the accessToken was.
+            const internalTokenKeys = internalStorage.getTokenKeys();
+            expect(internalTokenKeys.idToken).toHaveLength(0);
+            expect(internalTokenKeys.accessToken).toHaveLength(1);
+        });
+
         it("If request includes a prompt value it is ignored on the 2nd call to native broker", async () => {
             // The user should not be prompted twice, prompt value should only be used on the first call to the native broker (before returning to the redirect uri). Native broker calls from handleRedirectPromise should ignore the prompt.
             jest.spyOn(
@@ -1859,6 +1902,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(
                 nativeRequest.extraParameters!["child_redirect_uri"]
             ).toEqual("localhost");
+            // embeddedClientId is not a broker-contract param and must not sit on the request
+            expect(nativeRequest).not.toHaveProperty("embeddedClientId");
             // resource and developer-supplied extraParameters survive the embedded path
             expect(nativeRequest.extraParameters!["resource"]).toEqual(
                 "https://graph.microsoft.com"
@@ -1887,6 +1932,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 extraQueryParameters: { eqp: "value" },
                 sid: "test-sid",
                 domainHint: "contoso.com",
+                // Client-side cache directive, consumed internally and passed to
+                // cacheNativeTokens as a param rather than sent to the broker
+                storeInCache: { idToken: false },
             };
             const nativeRequest =
                 // @ts-ignore
@@ -1911,6 +1959,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "extraQueryParameters",
                 "sid",
                 "domainHint",
+                "storeInCache",
+                "embeddedClientId",
             ].forEach((field) => {
                 expect(nativeRequest).not.toHaveProperty(field);
             });
