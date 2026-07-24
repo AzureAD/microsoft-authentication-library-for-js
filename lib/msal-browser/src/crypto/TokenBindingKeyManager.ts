@@ -191,10 +191,15 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
         correlationId: string,
         context?: TokenBindingKeyContext
     ): Promise<void> {
-        await this.removeKey(
-            this.getTokenBindingCacheKey(kid, context),
-            correlationId
-        );
+        const cacheKey = this.getTokenBindingCacheKey(kid, context);
+        await this.cache.removeItem(cacheKey, correlationId);
+        const keyFound = await this.cache.containsKey(cacheKey, correlationId);
+        if (keyFound) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.bindingKeyNotRemoved,
+                correlationId
+            );
+        }
     }
 
     /**
@@ -338,16 +343,7 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
         correlationId: string,
         context?: TokenBindingKeyContext
     ): Promise<CachedKeyPair> {
-        return this.getKeyPair(
-            this.getTokenBindingCacheKey(keyId, context),
-            correlationId
-        );
-    }
-
-    private async getKeyPair(
-        cacheKey: string,
-        correlationId: string
-    ): Promise<CachedKeyPair> {
+        const cacheKey = this.getTokenBindingCacheKey(keyId, context);
         const cachedKeyPair = await this.cache.getItem(cacheKey, correlationId);
         if (!cachedKeyPair) {
             throw createBrowserAuthError(
@@ -357,20 +353,6 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
         }
 
         return cachedKeyPair;
-    }
-
-    private async removeKey(
-        cacheKey: string,
-        correlationId: string
-    ): Promise<void> {
-        await this.cache.removeItem(cacheKey, correlationId);
-        const keyFound = await this.cache.containsKey(cacheKey, correlationId);
-        if (keyFound) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.bindingKeyNotRemoved,
-                correlationId
-            );
-        }
     }
 
     /** @internal */
