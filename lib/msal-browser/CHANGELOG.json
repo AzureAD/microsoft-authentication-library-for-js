@@ -11,7 +11,7 @@
             "author": "sameera.gajjarapu@microsoft.com",
             "package": "@azure/msal-browser",
             "commit": "not available",
-            "comment": "Bump @azure/msal-browser to match @azure/msal-browser-1p"
+            "comment": "Bump @azure/msal-browser to match @azure/msal-browser-1p [#8726](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8726)"
           }
         ]
       }
