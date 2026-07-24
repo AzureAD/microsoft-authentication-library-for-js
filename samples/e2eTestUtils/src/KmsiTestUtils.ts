@@ -130,10 +130,24 @@ export async function selectKmsiOption(
     await screenshot.takeScreenshot(page, "keepMeSignedInPage");
 
     const selector = keepSignedIn ? KmsiSelectors.YES : KmsiSelectors.NO;
-    await Promise.all([
-        page.waitForNavigation(KMSI_NAVIGATION_CONFIG).catch(() => {}),
-        page.click(selector),
-    ]);
+    try {
+        await Promise.all([
+            page.waitForNavigation(KMSI_NAVIGATION_CONFIG).catch(() => {}),
+            page.click(selector),
+        ]);
+    } catch (e) {
+        const msg = String(e).toLowerCase();
+        if (
+            msg.includes("detach") ||
+            msg.includes("destroyed") ||
+            msg.includes("execution context")
+        ) {
+            // Navigation during click means the selection likely succeeded.
+        } else {
+            await screenshot.takeScreenshot(page, "errorSelectingKmsi").catch(() => {});
+            throw e;
+        }
+    }
     await screenshot.takeScreenshot(
         page,
         keepSignedIn ? "kmsiAccepted" : "kmsiDeclined"
