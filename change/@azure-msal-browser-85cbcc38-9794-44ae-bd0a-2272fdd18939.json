@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add single retry with 100ms backoff for token POST transport failures",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

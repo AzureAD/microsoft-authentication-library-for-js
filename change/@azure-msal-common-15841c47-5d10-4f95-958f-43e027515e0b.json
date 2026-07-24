@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add optional correlationId and performanceClient to NetworkRequestOptions; add fetchRetryCount to PerformanceEvent",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
