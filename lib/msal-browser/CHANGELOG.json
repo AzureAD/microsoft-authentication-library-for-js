@@ -2,6 +2,21 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 23 Jul 2026 02:42:29 GMT",
+      "version": "5.17.2",
+      "tag": "@azure/msal-browser_v5.17.2",
+      "comments": {
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "not available",
+            "comment": "Bump @azure/msal-browser to match @azure/msal-browser-1p [#8726](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8726)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 15 Jul 2026 22:35:35 GMT",
       "version": "5.17.1",
       "tag": "@azure/msal-browser_v5.17.1",
