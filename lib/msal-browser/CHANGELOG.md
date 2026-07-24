@@ -10,7 +10,7 @@ Thu, 23 Jul 2026 02:42:29 GMT
 
 ### Patches
 
-- Bump @azure/msal-browser to match @azure/msal-browser-1p (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-browser to match @azure/msal-browser-1p [#8726](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8726) (sameera.gajjarapu@microsoft.com)
 
 ## 5.17.1
 
