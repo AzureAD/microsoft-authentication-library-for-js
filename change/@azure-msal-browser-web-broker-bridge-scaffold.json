@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add internal webBrokerBridge scaffold (shared message interfaces, error taxonomy, pending-request registry) — no callers yet, no public API surface change [#8729](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8729)",
+    "packageName": "@azure/msal-browser",
+    "email": "shylasummers@microsoft.com",
+    "dependentChangeType": "patch"
+}
