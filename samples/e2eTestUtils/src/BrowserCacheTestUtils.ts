@@ -1,5 +1,23 @@
 import * as puppeteer from "puppeteer";
 
+/**
+ * Returns true if the parsed cache entry is an encrypted token entity
+ * (i.e., stored as `{ id, nonce, data }` rather than a plain token entity
+ * with a `secret` field). When true, the `secret` field is not available
+ * without decrypting the entry.
+ *
+ * This mirrors the `isEncrypted` guard in
+ * `lib/msal-browser/src/cache/EncryptedData.ts` and is intended for test
+ * utilities that need to distinguish encrypted from plaintext cache entries.
+ */
+export function isCachedTokenEncrypted(parsedEntity: object): boolean {
+    return (
+        Object.prototype.hasOwnProperty.call(parsedEntity, "id") &&
+        Object.prototype.hasOwnProperty.call(parsedEntity, "nonce") &&
+        Object.prototype.hasOwnProperty.call(parsedEntity, "data")
+    );
+}
+
 export interface ServerTelemetryEntity {
     failedRequests: Array<string | number>;
     errors: string[];

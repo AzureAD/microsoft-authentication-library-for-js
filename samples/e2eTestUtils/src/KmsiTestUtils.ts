@@ -5,7 +5,10 @@
 
 import { Page, WaitForOptions } from "puppeteer";
 import { Screenshot } from "./TestUtils";
-import { BrowserCacheUtils } from "./BrowserCacheTestUtils";
+import {
+    BrowserCacheUtils,
+    isCachedTokenEncrypted,
+} from "./BrowserCacheTestUtils";
 import { HtmlSelectors } from "./Constants";
 
 /**
@@ -70,6 +73,9 @@ export function decodeBase64Url(base64UrlInput: string): Buffer {
     return Buffer.from(normalized, "base64");
 }
 
+/** Minimal shape of a plaintext (non-encrypted) MSAL cache token entity. */
+type PlaintextTokenEntity = { secret?: string };
+
 /**
  * Reads the first cached ID token and returns its decoded claims.
  * Throws if no ID token is present in the browser cache.
@@ -90,7 +96,18 @@ export async function getIdTokenClaimsFromCache(
         );
     }
 
-    const secret = JSON.parse(rawEntity).secret as string;
+    const parsed = JSON.parse(rawEntity) as object;
+    if (isCachedTokenEncrypted(parsed)) {
+        throw new Error(
+            `Cached ID token entry for key "${tokens.idTokens[0]}" is encrypted ` +
+                `and cannot be decoded without the encryption key. ` +
+                `This typically happens when localStorage encryption is active and ` +
+                `the encryption session cookie has expired or is unavailable in the ` +
+                `current browser context.`
+        );
+    }
+
+    const secret = (parsed as PlaintextTokenEntity).secret;
     if (!secret) {
         throw new Error("Cached ID token entity has no secret (raw JWT)");
     }

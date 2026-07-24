@@ -50,7 +50,7 @@ export {
     UPN_JSON_SECRET_NAME,
     AppConfigSecrets,
 } from "./Constants";
-export { BrowserCacheUtils } from "./BrowserCacheTestUtils";
+export { BrowserCacheUtils, isCachedTokenEncrypted } from "./BrowserCacheTestUtils";
 export {
     KMSI_SIGNIN_STATE,
     KmsiSelectors,
