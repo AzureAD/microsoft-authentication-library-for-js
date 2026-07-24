@@ -6,7 +6,7 @@
       "version": "5.17.2",
       "tag": "@azure/msal-browser_v5.17.2",
       "comments": {
-        "patch": [
+        "none": [
           {
             "author": "sameera.gajjarapu@microsoft.com",
             "package": "@azure/msal-browser",

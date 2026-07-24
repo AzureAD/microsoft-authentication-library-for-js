@@ -8,10 +8,6 @@
 
 Thu, 23 Jul 2026 02:42:29 GMT
 
-### Patches
-
-- Bump @azure/msal-browser to match @azure/msal-browser-1p (sameera.gajjarapu@microsoft.com)
-
 ## 5.17.1
 
 Wed, 15 Jul 2026 22:35:35 GMT
