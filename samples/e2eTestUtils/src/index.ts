@@ -54,6 +54,7 @@ export { BrowserCacheUtils } from "./BrowserCacheTestUtils";
 export {
     KMSI_SIGNIN_STATE,
     KmsiSelectors,
+    decodeBase64Url,
     decodeJwtPayload,
     getIdTokenClaimsFromCache,
     selectKmsiOption,

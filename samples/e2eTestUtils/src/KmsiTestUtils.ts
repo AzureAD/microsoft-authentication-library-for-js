@@ -54,9 +54,20 @@ export function decodeJwtPayload(jwt: string): IdTokenClaims {
         );
     }
     // base64url -> base64
-    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const json = Buffer.from(payload, "base64").toString("utf-8");
+    const payload = decodeBase64Url(parts[1]);
+    const json = payload.toString("utf-8");
     return JSON.parse(json) as IdTokenClaims;
+}
+
+/**
+ * Converts a base64url string into a decoded Buffer.
+ */
+export function decodeBase64Url(base64UrlInput: string): Buffer {
+    let normalized = base64UrlInput.replace(/-/g, "+").replace(/_/g, "/");
+    while (normalized.length % 4) {
+        normalized += "=";
+    }
+    return Buffer.from(normalized, "base64");
 }
 
 /**
