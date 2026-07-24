@@ -163,7 +163,7 @@ describe("FetchClient.ts Unit Tests", () => {
     });
 
     describe("sendRequestAsync", () => {
-        it("throws error if fetch post returns non-200 status", async () => {
+        it("throws error if fetch post rejects due to transport failure", async () => {
             const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
             const requestOptions: NetworkRequestOptions = {
                 body: "thisIsAPostBody",
@@ -189,7 +189,7 @@ describe("FetchClient.ts Unit Tests", () => {
             const expectation = expect(promise).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.postRequestFailed,
             });
-            // One timer advance: first attempt fails, decides to retry (delay here), second attempt fails and throws immediately
+            // Advance timer to allow the 100ms backoff before retry
             await jest.advanceTimersByTimeAsync(100);
             await expectation;
         });
@@ -284,6 +284,7 @@ describe("FetchClient.ts Unit Tests", () => {
             const promise = fetchClient.sendPostRequestAsync<any>(targetUri, {
                 ...requestOptions,
                 correlationId,
+                performanceClient: mockPerformanceClient,
             });
             const expectation = expect(promise).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.noNetworkConnectivity,
@@ -310,6 +311,7 @@ describe("FetchClient.ts Unit Tests", () => {
             const promise = fetchClient.sendPostRequestAsync<any>(targetUri, {
                 ...requestOptions,
                 correlationId,
+                performanceClient: mockPerformanceClient,
             });
             const expectation = expect(promise).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.postRequestFailed,

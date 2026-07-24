@@ -109,7 +109,8 @@ export class FetchClient implements INetworkModule {
                         createBrowserAuthError(
                             window.navigator.onLine
                                 ? BrowserAuthErrorCodes.postRequestFailed
-                                : BrowserAuthErrorCodes.noNetworkConnectivity
+                                : BrowserAuthErrorCodes.noNetworkConnectivity,
+                            correlationId || ""
                         ),
                         undefined,
                         undefined,
@@ -135,7 +136,7 @@ export class FetchClient implements INetworkModule {
                     window.navigator.onLine
                         ? BrowserAuthErrorCodes.postRequestFailed
                         : BrowserAuthErrorCodes.noNetworkConnectivity,
-                    ""
+                    correlationId || ""
                 ),
                 undefined,
                 undefined,

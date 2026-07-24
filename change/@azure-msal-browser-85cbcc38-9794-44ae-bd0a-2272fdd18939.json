@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add single retry with 100ms backoff for token POST transport failures",
+  "comment": "Add single retry with 100ms backoff for token POST transport failures [#8732](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8732)",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
