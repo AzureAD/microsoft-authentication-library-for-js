@@ -9,7 +9,7 @@ import {
     BrowserCacheUtils,
     isCachedTokenEncrypted,
 } from "./BrowserCacheTestUtils";
-import { HtmlSelectors } from "./Constants";
+import { HtmlSelectors, SubmitButtonSelectors } from "./Constants";
 
 /**
  * Value present in the ID token `signin_state` claim when the user opted in to
@@ -21,9 +21,9 @@ export const KMSI_SIGNIN_STATE = "kmsi";
 export const KmsiSelectors = {
     // "Yes" — persist the session (sets a persistent auth cookie, adds "kmsi"
     // to the id token signin_state claim).
-    YES: "#idSIButton9, input[name='idSIButton9']",
+    YES: SubmitButtonSelectors.IDSIBUTTON9,
     // "No" — do not persist.
-    NO: "#idBtn_Back, input[name='idBtn_Back']",
+    NO: SubmitButtonSelectors.IDBTNBACK,
 };
 
 const KMSI_NAVIGATION_CONFIG: WaitForOptions = {
