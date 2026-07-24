@@ -65,6 +65,9 @@ import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import * as TokenProtocol from "../../src/protocol/Token.js";
 
+const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
+    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+
 const testAccountEntity: AccountEntity = {
     homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
     localAccountId: ID_TOKEN_CLAIMS.oid,
@@ -600,7 +603,7 @@ describe("RefreshTokenClient unit tests", () => {
             expect(
                 result.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
+                        DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS
                     )}`
                 )
             ).toBe(true);
@@ -1429,7 +1432,7 @@ describe("RefreshTokenClient unit tests", () => {
             expect(
                 result.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
+                        DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS
                     )}`
                 )
             ).toBe(true);
@@ -1493,7 +1496,8 @@ describe("RefreshTokenClient unit tests", () => {
                 )
             ).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.noAccountInSilentRequest
+                    ClientAuthErrorCodes.noAccountInSilentRequest,
+                    ""
                 )
             );
         });
@@ -1515,7 +1519,8 @@ describe("RefreshTokenClient unit tests", () => {
                 client.acquireTokenByRefreshToken(null, 0)
             ).rejects.toMatchObject(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
+                    ClientConfigurationErrorCodes.tokenRequestEmpty,
+                    ""
                 )
             );
 
@@ -1524,7 +1529,8 @@ describe("RefreshTokenClient unit tests", () => {
                 client.acquireTokenByRefreshToken(undefined, 0)
             ).rejects.toMatchObject(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
+                    ClientConfigurationErrorCodes.tokenRequestEmpty,
+                    ""
                 )
             );
         });
@@ -1571,7 +1577,10 @@ describe("RefreshTokenClient unit tests", () => {
             await expect(
                 client.acquireCachedToken(tokenRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                    ""
+                )
             );
         });
 
@@ -1609,7 +1618,8 @@ describe("RefreshTokenClient unit tests", () => {
                 client.acquireTokenByRefreshToken(tokenRequest, 0)
             ).rejects.toMatchObject(
                 createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+                    ""
                 )
             );
             rootMeasurement.end({ success: false });
@@ -1647,7 +1657,8 @@ describe("RefreshTokenClient unit tests", () => {
                 client.acquireTokenByRefreshToken(tokenRequest, 0)
             ).rejects.toMatchObject(
                 createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+                    ""
                 )
             );
         });
@@ -1700,11 +1711,11 @@ describe("RefreshTokenClient unit tests", () => {
             const serverResponse = BAD_TOKEN_ERROR_RESPONSE.body;
             const invalidGrantAuthError = new InteractionRequiredAuthError(
                 serverResponse.error,
+                serverResponse.correlation_id || "",
                 serverResponse.error_description,
                 serverResponse.suberror,
                 serverResponse.timestamp || "",
                 serverResponse.trace_id || "",
-                serverResponse.correlation_id || "",
                 // @ts-ignore
                 serverResponse.claims || ""
             );

@@ -543,6 +543,7 @@ testTenantProfilesMap.set(ID_TOKEN_CLAIMS.tid, {
 
 export const TEST_ACCOUNT_INFO: AccountInfo = {
     authorityType: "MSSTS",
+    dataBoundary: undefined,
     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
     localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
     environment: "login.windows.net",
@@ -551,6 +552,7 @@ export const TEST_ACCOUNT_INFO: AccountInfo = {
     loginHint: ID_TOKEN_CLAIMS.login_hint,
     idToken: TEST_TOKENS.IDTOKEN_V2,
     idTokenClaims: ID_TOKEN_CLAIMS,
+    kmsi: false,
     name: ID_TOKEN_CLAIMS.name,
     upn: ID_TOKEN_CLAIMS.upn,
     nativeAccountId: undefined,

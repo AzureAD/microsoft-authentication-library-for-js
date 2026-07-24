@@ -2,6 +2,84 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Wed, 15 Jul 2026 22:35:35 GMT",
+      "version": "6.0.1",
+      "tag": "@azure/msal-angular_v6.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "5d1a16e9103853601886375dbcb15f06a02bc545",
+            "comment": "Disallow major changes in MSAL Angular [#8702](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8702)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.17.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Jul 2026 22:16:01 GMT",
+      "version": "6.0.0",
+      "tag": "@azure/msal-angular_v6.0.0",
+      "comments": {
+        "major": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "aa48c36402b908a4a7ef36a1b254d73fc66e4b3f",
+            "comment": "Upgrade MSAL Angular to Angular 22 [#8646](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8646)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.17.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 30 Jun 2026 21:04:20 GMT",
+      "version": "5.3.1",
+      "tag": "@azure/msal-angular_v5.3.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.16.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 23 Jun 2026 22:19:29 GMT",
+      "version": "5.3.0",
+      "tag": "@azure/msal-angular_v5.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Pass correlationId to errors to match the updated msal-browser error signature [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.15.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 16 Jun 2026 19:46:36 GMT",
       "version": "5.2.8",
       "tag": "@azure/msal-angular_v5.2.8",

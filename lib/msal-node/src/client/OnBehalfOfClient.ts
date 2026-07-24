@@ -52,7 +52,10 @@ export class OnBehalfOfClient extends BaseClient {
     public async acquireToken(
         request: CommonOnBehalfOfRequest
     ): Promise<AuthenticationResult | null> {
-        this.scopeSet = new ScopeSet(request.scopes || []);
+        this.scopeSet = new ScopeSet(
+            request.scopes || [],
+            request.correlationId
+        );
 
         // generate the user_assertion_hash for OBOAssertion
         this.userAssertionHash = await this.cryptoUtils.hashString(
@@ -105,7 +108,8 @@ export class OnBehalfOfClient extends BaseClient {
                 request.correlationId
             );
             throw createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
+                ClientAuthErrorCodes.tokenRefreshRequired,
+                request.correlationId
             );
         } else if (
             TimeUtils.isTokenExpired(
@@ -122,7 +126,8 @@ export class OnBehalfOfClient extends BaseClient {
                 request.correlationId
             );
             throw createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
+                ClientAuthErrorCodes.tokenRefreshRequired,
+                request.correlationId
             );
         }
 
@@ -136,7 +141,8 @@ export class OnBehalfOfClient extends BaseClient {
         if (cachedIdToken) {
             idTokenClaims = AuthToken.extractTokenClaims(
                 cachedIdToken.secret,
-                EncodingUtils.base64Decode
+                EncodingUtils.base64Decode,
+                request.correlationId
             );
             const localAccountId = idTokenClaims.oid || idTokenClaims.sub;
             const accountInfo: AccountInfo = {
@@ -229,7 +235,10 @@ export class OnBehalfOfClient extends BaseClient {
         const accessTokenFilter: CredentialFilter = {
             credentialType: credentialType,
             clientId,
-            target: ScopeSet.createSearchScopes(this.scopeSet.asArray()),
+            target: ScopeSet.createSearchScopes(
+                this.scopeSet.asArray(),
+                request.correlationId
+            ),
             tokenType: authScheme,
             keyId: request.sshKid,
             userAssertionHash: this.userAssertionHash,
@@ -245,7 +254,8 @@ export class OnBehalfOfClient extends BaseClient {
             return null;
         } else if (numAccessTokens > 1) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.multipleMatchingTokens
+                ClientAuthErrorCodes.multipleMatchingTokens,
+                request.correlationId
             );
         }
 
@@ -332,7 +342,11 @@ export class OnBehalfOfClient extends BaseClient {
             this.config.authOptions.clientId
         );
 
-        RequestParameterBuilder.addScopes(parameters, request.scopes);
+        RequestParameterBuilder.addScopes(
+            parameters,
+            request.scopes,
+            request.correlationId
+        );
 
         RequestParameterBuilder.addGrantType(
             parameters,
@@ -405,6 +419,7 @@ export class OnBehalfOfClient extends BaseClient {
         ) {
             RequestParameterBuilder.addClaims(
                 parameters,
+                request.correlationId,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );

@@ -1,8 +1,52 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 16 Jun 2026 19:46:34 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 15 Jul 2026 22:35:35 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.11.2
+
+Wed, 15 Jul 2026 22:35:35 GMT
+
+### Patches
+
+- Add internal DPoP proof payload builder (DpopProofGenerator) with RFC 9449 token-endpoint and resource-endpoint claim helpers [#8683](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8683) (hectormmg@microsoft.com)
+
+## 16.11.1
+
+Tue, 07 Jul 2026 22:16:01 GMT
+
+### Patches
+
+- Add invalid_response_mode ClientConfigurationError code [#8694](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8694) (joarroyo@microsoft.com)
+
+## 16.11.0
+
+Tue, 30 Jun 2026 21:04:20 GMT
+
+### Minor changes
+
+- Add addGlobalFields method to PerformanceClient [#8688](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8688) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Include resource in the silent request thumbprint so concurrent MCP token requests for different resources are not deduplicated [#8680](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8680) (joarroyo@microsoft.com)
+
+## 16.10.0
+
+Tue, 23 Jun 2026 22:19:29 GMT
+
+### Minor changes
+
+- Deprecate the max_age request parameter and stop validating the auth_time of returned tokens. maxAge is now a no-op; the unused checkMaxAge helper and the auth_time_not_found/max_age_transpired error codes have been removed [#8664](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8664) (rginsburg@microsoft.com)
+- Make correlationId a required parameter on AuthError and all derived error classes [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609) (sameera.gajjarapu@microsoft.com)
+- Add default idToken claims (signin_state, login_hint) and kmsi on AccountInfo [#8656](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8656) (thnorlin@microsoft.com)
+- Add FMI cache key isolation and FIC grant type support (constants, cache infrastructure, assertion context) [#8614](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8614) (avdunn@microsoft.com)
+- Add NativeAccountId property to TenantProfile and deprecate top-level AccountEntity property [#8649](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8649) (lalimasharda@microsoft.com)
+
+### Patches
+
+- Migrate region auto-discovery to the IMDS /compute JSON endpoint (api-version 2021-02-01), reading the location field [#8660](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8660) (rginsburg@microsoft.com)
 
 ## 16.9.0
 

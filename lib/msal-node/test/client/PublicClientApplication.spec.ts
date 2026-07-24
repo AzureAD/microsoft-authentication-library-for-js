@@ -38,6 +38,7 @@ import {
     CacheManager,
     CommonSilentFlowRequest,
     AccountEntityUtils,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -400,7 +401,8 @@ describe("PublicClientApplication", () => {
             };
 
             const testError = new InteractionRequiredAuthError(
-                "interaction_required"
+                "interaction_required",
+                ""
             );
             const brokerSpy = jest
                 .spyOn(MockNativeBrokerPlugin.prototype, "acquireTokenSilent")
@@ -954,7 +956,8 @@ describe("PublicClientApplication", () => {
             };
 
             const testError = createClientAuthError(
-                ClientAuthErrorCodes.userCanceled
+                ClientAuthErrorCodes.userCanceled,
+                ""
             );
             const brokerSpy = jest
                 .spyOn(
@@ -1119,6 +1122,37 @@ describe("PublicClientApplication", () => {
             ).rejects.toThrow("RedirectUri is not supported in this scenario");
         });
 
+        test("acquireTokenInteractive throws invalid_response_mode for fragment responseMode", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                openBrowser: jest.fn(),
+                responseMode: CommonConstants.ResponseMode.FRAGMENT,
+            };
+
+            await expect(
+                authApp.acquireTokenInteractive(request)
+            ).rejects.toMatchObject({
+                errorCode: ClientConfigurationErrorCodes.invalidResponseMode,
+            });
+        });
+
+        test("acquireTokenInteractive throws invalid_response_mode for an unrecognized responseMode", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                openBrowser: jest.fn(),
+                responseMode:
+                    "unsupported_mode" as InteractiveRequest["responseMode"],
+            };
+
+            await expect(
+                authApp.acquireTokenInteractive(request)
+            ).rejects.toMatchObject({
+                errorCode: ClientConfigurationErrorCodes.invalidResponseMode,
+            });
+        });
+
         test("acquireTokenInteractive resets redirectUri when broker fallback occurs", async () => {
             // Create a broker plugin with broker unavailable to simulate fallback scenario
             const mockBrokerPlugin = new MockNativeBrokerPlugin();
@@ -1178,7 +1212,8 @@ describe("PublicClientApplication", () => {
                         homeAccountId: mockAccountInfo.homeAccountId,
                         idTokenClaims: AuthToken.extractTokenClaims(
                             mockAuthenticationResult.idToken,
-                            cryptoProvider.base64Decode
+                            cryptoProvider.base64Decode,
+                            ""
                         ),
                     },
                     await AuthorityFactory.createDiscoveredInstance(
@@ -1199,7 +1234,8 @@ describe("PublicClientApplication", () => {
                         new Logger({}),
                         TEST_CONFIG.CORRELATION_ID,
                         new StubPerformanceClient()
-                    )
+                    ),
+                    ""
                 );
 
             // @ts-ignore
@@ -1255,7 +1291,8 @@ describe("PublicClientApplication", () => {
                 account: mockNativeAccountInfo,
             };
             const testError = createClientAuthError(
-                ClientAuthErrorCodes.noAccountFound
+                ClientAuthErrorCodes.noAccountFound,
+                ""
             );
             const brokerSpy = jest
                 .spyOn(MockNativeBrokerPlugin.prototype, "signOut")
@@ -1325,7 +1362,8 @@ describe("PublicClientApplication", () => {
             });
 
             const testError = createClientAuthError(
-                ClientAuthErrorCodes.noAccountFound
+                ClientAuthErrorCodes.noAccountFound,
+                ""
             );
             const brokerSpy = jest
                 .spyOn(MockNativeBrokerPlugin.prototype, "getAllAccounts")
@@ -1619,7 +1657,7 @@ describe("PublicClientApplication", () => {
         await expect(
             authApp.acquireTokenByCode(request, authCodePayLoad)
         ).rejects.toMatchObject(
-            createClientAuthError(ClientAuthErrorCodes.stateMismatch)
+            createClientAuthError(ClientAuthErrorCodes.stateMismatch, "")
         );
     });
 });

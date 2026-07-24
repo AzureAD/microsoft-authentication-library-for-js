@@ -230,7 +230,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             )(authClient, request);
         } catch (e) {
             if (e instanceof AuthError) {
-                (e as AuthError).setCorrelationId(this.correlationId);
+                (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
             }
 
@@ -497,7 +497,8 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Validate the response - this checks for errors and validates state
         AuthorizeProtocol.validateAuthorizationResponse(
             serverParams,
-            silentRequest.state
+            silentRequest.state,
+            correlationId
         );
 
         // Verify a valid authorization code is present
@@ -523,7 +524,8 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Synchronous so we must reject
         return Promise.reject(
             createBrowserAuthError(
-                BrowserAuthErrorCodes.silentLogoutUnsupported
+                BrowserAuthErrorCodes.silentLogoutUnsupported,
+                ""
             )
         );
     }

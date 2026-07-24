@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Inject, Injectable, Optional } from "@angular/core";
+import { Inject, Injectable, NgZone, Optional } from "@angular/core";
 import {
   EventMessage,
   EventMessageUtils,
@@ -24,6 +24,7 @@ export class MsalBroadcastService {
 
   constructor(
     @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication,
+    private ngZone: NgZone,
     @Optional()
     @Inject(MSAL_BROADCAST_CONFIG)
     private msalBroadcastConfig?: MsalBroadcastConfiguration
@@ -57,21 +58,23 @@ export class MsalBroadcastService {
     this.inProgress$ = this._inProgress.asObservable();
 
     this.msalInstance.addEventCallback((message: EventMessage) => {
-      this._msalSubject.next(message);
-      const status = EventMessageUtils.getInteractionStatusFromEvent(
-        message,
-        this._inProgress.value
-      );
-      if (status !== null) {
-        this.msalInstance
-          .getLogger()
-          .clone(name, version)
-          .verbose(
-            `BroadcastService - ${message.eventType} results in setting inProgress from ${this._inProgress.value} to ${status}`,
-            ""
-          );
-        this._inProgress.next(status);
-      }
+      this.ngZone.run(() => {
+        this._msalSubject.next(message);
+        const status = EventMessageUtils.getInteractionStatusFromEvent(
+          message,
+          this._inProgress.value
+        );
+        if (status !== null) {
+          this.msalInstance
+            .getLogger()
+            .clone(name, version)
+            .verbose(
+              `BroadcastService - ${message.eventType} results in setting inProgress from ${this._inProgress.value} to ${status}`,
+              ""
+            );
+          this._inProgress.next(status);
+        }
+      });
     });
   }
 

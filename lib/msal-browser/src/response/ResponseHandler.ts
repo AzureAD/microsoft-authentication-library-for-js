@@ -31,7 +31,10 @@ export function deserializeResponse(
                 `The request has returned to the redirectUri but a '${responseLocation}' is not present. It's likely that the '${responseLocation}' has been removed or the page has been redirected by code running on the redirectUri page.`,
                 correlationId
             );
-            throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.hashEmptyError,
+                correlationId
+            );
         } else {
             logger.error(
                 `A '${responseLocation}' is present in the iframe but it does not contain known properties. It's likely that the '${responseLocation}' has been replaced by code running on the redirectUri page.`,
@@ -42,7 +45,8 @@ export function deserializeResponse(
                 correlationId
             );
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                correlationId
             );
         }
     }
@@ -55,23 +59,32 @@ export function deserializeResponse(
 export function validateInteractionType(
     response: AuthorizeResponse,
     browserCrypto: ICrypto,
-    interactionType: InteractionType
+    interactionType: InteractionType,
+    correlationId: string
 ): void {
     if (!response.state) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.noStateInHash,
+            correlationId
+        );
     }
 
     const platformStateObj = extractBrowserRequestState(
         browserCrypto,
-        response.state
+        response.state,
+        correlationId
     );
     if (!platformStateObj) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.unableToParseState);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.unableToParseState,
+            correlationId
+        );
     }
 
     if (platformStateObj.interactionType !== interactionType) {
         throw createBrowserAuthError(
-            BrowserAuthErrorCodes.stateInteractionTypeMismatch
+            BrowserAuthErrorCodes.stateInteractionTypeMismatch,
+            correlationId
         );
     }
 }

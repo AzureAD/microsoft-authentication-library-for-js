@@ -180,6 +180,51 @@ describe("BrowserCacheManager tests", () => {
             ).toBe(version);
         });
 
+        it("stamps previousLibraryVersion as a global telemetry field when a prior version is cached", async () => {
+            window.localStorage.setItem(CacheKeys.VERSION_CACHE_KEY, "1.0.0");
+            const perfClient = new StubPerformanceClient();
+            const addGlobalFieldsSpy = jest.spyOn(
+                perfClient,
+                "addGlobalFields"
+            );
+            const browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    ...cacheConfig,
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+                browserCrypto,
+                logger,
+                perfClient,
+                new EventHandler()
+            );
+            await browserCacheManager.initialize(TEST_CONFIG.CORRELATION_ID);
+            expect(addGlobalFieldsSpy).toHaveBeenCalledWith({
+                previousLibraryVersion: "1.0.0",
+            });
+        });
+
+        it("does not stamp previousLibraryVersion when no prior version is cached", async () => {
+            const perfClient = new StubPerformanceClient();
+            const addGlobalFieldsSpy = jest.spyOn(
+                perfClient,
+                "addGlobalFields"
+            );
+            const browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    ...cacheConfig,
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+                browserCrypto,
+                logger,
+                perfClient,
+                new EventHandler()
+            );
+            await browserCacheManager.initialize(TEST_CONFIG.CORRELATION_ID);
+            expect(addGlobalFieldsSpy).not.toHaveBeenCalled();
+        });
+
         it("does not set MSAL version in localStorage if existing version already matches", async () => {
             // First make sure the version gets set
             const browserCacheManager1 = new BrowserCacheManager(
@@ -2193,6 +2238,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2206,6 +2252,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2292,6 +2339,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2305,6 +2353,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2318,6 +2367,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2412,6 +2462,7 @@ describe("BrowserCacheManager tests", () => {
                     1000,
                     1000,
                     browserCrypto.base64Decode,
+                    "",
                     500,
                     Constants.AuthenticationScheme.BEARER
                 );
@@ -2488,6 +2539,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2501,6 +2553,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2590,6 +2643,7 @@ describe("BrowserCacheManager tests", () => {
                     1000,
                     1000,
                     browserCrypto.base64Decode,
+                    "",
                     500,
                     Constants.AuthenticationScheme.BEARER
                 );
@@ -2667,6 +2721,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2680,6 +2735,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -2693,6 +2749,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 1000,
                 browserCrypto.base64Decode,
+                "",
                 500,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -3355,14 +3412,16 @@ describe("BrowserCacheManager tests", () => {
                             homeAccountId: "homeAccountId",
                             idTokenClaims: AuthToken.extractTokenClaims(
                                 TEST_TOKENS.IDTOKEN_V2,
-                                base64Decode
+                                base64Decode,
+                                ""
                             ),
                             clientInfo:
                                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                             cloudGraphHostName: "cloudGraphHost",
                             msGraphHost: "msGraphHost",
                         },
-                        authority
+                        authority,
+                        ""
                     );
 
                     await browserLocalStorage.setAccount(
@@ -3596,6 +3655,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3643,6 +3703,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3658,6 +3719,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.POP,
                             "oboAssertion"
@@ -3703,6 +3765,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3718,6 +3781,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.POP,
                             "oboAssertion"
@@ -3791,6 +3855,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -3806,6 +3871,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.POP,
                             "oboAssertion"
@@ -3882,6 +3948,7 @@ describe("BrowserCacheManager tests", () => {
                         1000,
                         1000,
                         browserCrypto.base64Decode,
+                        "",
                         500,
                         Constants.AuthenticationScheme.BEARER,
                         "oboAssertion"
@@ -3900,6 +3967,7 @@ describe("BrowserCacheManager tests", () => {
                         1000,
                         1000,
                         browserCrypto.base64Decode,
+                        "",
                         500,
                         Constants.AuthenticationScheme.BEARER
                     );
@@ -4533,6 +4601,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             1000,
                             browserCrypto.base64Decode,
+                            "",
                             500,
                             Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -4917,7 +4986,8 @@ describe("BrowserCacheManager tests", () => {
                 browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID)
             ).toThrow(
                 new BrowserAuthError(
-                    BrowserAuthErrorCodes.noTokenRequestCacheError
+                    BrowserAuthErrorCodes.noTokenRequestCacheError,
+                    ""
                 )
             );
         });
@@ -4956,7 +5026,8 @@ describe("BrowserCacheManager tests", () => {
                 browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID)
             ).toThrow(
                 new BrowserAuthError(
-                    BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
+                    BrowserAuthErrorCodes.unableToParseTokenRequestCacheError,
+                    ""
                 )
             );
         });

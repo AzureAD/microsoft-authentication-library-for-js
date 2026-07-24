@@ -280,10 +280,11 @@ describe("CryptoOps.ts Unit Tests", () => {
          * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
          */
         const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
-        expect(generateKeyPairSpy).toHaveBeenCalledWith(true, [
-            "sign",
-            "verify",
-        ]);
+        expect(generateKeyPairSpy).toHaveBeenCalledWith(
+            true,
+            ["sign", "verify"],
+            BrowserCrypto.RSA_KEYGEN_ALGORITHM_OPTIONS
+        );
         const result = await generateKeyPairSpy.mock.results[0].value;
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
@@ -315,7 +316,7 @@ describe("CryptoOps.ts Unit Tests", () => {
 
     it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
         expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(
-            createBrowserAuthError(BrowserAuthErrorCodes.cryptoKeyNotFound)
+            createBrowserAuthError(BrowserAuthErrorCodes.cryptoKeyNotFound, "")
         );
     }, 30000);
 
@@ -332,6 +333,191 @@ describe("CryptoOps.ts Unit Tests", () => {
         const result = await cryptoObj.hashString("testString");
         expect(regExp.test(result)).toBe(true);
     });
+
+    describe("DPoP internal crypto helpers", () => {
+        it("exposes reusable ECDSA P-256 and ECDSA SHA-256 algorithm options", () => {
+            expect(BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS).toEqual({
+                name: "ECDSA",
+                namedCurve: "P-256",
+            });
+            expect(BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS).toEqual({
+                name: "ECDSA",
+                hash: { name: "SHA-256" },
+            });
+        });
+
+        it("UT-04: generateKeyPair supports DPoP EC keys with public-only JWK export", async () => {
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
+
+            // EC P-256 public key fields must be present
+            expect(publicJwk.kty).toBe("EC");
+            expect(publicJwk.crv).toBe("P-256");
+            expect(typeof publicJwk.x).toBe("string");
+            expect(typeof publicJwk.y).toBe("string");
+
+            // Private field MUST NOT appear in the exported public JWK
+            expect(publicJwk.d).toBeUndefined();
+        }, 10000);
+
+        it("importJwk supports DPoP EC keys when passed ECDSA params", async () => {
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                true,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
+            const importedPublicKey = await BrowserCrypto.importJwk(
+                publicJwk,
+                true,
+                ["verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+
+            expect(importedPublicKey.type).toBe("public");
+            expect(importedPublicKey.algorithm.name).toBe("ECDSA");
+        }, 10000);
+
+        it("RT-02: generated private DPoP key is non-extractable", async () => {
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+
+            expect(keyPair.privateKey.extractable).toBe(false);
+
+            // Attempting to export a non-extractable key must reject
+            await expect(
+                window.crypto.subtle.exportKey("jwk", keyPair.privateKey)
+            ).rejects.toBeDefined();
+        }, 10000);
+
+        it("computeJwkThumbprint returns a valid base64url string of expected length", async () => {
+            jest.spyOn(
+                BrowserCrypto,
+                "sha256Digest"
+                // @ts-ignore
+            ).mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
+                return Promise.resolve(
+                    createHash("SHA256").update(Buffer.from(data)).digest()
+                );
+            });
+
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
+            const thumbprint = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk
+            );
+
+            // SHA-256 base64url is always 43 characters (base64url alphabet: A-Z a-z 0-9 - _)
+            const regExp = new RegExp("^[A-Za-z0-9_-]{43}$");
+            expect(regExp.test(thumbprint)).toBe(true);
+        }, 10000);
+
+        it("computeJwkThumbprint computes RFC 7638 thumbprints for RSA public JWKs", async () => {
+            jest.spyOn(
+                BrowserCrypto,
+                "sha256Digest"
+                // @ts-ignore
+            ).mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
+                return Promise.resolve(
+                    createHash("SHA256").update(Buffer.from(data)).digest()
+                );
+            });
+
+            const publicJwk = {
+                kty: "RSA",
+                e: "AQAB",
+                n: "test-modulus",
+            };
+            const thumbprint = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk
+            );
+            const expectedThumbprint = createHash("SHA256")
+                .update(JSON.stringify(publicJwk, ["e", "kty", "n"]))
+                .digest("base64url");
+
+            expect(thumbprint).toBe(expectedThumbprint);
+        });
+
+        it("computeJwkThumbprint rejects unsupported public JWK key types", async () => {
+            await expect(
+                BrowserCrypto.computeJwkThumbprint({
+                    kty: "oct",
+                    k: "symmetric-key",
+                })
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+                subError: "unsupported_jwk_kty",
+            });
+        });
+
+        it("computeJwkThumbprint rejects missing public JWK key types", async () => {
+            await expect(
+                BrowserCrypto.computeJwkThumbprint({
+                    crv: "P-256",
+                    x: "x-coordinate",
+                    y: "y-coordinate",
+                })
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+                subError: "missing_jwk_kty",
+            });
+        });
+
+        it("computeJwkThumbprint rejects missing or empty public JWK coordinates", async () => {
+            await expect(
+                BrowserCrypto.computeJwkThumbprint({
+                    kty: "EC",
+                    crv: "P-256",
+                    x: "x-coordinate",
+                })
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+                subError: "missing_jwk_member",
+            });
+
+            await expect(
+                BrowserCrypto.computeJwkThumbprint({
+                    kty: "EC",
+                    crv: "P-256",
+                    x: "",
+                    y: "y-coordinate",
+                })
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+                subError: "empty_jwk_member",
+            });
+        });
+
+        it("sign supports DPoP EC signatures when passed ECDSA params", async () => {
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+
+            const data = new TextEncoder().encode("header.payload");
+            const signature = await BrowserCrypto.sign(
+                keyPair.privateKey,
+                data,
+                BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS
+            );
+
+            expect(signature).toBeDefined();
+            expect(signature.byteLength).toBeGreaterThan(0);
+        }, 10000);
+    });
+
     it("throws if crypto is unavailable", () => {
         const mockedWindow = window;
         //@ts-ignore

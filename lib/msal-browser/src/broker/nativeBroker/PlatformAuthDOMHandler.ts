@@ -142,8 +142,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             redirectUri,
             correlationId,
             state,
-            storeInCache,
-            embeddedClientId,
             extraParameters,
             ...remainingProperties
         } = request;
@@ -167,8 +165,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             redirectUri: redirectUri,
             scope: scope,
             state: state,
-            storeInCache: storeInCache,
-            embeddedClientId: embeddedClientId,
         };
 
         return platformDOMRequest;
@@ -208,6 +204,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                     );
                     throw createNativeAuthError(
                         errorResponse.error.code,
+                        correlationId,
                         errorResponse.error.description,
                         {
                             error: parseInt(errorResponse.error.errorCode),
@@ -221,6 +218,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         }
         throw createAuthError(
             AuthErrorCodes.unexpectedError,
+            correlationId,
             "Response missing expected properties."
         );
     }

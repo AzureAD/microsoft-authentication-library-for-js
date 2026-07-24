@@ -329,7 +329,8 @@ describe("DeviceCodeClient unit tests", () => {
             request.cancel = true;
             await expect(client.acquireToken(request)).rejects.toMatchObject(
                 createClientAuthError(
-                    NodeClientAuthErrorCodes.deviceCodePollingCancelled
+                    NodeClientAuthErrorCodes.deviceCodePollingCancelled,
+                    ""
                 )
             );
         }, 6000);
@@ -356,7 +357,8 @@ describe("DeviceCodeClient unit tests", () => {
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).rejects.toMatchObject(
                 createClientAuthError(
-                    NodeClientAuthErrorCodes.deviceCodeExpired
+                    NodeClientAuthErrorCodes.deviceCodeExpired,
+                    ""
                 )
             );
         }, 6000);
@@ -380,7 +382,8 @@ describe("DeviceCodeClient unit tests", () => {
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).rejects.toMatchObject(
                 createClientAuthError(
-                    NodeClientAuthErrorCodes.userTimeoutReached
+                    NodeClientAuthErrorCodes.userTimeoutReached,
+                    ""
                 )
             );
 
@@ -406,6 +409,7 @@ describe("DeviceCodeClient unit tests", () => {
             await expect(client.acquireToken(request)).rejects.toMatchObject(
                 createAuthError(
                     AuthErrorCodes.postRequestFailed,
+                    "test-correlationId",
                     "Service Unavailable"
                 )
             );

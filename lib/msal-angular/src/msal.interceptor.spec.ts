@@ -117,7 +117,11 @@ function initializeMsal() {
 
   TestBed.configureTestingModule({
     imports: [
-      MsalModule.forRoot(MSALInstanceFactory(), null, MSALInterceptorFactory()),
+      MsalModule.forRoot(
+        MSALInstanceFactory(),
+        { interactionType: InteractionType.Redirect },
+        MSALInterceptorFactory()
+      ),
     ],
     providers: [
       MsalInterceptor,
@@ -237,7 +241,7 @@ describe("MsalInterceptor", () => {
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
-          accessToken: null,
+          accessToken: null as unknown as string,
         });
       })
     );
@@ -490,7 +494,7 @@ describe("MsalInterceptor", () => {
 
     msalBroadcastService.inProgress$ = _inProgress.asObservable();
 
-    const sampleError = new AuthError("123", "message");
+    const sampleError = new AuthError("123", "", "message");
     const sampleAccessToken = {
       accessToken: "123abc",
     };
@@ -549,7 +553,7 @@ describe("MsalInterceptor", () => {
 
     msalBroadcastService.inProgress$ = _inProgress.asObservable();
 
-    const sampleError = new AuthError("123", "message");
+    const sampleError = new AuthError("123", "", "message");
 
     spyOn(
       PublicClientApplication.prototype,
@@ -593,7 +597,7 @@ describe("MsalInterceptor", () => {
 
     msalBroadcastService.inProgress$ = _inProgress.asObservable();
 
-    const sampleError = new AuthError("123", "message");
+    const sampleError = new AuthError("123", "", "message");
     const sampleAccessToken = {
       accessToken: "123abc",
     };
@@ -656,7 +660,7 @@ describe("MsalInterceptor", () => {
 
     msalBroadcastService.inProgress$ = _inProgress.asObservable();
 
-    const sampleError = new AuthError("123", "message");
+    const sampleError = new AuthError("123", "", "message");
     const sampleAccessToken = {
       accessToken: "123abc",
     };
@@ -764,7 +768,9 @@ describe("MsalInterceptor", () => {
     testInterceptorConfig.authRequest = (msalService, httpReq, authRequest) => {
       return {
         ...authRequest,
-        authority: `https://login.microsoftonline.com/${authRequest.account.tenantId}`,
+        authority: `https://login.microsoftonline.com/${
+          authRequest.account!.tenantId
+        }`,
       };
     };
     initializeMsal();
@@ -1192,7 +1198,7 @@ describe("MsalInterceptor - strict matching warning", () => {
       imports: [
         MsalModule.forRoot(
           MSALInstanceFactory(),
-          null,
+          { interactionType: InteractionType.Redirect },
           MSALStrictInterceptorFactory(emptyMap, strict)
         ),
       ],
@@ -1262,7 +1268,7 @@ function initializeMsalStrict(
     imports: [
       MsalModule.forRoot(
         MSALInstanceFactory(),
-        null,
+        { interactionType: InteractionType.Redirect },
         MSALStrictInterceptorFactory(resourceMap, strict)
       ),
     ],

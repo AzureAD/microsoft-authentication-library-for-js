@@ -88,6 +88,7 @@ if (process.platform === "win32") {
     describe("NativeBrokerPlugin", () => {
         const testPlatformBrokerError = new PlatformBrokerError(
             ErrorStatus[msalRuntimeExampleError.errorStatus],
+            "",
             msalRuntimeExampleError.errorContext,
             msalRuntimeExampleError.errorCode,
             msalRuntimeExampleError.errorTag
@@ -95,7 +96,8 @@ if (process.platform === "win32") {
 
         // Expected wrapped error for the default case (Unexpected status)
         const testWrappedBrokerError = createClientAuthError(
-            ClientAuthErrorCodes.platformBrokerError
+            ClientAuthErrorCodes.platformBrokerError,
+            ""
         );
         testWrappedBrokerError.platformBrokerError = testPlatformBrokerError;
 
@@ -1770,7 +1772,10 @@ if (process.platform === "win32") {
                 await expect(
                     nativeBrokerPlugin.signOut(request)
                 ).rejects.toThrowError(
-                    createClientAuthError(ClientAuthErrorCodes.noAccountFound)
+                    createClientAuthError(
+                        ClientAuthErrorCodes.noAccountFound,
+                        ""
+                    )
                 );
             });
 
@@ -2040,7 +2045,8 @@ if (process.platform === "win32") {
                     .catch((error) => {
                         expect(error).toStrictEqual(
                             createClientAuthError(
-                                ClientAuthErrorCodes.noNetworkConnectivity
+                                ClientAuthErrorCodes.noNetworkConnectivity,
+                                ""
                             )
                         );
                         done();
@@ -2100,7 +2106,8 @@ if (process.platform === "win32") {
                     .catch((error) => {
                         expect(error).toStrictEqual(
                             createClientAuthError(
-                                ClientAuthErrorCodes.noNetworkConnectivity
+                                ClientAuthErrorCodes.noNetworkConnectivity,
+                                ""
                             )
                         );
                         done();
@@ -2215,7 +2222,8 @@ if (process.platform === "win32") {
                     .catch((error) => {
                         expect(error).toStrictEqual(
                             createClientAuthError(
-                                ClientAuthErrorCodes.userCanceled
+                                ClientAuthErrorCodes.userCanceled,
+                                ""
                             )
                         );
                         done();
@@ -2274,7 +2282,8 @@ if (process.platform === "win32") {
                     .catch((error) => {
                         expect(error).toStrictEqual(
                             createClientConfigurationError(
-                                ClientConfigurationErrorCodes.untrustedAuthority
+                                ClientConfigurationErrorCodes.untrustedAuthority,
+                                ""
                             )
                         );
                         done();
@@ -2397,7 +2406,8 @@ if (process.platform === "win32") {
                     .catch((error) => {
                         expect(error).toStrictEqual(
                             createClientAuthError(
-                                ClientAuthErrorCodes.noAccountFound
+                                ClientAuthErrorCodes.noAccountFound,
+                                ""
                             )
                         );
                         done();

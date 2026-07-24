@@ -22,6 +22,8 @@ import {
     ServerTelemetryManager,
     AuthorizationCodePayload,
     enforceResourceParameter,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common/node";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
@@ -135,7 +137,7 @@ export class PublicClientApplication
             return await deviceCodeClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(validRequest.correlationId);
+                e.correlationId = validRequest.correlationId;
             }
             serverTelemetryManager.cacheFailedRequest(e as AuthError);
             throw e;
@@ -158,8 +160,16 @@ export class PublicClientApplication
             errorTemplate,
             windowHandle,
             loopbackClient: customLoopbackClient,
+            preferredPort,
             ...remainingProperties
         } = request;
+
+        if (customLoopbackClient) {
+            this.logger.warning(
+                "The loopbackClient option is deprecated and will be removed in a future major version. Omit it to use the built-in loopback server, and set preferredPort when a fixed port is required.",
+                correlationId
+            );
+        }
 
         if (this.nativeBrokerPlugin) {
             const brokerRequest: NativeRequest = {
@@ -185,7 +195,9 @@ export class PublicClientApplication
         if (request.redirectUri) {
             // If it's not a broker fallback scenario, we throw an error
             if (!this.config.broker.nativeBrokerPlugin) {
-                throw NodeAuthError.createRedirectUriNotSupportedError();
+                throw NodeAuthError.createRedirectUriNotSupportedError(
+                    correlationId
+                );
             }
             // If a redirect URI is provided for a broker flow but MSAL runtime startup failed, we fall back to the browser flow and will ignore the redirect URI provided for the broker flow
             request.redirectUri = "";
@@ -195,7 +207,22 @@ export class PublicClientApplication
             await this.cryptoProvider.generatePkceCodes();
 
         const loopbackClient: ILoopbackClient =
-            customLoopbackClient || new LoopbackClient();
+            customLoopbackClient || new LoopbackClient(preferredPort);
+
+        // Validate and resolve responseMode
+        const responseMode =
+            remainingProperties.responseMode ??
+            CommonConstants.ResponseMode.QUERY;
+
+        if (
+            responseMode !== CommonConstants.ResponseMode.QUERY &&
+            responseMode !== CommonConstants.ResponseMode.FORM_POST
+        ) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidResponseMode,
+                correlationId
+            );
+        }
 
         let authCodeResponse: AuthorizeResponse = {};
         let authCodeListenerError: AuthError | null = null;
@@ -211,14 +238,17 @@ export class PublicClientApplication
                 });
 
             // Wait for server to be listening
-            const redirectUri = await this.waitForRedirectUri(loopbackClient);
+            const redirectUri = await this.waitForRedirectUri(
+                loopbackClient,
+                correlationId
+            );
 
             const validRequest: AuthorizationUrlRequest = {
                 ...remainingProperties,
                 correlationId: correlationId,
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
                 redirectUri: redirectUri,
-                responseMode: CommonConstants.ResponseMode.QUERY,
+                responseMode: responseMode,
                 codeChallenge: challenge,
                 codeChallengeMethod:
                     CommonConstants.CodeChallengeMethodValues.S256,
@@ -234,11 +264,14 @@ export class PublicClientApplication
             if (authCodeResponse.error) {
                 throw new ServerError(
                     authCodeResponse.error,
+                    correlationId,
                     authCodeResponse.error_description,
                     authCodeResponse.suberror
                 );
             } else if (!authCodeResponse.code) {
-                throw NodeAuthError.createNoAuthCodeInResponseError();
+                throw NodeAuthError.createNoAuthCodeInResponseError(
+                    correlationId
+                );
             }
 
             const clientInfo = authCodeResponse.client_info;
@@ -289,7 +322,9 @@ export class PublicClientApplication
         if (request.redirectUri) {
             // If it's not a broker fallback scenario, we throw an error
             if (!this.config.broker.nativeBrokerPlugin) {
-                throw NodeAuthError.createRedirectUriNotSupportedError();
+                throw NodeAuthError.createRedirectUriNotSupportedError(
+                    correlationId
+                );
             }
             request.redirectUri = "";
         }
@@ -362,10 +397,12 @@ export class PublicClientApplication
     /**
      * Attempts to retrieve the redirectUri from the loopback server. If the loopback server does not start listening for requests within the timeout this will throw.
      * @param loopbackClient - developer provided custom loopback server implementation
+     * @param correlationId - correlation id of the request
      * @returns
      */
     private async waitForRedirectUri(
-        loopbackClient: ILoopbackClient
+        loopbackClient: ILoopbackClient,
+        correlationId: string
     ): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             let ticks = 0;
@@ -376,7 +413,11 @@ export class PublicClientApplication
                     ticks
                 ) {
                     clearInterval(id);
-                    reject(NodeAuthError.createLoopbackServerTimeoutError());
+                    reject(
+                        NodeAuthError.createLoopbackServerTimeoutError(
+                            correlationId
+                        )
+                    );
                     return;
                 }
 

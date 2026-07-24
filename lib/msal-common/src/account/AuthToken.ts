@@ -16,9 +16,10 @@ import {
  */
 export function extractTokenClaims(
     encodedToken: string,
-    base64Decode: (input: string) => string
+    base64Decode: (input: string) => string,
+    correlationId: string
 ): TokenClaims {
-    const jswPayload = getJWSPayload(encodedToken);
+    const jswPayload = getJWSPayload(encodedToken, correlationId);
 
     // token will be decoded to get the username
     try {
@@ -26,7 +27,10 @@ export function extractTokenClaims(
         const base64Decoded = base64Decode(jswPayload);
         return JSON.parse(base64Decoded) as TokenClaims;
     } catch (err) {
-        throw createClientAuthError(ClientAuthErrorCodes.tokenParsingError);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.tokenParsingError,
+            correlationId
+        );
     }
 }
 
@@ -57,14 +61,23 @@ export function isKmsi(idTokenClaims: TokenClaims): boolean {
  *
  * @param authToken
  */
-export function getJWSPayload(authToken: string): string {
+export function getJWSPayload(
+    authToken: string,
+    correlationId: string
+): string {
     if (!authToken) {
-        throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.nullOrEmptyToken,
+            correlationId
+        );
     }
     const tokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
     const matches = tokenPartsRegex.exec(authToken);
     if (!matches || matches.length < 4) {
-        throw createClientAuthError(ClientAuthErrorCodes.tokenParsingError);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.tokenParsingError,
+            correlationId
+        );
     }
     /**
      * const crackedToken = {
@@ -75,19 +88,4 @@ export function getJWSPayload(authToken: string): string {
      */
 
     return matches[2];
-}
-
-/**
- * Determine if the token's max_age has transpired
- */
-export function checkMaxAge(authTime: number, maxAge: number): void {
-    /*
-     * per https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
-     * To force an immediate re-authentication: If an app requires that a user re-authenticate prior to access,
-     * provide a value of 0 for the max_age parameter and the AS will force a fresh login.
-     */
-    const fiveMinuteSkew = 300000; // five minutes in milliseconds
-    if (maxAge === 0 || Date.now() - fiveMinuteSkew > authTime + maxAge) {
-        throw createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired);
-    }
 }

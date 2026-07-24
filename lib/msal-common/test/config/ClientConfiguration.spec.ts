@@ -30,7 +30,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(() =>
             emptyConfig.cryptoInterface.base64Decode("test input")
         ).toThrowError(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
         expect(() =>
             emptyConfig.cryptoInterface.base64Decode("test input")
@@ -39,7 +39,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(() =>
             emptyConfig.cryptoInterface.base64Encode("test input")
         ).toThrowError(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
         expect(() =>
             emptyConfig.cryptoInterface.base64Encode("test input")
@@ -50,14 +50,14 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(() =>
             emptyConfig.storageInterface.getAccount("testKey", RANDOM_TEST_GUID)
         ).toThrowError(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
         expect(() =>
             emptyConfig.storageInterface.getAccount("testKey", RANDOM_TEST_GUID)
         ).toThrowError(AuthError);
         expect(emptyConfig.storageInterface.getKeys).not.toBeNull();
         expect(() => emptyConfig.storageInterface.getKeys()).toThrowError(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
         expect(() => emptyConfig.storageInterface.getKeys()).toThrowError(
             AuthError
@@ -66,7 +66,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(() =>
             emptyConfig.storageInterface.removeItem("testKey", RANDOM_TEST_GUID)
         ).toThrowError(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
         expect(() =>
             emptyConfig.storageInterface.removeItem("testKey", RANDOM_TEST_GUID)
@@ -80,7 +80,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 0
             )
         ).rejects.toEqual(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
         // Network interface checks
         expect(emptyConfig.networkInterface).not.toBeNull();
@@ -90,7 +90,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
             //@ts-ignore
             emptyConfig.networkInterface.sendGetRequestAsync("", null)
         ).rejects.toMatchObject(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
         expect(
             emptyConfig.networkInterface.sendPostRequestAsync
@@ -100,7 +100,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
             //@ts-ignore
             emptyConfig.networkInterface.sendPostRequestAsync("", null)
         ).rejects.toMatchObject(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
         // Logger options checks
         expect(emptyConfig.loggerOptions).not.toBeNull();
