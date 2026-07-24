@@ -1,6 +1,6 @@
 {
     "type": "minor",
-    "comment": "Clarify the legacy node SHR signing stub deprecation [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708)",
+    "comment": "Clarify the legacy node SHR signing stub deprecation [#8725](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8725)",
     "packageName": "@azure/msal-node",
     "email": "hectormmg@microsoft.com",
     "dependentChangeType": "minor"
