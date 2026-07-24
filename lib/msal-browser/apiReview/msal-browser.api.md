@@ -1109,7 +1109,7 @@ const uninitializedPublicClientApplication = "uninitialized_public_client_applic
 const userCancelled = "user_cancelled";
 
 // @public (undocumented)
-export const version = "5.17.1";
+export const version = "5.17.2";
 
 // @public (undocumented)
 const WaitForBridgeLateResponse = "waitForBridgeLateResponse";
