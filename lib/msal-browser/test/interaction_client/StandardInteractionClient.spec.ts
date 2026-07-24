@@ -34,11 +34,12 @@ import {
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
-import { InteractionType } from "../../src/utils/BrowserConstants.js";
+import { ApiId, InteractionType } from "../../src/utils/BrowserConstants.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import {
     clearCacheOnLogout,
     getDiscoveredAuthority,
+    initializeServerTelemetryManager,
 } from "../../src/interaction_client/BaseInteractionClient.js";
 import {
     IdTokenEntity,
@@ -236,6 +237,31 @@ describe("StandardInteractionClient", () => {
             InteractionType.Silent
         );
         expect(authCodeRequest.account).toEqual(testAccount);
+    });
+
+    it("getClientConfiguration passes tokenBindingKeyManager to common clients", async () => {
+        const authority = await testClient.getDiscoveredAuthority({});
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.acquireTokenRedirect,
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            TEST_CONFIG.CORRELATION_ID,
+            // @ts-ignore
+            pca.browserStorage,
+            // @ts-ignore
+            pca.logger,
+            undefined,
+            // @ts-ignore
+            pca.config.system.serverTelemetryEnabled
+        );
+
+        const clientConfig = await testClient["getClientConfiguration"]({
+            serverTelemetryManager,
+            authority,
+        });
+
+        expect(clientConfig.tokenBindingKeyManager).toBe(
+            testClient["tokenBindingKeyManager"]
+        );
     });
 
     it("initializeAuthorizationRequest persists account in request", async () => {
