@@ -179,7 +179,7 @@ export async function sendPostRequest<
             logger,
             performanceClient,
             correlationId
-        )(tokenEndpoint, options);
+        )(tokenEndpoint, { ...options, correlationId, performanceClient });
         const responseHeaders = response.headers || {};
         performanceClient?.addFields(
             {

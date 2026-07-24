@@ -15,6 +15,9 @@ import {
 } from "../error/BrowserAuthError.js";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants.js";
 
+const MAX_FETCH_POST_RETRIES = 1;
+const RETRY_DELAY_MS = 100;
+
 /**
  * This class implements the Fetch API for GET and POST requests. See more here: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
  */
@@ -83,29 +86,58 @@ export class FetchClient implements INetworkModule {
     ): Promise<NetworkResponse<T>> {
         const reqBody = (options && options.body) || "";
         const reqHeaders = getFetchHeaders(options);
+        const correlationId = options?.correlationId;
+        const performanceClient = options?.performanceClient;
 
-        let response: Response;
-        let responseStatus = 0;
-        let responseHeaders: Record<string, string> = {};
-        try {
-            response = await fetch(url, {
-                method: HTTP_REQUEST_TYPE.POST,
-                headers: reqHeaders,
-                body: reqBody,
-            });
-        } catch (e) {
+        let response: Response | undefined;
+        let attempts = 0;
+        let lastError: Error | undefined;
+        for (attempts = 1; attempts <= MAX_FETCH_POST_RETRIES + 1; attempts++) {
+            try {
+                response = await fetch(url, {
+                    method: HTTP_REQUEST_TYPE.POST,
+                    headers: reqHeaders,
+                    body: reqBody,
+                });
+                break;
+            } catch (e) {
+                lastError = e as Error;
+                if (!shouldRetryPostFetchError(lastError, attempts)) {
+                    throw createNetworkError(
+                        createBrowserAuthError(
+                            window.navigator.onLine
+                                ? BrowserAuthErrorCodes.postRequestFailed
+                                : BrowserAuthErrorCodes.noNetworkConnectivity
+                        ),
+                        undefined,
+                        undefined,
+                        lastError
+                    );
+                }
+                // Brief backoff before retry
+                await new Promise((resolve) =>
+                    setTimeout(resolve, RETRY_DELAY_MS)
+                );
+                if (correlationId) {
+                    performanceClient?.incrementFields(
+                        { fetchRetryCount: 1 },
+                        correlationId
+                    );
+                }
+            }
+        }
+
+        if (!response) {
             throw createNetworkError(
-                createBrowserAuthError(
-                    window.navigator.onLine
-                        ? BrowserAuthErrorCodes.postRequestFailed
-                        : BrowserAuthErrorCodes.noNetworkConnectivity
-                ),
+                createBrowserAuthError(BrowserAuthErrorCodes.postRequestFailed),
                 undefined,
                 undefined,
-                e as Error
+                lastError
             );
         }
 
+        let responseStatus = 0;
+        let responseHeaders: Record<string, string> = {};
         responseHeaders = getHeaderDict(response.headers);
         try {
             responseStatus = response.status;
@@ -125,6 +157,14 @@ export class FetchClient implements INetworkModule {
             );
         }
     }
+}
+
+function shouldRetryPostFetchError(error: Error, attempt: number): boolean {
+    return (
+        attempt <= MAX_FETCH_POST_RETRIES &&
+        window.navigator.onLine &&
+        error.name !== "AbortError"
+    );
 }
 
 /**
