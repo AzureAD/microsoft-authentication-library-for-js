@@ -50,9 +50,11 @@ const TOKEN_KEYS = "TOKEN_KEYS";
 
 /** Compute additional-cache-key hash deterministically — matches msal-node sync algo. */
 function computeTestHash(components: Record<string, string>): string {
-    const sortedKeys = Object.keys(components).sort();
-    const input = sortedKeys.map((k) => k + components[k]).join("");
-    return createHash("sha256").update(input, "utf8").digest("base64url");
+    const sortedEntries = Object.entries(components).sort(([a], [b]) =>
+        a < b ? -1 : a > b ? 1 : 0
+    );
+    const payload = JSON.stringify(Object.fromEntries(sortedEntries));
+    return createHash("sha256").update(payload, "utf8").digest("base64url");
 }
 
 export function generateCredentialKey(
@@ -187,8 +189,8 @@ export class MockStorageClass extends CacheManager {
     }
     async setAccessTokenCredential(
         value: AccessTokenEntity,
-        _correlationId?: string,
-        _kmsi?: boolean,
+        _correlationId: string,
+        _kmsi: boolean,
         additionalCacheKeyHash?: string
     ): Promise<void> {
         const key = this.generateCredentialKey(value, additionalCacheKeyHash);

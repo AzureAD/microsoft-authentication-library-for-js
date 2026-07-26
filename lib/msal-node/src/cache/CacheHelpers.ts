@@ -20,7 +20,7 @@ export function computeAdditionalCacheKeyHash(
     components: Record<string, string>
 ): string {
     const sortedEntries = Object.entries(components).sort(([a], [b]) =>
-        a.localeCompare(b)
+        a < b ? -1 : a > b ? 1 : 0
     );
     const payload = JSON.stringify(Object.fromEntries(sortedEntries));
     return createHash("sha256").update(payload, "utf8").digest("base64url");

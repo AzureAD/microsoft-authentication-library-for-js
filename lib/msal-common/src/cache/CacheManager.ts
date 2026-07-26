@@ -1372,13 +1372,6 @@ export abstract class CacheManager implements ICacheManager {
             target: scopes,
             tokenType: authScheme,
             keyId: request.sshKid,
-            /*
-             * Isolate cache lookup by attribute-token partition so bearer-mode entries
-             * never resolve for attribute-token requests, and distinct joined
-             * attribute-token strings do not cross-resolve (R4). When the request has
-             * no attribute tokens this returns undefined and legacy bearer read
-             * semantics are preserved.
-             */
             additionalCacheKeyComponents:
                 CacheHelpers.buildAttributeTokenAdditionalCacheKeyComponents(
                     CacheHelpers.getAttributeTokenPartitionKey(

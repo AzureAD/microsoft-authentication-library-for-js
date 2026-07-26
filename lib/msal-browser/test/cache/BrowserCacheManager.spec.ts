@@ -5047,21 +5047,24 @@ describe("BrowserCacheManager tests", () => {
         });
 
         it("does not append segment when entity has no additionalCacheKeyComponents", () => {
-            const key = browserCacheManager.generateCredentialKey(
+            const keyWithoutHash = browserCacheManager.generateCredentialKey(
                 TEST_ACCESS_TOKEN_ENTITY
             );
-            const segments = key.split("-");
-            // baseline reference — no partition entity produces the current
-            // 8-segment credential key format.
-            expect(key).not.toContain("|precomputed-hash");
-            expect(segments.length).toBeGreaterThan(0);
+            const keyWithHash = browserCacheManager.generateCredentialKey(
+                TEST_ACCESS_TOKEN_ENTITY,
+                "precomputed-hash"
+            );
+
+            // When additionalCacheKeyComponents is absent, the optional hash
+            // parameter must be ignored and key shape must remain unchanged.
+            expect(keyWithHash).toBe(keyWithoutHash);
         });
 
         it("appends hash passed as parameter when present", () => {
             const partitioned = {
                 ...TEST_ACCESS_TOKEN_ENTITY,
                 additionalCacheKeyComponents: {
-                    attribute_tokens: "attribute_tokens:alpha zeta",
+                    attribute_tokens: "alpha zeta",
                 },
             };
             const key = browserCacheManager.generateCredentialKey(
@@ -5075,7 +5078,7 @@ describe("BrowserCacheManager tests", () => {
             const partitionedNoHash = {
                 ...TEST_ACCESS_TOKEN_ENTITY,
                 additionalCacheKeyComponents: {
-                    attribute_tokens: "attribute_tokens:alpha",
+                    attribute_tokens: "alpha",
                 },
             };
             const noHashKey =
@@ -5095,7 +5098,7 @@ describe("BrowserCacheManager tests", () => {
             const partitioned = {
                 ...TEST_ACCESS_TOKEN_ENTITY,
                 additionalCacheKeyComponents: {
-                    attribute_tokens: "attribute_tokens:alpha",
+                    attribute_tokens: "alpha",
                 },
             };
             const attrKey = browserCacheManager.generateCredentialKey(

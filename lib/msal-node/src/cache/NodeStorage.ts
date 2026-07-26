@@ -300,8 +300,8 @@ export class NodeStorage extends CacheManager {
      */
     async setAccessTokenCredential(
         accessToken: AccessTokenEntity,
-        _correlationId?: string,
-        _kmsi?: boolean,
+        _correlationId: string,
+        _kmsi: boolean,
         additionalCacheKeyHash?: string
     ): Promise<void> {
         const accessTokenKey = this.generateCredentialKey(

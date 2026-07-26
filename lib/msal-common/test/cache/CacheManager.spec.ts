@@ -2229,10 +2229,14 @@ describe("CacheManager.ts test cases", () => {
             );
 
             await mockCache.cacheManager.setAccessTokenCredential(
-                mockedAtEntity
+                mockedAtEntity,
+                "",
+                false
             );
             await mockCache.cacheManager.setAccessTokenCredential(
-                mockedAtEntity2
+                mockedAtEntity2,
+                "",
+                false
             );
             await mockCache.cacheManager.setAccount(mockedAccount);
 
@@ -2339,12 +2343,20 @@ describe("CacheManager.ts test cases", () => {
             accountData
         );
 
-        await mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity);
         await mockCache.cacheManager.setAccessTokenCredential(
-            mockedPopAtEntity
+            mockedAtEntity,
+            "",
+            false
         );
         await mockCache.cacheManager.setAccessTokenCredential(
-            mockedSshAtEntity
+            mockedPopAtEntity,
+            "",
+            false
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedSshAtEntity,
+            "",
+            false
         );
         await mockCache.cacheManager.setAccount(mockedAccount);
 
@@ -2406,7 +2418,11 @@ describe("CacheManager.ts test cases", () => {
             accountData
         );
 
-        await mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity);
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedAtEntity,
+            "",
+            false
+        );
 
         await mockCache.cacheManager.setAccount(mockedAccount);
 
@@ -2502,12 +2518,20 @@ describe("CacheManager.ts test cases", () => {
             accountData
         );
 
-        await mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity);
         await mockCache.cacheManager.setAccessTokenCredential(
-            mockedPopAtEntity
+            mockedAtEntity,
+            "",
+            false
         );
         await mockCache.cacheManager.setAccessTokenCredential(
-            mockedSshAtEntity
+            mockedPopAtEntity,
+            "",
+            false
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedSshAtEntity,
+            "",
+            false
         );
         await mockCache.cacheManager.setAccount(mockedAccount);
 
@@ -2606,12 +2630,20 @@ describe("CacheManager.ts test cases", () => {
             accountData
         );
 
-        await mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity);
         await mockCache.cacheManager.setAccessTokenCredential(
-            mockedPopAtEntity
+            mockedAtEntity,
+            "",
+            false
         );
         await mockCache.cacheManager.setAccessTokenCredential(
-            mockedSshAtEntity
+            mockedPopAtEntity,
+            "",
+            false
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedSshAtEntity,
+            "",
+            false
         );
         await mockCache.cacheManager.setAccount(mockedAccount);
 
@@ -2681,7 +2713,6 @@ describe("CacheManager.ts test cases", () => {
         partitionedAtEntity.additionalCacheKeyComponents = {
             attribute_tokens: "alpha zeta",
         };
-        // hash is computed from additionalCacheKeyComponents at key-generation time (not stored on entity)
 
         const accountData = {
             username: "John Doe",
@@ -2697,9 +2728,15 @@ describe("CacheManager.ts test cases", () => {
             accountData
         );
 
-        await mockCache.cacheManager.setAccessTokenCredential(legacyAtEntity);
         await mockCache.cacheManager.setAccessTokenCredential(
-            partitionedAtEntity
+            legacyAtEntity,
+            "",
+            false
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            partitionedAtEntity,
+            "",
+            false
         );
         await mockCache.cacheManager.setAccount(mockedAccount);
 
@@ -2762,7 +2799,6 @@ describe("CacheManager.ts test cases", () => {
         partitionedAtEntity.additionalCacheKeyComponents = {
             attribute_tokens: "alpha zeta",
         };
-        // hash is computed from additionalCacheKeyComponents at key-generation time (not stored on entity)
 
         const accountData = {
             username: "John Doe",
@@ -2779,7 +2815,9 @@ describe("CacheManager.ts test cases", () => {
         );
 
         await mockCache.cacheManager.setAccessTokenCredential(
-            partitionedAtEntity
+            partitionedAtEntity,
+            "",
+            false
         );
         await mockCache.cacheManager.setAccount(mockedAccount);
 

@@ -14,6 +14,7 @@ export type CacheRecord = {
     account?: AccountEntity | null;
     idToken?: IdTokenEntity | null;
     accessToken?: AccessTokenEntity | null;
+    /** Transient hash threaded through cache save/read paths for access-token key generation. */
     accessTokenCacheKeyHash?: string;
     refreshToken?: RefreshTokenEntity | null;
     appMetadata?: AppMetadataEntity | null;

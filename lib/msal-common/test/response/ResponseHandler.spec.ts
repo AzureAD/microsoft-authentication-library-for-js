@@ -454,7 +454,7 @@ describe("ResponseHandler.ts", () => {
             );
         });
 
-        it("persists attribute-token partition and precomputed hash on access token entity", (done) => {
+        it("persists attribute-token partition and precomputed hash on cache record", (done) => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
                 correlationId: "CORRELATION_ID",

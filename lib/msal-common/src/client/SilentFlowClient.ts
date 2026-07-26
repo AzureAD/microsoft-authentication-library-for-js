@@ -207,6 +207,7 @@ export class SilentFlowClient {
         if (this.config.serverTelemetryManager) {
             this.config.serverTelemetryManager.incrementCacheHits();
         }
+
         return [
             await invokeAsync(
                 this.generateResultFromCacheRecord.bind(this),

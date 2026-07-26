@@ -442,7 +442,7 @@ export function getAdditionalCacheKeyComponentsHashPayload(
     }
 
     const sortedEntries = Object.entries(components).sort(([a], [b]) =>
-        a.localeCompare(b)
+        a < b ? -1 : a > b ? 1 : 0
     );
 
     return JSON.stringify(Object.fromEntries(sortedEntries));

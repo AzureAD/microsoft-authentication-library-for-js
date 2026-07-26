@@ -25,13 +25,6 @@ export type RequestThumbprint = {
     shrOptions?: ShrOptions;
     embeddedClientId?: string;
     resource?: string;
-    /**
-     * Partition identifier derived from `request.attributeTokens`. Included so that
-     * silent-request dedupe (see StandardController.acquireTokenSilentDeduped) does
-     * not cross-resolve bearer-mode requests with attribute-token requests, or
-     * distinct attribute-token sets with each other. Value comes from
-     * `CacheHelpers.getAttributeTokenPartitionKey`.
-     */
     attributeTokens?: string;
 };
 

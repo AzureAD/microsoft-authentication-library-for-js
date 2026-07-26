@@ -20,3 +20,4 @@ Serialization is deterministic:
 - duplicates are preserved
 - values are not trimmed
 
+The partition hash used for cache key generation is computed internally and threaded through cache metadata; it is not persisted on credential entities.

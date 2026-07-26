@@ -1573,9 +1573,6 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Set accessToken credential to the platform cache
      * @param accessToken - the access token entity to cache
-     * @param correlationId - unique identifier for the request
-     * @param kmsi - keep me signed in flag
-     * @param additionalCacheKeyHash - optional precomputed hash of additionalCacheKeyComponents used in key generation
      */
     async setAccessTokenCredential(
         accessToken: AccessTokenEntity,
@@ -2127,8 +2124,6 @@ export class BrowserCacheManager extends CacheManager {
      * Generate Credential Key. All changes to the key REQUIRE a schema version update.
      * Cache Key: msal.<schema_version>|<home_account_id>|<environment>|<credential_type>|<client_id or familyId>|<realm>|<scopes>|<scheme>|<additional_cache_key_components_hash>
      *
-     * If `additionalCacheKeyComponents` exists, append its hash to isolate cache partitions.
-     * The hash suffix is optional, so the credential schema version is unchanged.
      * @param credentialEntity
      * @param hash - optional precomputed hash of additionalCacheKeyComponents
      * @returns

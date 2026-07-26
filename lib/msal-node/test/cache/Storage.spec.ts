@@ -251,7 +251,7 @@ describe("Storage tests for msal-node: ", () => {
             lastUpdatedAt: Date.now().toString(),
         };
 
-        await nodeStorage.setAccessTokenCredential(accessToken);
+        await nodeStorage.setAccessTokenCredential(accessToken, "", false);
         const fetchedAccessToken =
             nodeStorage.getAccessTokenCredential(accessTokenKey);
         const invalidAccessToken = nodeStorage.getAccessTokenCredential(

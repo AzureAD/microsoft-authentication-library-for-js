@@ -265,8 +265,9 @@ export class ResponseHandler {
             additionalCacheKeyComponents
         );
         /*
-         * Thread the hash through CacheRecord so generateCredentialKey receives it
-         * without it being persisted on the entity itself.
+         * Thread the hash through CacheRecord as transient metadata so
+         * generateCredentialKey receives it without persisting it on the
+         * credential entity itself.
          */
         cacheRecord.accessTokenCacheKeyHash = additionalCacheKeyComponentsHash;
         let cacheContext;

@@ -34,11 +34,6 @@ export type PlatformAuthRequest = {
     storeInCache?: StoreInCache; // Object of booleans indicating whether to store tokens in the cache or not (default is true)
     signPopToken?: boolean; // Set to true only if token request deos not contain a PoP keyId
     embeddedClientId?: string;
-    /**
-     * Pre-serialized attribute tokens (sorted, space-joined) delivered to the native broker
-     * provider. The broker is responsible for forwarding this value as the
-     * `attribute_tokens` parameter on the `/token` request body.
-     */
     attributeTokens?: string;
 };
 
