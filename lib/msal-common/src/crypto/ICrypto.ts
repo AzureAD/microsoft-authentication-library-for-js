@@ -9,6 +9,7 @@ import {
 } from "../error/ClientAuthError.js";
 import type { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import type { TokenBindingKeyContext } from "./ITokenBindingKeyManager.js";
+import type { JoseHeader } from "./JoseHeader.js";
 
 /**
  * PKCE code verifier and challenge pair used by authorization code flows.
@@ -86,6 +87,7 @@ export interface ICrypto {
     clearKeystore(correlationId: string): Promise<boolean>;
     /**
      * Signs a compact JWT with the token-binding key identified by kid.
+     * @internal
      * @param header
      * @param payload
      * @param kid
@@ -93,7 +95,7 @@ export interface ICrypto {
      * @param context
      */
     signTokenBindingJwt(
-        header: object,
+        header: JoseHeader,
         payload: object,
         kid: string,
         correlationId: string,
