@@ -10,6 +10,7 @@ Attribute tokens are currently sent on these `/token` grants:
 
 - Authorization code grant
 - Refresh token grant
+- Client credential grant
 
 ## Serialization behavior
 
@@ -20,4 +21,4 @@ Serialization is deterministic:
 - duplicates are preserved
 - values are not trimmed
 
-The partition hash used for cache key generation is computed internally and threaded through cache metadata; it is not persisted on credential entities.
+Tokens requested with different attribute token sets are stored and looked up as distinct cache entries.

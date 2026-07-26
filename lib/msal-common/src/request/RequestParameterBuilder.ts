@@ -5,8 +5,8 @@
 
 import * as Constants from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
-import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import { ScopeSet } from "./ScopeSet.js";
+import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
@@ -716,11 +716,9 @@ export function addAttributeTokens(
     parameters: Map<string, string>,
     attributeTokens: Array<string>
 ): void {
-    if (attributeTokens.length > 0) {
-        parameters.set(
-            AADServerParamKeys.ATTRIBUTE_TOKENS,
-            CacheHelpers.serializeAttributeTokens(attributeTokens)
-        );
+    const serialized = CacheHelpers.serializeAttributeTokens(attributeTokens);
+    if (serialized) {
+        parameters.set(AADServerParamKeys.ATTRIBUTE_TOKENS, serialized);
     } else {
         parameters.delete(AADServerParamKeys.ATTRIBUTE_TOKENS);
     }

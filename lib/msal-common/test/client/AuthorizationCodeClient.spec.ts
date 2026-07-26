@@ -37,6 +37,7 @@ import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import * as TokenProtocol from "../../src/protocol/Token.js";
 import * as AuthorityFactory from "../../src/authority/AuthorityFactory.js";
 import { ResponseHandler } from "../../src/response/ResponseHandler.js";
+import * as CacheHelpers from "../../src/cache/utils/CacheHelpers.js";
 
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
     '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
@@ -904,6 +905,16 @@ describe("AuthorizationCodeClient unit tests", () => {
                 state: "test-state",
             });
 
+            if (!config.cryptoInterface) {
+                throw TestError.createTestSetupError(
+                    "configuration cryptoInterface not initialized correctly."
+                );
+            }
+            const expectedHash = await CacheHelpers.getAttributeTokensHash(
+                authorizationCodeRequest.attributeTokens,
+                (input) => config.cryptoInterface!.hashString(input)
+            );
+
             expect(validateTokenResponseSpy).toHaveBeenCalled();
             expect(handleServerTokenResponseSpy).toHaveBeenCalledWith(
                 AUTHENTICATION_RESULT.body,
@@ -916,8 +927,64 @@ describe("AuthorizationCodeClient unit tests", () => {
                 undefined,
                 undefined,
                 undefined,
-                { attribute_tokens: "alpha mike zeta" }
+                expectedHash
             );
+        });
+
+        it("emits hasAttributeTokens telemetry during auth code redemption", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT as any);
+            jest.spyOn(
+                ResponseHandler.prototype,
+                "validateTokenResponse"
+            ).mockImplementation(() => undefined);
+            jest.spyOn(
+                ResponseHandler.prototype,
+                "handleServerTokenResponse"
+            ).mockResolvedValue(AUTHENTICATION_RESULT as any);
+
+            const addFieldsSpy = jest.spyOn(stubPerformanceClient, "addFields");
+
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                attributeTokens: ["zeta", "alpha"],
+            };
+
+            await client.acquireToken(authorizationCodeRequest, 0, {
+                code: authorizationCodeRequest.code,
+                state: "test-state",
+            });
+
+            const hasAttributeTokensCalls = (
+                addFieldsSpy.mock.calls as any[]
+            ).filter(
+                (args: any[]) =>
+                    typeof args[0]?.hasAttributeTokens !== "undefined"
+            );
+            expect(hasAttributeTokensCalls.length).toBeGreaterThanOrEqual(1);
+            expect(hasAttributeTokensCalls[0][0]).toMatchObject({
+                hasAttributeTokens: true,
+            });
         });
 
         it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {

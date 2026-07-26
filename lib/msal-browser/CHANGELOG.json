@@ -2,6 +2,71 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 23 Jul 2026 02:42:29 GMT",
+      "version": "5.17.2",
+      "tag": "@azure/msal-browser_v5.17.2",
+      "comments": {
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "not available",
+            "comment": "Bump @azure/msal-browser to match @azure/msal-browser-1p [#8726](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8726)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 15 Jul 2026 22:35:35 GMT",
+      "version": "5.17.1",
+      "tag": "@azure/msal-browser_v5.17.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5d1a16e9103853601886375dbcb15f06a02bc545",
+            "comment": "Add internal ES256/P-256 DPoP crypto support to BrowserCrypto [#8683](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8683)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.11.2",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Jul 2026 22:16:01 GMT",
+      "version": "5.17.0",
+      "tag": "@azure/msal-browser_v5.17.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "aa48c36402b908a4a7ef36a1b254d73fc66e4b3f",
+            "comment": "Fix decode logs script for the standalone mode [#8697](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8697)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "aa48c36402b908a4a7ef36a1b254d73fc66e4b3f",
+            "comment": "Add auth.popupRelayUri: a double-popup option for apps that customize COOP/storage-partitioning, relaying acquireTokenPopup/logoutPopup through a top-level same-origin relay page (runPopupRelay) so tokens can be acquired from an untrusted cross-origin iframe. [#8687](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8687)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.11.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 30 Jun 2026 21:04:19 GMT",
       "version": "5.16.0",
       "tag": "@azure/msal-browser_v5.16.0",

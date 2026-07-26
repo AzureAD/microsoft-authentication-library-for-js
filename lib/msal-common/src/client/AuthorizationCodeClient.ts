@@ -158,11 +158,11 @@ export class AuthorizationCodeClient {
             request.correlationId
         )(this.authority, request, this.serverTelemetryManager);
 
-        const additionalCacheKeyComponents =
-            CacheHelpers.buildAttributeTokenAdditionalCacheKeyComponents(
-                CacheHelpers.getAttributeTokenPartitionKey(
-                    request.attributeTokens
-                )
+        // Compute hash for cache key isolation
+        const additionalCacheKeyHash =
+            await CacheHelpers.getAttributeTokensHash(
+                request.attributeTokens,
+                this.cryptoUtils
             );
 
         // Retrieve requestId from response headers
@@ -202,7 +202,7 @@ export class AuthorizationCodeClient {
             undefined,
             undefined,
             requestId,
-            additionalCacheKeyComponents
+            additionalCacheKeyHash
         );
     }
 

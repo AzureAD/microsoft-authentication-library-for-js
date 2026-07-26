@@ -459,12 +459,10 @@ describe("ResponseHandler.ts", () => {
                 authority: testAuthority.canonicalAuthority,
                 correlationId: "CORRELATION_ID",
                 scopes: ["openid", "profile", "User.Read", "email"],
+                attributeTokens: ["alpha", "zeta"],
             };
             const testResponse: ServerAuthorizationTokenResponse = {
                 ...AUTHENTICATION_RESULT.body,
-            };
-            const additionalCacheKeyComponents = {
-                attribute_tokens: "alpha zeta",
             };
             const hashStringSpy = jest.spyOn(cryptoInterface, "hashString");
 
@@ -501,7 +499,7 @@ describe("ResponseHandler.ts", () => {
                             attribute_tokens: "alpha zeta",
                         });
                         expect(hashStringSpy).toHaveBeenCalledWith(
-                            '{"attribute_tokens":"alpha zeta"}'
+                            "16:attribute_tokens10:alpha zeta"
                         );
                         // hash is now on cacheRecord, not on the entity
                         expect(cacheRecord.accessTokenCacheKeyHash).toBe(
@@ -533,7 +531,7 @@ describe("ResponseHandler.ts", () => {
                 undefined,
                 undefined,
                 undefined,
-                additionalCacheKeyComponents
+                undefined
             );
         });
 

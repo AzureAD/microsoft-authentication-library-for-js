@@ -1363,6 +1363,9 @@ export abstract class CacheManager implements ICacheManager {
                 ? Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
                 : Constants.CredentialType.ACCESS_TOKEN;
 
+        const additionalCacheKeyComponents =
+            CacheHelpers.getAttributeTokenComponents(request.attributeTokens);
+
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
@@ -1372,19 +1375,14 @@ export abstract class CacheManager implements ICacheManager {
             target: scopes,
             tokenType: authScheme,
             keyId: request.sshKid,
-            additionalCacheKeyComponents:
-                CacheHelpers.buildAttributeTokenAdditionalCacheKeyComponents(
-                    CacheHelpers.getAttributeTokenPartitionKey(
-                        request.attributeTokens
-                    )
-                ),
+            additionalCacheKeyComponents: additionalCacheKeyComponents,
         };
 
         const accessTokenKeys =
             (tokenKeys && tokenKeys.accessToken) ||
             this.getTokenKeys().accessToken;
-        const accessTokens: Array<{ key: string; entity: AccessTokenEntity }> =
-            [];
+        const accessTokens: AccessTokenEntity[] = [];
+        const matchedKeys: string[] = [];
 
         accessTokenKeys.forEach((key) => {
             // Validate key
@@ -1405,24 +1403,24 @@ export abstract class CacheManager implements ICacheManager {
                         correlationId
                     )
                 ) {
-                    accessTokens.push({ key, entity: accessToken });
+                    accessTokens.push(accessToken);
+                    matchedKeys.push(key);
                 }
             }
         });
 
-        const numAccessTokens = accessTokens.length;
-        if (numAccessTokens < 1) {
+        if (accessTokens.length < 1) {
             this.commonLogger.info(
                 "CacheManager:getAccessToken - No token found",
                 correlationId
             );
             return null;
-        } else if (numAccessTokens > 1) {
+        } else if (accessTokens.length > 1) {
             this.commonLogger.info(
                 "CacheManager:getAccessToken - Multiple access tokens found, clearing them",
                 correlationId
             );
-            accessTokens.forEach(({ key }) => {
+            matchedKeys.forEach((key) => {
                 this.removeAccessToken(key, correlationId);
             });
             this.performanceClient.addFields(
@@ -1436,7 +1434,7 @@ export abstract class CacheManager implements ICacheManager {
             "CacheManager:getAccessToken - Returning access token",
             correlationId
         );
-        return accessTokens[0].entity;
+        return accessTokens[0];
     }
 
     /**

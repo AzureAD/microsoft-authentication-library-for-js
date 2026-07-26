@@ -815,7 +815,24 @@ describe("SilentIframeClient", () => {
                 nonce: "123523",
                 state: TEST_STATE_VALUES.USER_STATE,
             });
-            expect(tokenResp).toEqual(testTokenResponse);
+            // Expires dates can differ by up to 1 second at boundary transitions.
+            expect(tokenResp).toMatchObject({
+                ...testTokenResponse,
+                expiresOn: expect.any(Date),
+                extExpiresOn: expect.any(Date),
+            });
+            expect(
+                Math.abs(
+                    tokenResp.expiresOn!.getTime() -
+                        testTokenResponse.expiresOn!.getTime()
+                )
+            ).toBeLessThanOrEqual(1000);
+            expect(
+                Math.abs(
+                    tokenResp.extExpiresOn!.getTime() -
+                        testTokenResponse.extExpiresOn!.getTime()
+                )
+            ).toBeLessThanOrEqual(1000);
             expect(sendPostRequestSpy.mock.results[0].value).resolves.toEqual(
                 testServerErrorResponse
             );

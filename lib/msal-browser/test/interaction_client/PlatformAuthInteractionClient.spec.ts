@@ -1654,6 +1654,49 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response).toEqual(testTokenResponse);
         });
 
+        it("retrieves and applies storeInCache directive persisted across the redirect", async () => {
+            // storeInCache is not a broker-contract field, so it is persisted alongside the
+            // cached native request and must be read back in handleRedirectPromise. This test
+            // proves the directive survives the redirect round-trip (cache write -> read).
+            jest.spyOn(
+                NavigationClient.prototype,
+                "navigateExternal"
+            ).mockImplementation((url: string) => {
+                expect(url).toBe(window.location.href);
+                return Promise.resolve(true);
+            });
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockResolvedValue(MOCK_WAM_RESPONSE);
+            // @ts-ignore
+            pca.browserStorage.setInteractionInProgress(true);
+            await platformAuthInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                    storeInCache: {
+                        idToken: false,
+                    },
+                },
+                perfMeasurement
+            );
+
+            const response =
+                await platformAuthInteractionClient.handleRedirectPromise();
+            expect(response).not.toBe(null);
+            // The response still surfaces the idToken to the caller...
+            expect(response!.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
+            expect(response!.accessToken).toEqual(
+                MOCK_WAM_RESPONSE.access_token
+            );
+
+            // ...but the storeInCache directive (idToken: false) was honored, so the
+            // idToken was NOT written to the cache while the accessToken was.
+            const internalTokenKeys = internalStorage.getTokenKeys();
+            expect(internalTokenKeys.idToken).toHaveLength(0);
+            expect(internalTokenKeys.accessToken).toHaveLength(1);
+        });
+
         it("If request includes a prompt value it is ignored on the 2nd call to native broker", async () => {
             // The user should not be prompted twice, prompt value should only be used on the first call to the native broker (before returning to the redirect uri). Native broker calls from handleRedirectPromise should ignore the prompt.
             jest.spyOn(
@@ -1762,10 +1805,12 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     scopes: ["User.Read"],
                     prompt: Constants.PromptValue.LOGIN,
                     redirectUri: "localhost",
+                    resource: "https://graph.microsoft.com",
                     extraParameters: {
                         brk_client_id: "broker_client_id",
                         brk_redirect_uri: "https://broker_redirect_uri.com",
                         client_id: "parent_client_id",
+                        userEQP: "customUserParam",
                     },
                 });
 
@@ -1778,6 +1823,23 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).toEqual("localhost");
             expect(nativeRequest.redirectUri).toEqual(
                 "https://broker_redirect_uri.com"
+            );
+            // Translated brk_* / client_id keys are stripped from extraParameters
+            expect(nativeRequest.extraParameters).not.toHaveProperty(
+                "brk_client_id"
+            );
+            expect(nativeRequest.extraParameters).not.toHaveProperty(
+                "brk_redirect_uri"
+            );
+            expect(nativeRequest.extraParameters).not.toHaveProperty(
+                "client_id"
+            );
+            // Other extraParameters (resource, developer-supplied params) are preserved
+            expect(nativeRequest.extraParameters!["resource"]).toEqual(
+                "https://graph.microsoft.com"
+            );
+            expect(nativeRequest.extraParameters!["userEQP"]).toEqual(
+                "customUserParam"
             );
         });
 
@@ -1804,7 +1866,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(nativeRequest.redirectUri).toEqual("localhost");
         });
 
-        it("includes resource in native request when provided", async () => {
+        it("forwards resource via extraParameters when provided", async () => {
             const nativeRequest =
                 // @ts-ignore
                 await platformAuthInteractionClient.initializePlatformRequest({
@@ -1812,9 +1874,96 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     resource: "https://graph.microsoft.com",
                 });
 
-            expect(nativeRequest.resource).toEqual(
+            // resource is not a top-level broker-contract param; it is forwarded via
+            // extraParameters so it reaches ESTS on both the extension and DOM paths
+            expect(nativeRequest).not.toHaveProperty("resource");
+            expect(nativeRequest.extraParameters?.resource).toEqual(
                 "https://graph.microsoft.com"
             );
+        });
+
+        it("preserves resource and developer extraParameters when embeddedClientId is set", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializePlatformRequest({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    resource: "https://graph.microsoft.com",
+                    embeddedClientId: "embedded-client-id",
+                    extraParameters: {
+                        userEQP: "customUserParam",
+                    },
+                });
+
+            // Child fields are set from embeddedClientId
+            expect(nativeRequest.extraParameters!["child_client_id"]).toEqual(
+                "embedded-client-id"
+            );
+            expect(
+                nativeRequest.extraParameters!["child_redirect_uri"]
+            ).toEqual("localhost");
+            // embeddedClientId is not a broker-contract param and must not sit on the request
+            expect(nativeRequest).not.toHaveProperty("embeddedClientId");
+            // resource and developer-supplied extraParameters survive the embedded path
+            expect(nativeRequest.extraParameters!["resource"]).toEqual(
+                "https://graph.microsoft.com"
+            );
+            expect(nativeRequest.extraParameters!["userEQP"]).toEqual(
+                "customUserParam"
+            );
+        });
+
+        it("forwards broker-contract params and drops non-contract SDK/ESTS fields", async () => {
+            // Cast to any so non-contract SDK/ESTS-only fields can be supplied without type errors
+            const requestWithExtraFields: any = {
+                scopes: ["User.Read"],
+                // Broker-contract MSAL JS acquire-token params
+                loginHint: "user@contoso.com",
+                nonce: "test-nonce",
+                state: "test-state",
+                prompt: Constants.PromptValue.LOGIN,
+                // Non-contract SDK/ESTS-only fields that must NOT reach the broker
+                azureCloudOptions: { azureCloudInstance: 1 },
+                maxAge: 3600,
+                sshJwk: "test-ssh-jwk",
+                sshKid: "test-ssh-kid",
+                scenarioId: "test-scenario",
+                skipBrokerClaims: true,
+                extraQueryParameters: { eqp: "value" },
+                sid: "test-sid",
+                domainHint: "contoso.com",
+                // Client-side cache directive, consumed internally and passed to
+                // cacheNativeTokens as a param rather than sent to the broker
+                storeInCache: { idToken: false },
+            };
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializePlatformRequest(
+                    requestWithExtraFields
+                );
+
+            // Contract params are forwarded
+            expect(nativeRequest.loginHint).toEqual("user@contoso.com");
+            expect(nativeRequest.nonce).toEqual("test-nonce");
+            expect(nativeRequest.state).toEqual("test-state");
+            expect(nativeRequest.prompt).toEqual(Constants.PromptValue.LOGIN);
+
+            // Non-contract fields are not present on the request sent to the broker
+            [
+                "azureCloudOptions",
+                "maxAge",
+                "sshJwk",
+                "sshKid",
+                "scenarioId",
+                "skipBrokerClaims",
+                "extraQueryParameters",
+                "sid",
+                "domainHint",
+                "storeInCache",
+                "embeddedClientId",
+            ].forEach((field) => {
+                expect(nativeRequest).not.toHaveProperty(field);
+            });
         });
 
         it("merges client capabilities with empty claims", async () => {

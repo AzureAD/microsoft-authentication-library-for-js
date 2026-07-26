@@ -7,22 +7,24 @@ import {
     AccountInfo,
     Constants,
     CredentialEntity,
+    CacheHelpers as CommonCacheHelpers,
 } from "@azure/msal-common/node";
 import { createHash } from "crypto";
 import { CACHE } from "../utils/Constants.js";
 
 /**
- * Computes a combined hash from additional cache key components.
- * Uses the same algorithm as msal-common's getAdditionalCacheKeyComponentsHashPayload:
- * sort keys lexicographically, JSON.stringify the sorted object, SHA-256 → Base64URL (no padding).
+ * Computes a combined hash from additional cache key components using (SHA-256 → Base64URL, no padding)
+ *
+ * Node uses createHash directly (rather than the injected async hashString interface)
+ * because generateCredentialKey is called synchronously from cache lookup paths.
  */
 export function computeAdditionalCacheKeyHash(
     components: Record<string, string>
 ): string {
-    const sortedEntries = Object.entries(components).sort(([a], [b]) =>
-        a < b ? -1 : a > b ? 1 : 0
-    );
-    const payload = JSON.stringify(Object.fromEntries(sortedEntries));
+    const payload =
+        CommonCacheHelpers.getAdditionalCacheKeyComponentsHashPayload(
+            components
+        );
     return createHash("sha256").update(payload, "utf8").digest("base64url");
 }
 

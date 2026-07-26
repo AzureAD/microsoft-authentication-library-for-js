@@ -37,6 +37,7 @@ import {
 } from "../config/Configuration.js";
 import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest.js";
 import { BaseClient } from "./BaseClient.js";
+import { computeAdditionalCacheKeyHash } from "../cache/CacheHelpers.js";
 
 /**
  * OAuth2.0 client credential grant
@@ -346,6 +347,17 @@ export class ClientCredentialClient extends BaseClient {
             serverTokenResponse.status = response.status;
         }
 
+        // Compute hash from components if provided (passed to ResponseHandler as metadata)
+        let additionalCacheKeyComponentsHash: string | undefined;
+        if (
+            additionalCacheKeyComponents &&
+            Object.keys(additionalCacheKeyComponents).length > 0
+        ) {
+            additionalCacheKeyComponentsHash = computeAdditionalCacheKeyHash(
+                additionalCacheKeyComponents
+            );
+        }
+
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
@@ -373,6 +385,7 @@ export class ClientCredentialClient extends BaseClient {
             undefined, // handlingRefreshTokenResponse
             undefined, // forceCacheRefreshTokenResponse
             undefined, // serverRequestId
+            additionalCacheKeyComponentsHash,
             additionalCacheKeyComponents
         );
 

@@ -1,7 +1,0 @@
-{
-    "type": "minor",
-    "comment": "Add form_post response mode support, preferredPort option, and deprecate custom loopbackClient [#8694](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8694)",
-    "packageName": "@azure/msal-node",
-    "email": "joarroyo@microsoft.com",
-    "dependentChangeType": "patch"
-}

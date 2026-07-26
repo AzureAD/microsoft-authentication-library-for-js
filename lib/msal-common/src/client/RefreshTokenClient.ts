@@ -130,11 +130,11 @@ export class RefreshTokenClient {
             request.correlationId
         )(request, this.authority);
 
-        const additionalCacheKeyComponents =
-            CacheHelpers.buildAttributeTokenAdditionalCacheKeyComponents(
-                CacheHelpers.getAttributeTokenPartitionKey(
-                    request.attributeTokens
-                )
+        // Compute hash for cache key isolation
+        const additionalCacheKeyHash =
+            await CacheHelpers.getAttributeTokensHash(
+                request.attributeTokens,
+                this.cryptoUtils
             );
 
         // Retrieve requestId from response headers
@@ -171,7 +171,7 @@ export class RefreshTokenClient {
             true,
             request.forceCache,
             requestId,
-            additionalCacheKeyComponents
+            additionalCacheKeyHash
         );
     }
 

@@ -4,7 +4,7 @@
  */
 
 import { NativeExtensionMethod } from "../../utils/BrowserConstants.js";
-import { StoreInCache, StringDict } from "@azure/msal-common/browser";
+import { StringDict } from "@azure/msal-common/browser";
 
 /**
  * Token request which native broker will use to acquire tokens
@@ -17,10 +17,12 @@ export type PlatformAuthRequest = {
     scope: string;
     correlationId: string;
     windowTitleSubstring: string; // The name of the document title. This helps the native prompt properly "parent" to the window making the request
+    isSts?: boolean; // Whether the request is from STS or not
     prompt?: string;
     nonce?: string;
     claims?: string;
     state?: string;
+    loginHint?: string; // UPN of the user
     reqCnf?: string;
     keyId?: string;
     tokenType?: string;
@@ -29,12 +31,9 @@ export type PlatformAuthRequest = {
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
     extendedExpiryToken?: boolean;
-    resource?: string;
     extraParameters?: StringDict;
-    storeInCache?: StoreInCache; // Object of booleans indicating whether to store tokens in the cache or not (default is true)
-    signPopToken?: boolean; // Set to true only if token request deos not contain a PoP keyId
-    embeddedClientId?: string;
-    attributeTokens?: string;
+    signPopToken?: boolean; // Set to true only if token request does not contain a PoP keyId
+    attributeTokens?: string; // Pre-serialized attribute tokens (sorted, space-separated)
 };
 
 /**
@@ -68,12 +67,10 @@ export type PlatformDOMTokenRequest = {
     /*
      * Known optional parameters will go into extraQueryParameters.
      * List of known parameters is:
-     * "prompt", "nonce", "claims", "loginHint", "instanceAware", "windowTitleSubstring", "extendedExpiryToken", "storeInCache",
+     * "prompt", "nonce", "claims", "loginHint", "instanceAware", "windowTitleSubstring", "extendedExpiryToken",
      * ProofOfPossessionParams: "reqCnf", "keyId", "tokenType", "shrClaims", "shrNonce", "resourceRequestMethod", "resourceRequestUri", "signPopToken"
      */
     extraParameters?: DOMExtraParameters;
-    embeddedClientId?: string;
-    storeInCache?: StoreInCache; // Object of booleans indicating whether to store tokens in the cache or not (default is true)
 };
 
 export type DOMExtraParameters = StringDict & {

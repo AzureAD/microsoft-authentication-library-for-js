@@ -1754,6 +1754,17 @@ export class StandardController implements IController {
                 accessTokenEntity.resource = request.resource;
             }
 
+            // Get attribute token partition and components if available
+            const additionalCacheKeyHash =
+                await CacheHelpers.getAttributeTokensHash(
+                    request.attributeTokens,
+                    this.browserCrypto
+                );
+            accessTokenEntity.additionalCacheKeyComponents =
+                CacheHelpers.getAttributeTokenComponents(
+                    request.attributeTokens
+                );
+
             const kmsi = AuthToken.isKmsi(result.idTokenClaims);
 
             // Store idToken in browser storage
@@ -1767,7 +1778,8 @@ export class StandardController implements IController {
             await this.nativeInternalStorage.setAccessTokenCredential(
                 accessTokenEntity,
                 result.correlationId,
-                kmsi
+                kmsi,
+                additionalCacheKeyHash
             );
         } else {
             return this.browserStorage.hydrateCache(result, request);

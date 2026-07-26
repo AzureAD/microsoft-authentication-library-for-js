@@ -729,9 +729,6 @@ const BROKER_REDIRECT_URI = "brk_redirect_uri";
 // @internal (undocumented)
 export function buildAccountToCache(cacheStorage: CacheManager, authority: Authority, homeAccountId: string, base64Decode: (input: string) => string, correlationId: string, idTokenClaims?: TokenClaims, clientInfo?: string, environment?: string, claimsTenantId?: string | null, authCodePayload?: AuthorizationCodePayload, nativeAccountId?: string, logger?: Logger, performanceClient?: IPerformanceClient): AccountEntity;
 
-// @public
-function buildAttributeTokenAdditionalCacheKeyComponents(partition?: string): Record<string, string> | undefined;
-
 // @internal
 export function buildClientConfiguration(input: ClientConfiguration): CommonClientConfiguration;
 
@@ -802,9 +799,9 @@ declare namespace CacheHelpers {
         updateCloudDiscoveryMetadata,
         isAuthorityMetadataExpired,
         serializeAttributeTokens,
-        getAttributeTokenPartitionKey,
-        buildAttributeTokenAdditionalCacheKeyComponents,
-        getAdditionalCacheKeyComponentsHashPayload
+        getAttributeTokenComponents,
+        getAdditionalCacheKeyComponentsHashPayload,
+        getAttributeTokensHash
     }
 }
 export { CacheHelpers }
@@ -1115,7 +1112,9 @@ declare namespace ClientConfigurationErrorCodes {
         invalidRequestMethodForEAR,
         invalidPlatformBrokerConfiguration,
         issuerValidationFailed,
-        invalidResponseMode
+        invalidResponseMode,
+        invalidDpopHtm,
+        invalidDpopHtu
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1439,7 +1438,7 @@ const DEFAULT_AUTHORITY_HOST = "login.microsoftonline.com";
 // @public (undocumented)
 const DEFAULT_COMMON_TENANT = "common";
 
-// @public (undocumented)
+// @public
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto;
 
 // @public (undocumented)
@@ -1612,10 +1611,15 @@ function generateLibraryState(cryptoObj: ICrypto, correlationId: string, meta?: 
 function getAccountInfo(accountEntity: AccountEntity): AccountInfo;
 
 // @public
-function getAdditionalCacheKeyComponentsHashPayload(components?: Record<string, string>): string | undefined;
+function getAdditionalCacheKeyComponentsHashPayload(components: Record<string, string>): string;
 
 // @public
-function getAttributeTokenPartitionKey(attributeTokens?: Array<string>): string | undefined;
+function getAttributeTokenComponents(attributeTokens?: Array<string> | string): Record<string, string> | undefined;
+
+// @public
+function getAttributeTokensHash(attributeTokens: Array<string> | string | undefined, crypto: {
+    hashString: (input: string) => Promise<string>;
+} | ((input: string) => Promise<string>)): Promise<string | undefined>;
 
 // @public
 const GetAuthCodeUrl = "getAuthCodeUrl";
@@ -1919,6 +1923,12 @@ const invalidCloudDiscoveryMetadata = "invalid_cloud_discovery_metadata";
 
 // @public (undocumented)
 const invalidCodeChallengeMethod = "invalid_code_challenge_method";
+
+// @public (undocumented)
+const invalidDpopHtm = "invalid_dpop_htm";
+
+// @public (undocumented)
+const invalidDpopHtu = "invalid_dpop_htu";
 
 // @public (undocumented)
 const invalidPlatformBrokerConfiguration = "invalid_platform_broker_configuration";
@@ -2841,7 +2851,7 @@ const RESPONSE_TYPE = "response_type";
 export class ResponseHandler {
     constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null);
     static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, idTokenClaims?: TokenClaims, requestState?: RequestStateObject, serverTokenResponse?: ServerAuthorizationTokenResponse, requestId?: string): Promise<AuthenticationResult>;
-    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
+    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponentsHash?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
     validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse, correlationId: string, refreshAccessToken?: boolean): void;
 }
 
@@ -2888,7 +2898,7 @@ export class ScopeSet {
 function sendPostRequest<T extends ServerAuthorizationTokenResponse>(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions, correlationId: string, cacheManager: CacheManager, networkClient: INetworkModule, logger: Logger, performanceClient: IPerformanceClient): Promise<NetworkResponse<T>>;
 
 // @public
-function serializeAttributeTokens(attributeTokens: Array<string>): string;
+function serializeAttributeTokens(attributeTokens?: Array<string>): string | undefined;
 
 // @public (undocumented)
 const SERVER_TELEM_CACHE_KEY: string;
@@ -3038,7 +3048,7 @@ export type SignedHttpRequest = {
     client_claims?: string;
 };
 
-// @public (undocumented)
+// @public
 export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequestMethod" | "resourceRequestUri" | "shrClaims" | "shrNonce" | "shrOptions"> & {
     correlationId: string;
 };
@@ -3406,7 +3416,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.11.0";
+export const version = "16.11.2";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;

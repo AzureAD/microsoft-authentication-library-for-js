@@ -874,6 +874,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 redirectUri: window.location.href,
                 correlationId: RANDOM_TEST_GUID,
                 windowTitleSubstring: "test window",
+                isSts: false,
             };
             // @ts-ignore
             pca.browserStorage.setTemporaryCache(
@@ -994,6 +995,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     redirectUri: window.location.href,
                     correlationId: RANDOM_TEST_GUID,
                     windowTitleSubstring: "test window",
+                    isSts: false,
                 };
                 // @ts-ignore
                 pca.browserStorage.setTemporaryCache(
@@ -1037,6 +1039,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 redirectUri: window.location.href,
                 correlationId: RANDOM_TEST_GUID,
                 windowTitleSubstring: "test window",
+                isSts: false,
             };
             // @ts-ignore
             pca.controller.browserStorage.setTemporaryCache(
@@ -8601,6 +8604,55 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(result.idToken).toEqual(nativeResult.idToken);
             expect(result.account).toEqual(nativeAccount);
             expect(result.fromCache).toEqual(true);
+        });
+
+        it("stores access token under partitioned key when attributeTokens are present in hydrateCache", async () => {
+            let config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            stubExtensionProvider(config);
+            await pca.initialize();
+
+            // Work directly on the controller so we can inspect nativeInternalStorage
+            const controller = (pca as any).controller;
+
+            const nativeAccount = {
+                ...testAccount,
+                nativeAccountId: "testNativeAccountId",
+            };
+
+            const nativeResult = {
+                ...testAuthenticationResult,
+                account: nativeAccount,
+                fromPlatformBroker: true,
+            };
+
+            const atRequest = {
+                ...request,
+                account: nativeAccount,
+                attributeTokens: ["zeta", "alpha"],
+            };
+
+            const setAccessTokenSpy = jest.spyOn(
+                controller.nativeInternalStorage,
+                "setAccessTokenCredential"
+            );
+
+            await controller.hydrateCache(nativeResult, atRequest);
+
+            // setAccessTokenCredential should have been called with a non-undefined hash
+            expect(setAccessTokenSpy).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.any(String),
+                expect.any(Boolean),
+                expect.any(String) // additionalCacheKeyHash should be a string, not undefined
+            );
         });
     });
 

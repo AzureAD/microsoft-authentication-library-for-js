@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 30 Jun 2026 21:04:20 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 15 Jul 2026 22:35:35 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.11.2
+
+Wed, 15 Jul 2026 22:35:35 GMT
+
+### Patches
+
+- Add internal DPoP proof payload builder (DpopProofGenerator) with RFC 9449 token-endpoint and resource-endpoint claim helpers [#8683](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8683) (hectormmg@microsoft.com)
+
+## 16.11.1
+
+Tue, 07 Jul 2026 22:16:01 GMT
+
+### Patches
+
+- Add invalid_response_mode ClientConfigurationError code [#8694](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8694) (joarroyo@microsoft.com)
 
 ## 16.11.0
 

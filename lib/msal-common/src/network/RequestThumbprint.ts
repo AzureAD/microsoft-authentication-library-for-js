@@ -47,7 +47,7 @@ export function getRequestThumbprint(
         embeddedClientId:
             request.embeddedClientId || request.extraParameters?.clientId,
         resource: request.resource,
-        attributeTokens: CacheHelpers.getAttributeTokenPartitionKey(
+        attributeTokens: CacheHelpers.serializeAttributeTokens(
             request.attributeTokens
         ),
     };

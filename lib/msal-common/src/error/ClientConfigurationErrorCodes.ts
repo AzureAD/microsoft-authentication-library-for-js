@@ -30,3 +30,5 @@ export const invalidPlatformBrokerConfiguration =
     "invalid_platform_broker_configuration";
 export const issuerValidationFailed = "issuer_validation_failed";
 export const invalidResponseMode = "invalid_response_mode";
+export const invalidDpopHtm = "invalid_dpop_htm";
+export const invalidDpopHtu = "invalid_dpop_htu";

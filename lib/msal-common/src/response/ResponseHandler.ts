@@ -192,6 +192,7 @@ export class ResponseHandler {
         handlingRefreshTokenResponse?: boolean,
         forceCacheRefreshTokenResponse?: boolean,
         serverRequestId?: string,
+        additionalCacheKeyComponentsHash?: string,
         additionalCacheKeyComponents?: Record<string, string>
     ): Promise<AuthenticationResult> {
         // create an idToken object (not entity)
@@ -238,20 +239,19 @@ export class ResponseHandler {
         serverTokenResponse.key_id =
             serverTokenResponse.key_id || request.sshKid || undefined;
 
-        /*
-         * Precompute the SHA-256 base64url hash of the deterministic component payload
-         * once here (async context) so that synchronous credential-key generators can
-         * append the fixed-size hash segment without needing async crypto themselves.
-         */
-        let additionalCacheKeyComponentsHash: string | undefined;
-        const componentHashPayload =
-            CacheHelpers.getAdditionalCacheKeyComponentsHashPayload(
-                additionalCacheKeyComponents
-            );
-        if (componentHashPayload) {
-            additionalCacheKeyComponentsHash = await this.cryptoObj.hashString(
-                componentHashPayload
-            );
+        // Compute components once for entity storage (fallback if hash not provided by client)
+        const cacheKeyComponents: Record<string, string> | undefined =
+            additionalCacheKeyComponents ??
+            CacheHelpers.getAttributeTokenComponents(request.attributeTokens);
+
+        let cacheKeyComponentsHash: string | undefined =
+            additionalCacheKeyComponentsHash;
+        if (!cacheKeyComponentsHash && cacheKeyComponents) {
+            const payload =
+                CacheHelpers.getAdditionalCacheKeyComponentsHashPayload(
+                    cacheKeyComponents
+                );
+            cacheKeyComponentsHash = await this.cryptoObj.hashString(payload);
         }
 
         const cacheRecord = this.generateCacheRecord(
@@ -262,14 +262,14 @@ export class ResponseHandler {
             idTokenClaims,
             userAssertionHash,
             authCodePayload,
-            additionalCacheKeyComponents
+            cacheKeyComponents
         );
         /*
          * Thread the hash through CacheRecord as transient metadata so
          * generateCredentialKey receives it without persisting it on the
          * credential entity itself.
          */
-        cacheRecord.accessTokenCacheKeyHash = additionalCacheKeyComponentsHash;
+        cacheRecord.accessTokenCacheKeyHash = cacheKeyComponentsHash;
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {
