@@ -82,6 +82,12 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                 },
                 getKeys: () => {
                     callCounter.getKeysPersistent += 1;
+                    if (mockDatabase[TEST_DB_TABLE_NAME][DB_UNAVAILABLE]) {
+                        throw createBrowserAuthError(
+                            BrowserAuthErrorCodes.databaseUnavailable,
+                            ""
+                        );
+                    }
                     if (mockDatabase[UNEXPECTED_ERROR] === UNEXPECTED_ERROR) {
                         throw new Error(UNEXPECTED_ERROR);
                     }
@@ -475,6 +481,31 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                         "Could not access persistent storage. This may be caused by browser privacy features which block persistent storage in third-party contexts."
                     )
                 ).not.toBe(-1);
+            });
+        });
+
+        describe("getKeys", () => {
+            beforeEach(() => {
+                resetCallCounter();
+                logMessages = [];
+                mockDatabase[TEST_DB_TABLE_NAME] = {};
+                mockInMemoryCache[TEST_DB_TABLE_NAME] = {};
+            });
+
+            it("should return in-memory keys without logging an error if persistent storage is unavailable or inaccessible", async () => {
+                mockInMemoryCache[TEST_DB_TABLE_NAME]["memory-key"] =
+                    TEST_CACHE_ITEMS.TestItem.value;
+                mockDatabase[TEST_DB_TABLE_NAME][DB_UNAVAILABLE] =
+                    DB_UNAVAILABLE;
+
+                const keys = await asyncMemoryStorage.getKeys(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(callCounter.getKeys).toBe(1);
+                expect(callCounter.getKeysPersistent).toBe(1);
+                expect(keys).toEqual(["memory-key"]);
+                expect(logMessages).toHaveLength(0);
             });
         });
     });
