@@ -2415,12 +2415,17 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     startMeasurementSpy.mock.results.length - 1
                 ].value;
 
-            // Verify isNativeBroker is set during successful completion
+            // Sub-measurement records success/requestId (no top-level broker fields)
             expect(mockMeasurement.end).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: true,
-                    isNativeBroker: true,
                 })
+            );
+
+            // isNativeBroker is written to the root event via addFields
+            expect(performanceSpy).toHaveBeenCalledWith(
+                { isNativeBroker: true },
+                RANDOM_TEST_GUID
             );
 
             // Verify the measurement was started with correct correlation ID
