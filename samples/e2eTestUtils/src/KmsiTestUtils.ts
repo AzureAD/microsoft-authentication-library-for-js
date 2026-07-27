@@ -45,9 +45,9 @@ export type { IdTokenClaims };
  */
 export function decodeJwtPayload(jwt: string): IdTokenClaims {
     const parts = jwt.split(".");
-    if (parts.length < 2) {
+    if (parts.length < 3) {
         throw new Error(
-            "Malformed JWT: expected at least a header and payload segment"
+            "Malformed JWT: expected header, payload, and signature segments"
         );
     }
     // base64url -> base64
