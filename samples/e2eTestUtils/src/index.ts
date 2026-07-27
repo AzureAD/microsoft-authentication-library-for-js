@@ -51,7 +51,10 @@ export {
     AppConfigSecrets,
     SubmitButtonSelectors,
 } from "./Constants";
-export { BrowserCacheUtils, isCachedTokenEncrypted } from "./BrowserCacheTestUtils";
+export {
+    BrowserCacheUtils,
+    isCachedTokenEncrypted,
+} from "./BrowserCacheTestUtils";
 export {
     KMSI_SIGNIN_STATE,
     KmsiSelectors,

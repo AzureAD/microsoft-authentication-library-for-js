@@ -10,6 +10,7 @@ import {
     isCachedTokenEncrypted,
 } from "./BrowserCacheTestUtils";
 import { HtmlSelectors, SubmitButtonSelectors } from "./Constants";
+import type { IdTokenClaims } from "@azure/msal-common";
 
 /**
  * Value present in the ID token `signin_state` claim when the user opted in to
@@ -32,18 +33,11 @@ const KMSI_NAVIGATION_CONFIG: WaitForOptions = {
 };
 
 /**
- * Decoded relevant claims of an ID token. Only the claims the brokering e2e
- * tests assert on are typed; everything else is available via the index
- * signature.
+ * ID token claims shape. Re-exported from `@azure/msal-common` — MSAL already
+ * defines this (including the `signin_state` claim used for KMSI detection), so
+ * the e2e utils reuse it rather than declaring a parallel interface.
  */
-export interface IdTokenClaims {
-    /**
-     * Array describing the sign-in session state. Contains {@link KMSI_SIGNIN_STATE}
-     * ("kmsi") when Keep Me Signed In was selected.
-     */
-    signin_state?: string[];
-    [claim: string]: unknown;
-}
+export type { IdTokenClaims };
 
 /**
  * Decodes the payload segment of a JWT WITHOUT verifying its signature.
@@ -144,7 +138,9 @@ export async function selectKmsiOption(
         ) {
             // Navigation during click means the selection likely succeeded.
         } else {
-            await screenshot.takeScreenshot(page, "errorSelectingKmsi").catch(() => {});
+            await screenshot
+                .takeScreenshot(page, "errorSelectingKmsi")
+                .catch(() => {});
             throw e;
         }
     }
