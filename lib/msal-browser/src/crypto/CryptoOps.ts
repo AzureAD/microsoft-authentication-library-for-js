@@ -29,10 +29,6 @@ import {
     createBrowserAuthError,
 } from "../error/BrowserAuthError.js";
 
-type TokenBindingKeySigningAlgorithm = {
-    signAlgorithm: AlgorithmIdentifier;
-};
-
 /**
  * This class implements MSAL's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and
  * implementing Proof Key for Code Exchange specs for the OAuth Authorization Code Flow using PKCE (rfc here: https://tools.ietf.org/html/rfc7636).
@@ -173,7 +169,7 @@ export class CryptoOps implements ICrypto {
             const encodedSignature = await this.signInput(
                 cachedKeyPair,
                 tokenString,
-                signingAlgorithm.signAlgorithm
+                signingAlgorithm
             );
 
             signTokenBindingJwtMeasurement?.end({
@@ -217,15 +213,13 @@ export class CryptoOps implements ICrypto {
         cachedKeyPair: CachedKeyPair,
         requestedAlgorithm: string,
         correlationId: string
-    ): TokenBindingKeySigningAlgorithm {
+    ): AlgorithmIdentifier {
         const keyAlgorithm = cachedKeyPair.privateKey.algorithm;
         if (
             requestedAlgorithm === TOKEN_BINDING_KEY_ALGORITHMS.RS256 &&
             keyAlgorithm.name === BrowserCrypto.RSA_SIGN_ALGORITHM_OPTIONS.name
         ) {
-            return {
-                signAlgorithm: BrowserCrypto.RSA_SIGN_ALGORITHM_OPTIONS,
-            };
+            return BrowserCrypto.RSA_SIGN_ALGORITHM_OPTIONS;
         }
 
         if (
@@ -235,10 +229,7 @@ export class CryptoOps implements ICrypto {
             (keyAlgorithm as EcKeyAlgorithm).namedCurve ===
                 BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS.namedCurve
         ) {
-            return {
-                signAlgorithm:
-                    BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS,
-            };
+            return BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS;
         }
 
         if (

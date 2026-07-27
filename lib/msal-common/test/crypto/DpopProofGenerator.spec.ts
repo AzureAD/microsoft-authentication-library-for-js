@@ -5,17 +5,16 @@
 
 import {
     DPOP_JWT_HEADER_ALGORITHM,
-    DPOP_JWT_HEADER_TYPE,
     DpopProofClaims,
-    DpopProofHeader,
     DpopProofGenerator,
-    ITokenBindingJwtSigner,
 } from "../../src/crypto/DpopProofGenerator.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
 import {
     ITokenBindingKeyManager,
     TokenBindingKeyContext,
 } from "../../src/crypto/ITokenBindingKeyManager.js";
+import { JoseHeader } from "../../src/crypto/JoseHeader.js";
+import { JsonWebTokenTypes } from "../../src/utils/Constants.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { ClientConfigurationErrorCodes } from "../../src/error/ClientConfigurationError.js";
 import crypto from "crypto";
@@ -26,9 +25,11 @@ import {
     TEST_DPOP_VALUES,
 } from "../test_kit/StringConstants.js";
 
+type SerializedJoseHeader = Pick<JoseHeader, "typ" | "alg" | "jwk">;
+
 describe("DpopProofGenerator Unit Tests", () => {
     let generator: DpopProofGenerator;
-    const cryptoInterface: ICrypto & ITokenBindingJwtSigner = {
+    const cryptoInterface: ICrypto = {
         ...mockCrypto,
         signTokenBindingJwt: jest.fn(),
     };
@@ -74,7 +75,7 @@ describe("DpopProofGenerator Unit Tests", () => {
     });
 
     function decodeDpopProof(proof: string): {
-        header: DpopProofHeader;
+        header: SerializedJoseHeader;
         claims: DpopProofClaims;
         signingInput: string;
         signature: string;
@@ -596,7 +597,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             const decodedProof = decodeDpopProof(proof);
 
             expect(decodedProof.header).toEqual({
-                typ: DPOP_JWT_HEADER_TYPE,
+                typ: JsonWebTokenTypes.Dpop,
                 alg: DPOP_JWT_HEADER_ALGORITHM,
                 jwk: publicJwk,
             });
@@ -670,7 +671,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             const decodedProof = decodeDpopProof(proof);
 
             expect(decodedProof.header).toEqual({
-                typ: DPOP_JWT_HEADER_TYPE,
+                typ: JsonWebTokenTypes.Dpop,
                 alg: DPOP_JWT_HEADER_ALGORITHM,
                 jwk: publicJwk,
             });
@@ -703,7 +704,7 @@ describe("DpopProofGenerator Unit Tests", () => {
     describe("jti uniqueness (UT-03, RT-01)", () => {
         it("UT-03: jti values are unique across consecutive token proof builds", () => {
             let callCount = 0;
-            const uniqueGuidCrypto: ICrypto & ITokenBindingJwtSigner = {
+            const uniqueGuidCrypto: ICrypto = {
                 ...cryptoInterface,
                 createNewGuid(): string {
                     return `unique-jti-${++callCount}`;
@@ -753,7 +754,7 @@ describe("DpopProofGenerator Unit Tests", () => {
 
         it("UT-03: resource proof jti values are unique across consecutive builds", () => {
             let callCount = 0;
-            const uniqueGuidCrypto: ICrypto & ITokenBindingJwtSigner = {
+            const uniqueGuidCrypto: ICrypto = {
                 ...cryptoInterface,
                 createNewGuid(): string {
                     return `res-unique-jti-${++callCount}`;

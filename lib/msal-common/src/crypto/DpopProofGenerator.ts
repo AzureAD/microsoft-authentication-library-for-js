@@ -14,7 +14,6 @@ import {
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError.js";
 import { JoseHeader } from "./JoseHeader.js";
-import { JsonWebTokenTypes } from "../utils/Constants.js";
 
 /**
  * RFC 9449 DPoP proof JWT payload claims.
@@ -61,16 +60,6 @@ export type DpopJktGenerationParams = {
 };
 
 /**
- * RFC 9449 DPoP proof JWT header.
- * @internal
- */
-export type DpopProofHeader = {
-    typ: typeof JsonWebTokenTypes.Dpop;
-    alg: string;
-    jwk: JsonWebKey;
-};
-
-/**
  * Parameters shared by token and resource DPoP proof generation.
  * @internal
  */
@@ -79,26 +68,8 @@ export type DpopProofGenerationParams = {
     keyContext: TokenBindingKeyContext;
 };
 
-/**
- * Internal crypto operation used to sign compact JWTs with token-binding keys.
- * @internal
- */
-export interface ITokenBindingJwtSigner {
-    /**
-     * @internal
-     */
-    signTokenBindingJwt(
-        header: JoseHeader,
-        payload: object,
-        kid: string,
-        correlationId: string,
-        context?: TokenBindingKeyContext
-    ): Promise<string>;
-}
-
 const DPOP_HTM_REGEX = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
 const DPOP_TOKEN_BINDING_KEY_TYPE = "dpop";
-export const DPOP_JWT_HEADER_TYPE = JsonWebTokenTypes.Dpop;
 export const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
 
 function buildProofHeader(
@@ -171,11 +142,11 @@ function normalizeHtu(url: string, correlationId: string): string {
  * @internal
  */
 export class DpopProofGenerator {
-    private cryptoUtils: ICrypto & ITokenBindingJwtSigner;
+    private cryptoUtils: ICrypto;
     private tokenBindingKeyManager: ITokenBindingKeyManager;
 
     constructor(
-        cryptoUtils: ICrypto & ITokenBindingJwtSigner,
+        cryptoUtils: ICrypto,
         tokenBindingKeyManager: ITokenBindingKeyManager
     ) {
         this.cryptoUtils = cryptoUtils;
