@@ -13,17 +13,27 @@ export type JoseHeaderOptions = {
     typ?: JsonWebTokenTypes;
     alg?: string;
     kid?: string;
-    jwk?: object;
+    jwk?: JsonWebKey;
 };
 
 /** @internal */
 export class JoseHeader {
     public typ?: JsonWebTokenTypes;
-    public alg?: string;
+    public alg: string;
     public kid?: string;
-    public jwk?: object;
+    public jwk?: JsonWebKey;
 
-    constructor(options: JoseHeaderOptions) {
+    constructor(
+        options: JoseHeaderOptions & { alg: string },
+        correlationId: string = ""
+    ) {
+        if (typeof options.alg !== "string" || !options.alg) {
+            throw createJoseHeaderError(
+                JoseHeaderErrorCodes.missingAlgError,
+                correlationId
+            );
+        }
+
         this.typ = options.typ;
         this.alg = options.alg;
         this.kid = options.kid;
@@ -32,8 +42,7 @@ export class JoseHeader {
 
     /**
      * Builds SignedHttpRequest formatted JOSE Header from the
-     * JOSE Header options provided or previously set on the object and returns
-     * the stringified header object.
+     * JOSE Header options provided or previously set on the object.
      * Throws if keyId or algorithm aren't provided since they are required for Access Token Binding.
      * @param shrHeaderOptions
      * @param correlationId
@@ -44,7 +53,7 @@ export class JoseHeader {
         correlationId: string = ""
     ): JoseHeader {
         // KeyID is required on the SHR header
-        if (!shrHeaderOptions.kid) {
+        if (typeof shrHeaderOptions.kid !== "string" || !shrHeaderOptions.kid) {
             throw createJoseHeaderError(
                 JoseHeaderErrorCodes.missingKidError,
                 correlationId
@@ -52,36 +61,21 @@ export class JoseHeader {
         }
 
         // Alg is required on the SHR header
-        if (!shrHeaderOptions.alg) {
+        if (typeof shrHeaderOptions.alg !== "string" || !shrHeaderOptions.alg) {
             throw createJoseHeaderError(
                 JoseHeaderErrorCodes.missingAlgError,
                 correlationId
             );
         }
 
-        return new JoseHeader({
-            // Access Token PoP headers must have type pop, but the type header can be overriden for special cases
-            typ: shrHeaderOptions.typ || JsonWebTokenTypes.Pop,
-            kid: shrHeaderOptions.kid,
-            alg: shrHeaderOptions.alg,
-        });
-    }
-
-    /**
-     * Builds SignedHttpRequest formatted JOSE Header from the
-     * JOSE Header options provided or previously set on the object and returns
-     * the stringified header object.
-     * Throws if keyId or algorithm aren't provided since they are required for Access Token Binding.
-     * @param shrHeaderOptions
-     * @param correlationId
-     * @returns
-     */
-    static getShrHeaderString(
-        shrHeaderOptions: JoseHeaderOptions,
-        correlationId: string = ""
-    ): string {
-        return JSON.stringify(
-            JoseHeader.getShrHeader(shrHeaderOptions, correlationId)
+        return new JoseHeader(
+            {
+                // Access Token PoP headers must have type pop, but the type header can be overriden for special cases
+                typ: shrHeaderOptions.typ || JsonWebTokenTypes.Pop,
+                kid: shrHeaderOptions.kid,
+                alg: shrHeaderOptions.alg,
+            },
+            correlationId
         );
     }
 
@@ -96,14 +90,17 @@ export class JoseHeader {
         dpopHeaderOptions: JoseHeaderOptions,
         correlationId: string = ""
     ): JoseHeader {
-        if (!dpopHeaderOptions.jwk) {
+        if (!isRecord(dpopHeaderOptions.jwk)) {
             throw createJoseHeaderError(
                 JoseHeaderErrorCodes.missingJwkError,
                 correlationId
             );
         }
 
-        if (!dpopHeaderOptions.alg) {
+        if (
+            typeof dpopHeaderOptions.alg !== "string" ||
+            !dpopHeaderOptions.alg
+        ) {
             throw createJoseHeaderError(
                 JoseHeaderErrorCodes.missingAlgError,
                 correlationId
@@ -117,10 +114,17 @@ export class JoseHeader {
             );
         }
 
-        return new JoseHeader({
-            typ: JsonWebTokenTypes.Dpop,
-            alg: dpopHeaderOptions.alg,
-            jwk: dpopHeaderOptions.jwk,
-        });
+        return new JoseHeader(
+            {
+                typ: JsonWebTokenTypes.Dpop,
+                alg: dpopHeaderOptions.alg,
+                jwk: dpopHeaderOptions.jwk,
+            },
+            correlationId
+        );
     }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
 }

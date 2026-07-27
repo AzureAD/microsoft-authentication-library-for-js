@@ -3,7 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, ICrypto, PkceCodes } from "@azure/msal-common/node";
+import { Constants } from "@azure/msal-common/node";
+import type {
+    ICrypto,
+    PkceCodes,
+    TokenBindingKeyContext,
+} from "@azure/msal-common/node";
 import { GuidGenerator } from "./GuidGenerator.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { PkceGenerator } from "./PkceGenerator.js";
@@ -76,21 +81,46 @@ export class CryptoProvider implements ICrypto {
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid - public key id
      */
-    removeTokenBindingKey(): Promise<void> {
+    removeTokenBindingKey(
+        kid: string,
+        correlationId: string,
+        context?: TokenBindingKeyContext
+    ): Promise<void> {
+        void kid;
+        void correlationId;
+        void context;
         throw new Error("Method not implemented.");
     }
 
     /**
      * Removes all cryptographic keys from Keystore
+     * @param correlationId - correlation id
      */
-    clearKeystore(): Promise<boolean> {
+    clearKeystore(correlationId: string): Promise<boolean> {
+        void correlationId;
         throw new Error("Method not implemented.");
     }
 
     /**
      * Signs a compact JWT with a token-binding key - not yet implemented for node
+     * @param header - JOSE header
+     * @param payload - JWT payload
+     * @param kid - public key id
+     * @param correlationId - correlation id
+     * @param context - token-binding key context
      */
-    signTokenBindingJwt(): Promise<string> {
+    signTokenBindingJwt(
+        header: object,
+        payload: object,
+        kid: string,
+        correlationId: string,
+        context?: TokenBindingKeyContext
+    ): Promise<string> {
+        void header;
+        void payload;
+        void kid;
+        void correlationId;
+        void context;
         throw new Error("Method not implemented.");
     }
 

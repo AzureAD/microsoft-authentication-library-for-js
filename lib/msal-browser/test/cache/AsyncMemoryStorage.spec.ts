@@ -85,6 +85,12 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                     if (mockDatabase[UNEXPECTED_ERROR] === UNEXPECTED_ERROR) {
                         throw new Error(UNEXPECTED_ERROR);
                     }
+                    if (mockDatabase[TEST_DB_TABLE_NAME] === DB_UNAVAILABLE) {
+                        throw createBrowserAuthError(
+                            BrowserAuthErrorCodes.databaseUnavailable,
+                            ""
+                        );
+                    }
                     return Object.keys(mockDatabase[TEST_DB_TABLE_NAME]);
                 },
                 containsKey: (kid: string) => {
@@ -301,28 +307,23 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                 ]);
             });
 
-            it("should return in-memory keys when persistent key enumeration fails", async () => {
+            it("should return in-memory keys when persistent key enumeration is unavailable", async () => {
                 mockInMemoryCache[TEST_DB_TABLE_NAME]["memory-key"] =
                     TEST_CACHE_ITEMS.TestItem.value;
-                mockDatabase[UNEXPECTED_ERROR] = UNEXPECTED_ERROR;
+                mockDatabase[TEST_DB_TABLE_NAME] = DB_UNAVAILABLE;
 
                 const keys = await asyncMemoryStorage.getKeys(
                     TEST_CONFIG.CORRELATION_ID
                 );
 
-                const lastLog = logMessages[logMessages.length - 1];
                 expect(callCounter.getKeys).toBe(1);
                 expect(callCounter.getKeysPersistent).toBe(1);
                 expect(keys).toEqual(["memory-key"]);
-                expect(lastLog["level"]).toBe(1);
-                expect(
-                    lastLog["message"].indexOf(
-                        "Persistent storage key enumeration failed. Returning in-memory keys."
-                    )
-                ).not.toBe(-1);
             });
 
-            it("should throw unexpected key enumeration errors when no in-memory keys exist", async () => {
+            it("should throw unexpected key enumeration errors even when in-memory keys exist", async () => {
+                mockInMemoryCache[TEST_DB_TABLE_NAME]["memory-key"] =
+                    TEST_CACHE_ITEMS.TestItem.value;
                 mockDatabase[UNEXPECTED_ERROR] = UNEXPECTED_ERROR;
 
                 await expect(

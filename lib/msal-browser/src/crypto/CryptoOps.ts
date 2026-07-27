@@ -6,6 +6,7 @@
 import {
     ICrypto,
     IPerformanceClient,
+    JoseHeader,
     Logger,
 } from "@azure/msal-common/browser";
 import type { TokenBindingKeyContext } from "@azure/msal-common/browser";
@@ -30,11 +31,6 @@ import {
 
 type TokenBindingKeySigningAlgorithm = {
     signAlgorithm: AlgorithmIdentifier;
-};
-
-type TokenBindingSigningHeader = {
-    alg: string;
-    jwk?: JsonWebKey;
 };
 
 /**
@@ -136,7 +132,7 @@ export class CryptoOps implements ICrypto {
 
     /** @internal */
     async signTokenBindingJwt(
-        header: object,
+        header: JoseHeader,
         payload: object,
         kid: string,
         correlationId: string,
@@ -155,28 +151,24 @@ export class CryptoOps implements ICrypto {
                     correlationId,
                     context
                 );
-            const jwtHeader = validateTokenBindingSigningHeader(
-                header,
-                correlationId
-            );
             await this.validateTokenBindingJwtHeaderKey(
-                jwtHeader,
+                header,
                 kid,
                 correlationId
             );
             telemetry = this.tokenBindingKeyManager.getTokenBindingKeyTelemetry(
                 cachedKeyPair,
-                jwtHeader.alg
+                header.alg
             );
 
             const signingAlgorithm = this.getTokenBindingKeySigningAlgorithm(
                 cachedKeyPair,
-                jwtHeader.alg,
+                header.alg,
                 correlationId
             );
 
             const tokenString = `${urlEncode(
-                JSON.stringify(jwtHeader)
+                JSON.stringify(header)
             )}.${urlEncode(JSON.stringify(payload))}`;
             const encodedSignature = await this.signInput(
                 cachedKeyPair,
@@ -267,7 +259,7 @@ export class CryptoOps implements ICrypto {
     }
 
     private async validateTokenBindingJwtHeaderKey(
-        header: TokenBindingSigningHeader,
+        header: JoseHeader,
         kid: string,
         correlationId: string
     ): Promise<void> {
@@ -287,41 +279,4 @@ export class CryptoOps implements ICrypto {
             );
         }
     }
-}
-
-function validateTokenBindingSigningHeader(
-    header: object,
-    correlationId: string
-): TokenBindingSigningHeader {
-    if (!isRecord(header) || typeof header.alg !== "string" || !header.alg) {
-        throw createBrowserAuthError(
-            BrowserAuthErrorCodes.missingTokenBindingJwtAlgorithm,
-            correlationId
-        );
-    }
-
-    const tokenBindingJwtHeader: TokenBindingSigningHeader = {
-        alg: header.alg,
-    };
-
-    if (!("jwk" in header) || typeof header.jwk === "undefined") {
-        return tokenBindingJwtHeader;
-    }
-
-    if (isRecord(header.jwk)) {
-        return {
-            ...tokenBindingJwtHeader,
-            jwk: header.jwk,
-        };
-    }
-
-    throw createBrowserAuthError(
-        BrowserAuthErrorCodes.invalidPublicJwk,
-        correlationId,
-        BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch
-    );
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null;
 }

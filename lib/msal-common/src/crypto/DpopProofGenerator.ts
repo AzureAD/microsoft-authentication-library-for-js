@@ -84,8 +84,11 @@ export type DpopProofGenerationParams = {
  * @internal
  */
 export interface ITokenBindingJwtSigner {
+    /**
+     * @internal
+     */
     signTokenBindingJwt(
-        header: object,
+        header: JoseHeader,
         payload: object,
         kid: string,
         correlationId: string,

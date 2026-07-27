@@ -88,7 +88,7 @@ describe("RequestHelpers tests", () => {
             );
         });
 
-        it("should throw an error if DPoP authentication scheme is requested while runtime-disabled", async () => {
+        it("should throw an error if an unsupported authentication scheme is used", async () => {
             const request: Partial<BaseAuthRequest> & {
                 correlationId: string;
             } = {

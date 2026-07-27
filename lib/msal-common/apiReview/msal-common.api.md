@@ -1768,7 +1768,8 @@ export interface ICrypto {
     encodeKid(inputKid: string): string;
     hashString(plainText: string): Promise<string>;
     removeTokenBindingKey(kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<void>;
-    signTokenBindingJwt(header: object, payload: object, kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<string>;
+    // @internal
+    signTokenBindingJwt(header: JoseHeader, payload: object, kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<string>;
 }
 
 // @public (undocumented)
@@ -2055,14 +2056,15 @@ export interface IUri {
 
 // @internal (undocumented)
 export class JoseHeader {
-    constructor(options: JoseHeaderOptions);
+    constructor(options: JoseHeaderOptions & {
+        alg: string;
+    }, correlationId?: string);
     // (undocumented)
-    alg?: string;
+    alg: string;
     static getDpopHeader(dpopHeaderOptions: JoseHeaderOptions, correlationId?: string): JoseHeader;
     static getShrHeader(shrHeaderOptions: JoseHeaderOptions, correlationId?: string): JoseHeader;
-    static getShrHeaderString(shrHeaderOptions: JoseHeaderOptions, correlationId?: string): string;
     // (undocumented)
-    jwk?: object;
+    jwk?: JsonWebKey;
     // (undocumented)
     kid?: string;
     // (undocumented)

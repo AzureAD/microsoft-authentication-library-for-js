@@ -106,16 +106,9 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
             return Array.from(new Set([...cacheKeys, ...persistentCacheKeys]));
         } catch (e) {
             if (
-                !(
-                    e instanceof BrowserAuthError &&
-                    e.errorCode === BrowserAuthErrorCodes.databaseUnavailable
-                ) &&
-                cacheKeys.length > 0
+                e instanceof BrowserAuthError &&
+                e.errorCode === BrowserAuthErrorCodes.databaseUnavailable
             ) {
-                this.logger.warning(
-                    "Persistent storage key enumeration failed. Returning in-memory keys.",
-                    correlationId
-                );
                 return cacheKeys;
             }
 
