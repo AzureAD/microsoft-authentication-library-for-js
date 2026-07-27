@@ -107,7 +107,7 @@ export class FetchClient implements INetworkModule {
                 if (!shouldRetryPostFetchError(lastError, attempts)) {
                     throw createNetworkError(
                         createBrowserAuthError(
-                            window.navigator.onLine
+                            window.navigator.onLine !== false
                                 ? BrowserAuthErrorCodes.postRequestFailed
                                 : BrowserAuthErrorCodes.noNetworkConnectivity,
                             correlationId || ""
@@ -133,7 +133,7 @@ export class FetchClient implements INetworkModule {
         if (!response) {
             throw createNetworkError(
                 createBrowserAuthError(
-                    window.navigator.onLine
+                    window.navigator.onLine !== false
                         ? BrowserAuthErrorCodes.postRequestFailed
                         : BrowserAuthErrorCodes.noNetworkConnectivity,
                     correlationId || ""
@@ -171,7 +171,7 @@ export class FetchClient implements INetworkModule {
 function shouldRetryPostFetchError(error: Error, attempt: number): boolean {
     return (
         attempt <= MAX_FETCH_POST_RETRIES &&
-        window.navigator.onLine &&
+        window.navigator.onLine !== false &&
         error.name !== "AbortError"
     );
 }
