@@ -92,9 +92,8 @@ export class FetchClient implements INetworkModule {
         const performanceClient = options?.performanceClient;
 
         let response: Response | undefined;
-        let attempts = 0;
         let lastError: Error | undefined;
-        for (attempts = 1; attempts <= MAX_FETCH_POST_RETRIES + 1; attempts++) {
+        for (let attempt = 1; attempt <= MAX_FETCH_POST_RETRIES + 1; attempt++) {
             try {
                 response = await fetch(url, {
                     method: HTTP_REQUEST_TYPE.POST,
@@ -104,7 +103,7 @@ export class FetchClient implements INetworkModule {
                 break;
             } catch (e) {
                 lastError = e as Error;
-                if (!shouldRetryPostFetchError(lastError, attempts)) {
+                if (!shouldRetryPostFetchError(lastError, attempt)) {
                     throw createNetworkError(
                         createBrowserAuthError(
                             window.navigator.onLine !== false

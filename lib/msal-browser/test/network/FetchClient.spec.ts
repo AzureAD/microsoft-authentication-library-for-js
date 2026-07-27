@@ -178,7 +178,9 @@ describe("FetchClient.ts Unit Tests", () => {
                         );
                         expect(init && init.body).toBe(requestOptions.body);
                         expect(url).toBe(targetUri);
-                        return Promise.reject({ ...mockResponse, status: 16 });
+                        return Promise.reject(
+                            new TypeError("Failed to fetch")
+                        );
                     }
                 );
 
