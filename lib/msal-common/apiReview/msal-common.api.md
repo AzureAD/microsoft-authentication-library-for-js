@@ -1092,6 +1092,7 @@ declare namespace ClientConfigurationErrorCodes {
         untrustedAuthority,
         missingSshJwk,
         missingSshKid,
+        unsupportedAuthenticationScheme,
         missingNonceAuthenticationHeader,
         invalidAuthenticationHeader,
         cannotSetOIDCOptions,
@@ -3347,6 +3348,9 @@ const unexpectedCredentialType = "unexpected_credential_type";
 
 // @public
 const unexpectedError = "unexpected_error";
+
+// @public (undocumented)
+const unsupportedAuthenticationScheme = "unsupported_authentication_scheme";
 
 // @public (undocumented)
 const untrustedAuthority = "untrusted_authority";

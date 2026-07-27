@@ -21,6 +21,12 @@ import { SilentRequest } from "./SilentRequest.js";
 import { PopupRequest } from "./PopupRequest.js";
 import { RedirectRequest } from "./RedirectRequest.js";
 
+const SUPPORTED_AUTHENTICATION_SCHEMES = new Set<string>([
+    Constants.AuthenticationScheme.BEARER,
+    Constants.AuthenticationScheme.POP,
+    Constants.AuthenticationScheme.SSH,
+]);
+
 /**
  * Initializer function for all request APIs
  * @param request
@@ -56,6 +62,17 @@ export async function initializeBaseRequest(
             correlationId
         );
     } else {
+        if (
+            !SUPPORTED_AUTHENTICATION_SCHEMES.has(
+                validatedRequest.authenticationScheme
+            )
+        ) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.unsupportedAuthenticationScheme,
+                correlationId
+            );
+        }
+
         if (
             validatedRequest.authenticationScheme ===
             Constants.AuthenticationScheme.SSH
