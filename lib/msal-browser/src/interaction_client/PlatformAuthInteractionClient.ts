@@ -184,7 +184,27 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         // initialize native request (statically builds the request; does not contact the broker)
-        const nativeRequest = await this.initializePlatformRequest(request);
+        let nativeRequest: PlatformAuthRequest;
+        try {
+            nativeRequest = await this.initializePlatformRequest(request);
+        } catch (e) {
+            /*
+             * Request initialization (e.g. PoP token generation or authority
+             * resolution) failed before the broker was contacted, so end the
+             * measurement here to avoid an orphaned sub-measurement.
+             */
+            nativeATMeasurement.end({
+                success: false,
+                errorCode: e instanceof AuthError ? e.errorCode : undefined,
+                subErrorCode: e instanceof AuthError ? e.subError : undefined,
+            });
+            // Broker was never engaged, so this was not a native broker outcome
+            this.performanceClient.addFields(
+                { isNativeBroker: false },
+                this.correlationId
+            );
+            throw e;
+        }
 
         // check if the tokens can be retrieved from internal cache
         try {
