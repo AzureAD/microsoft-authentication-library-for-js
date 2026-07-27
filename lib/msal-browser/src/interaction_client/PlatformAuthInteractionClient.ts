@@ -27,6 +27,7 @@ import {
     ScopeSet,
     ServerTelemetryManager,
     SignedHttpRequestParameters,
+    StoreInCache,
     TimeUtils,
     TokenClaims,
     UrlString,
@@ -227,7 +228,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return await this.handleNativeResponse(
                 validatedResponse,
                 nativeRequest,
-                reqTimestamp
+                reqTimestamp,
+                request.storeInCache
             )
                 .then((result: AuthenticationResult) => {
                     nativeATMeasurement.end({
@@ -397,7 +399,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
         this.browserStorage.setTemporaryCache(
             TemporaryCacheKeys.NATIVE_REQUEST,
-            JSON.stringify(nativeRequest),
+            JSON.stringify({
+                ...nativeRequest,
+                storeInCache: request.storeInCache,
+            }),
             true
         );
 
@@ -457,7 +462,14 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return null;
         }
 
-        const { prompt, ...request } = cachedRequest;
+        /*
+         * storeInCache is a client-side cache directive persisted alongside the cached
+         * request (not a broker-contract parameter), so extract it here before resending.
+         */
+        const { prompt, storeInCache, ...request } =
+            cachedRequest as PlatformAuthRequest & {
+                storeInCache?: StoreInCache;
+            };
         if (prompt) {
             this.logger.verbose(
                 "NativeInteractionClient - handleRedirectPromise called and prompt was included in the original request, removing prompt from cached request to prevent second interaction with native broker window.",
@@ -483,7 +495,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             const authResult = await this.handleNativeResponse(
                 response,
                 request,
-                reqTimestamp
+                reqTimestamp,
+                storeInCache
             );
 
             const serverTelemetryManager = initializeServerTelemetryManager(
@@ -527,7 +540,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected async handleNativeResponse(
         response: PlatformAuthResponse,
         request: PlatformAuthRequest,
-        reqTimestamp: number
+        reqTimestamp: number,
+        storeInCache?: StoreInCache
     ): Promise<AuthenticationResult> {
         this.logger.trace(
             "NativeInteractionClient - handleNativeResponse called.",
@@ -622,7 +636,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             idTokenClaims,
             result.tenantId,
             reqTimestamp,
-            authority.getPreferredCache() // environment
+            authority.getPreferredCache(), // environment
+            storeInCache
         );
 
         return result;
@@ -811,7 +826,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             correlationId: this.correlationId,
             state: response.state,
             fromPlatformBroker: true,
-            ...(request.resource && { resource: request.resource }),
+            ...(request.extraParameters?.resource && {
+                resource: request.extraParameters.resource,
+            }),
         };
 
         return result;
@@ -856,7 +873,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         idTokenClaims: TokenClaims,
         tenantId: string,
         reqTimestamp: number,
-        environment: string
+        environment: string,
+        storeInCache?: StoreInCache
     ): Promise<void> {
         const cachedIdToken: IdTokenEntity | null =
             CacheHelpers.createIdTokenEntity(
@@ -899,7 +917,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             );
 
         // save idtoken credential in configured browser storage
-        if (!!cachedIdToken && request.storeInCache?.idToken !== false) {
+        if (!!cachedIdToken && storeInCache?.idToken !== false) {
             await this.browserStorage.setIdTokenCredential(
                 cachedIdToken,
                 this.correlationId,
@@ -917,7 +935,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.correlationId,
             AuthToken.isKmsi(idTokenClaims),
             this.apiId,
-            request.storeInCache
+            storeInCache
         );
     }
 
@@ -1023,8 +1041,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 ? undefined
                 : this.config.auth.clientCapabilities;
 
-        // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
-        const { scopes, claims, ...remainingProperties } = request;
+        // scopes are expected to be received by the native broker as "scope" and will be added to the request below. 'resource' is added in extraParameters for MCP scenarios.
+        const { scopes, claims } = request;
         const scopeSet = new ScopeSet(scopes || [], this.correlationId);
         scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
 
@@ -1034,7 +1052,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         const validatedRequest: PlatformAuthRequest = {
-            ...remainingProperties,
             claims: mergedClaims,
             accountId: this.accountId,
             clientId: this.config.auth.clientId,
@@ -1048,13 +1065,22 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             ),
             prompt: this.getPrompt(request.prompt),
             correlationId: this.correlationId,
+            isSts: false,
             tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
+            nonce: request.nonce,
+            state: request.state,
+            loginHint: request.loginHint,
             extraParameters: {
                 ...request.extraParameters,
+                ...(request.resource && { resource: request.resource }), // resource is set for MCP scenarios
             },
             extendedExpiryToken: false, // Make this configurable?
             keyId: request.popKid,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims,
+            shrNonce: request.shrNonce,
         };
 
         // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
@@ -1065,7 +1091,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             );
         }
 
-        this.handleExtraBrokerParams(validatedRequest);
+        this.handleExtraBrokerParams(
+            validatedRequest,
+            request.embeddedClientId
+        );
         validatedRequest.extraParameters =
             validatedRequest.extraParameters || {};
         validatedRequest.extraParameters.telemetry =
@@ -1198,7 +1227,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @param request {PlatformAuthRequest}
      * @private
      */
-    private handleExtraBrokerParams(request: PlatformAuthRequest): void {
+    private handleExtraBrokerParams(
+        request: PlatformAuthRequest,
+        embeddedClientId?: string
+    ): void {
         const hasExtraBrokerParams =
             request.extraParameters &&
             request.extraParameters.hasOwnProperty(
@@ -1211,16 +1243,16 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 AADServerParamKeys.CLIENT_ID
             );
 
-        if (!request.embeddedClientId && !hasExtraBrokerParams) {
+        if (!embeddedClientId && !hasExtraBrokerParams) {
             return;
         }
 
         let child_client_id: string = "";
         const child_redirect_uri = request.redirectUri;
 
-        if (request.embeddedClientId) {
+        if (embeddedClientId) {
             request.redirectUri = this.config.auth.redirectUri;
-            child_client_id = request.embeddedClientId;
+            child_client_id = embeddedClientId;
         } else if (request.extraParameters) {
             request.redirectUri =
                 request.extraParameters[AADServerParamKeys.BROKER_REDIRECT_URI];
@@ -1228,7 +1260,18 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 request.extraParameters[AADServerParamKeys.CLIENT_ID];
         }
 
+        const {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [AADServerParamKeys.BROKER_CLIENT_ID]: _brkClientId,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [AADServerParamKeys.BROKER_REDIRECT_URI]: _brkRedirectUri,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [AADServerParamKeys.CLIENT_ID]: _clientId,
+            ...remainingExtraParameters
+        } = request.extraParameters || {};
+
         request.extraParameters = {
+            ...remainingExtraParameters,
             child_client_id,
             child_redirect_uri,
         };
