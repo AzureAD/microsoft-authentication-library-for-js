@@ -2939,15 +2939,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
-            const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
-                .mockRejectedValue(
-                    new NativeAuthError(
-                        "ContentError",
-                        "",
-                        "error in extension"
-                    )
-                );
+            const nativeAcquireTokenSpy: jest.SpyInstance = jest.spyOn(
+                PlatformAuthInteractionClient.prototype,
+                "acquireToken"
+            );
+            // Force a cache miss, then reject the broker call so the real
+            // client runs its telemetry-writing error path.
+            jest.spyOn(
+                PlatformAuthInteractionClient.prototype as any,
+                "acquireTokensFromCache"
+            ).mockRejectedValue(new Error("No cached tokens"));
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockRejectedValue(
+                new NativeAuthError("ContentError", "", "error in extension")
+            );
             const popupSpy: jest.SpyInstance = jest
                 .spyOn(PopupClient.prototype, "acquireToken")
                 .mockResolvedValue(testTokenResponse);
@@ -3078,11 +3085,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
 
-            const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
-                .mockImplementation(() => {
-                    throw new NativeAuthError("testNativeError", "");
-                });
+            const nativeAcquireTokenSpy: jest.SpyInstance = jest.spyOn(
+                PlatformAuthInteractionClient.prototype,
+                "acquireToken"
+            );
+            // Force a cache miss, then reject the broker call with a non-fatal
+            // native error so the real client records terminal broker telemetry.
+            jest.spyOn(
+                PlatformAuthInteractionClient.prototype as any,
+                "acquireTokensFromCache"
+            ).mockRejectedValue(new Error("No cached tokens"));
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockRejectedValue(new NativeAuthError("testNativeError", ""));
             const popupSpy: jest.SpyInstance = jest
                 .spyOn(PopupClient.prototype, "acquireToken")
                 .mockRejectedValue(new Error("testError"));
@@ -3793,21 +3809,26 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: Constants.AuthenticationScheme.BEARER,
             };
-            const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
-                .mockRejectedValue(
-                    new NativeAuthError(
-                        "ContentError",
-                        "",
-                        "error in extension"
-                    )
-                );
+            const nativeAcquireTokenSpy: jest.SpyInstance = jest.spyOn(
+                PlatformAuthInteractionClient.prototype,
+                "acquireToken"
+            );
+            jest.spyOn(
+                PlatformAuthInteractionClient.prototype as any,
+                "acquireTokensFromCache"
+            ).mockRejectedValue(new Error("No cached tokens"));
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockRejectedValue(
+                new NativeAuthError("ContentError", "", "error in extension")
+            );
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
                 .mockResolvedValue(testTokenResponse);
 
             const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events[0].isNativeBroker).toBe(undefined);
+                expect(events[0].isNativeBroker).toBe(false);
                 expect(events[0].isPlatformAuthorizeRequest).toBe(undefined);
                 expect(events[0].isPlatformBrokerRequest).toBe(true);
                 expect(events[0].brokerErrorName).toBeDefined();
@@ -3856,9 +3877,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
 
-            const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
-                .mockRejectedValue(new NativeAuthError("testNativeError", ""));
+            const nativeAcquireTokenSpy: jest.SpyInstance = jest.spyOn(
+                PlatformAuthInteractionClient.prototype,
+                "acquireToken"
+            );
+            jest.spyOn(
+                PlatformAuthInteractionClient.prototype as any,
+                "acquireTokensFromCache"
+            ).mockRejectedValue(new Error("No cached tokens"));
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockRejectedValue(new NativeAuthError("testNativeError", ""));
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
                 .mockRejectedValue(new Error("testError"));
@@ -6514,7 +6544,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].fromCache).toBe(false);
                 expect(events[0].accessTokenSize).toBe(16);
                 expect(events[0].idTokenSize).toBe(12);
-                expect(events[0].isNativeBroker).toBe(undefined);
+                expect(events[0].isNativeBroker).toBe(false);
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(0);
                 expect(events[0].accountType).toBe("AAD");
@@ -6566,7 +6596,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].fromCache).toBe(false);
                 expect(events[0].accessTokenSize).toBe(16);
                 expect(events[0].idTokenSize).toBe(12);
-                expect(events[0].isNativeBroker).toBe(undefined);
+                expect(events[0].isNativeBroker).toBe(false);
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(1);
 

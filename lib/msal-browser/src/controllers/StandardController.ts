@@ -585,7 +585,7 @@ export class StandardController implements IController {
                     rootMeasurement.end(
                         {
                             success: true,
-                            isNativeBroker: result.fromPlatformBroker,
+                            isNativeBroker: result.fromPlatformBroker ?? false,
                         },
                         undefined,
                         result.account
@@ -601,8 +601,11 @@ export class StandardController implements IController {
                      * Instrument an event only if an error code is set. Otherwise, discard it when the redirect response
                      * is empty and the error code is missing.
                      */
-                    if (rootMeasurement.event.errorCode) {
-                        rootMeasurement.end({ success: false }, undefined);
+                    if (!!rootMeasurement.event.errorCode) {
+                        rootMeasurement.end(
+                            { success: false },
+                            rootMeasurement.event.errorCode
+                        );
                     } else {
                         rootMeasurement.discard();
                     }
@@ -727,10 +730,6 @@ export class StandardController implements IController {
                     this.performanceClient,
                     correlationId
                 )(request, atrMeasurement).catch((e: AuthError) => {
-                    atrMeasurement.add({
-                        brokerErrorName: e.name,
-                        brokerErrorCode: e.errorCode,
-                    });
                     if (
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
@@ -748,8 +747,6 @@ export class StandardController implements IController {
                             this.createRedirectClient(correlationId);
                         return redirectClient.acquireToken(request);
                     }
-                    // No web fallback; the broker error propagates to the caller
-                    atrMeasurement.add({ isNativeBroker: true });
                     throw e;
                 });
             } else {
@@ -855,7 +852,8 @@ export class StandardController implements IController {
                     atPopupMeasurement.end(
                         {
                             success: true,
-                            isNativeBroker: response.fromPlatformBroker,
+                            isNativeBroker:
+                                response.fromPlatformBroker ?? false,
                         },
                         undefined,
                         response.account
@@ -863,10 +861,6 @@ export class StandardController implements IController {
                     return response;
                 })
                 .catch((e: AuthError) => {
-                    atPopupMeasurement.add({
-                        brokerErrorName: e.name,
-                        brokerErrorCode: e.errorCode,
-                    });
                     if (
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
@@ -884,8 +878,6 @@ export class StandardController implements IController {
                             this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request, pkce);
                     }
-                    // No web fallback; the broker error propagates to the caller
-                    atPopupMeasurement.add({ isNativeBroker: true });
                     throw e;
                 });
         } else {
@@ -918,7 +910,7 @@ export class StandardController implements IController {
                 atPopupMeasurement.end(
                     {
                         success: true,
-                        isNativeBroker: false,
+                        isNativeBroker: result.fromPlatformBroker ?? false,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
                     },
@@ -1209,10 +1201,6 @@ export class StandardController implements IController {
                 validRequest,
                 ApiId.ssoSilent
             ).catch((e: AuthError) => {
-                this.ssoSilentMeasurement?.add({
-                    brokerErrorName: e.name,
-                    brokerErrorCode: e.errorCode,
-                });
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                     this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt platform broker calls
@@ -1221,8 +1209,6 @@ export class StandardController implements IController {
                     );
                     return silentIframeClient.acquireToken(validRequest);
                 }
-                // No web fallback; the broker error propagates to the caller
-                this.ssoSilentMeasurement?.add({ isNativeBroker: true });
                 throw e;
             });
         } else {
@@ -1253,7 +1239,7 @@ export class StandardController implements IController {
                 this.ssoSilentMeasurement?.end(
                     {
                         success: true,
-                        isNativeBroker: response.fromPlatformBroker,
+                        isNativeBroker: response.fromPlatformBroker ?? false,
                         accessTokenSize: response.accessToken.length,
                         idTokenSize: response.idToken.length,
                     },
@@ -1394,10 +1380,6 @@ export class StandardController implements IController {
                         ApiId.acquireTokenByCode,
                         request.nativeAccountId
                     ).catch((e: AuthError) => {
-                        atbcMeasurement.add({
-                            brokerErrorName: e.name,
-                            brokerErrorCode: e.errorCode,
-                        });
                         // If native token acquisition fails for availability reasons fallback to standard flow
                         if (
                             e instanceof NativeAuthError &&
@@ -1405,14 +1387,12 @@ export class StandardController implements IController {
                         ) {
                             this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         }
-                        // acquireTokenByCode has no web fallback; the broker error propagates to the caller
-                        atbcMeasurement.add({ isNativeBroker: true });
                         throw e;
                     });
                     atbcMeasurement.end(
                         {
                             success: true,
-                            isNativeBroker: result.fromPlatformBroker,
+                            isNativeBroker: result.fromPlatformBroker ?? false,
                         },
                         undefined,
                         result.account
@@ -1795,6 +1775,9 @@ export class StandardController implements IController {
     /**
      * Acquire a token from native device (e.g. WAM)
      * @param request
+     * @param apiId
+     * @param accountId
+     * @param cacheLookupPolicy
      */
     public async acquireTokenNative(
         request: PopupRequest | SilentRequest | SsoSilentRequest,
@@ -1802,7 +1785,12 @@ export class StandardController implements IController {
         accountId?: string,
         cacheLookupPolicy?: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
-        const correlationId = this.getRequestCorrelationId(request);
+        /*
+         * Callers always normalize correlationId onto the request before delegating
+         * here, so it is guaranteed defined and is the single id used to key this
+         * flow's telemetry.
+         */
+        const correlationId = request.correlationId as string;
         this.logger.trace("acquireTokenNative called", correlationId);
         if (!this.platformAuthProvider) {
             throw createBrowserAuthError(
@@ -2229,7 +2217,7 @@ export class StandardController implements IController {
                 atsMeasurement.end(
                     {
                         success: true,
-                        isNativeBroker: result.fromPlatformBroker,
+                        isNativeBroker: result.fromPlatformBroker ?? false,
                         fromCache: result.fromCache,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
@@ -2480,7 +2468,8 @@ export class StandardController implements IController {
                     this.performanceClient.addFields(
                         {
                             fromCache: response.fromCache,
-                            isNativeBroker: response.fromPlatformBroker,
+                            isNativeBroker:
+                                response.fromPlatformBroker ?? false,
                         },
                         request.correlationId
                     );
@@ -2540,14 +2529,6 @@ export class StandardController implements IController {
                 silentRequest.account.nativeAccountId,
                 cacheLookupPolicy
             ).catch(async (e: AuthError) => {
-                this.performanceClient.addFields(
-                    {
-                        brokerErrorName: e.name,
-                        brokerErrorCode: e.errorCode,
-                    },
-                    silentRequest.correlationId
-                );
-
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                     this.logger.verbose(
@@ -2561,11 +2542,6 @@ export class StandardController implements IController {
                         silentRequest.correlationId
                     );
                 }
-                // No web fallback; the broker error propagates to the caller
-                this.performanceClient.addFields(
-                    { isNativeBroker: true },
-                    silentRequest.correlationId
-                );
                 throw e;
             });
         } else {
