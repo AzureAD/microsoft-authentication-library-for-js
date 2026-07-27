@@ -84,6 +84,8 @@ export class CryptoProvider implements ICrypto {
     /**
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid - public key id
+     * @param correlationId - correlation id
+     * @param context - token-binding key lookup context
      */
     removeTokenBindingKey(
         kid: string,
