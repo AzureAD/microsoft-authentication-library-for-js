@@ -12,9 +12,8 @@
  * `./WebBrokerBridgeErrorMap`.
  *
  * Bridge-specific subclasses (e.g. `BrokerAuthError`, `BrowserAuthError`,
- * `ClientConfigurationError`) are reconstructed by per-bridge "glue"
- * adapters until v6, at which point callers receive the base class
- * directly.
+ * `ClientConfigurationError`) can be reconstructed by per-bridge "glue"
+ * adapters when needed; otherwise callers receive the base class directly.
  */
 export const WebBrokerBridgeErrorCode = {
     /* Interaction / auth outcomes (both bridges) */
