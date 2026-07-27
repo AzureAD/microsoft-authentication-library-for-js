@@ -185,6 +185,7 @@ describe("FetchClient.ts Unit Tests", () => {
             const promise = fetchClient.sendPostRequestAsync<any>(targetUri, {
                 ...requestOptions,
                 correlationId,
+                performanceClient: mockPerformanceClient,
             });
             const expectation = expect(promise).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.postRequestFailed,
@@ -192,6 +193,12 @@ describe("FetchClient.ts Unit Tests", () => {
             // Advance timer to allow the 100ms backoff before retry
             await jest.advanceTimersByTimeAsync(100);
             await expectation;
+            // Verify retry occurred (2 fetch calls) and telemetry was emitted
+            expect(global["fetch"]).toHaveBeenCalledTimes(2);
+            expect(mockPerformanceClient.incrementFields).toHaveBeenCalledWith(
+                { fetchRetryCount: 1 },
+                correlationId
+            );
         });
 
         it("throws error if fetch get returns non-200 status", (done) => {

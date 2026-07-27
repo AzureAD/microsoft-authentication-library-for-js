@@ -158,7 +158,7 @@ export class FetchClient implements INetworkModule {
             throw createNetworkError(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.failedToParseResponse,
-                    ""
+                    correlationId || ""
                 ),
                 responseStatus,
                 responseHeaders,
