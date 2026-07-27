@@ -20,7 +20,6 @@ import { CredentialEntity } from "../entities/CredentialEntity.js";
 import { IdTokenEntity } from "../entities/IdTokenEntity.js";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity.js";
 
-const DPOP_AUTHENTICATION_SCHEME = "dpop";
 /**
  * Create IdTokenEntity
  * @param homeAccountId
@@ -126,7 +125,7 @@ export function createAccessTokenEntity(
                 }
                 atEntity.keyId = tokenClaims.cnf.kid;
                 break;
-            case DPOP_AUTHENTICATION_SCHEME:
+            case "dpop":
                 if (!keyId) {
                     throw createClientAuthError(
                         ClientAuthErrorCodes.keyIdMissing,

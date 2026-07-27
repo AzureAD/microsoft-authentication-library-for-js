@@ -48,8 +48,6 @@ import {
     ValidCredentialType,
 } from "./utils/CacheTypes.js";
 
-const DPOP_AUTHENTICATION_SCHEME = "dpop";
-
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
  * @internal
@@ -1954,7 +1952,7 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         switch (normalizedFilterTokenType) {
-            case DPOP_AUTHENTICATION_SCHEME:
+            case "dpop":
                 return this.matchKeyBoundAccessToken(entity, filter, true);
             case Constants.AuthenticationScheme.SSH:
                 return this.matchKeyBoundAccessToken(entity, filter, false);

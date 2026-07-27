@@ -4,11 +4,10 @@
  */
 
 import {
-    DPOP_JWT_HEADER_ALGORITHM,
     DpopProofClaims,
     DpopProofGenerator,
 } from "../../src/crypto/DpopProofGenerator.js";
-import { ICrypto } from "../../src/crypto/ICrypto.js";
+import { ICrypto, JsonWebTokenAlgorithms } from "../../src/crypto/ICrypto.js";
 import {
     ITokenBindingKeyManager,
     TokenBindingKeyContext,
@@ -111,7 +110,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             expect(dpopJkt).toBe(dpopKeyId);
             expect(provisionTokenBindingKeySpy).toHaveBeenCalledWith({
                 tokenBindingKeyType: "dpop",
-                tokenBindingKeyAlgorithm: DPOP_JWT_HEADER_ALGORITHM,
+                tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
                 keyScope: `dpop.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_CONFIG.validAuthority}`,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
             });
@@ -598,7 +597,7 @@ describe("DpopProofGenerator Unit Tests", () => {
 
             expect(decodedProof.header).toEqual({
                 typ: JsonWebTokenTypes.Dpop,
-                alg: DPOP_JWT_HEADER_ALGORITHM,
+                alg: JsonWebTokenAlgorithms.ES256,
                 jwk: publicJwk,
             });
             expect(decodedProof.claims).toEqual({
@@ -634,7 +633,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             });
             const decodedProof = decodeDpopProof(proof);
 
-            expect(decodedProof.header.alg).toBe(DPOP_JWT_HEADER_ALGORITHM);
+            expect(decodedProof.header.alg).toBe(JsonWebTokenAlgorithms.ES256);
         });
 
         it("uses the public JWK resolved from the token-binding key", async () => {
@@ -646,7 +645,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             });
             const decodedProof = decodeDpopProof(proof);
 
-            expect(decodedProof.header.alg).toBe(DPOP_JWT_HEADER_ALGORITHM);
+            expect(decodedProof.header.alg).toBe(JsonWebTokenAlgorithms.ES256);
             expect(decodedProof.header.jwk).toEqual(publicJwk);
         });
     });
@@ -672,7 +671,7 @@ describe("DpopProofGenerator Unit Tests", () => {
 
             expect(decodedProof.header).toEqual({
                 typ: JsonWebTokenTypes.Dpop,
-                alg: DPOP_JWT_HEADER_ALGORITHM,
+                alg: JsonWebTokenAlgorithms.ES256,
                 jwk: publicJwk,
             });
             expect(decodedProof.claims).toEqual({

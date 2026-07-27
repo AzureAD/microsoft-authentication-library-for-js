@@ -70,7 +70,7 @@ export type DpopProofGenerationParams = {
 
 const DPOP_HTM_REGEX = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
 const DPOP_TOKEN_BINDING_KEY_TYPE = "dpop";
-export const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
+const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
 
 function buildProofHeader(
     publicJwk: JsonWebKey,
