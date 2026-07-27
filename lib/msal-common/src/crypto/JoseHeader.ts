@@ -7,6 +7,7 @@ import {
     JoseHeaderErrorCodes,
     createJoseHeaderError,
 } from "../error/JoseHeaderError.js";
+import { isPlainObject } from "../utils/ObjectUtils.js";
 import { JsonWebTokenTypes } from "../utils/Constants.js";
 
 export type JoseHeaderOptions = {
@@ -90,7 +91,7 @@ export class JoseHeader {
         dpopHeaderOptions: JoseHeaderOptions,
         correlationId: string = ""
     ): JoseHeader {
-        if (!isRecord(dpopHeaderOptions.jwk)) {
+        if (!isPlainObject(dpopHeaderOptions.jwk)) {
             throw createJoseHeaderError(
                 JoseHeaderErrorCodes.missingJwkError,
                 correlationId
@@ -123,8 +124,4 @@ export class JoseHeader {
             correlationId
         );
     }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null;
 }

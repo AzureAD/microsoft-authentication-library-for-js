@@ -211,5 +211,43 @@ describe("JoseHeader.ts Unit Tests", () => {
                 getDefaultErrorMessage(JoseHeaderErrorCodes.missingJwkError)
             );
         });
+
+        it("should throw if DPoP public JWK is an array", () => {
+            expect(() =>
+                JoseHeader.getDpopHeader({
+                    alg: "ES256",
+                    typ: JsonWebTokenTypes.Dpop,
+                    jwk: [
+                        {
+                            kty: "EC",
+                        },
+                    ] as any,
+                })
+            ).toThrowError(
+                getDefaultErrorMessage(JoseHeaderErrorCodes.missingJwkError)
+            );
+        });
+
+        it("should allow DPoP public JWKs with null prototypes", () => {
+            const jwk = Object.assign(Object.create(null), {
+                kty: "EC",
+                crv: "P-256",
+                x: "A".repeat(43),
+                y: "B".repeat(43),
+            });
+
+            const dpopHeader = JoseHeader.getDpopHeader({
+                alg: "ES256",
+                jwk,
+            });
+
+            expect(dpopHeader).toEqual(
+                new JoseHeader({
+                    typ: JsonWebTokenTypes.Dpop,
+                    alg: "ES256",
+                    jwk,
+                })
+            );
+        });
     });
 });
