@@ -155,10 +155,18 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
             correlationId
         );
     },
-    async signTokenBindingJwt(): Promise<string> {
+    async signTokenBindingJwt(
+        header: JoseHeader,
+        payload: object,
+        kid: string,
+        correlationId: string
+    ): Promise<string> {
+        void header;
+        void payload;
+        void kid;
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
-            ""
+            correlationId
         );
     },
     async hashString(): Promise<string> {

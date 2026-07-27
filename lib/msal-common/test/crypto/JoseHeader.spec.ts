@@ -111,6 +111,19 @@ describe("JoseHeader.ts Unit Tests", () => {
                 getDefaultErrorMessage(JoseHeaderErrorCodes.missingAlgError)
             );
         });
+
+        it("should throw if alg header is empty during direct construction", () => {
+            expect(
+                () =>
+                    new JoseHeader({
+                        typ: JsonWebTokenTypes.Pop,
+                        alg: "",
+                        kid: TEST_POP_VALUES.KID,
+                    })
+            ).toThrowError(
+                getDefaultErrorMessage(JoseHeaderErrorCodes.missingAlgError)
+            );
+        });
     });
 
     describe("getDpopHeader", () => {

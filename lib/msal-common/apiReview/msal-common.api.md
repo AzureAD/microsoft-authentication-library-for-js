@@ -2057,7 +2057,7 @@ export interface IUri {
 export class JoseHeader {
     constructor(options: JoseHeaderOptions & {
         alg: string;
-    });
+    }, correlationId?: string);
     // (undocumented)
     alg: string;
     static getDpopHeader(dpopHeaderOptions: JoseHeaderOptions, correlationId?: string): JoseHeader;

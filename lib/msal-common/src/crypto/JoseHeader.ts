@@ -23,7 +23,17 @@ export class JoseHeader {
     public kid?: string;
     public jwk?: JsonWebKey;
 
-    constructor(options: JoseHeaderOptions & { alg: string }) {
+    constructor(
+        options: JoseHeaderOptions & { alg: string },
+        correlationId: string = ""
+    ) {
+        if (typeof options.alg !== "string" || !options.alg) {
+            throw createJoseHeaderError(
+                JoseHeaderErrorCodes.missingAlgError,
+                correlationId
+            );
+        }
+
         this.typ = options.typ;
         this.alg = options.alg;
         this.kid = options.kid;
@@ -58,12 +68,15 @@ export class JoseHeader {
             );
         }
 
-        return new JoseHeader({
-            // Access Token PoP headers must have type pop, but the type header can be overriden for special cases
-            typ: shrHeaderOptions.typ || JsonWebTokenTypes.Pop,
-            kid: shrHeaderOptions.kid,
-            alg: shrHeaderOptions.alg,
-        });
+        return new JoseHeader(
+            {
+                // Access Token PoP headers must have type pop, but the type header can be overriden for special cases
+                typ: shrHeaderOptions.typ || JsonWebTokenTypes.Pop,
+                kid: shrHeaderOptions.kid,
+                alg: shrHeaderOptions.alg,
+            },
+            correlationId
+        );
     }
 
     /**
@@ -101,11 +114,14 @@ export class JoseHeader {
             );
         }
 
-        return new JoseHeader({
-            typ: JsonWebTokenTypes.Dpop,
-            alg: dpopHeaderOptions.alg,
-            jwk: dpopHeaderOptions.jwk,
-        });
+        return new JoseHeader(
+            {
+                typ: JsonWebTokenTypes.Dpop,
+                alg: dpopHeaderOptions.alg,
+                jwk: dpopHeaderOptions.jwk,
+            },
+            correlationId
+        );
     }
 }
 

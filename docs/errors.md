@@ -258,10 +258,6 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Missing sshKid in SSH certificate request. A string that uniquely identifies the public SSH key is required when using the SSH authentication scheme.
 
-### `unsupported_authentication_scheme`
-
--   Unsupported authentication scheme. MSAL.js only accepts authentication schemes that are explicitly enabled for the current runtime.
-
 ### `missing_nonce_authentication_header`
 
 -   Unable to find an authentication header containing server nonce. Either the Authentication-Info or WWW-Authenticate headers must be present in order to obtain a server nonce.
@@ -859,10 +855,6 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 ### `invalid_pop_token_request`
 
 -   Invalid PoP token request. The request should not have both a popKid value and signPopToken set to true.
-
-### `missing_token_binding_jwt_algorithm`
-
--   The token-binding JWT header is missing the required alg value.
 
 ### `unsupported_token_binding_algorithm`
 
