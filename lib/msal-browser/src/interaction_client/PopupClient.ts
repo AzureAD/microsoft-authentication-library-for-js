@@ -20,6 +20,7 @@ import {
     CommonAuthorizationUrlRequest,
     ProtocolUtils,
     Authority,
+    ITokenBindingKeyManager,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
@@ -61,7 +62,6 @@ import {
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
 import { validateRequestMethod } from "../request/RequestHelpers.js";
-import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 /**
  * Signature of the popup-response handler supplied by
@@ -102,7 +102,7 @@ export class PopupClient extends StandardInteractionClient {
         correlationId: string,
         platformAuthHandler?: IPlatformAuthHandler,
         waitForPopupResponseHook?: WaitForPopupResponseFn,
-        tokenBindingKeyManager?: TokenBindingKeyManager
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,

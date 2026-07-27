@@ -31,6 +31,8 @@ import {
     enforceResourceParameter,
     CacheHelpers,
     TimeUtils,
+    ITokenBindingKeyManager,
+    TokenBindingKeyProvisioningParameters,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -114,6 +116,35 @@ function preflightCheck(
     }
 }
 
+const DEFAULT_BROWSER_TOKEN_BINDING_KEY_MANAGER: ITokenBindingKeyManager = {
+    async provisionTokenBindingKey(
+        request: TokenBindingKeyProvisioningParameters
+    ): Promise<string> {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            request.correlationId
+        );
+    },
+    async removeTokenBindingKey(
+        _kid: string,
+        correlationId: string
+    ): Promise<void> {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            correlationId
+        );
+    },
+    async getTokenBindingPublicKeyJwk(
+        _kid: string,
+        correlationId: string
+    ): Promise<JsonWebKey> {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            correlationId
+        );
+    },
+};
+
 export class StandardController implements IController {
     // OperatingContext
     protected readonly operatingContext: StandardOperatingContext;
@@ -122,7 +153,7 @@ export class StandardController implements IController {
     protected readonly browserCrypto: ICrypto;
 
     // Token-binding key lifecycle implementation
-    protected readonly tokenBindingKeyManager: TokenBindingKeyManager;
+    protected readonly tokenBindingKeyManager: ITokenBindingKeyManager;
 
     // Storage interface implementation
     protected readonly browserStorage: BrowserCacheManager;
@@ -226,14 +257,21 @@ export class StandardController implements IController {
         // Initialize performance client
         this.performanceClient = this.config.telemetry.client;
 
-        // Initialize the crypto class.
-        this.browserCrypto = this.isBrowserEnvironment
-            ? new CryptoOps(this.logger, this.performanceClient)
-            : DEFAULT_CRYPTO_IMPLEMENTATION;
-        this.tokenBindingKeyManager = new TokenBindingKeyManager(
-            this.logger,
-            this.performanceClient
-        );
+        // Initialize environment-specific crypto and token-binding services.
+        if (this.isBrowserEnvironment) {
+            this.browserCrypto = new CryptoOps(
+                this.logger,
+                this.performanceClient
+            );
+            this.tokenBindingKeyManager = new TokenBindingKeyManager(
+                this.logger,
+                this.performanceClient
+            );
+        } else {
+            this.browserCrypto = DEFAULT_CRYPTO_IMPLEMENTATION;
+            this.tokenBindingKeyManager =
+                DEFAULT_BROWSER_TOKEN_BINDING_KEY_MANAGER;
+        }
 
         this.eventHandler = new EventHandler(this.logger);
 

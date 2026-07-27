@@ -10,12 +10,12 @@ import { BrowserConfiguration } from "../../../config/Configuration.js";
 import { BrowserCacheManager } from "../../../cache/BrowserCacheManager.js";
 import {
     ICrypto,
+    ITokenBindingKeyManager,
     IPerformanceClient,
     Logger,
 } from "@azure/msal-common/browser";
 import { EventHandler } from "../../../event/EventHandler.js";
 import { INavigationClient } from "../../../navigation/INavigationClient.js";
-import { TokenBindingKeyManager } from "../../../crypto/TokenBindingKeyManager.js";
 
 export class CustomAuthInterationClientFactory {
     constructor(
@@ -28,7 +28,7 @@ export class CustomAuthInterationClientFactory {
         private performanceClient: IPerformanceClient,
         private customAuthApiClient: ICustomAuthApiClient,
         private customAuthAuthority: CustomAuthAuthority,
-        private tokenBindingKeyManager: TokenBindingKeyManager
+        private tokenBindingKeyManager: ITokenBindingKeyManager
     ) {}
 
     create<TClient extends CustomAuthInteractionClientBase>(
@@ -42,7 +42,7 @@ export class CustomAuthInterationClientFactory {
             performanceClient: IPerformanceClient,
             customAuthApiClient: ICustomAuthApiClient,
             customAuthAuthority: CustomAuthAuthority,
-            tokenBindingKeyManager?: TokenBindingKeyManager
+            tokenBindingKeyManager?: ITokenBindingKeyManager
         ) => TClient
     ): TClient {
         return new clientConstructor(

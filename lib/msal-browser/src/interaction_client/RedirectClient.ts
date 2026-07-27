@@ -20,6 +20,7 @@ import {
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
     ProtocolUtils,
+    ITokenBindingKeyManager,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
@@ -59,7 +60,6 @@ import {
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
-import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -91,7 +91,7 @@ export class RedirectClient extends StandardInteractionClient {
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
         platformAuthHandler?: IPlatformAuthHandler,
-        tokenBindingKeyManager?: TokenBindingKeyManager
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,
