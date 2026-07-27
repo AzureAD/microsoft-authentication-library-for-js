@@ -1440,6 +1440,9 @@ export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions>;
 // @public
 const DEFAULT_THROTTLE_TIME_SECONDS: number;
 
+// @internal
+export const DEFAULT_TOKEN_BINDING_KEY_MANAGER: ITokenBindingKeyManager;
+
 // @public (undocumented)
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
 

@@ -107,6 +107,7 @@ export {
 } from "./crypto/ICrypto.js";
 export {
     ITokenBindingKeyManager,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     TokenBindingKeyContext,
     TokenBindingKeyProvisioningParameters,
 } from "./crypto/ITokenBindingKeyManager.js";

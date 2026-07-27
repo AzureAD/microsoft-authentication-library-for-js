@@ -31,8 +31,8 @@ import {
     enforceResourceParameter,
     CacheHelpers,
     TimeUtils,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     ITokenBindingKeyManager,
-    TokenBindingKeyProvisioningParameters,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -115,35 +115,6 @@ function preflightCheck(
         throw e;
     }
 }
-
-const DEFAULT_BROWSER_TOKEN_BINDING_KEY_MANAGER: ITokenBindingKeyManager = {
-    async provisionTokenBindingKey(
-        request: TokenBindingKeyProvisioningParameters
-    ): Promise<string> {
-        throw createClientAuthError(
-            ClientAuthErrorCodes.methodNotImplemented,
-            request.correlationId
-        );
-    },
-    async removeTokenBindingKey(
-        _kid: string,
-        correlationId: string
-    ): Promise<void> {
-        throw createClientAuthError(
-            ClientAuthErrorCodes.methodNotImplemented,
-            correlationId
-        );
-    },
-    async getTokenBindingPublicKeyJwk(
-        _kid: string,
-        correlationId: string
-    ): Promise<JsonWebKey> {
-        throw createClientAuthError(
-            ClientAuthErrorCodes.methodNotImplemented,
-            correlationId
-        );
-    },
-};
 
 export class StandardController implements IController {
     // OperatingContext
@@ -269,8 +240,7 @@ export class StandardController implements IController {
             );
         } else {
             this.browserCrypto = DEFAULT_CRYPTO_IMPLEMENTATION;
-            this.tokenBindingKeyManager =
-                DEFAULT_BROWSER_TOKEN_BINDING_KEY_MANAGER;
+            this.tokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER;
         }
 
         this.eventHandler = new EventHandler(this.logger);
