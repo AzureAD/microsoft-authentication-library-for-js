@@ -2708,6 +2708,133 @@ describe("CacheManager.ts test cases", () => {
         ).toEqual(mockedSshAtEntity);
     });
 
+    it("getAccessToken only uses sshKid as request key context for SSH", async () => {
+        const mockedAtEntity = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            "access_token",
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            TEST_CONFIG.TENANT,
+            TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            "",
+            500,
+            AuthenticationScheme.BEARER,
+            undefined,
+            undefined
+        );
+        const mockedPopAtEntity = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            TEST_TOKENS.POP_TOKEN,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            TEST_CONFIG.TENANT,
+            "User.Read test_scope",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            "",
+            500,
+            AuthenticationScheme.POP,
+            TEST_TOKENS.ACCESS_TOKEN
+        );
+        const mockedDpopAtEntity = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            TEST_DPOP_VALUES.ACCESS_TOKEN,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            TEST_CONFIG.TENANT,
+            "User.Read test_scope",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            TEST_CONFIG.CORRELATION_ID,
+            500,
+            DPOP_AUTHENTICATION_SCHEME,
+            undefined,
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+        );
+        const accountData = {
+            username: "John Doe",
+            localAccountId: "uid",
+            realm: "common",
+            environment: "login.microsoftonline.com",
+            homeAccountId: "uid.utid",
+            authorityType: "MSSTS",
+            clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+        };
+        const mockedAccount: AccountEntity = CacheManager.toObject(
+            {} as AccountEntity,
+            accountData
+        );
+
+        await mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity);
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedPopAtEntity
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedDpopAtEntity
+        );
+        await mockCache.cacheManager.setAccount(mockedAccount);
+
+        const mockedAccountInfo: AccountInfo = {
+            homeAccountId: "uid.utid",
+            localAccountId: "uid",
+            environment: "login.microsoftonline.com",
+            tenantId: TEST_CONFIG.TENANT,
+            username: "John Doe",
+            loginHint: "testLoginHint",
+        };
+        const bearerSilentFlowRequest: CommonSilentFlowRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            account: mockedAccountInfo,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false,
+            authenticationScheme: AuthenticationScheme.BEARER,
+            sshKid: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+        };
+        const popSilentFlowRequest: CommonSilentFlowRequest = {
+            scopes: ["user.read"],
+            account: mockedAccountInfo,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false,
+            authenticationScheme: AuthenticationScheme.POP,
+            sshKid: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+        };
+        const dpopSilentFlowRequest: CommonSilentFlowRequest = {
+            scopes: ["user.read"],
+            account: mockedAccountInfo,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false,
+            authenticationScheme: DPOP_AUTHENTICATION_SCHEME,
+            sshKid: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+        };
+
+        expect(
+            mockCache.cacheManager.getAccessToken(
+                mockedAccountInfo,
+                bearerSilentFlowRequest
+            )
+        ).toBe(mockedAtEntity);
+        expect(
+            mockCache.cacheManager.getAccessToken(
+                mockedAccountInfo,
+                popSilentFlowRequest
+            )
+        ).toBe(mockedPopAtEntity);
+        expect(
+            mockCache.cacheManager.getAccessToken(
+                mockedAccountInfo,
+                dpopSilentFlowRequest
+            )
+        ).toBeNull();
+    });
+
     it("getAccessTokensByFilter matches DPoP access tokens by tokenType and jkt", async () => {
         const SPEC_DPOP_AUTHENTICATION_SCHEME = "DPoP" as AuthenticationScheme;
         const mockedDpopAtEntity = CacheHelpers.createAccessTokenEntity(

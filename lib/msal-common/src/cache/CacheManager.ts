@@ -1345,7 +1345,10 @@ export abstract class CacheManager implements ICacheManager {
             realm: targetRealm || account.tenantId,
             target: scopes,
             tokenType: authScheme,
-            keyId: request.sshKid,
+            keyId:
+                authScheme === Constants.AuthenticationScheme.SSH
+                    ? request.sshKid
+                    : undefined,
         };
 
         const accessTokenKeys =
