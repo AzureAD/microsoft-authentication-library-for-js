@@ -602,10 +602,7 @@ export class StandardController implements IController {
                      * is empty and the error code is missing.
                      */
                     if (!!rootMeasurement.event.errorCode) {
-                        rootMeasurement.end(
-                            { success: false },
-                            rootMeasurement.event.errorCode
-                        );
+                        rootMeasurement.end({ success: false });
                     } else {
                         rootMeasurement.discard();
                     }
