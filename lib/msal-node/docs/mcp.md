@@ -35,7 +35,7 @@ const response = await pca.acquireTokenByCode(tokenRequest);
 
 ### Where to set `resource`
 
-The `resource` parameter should be set directly on the request object. Do **not** pass it via `extraQueryParameters` at the same time as the `resource` property — doing so will throw a `misplaced_resource_parameter` error.
+The `resource` parameter should be set directly on the request object. Do **not** pass it via `extraQueryParameters` or `extraParameters` at the same time as the `resource` property — doing so will throw a `misplaced_resource_parameter` error.
 
 ```javascript
 // Correct
@@ -92,7 +92,7 @@ Two errors are specific to MCP flows:
 | Error Code                     | Description                                                                                                               |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
 | `resource_parameter_required`  | `isMcp` is `true` but the request does not include a `resource` parameter.                                                |
-| `misplaced_resource_parameter` | A `resource` was found both in the `resource` property and in `extraQueryParameters`. Use only one.                       |
+| `misplaced_resource_parameter` | A `resource` was found both in the `resource` property and in `extraQueryParameters` or `extraParameters`. Use only one.  |
 
 Both errors are thrown as `ClientAuthError`. See the [errors documentation](../../../docs/errors.md) for more details.
 
