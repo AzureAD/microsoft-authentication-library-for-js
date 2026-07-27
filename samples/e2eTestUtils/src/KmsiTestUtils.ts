@@ -162,7 +162,7 @@ export function assertKmsiSigninState(
     expected: boolean = true
 ): void {
     const signinState = claims.signin_state ?? [];
-    const kmsiValues = [KMSI_SIGNIN_STATE, "dvc_dmjd"];
+    const kmsiValues = [KMSI_SIGNIN_STATE, "dvc_dmjd", "dvc_mngd", "dvc_cmp"];
     const hasKmsi =
         Array.isArray(signinState) &&
         signinState.some((value) =>
