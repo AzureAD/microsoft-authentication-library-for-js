@@ -1,0 +1,7 @@
+{
+    "type": "none",
+    "comment": "Bump @azure/msal-browser to 5.17.2 to match @azure/msal-browser-1p [#8726](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8726)",
+    "packageName": "@azure/msal-browser",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "none"
+}
