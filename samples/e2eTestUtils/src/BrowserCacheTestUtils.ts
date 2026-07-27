@@ -2,8 +2,8 @@ import * as puppeteer from "puppeteer";
 
 /**
  * Returns true if the parsed cache entry is an encrypted token entity
- * (i.e., stored as `{ id, nonce, data }` rather than a plain token entity
- * with a `secret` field). When true, the `secret` field is not available
+ * (i.e., stored as `{ id, nonce, data, lastUpdatedAt }` rather than a plain token
+ * entity with a `secret` field). When true, the `secret` field is not available
  * without decrypting the entry.
  *
  * This mirrors the `isEncrypted` guard in
