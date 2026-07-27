@@ -149,10 +149,10 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
             ""
         );
     },
-    async clearKeystore(): Promise<boolean> {
+    async clearKeystore(correlationId: string): Promise<boolean> {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
-            ""
+            correlationId
         );
     },
     async signTokenBindingJwt(): Promise<string> {

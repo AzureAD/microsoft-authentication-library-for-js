@@ -82,8 +82,10 @@ export class CryptoProvider implements ICrypto {
 
     /**
      * Removes all cryptographic keys from Keystore
+     * @param correlationId - correlation id
      */
-    clearKeystore(): Promise<boolean> {
+    clearKeystore(correlationId: string): Promise<boolean> {
+        void correlationId;
         throw new Error("Method not implemented.");
     }
 

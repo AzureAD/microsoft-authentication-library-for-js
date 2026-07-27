@@ -169,7 +169,7 @@ export class CryptoProvider implements ICrypto {
     base64Decode(input: string): string;
     base64Encode(input: string): string;
     base64UrlEncode(): string;
-    clearKeystore(): Promise<boolean>;
+    clearKeystore(correlationId: string): Promise<boolean>;
     createNewGuid(): string;
     encodeKid(): string;
     generatePkceCodes(): Promise<PkceCodes>;
