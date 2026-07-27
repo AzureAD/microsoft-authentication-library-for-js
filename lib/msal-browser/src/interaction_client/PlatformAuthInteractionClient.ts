@@ -234,7 +234,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             const result = await this.handleNativeResponse(
                 validatedResponse,
                 nativeRequest,
-                reqTimestamp
+                reqTimestamp,
+                request.storeInCache
             );
             nativeATMeasurement.end({
                 success: true,
