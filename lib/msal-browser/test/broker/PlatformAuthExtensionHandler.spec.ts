@@ -32,6 +32,7 @@ const TEST_REQUEST: PlatformAuthRequest = {
     scope: "User.Read",
     correlationId: "test-correlation-id",
     windowTitleSubstring: "",
+    isSts: false,
 };
 
 describe("PlatformAuthExtensionHandler Tests", () => {

@@ -123,7 +123,8 @@ export class CryptoOps implements ICrypto {
         // Generate Keypair
         const keyPair: CryptoKeyPair = await BrowserCrypto.generateKeyPair(
             CryptoOps.EXTRACTABLE,
-            CryptoOps.POP_KEY_USAGES
+            CryptoOps.POP_KEY_USAGES,
+            BrowserCrypto.RSA_KEYGEN_ALGORITHM_OPTIONS
         );
 
         // Generate Thumbprint for Public Key
@@ -131,15 +132,9 @@ export class CryptoOps implements ICrypto {
             keyPair.publicKey
         );
 
-        const pubKeyThumprintObj: JsonWebKey = {
-            e: publicKeyJwk.e,
-            kty: publicKeyJwk.kty,
-            n: publicKeyJwk.n,
-        };
-
-        const publicJwkString: string =
-            getSortedObjectString(pubKeyThumprintObj);
-        const publicJwkHash = await this.hashString(publicJwkString);
+        const publicJwkHash = await BrowserCrypto.computeJwkThumbprint(
+            publicKeyJwk
+        );
 
         // Generate Thumbprint for Private Key
         const privateKeyJwk: JsonWebKey = await BrowserCrypto.exportJwk(
@@ -147,7 +142,12 @@ export class CryptoOps implements ICrypto {
         );
         // Re-import private key to make it unextractable
         const unextractablePrivateKey: CryptoKey =
-            await BrowserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
+            await BrowserCrypto.importJwk(
+                privateKeyJwk,
+                false,
+                ["sign"],
+                BrowserCrypto.RSA_KEYGEN_ALGORITHM_OPTIONS
+            );
 
         // Store Keypair data in keystore
         await this.cache.setItem(
@@ -278,7 +278,8 @@ export class CryptoOps implements ICrypto {
         const tokenBuffer = encoder.encode(tokenString);
         const signatureBuffer = await BrowserCrypto.sign(
             cachedKeyPair.privateKey,
-            tokenBuffer
+            tokenBuffer,
+            BrowserCrypto.RSA_SIGN_ALGORITHM_OPTIONS
         );
         const encodedSignature = urlEncodeArr(new Uint8Array(signatureBuffer));
 
