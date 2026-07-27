@@ -874,6 +874,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 redirectUri: window.location.href,
                 correlationId: RANDOM_TEST_GUID,
                 windowTitleSubstring: "test window",
+                isSts: false,
             };
             // @ts-ignore
             pca.browserStorage.setTemporaryCache(
@@ -994,6 +995,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     redirectUri: window.location.href,
                     correlationId: RANDOM_TEST_GUID,
                     windowTitleSubstring: "test window",
+                    isSts: false,
                 };
                 // @ts-ignore
                 pca.browserStorage.setTemporaryCache(
@@ -1037,6 +1039,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 redirectUri: window.location.href,
                 correlationId: RANDOM_TEST_GUID,
                 windowTitleSubstring: "test window",
+                isSts: false,
             };
             // @ts-ignore
             pca.controller.browserStorage.setTemporaryCache(
