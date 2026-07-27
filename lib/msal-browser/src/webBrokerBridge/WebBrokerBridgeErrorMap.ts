@@ -17,9 +17,9 @@ import {
 
 /**
  * Lift a normalized `WebBrokerBridgeError` to one of the four base
- * MSAL error classes. Per-bridge glue is responsible for lowering
- * transport-specific errors into this shape and, if needed, for
- * upgrading the result back to a bridge-specific subclass.
+ * MSAL error classes. Callers are responsible for lowering
+ * transport-specific errors into `WebBrokerBridgeError` before calling
+ * this function.
  */
 export function toAuthError(err: WebBrokerBridgeError): AuthError {
     const correlationId = err.correlationId ?? "";
@@ -80,8 +80,8 @@ export function toAuthError(err: WebBrokerBridgeError): AuthError {
 
         /*
          * PWB broker-channel failures. The common code doubles as the
-         * errorCode so PWB glue can rehydrate the original BrokerAuthError
-         * subclass by round-tripping the string.
+         * concrete errorCode on AuthError so the original error identity
+         * can be recovered by round-tripping the string.
          */
         case WebBrokerBridgeErrorCode.BridgeTimeout:
         case WebBrokerBridgeErrorCode.BridgeHandshakeFailed:

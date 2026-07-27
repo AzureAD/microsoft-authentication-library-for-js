@@ -10,27 +10,23 @@
  * (`AuthError`, `ClientAuthError`, `ServerError`,
  * `InteractionRequiredAuthError`) via `toAuthError` in
  * `./WebBrokerBridgeErrorMap`.
- *
- * Bridge-specific subclasses (e.g. `BrokerAuthError`, `BrowserAuthError`,
- * `ClientConfigurationError`) can be reconstructed by per-bridge "glue"
- * adapters when needed; otherwise callers receive the base class directly.
  */
 export const WebBrokerBridgeErrorCode = {
-    /* Interaction / auth outcomes (both bridges) */
+    /* Interaction / auth outcomes */
     UserInteractionRequired: "user_interaction_required",
     UserCanceled: "user_canceled",
 
-    /* Environment / connectivity (both bridges) */
+    /* Environment / connectivity */
     NoNetwork: "no_network",
     AccountUnavailable: "account_unavailable",
     BridgeDisabled: "bridge_disabled",
     BridgeUnavailable: "bridge_unavailable",
 
-    /* Server-side outcomes (NAA-only today; PWB will emit via glue in PR 6) */
+    /* Server-side outcomes */
     TransientError: "transient_error",
     PersistentError: "persistent_error",
 
-    /* Broker-channel failures (PWB-only today; NAA may emit in the future) */
+    /* Broker-channel failures */
     BridgeTimeout: "bridge_timeout",
     BridgeHandshakeFailed: "bridge_handshake_failed",
     BridgeConnectionReset: "bridge_connection_reset",
