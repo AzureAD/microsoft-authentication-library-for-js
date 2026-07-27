@@ -83,7 +83,32 @@ describe("RequestHelpers tests", () => {
             ).rejects.toThrowError(
                 new ClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshJwk,
-                    ""
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+        });
+
+        it("should throw an error with correlationId if SSH authentication scheme is used without sshKid", async () => {
+            const request: Partial<BaseAuthRequest> & {
+                correlationId: string;
+            } = {
+                correlationId: "test-correlation-id",
+                authenticationScheme: Constants.AuthenticationScheme.SSH,
+                sshJwk: "test-ssh-jwk",
+            };
+
+            await expect(
+                RequestHelpers.initializeBaseRequest(
+                    request,
+                    mockConfig,
+                    mockPerformanceClient,
+                    mockLogger,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toThrowError(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshKid,
+                    TEST_CONFIG.CORRELATION_ID
                 )
             );
         });

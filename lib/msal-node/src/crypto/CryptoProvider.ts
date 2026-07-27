@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "@azure/msal-common/node";
+import {
+    ClientAuthErrorCodes,
+    Constants,
+    createClientAuthError,
+} from "@azure/msal-common/node";
 import type {
     ICrypto,
     PkceCodes,
@@ -119,9 +123,11 @@ export class CryptoProvider implements ICrypto {
         void header;
         void payload;
         void kid;
-        void correlationId;
         void context;
-        throw new Error("Method not implemented.");
+        throw createClientAuthError(
+            ClientAuthErrorCodes.methodNotImplemented,
+            correlationId
+        );
     }
 
     /**
