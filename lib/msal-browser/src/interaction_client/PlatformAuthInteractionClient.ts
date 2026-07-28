@@ -32,7 +32,6 @@ import {
     TokenClaims,
     UrlString,
     buildAccountToCache,
-    createAuthError,
     createClientAuthError,
     invokeAsync,
     updateAccountTenantProfileData,
