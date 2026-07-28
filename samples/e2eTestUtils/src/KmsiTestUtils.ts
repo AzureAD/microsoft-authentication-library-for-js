@@ -23,8 +23,13 @@ export const KmsiSelectors = {
     // "Yes" — persist the session (sets a persistent auth cookie, adds "kmsi"
     // to the id token signin_state claim).
     YES: SubmitButtonSelectors.IDSIBUTTON9,
-    // "No" — do not persist.
-    NO: SubmitButtonSelectors.IDBTNBACK,
+    // "No" — do not persist. This is the ESTS "Stay signed in?" back button.
+    // It is intentionally NOT part of SubmitButtonSelectors: clickSubmitButton()
+    // clicks the first element matching ANY SubmitButtonSelectors value, and the
+    // back arrow (#idBtn_Back) is present on the password/KMSI pages BEFORE the
+    // "Sign in" button in the DOM — including it there makes generic submits click
+    // "Back" and bounce the login flow to the username page.
+    NO: "#idBtn_Back, input[name='idBtn_Back']",
 };
 
 const KMSI_NAVIGATION_CONFIG: WaitForOptions = {

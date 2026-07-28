@@ -112,7 +112,6 @@ export const UsernameSelectors = {
 
 export const SubmitButtonSelectors = {
     IDSIBUTTON9: "#idSIButton9, input[name='idSIButton9']",
-    IDBTNBACK: "#idBtn_Back, input[name='idBtn_Back']",
     NEXT: "#next, input[name='next']",
     ACCEPTBUTTON: "#acceptButton, input[name='acceptButton']",
     REMOTE_CONNECT_SUBMIT:
