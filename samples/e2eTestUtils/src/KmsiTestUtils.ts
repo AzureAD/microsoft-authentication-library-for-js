@@ -10,13 +10,17 @@ import {
     isCachedTokenEncrypted,
 } from "./BrowserCacheTestUtils";
 import { HtmlSelectors, SubmitButtonSelectors } from "./Constants";
-import type { IdTokenClaims } from "@azure/msal-common";
+import { AuthToken, type IdTokenClaims } from "@azure/msal-common";
 
 /**
- * Value present in the ID token `signin_state` claim when the user opted in to
- * "Keep me signed in" during interactive authentication.
+ * Device-state values that may appear in the ID token `signin_state` claim.
+ * These are asserted independently of the SDK's KMSI check (`AuthToken.isKmsi`),
+ * which only treats "kmsi"/"dvc_dmjd" as a persistent ("Keep me signed in") state.
  */
-export const KMSI_SIGNIN_STATE = "kmsi";
+export const DeviceSigninState = {
+    MANAGED: "dvc_mngd",
+    COMPLIANT: "dvc_cmp",
+} as const;
 
 /** Selectors for the "Keep me signed in" (KMSI) prompt. */
 export const KmsiSelectors = {
@@ -38,27 +42,20 @@ const KMSI_NAVIGATION_CONFIG: WaitForOptions = {
 };
 
 /**
- * ID token claims shape. Re-exported from `@azure/msal-common` — MSAL already
- * defines this (including the `signin_state` claim used for KMSI detection), so
- * the e2e utils reuse it rather than declaring a parallel interface.
- */
-export type { IdTokenClaims };
-
-/**
  * Decodes the payload segment of a JWT WITHOUT verifying its signature.
  * For test assertions only — never use for trust decisions.
+ *
+ * Delegates to the SDK's `AuthToken.extractTokenClaims` (JWS split + base64url
+ * decode + JSON.parse) so the test decodes tokens exactly the way MSAL does.
+ * `extractTokenClaims` requires a base64 decoder to be injected; we supply a
+ * Node-friendly base64url decoder.
  */
 export function decodeJwtPayload(jwt: string): IdTokenClaims {
-    const parts = jwt.split(".");
-    if (parts.length < 3) {
-        throw new Error(
-            "Malformed JWT: expected header, payload, and signature segments"
-        );
-    }
-    // base64url -> base64
-    const payload = decodeBase64Url(parts[1]);
-    const json = payload.toString("utf-8");
-    return JSON.parse(json) as IdTokenClaims;
+    return AuthToken.extractTokenClaims(
+        jwt,
+        (input) => decodeBase64Url(input).toString("utf-8"),
+        "e2e-test"
+    );
 }
 
 /**
@@ -156,25 +153,39 @@ export async function selectKmsiOption(
 }
 
 /**
- * Asserts whether the ID token `signin_state` claim reflects a Keep Me Signed
- * In session.
+ * Asserts whether the ID token reflects a "Keep me signed in" session.
  *
- * @param expected - true asserts "kmsi" IS present (KMSI opted in), false asserts
- *                   it is NOT present.
+ * Delegates to the SDK's `AuthToken.isKmsi` so the test stays in lockstep with
+ * product behavior — `isKmsi` treats `signin_state` values "kmsi" and "dvc_dmjd"
+ * as persistent. Device-state signals (managed/compliant) are NOT part of the
+ * KMSI check; assert those separately with `assertSigninStateContains`.
+ *
+ * @param expected - true asserts KMSI IS in effect, false asserts it is NOT.
  */
 export function assertKmsiSigninState(
     claims: IdTokenClaims,
     expected: boolean = true
 ): void {
-    const signinState = claims.signin_state ?? [];
-    const kmsiValues = [KMSI_SIGNIN_STATE, "dvc_dmjd", "dvc_mngd", "dvc_cmp"];
-    const hasKmsi =
-        Array.isArray(signinState) &&
-        signinState.some((value) =>
-            kmsiValues.includes(value.trim().toLowerCase())
-        );
+    expect(AuthToken.isKmsi(claims)).toBe(expected);
+}
 
-    expect(hasKmsi).toBe(expected);
+/**
+ * Asserts that the ID token `signin_state` claim contains every one of the given
+ * values (case-insensitive). Use for device-state signals such as
+ * `DeviceSigninState.MANAGED` / `DeviceSigninState.COMPLIANT` that are independent
+ * of the KMSI opt-in and only present on managed/compliant devices — so call this
+ * only in scenarios where those claims are expected.
+ */
+export function assertSigninStateContains(
+    claims: IdTokenClaims,
+    expectedValues: string[]
+): void {
+    const signinState = (claims.signin_state ?? []).map((value) =>
+        value.trim().toLowerCase()
+    );
+    for (const value of expectedValues) {
+        expect(signinState).toContain(value.toLowerCase());
+    }
 }
 
 /**

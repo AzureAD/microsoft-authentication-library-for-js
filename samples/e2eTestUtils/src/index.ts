@@ -56,16 +56,16 @@ export {
     isCachedTokenEncrypted,
 } from "./BrowserCacheTestUtils";
 export {
-    KMSI_SIGNIN_STATE,
+    DeviceSigninState,
     KmsiSelectors,
     decodeBase64Url,
     decodeJwtPayload,
     getIdTokenClaimsFromCache,
     selectKmsiOption,
     assertKmsiSigninState,
+    assertSigninStateContains,
     verifyKmsiFromCache,
 } from "./KmsiTestUtils";
-export type { IdTokenClaims } from "./KmsiTestUtils";
 export { Browser, Page, BrowserContext, Frame } from "puppeteer";
 export { NodeCacheTestUtils } from "./NodeCacheTestUtils";
 export { storagePoller } from "./TestUtils";
