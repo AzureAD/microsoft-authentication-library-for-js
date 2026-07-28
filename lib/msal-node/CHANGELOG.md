@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Wed, 15 Jul 2026 22:35:35 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 21 Jul 2026 22:25:04 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.4.2
+
+Tue, 21 Jul 2026 22:25:04 GMT
+
+### Patches
+
+- Upgrade Azure Arc HIMDS token endpoint api-version from 2019-11-01 to 2020-06-01 [#8711](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8711) (gladjohn@microsoft.com)
 
 ## 5.4.1
 
