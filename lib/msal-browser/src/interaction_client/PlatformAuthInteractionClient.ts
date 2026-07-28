@@ -228,7 +228,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     "MSAL internal Cache does not contain tokens, return error as per cache policy",
                     this.correlationId
                 );
-                nativeATMeasurement.end({ success: false });
+                nativeATMeasurement.end({
+                    success: false,
+                    errorCode:
+                        e instanceof AuthError ? e.errorCode : "cache_request_failed",
+                    subErrorCode: e instanceof AuthError ? e.subError : undefined,
+                });
                 // Cache-only lookup failed; no request was dispatched to the broker
                 this.performanceClient.addFields(
                     {
