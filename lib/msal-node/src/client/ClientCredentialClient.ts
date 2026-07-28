@@ -85,7 +85,7 @@ export class ClientCredentialClient extends BaseClient {
             };
         }
 
-        if (request.skipCache || request.claims) {
+        if (request.skipCache || !StringUtils.isEmptyObj(request.claims)) {
             return this.executeTokenRequest(
                 request,
                 this.authority,
