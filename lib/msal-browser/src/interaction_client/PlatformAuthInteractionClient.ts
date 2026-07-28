@@ -288,7 +288,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * broker was engaged; when the caller subsequently falls back to a web flow
      * that succeeds, the root success measurement overrides it to false via
      * `result.fromPlatformBroker`. Terminal broker errors (no fallback) retain
-     * true. `brokerErrorName`/`brokerErrorCode` are recorded for every broker error.
+     * true. `brokerErrorName`/`brokerErrorCode` are recorded when the error is an `AuthError`.
      * @param error error thrown by the broker interaction
      */
     private setBrokerErrorTelemetry(error: unknown): void {
