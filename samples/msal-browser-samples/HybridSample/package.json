@@ -10,7 +10,7 @@
     "dependencies": {
         "@azure/msal-browser": "^5.0.0",
         "@azure/msal-node": "^5.0.0",
-        "body-parser": "^1.20.3",
+        "body-parser": "^1.20.6",
         "cookie-parser": "^1.4.4",
         "debug": "^2.6.9",
         "dotenv": "^10.0.0",

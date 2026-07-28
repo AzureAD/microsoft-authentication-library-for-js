@@ -142,8 +142,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             redirectUri,
             correlationId,
             state,
-            storeInCache,
-            embeddedClientId,
             extraParameters,
             ...remainingProperties
         } = request;
@@ -167,8 +165,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             redirectUri: redirectUri,
             scope: scope,
             state: state,
-            storeInCache: storeInCache,
-            embeddedClientId: embeddedClientId,
         };
 
         return platformDOMRequest;
