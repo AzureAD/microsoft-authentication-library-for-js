@@ -231,11 +231,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 nativeATMeasurement.add({
                     isNativeBroker: false,
                 });
-                nativeATMeasurement.end(
-                    {
-                        success: false,
-                    },
-                );
+                nativeATMeasurement.end({
+                    success: false,
+                });
                 throw e;
             }
             // continue with a native call for any and all errors
