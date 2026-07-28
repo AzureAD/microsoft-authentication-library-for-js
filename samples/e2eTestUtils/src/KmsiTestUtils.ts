@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Page, WaitForOptions } from "puppeteer";
+import type { Page, WaitForOptions } from "puppeteer";
 import { Screenshot } from "./TestUtils";
 import {
     BrowserCacheUtils,
