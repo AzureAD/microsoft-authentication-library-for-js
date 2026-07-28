@@ -71,6 +71,7 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 | API | MSAL Usage | Fallback |
 |-----|-----------|----------|
 | `fetch()` | All HTTP requests (token endpoint, discovery, custom auth) | None |
+| `navigator.onLine` | Distinguish network-offline from transport failures when token POST fails | Assumes online (retries once for non-abort transport failures) |
 | `TextEncoder` / `TextDecoder` | String ↔ binary for crypto | None |
 | `atob()` / `btoa()` | Base64 for JWK and token parsing | None |
 | Hidden form + `form.submit()` | POST-based `/authorize` (EAR, redirect POST, silent iframe POST) | None for POST flows |
