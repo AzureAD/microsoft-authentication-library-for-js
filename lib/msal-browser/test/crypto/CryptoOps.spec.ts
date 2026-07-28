@@ -362,7 +362,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     it("signTokenBindingJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
         await expect(
             cryptoObj.signTokenBindingJwt(
-                new JoseHeader({ alg: "RS256" }),
+                new JoseHeader({ alg: "RS256" }, TEST_CONFIG.CORRELATION_ID),
                 {},
                 "testString",
                 TEST_CONFIG.CORRELATION_ID
@@ -393,7 +393,7 @@ describe("CryptoOps.ts Unit Tests", () => {
                     clientId: "",
                     name: measureName,
                     startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
+                    correlationId: correlationId as string,
                 },
             })
         );
@@ -448,7 +448,7 @@ describe("CryptoOps.ts Unit Tests", () => {
                     clientId: "",
                     name: measureName,
                     startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
+                    correlationId: correlationId as string,
                 },
             })
         );
@@ -490,7 +490,7 @@ describe("CryptoOps.ts Unit Tests", () => {
                     clientId: "",
                     name: measureName,
                     startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
+                    correlationId: correlationId as string,
                 },
             })
         );
@@ -532,7 +532,7 @@ describe("CryptoOps.ts Unit Tests", () => {
                     clientId: "",
                     name: measureName,
                     startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
+                    correlationId: correlationId as string,
                 },
             })
         );
@@ -574,7 +574,7 @@ describe("CryptoOps.ts Unit Tests", () => {
                     clientId: "",
                     name: measureName,
                     startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
+                    correlationId: correlationId as string,
                 },
             })
         );
@@ -596,17 +596,23 @@ describe("CryptoOps.ts Unit Tests", () => {
         endMeasurement.mockClear();
 
         await cryptoObj.signTokenBindingJwt(
-            JoseHeader.getShrHeader({
-                alg: "RS256",
-                typ: Constants.JsonWebTokenTypes.Pop,
-                kid: "pop-kid",
-            }),
+            JoseHeader.getShrHeader(
+                {
+                    alg: "RS256",
+                    typ: Constants.JsonWebTokenTypes.Pop,
+                    kid: "pop-kid",
+                },
+                TEST_CONFIG.CORRELATION_ID
+            ),
             { at: "access-token" },
             popKeyId,
             TEST_CONFIG.CORRELATION_ID
         );
         await cryptoObj.signTokenBindingJwt(
-            JoseHeader.getDpopHeader({ alg: "ES256", jwk: dpopPublicJwk }),
+            JoseHeader.getDpopHeader(
+                { alg: "ES256", jwk: dpopPublicJwk },
+                TEST_CONFIG.CORRELATION_ID
+            ),
             { htm: "POST", htu: TEST_URIS.TEST_AUTH_ENDPT, iat: 1, jti: "jti" },
             dpopKeyId,
             TEST_CONFIG.CORRELATION_ID,
@@ -647,7 +653,7 @@ describe("CryptoOps.ts Unit Tests", () => {
                     clientId: "",
                     name: measureName,
                     startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
+                    correlationId: correlationId as string,
                 },
             })
         );
@@ -655,15 +661,18 @@ describe("CryptoOps.ts Unit Tests", () => {
 
         await expect(
             cryptoObj.signTokenBindingJwt(
-                JoseHeader.getDpopHeader({
-                    alg: "ES256",
-                    jwk: {
-                        kty: "EC",
-                        crv: "P-256",
-                        x: "A".repeat(43),
-                        y: "B".repeat(43),
+                JoseHeader.getDpopHeader(
+                    {
+                        alg: "ES256",
+                        jwk: {
+                            kty: "EC",
+                            crv: "P-256",
+                            x: "A".repeat(43),
+                            y: "B".repeat(43),
+                        },
                     },
-                }),
+                    TEST_CONFIG.CORRELATION_ID
+                ),
                 {
                     htm: "POST",
                     htu: TEST_URIS.TEST_AUTH_ENDPT,
@@ -719,7 +728,8 @@ describe("CryptoOps.ts Unit Tests", () => {
             );
             const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
             const thumbprint = await BrowserCrypto.computeJwkThumbprint(
-                publicJwk
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
             );
 
             // SHA-256 base64url is always 43 characters (base64url alphabet: A-Z a-z 0-9 - _)
@@ -744,7 +754,8 @@ describe("CryptoOps.ts Unit Tests", () => {
                 n: "test-modulus",
             };
             const thumbprint = await BrowserCrypto.computeJwkThumbprint(
-                publicJwk
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
             );
             const expectedThumbprint = createHash("SHA256")
                 .update(JSON.stringify(publicJwk, ["e", "kty", "n"]))
@@ -755,10 +766,13 @@ describe("CryptoOps.ts Unit Tests", () => {
 
         it("computeJwkThumbprint rejects unsupported public JWK key types", async () => {
             await expect(
-                BrowserCrypto.computeJwkThumbprint({
-                    kty: "oct",
-                    k: "symmetric-key",
-                })
+                BrowserCrypto.computeJwkThumbprint(
+                    {
+                        kty: "oct",
+                        k: "symmetric-key",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
                 subError: "unsupported_jwk_kty",
@@ -767,11 +781,14 @@ describe("CryptoOps.ts Unit Tests", () => {
 
         it("computeJwkThumbprint rejects missing public JWK key types", async () => {
             await expect(
-                BrowserCrypto.computeJwkThumbprint({
-                    crv: "P-256",
-                    x: "x-coordinate",
-                    y: "y-coordinate",
-                })
+                BrowserCrypto.computeJwkThumbprint(
+                    {
+                        crv: "P-256",
+                        x: "x-coordinate",
+                        y: "y-coordinate",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
                 subError: "missing_jwk_kty",
@@ -780,23 +797,29 @@ describe("CryptoOps.ts Unit Tests", () => {
 
         it("computeJwkThumbprint rejects missing or empty public JWK coordinates", async () => {
             await expect(
-                BrowserCrypto.computeJwkThumbprint({
-                    kty: "EC",
-                    crv: "P-256",
-                    x: "x-coordinate",
-                })
+                BrowserCrypto.computeJwkThumbprint(
+                    {
+                        kty: "EC",
+                        crv: "P-256",
+                        x: "x-coordinate",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
                 subError: "missing_jwk_member",
             });
 
             await expect(
-                BrowserCrypto.computeJwkThumbprint({
-                    kty: "EC",
-                    crv: "P-256",
-                    x: "",
-                    y: "y-coordinate",
-                })
+                BrowserCrypto.computeJwkThumbprint(
+                    {
+                        kty: "EC",
+                        crv: "P-256",
+                        x: "",
+                        y: "y-coordinate",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
                 subError: "empty_jwk_member",
@@ -823,7 +846,7 @@ describe("CryptoOps.ts Unit Tests", () => {
                     clientId: "",
                     name: measureName,
                     startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
+                    correlationId: correlationId as string,
                 },
             }));
             cryptoObj = new CryptoOps(new Logger({}), performanceClient);
@@ -833,7 +856,10 @@ describe("CryptoOps.ts Unit Tests", () => {
                 BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
             );
             const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
-            const keyId = await BrowserCrypto.computeJwkThumbprint(publicJwk);
+            const keyId = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
             mockDatabase["TestDB.keys"][keyId] = {
                 privateKey: keyPair.privateKey,
                 publicKey: keyPair.publicKey,
@@ -843,7 +869,10 @@ describe("CryptoOps.ts Unit Tests", () => {
             const signSpy = jest.spyOn(BrowserCrypto, "sign");
 
             const proof = await cryptoObj.signTokenBindingJwt(
-                JoseHeader.getDpopHeader({ alg: "ES256", jwk: publicJwk }),
+                JoseHeader.getDpopHeader(
+                    { alg: "ES256", jwk: publicJwk },
+                    TEST_CONFIG.CORRELATION_ID
+                ),
                 {
                     htm: "POST",
                     htu: TEST_URIS.TEST_AUTH_ENDPT,
@@ -880,17 +909,23 @@ describe("CryptoOps.ts Unit Tests", () => {
                 BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
             );
             const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
-            const keyId = await BrowserCrypto.computeJwkThumbprint(publicJwk);
+            const keyId = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
             mockDatabase["TestDB.keys"][keyId] = {
                 privateKey: keyPair.privateKey,
                 publicKey: keyPair.publicKey,
                 tokenBindingKeyType: "dpop",
                 tokenBindingKeyAlgorithm: "ES256",
             };
-            const header = JoseHeader.getDpopHeader({
-                alg: "ES256",
-                jwk: publicJwk,
-            });
+            const header = JoseHeader.getDpopHeader(
+                {
+                    alg: "ES256",
+                    jwk: publicJwk,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
 
             const proof = await cryptoObj.signTokenBindingJwt(
                 header,
@@ -930,7 +965,10 @@ describe("CryptoOps.ts Unit Tests", () => {
                 BrowserCrypto.RSA_KEYGEN_ALGORITHM_OPTIONS
             );
             const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
-            const keyId = await BrowserCrypto.computeJwkThumbprint(publicJwk);
+            const keyId = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
             mockDatabase["TestDB.keys"][keyId] = {
                 privateKey: keyPair.privateKey,
                 publicKey: keyPair.publicKey,
@@ -939,11 +977,14 @@ describe("CryptoOps.ts Unit Tests", () => {
             };
 
             const proof = await cryptoObj.signTokenBindingJwt(
-                JoseHeader.getShrHeader({
-                    alg: "RS256",
-                    typ: Constants.JsonWebTokenTypes.Pop,
-                    kid: "pop-key-id",
-                }),
+                JoseHeader.getShrHeader(
+                    {
+                        alg: "RS256",
+                        typ: Constants.JsonWebTokenTypes.Pop,
+                        kid: "pop-key-id",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                ),
                 { at: "access-token" },
                 keyId,
                 TEST_CONFIG.CORRELATION_ID
@@ -978,7 +1019,8 @@ describe("CryptoOps.ts Unit Tests", () => {
                 signingKeyPair.publicKey
             );
             const signingKeyId = await BrowserCrypto.computeJwkThumbprint(
-                signingPublicJwk
+                signingPublicJwk,
+                TEST_CONFIG.CORRELATION_ID
             );
             mockDatabase["TestDB.keys"][signingKeyId] = {
                 privateKey: signingKeyPair.privateKey,
@@ -997,10 +1039,13 @@ describe("CryptoOps.ts Unit Tests", () => {
 
             await expect(
                 cryptoObj.signTokenBindingJwt(
-                    JoseHeader.getDpopHeader({
-                        alg: "ES256",
-                        jwk: mismatchedPublicJwk,
-                    }),
+                    JoseHeader.getDpopHeader(
+                        {
+                            alg: "ES256",
+                            jwk: mismatchedPublicJwk,
+                        },
+                        TEST_CONFIG.CORRELATION_ID
+                    ),
                     {
                         htm: "POST",
                         htu: TEST_URIS.TEST_AUTH_ENDPT,
@@ -1039,7 +1084,7 @@ describe("CryptoOps.ts Unit Tests", () => {
                     clientId: "",
                     name: measureName,
                     startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
+                    correlationId: correlationId as string,
                 },
             }));
             cryptoObj = new CryptoOps(new Logger({}), performanceClient);
@@ -1049,7 +1094,10 @@ describe("CryptoOps.ts Unit Tests", () => {
                 BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
             );
             const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
-            const keyId = await BrowserCrypto.computeJwkThumbprint(publicJwk);
+            const keyId = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
             mockDatabase["TestDB.keys"][keyId] = {
                 privateKey: keyPair.privateKey,
                 publicKey: keyPair.publicKey,
@@ -1059,7 +1107,10 @@ describe("CryptoOps.ts Unit Tests", () => {
 
             await expect(
                 cryptoObj.signTokenBindingJwt(
-                    JoseHeader.getDpopHeader({ alg: "RS256", jwk: publicJwk }),
+                    JoseHeader.getDpopHeader(
+                        { alg: "RS256", jwk: publicJwk },
+                        TEST_CONFIG.CORRELATION_ID
+                    ),
                     {
                         htm: "POST",
                         htu: TEST_URIS.TEST_AUTH_ENDPT,
@@ -1108,10 +1159,13 @@ describe("CryptoOps.ts Unit Tests", () => {
 
             await expect(
                 cryptoObj.signTokenBindingJwt(
-                    new JoseHeader({
-                        alg: "ES384",
-                        typ: Constants.JsonWebTokenTypes.Dpop,
-                    }),
+                    new JoseHeader(
+                        {
+                            alg: "ES384",
+                            typ: Constants.JsonWebTokenTypes.Dpop,
+                        },
+                        TEST_CONFIG.CORRELATION_ID
+                    ),
                     {
                         htm: "POST",
                         htu: TEST_URIS.TEST_AUTH_ENDPT,

@@ -26,7 +26,7 @@ export class JoseHeader {
 
     constructor(
         options: JoseHeaderOptions & { alg: string },
-        correlationId: string = ""
+        correlationId: string
     ) {
         if (typeof options.alg !== "string" || !options.alg) {
             throw createJoseHeaderError(
@@ -51,10 +51,10 @@ export class JoseHeader {
      */
     static getShrHeader(
         shrHeaderOptions: JoseHeaderOptions,
-        correlationId: string = ""
+        correlationId: string
     ): JoseHeader {
         // KeyID is required on the SHR header
-        if (typeof shrHeaderOptions.kid !== "string" || !shrHeaderOptions.kid) {
+        if (!shrHeaderOptions.kid) {
             throw createJoseHeaderError(
                 JoseHeaderErrorCodes.missingKidError,
                 correlationId
@@ -62,7 +62,7 @@ export class JoseHeader {
         }
 
         // Alg is required on the SHR header
-        if (typeof shrHeaderOptions.alg !== "string" || !shrHeaderOptions.alg) {
+        if (!shrHeaderOptions.alg) {
             throw createJoseHeaderError(
                 JoseHeaderErrorCodes.missingAlgError,
                 correlationId
@@ -89,7 +89,7 @@ export class JoseHeader {
      */
     static getDpopHeader(
         dpopHeaderOptions: JoseHeaderOptions,
-        correlationId: string = ""
+        correlationId: string
     ): JoseHeader {
         if (!isPlainObject(dpopHeaderOptions.jwk)) {
             throw createJoseHeaderError(
@@ -98,10 +98,7 @@ export class JoseHeader {
             );
         }
 
-        if (
-            typeof dpopHeaderOptions.alg !== "string" ||
-            !dpopHeaderOptions.alg
-        ) {
+        if (!dpopHeaderOptions.alg) {
             throw createJoseHeaderError(
                 JoseHeaderErrorCodes.missingAlgError,
                 correlationId

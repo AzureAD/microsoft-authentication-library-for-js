@@ -2061,11 +2061,11 @@ export interface IUri {
 export class JoseHeader {
     constructor(options: JoseHeaderOptions & {
         alg: string;
-    }, correlationId?: string);
+    }, correlationId: string);
     // (undocumented)
     alg: string;
-    static getDpopHeader(dpopHeaderOptions: JoseHeaderOptions, correlationId?: string): JoseHeader;
-    static getShrHeader(shrHeaderOptions: JoseHeaderOptions, correlationId?: string): JoseHeader;
+    static getDpopHeader(dpopHeaderOptions: JoseHeaderOptions, correlationId: string): JoseHeader;
+    static getShrHeader(shrHeaderOptions: JoseHeaderOptions, correlationId: string): JoseHeader;
     // (undocumented)
     jwk?: JsonWebKey;
     // (undocumented)

@@ -225,7 +225,7 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
                     clientId: "",
                     name: measureName,
                     startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
+                    correlationId: correlationId as string,
                 },
             })
         );
@@ -276,7 +276,7 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
                     clientId: "",
                     name: measureName,
                     startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
+                    correlationId: correlationId as string,
                 },
             })
         );
