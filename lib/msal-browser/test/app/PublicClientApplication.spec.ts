@@ -944,6 +944,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     ).toEqual(1);
                     expect(event.success).toBeTruthy();
                     expect(event.accountType).toEqual("MSA");
+                    // isNativeBroker is stamped on the root event by StandardController
+                    // from result.fromPlatformBroker when the broker fulfills the request
+                    expect(event.isNativeBroker).toBe(true);
                     pca.removePerformanceCallback(callbackId);
                     done();
                 });
@@ -1012,6 +1015,99 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 ).mockResolvedValue(testTokenResponse);
 
                 pca.handleRedirectPromise();
+            });
+        });
+
+        it("records brokerErrorName/brokerErrorCode on the root event when the platform broker fails", (done) => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            };
+            pca = new PublicClientApplication(config);
+            stubExtensionProvider(config);
+
+            pca.initialize().then(() => {
+                const callbackId = pca.addPerformanceCallback((events) => {
+                    expect(events[0].success).toBeFalsy();
+                    expect(events[0].brokerErrorName).toContain(
+                        "NativeAuthError"
+                    );
+                    expect(events[0].brokerErrorCode).toContain("ContentError");
+                    pca.removePerformanceCallback(callbackId);
+                    done();
+                });
+                // Implementation of PCA was moved to controller.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                pca = (pca as any).controller;
+
+                const testAccount: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "9188040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "AbeLi@microsoft.com",
+                    loginHint: "AbeLiLoginHint",
+                    nativeAccountId: "test-nativeAccountId",
+                    idTokenClaims: {
+                        tid: "9188040d-6c67-4c5b-b112-36a304b66dad",
+                    },
+                };
+                jest.spyOn(
+                    BrowserCacheManager.prototype,
+                    "isInteractionInProgress"
+                ).mockReturnValue(true);
+                jest.spyOn(
+                    BrowserCacheManager.prototype,
+                    "getCachedRequest"
+                ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
+
+                const nativeRequest: PlatformAuthRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                    accountId: testAccount.nativeAccountId as string,
+                    redirectUri: window.location.href,
+                    correlationId: RANDOM_TEST_GUID,
+                    windowTitleSubstring: "test window",
+                    isSts: false,
+                };
+                // @ts-ignore
+                pca.browserStorage.setTemporaryCache(
+                    TemporaryCacheKeys.NATIVE_REQUEST,
+                    JSON.stringify(nativeRequest),
+                    true
+                );
+                jest.spyOn(pca, "getAllAccounts").mockReturnValue([
+                    testAccount,
+                ]);
+                // Reject the broker call with a fatal native error so the real
+                // client writes broker error telemetry to the root event.
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockRejectedValue(
+                    new NativeAuthError(
+                        "ContentError",
+                        "",
+                        "error in extension"
+                    )
+                );
+
+                pca.handleRedirectPromise().catch(() => {
+                    // The rejection is expected; assertions run in the
+                    // performance callback above.
+                });
             });
         });
 
@@ -1755,6 +1851,72 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
             expect(redirectSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("records brokerErrorName/brokerErrorCode on the root measurement when the platform broker fails with a fatal error", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient({
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        },
+                    }),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            };
+            pca = new PublicClientApplication(config);
+
+            stubExtensionProvider(config);
+            await pca.initialize();
+
+            // Implementation of PCA was moved to controller.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
+
+            /*
+             * The redirect root measurement (AcquireTokenPreRedirect) is not
+             * emitted in phase 1 - it is flushed and completed in phase 2
+             * (handleRedirectPromise). Assert that the real client writes the
+             * broker error fields to the root measurement via addFields.
+             */
+            const addFieldsSpy: jest.SpyInstance = jest.spyOn(
+                BrowserPerformanceClient.prototype,
+                "addFields"
+            );
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockRejectedValue(
+                new NativeAuthError("ContentError", "", "error in extension")
+            );
+            const redirectSpy = jest
+                .spyOn(RedirectClient.prototype, "acquireToken")
+                .mockResolvedValue();
+
+            await pca.acquireTokenRedirect({
+                scopes: ["User.Read"],
+                account: testAccount,
+            });
+
+            expect(redirectSpy).toHaveBeenCalledTimes(1);
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    brokerErrorName: "NativeAuthError",
+                    brokerErrorCode: "ContentError",
+                }),
+                expect.anything()
+            );
         });
 
         it("falls back to web flow if platform broker call fails due to interaction_required error", async () => {
@@ -5202,6 +5364,84 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(response).toEqual(testTokenResponse);
             expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
+            expect(silentSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("records brokerErrorName/brokerErrorCode on the root event when the platform broker fails", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient({
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        },
+                    }),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            };
+            pca = new PublicClientApplication(config);
+
+            stubExtensionProvider(config);
+            await pca.initialize();
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+
+            // Force a cache miss, then reject the broker call with a fatal
+            // native error so the real client writes broker error telemetry
+            // to the root event before falling back to the web (iframe) flow.
+            jest.spyOn(
+                PlatformAuthInteractionClient.prototype as any,
+                "acquireTokensFromCache"
+            ).mockRejectedValue(new Error("No cached tokens"));
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockRejectedValue(
+                new NativeAuthError("ContentError", "", "error in extension")
+            );
+            const silentSpy: jest.SpyInstance = jest
+                .spyOn(SilentIframeClient.prototype, "acquireToken")
+                .mockResolvedValue(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].isPlatformBrokerRequest).toBe(true);
+                expect(events[0].brokerErrorName).toContain("NativeAuthError");
+                expect(events[0].brokerErrorCode).toContain("ContentError");
+                pca.removePerformanceCallback(callbackId);
+            });
+
+            const response = await pca.acquireTokenSilent({
+                scopes: ["User.Read"],
+                account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
+            });
+
+            expect(response).toEqual(testTokenResponse);
             expect(silentSpy).toHaveBeenCalledTimes(1);
         });
 

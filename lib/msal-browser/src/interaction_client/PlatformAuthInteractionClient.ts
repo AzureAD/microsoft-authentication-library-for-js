@@ -231,8 +231,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 nativeATMeasurement.end({
                     success: false,
                     errorCode:
-                        e instanceof AuthError ? e.errorCode : "cache_request_failed",
-                    subErrorCode: e instanceof AuthError ? e.subError : undefined,
+                        e instanceof AuthError
+                            ? e.errorCode
+                            : "cache_request_failed",
+                    subErrorCode:
+                        e instanceof AuthError ? e.subError : undefined,
                 });
                 // Cache-only lookup failed; no request was dispatched to the broker
                 this.performanceClient.addFields(
@@ -266,11 +269,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 success: true,
                 requestId: result.requestId,
             });
-            // Token was delivered directly by the broker
-            this.performanceClient.addFields(
-                { isNativeBroker: true },
-                this.correlationId
-            );
             serverTelemetryManager.clearNativeBrokerErrorCode();
             return result;
         } catch (e) {
@@ -304,11 +302,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     brokerErrorName: error.name,
                     brokerErrorCode: error.errorCode,
                 },
-                this.correlationId
-            );
-        } else {
-            this.performanceClient.addFields(
-                { isNativeBroker: true },
                 this.correlationId
             );
         }
@@ -454,14 +447,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                      * natively. Token telemetry for the eventual outcome lands
                      * in handleRedirectPromise (phase 2).
                      */
-                    this.performanceClient?.addFields(
-                        {
-                            isNativeBroker: false,
-                            brokerErrorName: e.name,
-                            brokerErrorCode: e.errorCode,
-                        },
-                        this.correlationId
-                    );
+                    this.setBrokerErrorTelemetry(e);
                     throw e;
                 }
             }
@@ -578,10 +564,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.config.system.serverTelemetryEnabled
             );
             serverTelemetryManager.clearNativeBrokerErrorCode();
-            this.performanceClient?.addFields(
-                { isNativeBroker: true },
-                this.correlationId
-            );
             return authResult;
         } catch (e) {
             this.setBrokerErrorTelemetry(e);
