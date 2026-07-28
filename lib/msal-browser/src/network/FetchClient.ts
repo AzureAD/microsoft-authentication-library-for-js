@@ -93,7 +93,11 @@ export class FetchClient implements INetworkModule {
 
         let response: Response | undefined;
         let lastError: Error | undefined;
-        for (let attempt = 1; attempt <= MAX_FETCH_POST_RETRIES + 1; attempt++) {
+        for (
+            let attempt = 1;
+            attempt <= MAX_FETCH_POST_RETRIES + 1;
+            attempt++
+        ) {
             try {
                 response = await fetch(url, {
                     method: HTTP_REQUEST_TYPE.POST,
