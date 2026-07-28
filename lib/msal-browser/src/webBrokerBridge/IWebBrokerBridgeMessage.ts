@@ -22,10 +22,10 @@ export interface IWebBrokerBridgeMessage {
     readonly requestId: string;
 
     /**
-     * Discriminator identifying the operation this message represents
+     * Discriminator identifying what this message represents
      * (e.g. `"GetToken"`, `"AuthRequest"`, `"Handshake"`).
      */
-    readonly method: string;
+    readonly type: string;
 }
 
 /**

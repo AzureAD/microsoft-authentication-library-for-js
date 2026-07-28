@@ -17,12 +17,12 @@ interface TestResponse extends IWebBrokerBridgeResponse {
     result?: string;
 }
 
-function req(id: string, method = "TestMethod"): TestRequest {
-    return { requestId: id, method };
+function req(id: string, type = "TestMethod"): TestRequest {
+    return { requestId: id, type };
 }
 
 function resp(id: string, result?: string): TestResponse {
-    return { requestId: id, method: "TestMethod", result };
+    return { requestId: id, type: "TestMethod", result };
 }
 
 describe("PendingRequestRegistry", () => {
