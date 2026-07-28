@@ -1787,7 +1787,7 @@ export class StandardController implements IController {
          * here, so it is guaranteed defined and is the single id used to key this
          * flow's telemetry.
          */
-        const correlationId = request.correlationId as string;
+        const correlationId = request.correlationId;
         this.logger.trace("acquireTokenNative called", correlationId);
         if (!this.platformAuthProvider) {
             throw createBrowserAuthError(
