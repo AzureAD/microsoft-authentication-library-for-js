@@ -2581,12 +2581,13 @@ describe("PlatformAuthInteractionClient Tests", () => {
             // Get the mock measurement object that was returned
             const mockMeasurement = startMeasurementSpy.mock.results[0].value;
 
-            // Check that measurement.end was called with success: false and errorCode
+            // Check that measurement.end was called with success: false and the
+            // error object (perf client derives errorCode/subErrorCode from it)
             expect(mockMeasurement.end).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    errorCode: "test_error",
-                })
+                }),
+                authError
             );
         });
 
@@ -2616,11 +2617,13 @@ describe("PlatformAuthInteractionClient Tests", () => {
             // Get the mock measurement object that was returned
             const mockMeasurement = startMeasurementSpy.mock.results[0].value;
 
-            // After the fix, measurement.end should now be called when sendMessage fails
+            // After the fix, measurement.end should now be called when sendMessage
+            // fails, passing the error object as the second argument
             expect(mockMeasurement.end).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                })
+                }),
+                nativeError
             );
         });
 

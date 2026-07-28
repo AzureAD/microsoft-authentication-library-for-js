@@ -193,11 +193,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
              * resolution) failed before the broker was contacted, so end the
              * measurement here to avoid an orphaned sub-measurement.
              */
-            nativeATMeasurement.end({
-                success: false,
-                errorCode: e instanceof AuthError ? e.errorCode : undefined,
-                subErrorCode: e instanceof AuthError ? e.subError : undefined,
-            });
+            nativeATMeasurement.end(
+                {
+                    success: false,
+                },
+                e
+            );
             // Broker was never engaged, so this was not a native broker outcome
             this.performanceClient.addFields(
                 { isNativeBroker: false },
@@ -275,11 +276,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             if (e instanceof NativeAuthError) {
                 serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
             }
-            nativeATMeasurement.end({
-                success: false,
-                errorCode: e instanceof AuthError ? e.errorCode : undefined,
-                subErrorCode: e instanceof AuthError ? e.subError : undefined,
-            });
+            nativeATMeasurement.end(
+                {
+                    success: false,
+                },
+                e
+            );
             this.setBrokerErrorTelemetry(e);
             throw e;
         }
