@@ -193,17 +193,16 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
              * Request initialization (e.g. PoP token generation or authority
              * resolution) failed before the broker was contacted, so end the
              * measurement here to avoid an orphaned sub-measurement.
+             * Broker was never engaged, so this was not a native broker outcome.
              */
+            nativeATMeasurement.add({
+                isNativeBroker: false,
+            });
             nativeATMeasurement.end(
                 {
                     success: false,
                 },
                 e
-            );
-            // Broker was never engaged, so this was not a native broker outcome
-            this.performanceClient.addFields(
-                { isNativeBroker: false },
-                this.correlationId
             );
             throw e;
         }
@@ -214,15 +213,14 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.accountId,
                 nativeRequest
             );
+            // Served from the native internal cache; token did not come directly from the broker
+            nativeATMeasurement.add({
+                isNativeBroker: false,
+            });
             nativeATMeasurement.end({
                 success: true,
                 fromCache: true,
             });
-            // Served from the native internal cache; token did not come directly from the broker
-            this.performanceClient.addFields(
-                { isNativeBroker: false },
-                this.correlationId
-            );
             return result;
         } catch (e) {
             if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
@@ -230,24 +228,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     "MSAL internal Cache does not contain tokens, return error as per cache policy",
                     this.correlationId
                 );
+                nativeATMeasurement.add({
+                    isNativeBroker: false,
+                });
                 nativeATMeasurement.end(
                     {
                         success: false,
                     },
-                    e instanceof AuthError
-                        ? e
-                        : createAuthError(
-                              "cache_request_failed",
-                              this.correlationId
-                          )
-                );
-                // Cache-only lookup failed; no request was dispatched to the broker
-                this.performanceClient.addFields(
-                    {
-                        isNativeBroker: false,
-                        errorCode: "cache_request_failed",
-                    },
-                    this.correlationId
                 );
                 throw e;
             }
