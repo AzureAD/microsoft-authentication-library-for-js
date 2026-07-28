@@ -41,6 +41,12 @@ const SHR_KEY_CONTEXT = {
     correlationId: TEST_CONFIG.CORRELATION_ID,
 } as const;
 
+function expectCorrelationId(
+    correlationId: string | undefined
+): asserts correlationId is string {
+    expect(correlationId).toEqual(expect.any(String));
+}
+
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
     let tokenBindingKeyManager: TokenBindingKeyManager;
@@ -379,23 +385,26 @@ describe("CryptoOps.ts Unit Tests", () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
         jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId as string,
-                },
-            })
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
         );
         tokenBindingKeyManager = new TokenBindingKeyManager(
             new Logger({}),
@@ -434,23 +443,26 @@ describe("CryptoOps.ts Unit Tests", () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
         jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId as string,
-                },
-            })
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
         );
         jest.spyOn(BrowserCrypto, "generateKeyPair").mockRejectedValue(
             new Error("key generation failed")
@@ -476,23 +488,26 @@ describe("CryptoOps.ts Unit Tests", () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
         jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId as string,
-                },
-            })
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
         );
         jest.spyOn(DatabaseStorage.prototype, "getKeys").mockRejectedValueOnce(
             new Error("scoped lookup failed")
@@ -518,23 +533,26 @@ describe("CryptoOps.ts Unit Tests", () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
         jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId as string,
-                },
-            })
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
         );
         jest.spyOn(BrowserCrypto, "generateKeyPair").mockRejectedValue(
             new Error("key generation failed")
@@ -560,23 +578,26 @@ describe("CryptoOps.ts Unit Tests", () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
         jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId as string,
-                },
-            })
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
         );
         cryptoObj = new CryptoOps(new Logger({}), performanceClient);
 
@@ -639,23 +660,26 @@ describe("CryptoOps.ts Unit Tests", () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
         jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId as string,
-                },
-            })
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
         );
         cryptoObj = new CryptoOps(new Logger({}), performanceClient);
 
@@ -832,23 +856,26 @@ describe("CryptoOps.ts Unit Tests", () => {
             jest.spyOn(
                 performanceClient,
                 "startMeasurement"
-            ).mockImplementation((measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId as string,
-                },
-            }));
+            ).mockImplementation((measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            });
             cryptoObj = new CryptoOps(new Logger({}), performanceClient);
             const keyPair = await BrowserCrypto.generateKeyPair(
                 false,
@@ -1070,23 +1097,26 @@ describe("CryptoOps.ts Unit Tests", () => {
             jest.spyOn(
                 performanceClient,
                 "startMeasurement"
-            ).mockImplementation((measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId as string,
-                },
-            }));
+            ).mockImplementation((measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            });
             cryptoObj = new CryptoOps(new Logger({}), performanceClient);
             const keyPair = await BrowserCrypto.generateKeyPair(
                 false,
