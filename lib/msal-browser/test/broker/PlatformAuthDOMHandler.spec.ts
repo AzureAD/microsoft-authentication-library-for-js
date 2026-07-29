@@ -144,6 +144,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 scope: "read openid",
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 windowTitleSubstring: "",
+                isSts: false,
                 extraParameters: {
                     extendedExpiryToken: "true",
                 },
@@ -210,6 +211,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 scope: "read openid",
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 windowTitleSubstring: "",
+                isSts: false,
                 extraParameters: {
                     extendedExpiryToken: "true",
                 },
@@ -267,6 +269,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 scope: "read openid",
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 windowTitleSubstring: "",
+                isSts: false,
                 extraParameters: {
                     extendedExpiryToken: "true",
                 },
@@ -313,6 +316,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 scope: "read openid",
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 windowTitleSubstring: "",
+                isSts: false,
                 extraParameters: {
                     extendedExpiryToken: "true",
                 },
@@ -376,6 +380,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 nonce: "test-nonce",
                 claims: "test-claims",
                 extendedExpiryToken: true,
+                isSts: false,
             };
             const platformDOMRequest =
                 //@ts-ignore
@@ -399,8 +404,6 @@ describe("PlatformAuthDOMHandler tests", () => {
                 redirectUri: testRequest.redirectUri,
                 scope: testRequest.scope,
                 state: undefined,
-                storeInCache: undefined,
-                embeddedClientId: undefined,
             });
         });
 
@@ -426,6 +429,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 nonce: "test-nonce",
                 claims: "test-claims",
                 extendedExpiryToken: true,
+                isSts: false,
                 extraParameters: {
                     customUserInput1: "test-user-input1",
                     customUserInput2: "test-user-input2",
@@ -455,8 +459,6 @@ describe("PlatformAuthDOMHandler tests", () => {
                 redirectUri: testRequest.redirectUri,
                 scope: testRequest.scope,
                 state: undefined,
-                storeInCache: undefined,
-                embeddedClientId: undefined,
             });
         });
     });
