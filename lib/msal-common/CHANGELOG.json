@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 29 Jul 2026 00:26:31 GMT",
+      "version": "16.11.3",
+      "tag": "@azure/msal-common_v16.11.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3e4b83714371d1e9471fc65c7d9c69f1f746f741",
+            "comment": "Add optional correlationId and performanceClient to NetworkRequestOptions; add fetchRetryCount to PerformanceEvent [#8732](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8732)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 15 Jul 2026 22:35:35 GMT",
       "version": "16.11.2",
       "tag": "@azure/msal-common_v16.11.2",
