@@ -231,6 +231,11 @@ export type PerformanceEvent = {
     lateResponseExperimentEnabled?: boolean;
 
     /**
+     * Number of times a fetch POST request was retried due to transport failure
+     */
+    fetchRetryCount?: number;
+
+    /**
      * Size of the id token
      *
      * @type {number}
@@ -572,4 +577,5 @@ export const IntFields: ReadonlySet<string> = new Set([
     "networkRtt",
     "redirectBridgeTimeoutMs",
     "redirectBridgeMessageVersion",
+    "fetchRetryCount",
 ]);
