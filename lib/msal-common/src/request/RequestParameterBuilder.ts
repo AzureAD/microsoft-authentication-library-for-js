@@ -209,7 +209,7 @@ export function addSid(parameters: Map<string, string>, sid: string): void {
  * @param claims - The claims string from the request
  * @param clientCapabilities - The client capabilities from configuration
  * @param skipBrokerClaims - When true and BROKER_CLIENT_ID is present, excludes clientCapabilities from claims
- * @param claimsToMerge - Optional client-originated claims JSON string (e.g. `clientClaims`) deep-merged into `claims` with precedence on conflicts
+ * @param claimsToMerge - Optional client-originated claims JSON string (e.g. `claimsFromClient`) deep-merged into `claims` with precedence on conflicts
  */
 export function addClaims(
     parameters: Map<string, string>,
@@ -568,14 +568,14 @@ function deepMergeClaims(
 
 /**
  * Parses claims JSON, optionally deep-merges a second client-originated claims string
- * (`claimsToMerge`, e.g. `clientClaims`) with precedence on conflicting keys, merges
+ * (`claimsToMerge`, e.g. `claimsFromClient`) with precedence on conflicting keys, merges
  * default optional idToken claims (signin_state, login_hint), and appends client
  * capabilities (xms_cc) to the access_token section.
  * Does not overwrite idToken claims already specified by the caller.
  * @param claims - Existing claims JSON string from the request (may be undefined)
  * @param clientCapabilities - Client capabilities array from configuration
  * @param correlationId - The request correlation id
- * @param claimsToMerge - Optional second claims JSON string (e.g. client-originated `clientClaims`)
+ * @param claimsToMerge - Optional second claims JSON string (e.g. client-originated `claimsFromClient`)
  * deep-merged into `claims` with precedence on conflicts; parsed and validated when present. Nested
  * objects are merged recursively; arrays and scalar values are replaced.
  * @returns Merged claims JSON string
@@ -589,7 +589,7 @@ export function buildMergedClaims(
     // Parse provided claims into JSON object or initialize empty object
     let mergedClaims: object = claims ? parseClaims(claims, correlationId) : {};
 
-    // Deep-merge client-originated claims (e.g. `clientClaims`) with precedence on conflicts
+    // Deep-merge client-originated claims (e.g. `claimsFromClient`) with precedence on conflicts
     if (claimsToMerge?.trim()) {
         mergedClaims = deepMergeClaims(
             mergedClaims as Record<string, unknown>,

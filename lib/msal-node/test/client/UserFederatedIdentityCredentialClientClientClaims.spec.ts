@@ -27,7 +27,7 @@ const baseRequest = (): CommonUserFederatedIdentityCredentialRequest => ({
     userObjectId: "test-user-object-id",
 });
 
-describe("UserFederatedIdentityCredentialClient clientClaims tests", () => {
+describe("UserFederatedIdentityCredentialClient claimsFromClient tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
     let config: ClientConfiguration;
 
@@ -51,12 +51,12 @@ describe("UserFederatedIdentityCredentialClient clientClaims tests", () => {
     });
 
     describe("Body injection", () => {
-        it("merges clientClaims into the claims body parameter", async () => {
+        it("merges claimsFromClient into the claims body parameter", async () => {
             const client = new UserFederatedIdentityCredentialClient(config);
 
             await client.acquireToken({
                 ...baseRequest(),
-                clientClaims: NSP_CLAIMS,
+                claimsFromClient: NSP_CLAIMS,
             });
 
             const returnVal: string = await createTokenRequestBodySpy.mock
@@ -65,13 +65,13 @@ describe("UserFederatedIdentityCredentialClient clientClaims tests", () => {
             expect(returnVal).toContain("xms_az_nwperimid");
         });
 
-        it("merges server claims and clientClaims into the claims body parameter", async () => {
+        it("merges server claims and claimsFromClient into the claims body parameter", async () => {
             const client = new UserFederatedIdentityCredentialClient(config);
 
             await client.acquireToken({
                 ...baseRequest(),
                 claims: SERVER_CLAIMS,
-                clientClaims: NSP_CLAIMS,
+                claimsFromClient: NSP_CLAIMS,
             });
 
             const returnVal: string = await createTokenRequestBodySpy.mock
@@ -82,7 +82,7 @@ describe("UserFederatedIdentityCredentialClient clientClaims tests", () => {
             expect(returnVal).toContain("nbf");
         });
 
-        it("does not include the claims body parameter when clientClaims is not set", async () => {
+        it("does not include the claims body parameter when claimsFromClient is not set", async () => {
             const client = new UserFederatedIdentityCredentialClient(config);
 
             await client.acquireToken(baseRequest());
@@ -92,12 +92,12 @@ describe("UserFederatedIdentityCredentialClient clientClaims tests", () => {
             expect(returnVal).not.toContain(`${AADServerParamKeys.CLAIMS}=`);
         });
 
-        it("treats whitespace-only clientClaims as absent (no claims body parameter)", async () => {
+        it("treats whitespace-only claimsFromClient as absent (no claims body parameter)", async () => {
             const client = new UserFederatedIdentityCredentialClient(config);
 
             await client.acquireToken({
                 ...baseRequest(),
-                clientClaims: "   ",
+                claimsFromClient: "   ",
             });
 
             const returnVal: string = await createTokenRequestBodySpy.mock

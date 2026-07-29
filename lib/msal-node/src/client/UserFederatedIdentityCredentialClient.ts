@@ -210,13 +210,13 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
         }
 
         /*
-         * Deep-merge the server-issued `claims` challenge with client-originated `clientClaims`
+         * Deep-merge the server-issued `claims` challenge with client-originated `claimsFromClient`
          * (via addClaims -> buildMergedClaims) so both are sent on the wire. Client capabilities
          * are appended by buildMergedClaims.
          */
         if (
             !StringUtils.isEmptyObj(request.claims) ||
-            !StringUtils.isEmptyObj(request.clientClaims) ||
+            !StringUtils.isEmptyObj(request.claimsFromClient) ||
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
@@ -226,7 +226,7 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
                 request.claims,
                 this.config.authOptions.clientCapabilities,
                 undefined,
-                request.clientClaims
+                request.claimsFromClient
             );
         }
 

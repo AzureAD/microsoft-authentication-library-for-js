@@ -68,15 +68,15 @@ export class OnBehalfOfClient extends BaseClient {
          * which bypasses the cache). Identical claims values are served from cache; different
          * values produce separate cache entries. Gate on `!isEmptyObj` (not just `trim()`) so an
          * empty/whitespace or empty-object (`{}`) value - which contributes nothing to the request
-         * body - does not fragment the cache from an omitted `clientClaims`.
+         * body - does not fragment the cache from an omitted `claimsFromClient`.
          */
         let additionalCacheKeyComponents: Record<string, string> | undefined;
         if (
-            request.clientClaims &&
-            !StringUtils.isEmptyObj(request.clientClaims)
+            request.claimsFromClient &&
+            !StringUtils.isEmptyObj(request.claimsFromClient)
         ) {
             additionalCacheKeyComponents = {
-                client_claims: request.clientClaims,
+                client_claims: request.claimsFromClient,
             };
         }
 
@@ -445,13 +445,13 @@ export class OnBehalfOfClient extends BaseClient {
         }
 
         /*
-         * Deep-merge the server-issued `claims` challenge with client-originated `clientClaims`
+         * Deep-merge the server-issued `claims` challenge with client-originated `claimsFromClient`
          * (via addClaims -> buildMergedClaims) so both are sent on the wire. Client capabilities
          * are appended by buildMergedClaims.
          */
         if (
             !StringUtils.isEmptyObj(request.claims) ||
-            !StringUtils.isEmptyObj(request.clientClaims) ||
+            !StringUtils.isEmptyObj(request.claimsFromClient) ||
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
@@ -461,7 +461,7 @@ export class OnBehalfOfClient extends BaseClient {
                 request.claims,
                 this.config.authOptions.clientCapabilities,
                 undefined,
-                request.clientClaims
+                request.claimsFromClient
             );
         }
 

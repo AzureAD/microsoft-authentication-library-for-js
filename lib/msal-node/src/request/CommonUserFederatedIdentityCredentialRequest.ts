@@ -25,8 +25,8 @@ export type CommonUserFederatedIdentityCredentialRequest = Omit<
     /**
      * Client-originated claims to forward to the token endpoint, sent as the `claims` parameter on the wire.
      * Unlike `claims` (a server-issued challenge), these are client-originated. The user_fic grant always calls
-     * the network, so `clientClaims` is forwarded on every request and does not participate in this flow's cache
-     * key (tokens are still written to the cache, but not partitioned by `clientClaims`).
+     * the network, so `claimsFromClient` is forwarded on every request and does not participate in this flow's cache
+     * key (tokens are still written to the cache, but not partitioned by `claimsFromClient`).
      */
-    clientClaims?: string;
+    claimsFromClient?: string;
 };

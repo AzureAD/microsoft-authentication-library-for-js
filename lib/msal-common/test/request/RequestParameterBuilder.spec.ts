@@ -702,13 +702,13 @@ describe("RequestParameterBuilder unit tests", () => {
         });
 
         it("returns just claimsToMerge when base claims are empty", () => {
-            const clientClaims = '{"nsp":{"essential":true}}';
+            const claimsFromClient = '{"nsp":{"essential":true}}';
             const parsed = JSON.parse(
                 RequestParameterBuilder.buildMergedClaims(
                     undefined,
                     [],
                     "",
-                    clientClaims
+                    claimsFromClient
                 )
             );
             expect(parsed).toHaveProperty("nsp");
@@ -716,14 +716,14 @@ describe("RequestParameterBuilder unit tests", () => {
 
         it("merges non-overlapping top-level keys", () => {
             const base = '{"nsp":{"essential":true}}';
-            const clientClaims =
+            const claimsFromClient =
                 '{"userinfo":{"given_name":{"essential":true}}}';
             const parsed = JSON.parse(
                 RequestParameterBuilder.buildMergedClaims(
                     base,
                     [],
                     "",
-                    clientClaims
+                    claimsFromClient
                 )
             );
             expect(parsed).toHaveProperty("nsp");
@@ -732,13 +732,13 @@ describe("RequestParameterBuilder unit tests", () => {
 
         it("lets claimsToMerge win on overlapping keys", () => {
             const base = '{"nsp":{"value":"v1"}}';
-            const clientClaims = '{"nsp":{"value":"v2"}}';
+            const claimsFromClient = '{"nsp":{"value":"v2"}}';
             const parsed = JSON.parse(
                 RequestParameterBuilder.buildMergedClaims(
                     base,
                     [],
                     "",
-                    clientClaims
+                    claimsFromClient
                 )
             );
             expect(parsed.nsp.value).toBe("v2");
@@ -746,14 +746,14 @@ describe("RequestParameterBuilder unit tests", () => {
 
         it("deep-merges a colliding object key, preserving sibling sub-claims", () => {
             const base = '{"access_token":{"nbf":{"essential":true}}}';
-            const clientClaims =
+            const claimsFromClient =
                 '{"access_token":{"xms_az_nwperimid":{"value":"perimid-1"}}}';
             const parsed = JSON.parse(
                 RequestParameterBuilder.buildMergedClaims(
                     base,
                     [],
                     "",
-                    clientClaims
+                    claimsFromClient
                 )
             );
             expect(parsed.access_token.nbf).toEqual({ essential: true });
@@ -764,13 +764,14 @@ describe("RequestParameterBuilder unit tests", () => {
 
         it("deep-merges recursively across multiple nesting levels", () => {
             const base = '{"a":{"b":{"keep":1}}}';
-            const clientClaims = '{"a":{"b":{"add":2}},"c":{"essential":true}}';
+            const claimsFromClient =
+                '{"a":{"b":{"add":2}},"c":{"essential":true}}';
             const parsed = JSON.parse(
                 RequestParameterBuilder.buildMergedClaims(
                     base,
                     [],
                     "",
-                    clientClaims
+                    claimsFromClient
                 )
             );
             expect(parsed.a.b).toEqual({ keep: 1, add: 2 });
@@ -780,14 +781,14 @@ describe("RequestParameterBuilder unit tests", () => {
         it("replaces arrays and scalars (no element merging) with claimsToMerge winning", () => {
             const base =
                 '{"access_token":{"groups":{"values":["a","b"]},"scalar":1}}';
-            const clientClaims =
+            const claimsFromClient =
                 '{"access_token":{"groups":{"values":["c"]},"scalar":2}}';
             const parsed = JSON.parse(
                 RequestParameterBuilder.buildMergedClaims(
                     base,
                     [],
                     "",
-                    clientClaims
+                    claimsFromClient
                 )
             );
             expect(parsed.access_token.groups.values).toEqual(["c"]);
@@ -796,14 +797,14 @@ describe("RequestParameterBuilder unit tests", () => {
 
         it("appends xms_cc capabilities on top of the merged claims", () => {
             const base = '{"access_token":{"nbf":{"essential":true}}}';
-            const clientClaims =
+            const claimsFromClient =
                 '{"access_token":{"xms_az_nwperimid":{"value":"perimid-1"}}}';
             const parsed = JSON.parse(
                 RequestParameterBuilder.buildMergedClaims(
                     base,
                     ["CP1"],
                     "",
-                    clientClaims
+                    claimsFromClient
                 )
             );
             expect(parsed.access_token.nbf).toEqual({ essential: true });
