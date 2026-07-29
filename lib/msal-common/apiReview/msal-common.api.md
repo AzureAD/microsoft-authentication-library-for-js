@@ -3389,7 +3389,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.11.2";
+export const version = "16.11.3";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;
