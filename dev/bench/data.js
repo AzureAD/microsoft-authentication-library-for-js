@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785349687455,
+  "lastUpdate": 1785357197418,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22631,6 +22631,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.96%",
             "unit": "ops/sec",
             "extra": "217 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "86bd09347cd837bbcfedd6b728baff63161f840d",
+          "message": "test(e2e): shared brokering e2e helpers + real KMSI assertion (Foundation PR 1) (#8721)\n\n## Summary\nFoundation PR 1 (Seq 01) of the JS-WAM platform-broker e2e\ntest-automation plan. Adds shared brokering e2e helpers and a **real**\nKeep Me Signed In (KMSI) assertion to `samples/e2eTestUtils`, so the\nbrokering specs stop copy-pasting helpers and actually verify KMSI\npersistence.\n\n## Changes\n- **`BrokerTestUtils.ts`** — `verifyBrokerTokenStore` (returns a\n`BrokerCacheSnapshot`), `verifyBrokeredTokenStore` (token/account\nisolation, no refresh token in the child), `verifyEmptyCache`,\n`getBrokerFrame`/`getEmbeddedFrame`/`getAuthenticatedEmbeddedFrame`,\n`loginWidget`. Ports/selectors parameterized for reuse.\n- **`KmsiTestUtils.ts`** — decodes the cached ID token and asserts the\n`signin_state` claim contains `kmsi` (`verifyKmsiFromCache`), plus\n`selectKmsiOption`.\n- **`index.ts`** — export the new helpers + puppeteer `Frame`.\n\n## Cross-repo\nPaired 1P PR on matching branch `js-wam/e2e-broker-harness` refactors\n`BrokerTestApp-React` specs to consume these helpers. **This 3P PR\nmerges first**, then the 1P submodule pointer is bumped.\n\n## Testing\nPrettier clean; `tsc` typecheck clean. No runtime/library changes — test\nutilities only.\n\n> [!NOTE]\n> Foundation gate for the remaining 13 PRs in the plan.\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: msal-js-release-automation[bot] <152663010+msal-js-release-automation[bot]@users.noreply.github.com>\nCo-authored-by: MSAL.js Release Automation <msaljsbuilds@microsoft.com>\nCo-authored-by: Sameera Gajjarapu <sameera.gajjarapu@microsoft.com>\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>\nCopilot-Session: 964fc129-b5c7-43d9-b02d-880d7e5677dc\nCopilot-Session: 7155fa61-5730-4d8d-9553-a89e8768e478\nCopilot-Session: 0621ca15-d1e5-4a29-8a64-98de6663f442\nCopilot-Session: 14d21e36-8912-453b-8449-b151ac227935\nCopilot-Session: 61108b03-186c-441e-92f8-b199532b019d",
+          "timestamp": "2026-07-29T13:25:20-07:00",
+          "tree_id": "24fd5f1022a809fcf31fefdd1e42948b132ae698",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/86bd09347cd837bbcfedd6b728baff63161f840d"
+        },
+        "date": 1785357193598,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 400013,
+            "range": "±0.73%",
+            "unit": "ops/sec",
+            "extra": "238 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 398007,
+            "range": "±0.71%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
           }
         ]
       }
