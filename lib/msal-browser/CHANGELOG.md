@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 15 Jul 2026 22:35:35 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 29 Jul 2026 00:26:30 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.17.3
+
+Wed, 29 Jul 2026 00:26:30 GMT
+
+### Patches
+
+- Add single retry with 100ms backoff for token POST transport failures [#8732](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8732) (thomas.norling@microsoft.com)
+- Streamline the platform broker request to only include the MSAL JS acquire-token parameters defined in the platform broker contract and params required on the ESTS /token call [#8714](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8714) (lalima.sharda@gmail.com)
+- Fill telemetry gaps in platform brokering flow with extension [#8699](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8699) (lalima.sharda@gmail.com)
+- Bump @azure/msal-common to v16.11.3
+
+## 5.17.2
+
+Thu, 23 Jul 2026 02:42:29 GMT
 
 ## 5.17.1
 

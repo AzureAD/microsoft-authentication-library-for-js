@@ -2,6 +2,62 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 29 Jul 2026 00:26:30 GMT",
+      "version": "5.17.3",
+      "tag": "@azure/msal-browser_v5.17.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3e4b83714371d1e9471fc65c7d9c69f1f746f741",
+            "comment": "Add single retry with 100ms backoff for token POST transport failures [#8732](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8732)"
+          },
+          {
+            "author": "lalima.sharda@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "3e4b83714371d1e9471fc65c7d9c69f1f746f741",
+            "comment": "Streamline the platform broker request to only include the MSAL JS acquire-token parameters defined in the platform broker contract and params required on the ESTS /token call [#8714](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8714)"
+          },
+          {
+            "author": "lalima.sharda@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "3e4b83714371d1e9471fc65c7d9c69f1f746f741",
+            "comment": "Fill telemetry gaps in platform brokering flow with extension [#8699](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8699)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.11.3",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3e4b83714371d1e9471fc65c7d9c69f1f746f741",
+            "comment": "Bump @azure/msal-browser to 5.17.2 to match @azure/msal-browser-1p [#8726](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8726)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 23 Jul 2026 02:42:29 GMT",
+      "version": "5.17.2",
+      "tag": "@azure/msal-browser_v5.17.2",
+      "comments": {
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "not available",
+            "comment": "Bump @azure/msal-browser to match @azure/msal-browser-1p [#8726](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8726)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 15 Jul 2026 22:35:35 GMT",
       "version": "5.17.1",
       "tag": "@azure/msal-browser_v5.17.1",

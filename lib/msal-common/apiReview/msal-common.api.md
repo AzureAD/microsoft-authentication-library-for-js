@@ -2203,6 +2203,8 @@ const networkError = "network_error";
 export type NetworkRequestOptions = {
     headers?: Record<string, string>;
     body?: string;
+    correlationId?: string;
+    performanceClient?: IPerformanceClient;
 };
 
 // @public (undocumented)
@@ -2387,6 +2389,7 @@ export type PerformanceEvent = {
     isRedirectUriCrossOrigin?: boolean;
     redirectBridgeMessageVersion?: number;
     lateResponseExperimentEnabled?: boolean;
+    fetchRetryCount?: number;
     idTokenSize?: number;
     accessTokenSize?: number;
     refreshTokenSize?: number | undefined;
@@ -3386,7 +3389,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.11.2";
+export const version = "16.11.3";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;
