@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785357197418,
+  "lastUpdate": 1785362357039,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22669,6 +22669,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.71%",
             "unit": "ops/sec",
             "extra": "232 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cd19b1a06f81dab0076382750a8f6dc1eeb6a834",
+          "message": "Bump postcss from 8.5.15 to 8.5.18 (#8730)\n\nBumps [postcss](https://github.com/postcss/postcss) from 8.5.15 to\n8.5.18.\n<details>\n<summary>Release notes</summary>\n<p><em>Sourced from <a\nhref=\"https://github.com/postcss/postcss/releases\">postcss's\nreleases</a>.</em></p>\n<blockquote>\n<h2>8.5.18</h2>\n<ul>\n<li>Restricted loading previous source maps file to the\n<code>opts.from</code> folder for security reasons (use <code>unsafeMap:\ntrue</code> to disable the check).</li>\n</ul>\n<h2>8.5.17</h2>\n<ul>\n<li>Fixed <code>Maximum call stack size exceeded</code> error.</li>\n<li>Fixed Prototype hijacking for <code>postcss.fromJSON()</code>.</li>\n<li>Fixed <code>Input#origin()</code> for unmapped end position (by <a\nhref=\"https://github.com/chatman-media\"><code>@​chatman-media</code></a>).</li>\n</ul>\n<h2>8.5.16</h2>\n<ul>\n<li>Fixed <code>Input#origin()</code> position (by <a\nhref=\"https://github.com/mizdra\"><code>@​mizdra</code></a>).</li>\n<li>Fixed <code>raws</code> after rehydrating a JSON AST (by <a\nhref=\"https://github.com/sarathfrancis90\"><code>@​sarathfrancis90</code></a>).</li>\n<li>Fixed putting parent-less node in <code>nodes</code> of new node (by\n<a\nhref=\"https://github.com/MahinAnowar\"><code>@​MahinAnowar</code></a>).</li>\n<li>Fixed computing <code>offset</code> in <code>positionBy()</code> (by\n<a\nhref=\"https://github.com/greymoth-jp\"><code>@​greymoth-jp</code></a>).</li>\n<li>Fixed <code>rangeBy()</code> on <code>index: 0</code> (by <a\nhref=\"https://github.com/sarathfrancis90\"><code>@​sarathfrancis90</code></a>).</li>\n</ul>\n</blockquote>\n</details>\n<details>\n<summary>Changelog</summary>\n<p><em>Sourced from <a\nhref=\"https://github.com/postcss/postcss/blob/main/CHANGELOG.md\">postcss's\nchangelog</a>.</em></p>\n<blockquote>\n<h2>8.5.18</h2>\n<ul>\n<li>Restricted loading previous source maps file to the\n<code>opts.from</code> folder for security reasons (use <code>unsafeMap:\ntrue</code> to disable the check).</li>\n</ul>\n<h2>8.5.17</h2>\n<ul>\n<li>Fixed <code>Maximum call stack size exceeded</code> error.</li>\n<li>Fixed Prototype hijacking for <code>postcss.fromJSON()</code>.</li>\n<li>Fixed <code>Input#origin()</code> for unmapped end position (by <a\nhref=\"https://github.com/chatman-media\"><code>@​chatman-media</code></a>).</li>\n</ul>\n<h2>8.5.16</h2>\n<ul>\n<li>Fixed <code>Input#origin()</code> position (by <a\nhref=\"https://github.com/mizdra\"><code>@​mizdra</code></a>).</li>\n<li>Fixed <code>raws</code> after rehydrating a JSON AST (by <a\nhref=\"https://github.com/sarathfrancis90\"><code>@​sarathfrancis90</code></a>).</li>\n<li>Fixed putting parent-less node in <code>nodes</code> of new node (by\n<a\nhref=\"https://github.com/MahinAnowar\"><code>@​MahinAnowar</code></a>).</li>\n<li>Fixed computing <code>offset</code> in <code>positionBy()</code> (by\n<a\nhref=\"https://github.com/greymoth-jp\"><code>@​greymoth-jp</code></a>).</li>\n<li>Fixed <code>rangeBy()</code> on <code>index: 0</code> (by <a\nhref=\"https://github.com/sarathfrancis90\"><code>@​sarathfrancis90</code></a>).</li>\n</ul>\n</blockquote>\n</details>\n<details>\n<summary>Commits</summary>\n<ul>\n<li><a\nhref=\"https://github.com/postcss/postcss/commit/4c0d194c136fd374495d0993c890d794cab65b81\"><code>4c0d194</code></a>\nRelease 8.5.18 version</li>\n<li><a\nhref=\"https://github.com/postcss/postcss/commit/92b4e7891ec7b811821d01acc8aa0f010caf41e2\"><code>92b4e78</code></a>\nUpdate dependencies</li>\n<li><a\nhref=\"https://github.com/postcss/postcss/commit/95663d3eb7ba26f4854dd19d3b4f4425760cf56c\"><code>95663d3</code></a>\nLimit where source map can be loaded for security reasons</li>\n<li><a\nhref=\"https://github.com/postcss/postcss/commit/74e25ae9f4efaa56a41a449064a655d7da78072c\"><code>74e25ae</code></a>\nRelease 8.5.17 version</li>\n<li><a\nhref=\"https://github.com/postcss/postcss/commit/d1518afd5a88f42728b30b87f8917210f363f9f1\"><code>d1518af</code></a>\nFix Maximum call stack size exceeded error</li>\n<li><a\nhref=\"https://github.com/postcss/postcss/commit/2421312ffea96ba77b35ce24a1b2d9c2e22b5e83\"><code>2421312</code></a>\nFix linter</li>\n<li><a\nhref=\"https://github.com/postcss/postcss/commit/a50352c583df991710f92ccac25b36304695161a\"><code>a50352c</code></a>\nFix CI</li>\n<li><a\nhref=\"https://github.com/postcss/postcss/commit/33948f0969bb858acdd52c9692e3a785a3ed0a73\"><code>33948f0</code></a>\nPrevent prototype hijacking in fromJSON</li>\n<li><a\nhref=\"https://github.com/postcss/postcss/commit/2131909351161cd2c5fc2be58b14919a873ea824\"><code>2131909</code></a>\nUpdate dependencies</li>\n<li><a\nhref=\"https://github.com/postcss/postcss/commit/93440abcca92793b31c5d1fdf5f2da7b58b27599\"><code>93440ab</code></a>\nFix non-closed <code>\\&lt;div align=&quot;center&quot;&gt;</code> in\nREADME (<a\nhref=\"https://redirect.github.com/postcss/postcss/issues/2110\">#2110</a>)</li>\n<li>Additional commits viewable in <a\nhref=\"https://github.com/postcss/postcss/compare/8.5.15...8.5.18\">compare\nview</a></li>\n</ul>\n</details>\n<details>\n<summary>Maintainer changes</summary>\n<p>This version was pushed to npm by <a\nhref=\"https://www.npmjs.com/~GitHub%20Actions\">GitHub Actions</a>, a new\nreleaser for postcss since your current version.</p>\n</details>\n<br />\n\n\n[![Dependabot compatibility\nscore](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=postcss&package-manager=npm_and_yarn&previous-version=8.5.15&new-version=8.5.18)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\n\nDependabot will resolve any conflicts with this PR as long as you don't\nalter it yourself. You can also trigger a rebase manually by commenting\n`@dependabot rebase`.\n\n[//]: # (dependabot-automerge-start)\n[//]: # (dependabot-automerge-end)\n\n---\n\n<details>\n<summary>Dependabot commands and options</summary>\n<br />\n\nYou can trigger Dependabot actions by commenting on this PR:\n- `@dependabot rebase` will rebase this PR\n- `@dependabot recreate` will recreate this PR, overwriting any edits\nthat have been made to it\n- `@dependabot show <dependency name> ignore conditions` will show all\nof the ignore conditions of the specified dependency\n- `@dependabot ignore this major version` will close this PR and stop\nDependabot creating any more for this major version (unless you reopen\nthe PR or upgrade to it yourself)\n- `@dependabot ignore this minor version` will close this PR and stop\nDependabot creating any more for this minor version (unless you reopen\nthe PR or upgrade to it yourself)\n- `@dependabot ignore this dependency` will close this PR and stop\nDependabot creating any more for this dependency (unless you reopen the\nPR or upgrade to it yourself)\nYou can disable automated security fix PRs for this repo from the\n[Security Alerts\npage](https://github.com/AzureAD/microsoft-authentication-library-for-js/network/alerts).\n\n</details>\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\nCo-authored-by: Sameera Gajjarapu <sameera.gajjarapu@microsoft.com>",
+          "timestamp": "2026-07-29T21:51:32Z",
+          "tree_id": "bb791d42b0083435fbbe2f3771f266abb1c79495",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/cd19b1a06f81dab0076382750a8f6dc1eeb6a834"
+        },
+        "date": 1785362353053,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 371052,
+            "range": "±0.82%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 364089,
+            "range": "±0.58%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
           }
         ]
       }
