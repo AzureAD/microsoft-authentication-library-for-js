@@ -49,9 +49,24 @@ export {
     MSAL_TEAM_KEY_VAULT_URL,
     UPN_JSON_SECRET_NAME,
     AppConfigSecrets,
+    SubmitButtonSelectors,
 } from "./Constants";
-export { BrowserCacheUtils } from "./BrowserCacheTestUtils";
-export { Browser, Page, BrowserContext } from "puppeteer";
+export {
+    BrowserCacheUtils,
+    isCachedTokenEncrypted,
+} from "./BrowserCacheTestUtils";
+export {
+    DeviceSigninState,
+    KmsiSelectors,
+    decodeBase64Url,
+    decodeJwtPayload,
+    getIdTokenClaimsFromCache,
+    selectKmsiOption,
+    assertKmsiSigninState,
+    assertSigninStateContains,
+    verifyKmsiFromCache,
+} from "./KmsiTestUtils";
+export { Browser, Page, BrowserContext, Frame } from "puppeteer";
 export { NodeCacheTestUtils } from "./NodeCacheTestUtils";
 export { storagePoller } from "./TestUtils";
 export { getKeyVaultSecretClient, getCredentials } from "./KeyVaultUtils";
