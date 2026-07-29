@@ -1,9 +1,10 @@
 import { FetchClient } from "../../src/network/FetchClient";
 import { HTTP_REQUEST_TYPE } from "../../src/utils/BrowserConstants";
 import {
-    NetworkError,
     NetworkRequestOptions,
     Constants,
+    IPerformanceClient,
+    NetworkError,
 } from "@azure/msal-common";
 import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
 
@@ -29,12 +30,20 @@ const mockResponse: Response = {
 
 describe("FetchClient.ts Unit Tests", () => {
     let fetchClient: FetchClient;
+    let mockPerformanceClient: IPerformanceClient;
+    const correlationId = "correlation-id";
+
     beforeEach(() => {
+        jest.useFakeTimers();
+        mockPerformanceClient = {
+            incrementFields: jest.fn(),
+        } as unknown as IPerformanceClient;
         fetchClient = new FetchClient();
     });
 
     afterEach(() => {
         jest.restoreAllMocks();
+        jest.useRealTimers();
     });
 
     describe("Get requests", () => {
@@ -75,7 +84,43 @@ describe("FetchClient.ts Unit Tests", () => {
                     }
                 );
 
-            fetchClient.sendPostRequestAsync(targetUri, requestOptions);
+            fetchClient.sendPostRequestAsync(targetUri, {
+                ...requestOptions,
+                correlationId,
+            });
+        });
+
+        it("retries a thrown post request once before succeeding", async () => {
+            const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
+            const requestOptions: NetworkRequestOptions = {
+                body: "thisIsAPostBody",
+            };
+            global["fetch"] = jest
+                .fn()
+                .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+                .mockResolvedValueOnce(mockResponse);
+
+            const promise = fetchClient.sendPostRequestAsync<any>(targetUri, {
+                ...requestOptions,
+                correlationId,
+                performanceClient: mockPerformanceClient,
+            });
+            await jest.advanceTimersByTimeAsync(100);
+            const response = await promise;
+
+            expect(global["fetch"]).toHaveBeenCalledTimes(2);
+            expect(response).toEqual({
+                headers: {},
+                body: {},
+                status: 200,
+            });
+            expect(mockPerformanceClient.incrementFields).toHaveBeenCalledTimes(
+                1
+            );
+            expect(mockPerformanceClient.incrementFields).toHaveBeenCalledWith(
+                { fetchRetryCount: 1 },
+                correlationId
+            );
         });
 
         it("sends headers with the requests", (done) => {
@@ -110,12 +155,15 @@ describe("FetchClient.ts Unit Tests", () => {
                     }
                 );
 
-            fetchClient.sendPostRequestAsync(targetUri, requestOptions);
+            fetchClient.sendPostRequestAsync(targetUri, {
+                ...requestOptions,
+                correlationId,
+            });
         });
     });
 
     describe("sendRequestAsync", () => {
-        it("throws error if fetch post returns non-200 status", (done) => {
+        it("throws error if fetch post rejects due to transport failure", async () => {
             const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
             const requestOptions: NetworkRequestOptions = {
                 body: "thisIsAPostBody",
@@ -130,20 +178,27 @@ describe("FetchClient.ts Unit Tests", () => {
                         );
                         expect(init && init.body).toBe(requestOptions.body);
                         expect(url).toBe(targetUri);
-                        return Promise.reject({ ...mockResponse, status: 16 });
+                        return Promise.reject(new TypeError("Failed to fetch"));
                     }
                 );
 
-            fetchClient
-                .sendPostRequestAsync<any>(targetUri, requestOptions)
-                .catch((e) => {
-                    expect(e).toBeInstanceOf(NetworkError);
-                    expect(e.errorCode).toBe(
-                        BrowserAuthErrorCodes.postRequestFailed
-                    );
-                    expect(e.errorMessage).toContain(`additionalErrorInfo:`);
-                    done();
-                });
+            const promise = fetchClient.sendPostRequestAsync<any>(targetUri, {
+                ...requestOptions,
+                correlationId,
+                performanceClient: mockPerformanceClient,
+            });
+            const expectation = expect(promise).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.postRequestFailed,
+            });
+            // Advance timer to allow the 100ms backoff before retry
+            await jest.advanceTimersByTimeAsync(100);
+            await expectation;
+            // Verify retry occurred (2 fetch calls) and telemetry was emitted
+            expect(global["fetch"]).toHaveBeenCalledTimes(2);
+            expect(mockPerformanceClient.incrementFields).toHaveBeenCalledWith(
+                { fetchRetryCount: 1 },
+                correlationId
+            );
         });
 
         it("throws error if fetch get returns non-200 status", (done) => {
@@ -191,7 +246,10 @@ describe("FetchClient.ts Unit Tests", () => {
                 );
 
             fetchClient
-                .sendPostRequestAsync<any>(targetUri, requestOptions)
+                .sendPostRequestAsync<any>(targetUri, {
+                    ...requestOptions,
+                    correlationId,
+                })
                 .catch((e) => {
                     expect(e).toBeInstanceOf(NetworkError);
                     expect(e.errorCode).toBe(
@@ -202,7 +260,7 @@ describe("FetchClient.ts Unit Tests", () => {
                 });
         });
 
-        it("throws error if fetch errors and network is unavailable", (done) => {
+        it("throws error if fetch errors and network is unavailable", async () => {
             const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
             const requestOptions: NetworkRequestOptions = {
                 body: "thisIsAPostBody",
@@ -230,16 +288,46 @@ describe("FetchClient.ts Unit Tests", () => {
                 };
             });
 
-            fetchClient
-                .sendPostRequestAsync<any>(targetUri, requestOptions)
-                .catch((e) => {
-                    expect(e).toBeInstanceOf(NetworkError);
-                    expect(e.errorCode).toBe(
-                        BrowserAuthErrorCodes.noNetworkConnectivity
-                    );
-                    expect(e.errorMessage).toContain(`additionalErrorInfo:`);
-                    done();
-                });
+            const promise = fetchClient.sendPostRequestAsync<any>(targetUri, {
+                ...requestOptions,
+                correlationId,
+                performanceClient: mockPerformanceClient,
+            });
+            const expectation = expect(promise).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.noNetworkConnectivity,
+            });
+            await expectation;
+            expect(global["fetch"]).toHaveBeenCalledTimes(1);
+            expect(
+                mockPerformanceClient.incrementFields
+            ).not.toHaveBeenCalled();
+        });
+
+        it("does not retry aborted post requests", async () => {
+            const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
+            const requestOptions: NetworkRequestOptions = {
+                body: "thisIsAPostBody",
+            };
+
+            global["fetch"] = jest.fn().mockRejectedValue(
+                Object.assign(new Error("aborted"), {
+                    name: "AbortError",
+                })
+            );
+
+            const promise = fetchClient.sendPostRequestAsync<any>(targetUri, {
+                ...requestOptions,
+                correlationId,
+                performanceClient: mockPerformanceClient,
+            });
+            const expectation = expect(promise).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.postRequestFailed,
+            });
+            await expectation;
+            expect(global["fetch"]).toHaveBeenCalledTimes(1);
+            expect(
+                mockPerformanceClient.incrementFields
+            ).not.toHaveBeenCalled();
         });
     });
 });

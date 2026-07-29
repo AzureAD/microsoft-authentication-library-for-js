@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Wed, 15 Jul 2026 22:35:35 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 29 Jul 2026 00:26:31 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.11.3
+
+Wed, 29 Jul 2026 00:26:31 GMT
+
+### Patches
+
+- Add optional correlationId and performanceClient to NetworkRequestOptions; add fetchRetryCount to PerformanceEvent [#8732](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8732) (thomas.norling@microsoft.com)
 
 ## 16.11.2
 
