@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fill telemetry gaps in platform brokering flow with extension [#8699](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8699)",
+  "packageName": "@azure/msal-browser",
+  "email": "lalima.sharda@gmail.com",
+  "dependentChangeType": "patch"
+}
