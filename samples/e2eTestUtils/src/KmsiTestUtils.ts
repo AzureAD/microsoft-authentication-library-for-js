@@ -14,8 +14,6 @@ import { AuthToken, type IdTokenClaims } from "@azure/msal-common";
 
 /**
  * Device-state values that may appear in the ID token `signin_state` claim.
- * These are asserted independently of the SDK's KMSI check (`AuthToken.isKmsi`),
- * which only treats "kmsi"/"dvc_dmjd" as a persistent ("Keep me signed in") state.
  */
 export const DeviceSigninState = {
     MANAGED: "dvc_mngd",
@@ -28,11 +26,7 @@ export const KmsiSelectors = {
     // to the id token signin_state claim).
     YES: SubmitButtonSelectors.IDSIBUTTON9,
     // "No" — do not persist. This is the ESTS "Stay signed in?" back button.
-    // It is intentionally NOT part of SubmitButtonSelectors: clickSubmitButton()
-    // clicks the first element matching ANY SubmitButtonSelectors value, and the
-    // back arrow (#idBtn_Back) is present on the password/KMSI pages BEFORE the
-    // "Sign in" button in the DOM — including it there makes generic submits click
-    // "Back" and bounce the login flow to the username page.
+    // It is intentionally NOT part of SubmitButtonSelectors.
     NO: "#idBtn_Back, input[name='idBtn_Back']",
 };
 
@@ -43,12 +37,6 @@ const KMSI_NAVIGATION_CONFIG: WaitForOptions = {
 
 /**
  * Decodes the payload segment of a JWT WITHOUT verifying its signature.
- * For test assertions only — never use for trust decisions.
- *
- * Delegates to the SDK's `AuthToken.extractTokenClaims` (JWS split + base64url
- * decode + JSON.parse) so the test decodes tokens exactly the way MSAL does.
- * `extractTokenClaims` requires a base64 decoder to be injected; we supply a
- * Node-friendly base64url decoder.
  */
 export function decodeJwtPayload(jwt: string): IdTokenClaims {
     return AuthToken.extractTokenClaims(
@@ -154,12 +142,6 @@ export async function selectKmsiOption(
 
 /**
  * Asserts whether the ID token reflects a "Keep me signed in" session.
- *
- * Delegates to the SDK's `AuthToken.isKmsi` so the test stays in lockstep with
- * product behavior — `isKmsi` treats `signin_state` values "kmsi" and "dvc_dmjd"
- * as persistent. Device-state signals (managed/compliant) are NOT part of the
- * KMSI check; assert those separately with `assertSigninStateContains`.
- *
  * @param expected - true asserts KMSI IS in effect, false asserts it is NOT.
  */
 export function assertKmsiSigninState(
@@ -171,10 +153,7 @@ export function assertKmsiSigninState(
 
 /**
  * Asserts that the ID token `signin_state` claim contains every one of the given
- * values (case-insensitive). Use for device-state signals such as
- * `DeviceSigninState.MANAGED` / `DeviceSigninState.COMPLIANT` that are independent
- * of the KMSI opt-in and only present on managed/compliant devices — so call this
- * only in scenarios where those claims are expected.
+ * values (case-insensitive).
  */
 export function assertSigninStateContains(
     claims: IdTokenClaims,
@@ -191,9 +170,6 @@ export function assertSigninStateContains(
 /**
  * Reads the cached ID token and asserts its Keep Me Signed In state via the
  * `signin_state` claim. Returns the decoded claims for further assertions.
- *
- * This is the "real" KMSI assertion the brokering e2e suites should use — the
- * legacy flow only *clicked* the KMSI page and never verified persistence.
  */
 export async function verifyKmsiFromCache(
     browserCache: BrowserCacheUtils,
