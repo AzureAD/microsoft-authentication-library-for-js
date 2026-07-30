@@ -21,7 +21,12 @@ const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 // ESTS gates mTLS PoP on the resource audience (must be ESTS allow-listed), not the client app.
 // Microsoft Graph is allow-listed.
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
-// mTLS PoP requires a tenanted authority; the region is recommended but optional.
+// Region split (mirrors the MSAL .NET/Java mTLS PoP E2E tests): setting azureRegion regionalizes
+// the mTLS token endpoint (westus3.mtlsauth.microsoft.com). The westus3 slice intermittently
+// downgrades mtls_pop -> Bearer, so — with jest.retryTimes removed — the PoP cell must NOT run
+// regionally or it would fail closed on that intermittent downgrade. The PoP cell therefore runs
+// GLOBAL (reliably mtls_pop); the deterministic Bearer contrast cell carries the live regional
+// (westus3) endpoint coverage.
 const REGION = "westus3";
 // The generic lab app (shared by the other node samples via AZURE_CLIENT_ID) works for
 // Bearer SN/I but is NOT ESTS allow-listed for mTLS PoP — it fails with AADSTS700025.
@@ -68,7 +73,8 @@ describe("Client Credentials mTLS Proof-of-Possession AAD Prod Tests", () => {
     });
 
     // Credential_X509_Output_Pop: the SN/I (X509) certificate credential yields an mTLS-bound
-    // Proof-of-Possession token that is usable against a resource over mutual TLS.
+    // Proof-of-Possession token that is usable against a resource over mutual TLS. Runs on the
+    // GLOBAL mTLS endpoint (no azureRegion), which reliably returns mtls_pop.
     describe("Credential_X509_Output_Pop", () => {
         beforeAll(async () => {
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
@@ -85,8 +91,7 @@ describe("Client Credentials mTLS Proof-of-Possession AAD Prod Tests", () => {
             const authenticationResult: AuthenticationResult | null =
                 await getMtlsPopToken(
                     confidentialClientApplication,
-                    clientCredentialRequestScopes,
-                    REGION
+                    clientCredentialRequestScopes
                 );
 
             expect(authenticationResult?.accessToken).toBeTruthy();
@@ -115,6 +120,8 @@ describe("Client Credentials mTLS Proof-of-Possession AAD Prod Tests", () => {
 
     // Credential_X509_Output_Bearer: the same SN/I (X509) certificate credential, without
     // mtlsProofOfPossession, yields an ordinary (non-bound) Bearer token — the contrast case.
+    // Runs REGIONAL (azureRegion=westus3): Bearer is deterministic on that slice, so this cell
+    // retains the live regional-endpoint E2E coverage the global PoP cell no longer exercises.
     describe("Credential_X509_Output_Bearer", () => {
         beforeAll(async () => {
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
@@ -132,6 +139,7 @@ describe("Client Credentials mTLS Proof-of-Possession AAD Prod Tests", () => {
                 await confidentialClientApplication.acquireTokenByClientCredential(
                     {
                         scopes: clientCredentialRequestScopes,
+                        azureRegion: REGION,
                         skipCache: true,
                     }
                 );
