@@ -1343,12 +1343,7 @@ export abstract class CacheManager implements ICacheManager {
             realm: targetRealm || account.tenantId,
             target: scopes,
             tokenType: authScheme,
-            keyId:
-                authScheme === Constants.AuthenticationScheme.DPOP
-                    ? request.dpopJkt
-                    : authScheme === Constants.AuthenticationScheme.SSH
-                    ? request.sshKid
-                    : undefined,
+            keyId: this.getAccessTokenFilterKeyId(authScheme, request),
         };
 
         const accessTokenKeys =
@@ -1936,6 +1931,20 @@ export abstract class CacheManager implements ICacheManager {
             entity.tokenType &&
             entity.tokenType.toLowerCase() === tokenType.toLowerCase()
         );
+    }
+
+    private getAccessTokenFilterKeyId(
+        authScheme: Constants.AuthenticationScheme,
+        request: BaseAuthRequest
+    ): string | undefined {
+        switch (authScheme) {
+            case Constants.AuthenticationScheme.DPOP:
+                return request.dpopJkt;
+            case Constants.AuthenticationScheme.SSH:
+                return request.sshKid;
+            default:
+                return undefined;
+        }
     }
 
     private matchAccessTokenWithAuthScheme(
