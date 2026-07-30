@@ -26,7 +26,6 @@ import {
 import { UrlString } from "../url/UrlString.js";
 import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
-import { DpopProofGenerator } from "../crypto/DpopProofGenerator.js";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import {
@@ -45,6 +44,7 @@ import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
 import { getRequestThumbprint } from "../network/RequestThumbprint.js";
 import {
+    addDpopTokenProofHeader,
     createTokenQueryParameters,
     createTokenRequestHeaders,
     executePostToTokenEndpoint,
@@ -273,25 +273,14 @@ export class AuthorizationCodeClient {
             this.config.systemOptions.preventCorsPreflight,
             ccsCredential || request.ccsCredential
         );
-        if (
-            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
-        ) {
-            const dpopProofGenerator = new DpopProofGenerator(
-                this.cryptoUtils,
-                this.config.tokenBindingKeyManager
-            );
-            headers[Constants.HeaderNames.DPOP] =
-                await dpopProofGenerator.generateTokenProof(
-                    {
-                        tokenEndpoint: endpoint,
-                        keyId: request.dpopJkt || "",
-                        keyContext: {
-                            keyScope: `${Constants.AuthenticationScheme.DPOP.toLowerCase()}.${this.config.authOptions.clientId}.${request.authority}`,
-                        },
-                    },
-                    request.correlationId
-                );
-        }
+        await addDpopTokenProofHeader(
+            headers,
+            request,
+            endpoint,
+            this.config.authOptions.clientId,
+            this.cryptoUtils,
+            this.config.tokenBindingKeyManager
+        );
 
         const thumbprint = getRequestThumbprint(
             this.config.authOptions.clientId,
