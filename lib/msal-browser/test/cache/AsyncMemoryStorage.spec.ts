@@ -82,6 +82,15 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                 },
                 getKeys: () => {
                     callCounter.getKeysPersistent += 1;
+                    if (mockDatabase[UNEXPECTED_ERROR] === UNEXPECTED_ERROR) {
+                        throw new Error(UNEXPECTED_ERROR);
+                    }
+                    if (mockDatabase[TEST_DB_TABLE_NAME] === DB_UNAVAILABLE) {
+                        throw createBrowserAuthError(
+                            BrowserAuthErrorCodes.databaseUnavailable,
+                            ""
+                        );
+                    }
                     return Object.keys(mockDatabase[TEST_DB_TABLE_NAME]);
                 },
                 containsKey: (kid: string) => {
@@ -296,6 +305,38 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     "persistent-key",
                     "shared-key",
                 ]);
+            });
+
+            it("should return in-memory keys when persistent key enumeration is unavailable", async () => {
+                mockInMemoryCache[TEST_DB_TABLE_NAME]["memory-key"] =
+                    TEST_CACHE_ITEMS.TestItem.value;
+                mockDatabase[TEST_DB_TABLE_NAME] = DB_UNAVAILABLE;
+
+                const keys = await asyncMemoryStorage.getKeys(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(callCounter.getKeys).toBe(1);
+                expect(callCounter.getKeysPersistent).toBe(1);
+                expect(logMessages[0]["level"]).toBe(0);
+                expect(
+                    logMessages[0]["message"].indexOf(
+                        "Could not access persistent storage."
+                    )
+                ).not.toBe(-1);
+                expect(keys).toEqual(["memory-key"]);
+            });
+
+            it("should throw unexpected key enumeration errors even when in-memory keys exist", async () => {
+                mockInMemoryCache[TEST_DB_TABLE_NAME]["memory-key"] =
+                    TEST_CACHE_ITEMS.TestItem.value;
+                mockDatabase[UNEXPECTED_ERROR] = UNEXPECTED_ERROR;
+
+                await expect(
+                    asyncMemoryStorage.getKeys(TEST_CONFIG.CORRELATION_ID)
+                ).rejects.toThrow(UNEXPECTED_ERROR);
+                expect(callCounter.getKeys).toBe(1);
+                expect(callCounter.getKeysPersistent).toBe(1);
             });
         });
 

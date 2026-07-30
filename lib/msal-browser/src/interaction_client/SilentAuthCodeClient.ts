@@ -10,6 +10,7 @@ import {
     AuthError,
     IPerformanceClient,
     PerformanceEvents,
+    ITokenBindingKeyManager,
     invokeAsync,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
@@ -33,7 +34,6 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { initializeServerTelemetryManager } from "./BaseInteractionClient.js";
-import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;
@@ -49,7 +49,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         performanceClient: IPerformanceClient,
         correlationId: string,
         platformAuthProvider?: IPlatformAuthHandler,
-        tokenBindingKeyManager?: TokenBindingKeyManager
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,

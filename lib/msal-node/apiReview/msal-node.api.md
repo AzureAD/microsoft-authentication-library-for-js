@@ -58,7 +58,7 @@ import { LoggerOptions } from '@azure/msal-common/node';
 import { LogLevel } from '@azure/msal-common/node';
 import { NetworkRequestOptions } from '@azure/msal-common/node';
 import { NetworkResponse } from '@azure/msal-common/node';
-import { PkceCodes } from '@azure/msal-common/node';
+import type { PkceCodes } from '@azure/msal-common/node';
 import { ProtocolMode } from '@azure/msal-common/node';
 import { RefreshTokenCache } from '@azure/msal-common/node';
 import { RefreshTokenEntity } from '@azure/msal-common/node';
@@ -68,6 +68,7 @@ import { ServerTelemetryManager } from '@azure/msal-common/node';
 import { StaticAuthorityOptions } from '@azure/msal-common/node';
 import { StringDict } from '@azure/msal-common/node';
 import { ThrottlingEntity } from '@azure/msal-common/node';
+import type { TokenBindingKeyContext } from '@azure/msal-common/node';
 import { TokenCacheContext } from '@azure/msal-common/node';
 import { TokenKeys } from '@azure/msal-common/node';
 import { ValidCacheType } from '@azure/msal-common/node';
@@ -169,13 +170,13 @@ export class CryptoProvider implements ICrypto {
     base64Decode(input: string): string;
     base64Encode(input: string): string;
     base64UrlEncode(): string;
-    clearKeystore(): Promise<boolean>;
+    clearKeystore(correlationId: string): Promise<boolean>;
     createNewGuid(): string;
     encodeKid(): string;
     generatePkceCodes(): Promise<PkceCodes>;
     hashString(plainText: string): Promise<string>;
-    removeTokenBindingKey(): Promise<void>;
-    signTokenBindingJwt(): Promise<string>;
+    removeTokenBindingKey(kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<void>;
+    signTokenBindingJwt(header: object, payload: object, kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<string>;
 }
 
 // @internal

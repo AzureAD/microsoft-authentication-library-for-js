@@ -107,6 +107,7 @@ export {
 } from "./crypto/ICrypto.js";
 export {
     ITokenBindingKeyManager,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     TokenBindingKeyContext,
     TokenBindingKeyProvisioningParameters,
 } from "./crypto/ITokenBindingKeyManager.js";
@@ -132,6 +133,7 @@ export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload.js
 export { AuthorizeResponse } from "./response/AuthorizeResponse.js";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse.js";
 export {
+    GenerateAuthenticationResultOptions,
     ResponseHandler,
     buildAccountToCache,
 } from "./response/ResponseHandler.js";

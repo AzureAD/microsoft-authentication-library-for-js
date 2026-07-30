@@ -1,7 +1,13 @@
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
-import { PkceCodes, Logger, PerformanceEventStatus } from "@azure/msal-common";
+import {
+    Constants,
+    JoseHeader,
+    PkceCodes,
+    Logger,
+    PerformanceEventStatus,
+} from "@azure/msal-common";
 import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
@@ -34,6 +40,12 @@ const SHR_KEY_CONTEXT = {
     tokenBindingKeyAlgorithm: "RS256",
     correlationId: TEST_CONFIG.CORRELATION_ID,
 } as const;
+
+function expectCorrelationId(
+    correlationId: string | undefined
+): asserts correlationId is string {
+    expect(correlationId).toEqual(expect.any(String));
+}
 
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
@@ -356,7 +368,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     it("signTokenBindingJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
         await expect(
             cryptoObj.signTokenBindingJwt(
-                { alg: "RS256" },
+                new JoseHeader({ alg: "RS256" }, TEST_CONFIG.CORRELATION_ID),
                 {},
                 "testString",
                 TEST_CONFIG.CORRELATION_ID
@@ -373,23 +385,26 @@ describe("CryptoOps.ts Unit Tests", () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
         jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
-                },
-            })
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
         );
         tokenBindingKeyManager = new TokenBindingKeyManager(
             new Logger({}),
@@ -428,23 +443,26 @@ describe("CryptoOps.ts Unit Tests", () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
         jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
-                },
-            })
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
         );
         jest.spyOn(BrowserCrypto, "generateKeyPair").mockRejectedValue(
             new Error("key generation failed")
@@ -470,23 +488,26 @@ describe("CryptoOps.ts Unit Tests", () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
         jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
-                },
-            })
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
         );
         jest.spyOn(DatabaseStorage.prototype, "getKeys").mockRejectedValueOnce(
             new Error("scoped lookup failed")
@@ -512,23 +533,26 @@ describe("CryptoOps.ts Unit Tests", () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
         jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
-                },
-            })
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
         );
         jest.spyOn(BrowserCrypto, "generateKeyPair").mockRejectedValue(
             new Error("key generation failed")
@@ -554,23 +578,26 @@ describe("CryptoOps.ts Unit Tests", () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
         jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
-                },
-            })
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
         );
         cryptoObj = new CryptoOps(new Logger({}), performanceClient);
 
@@ -590,13 +617,23 @@ describe("CryptoOps.ts Unit Tests", () => {
         endMeasurement.mockClear();
 
         await cryptoObj.signTokenBindingJwt(
-            { alg: "RS256", typ: "pop", kid: "pop-kid" },
+            JoseHeader.getShrHeader(
+                {
+                    alg: "RS256",
+                    typ: Constants.JsonWebTokenTypes.Pop,
+                    kid: "pop-kid",
+                },
+                TEST_CONFIG.CORRELATION_ID
+            ),
             { at: "access-token" },
             popKeyId,
             TEST_CONFIG.CORRELATION_ID
         );
         await cryptoObj.signTokenBindingJwt(
-            { alg: "ES256", typ: "dpop+jwt", jwk: dpopPublicJwk },
+            JoseHeader.getDpopHeader(
+                { alg: "ES256", jwk: dpopPublicJwk },
+                TEST_CONFIG.CORRELATION_ID
+            ),
             { htm: "POST", htu: TEST_URIS.TEST_AUTH_ENDPT, iat: 1, jti: "jti" },
             dpopKeyId,
             TEST_CONFIG.CORRELATION_ID,
@@ -623,29 +660,43 @@ describe("CryptoOps.ts Unit Tests", () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
         jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
-                },
-            })
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
         );
         cryptoObj = new CryptoOps(new Logger({}), performanceClient);
 
         await expect(
             cryptoObj.signTokenBindingJwt(
-                { alg: "ES256", typ: "dpop+jwt", jwk: {} },
+                JoseHeader.getDpopHeader(
+                    {
+                        alg: "ES256",
+                        jwk: {
+                            kty: "EC",
+                            crv: "P-256",
+                            x: "A".repeat(43),
+                            y: "B".repeat(43),
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                ),
                 {
                     htm: "POST",
                     htu: TEST_URIS.TEST_AUTH_ENDPT,
@@ -701,7 +752,8 @@ describe("CryptoOps.ts Unit Tests", () => {
             );
             const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
             const thumbprint = await BrowserCrypto.computeJwkThumbprint(
-                publicJwk
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
             );
 
             // SHA-256 base64url is always 43 characters (base64url alphabet: A-Z a-z 0-9 - _)
@@ -726,7 +778,8 @@ describe("CryptoOps.ts Unit Tests", () => {
                 n: "test-modulus",
             };
             const thumbprint = await BrowserCrypto.computeJwkThumbprint(
-                publicJwk
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
             );
             const expectedThumbprint = createHash("SHA256")
                 .update(JSON.stringify(publicJwk, ["e", "kty", "n"]))
@@ -737,10 +790,13 @@ describe("CryptoOps.ts Unit Tests", () => {
 
         it("computeJwkThumbprint rejects unsupported public JWK key types", async () => {
             await expect(
-                BrowserCrypto.computeJwkThumbprint({
-                    kty: "oct",
-                    k: "symmetric-key",
-                })
+                BrowserCrypto.computeJwkThumbprint(
+                    {
+                        kty: "oct",
+                        k: "symmetric-key",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
                 subError: "unsupported_jwk_kty",
@@ -749,11 +805,14 @@ describe("CryptoOps.ts Unit Tests", () => {
 
         it("computeJwkThumbprint rejects missing public JWK key types", async () => {
             await expect(
-                BrowserCrypto.computeJwkThumbprint({
-                    crv: "P-256",
-                    x: "x-coordinate",
-                    y: "y-coordinate",
-                })
+                BrowserCrypto.computeJwkThumbprint(
+                    {
+                        crv: "P-256",
+                        x: "x-coordinate",
+                        y: "y-coordinate",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
                 subError: "missing_jwk_kty",
@@ -762,23 +821,29 @@ describe("CryptoOps.ts Unit Tests", () => {
 
         it("computeJwkThumbprint rejects missing or empty public JWK coordinates", async () => {
             await expect(
-                BrowserCrypto.computeJwkThumbprint({
-                    kty: "EC",
-                    crv: "P-256",
-                    x: "x-coordinate",
-                })
+                BrowserCrypto.computeJwkThumbprint(
+                    {
+                        kty: "EC",
+                        crv: "P-256",
+                        x: "x-coordinate",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
                 subError: "missing_jwk_member",
             });
 
             await expect(
-                BrowserCrypto.computeJwkThumbprint({
-                    kty: "EC",
-                    crv: "P-256",
-                    x: "",
-                    y: "y-coordinate",
-                })
+                BrowserCrypto.computeJwkThumbprint(
+                    {
+                        kty: "EC",
+                        crv: "P-256",
+                        x: "",
+                        y: "y-coordinate",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
                 subError: "empty_jwk_member",
@@ -791,23 +856,26 @@ describe("CryptoOps.ts Unit Tests", () => {
             jest.spyOn(
                 performanceClient,
                 "startMeasurement"
-            ).mockImplementation((measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
-                },
-            }));
+            ).mockImplementation((measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            });
             cryptoObj = new CryptoOps(new Logger({}), performanceClient);
             const keyPair = await BrowserCrypto.generateKeyPair(
                 false,
@@ -815,7 +883,10 @@ describe("CryptoOps.ts Unit Tests", () => {
                 BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
             );
             const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
-            const keyId = await BrowserCrypto.computeJwkThumbprint(publicJwk);
+            const keyId = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
             mockDatabase["TestDB.keys"][keyId] = {
                 privateKey: keyPair.privateKey,
                 publicKey: keyPair.publicKey,
@@ -825,7 +896,10 @@ describe("CryptoOps.ts Unit Tests", () => {
             const signSpy = jest.spyOn(BrowserCrypto, "sign");
 
             const proof = await cryptoObj.signTokenBindingJwt(
-                { alg: "ES256", typ: "dpop+jwt", jwk: publicJwk },
+                JoseHeader.getDpopHeader(
+                    { alg: "ES256", jwk: publicJwk },
+                    TEST_CONFIG.CORRELATION_ID
+                ),
                 {
                     htm: "POST",
                     htu: TEST_URIS.TEST_AUTH_ENDPT,
@@ -855,6 +929,113 @@ describe("CryptoOps.ts Unit Tests", () => {
             expect(verified).toBe(true);
         }, 10000);
 
+        it("signTokenBindingJwt signs the provided validated DPoP header", async () => {
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
+            const keyId = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            mockDatabase["TestDB.keys"][keyId] = {
+                privateKey: keyPair.privateKey,
+                publicKey: keyPair.publicKey,
+                tokenBindingKeyType: "dpop",
+                tokenBindingKeyAlgorithm: "ES256",
+            };
+            const header = JoseHeader.getDpopHeader(
+                {
+                    alg: "ES256",
+                    jwk: publicJwk,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const proof = await cryptoObj.signTokenBindingJwt(
+                header,
+                {
+                    htm: "POST",
+                    htu: TEST_URIS.TEST_AUTH_ENDPT,
+                    iat: 1,
+                    jti: "jti",
+                },
+                keyId,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const [encodedHeader, encodedPayload, signature] = proof.split(".");
+            const proofHeader = JSON.parse(
+                Buffer.from(encodedHeader, "base64url").toString("utf8")
+            );
+            const verified = await window.crypto.subtle.verify(
+                BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS,
+                keyPair.publicKey,
+                Buffer.from(signature, "base64url"),
+                new TextEncoder().encode(`${encodedHeader}.${encodedPayload}`)
+            );
+
+            expect(proofHeader).toEqual({
+                alg: "ES256",
+                typ: "dpop+jwt",
+                jwk: publicJwk,
+            });
+            expect(verified).toBe(true);
+        }, 10000);
+
+        it("signTokenBindingJwt preserves caller-provided SHR header fields", async () => {
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.RSA_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
+            const keyId = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            mockDatabase["TestDB.keys"][keyId] = {
+                privateKey: keyPair.privateKey,
+                publicKey: keyPair.publicKey,
+                tokenBindingKeyType: "shr",
+                tokenBindingKeyAlgorithm: "RS256",
+            };
+
+            const proof = await cryptoObj.signTokenBindingJwt(
+                JoseHeader.getShrHeader(
+                    {
+                        alg: "RS256",
+                        typ: Constants.JsonWebTokenTypes.Pop,
+                        kid: "pop-key-id",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                ),
+                { at: "access-token" },
+                keyId,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const [encodedHeader, encodedPayload, signature] = proof.split(".");
+            const proofHeader = JSON.parse(
+                Buffer.from(encodedHeader, "base64url").toString("utf8")
+            );
+            const verified = await window.crypto.subtle.verify(
+                BrowserCrypto.RSA_SIGN_ALGORITHM_OPTIONS,
+                keyPair.publicKey,
+                Buffer.from(signature, "base64url"),
+                new TextEncoder().encode(`${encodedHeader}.${encodedPayload}`)
+            );
+
+            expect(proofHeader).toEqual({
+                alg: "RS256",
+                typ: "pop",
+                kid: "pop-key-id",
+            });
+            expect(verified).toBe(true);
+        }, 10000);
+
         it("signTokenBindingJwt rejects DPoP header JWKs that do not match the signing key", async () => {
             const signingKeyPair = await BrowserCrypto.generateKeyPair(
                 false,
@@ -865,7 +1046,8 @@ describe("CryptoOps.ts Unit Tests", () => {
                 signingKeyPair.publicKey
             );
             const signingKeyId = await BrowserCrypto.computeJwkThumbprint(
-                signingPublicJwk
+                signingPublicJwk,
+                TEST_CONFIG.CORRELATION_ID
             );
             mockDatabase["TestDB.keys"][signingKeyId] = {
                 privateKey: signingKeyPair.privateKey,
@@ -884,7 +1066,13 @@ describe("CryptoOps.ts Unit Tests", () => {
 
             await expect(
                 cryptoObj.signTokenBindingJwt(
-                    { alg: "ES256", typ: "dpop+jwt", jwk: mismatchedPublicJwk },
+                    JoseHeader.getDpopHeader(
+                        {
+                            alg: "ES256",
+                            jwk: mismatchedPublicJwk,
+                        },
+                        TEST_CONFIG.CORRELATION_ID
+                    ),
                     {
                         htm: "POST",
                         htu: TEST_URIS.TEST_AUTH_ENDPT,
@@ -903,77 +1091,32 @@ describe("CryptoOps.ts Unit Tests", () => {
             );
         }, 10000);
 
-        it("signTokenBindingJwt rejects malformed DPoP header JWKs with caller correlation", async () => {
-            const signingKeyPair = await BrowserCrypto.generateKeyPair(
-                false,
-                ["sign", "verify"],
-                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
-            );
-            const signingPublicJwk = await BrowserCrypto.exportJwk(
-                signingKeyPair.publicKey
-            );
-            const signingKeyId = await BrowserCrypto.computeJwkThumbprint(
-                signingPublicJwk
-            );
-            mockDatabase["TestDB.keys"][signingKeyId] = {
-                privateKey: signingKeyPair.privateKey,
-                publicKey: signingKeyPair.publicKey,
-                tokenBindingKeyType: "dpop",
-                tokenBindingKeyAlgorithm: "ES256",
-            };
-
-            await expect(
-                cryptoObj.signTokenBindingJwt(
-                    {
-                        alg: "ES256",
-                        typ: "dpop+jwt",
-                        jwk: {
-                            crv: "P-256",
-                            x: "x-coordinate",
-                            y: "y-coordinate",
-                        },
-                    },
-                    {
-                        htm: "POST",
-                        htu: TEST_URIS.TEST_AUTH_ENDPT,
-                        iat: 1,
-                        jti: "jti",
-                    },
-                    signingKeyId,
-                    TEST_CONFIG.CORRELATION_ID
-                )
-            ).rejects.toThrow(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.invalidPublicJwk,
-                    TEST_CONFIG.CORRELATION_ID,
-                    "missing_jwk_kty"
-                )
-            );
-        }, 10000);
-
         it("signTokenBindingJwt rejects requested algorithms incompatible with the stored key", async () => {
             const performanceClient = new StubPerformanceClient();
             const endMeasurement = jest.fn();
             jest.spyOn(
                 performanceClient,
                 "startMeasurement"
-            ).mockImplementation((measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
-                },
-            }));
+            ).mockImplementation((measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            });
             cryptoObj = new CryptoOps(new Logger({}), performanceClient);
             const keyPair = await BrowserCrypto.generateKeyPair(
                 false,
@@ -981,7 +1124,10 @@ describe("CryptoOps.ts Unit Tests", () => {
                 BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
             );
             const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
-            const keyId = await BrowserCrypto.computeJwkThumbprint(publicJwk);
+            const keyId = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
             mockDatabase["TestDB.keys"][keyId] = {
                 privateKey: keyPair.privateKey,
                 publicKey: keyPair.publicKey,
@@ -991,7 +1137,10 @@ describe("CryptoOps.ts Unit Tests", () => {
 
             await expect(
                 cryptoObj.signTokenBindingJwt(
-                    { alg: "RS256", typ: "dpop+jwt", jwk: publicJwk },
+                    JoseHeader.getDpopHeader(
+                        { alg: "RS256", jwk: publicJwk },
+                        TEST_CONFIG.CORRELATION_ID
+                    ),
                     {
                         htm: "POST",
                         htu: TEST_URIS.TEST_AUTH_ENDPT,
@@ -1040,7 +1189,13 @@ describe("CryptoOps.ts Unit Tests", () => {
 
             await expect(
                 cryptoObj.signTokenBindingJwt(
-                    { alg: "ES384", typ: "dpop+jwt" },
+                    new JoseHeader(
+                        {
+                            alg: "ES384",
+                            typ: Constants.JsonWebTokenTypes.Dpop,
+                        },
+                        TEST_CONFIG.CORRELATION_ID
+                    ),
                     {
                         htm: "POST",
                         htu: TEST_URIS.TEST_AUTH_ENDPT,
@@ -1053,32 +1208,6 @@ describe("CryptoOps.ts Unit Tests", () => {
             ).rejects.toThrow(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.unsupportedTokenBindingAlgorithm,
-                    TEST_CONFIG.CORRELATION_ID
-                )
-            );
-        });
-
-        it("signTokenBindingJwt rejects missing JWT header algorithm", async () => {
-            const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
-                DPOP_KEY_CONTEXT
-            );
-
-            await expect(
-                cryptoObj.signTokenBindingJwt(
-                    { typ: "dpop+jwt", jwk: {} },
-                    {
-                        htm: "POST",
-                        htu: TEST_URIS.TEST_AUTH_ENDPT,
-                        iat: 1,
-                        jti: "jti",
-                    },
-                    keyId,
-                    TEST_CONFIG.CORRELATION_ID,
-                    DPOP_KEY_CONTEXT
-                )
-            ).rejects.toThrow(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.missingTokenBindingJwtAlgorithm,
                     TEST_CONFIG.CORRELATION_ID
                 )
             );

@@ -30,6 +30,7 @@ import {
     StoreInCache,
     TimeUtils,
     TokenClaims,
+    ITokenBindingKeyManager,
     UrlString,
     buildAccountToCache,
     createClientAuthError,
@@ -81,7 +82,6 @@ import {
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
 import { SilentCacheClient } from "./SilentCacheClient.js";
-import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -104,7 +104,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         accountId: string,
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
-        tokenBindingKeyManager?: TokenBindingKeyManager
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,

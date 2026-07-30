@@ -6,6 +6,7 @@
 import {
     ICrypto,
     IPerformanceClient,
+    JoseHeader,
     Logger,
 } from "@azure/msal-common/browser";
 import type { TokenBindingKeyContext } from "@azure/msal-common/browser";
@@ -27,15 +28,6 @@ import {
     BrowserAuthErrorCodes,
     createBrowserAuthError,
 } from "../error/BrowserAuthError.js";
-
-type TokenBindingKeySigningAlgorithm = {
-    signAlgorithm: AlgorithmIdentifier;
-};
-
-type TokenBindingSigningHeader = {
-    alg: string;
-    jwk?: JsonWebKey;
-};
 
 /**
  * This class implements MSAL's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and
@@ -136,7 +128,7 @@ export class CryptoOps implements ICrypto {
 
     /** @internal */
     async signTokenBindingJwt(
-        header: object,
+        header: JoseHeader,
         payload: object,
         kid: string,
         correlationId: string,
@@ -155,23 +147,19 @@ export class CryptoOps implements ICrypto {
                     correlationId,
                     context
                 );
-            const jwtHeader = validateTokenBindingSigningHeader(
-                header,
-                correlationId
-            );
             await this.validateTokenBindingJwtHeaderKey(
-                jwtHeader,
+                header,
                 kid,
                 correlationId
             );
             telemetry = this.tokenBindingKeyManager.getTokenBindingKeyTelemetry(
                 cachedKeyPair,
-                jwtHeader.alg
+                header.alg
             );
 
             const signingAlgorithm = this.getTokenBindingKeySigningAlgorithm(
                 cachedKeyPair,
-                jwtHeader.alg,
+                header.alg,
                 correlationId
             );
 
@@ -181,7 +169,7 @@ export class CryptoOps implements ICrypto {
             const encodedSignature = await this.signInput(
                 cachedKeyPair,
                 tokenString,
-                signingAlgorithm.signAlgorithm
+                signingAlgorithm
             );
 
             signTokenBindingJwtMeasurement?.end({
@@ -225,15 +213,13 @@ export class CryptoOps implements ICrypto {
         cachedKeyPair: CachedKeyPair,
         requestedAlgorithm: string,
         correlationId: string
-    ): TokenBindingKeySigningAlgorithm {
+    ): AlgorithmIdentifier {
         const keyAlgorithm = cachedKeyPair.privateKey.algorithm;
         if (
             requestedAlgorithm === TOKEN_BINDING_KEY_ALGORITHMS.RS256 &&
             keyAlgorithm.name === BrowserCrypto.RSA_SIGN_ALGORITHM_OPTIONS.name
         ) {
-            return {
-                signAlgorithm: BrowserCrypto.RSA_SIGN_ALGORITHM_OPTIONS,
-            };
+            return BrowserCrypto.RSA_SIGN_ALGORITHM_OPTIONS;
         }
 
         if (
@@ -243,10 +229,7 @@ export class CryptoOps implements ICrypto {
             (keyAlgorithm as EcKeyAlgorithm).namedCurve ===
                 BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS.namedCurve
         ) {
-            return {
-                signAlgorithm:
-                    BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS,
-            };
+            return BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS;
         }
 
         if (
@@ -267,7 +250,7 @@ export class CryptoOps implements ICrypto {
     }
 
     private async validateTokenBindingJwtHeaderKey(
-        header: TokenBindingSigningHeader,
+        header: JoseHeader,
         kid: string,
         correlationId: string
     ): Promise<void> {
@@ -287,41 +270,4 @@ export class CryptoOps implements ICrypto {
             );
         }
     }
-}
-
-function validateTokenBindingSigningHeader(
-    header: object,
-    correlationId: string
-): TokenBindingSigningHeader {
-    if (!isRecord(header) || typeof header.alg !== "string" || !header.alg) {
-        throw createBrowserAuthError(
-            BrowserAuthErrorCodes.missingTokenBindingJwtAlgorithm,
-            correlationId
-        );
-    }
-
-    const tokenBindingJwtHeader: TokenBindingSigningHeader = {
-        alg: header.alg,
-    };
-
-    if (!("jwk" in header) || typeof header.jwk === "undefined") {
-        return tokenBindingJwtHeader;
-    }
-
-    if (isRecord(header.jwk)) {
-        return {
-            ...tokenBindingJwtHeader,
-            jwk: header.jwk,
-        };
-    }
-
-    throw createBrowserAuthError(
-        BrowserAuthErrorCodes.invalidPublicJwk,
-        correlationId,
-        BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch
-    );
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null;
 }

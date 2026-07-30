@@ -106,9 +106,8 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
             return Array.from(new Set([...cacheKeys, ...persistentCacheKeys]));
         } catch (e) {
             this.handleDatabaseAccessError(e, correlationId);
+            return cacheKeys;
         }
-
-        return cacheKeys;
     }
 
     /**

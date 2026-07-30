@@ -515,7 +515,7 @@ function getJwkThumbprintMembers(
  */
 export async function computeJwkThumbprint(
     publicJwk: JsonWebKey,
-    correlationId: string = ""
+    correlationId: string
 ): Promise<string> {
     const thumbprintMembers = getJwkThumbprintMembers(publicJwk, correlationId);
     // RFC 7638 §3.3: use only required members, sorted lexicographically

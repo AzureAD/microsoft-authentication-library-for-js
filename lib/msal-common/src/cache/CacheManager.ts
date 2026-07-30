@@ -1346,7 +1346,9 @@ export abstract class CacheManager implements ICacheManager {
             keyId:
                 authScheme === Constants.AuthenticationScheme.DPOP
                     ? request.dpopJkt
-                    : request.sshKid,
+                    : authScheme === Constants.AuthenticationScheme.SSH
+                    ? request.sshKid
+                    : undefined,
         };
 
         const accessTokenKeys =

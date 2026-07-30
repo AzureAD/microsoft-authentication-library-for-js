@@ -161,6 +161,27 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 TEST_CONFIG.CORRELATION_ID
             )
         );
+        await expect(
+            emptyConfig.cryptoInterface.clearKeystore(
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).rejects.toMatchObject(
+            createClientAuthError(
+                ClientAuthErrorCodes.methodNotImplemented,
+                TEST_CONFIG.CORRELATION_ID
+            )
+        );
+        await expect(
+            emptyConfig.cryptoInterface.removeTokenBindingKey(
+                "kid",
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).rejects.toMatchObject(
+            createClientAuthError(
+                ClientAuthErrorCodes.methodNotImplemented,
+                TEST_CONFIG.CORRELATION_ID
+            )
+        );
     });
 
     const cacheStorageMock = new MockStorageClass(

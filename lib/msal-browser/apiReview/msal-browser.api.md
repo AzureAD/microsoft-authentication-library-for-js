@@ -214,7 +214,6 @@ declare namespace BrowserAuthErrorCodes {
         nativePromptNotSupported,
         invalidBase64String,
         invalidPopTokenRequest,
-        missingTokenBindingJwtAlgorithm,
         unsupportedTokenBindingAlgorithm,
         tokenBindingKeyAlgorithmMismatch,
         tokenBindingKeyJwkThumbprintMismatch,
@@ -815,9 +814,6 @@ export class MemoryStorage<T> implements IWindowStorage<T> {
     // (undocumented)
     setUserData(key: string, value: T): Promise<void>;
 }
-
-// @public (undocumented)
-const missingTokenBindingJwtAlgorithm = "missing_token_binding_jwt_algorithm";
 
 // @public (undocumented)
 const nativeConnectionNotEstablished = "native_connection_not_established";

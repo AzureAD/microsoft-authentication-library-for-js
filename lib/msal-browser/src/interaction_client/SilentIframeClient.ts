@@ -17,6 +17,7 @@ import {
     CommonAuthorizationUrlRequest,
     AuthorizeProtocol,
     PkceCodes,
+    ITokenBindingKeyManager,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
@@ -58,7 +59,6 @@ import {
 } from "./BaseInteractionClient.js";
 
 import type { WaitForBridgeRequest } from "../utils/BrowserUtils.js";
-import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 /**
  * Minimal request shape accepted by the iframe-response hook.
@@ -101,7 +101,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         correlationId: string,
         platformAuthProvider?: IPlatformAuthHandler,
         waitForIframeResponseHook?: WaitForIframeResponseFn,
-        tokenBindingKeyManager?: TokenBindingKeyManager
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,

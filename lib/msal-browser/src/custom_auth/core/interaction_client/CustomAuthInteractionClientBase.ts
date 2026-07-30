@@ -13,6 +13,7 @@ import { BrowserCacheManager } from "../../../cache/BrowserCacheManager.js";
 import {
     Constants,
     ICrypto,
+    ITokenBindingKeyManager,
     IPerformanceClient,
     Logger,
     ResponseHandler,
@@ -26,7 +27,6 @@ import { EndSessionRequest } from "../../../request/EndSessionRequest.js";
 import { ClearCacheRequest } from "../../../request/ClearCacheRequest.js";
 import { AuthenticationResult } from "../../../response/AuthenticationResult.js";
 import { SignInTokenResponse } from "../network_client/custom_auth_api/types/ApiResponseTypes.js";
-import { TokenBindingKeyManager } from "../../../crypto/TokenBindingKeyManager.js";
 
 export abstract class CustomAuthInteractionClientBase extends StandardInteractionClient {
     private readonly tokenResponseHandler: ResponseHandler;
@@ -41,7 +41,7 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
         performanceClient: IPerformanceClient,
         protected customAuthApiClient: ICustomAuthApiClient,
         protected customAuthAuthority: CustomAuthAuthority,
-        tokenBindingKeyManager?: TokenBindingKeyManager
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,

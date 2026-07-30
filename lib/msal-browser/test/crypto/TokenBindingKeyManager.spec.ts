@@ -44,6 +44,12 @@ function getCacheKeysByScope(keyScope: string): Array<string> {
     });
 }
 
+function expectCorrelationId(
+    correlationId: string | undefined
+): asserts correlationId is string {
+    expect(correlationId).toEqual(expect.any(String));
+}
+
 describe("TokenBindingKeyManager.ts Unit Tests", () => {
     let tokenBindingKeyManager: TokenBindingKeyManager;
 
@@ -210,30 +216,34 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
     it("emits per-caller telemetry when joining a coalesced scoped key request", async () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
+        const secondCorrelationId = "second-correlation-id";
         jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
-                },
-            })
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
         );
         tokenBindingKeyManager = new TokenBindingKeyManager(
             new Logger({}),
             performanceClient
         );
-        const secondCorrelationId = "second-correlation-id";
         const generateKeyPairSpy = jest.spyOn(BrowserCrypto, "generateKeyPair");
 
         const [keyId, concurrentKeyId] = await Promise.all([
@@ -261,31 +271,35 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
     it("correlates coalesced scoped key request failures to the joining caller", async () => {
         const performanceClient = new StubPerformanceClient();
         const endMeasurement = jest.fn();
+        const firstCorrelationId = "first-correlation-id";
+        const secondCorrelationId = "second-correlation-id";
         jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => ({
-                end: endMeasurement,
-                discard: jest.fn(),
-                add: jest.fn(),
-                increment: jest.fn(),
-                event: {
-                    eventId: "test-event-id",
-                    status: PerformanceEventStatus.InProgress,
-                    authority: "",
-                    libraryName: "",
-                    libraryVersion: "",
-                    clientId: "",
-                    name: measureName,
-                    startTimeMs: Date.now(),
-                    correlationId: correlationId || "",
-                },
-            })
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
         );
         tokenBindingKeyManager = new TokenBindingKeyManager(
             new Logger({}),
             performanceClient
         );
-        const firstCorrelationId = "first-correlation-id";
-        const secondCorrelationId = "second-correlation-id";
         const unsupportedContext = {
             tokenBindingKeyType: "dpop",
             tokenBindingKeyAlgorithm: "unsupported",

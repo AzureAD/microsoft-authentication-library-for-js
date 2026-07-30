@@ -21,6 +21,7 @@ import {
     AzureCloudOptions,
     invokeAsync,
     StringDict,
+    ITokenBindingKeyManager,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -49,7 +50,7 @@ export abstract class BaseInteractionClient {
     protected platformAuthProvider: IPlatformAuthHandler | undefined;
     protected correlationId: string;
     protected performanceClient: IPerformanceClient;
-    protected tokenBindingKeyManager: TokenBindingKeyManager;
+    protected tokenBindingKeyManager: ITokenBindingKeyManager;
 
     constructor(
         config: BrowserConfiguration,
@@ -61,7 +62,7 @@ export abstract class BaseInteractionClient {
         performanceClient: IPerformanceClient,
         correlationId: string,
         platformAuthProvider?: IPlatformAuthHandler,
-        tokenBindingKeyManager?: TokenBindingKeyManager
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         this.config = config;
         this.browserStorage = storageImpl;

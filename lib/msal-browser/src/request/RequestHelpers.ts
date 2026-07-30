@@ -82,13 +82,13 @@ export async function initializeBaseRequest(
             if (!request.sshJwk) {
                 throw createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshJwk,
-                    ""
+                    correlationId
                 );
             }
             if (!request.sshKid) {
                 throw createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshKid,
-                    ""
+                    correlationId
                 );
             }
         }

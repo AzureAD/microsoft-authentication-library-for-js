@@ -7,23 +7,34 @@ import {
     JoseHeaderErrorCodes,
     createJoseHeaderError,
 } from "../error/JoseHeaderError.js";
+import { isPlainObject } from "../utils/ObjectUtils.js";
 import { JsonWebTokenTypes } from "../utils/Constants.js";
 
 export type JoseHeaderOptions = {
     typ?: JsonWebTokenTypes;
     alg?: string;
     kid?: string;
-    jwk?: object;
+    jwk?: JsonWebKey;
 };
 
 /** @internal */
 export class JoseHeader {
     public typ?: JsonWebTokenTypes;
-    public alg?: string;
+    public alg: string;
     public kid?: string;
-    public jwk?: object;
+    public jwk?: JsonWebKey;
 
-    constructor(options: JoseHeaderOptions) {
+    constructor(
+        options: JoseHeaderOptions & { alg: string },
+        correlationId: string
+    ) {
+        if (typeof options.alg !== "string" || !options.alg) {
+            throw createJoseHeaderError(
+                JoseHeaderErrorCodes.missingAlgError,
+                correlationId
+            );
+        }
+
         this.typ = options.typ;
         this.alg = options.alg;
         this.kid = options.kid;
@@ -32,8 +43,7 @@ export class JoseHeader {
 
     /**
      * Builds SignedHttpRequest formatted JOSE Header from the
-     * JOSE Header options provided or previously set on the object and returns
-     * the stringified header object.
+     * JOSE Header options provided or previously set on the object.
      * Throws if keyId or algorithm aren't provided since they are required for Access Token Binding.
      * @param shrHeaderOptions
      * @param correlationId
@@ -41,7 +51,7 @@ export class JoseHeader {
      */
     static getShrHeader(
         shrHeaderOptions: JoseHeaderOptions,
-        correlationId: string = ""
+        correlationId: string
     ): JoseHeader {
         // KeyID is required on the SHR header
         if (!shrHeaderOptions.kid) {
@@ -59,29 +69,14 @@ export class JoseHeader {
             );
         }
 
-        return new JoseHeader({
-            // Access Token PoP headers must have type pop, but the type header can be overriden for special cases
-            typ: shrHeaderOptions.typ || JsonWebTokenTypes.Pop,
-            kid: shrHeaderOptions.kid,
-            alg: shrHeaderOptions.alg,
-        });
-    }
-
-    /**
-     * Builds SignedHttpRequest formatted JOSE Header from the
-     * JOSE Header options provided or previously set on the object and returns
-     * the stringified header object.
-     * Throws if keyId or algorithm aren't provided since they are required for Access Token Binding.
-     * @param shrHeaderOptions
-     * @param correlationId
-     * @returns
-     */
-    static getShrHeaderString(
-        shrHeaderOptions: JoseHeaderOptions,
-        correlationId: string = ""
-    ): string {
-        return JSON.stringify(
-            JoseHeader.getShrHeader(shrHeaderOptions, correlationId)
+        return new JoseHeader(
+            {
+                // Access Token PoP headers must have type pop, but the type header can be overriden for special cases
+                typ: shrHeaderOptions.typ || JsonWebTokenTypes.Pop,
+                kid: shrHeaderOptions.kid,
+                alg: shrHeaderOptions.alg,
+            },
+            correlationId
         );
     }
 
@@ -94,9 +89,9 @@ export class JoseHeader {
      */
     static getDpopHeader(
         dpopHeaderOptions: JoseHeaderOptions,
-        correlationId: string = ""
+        correlationId: string
     ): JoseHeader {
-        if (!dpopHeaderOptions.jwk) {
+        if (!isPlainObject(dpopHeaderOptions.jwk)) {
             throw createJoseHeaderError(
                 JoseHeaderErrorCodes.missingJwkError,
                 correlationId
@@ -117,10 +112,13 @@ export class JoseHeader {
             );
         }
 
-        return new JoseHeader({
-            typ: JsonWebTokenTypes.Dpop,
-            alg: dpopHeaderOptions.alg,
-            jwk: dpopHeaderOptions.jwk,
-        });
+        return new JoseHeader(
+            {
+                typ: JsonWebTokenTypes.Dpop,
+                alg: dpopHeaderOptions.alg,
+                jwk: dpopHeaderOptions.jwk,
+            },
+            correlationId
+        );
     }
 }

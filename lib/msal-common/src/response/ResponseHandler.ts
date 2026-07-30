@@ -54,6 +54,15 @@ import { AuthenticationResult } from "./AuthenticationResult.js";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
 
+/** @internal */
+export type GenerateAuthenticationResultOptions = {
+    idTokenClaims?: TokenClaims;
+    requestState?: RequestStateObject;
+    serverTokenResponse?: ServerAuthorizationTokenResponse;
+    requestId?: string;
+    tokenBindingKeyManager?: ITokenBindingKeyManager;
+};
+
 /**
  * Class that handles response parsing.
  * @internal
@@ -315,11 +324,12 @@ export class ResponseHandler {
                         false,
                         request,
                         this.performanceClient,
-                        idTokenClaims,
-                        requestStateObj,
-                        undefined,
-                        serverRequestId,
-                        this.tokenBindingKeyManager
+                        {
+                            idTokenClaims,
+                            requestState: requestStateObj,
+                            requestId: serverRequestId,
+                            tokenBindingKeyManager: this.tokenBindingKeyManager,
+                        }
                     );
                 }
             }
@@ -351,11 +361,13 @@ export class ResponseHandler {
             false,
             request,
             this.performanceClient,
-            idTokenClaims,
-            requestStateObj,
-            serverTokenResponse,
-            serverRequestId,
-            this.tokenBindingKeyManager
+            {
+                idTokenClaims,
+                requestState: requestStateObj,
+                serverTokenResponse,
+                requestId: serverRequestId,
+                tokenBindingKeyManager: this.tokenBindingKeyManager,
+            }
         );
     }
 
@@ -541,12 +553,15 @@ export class ResponseHandler {
         fromTokenCache: boolean,
         request: BaseAuthRequest,
         performanceClient: IPerformanceClient,
-        idTokenClaims?: TokenClaims,
-        requestState?: RequestStateObject,
-        serverTokenResponse?: ServerAuthorizationTokenResponse,
-        requestId?: string,
-        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER
+        options: GenerateAuthenticationResultOptions = {}
     ): Promise<AuthenticationResult> {
+        const {
+            idTokenClaims,
+            requestState,
+            serverTokenResponse,
+            requestId,
+            tokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+        } = options;
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
