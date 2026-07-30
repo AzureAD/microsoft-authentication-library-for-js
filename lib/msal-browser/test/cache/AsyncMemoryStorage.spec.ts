@@ -318,6 +318,12 @@ describe("AsyncMemoryStorage Unit Tests", () => {
 
                 expect(callCounter.getKeys).toBe(1);
                 expect(callCounter.getKeysPersistent).toBe(1);
+                expect(logMessages[0]["level"]).toBe(0);
+                expect(
+                    logMessages[0]["message"].indexOf(
+                        "Could not access persistent storage."
+                    )
+                ).not.toBe(-1);
                 expect(keys).toEqual(["memory-key"]);
             });
 
