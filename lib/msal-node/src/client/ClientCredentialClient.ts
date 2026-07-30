@@ -60,15 +60,32 @@ export class ClientCredentialClient extends BaseClient {
     public async acquireToken(
         request: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
-        // Build additional cache key components for FMI cache isolation
+        // Build additional cache key components for cache isolation
         let additionalCacheKeyComponents: Record<string, string> | undefined;
         if (request.fmiPath) {
             additionalCacheKeyComponents = {
+                ...additionalCacheKeyComponents,
                 fmi_path: request.fmiPath,
             };
         }
+        /*
+         * Client-originated claims participate in the cache key (unlike server-issued `claims`,
+         * which bypasses the cache). Identical claims values are served from cache; different
+         * values produce separate cache entries. Gate on `!isEmptyObj` (not just `trim()`) so an
+         * empty/whitespace or empty-object (`{}`) value - which contributes nothing to the request
+         * body - does not fragment the cache from an omitted `claimsFromClient`.
+         */
+        if (
+            request.claimsFromClient &&
+            !StringUtils.isEmptyObj(request.claimsFromClient)
+        ) {
+            additionalCacheKeyComponents = {
+                ...additionalCacheKeyComponents,
+                client_claims: request.claimsFromClient,
+            };
+        }
 
-        if (request.skipCache || request.claims) {
+        if (request.skipCache || !StringUtils.isEmptyObj(request.claims)) {
             return this.executeTokenRequest(
                 request,
                 this.authority,
@@ -466,8 +483,14 @@ export class ClientCredentialClient extends BaseClient {
             parameters.set(AADServerParamKeys.FMI_PATH, request.fmiPath);
         }
 
+        /*
+         * Deep-merge the server-issued `claims` challenge with client-originated `claimsFromClient`
+         * (via addClaims -> buildMergedClaims) so both are sent on the wire. Client capabilities
+         * are appended by buildMergedClaims.
+         */
         if (
             !StringUtils.isEmptyObj(request.claims) ||
+            !StringUtils.isEmptyObj(request.claimsFromClient) ||
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
@@ -475,7 +498,9 @@ export class ClientCredentialClient extends BaseClient {
                 parameters,
                 request.correlationId,
                 request.claims,
-                this.config.authOptions.clientCapabilities
+                this.config.authOptions.clientCapabilities,
+                undefined,
+                request.claimsFromClient
             );
         }
 

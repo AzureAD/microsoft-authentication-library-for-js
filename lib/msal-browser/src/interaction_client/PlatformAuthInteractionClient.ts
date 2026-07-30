@@ -187,75 +187,116 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.config.system.serverTelemetryEnabled
         );
 
+        // initialize native request (statically builds the request; does not contact the broker)
+        let nativeRequest: PlatformAuthRequest;
         try {
-            // initialize native request
-            const nativeRequest = await this.initializePlatformRequest(request);
+            nativeRequest = await this.initializePlatformRequest(request);
+        } catch (e) {
+            /*
+             * Request initialization (e.g. PoP token generation or authority
+             * resolution) failed before the broker was contacted, so end the
+             * measurement here to avoid an orphaned sub-measurement.
+             * Broker was never engaged, so this was not a native broker outcome.
+             */
+            nativeATMeasurement.add({
+                isNativeBroker: false,
+            });
+            nativeATMeasurement.end(
+                {
+                    success: false,
+                },
+                e
+            );
+            throw e;
+        }
 
-            // check if the tokens can be retrieved from internal cache
-            try {
-                const result = await this.acquireTokensFromCache(
-                    this.accountId,
-                    nativeRequest
-                );
-                nativeATMeasurement.end({
-                    success: true,
-                    isNativeBroker: false, // Should be true only when the result is coming directly from the broker
-                    fromCache: true,
-                });
-                return result;
-            } catch (e) {
-                if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
-                    this.logger.info(
-                        "MSAL internal Cache does not contain tokens, return error as per cache policy",
-                        this.correlationId
-                    );
-                    nativeATMeasurement.end({
-                        success: false,
-                        brokerErrorCode: "cache_request_failed",
-                    });
-                    throw e;
-                }
-                // continue with a native call for any and all errors
+        // check if the tokens can be retrieved from internal cache
+        try {
+            const result = await this.acquireTokensFromCache(
+                this.accountId,
+                nativeRequest
+            );
+            // Served from the native internal cache; token did not come directly from the broker
+            nativeATMeasurement.add({
+                isNativeBroker: false,
+            });
+            nativeATMeasurement.end({
+                success: true,
+                fromCache: true,
+            });
+            return result;
+        } catch (e) {
+            if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
                 this.logger.info(
-                    "MSAL internal Cache does not contain tokens, proceed to make a native call",
+                    "MSAL internal Cache does not contain tokens, return error as per cache policy",
                     this.correlationId
                 );
+                nativeATMeasurement.add({
+                    isNativeBroker: false,
+                });
+                nativeATMeasurement.end({
+                    success: false,
+                });
+                throw e;
             }
+            // continue with a native call for any and all errors
+            this.logger.info(
+                "MSAL internal Cache does not contain tokens, proceed to make a native call",
+                this.correlationId
+            );
+        }
 
+        // dispatch the request to the broker
+        try {
             const validatedResponse: PlatformAuthResponse =
                 await this.platformAuthProvider.sendMessage(nativeRequest);
 
-            return await this.handleNativeResponse(
+            const result = await this.handleNativeResponse(
                 validatedResponse,
                 nativeRequest,
                 reqTimestamp,
                 request.storeInCache
-            )
-                .then((result: AuthenticationResult) => {
-                    nativeATMeasurement.end({
-                        success: true,
-                        isNativeBroker: true,
-                        requestId: result.requestId,
-                    });
-                    serverTelemetryManager.clearNativeBrokerErrorCode();
-                    return result;
-                })
-                .catch((error: AuthError) => {
-                    nativeATMeasurement.end({
-                        success: false,
-                        errorCode: error.errorCode,
-                        subErrorCode: error.subError,
-                    });
-                    throw error;
-                });
+            );
+            nativeATMeasurement.end({
+                success: true,
+                requestId: result.requestId,
+            });
+            serverTelemetryManager.clearNativeBrokerErrorCode();
+            return result;
         } catch (e) {
             if (e instanceof NativeAuthError) {
                 serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
             }
-            nativeATMeasurement.end({
-                success: false,
-            });
+            nativeATMeasurement.end(
+                {
+                    success: false,
+                },
+                e
+            );
+            this.setBrokerErrorTelemetry(e);
             throw e;
+        }
+    }
+
+    /**
+     * Records platform-broker error telemetry on the root event for the current
+     * correlationId. `isNativeBroker` is set optimistically to true because the
+     * broker was engaged; when the caller subsequently falls back to a web flow
+     * that succeeds, the root success measurement overrides it to false via
+     * `result.fromPlatformBroker`. Terminal broker errors (no fallback) retain
+     * true. `brokerErrorName`/`brokerErrorCode` are recorded when the error is an `AuthError`.
+     * @param error error thrown by the broker interaction
+     */
+    private setBrokerErrorTelemetry(error: unknown): void {
+        if (error instanceof AuthError) {
+            this.performanceClient.addFields(
+                {
+                    isNativeBroker: true,
+                    brokerErrorName: error.name,
+                    brokerErrorCode: error.errorCode,
+                },
+                this.correlationId
+            );
         }
     }
 
@@ -393,6 +434,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 );
                 serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
                 if (isFatalNativeAuthError(e)) {
+                    /*
+                     * Fatal error on redirect initiate always falls back to a
+                     * regular web redirect, so this request did not complete
+                     * natively. Token telemetry for the eventual outcome lands
+                     * in handleRedirectPromise (phase 2).
+                     */
+                    this.setBrokerErrorTelemetry(e);
                     throw e;
                 }
             }
@@ -509,12 +557,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.config.system.serverTelemetryEnabled
             );
             serverTelemetryManager.clearNativeBrokerErrorCode();
-            this.performanceClient?.addFields(
-                { isNativeBroker: true },
-                this.correlationId
-            );
             return authResult;
         } catch (e) {
+            this.setBrokerErrorTelemetry(e);
             throw e;
         }
     }
