@@ -1,8 +1,8 @@
 import {
-    RETRY_TIMES,
     validateCacheLocation,
     NodeCacheTestUtils,
     getCertificateInfo,
+    callGraphOverMtls,
     LAB_CERT_NAME,
     LAB_KEY_VAULT_URL,
 } from "../../../e2eTestUtils/src";
@@ -31,9 +31,13 @@ const REGION = "westus3";
 const SNI_ALLOWLISTED_CLIENT_ID = "163ffef9-a313-45b4-ab2f-c7e2f5e0e23e";
 const SNI_ALLOWLISTED_AUTHORITY =
     "https://login.microsoftonline.com/bea21ebe-8b64-4d06-9f6d-6a889b120a7c";
+// mTLS PoP resource call: the mTLS Graph host (mtlstb.graph.microsoft.com) negotiates the
+// client-certificate handshake and validates the token's certificate binding; the plain
+// graph.microsoft.com host does not. A 200 from this host proves the issued token is bound.
+const MTLS_GRAPH_RESOURCE_URL =
+    "https://mtlstb.graph.microsoft.com/v1.0/applications?$top=1";
 
 describe("Client Credentials mTLS Proof-of-Possession AAD Prod Tests", () => {
-    jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(90000);
 
     let thumbprint: string;
@@ -63,9 +67,9 @@ describe("Client Credentials mTLS Proof-of-Possession AAD Prod Tests", () => {
         };
     });
 
-    describe("Acquire mTLS PoP Token", () => {
-        let confidentialClientApplication: ConfidentialClientApplication;
-
+    // Credential_X509_Output_Pop: the SN/I (X509) certificate credential yields an mTLS-bound
+    // Proof-of-Possession token that is usable against a resource over mutual TLS.
+    describe("Credential_X509_Output_Pop", () => {
         beforeAll(async () => {
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
@@ -74,10 +78,9 @@ describe("Client Credentials mTLS Proof-of-Possession AAD Prod Tests", () => {
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
-        it("acquires an mTLS-bound PoP token with the SN/I certificate as the TLS client cert", async () => {
-            confidentialClientApplication = new ConfidentialClientApplication(
-                config
-            );
+        it("acquires an mTLS-bound PoP token and uses it to call a resource over mutual TLS (HTTP 200)", async () => {
+            const confidentialClientApplication: ConfidentialClientApplication =
+                new ConfidentialClientApplication(config);
 
             const authenticationResult: AuthenticationResult | null =
                 await getMtlsPopToken(
@@ -95,6 +98,49 @@ describe("Client Credentials mTLS Proof-of-Possession AAD Prod Tests", () => {
                 authenticationResult?.bindingCertificate?.thumbprintSha256
             ).toBeTruthy();
             expect(authenticationResult?.bindingCertificate?.x5c).toBeTruthy();
+
+            // Prove the token is genuinely certificate-bound by calling a resource over mutual TLS:
+            // present the same SN/I certificate on the handshake and send the token with the
+            // "mtls_pop" scheme. A 200 confirms the binding; a 401/403 would be a regression.
+            const resourceResponse = await callGraphOverMtls(
+                MTLS_GRAPH_RESOURCE_URL,
+                authenticationResult!.accessToken,
+                x5c,
+                privateKey
+            );
+
+            expect(resourceResponse.status).toBe(200);
+        });
+    });
+
+    // Credential_X509_Output_Bearer: the same SN/I (X509) certificate credential, without
+    // mtlsProofOfPossession, yields an ordinary (non-bound) Bearer token — the contrast case.
+    describe("Credential_X509_Output_Bearer", () => {
+        beforeAll(async () => {
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+        });
+
+        afterEach(async () => {
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+        });
+
+        it("acquires a non-bound Bearer token with the SN/I certificate (client assertion) as a contrast to mTLS PoP", async () => {
+            const confidentialClientApplication: ConfidentialClientApplication =
+                new ConfidentialClientApplication(config);
+
+            const authenticationResult: AuthenticationResult | null =
+                await confidentialClientApplication.acquireTokenByClientCredential(
+                    {
+                        scopes: clientCredentialRequestScopes,
+                        skipCache: true,
+                    }
+                );
+
+            expect(authenticationResult?.accessToken).toBeTruthy();
+            // Without mtlsProofOfPossession the certificate signs a client assertion and the issued
+            // token is a plain Bearer token — not certificate-bound.
+            expect(authenticationResult?.tokenType).not.toBe("mtls_pop");
+            expect(authenticationResult?.bindingCertificate).toBeFalsy();
         });
     });
 });
