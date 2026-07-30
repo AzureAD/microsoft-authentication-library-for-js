@@ -1,7 +1,7 @@
 {
     "name": "msal-node-client-credentials-mtls-pop",
     "version": "1.0.0",
-    "description": "Command line app showing how to use the client credentials grant with an SN/I certificate to acquire an mTLS-bound Proof-of-Possession (mtls_pop) token from Microsoft Entra ID",
+    "description": "Command line app showing how to use the client credentials grant with an SN/I certificate to acquire an mTLS-bound Proof-of-Possession (mtls_pop) token from Microsoft Entra ID, including the two-leg Federated Identity Credential (FIC) flow",
     "main": "index.js",
     "private": true,
     "scripts": {

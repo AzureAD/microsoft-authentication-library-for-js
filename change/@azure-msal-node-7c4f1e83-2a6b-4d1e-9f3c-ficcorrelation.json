@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "FIC over mTLS PoP: thread the resolved correlationId into the token_binding_certificate_without_assertion error, clarify that a request-level tokenBindingCertificate selects the FIC Leg 2 path (and that omitting it runs vanilla SN/I), and note tokenBindingCertificate in the mtls_binding_certificate_missing guidance [#8698](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8698)",
+    "packageName": "@azure/msal-node",
+    "email": "rginsburg@microsoft.com",
+    "dependentChangeType": "patch"
+}

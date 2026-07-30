@@ -7,6 +7,7 @@ import {
     BaseAuthRequest,
     AzureRegion,
     ClientAssertion,
+    MtlsBindingCertificate,
 } from "@azure/msal-common/node";
 
 /**
@@ -34,11 +35,24 @@ export type CommonClientCredentialRequest = Omit<
     fmiPath?: string;
     /**
      * When true, requests an mTLS-bound Proof-of-Possession token (`token_type=mtls_pop`) from Entra ID.
-     * The app's configured `clientCertificate` is presented as the client TLS certificate in the
-     * mutual-TLS handshake to the token endpoint, and the returned token is cryptographically bound
-     * to that certificate.
+     * The binding certificate (the app's configured `clientCertificate`, or `tokenBindingCertificate`
+     * on this request) is presented as the client TLS certificate in the mutual-TLS handshake to the
+     * token endpoint, and the returned token is cryptographically bound to that certificate.
      */
     mtlsProofOfPossession?: boolean;
+    /**
+     * Certificate that binds the mTLS connection for the second leg of a Federated Identity
+     * Credential (FIC) exchange, where the credential in the request body is a client assertion.
+     * Providing this field selects the FIC Leg 2 path: the assertion is sent as the credential
+     * (with the `jwt-pop` assertion type) while this certificate is presented at the TLS layer,
+     * decoupled from the credential.
+     *
+     * When omitted, the request runs as vanilla SN/I mTLS PoP — the app's configured
+     * `clientCertificate` is both the credential and the TLS binding, and any supplied
+     * `clientAssertion` is not sent. To present an assertion over the application certificate, set
+     * this explicitly (it may be the same certificate as `auth.clientCertificate`).
+     */
+    tokenBindingCertificate?: MtlsBindingCertificate;
     /**
      * Client-originated claims to forward to the token endpoint, sent as the `claims` parameter on the wire.
      * Unlike `claims` (a server-issued challenge, which bypasses the token cache), client claims are cached and

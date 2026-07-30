@@ -47,6 +47,91 @@ export const getMtlsPopToken = async (
 };
 
 /**
+ * Federated Identity Credential (FIC) over mTLS Proof-of-Possession - two-leg, S2S (app-only).
+ *
+ * Leg 1: the SN/I certificate is presented as the client TLS certificate to obtain an mTLS-PoP
+ *        federated assertion for the exchange audience (caller-supplied, e.g.
+ *        `api://AzureADTokenExchange/.default`). The result's `bindingCertificate` identifies the
+ *        certificate the assertion is bound to.
+ * Leg 2: Leg 1's token is used as the `client_assertion` credential; Leg 1's binding certificate is
+ *        presented as the client TLS certificate (decoupled from the credential) to obtain the final
+ *        mTLS-PoP token for the target resource.
+ *
+ * MSAL provides the two primitives (`mtlsProofOfPossession` and `tokenBindingCertificate`); the
+ * developer orchestrates the two calls, as shown here.
+ */
+export const acquireFicMtlsPopToken = async (params: {
+    tenantId: string;
+    /** App registration whose SN/I certificate acquires the federated assertion (Leg 1). */
+    leg1ClientId: string;
+    /** App registration that exchanges the assertion for the final resource token (Leg 2). */
+    leg2ClientId: string;
+    /** The SN/I certificate material used as the TLS client certificate. */
+    cert: CertificateInfo;
+    /** Exchange audience for Leg 1, e.g. ["api://AzureADTokenExchange/.default"]. */
+    exchangeScopes: Array<string>;
+    /** Final resource scopes for Leg 2, e.g. ["https://graph.microsoft.com/.default"]. */
+    resourceScopes: Array<string>;
+    region?: string;
+}): Promise<{
+    leg1: AuthenticationResult;
+    leg2: AuthenticationResult;
+}> => {
+    const authority = `https://login.microsoftonline.com/${params.tenantId}`;
+
+    // ---- Leg 1: SN/I cert -> mTLS-PoP federated assertion ----
+    const leg1Cca = new ConfidentialClientApplication({
+        auth: {
+            clientId: params.leg1ClientId,
+            authority,
+            clientCertificate: params.cert,
+        },
+    });
+
+    const leg1 = await leg1Cca.acquireTokenByClientCredential({
+        scopes: params.exchangeScopes,
+        azureRegion: params.region,
+        mtlsProofOfPossession: true,
+        skipCache: true,
+    });
+
+    if (!leg1 || !leg1.bindingCertificate) {
+        throw new Error(
+            "FIC Leg 1 did not return an mTLS-bound token with a binding certificate."
+        );
+    }
+
+    // ---- Leg 2: Leg 1 assertion as credential + Leg 1 binding cert on TLS ----
+    const leg2Cca = new ConfidentialClientApplication({
+        auth: {
+            clientId: params.leg2ClientId,
+            authority,
+            // The Leg 1 token becomes the client assertion (credential) for Leg 2.
+            clientAssertion: leg1.accessToken,
+        },
+    });
+
+    const leg2 = await leg2Cca.acquireTokenByClientCredential({
+        scopes: params.resourceScopes,
+        azureRegion: params.region,
+        mtlsProofOfPossession: true,
+        // The credential is the assertion; the binding cert is supplied separately for the TLS layer.
+        // The developer already holds the private key for Leg 1's binding certificate (the SN/I cert).
+        tokenBindingCertificate: {
+            privateKey: params.cert.privateKey,
+            x5c: leg1.bindingCertificate.x5c,
+        },
+        skipCache: true,
+    });
+
+    if (!leg2) {
+        throw new Error("FIC Leg 2 did not return a token.");
+    }
+
+    return { leg1, leg2 };
+};
+
+/**
  * The code below checks if the script is being executed manually or in automation.
  * If the script was executed manually, it will initialize a ConfidentialClientApplication object
  * and execute the sample mTLS Proof-of-Possession client credentials application.

@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add the tokenBindingCertificate request field for the two-leg Federated Identity Credential (FIC, service-to-service) flow over mTLS Proof-of-Possession: present a binding certificate on the TLS handshake while a client assertion is the credential (jwt-pop assertion type) to obtain an mtls_pop token bound to that certificate [#8698](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8698)",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}

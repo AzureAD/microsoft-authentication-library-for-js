@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "mTLS Proof-of-Possession fails closed when a request-level tokenBindingCertificate is supplied without mtlsProofOfPossession (throws token_binding_certificate_without_mtls_pop instead of silently dropping the certificate and returning a non-bound token) [#8698](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8698)",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}

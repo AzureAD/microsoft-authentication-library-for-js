@@ -47,15 +47,27 @@ export const NodeAuthErrorMessage = {
     },
     mtlsBindingCertificateMissing: {
         code: "mtls_binding_certificate_missing",
-        desc: "mTLS Proof-of-Possession was requested but no usable binding certificate is available. Configure a clientCertificate with both an x5c (public certificate or chain) and a privateKey on the application; a thumbprint-only certificate is not sufficient for mtls_pop.",
+        desc: "mTLS Proof-of-Possession was requested but no usable binding certificate is available. Configure a clientCertificate with both an x5c (public certificate or chain) and a privateKey on the application, or supply a tokenBindingCertificate on the request; a thumbprint-only certificate is not sufficient for mtls_pop.",
     },
     mtlsBindingCertificateMissingPrivateKey: {
         code: "mtls_binding_certificate_missing_private_key",
         desc: "The certificate used for mTLS Proof-of-Possession is missing its private key. Both x5c (public certificate) and privateKey are required.",
     },
+    mtlsBindingCertificateMissingCertificate: {
+        code: "mtls_binding_certificate_missing_certificate",
+        desc: "The certificate used for mTLS Proof-of-Possession is missing its public certificate (x5c). Both x5c (public certificate) and privateKey are required.",
+    },
     mtlsCustomNetworkClientUnsupported: {
         code: "mtls_custom_network_client_unsupported",
         desc: "mTLS Proof-of-Possession requires MSAL's built-in HttpClient to attach the client certificate to the TLS connection. A custom networkClient cannot be used with mtlsProofOfPossession.",
+    },
+    tokenBindingCertificateWithoutAssertion: {
+        code: "token_binding_certificate_without_assertion",
+        desc: "A request-level tokenBindingCertificate was supplied for mTLS Proof-of-Possession (FIC Leg 2), but no client assertion was resolved from the request or the application configuration. FIC Leg 2 presents a client assertion over a certificate-bound connection, so a clientAssertion is required alongside tokenBindingCertificate.",
+    },
+    tokenBindingCertificateWithoutMtlsPop: {
+        code: "token_binding_certificate_without_mtls_pop",
+        desc: "A request-level tokenBindingCertificate was supplied, but mTLS Proof-of-Possession is not enabled on the request. Set mtlsProofOfPossession: true so the token is bound to the certificate; otherwise the certificate is ignored and the resulting token would not be certificate-bound.",
     },
 };
 
@@ -176,7 +188,7 @@ export class NodeAuthError extends AuthError {
 
     /**
      * Creates an error thrown when mTLS Proof-of-Possession is requested but no binding certificate
-     * (app clientCertificate) is available.
+     * (app clientCertificate or request tokenBindingCertificate) is available.
      */
     static createMtlsBindingCertificateMissingError(
         correlationId: string = ""
@@ -202,6 +214,17 @@ export class NodeAuthError extends AuthError {
     }
 
     /**
+     * Creates an error thrown when the mTLS binding certificate is missing its public certificate (x5c).
+     */
+    static createMtlsBindingCertificateMissingCertificateError(): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.mtlsBindingCertificateMissingCertificate.code,
+            "",
+            NodeAuthErrorMessage.mtlsBindingCertificateMissingCertificate.desc
+        );
+    }
+
+    /**
      * Creates an error thrown when mTLS Proof-of-Possession is requested with a custom networkClient
      * that cannot attach the client certificate to the outbound TLS connection.
      */
@@ -212,6 +235,35 @@ export class NodeAuthError extends AuthError {
             NodeAuthErrorMessage.mtlsCustomNetworkClientUnsupported.code,
             correlationId,
             NodeAuthErrorMessage.mtlsCustomNetworkClientUnsupported.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when a request-level tokenBindingCertificate is supplied for mTLS PoP
+     * (FIC Leg 2) but no client assertion is resolved to present over the certificate-bound connection.
+     */
+    static createTokenBindingCertificateWithoutAssertionError(
+        correlationId: string = ""
+    ): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.tokenBindingCertificateWithoutAssertion.code,
+            correlationId,
+            NodeAuthErrorMessage.tokenBindingCertificateWithoutAssertion.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when a request-level tokenBindingCertificate is supplied but mTLS
+     * Proof-of-Possession is not enabled. Without mtlsProofOfPossession the certificate is never
+     * consumed, so the request would silently return a token that is not certificate-bound.
+     */
+    static createTokenBindingCertificateWithoutMtlsPopError(
+        correlationId: string = ""
+    ): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.tokenBindingCertificateWithoutMtlsPop.code,
+            correlationId,
+            NodeAuthErrorMessage.tokenBindingCertificateWithoutMtlsPop.desc
         );
     }
 }

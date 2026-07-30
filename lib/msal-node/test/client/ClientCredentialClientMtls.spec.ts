@@ -45,6 +45,13 @@ const APP_CERT: MtlsBindingCertificate = {
         "-----BEGIN PRIVATE KEY-----\nsni-private-key\n-----END PRIVATE KEY-----\n",
 };
 
+// A distinct binding cert supplied on the request (FIC Leg 2), decoupled from the credential.
+const BINDING_CERT: MtlsBindingCertificate = {
+    x5c: Buffer.from("leg1-binding-cert-der-bytes").toString("base64"),
+    privateKey:
+        "-----BEGIN PRIVATE KEY-----\nleg1-private-key\n-----END PRIVATE KEY-----\n",
+};
+
 const MTLS_POP_TOKEN_RESPONSE: ServerAuthorizationTokenResponse = {
     token_type: Constants.AuthenticationScheme.MTLS_POP,
     expires_in: 3599,
@@ -205,6 +212,118 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
         });
     });
 
+    describe("FIC Leg 2 (assertion credential + tokenBindingCertificate)", () => {
+        const legTwoRequest = (): CommonClientCredentialRequest => ({
+            authority: TENANTED_AUTHORITY,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            authenticationScheme: Constants.AuthenticationScheme.MTLS_POP,
+            clientAssertion: {
+                assertion: "leg1-federated-assertion-jwt",
+                assertionType:
+                    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            },
+            tokenBindingCertificate: BINDING_CERT,
+        });
+
+        it("keeps the assertion in the body and marks it as jwt-pop", async () => {
+            // No app clientCertificate — the credential is the assertion, cert comes from the request.
+            const { config, postSpy } = await buildMtlsConfig({});
+            const client = new ClientCredentialClient(config);
+
+            await client.acquireToken(legTwoRequest());
+
+            const body = postSpy.mock.calls[0][1]?.body as string;
+            expect(body).toContain(
+                "client_assertion=leg1-federated-assertion-jwt"
+            );
+            expect(body).toContain(
+                `client_assertion_type=${encodeURIComponent(
+                    "urn:ietf:params:oauth:client-assertion-type:jwt-pop"
+                )}`
+            );
+            expect(body).toContain(
+                `token_type=${encodeURIComponent("mtls_pop")}`
+            );
+        });
+
+        it("presents the request binding certificate (not an app cert) on the TLS connection", async () => {
+            const { config, postSpy } = await buildMtlsConfig({});
+            const client = new ClientCredentialClient(config);
+
+            await client.acquireToken(legTwoRequest());
+
+            const mtlsCertificate = postSpy.mock.calls[0][1]?.mtlsCertificate;
+            expect(mtlsCertificate).toEqual({
+                cert: x5cToPem(BINDING_CERT.x5c),
+                key: BINDING_CERT.privateKey,
+            });
+        });
+
+        it("binds the result to the request binding certificate thumbprint", async () => {
+            const { config } = await buildMtlsConfig({});
+            const client = new ClientCredentialClient(config);
+
+            const result = (await client.acquireToken(
+                legTwoRequest()
+            )) as AuthenticationResult;
+
+            expect(result.bindingCertificate).toEqual({
+                x5c: BINDING_CERT.x5c,
+                thumbprintSha256: computeX5tSha256(BINDING_CERT.x5c),
+            });
+        });
+
+        it("fails fast when a tokenBindingCertificate is supplied but no client assertion resolves", async () => {
+            // No app clientAssertion and none on the request → the FIC Leg 2 credential is missing.
+            const { config, postSpy } = await buildMtlsConfig({});
+            const client = new ClientCredentialClient(config);
+
+            const acquire = client.acquireToken({
+                authority: TENANTED_AUTHORITY,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                authenticationScheme: Constants.AuthenticationScheme.MTLS_POP,
+                tokenBindingCertificate: BINDING_CERT,
+            });
+
+            await expect(acquire).rejects.toThrow(
+                /token_binding_certificate_without_assertion/
+            );
+            // The resolved correlationId is threaded onto the error for diagnostics.
+            await expect(acquire).rejects.toMatchObject({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            });
+
+            // The request must never reach the network without a credential.
+            expect(postSpy).not.toHaveBeenCalled();
+        });
+
+        it("fails closed when a tokenBindingCertificate is supplied without enabling mtlsProofOfPossession", async () => {
+            // authenticationScheme is not MTLS_POP (mtlsProofOfPossession was not set), so the cert
+            // would otherwise be silently dropped and a non-bound token returned.
+            const { config, postSpy } = await buildMtlsConfig({});
+            const client = new ClientCredentialClient(config);
+
+            await expect(
+                client.acquireToken({
+                    authority: TENANTED_AUTHORITY,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    clientAssertion: {
+                        assertion: "leg1-federated-assertion-jwt",
+                        assertionType:
+                            "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                    },
+                    tokenBindingCertificate: BINDING_CERT,
+                })
+            ).rejects.toThrow(/token_binding_certificate_without_mtls_pop/);
+
+            // The request must never reach the network as an unbound token.
+            expect(postSpy).not.toHaveBeenCalled();
+        });
+    });
+
     describe("negative cases", () => {
         it("throws when mTLS PoP is requested with a custom (non-HttpClient) network client", async () => {
             const config = await ClientTestUtils.createTestClientConfiguration(
@@ -273,6 +392,26 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
                 errorCode: "mtls_binding_certificate_missing_private_key",
                 correlationId: TEST_CONFIG.CORRELATION_ID,
             });
+        });
+
+        it("throws when the binding certificate is missing its public certificate (x5c)", async () => {
+            const { config } = await buildMtlsConfig({
+                mtlsBindingCertificate: {
+                    x5c: "",
+                    privateKey: APP_CERT.privateKey,
+                },
+            });
+            const client = new ClientCredentialClient(config);
+
+            await expect(
+                client.acquireToken({
+                    authority: TENANTED_AUTHORITY,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    authenticationScheme:
+                        Constants.AuthenticationScheme.MTLS_POP,
+                })
+            ).rejects.toThrow(/mtls_binding_certificate_missing_certificate/);
         });
 
         it("validates mTLS configuration before any cache lookup (fails fast on cache hits)", async () => {
