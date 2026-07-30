@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "mTLS Proof-of-Possession binding-certificate and custom-network-client errors now carry the request correlationId instead of an empty string [#8693](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8693)",
+    "packageName": "@azure/msal-node",
+    "email": "rginsburg@microsoft.com",
+    "dependentChangeType": "patch"
+}

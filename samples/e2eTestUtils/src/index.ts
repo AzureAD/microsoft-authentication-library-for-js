@@ -56,6 +56,8 @@ export { NodeCacheTestUtils } from "./NodeCacheTestUtils";
 export { storagePoller } from "./TestUtils";
 export { getKeyVaultSecretClient, getCredentials } from "./KeyVaultUtils";
 export { getCertificateInfo } from "./CertificateUtils";
+export { callGraphOverMtls } from "./MtlsResourceUtils";
+export type { MtlsResourceResponse } from "./MtlsResourceUtils";
 export {
     Screenshot as ScreenShotElectron,
     enterCredentials as enterCredentialsElectron,

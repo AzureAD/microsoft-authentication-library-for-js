@@ -392,6 +392,29 @@ describe("ConfidentialClientApplication", () => {
                     CommonConstants.AuthenticationScheme.MTLS_POP
                 );
             });
+
+            it("threads the request correlationId into the mTLS validation error surfaced through the public entry point", async () => {
+                // Exercise the real ClientCredentialClient (no mocked acquireToken): the shared
+                // test config uses a mock network client (not MSAL's HttpClient), so an mTLS PoP
+                // request fails fast in validation. The surfaced NodeAuthError must carry the
+                // caller's correlationId rather than an empty string.
+                const correlationId = "mtls-pop-public-entry-correlation-id";
+
+                const client: ConfidentialClientApplication =
+                    new ConfidentialClientApplication(config);
+
+                await expect(
+                    client.acquireTokenByClientCredential({
+                        scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                        skipCache: false,
+                        mtlsProofOfPossession: true,
+                        correlationId,
+                    })
+                ).rejects.toMatchObject({
+                    errorCode: "mtls_custom_network_client_unsupported",
+                    correlationId,
+                });
+            });
         });
 
         describe("clientAssertion is used to acquire a token after being provided in the request", () => {

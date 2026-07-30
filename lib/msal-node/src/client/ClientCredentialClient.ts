@@ -516,15 +516,22 @@ export class ClientCredentialClient extends BaseClient {
     private validateMtlsPopRequest(
         request: CommonClientCredentialRequest
     ): MtlsBindingCertificate {
+        const correlationId = request.correlationId;
         if (!(this.networkClient instanceof HttpClient)) {
-            throw NodeAuthError.createMtlsCustomNetworkClientUnsupportedError();
+            throw NodeAuthError.createMtlsCustomNetworkClientUnsupportedError(
+                correlationId
+            );
         }
         const bindingCertificate = this.getMtlsBindingCertificate(request);
         if (!bindingCertificate) {
-            throw NodeAuthError.createMtlsBindingCertificateMissingError();
+            throw NodeAuthError.createMtlsBindingCertificateMissingError(
+                correlationId
+            );
         }
         if (!bindingCertificate.privateKey) {
-            throw NodeAuthError.createMtlsBindingCertificateMissingPrivateKeyError();
+            throw NodeAuthError.createMtlsBindingCertificateMissingPrivateKeyError(
+                correlationId
+            );
         }
         if (!bindingCertificate.x5c) {
             throw NodeAuthError.createMtlsBindingCertificateMissingCertificateError();

@@ -347,7 +347,10 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
                     authenticationScheme:
                         Constants.AuthenticationScheme.MTLS_POP,
                 })
-            ).rejects.toThrow(/mtls_custom_network_client_unsupported/);
+            ).rejects.toMatchObject({
+                errorCode: "mtls_custom_network_client_unsupported",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            });
         });
 
         it("throws when mTLS PoP is requested but no binding certificate is available", async () => {
@@ -362,7 +365,10 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
                     authenticationScheme:
                         Constants.AuthenticationScheme.MTLS_POP,
                 })
-            ).rejects.toThrow(/mtls_binding_certificate_missing/);
+            ).rejects.toMatchObject({
+                errorCode: "mtls_binding_certificate_missing",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            });
         });
 
         it("throws when the binding certificate is missing its private key", async () => {
@@ -382,7 +388,10 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
                     authenticationScheme:
                         Constants.AuthenticationScheme.MTLS_POP,
                 })
-            ).rejects.toThrow(/mtls_binding_certificate_missing_private_key/);
+            ).rejects.toMatchObject({
+                errorCode: "mtls_binding_certificate_missing_private_key",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            });
         });
 
         it("throws when the binding certificate is missing its public certificate (x5c)", async () => {
@@ -432,7 +441,10 @@ describe("ClientCredentialClient mTLS Proof-of-Possession", () => {
                     authenticationScheme:
                         Constants.AuthenticationScheme.MTLS_POP,
                 })
-            ).rejects.toThrow(/mtls_custom_network_client_unsupported/);
+            ).rejects.toMatchObject({
+                errorCode: "mtls_custom_network_client_unsupported",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            });
 
             expect(cacheSpy).not.toHaveBeenCalled();
         });
