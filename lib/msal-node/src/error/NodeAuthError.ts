@@ -178,10 +178,12 @@ export class NodeAuthError extends AuthError {
      * Creates an error thrown when mTLS Proof-of-Possession is requested but no binding certificate
      * (app clientCertificate) is available.
      */
-    static createMtlsBindingCertificateMissingError(): NodeAuthError {
+    static createMtlsBindingCertificateMissingError(
+        correlationId: string = ""
+    ): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.mtlsBindingCertificateMissing.code,
-            "",
+            correlationId,
             NodeAuthErrorMessage.mtlsBindingCertificateMissing.desc
         );
     }
@@ -189,10 +191,12 @@ export class NodeAuthError extends AuthError {
     /**
      * Creates an error thrown when the mTLS binding certificate is missing its private key.
      */
-    static createMtlsBindingCertificateMissingPrivateKeyError(): NodeAuthError {
+    static createMtlsBindingCertificateMissingPrivateKeyError(
+        correlationId: string = ""
+    ): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.mtlsBindingCertificateMissingPrivateKey.code,
-            "",
+            correlationId,
             NodeAuthErrorMessage.mtlsBindingCertificateMissingPrivateKey.desc
         );
     }
@@ -201,10 +205,12 @@ export class NodeAuthError extends AuthError {
      * Creates an error thrown when mTLS Proof-of-Possession is requested with a custom networkClient
      * that cannot attach the client certificate to the outbound TLS connection.
      */
-    static createMtlsCustomNetworkClientUnsupportedError(): NodeAuthError {
+    static createMtlsCustomNetworkClientUnsupportedError(
+        correlationId: string = ""
+    ): NodeAuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.mtlsCustomNetworkClientUnsupported.code,
-            "",
+            correlationId,
             NodeAuthErrorMessage.mtlsCustomNetworkClientUnsupported.desc
         );
     }

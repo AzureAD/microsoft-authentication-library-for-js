@@ -86,7 +86,9 @@ export class ClientCredentialClient extends BaseClient {
              * missing binding certificate / private key) before consulting the cache, so a cached
              * token is never returned for a request that could not be satisfied over mTLS.
              */
-            const bindingCertificate = this.validateMtlsPopRequest();
+            const bindingCertificate = this.validateMtlsPopRequest(
+                request.correlationId
+            );
             additionalCacheKeyComponents = {
                 ...(additionalCacheKeyComponents ?? {}),
                 mtls_pop_cert_thumbprint: computeX5tSha256(
@@ -371,7 +373,9 @@ export class ClientCredentialClient extends BaseClient {
             let tokenEndpoint = authority.tokenEndpoint;
 
             if (isMtlsPop) {
-                const bindingCertificate = this.validateMtlsPopRequest();
+                const bindingCertificate = this.validateMtlsPopRequest(
+                    request.correlationId
+                );
                 tokenEndpoint = authority.getMtlsTokenEndpoint();
                 mtlsCertificate = {
                     cert: x5cToPem(bindingCertificate.x5c),
@@ -496,17 +500,25 @@ export class ClientCredentialClient extends BaseClient {
      * key must be resolvable. Returns the resolved binding certificate so callers can reuse it
      * (e.g. for cache-key isolation and the TLS handshake).
      */
-    private validateMtlsPopRequest(): MtlsBindingCertificate {
+    private validateMtlsPopRequest(
+        correlationId: string
+    ): MtlsBindingCertificate {
         if (!(this.networkClient instanceof HttpClient)) {
-            throw NodeAuthError.createMtlsCustomNetworkClientUnsupportedError();
+            throw NodeAuthError.createMtlsCustomNetworkClientUnsupportedError(
+                correlationId
+            );
         }
         const bindingCertificate =
             this.config.clientCredentials.mtlsBindingCertificate;
         if (!bindingCertificate) {
-            throw NodeAuthError.createMtlsBindingCertificateMissingError();
+            throw NodeAuthError.createMtlsBindingCertificateMissingError(
+                correlationId
+            );
         }
         if (!bindingCertificate.privateKey) {
-            throw NodeAuthError.createMtlsBindingCertificateMissingPrivateKeyError();
+            throw NodeAuthError.createMtlsBindingCertificateMissingPrivateKeyError(
+                correlationId
+            );
         }
         return bindingCertificate;
     }
