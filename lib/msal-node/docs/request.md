@@ -315,6 +315,31 @@ cca.acquireTokenByClientCredential(clientCredentialRequest)
 
 The assertion callback context (`ClientAssertionConfig`) includes `fmiPath` so that context-aware assertion callbacks can use it to acquire the correct credential for multi-leg agent flows.
 
+### Client-originated claims (`claimsFromClient`)
+
+All confidential client flows — `acquireTokenByClientCredential`, `acquireTokenOnBehalfOf`, and `acquireTokenByUserFederatedIdentityCredential` — accept an optional `claimsFromClient` parameter. It forwards **client-originated** claims to the token endpoint, sent as the `claims` parameter in the request body. The value is forwarded as-is — MSAL does not restrict which claim keys you send. When both `claims` and `claimsFromClient` are present they are **deep-merged**, with `claimsFromClient` taking precedence on conflicting keys (nested objects are merged recursively rather than replaced).
+
+Unlike `claims` (a server-issued challenge, which **bypasses** the token cache), `claimsFromClient` does **not** bypass the cache. Server `claims` can be an _ephemeral_ challenge (for example, a CAE claims challenge) that must be satisfied by a fresh network call, whereas `claimsFromClient` must be a _stable, client-supplied_ attribute (for example, a network-perimeter id) sent on every request — so instead of bypassing the cache it **partitions** it by value. Because the entry is keyed on the value, send the **same `claimsFromClient` value on every request** for which you want the cached token to be reused — a different value (or omitting it) produces a separate cache entry and a new network call. You must pass stable, non-dynamic values to avoid unbounded cache growth. Empty, whitespace-only, or empty-object (`{}`) values are ignored.
+
+**Cache growth and mitigation.** Every distinct `claimsFromClient` value produces its own cached token, so an application that sends many different values accumulates a correspondingly large number of cache entries. Keep the set of values small and stable, and in production persist the cache to an external store that you can bound or evict rather than relying on the default in-memory cache. See the [token caching guide](./caching.md) for cache serialization and distributed / evictable caching patterns.
+
+> Note: `acquireTokenByUserFederatedIdentityCredential` always calls the network, so `claimsFromClient` is forwarded on every request and does not participate in that flow's cache key (tokens are still cached, just not partitioned by `claimsFromClient`).
+
+```javascript
+const clientCredentialRequest = {
+    scopes: ["https://graph.microsoft.com/.default"],
+    claimsFromClient: '{"example_claim":{"essential":true}}',
+};
+
+cca.acquireTokenByClientCredential(clientCredentialRequest)
+    .then((response) => {
+        console.log("Response: ", response);
+    })
+    .catch((error) => {
+        console.log(JSON.stringify(error));
+    });
+```
+
 ## User Federated Identity Credential (user_fic)
 
 A User Federated Identity Credential (FIC) enables an agent application to acquire a user-scoped token without direct user interaction. This is the final step (Leg 3) in the agent identity protocol:

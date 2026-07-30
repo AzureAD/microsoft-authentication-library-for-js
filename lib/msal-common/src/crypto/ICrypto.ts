@@ -11,15 +11,17 @@ import type { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import type { ShrOptions, SignedHttpRequest } from "./SignedHttpRequest.js";
 
 /**
- * The PkceCodes type describes the structure
- * of objects that contain PKCE code
- * challenge and verifier pairs
+ * PKCE code verifier and challenge pair used by authorization code flows.
  */
 export type PkceCodes = {
     verifier: string;
     challenge: string;
 };
 
+/**
+ * Parameters used by crypto implementations to build signed HTTP request
+ * proof-of-possession tokens.
+ */
 export type SignedHttpRequestParameters = Pick<
     BaseAuthRequest,
     | "resourceRequestMethod"
@@ -31,6 +33,12 @@ export type SignedHttpRequestParameters = Pick<
     correlationId: string;
 };
 
+/**
+ * Shared JOSE algorithm literals used by MSAL package internals.
+ */
+export const JsonWebTokenAlgorithms = {
+    ES256: "ES256",
+} as const;
 /**
  * Interface for crypto functions used by library
  */
@@ -94,6 +102,10 @@ export interface ICrypto {
     hashString(plainText: string): Promise<string>;
 }
 
+/**
+ * Default crypto implementation used when a platform-specific implementation has
+ * not been provided.
+ */
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     createNewGuid: (): string => {
         throw createClientAuthError(

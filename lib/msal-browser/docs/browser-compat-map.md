@@ -29,9 +29,9 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 |-----|-----------|----------|
 | `crypto.subtle.digest()` | PKCE `code_challenge` (SHA-256) | None — PKCE is mandatory |
 | `crypto.getRandomValues()` | PKCE verifier, state, nonce, correlation IDs | None |
-| `crypto.subtle.generateKey()` | PoP RSA keypairs, EAR AES keys | None for PoP/EAR |
-| `crypto.subtle.importKey()` | PoP signing, EAR decryption, localStorage encryption (HKDF → AES-GCM) | None |
-| `crypto.subtle.sign()` | PoP token signing | None |
+| `crypto.subtle.generateKey()` | PoP RSA keypairs, DPoP ES256/P-256 keypairs, EAR AES keys | None for PoP/DPoP/EAR |
+| `crypto.subtle.importKey()` | PoP signing, DPoP signing, EAR decryption, localStorage encryption (HKDF → AES-GCM) | None |
+| `crypto.subtle.sign()` | PoP token signing, DPoP proof signing | None |
 | `crypto.subtle.decrypt()` | EAR response decryption, localStorage decryption | None |
 | `crypto.subtle.deriveKey()` | HKDF key derivation for localStorage encryption | None |
 
@@ -71,6 +71,7 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 | API | MSAL Usage | Fallback |
 |-----|-----------|----------|
 | `fetch()` | All HTTP requests (token endpoint, discovery, custom auth) | None |
+| `navigator.onLine` | Distinguish network-offline from transport failures when token POST fails | Assumes online (retries once for non-abort transport failures) |
 | `TextEncoder` / `TextDecoder` | String ↔ binary for crypto | None |
 | `atob()` / `btoa()` | Base64 for JWK and token parsing | None |
 | Hidden form + `form.submit()` | POST-based `/authorize` (EAR, redirect POST, silent iframe POST) | None for POST flows |

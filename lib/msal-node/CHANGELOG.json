@@ -2,6 +2,72 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 29 Jul 2026 00:26:31 GMT",
+      "version": "5.4.3",
+      "tag": "@azure/msal-node_v5.4.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.11.3",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 21 Jul 2026 22:25:04 GMT",
+      "version": "5.4.2",
+      "tag": "@azure/msal-node_v5.4.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "gladjohn@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "32259ab11239f3777045db30cd145d215e46539f",
+            "comment": "Upgrade Azure Arc HIMDS token endpoint api-version from 2019-11-01 to 2020-06-01 [#8711](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8711)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 15 Jul 2026 22:35:35 GMT",
+      "version": "5.4.1",
+      "tag": "@azure/msal-node_v5.4.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.11.2",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Jul 2026 22:16:01 GMT",
+      "version": "5.4.0",
+      "tag": "@azure/msal-node_v5.4.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "aa48c36402b908a4a7ef36a1b254d73fc66e4b3f",
+            "comment": "Add form_post response mode support, preferredPort option, and deprecate custom loopbackClient [#8694](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8694)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.11.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 30 Jun 2026 21:04:20 GMT",
       "version": "5.3.1",
       "tag": "@azure/msal-node_v5.3.1",
