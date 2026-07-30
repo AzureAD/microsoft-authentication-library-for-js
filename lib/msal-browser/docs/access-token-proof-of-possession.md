@@ -187,4 +187,4 @@ For DPoP results, `accessToken` is the raw DPoP-bound access token and `dpopProo
 
 DPoP resource proofs are generated from the request method, normalized resource URI, and raw access token (`ath` is computed internally). MSAL does not accept caller-supplied `ath` hashes. Nonce challenge/retry APIs, PairwiseBroker DPoP, WAM/L3/NAA brokered DPoP, hardware-bound keys, DPoP-bound refresh tokens, and cross-tab key sharing are follow-up features and are not part of this initial L1 PCA enablement.
 
-For live ESTS smoke validation use an ESTS environment with DPoP enabled, for example `dc=ESTS-PUB-WUS3-FD000-TEST1-100`. Client-side request shaping remains authority-agnostic; real-service DPoP validation should be kept to ESTS-enabled environments until another authorization server is confirmed.
+For live smoke validation, use a resource and authorization server that support DPoP-bound access tokens. Client-side request shaping remains authority-agnostic; real-service DPoP validation should be kept to DPoP-enabled environments until another authorization server is confirmed.

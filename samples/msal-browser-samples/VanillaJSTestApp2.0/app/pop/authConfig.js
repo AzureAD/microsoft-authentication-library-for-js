@@ -49,8 +49,7 @@ const popConfig = {
 
 const dpopConfig = {
     // Replace with a DPoP-enabled test resource that validates the access token and proof.
-    endpoint: "https://localhost:5001/api/validateDPoP",
-    estsTestSliceDc: "ESTS-PUB-WUS3-FD000-TEST1-100"
+    endpoint: "https://localhost:5001/api/validateDPoP"
 };
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
@@ -83,8 +82,5 @@ const dpopTokenRequest = {
     scopes: ["openid", "profile", "User.Read"],
     authenticationScheme: msal.AuthenticationScheme.DPOP,
     resourceRequestMethod: "GET",
-    resourceRequestUri: dpopConfig.endpoint,
-    extraQueryParameters: {
-        dc: dpopConfig.estsTestSliceDc
-    }
+    resourceRequestUri: dpopConfig.endpoint
 };
