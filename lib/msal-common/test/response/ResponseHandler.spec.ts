@@ -33,10 +33,7 @@ import {
 } from "../../src/response/ResponseHandler.js";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse.js";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
-import {
-    AuthenticationScheme,
-    DPOP_TOKEN_TYPE,
-} from "../../src/utils/Constants.js";
+import { AuthenticationScheme } from "../../src/utils/Constants.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import {
     mockCrypto,
@@ -702,7 +699,7 @@ describe("ResponseHandler.ts", () => {
                 0
             );
 
-            expect(result.tokenType).toBe(DPOP_TOKEN_TYPE);
+            expect(result.tokenType).toBe(AuthenticationScheme.DPOP);
             expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(result.dpopProof).toBe("fresh-dpop-proof");
             expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);

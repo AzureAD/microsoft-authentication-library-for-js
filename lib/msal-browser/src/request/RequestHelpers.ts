@@ -114,6 +114,8 @@ export async function initializeBaseRequest(
                 break;
             case Constants.AuthenticationScheme.DPOP: {
                 validateDpopRequest(request, correlationId);
+                const dpopTokenBindingKeyType =
+                    Constants.AuthenticationScheme.DPOP.toLowerCase();
 
                 const tokenBindingKeyManager = new TokenBindingKeyManager(
                     logger,
@@ -121,9 +123,10 @@ export async function initializeBaseRequest(
                 );
                 validatedRequest.dpopJkt =
                     await tokenBindingKeyManager.provisionTokenBindingKey({
-                        tokenBindingKeyType: "dpop",
-                        tokenBindingKeyAlgorithm: "ES256",
-                        keyScope: `dpop.${config.auth.clientId}.${authority}`,
+                        tokenBindingKeyType: dpopTokenBindingKeyType,
+                        tokenBindingKeyAlgorithm:
+                            Constants.DPOP_TOKEN_BINDING_KEY_ALGORITHM,
+                        keyScope: `${dpopTokenBindingKeyType}.${config.auth.clientId}.${authority}`,
                         correlationId,
                     });
                 break;

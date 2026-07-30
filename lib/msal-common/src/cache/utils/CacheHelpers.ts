@@ -125,7 +125,7 @@ export function createAccessTokenEntity(
                 }
                 atEntity.keyId = tokenClaims.cnf.kid;
                 break;
-            case Constants.AuthenticationScheme.DPOP:
+            case Constants.AuthenticationScheme.DPOP.toLowerCase():
                 if (!keyId) {
                     throw createClientAuthError(
                         ClientAuthErrorCodes.keyIdMissing,

@@ -624,7 +624,7 @@ export class ResponseHandler {
                         accessToken: cacheRecord.accessToken.secret,
                         keyId: cacheRecord.accessToken.keyId,
                         keyContext: {
-                            keyScope: `dpop.${cacheRecord.accessToken.clientId}.${request.authority}`,
+                            keyScope: `${Constants.AuthenticationScheme.DPOP.toLowerCase()}.${cacheRecord.accessToken.clientId}.${request.authority}`,
                         },
                     },
                     request.correlationId
@@ -704,7 +704,7 @@ export class ResponseHandler {
             tokenType:
                 cacheRecord.accessToken?.tokenType ===
                 Constants.AuthenticationScheme.DPOP
-                    ? Constants.DPOP_TOKEN_TYPE
+                    ? Constants.AuthenticationScheme.DPOP
                     : cacheRecord.accessToken?.tokenType || "",
             state: requestState ? requestState.userRequestState : "",
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || "",

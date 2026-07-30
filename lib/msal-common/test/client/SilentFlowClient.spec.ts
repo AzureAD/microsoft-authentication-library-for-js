@@ -16,7 +16,6 @@ import {
 import {
     AuthenticationScheme,
     CredentialType,
-    DPOP_TOKEN_TYPE,
     OPENID_SCOPE,
     PROFILE_SCOPE,
 } from "../../src/utils/Constants.js";
@@ -955,14 +954,14 @@ describe("SilentFlowClient unit tests", () => {
                 silentFlowRequest
             );
 
-            expect(authResult.tokenType).toBe(DPOP_TOKEN_TYPE);
+            expect(authResult.tokenType).toBe(AuthenticationScheme.DPOP);
             expect(authResult.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(authResult.dpopProof).toBe("fresh-dpop-proof-1");
             expect(getPublicJwkSpy).toHaveBeenCalledWith(
                 TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
                 TEST_CONFIG.CORRELATION_ID,
                 {
-                    keyScope: `dpop.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_CONFIG.validAuthority}`,
+                    keyScope: `${AuthenticationScheme.DPOP.toLowerCase()}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_CONFIG.validAuthority}`,
                 }
             );
         });

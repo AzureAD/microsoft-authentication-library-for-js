@@ -1954,7 +1954,7 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         switch (normalizedFilterTokenType) {
-            case Constants.AuthenticationScheme.DPOP:
+            case Constants.AuthenticationScheme.DPOP.toLowerCase():
                 return this.matchKeyBoundAccessToken(entity, filter, true);
             case Constants.AuthenticationScheme.SSH:
                 return this.matchKeyBoundAccessToken(entity, filter, false);

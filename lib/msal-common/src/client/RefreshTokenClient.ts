@@ -374,7 +374,7 @@ export class RefreshTokenClient {
                         tokenEndpoint: endpoint,
                         keyId: request.dpopJkt || "",
                         keyContext: {
-                            keyScope: `dpop.${this.config.authOptions.clientId}.${request.authority}`,
+                            keyScope: `${Constants.AuthenticationScheme.DPOP.toLowerCase()}.${this.config.authOptions.clientId}.${request.authority}`,
                         },
                     },
                     request.correlationId

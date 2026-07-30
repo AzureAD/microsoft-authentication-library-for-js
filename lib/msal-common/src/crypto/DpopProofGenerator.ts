@@ -10,6 +10,10 @@ import {
 } from "./ITokenBindingKeyManager.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import {
+    AuthenticationScheme,
+    DPOP_TOKEN_BINDING_KEY_ALGORITHM,
+} from "../utils/Constants.js";
+import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError.js";
@@ -69,7 +73,6 @@ export type DpopProofGenerationParams = {
 };
 
 const DPOP_HTM_REGEX = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
-const DPOP_TOKEN_BINDING_KEY_TYPE = "dpop";
 const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
 
 function buildProofHeader(
@@ -174,8 +177,8 @@ export class DpopProofGenerator {
         correlationId: string = ""
     ): Promise<string> {
         return this.tokenBindingKeyManager.provisionTokenBindingKey({
-            tokenBindingKeyType: DPOP_TOKEN_BINDING_KEY_TYPE,
-            tokenBindingKeyAlgorithm: DPOP_JWT_HEADER_ALGORITHM,
+            tokenBindingKeyType: AuthenticationScheme.DPOP.toLowerCase(),
+            tokenBindingKeyAlgorithm: DPOP_TOKEN_BINDING_KEY_ALGORITHM,
             keyScope: this.getKeyScope(params),
             correlationId,
         });
@@ -279,6 +282,6 @@ export class DpopProofGenerator {
     }
 
     private getKeyScope(params: DpopJktGenerationParams): string {
-        return `${DPOP_TOKEN_BINDING_KEY_TYPE}.${params.clientId}.${params.authority}`;
+        return `${AuthenticationScheme.DPOP.toLowerCase()}.${params.clientId}.${params.authority}`;
     }
 }

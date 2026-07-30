@@ -201,7 +201,7 @@ export class SilentFlowClient {
                     cachedAccessToken.keyId,
                     request.correlationId,
                     {
-                        keyScope: `dpop.${cachedAccessToken.clientId}.${request.authority}`,
+                        keyScope: `${Constants.AuthenticationScheme.DPOP.toLowerCase()}.${cachedAccessToken.clientId}.${request.authority}`,
                     }
                 );
             } catch {

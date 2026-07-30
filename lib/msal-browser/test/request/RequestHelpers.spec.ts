@@ -191,10 +191,13 @@ describe("RequestHelpers tests", () => {
             );
 
             expect(result.dpopJkt).toBe("test-dpop-jkt");
+            const dpopTokenBindingKeyType =
+                Constants.AuthenticationScheme.DPOP.toLowerCase();
             expect(provisionSpy).toHaveBeenCalledWith({
-                tokenBindingKeyType: "dpop",
-                tokenBindingKeyAlgorithm: "ES256",
-                keyScope: `dpop.${TEST_CONFIG.MSAL_CLIENT_ID}.https://login.microsoftonline.com/common`,
+                tokenBindingKeyType: dpopTokenBindingKeyType,
+                tokenBindingKeyAlgorithm:
+                    Constants.DPOP_TOKEN_BINDING_KEY_ALGORITHM,
+                keyScope: `${dpopTokenBindingKeyType}.${TEST_CONFIG.MSAL_CLIENT_ID}.https://login.microsoftonline.com/common`,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
             });
         });

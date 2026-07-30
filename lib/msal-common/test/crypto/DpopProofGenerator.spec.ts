@@ -13,7 +13,11 @@ import {
     TokenBindingKeyContext,
 } from "../../src/crypto/ITokenBindingKeyManager.js";
 import { JoseHeader } from "../../src/crypto/JoseHeader.js";
-import { JsonWebTokenTypes } from "../../src/utils/Constants.js";
+import {
+    AuthenticationScheme,
+    DPOP_TOKEN_BINDING_KEY_ALGORITHM,
+    JsonWebTokenTypes,
+} from "../../src/utils/Constants.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { ClientConfigurationErrorCodes } from "../../src/error/ClientConfigurationError.js";
 import crypto from "crypto";
@@ -45,8 +49,9 @@ describe("DpopProofGenerator Unit Tests", () => {
     };
     const dpopSignature = "A".repeat(86);
     const dpopKeyId = "dpop-key-id";
+    const dpopTokenBindingKeyType = AuthenticationScheme.DPOP.toLowerCase();
     const dpopKeyContext: TokenBindingKeyContext = {
-        keyScope: `dpop.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_CONFIG.validAuthority}`,
+        keyScope: `${dpopTokenBindingKeyType}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_CONFIG.validAuthority}`,
     };
 
     beforeEach(() => {
@@ -112,9 +117,9 @@ describe("DpopProofGenerator Unit Tests", () => {
 
             expect(dpopJkt).toBe(dpopKeyId);
             expect(provisionTokenBindingKeySpy).toHaveBeenCalledWith({
-                tokenBindingKeyType: "dpop",
-                tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
-                keyScope: `dpop.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_CONFIG.validAuthority}`,
+                tokenBindingKeyType: dpopTokenBindingKeyType,
+                tokenBindingKeyAlgorithm: DPOP_TOKEN_BINDING_KEY_ALGORITHM,
+                keyScope: `${dpopTokenBindingKeyType}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_CONFIG.validAuthority}`,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
             });
         });

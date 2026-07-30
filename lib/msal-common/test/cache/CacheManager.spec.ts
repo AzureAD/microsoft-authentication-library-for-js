@@ -51,7 +51,6 @@ import { TestError } from "../test_kit/TestErrors.js";
 import { MockCache } from "./MockCache.js";
 
 describe("CacheManager.ts test cases", () => {
-    const DPOP_AUTHENTICATION_SCHEME = "dpop" as AuthenticationScheme;
     const mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockCrypto, {
         canonicalAuthority: TEST_CONFIG.validAuthority,
         cloudDiscoveryMetadata: JSON.parse(TEST_CONFIG.CLOUD_DISCOVERY_METADATA)
@@ -248,7 +247,7 @@ describe("CacheManager.ts test cases", () => {
                 mockCrypto.base64Decode,
                 TEST_CONFIG.CORRELATION_ID,
                 undefined,
-                DPOP_AUTHENTICATION_SCHEME,
+                AuthenticationScheme.DPOP,
                 undefined,
                 TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
             );
@@ -273,7 +272,7 @@ describe("CacheManager.ts test cases", () => {
             expect(mockCacheAT.credentialType).toEqual(
                 CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
             );
-            expect(mockCacheAT.tokenType).toEqual(DPOP_AUTHENTICATION_SCHEME);
+            expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.DPOP);
             expect(mockCacheAT.keyId).toEqual(
                 TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
             );
@@ -293,7 +292,7 @@ describe("CacheManager.ts test cases", () => {
                     mockCrypto.base64Decode,
                     TEST_CONFIG.CORRELATION_ID,
                     undefined,
-                    DPOP_AUTHENTICATION_SCHEME
+                    AuthenticationScheme.DPOP
                 )
             ).toThrow(ClientAuthErrorCodes.keyIdMissing);
         });
@@ -2752,7 +2751,7 @@ describe("CacheManager.ts test cases", () => {
             mockCrypto.base64Decode,
             TEST_CONFIG.CORRELATION_ID,
             500,
-            DPOP_AUTHENTICATION_SCHEME,
+            AuthenticationScheme.DPOP,
             undefined,
             TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
         );
@@ -2811,7 +2810,7 @@ describe("CacheManager.ts test cases", () => {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             forceRefresh: false,
-            authenticationScheme: DPOP_AUTHENTICATION_SCHEME,
+            authenticationScheme: AuthenticationScheme.DPOP,
             sshKid: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
         };
 
@@ -2836,24 +2835,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getAccessTokensByFilter matches DPoP access tokens by tokenType and jkt", async () => {
-        const SPEC_DPOP_AUTHENTICATION_SCHEME = "DPoP" as AuthenticationScheme;
         const mockedDpopAtEntity = CacheHelpers.createAccessTokenEntity(
-            "uid.utid",
-            "login.microsoftonline.com",
-            TEST_DPOP_VALUES.ACCESS_TOKEN,
-            CACHE_MOCKS.MOCK_CLIENT_ID,
-            TEST_CONFIG.TENANT,
-            "User.Read test_scope",
-            4600,
-            4600,
-            mockCrypto.base64Decode,
-            TEST_CONFIG.CORRELATION_ID,
-            500,
-            DPOP_AUTHENTICATION_SCHEME,
-            undefined,
-            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
-        );
-        const specCasedDpopAtEntity = CacheHelpers.createAccessTokenEntity(
             "uid.utid",
             "login.microsoftonline.com",
             TEST_DPOP_VALUES.ACCESS_TOKEN,
@@ -2865,7 +2847,7 @@ describe("CacheManager.ts test cases", () => {
             mockCrypto.base64Decode,
             TEST_CONFIG.CORRELATION_ID,
             500,
-            SPEC_DPOP_AUTHENTICATION_SCHEME,
+            AuthenticationScheme.DPOP,
             undefined,
             TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
         );
@@ -2873,38 +2855,24 @@ describe("CacheManager.ts test cases", () => {
         await mockCache.cacheManager.setAccessTokenCredential(
             mockedDpopAtEntity
         );
-        await mockCache.cacheManager.setAccessTokenCredential(
-            specCasedDpopAtEntity
-        );
 
         expect(
             mockCache.cacheManager.getAccessTokensByFilter(
                 {
                     credentialType:
                         CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-                    tokenType: DPOP_AUTHENTICATION_SCHEME,
+                    tokenType: AuthenticationScheme.DPOP,
                     keyId: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
                 },
                 TEST_CONFIG.CORRELATION_ID
             )
-        ).toEqual([mockedDpopAtEntity, specCasedDpopAtEntity]);
+        ).toEqual([mockedDpopAtEntity]);
         expect(
             mockCache.cacheManager.getAccessTokensByFilter(
                 {
                     credentialType:
                         CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-                    tokenType: SPEC_DPOP_AUTHENTICATION_SCHEME,
-                    keyId: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
-                },
-                TEST_CONFIG.CORRELATION_ID
-            )
-        ).toEqual([mockedDpopAtEntity, specCasedDpopAtEntity]);
-        expect(
-            mockCache.cacheManager.getAccessTokensByFilter(
-                {
-                    credentialType:
-                        CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-                    tokenType: DPOP_AUTHENTICATION_SCHEME,
+                    tokenType: AuthenticationScheme.DPOP,
                     keyId: "different-jkt",
                 },
                 TEST_CONFIG.CORRELATION_ID
@@ -2915,17 +2883,7 @@ describe("CacheManager.ts test cases", () => {
                 {
                     credentialType:
                         CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-                    tokenType: DPOP_AUTHENTICATION_SCHEME,
-                },
-                TEST_CONFIG.CORRELATION_ID
-            )
-        ).toEqual([]);
-        expect(
-            mockCache.cacheManager.getAccessTokensByFilter(
-                {
-                    credentialType:
-                        CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-                    tokenType: SPEC_DPOP_AUTHENTICATION_SCHEME,
+                    tokenType: AuthenticationScheme.DPOP,
                 },
                 TEST_CONFIG.CORRELATION_ID
             )
