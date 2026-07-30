@@ -1,6 +1,6 @@
 process.env.VITE_NESTED_APP_PORT = "30667";
 
-import puppeteer, { Browser, Page, BrowserContext, Frame } from "puppeteer";
+import { Browser, Page, BrowserContext, Frame } from "puppeteer";
 import {
     Screenshot,
     setupCredentials,
