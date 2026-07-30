@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Use length-prefix encoding for the additional cache key hash to prevent credential cache-key collisions [#8713](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8713)",
+    "packageName": "@azure/msal-node",
+    "email": "nichoudhary@microsoft.com",
+    "dependentChangeType": "patch"
+}
