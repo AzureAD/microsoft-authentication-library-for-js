@@ -29,6 +29,39 @@ const SUPPORTED_AUTHENTICATION_SCHEMES = new Set<string>([
     Constants.AuthenticationScheme.SSH,
 ]);
 
+function validateSshRequest(
+    request: Partial<BaseAuthRequest>,
+    correlationId: string
+): void {
+    if (!request.sshJwk) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.missingSshJwk,
+            correlationId
+        );
+    }
+    if (!request.sshKid) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.missingSshKid,
+            correlationId
+        );
+    }
+}
+
+function validateDpopRequest(
+    request: Partial<BaseAuthRequest>,
+    correlationId: string
+): void {
+    if (
+        !request.resourceRequestMethod?.trim() ||
+        !request.resourceRequestUri?.trim()
+    ) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.dpopMissingResourceContext,
+            correlationId
+        );
+    }
+}
+
 /**
  * Initializer function for all request APIs
  * @param request
@@ -75,49 +108,26 @@ export async function initializeBaseRequest(
             );
         }
 
-        if (
-            validatedRequest.authenticationScheme ===
-            Constants.AuthenticationScheme.SSH
-        ) {
-            if (!request.sshJwk) {
-                throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk,
-                    correlationId
-                );
-            }
-            if (!request.sshKid) {
-                throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshKid,
-                    correlationId
-                );
-            }
-        }
+        switch (validatedRequest.authenticationScheme) {
+            case Constants.AuthenticationScheme.SSH:
+                validateSshRequest(request, correlationId);
+                break;
+            case Constants.AuthenticationScheme.DPOP: {
+                validateDpopRequest(request, correlationId);
 
-        if (
-            validatedRequest.authenticationScheme ===
-            Constants.AuthenticationScheme.DPOP
-        ) {
-            if (
-                !request.resourceRequestMethod?.trim() ||
-                !request.resourceRequestUri?.trim()
-            ) {
-                throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.dpopMissingResourceContext,
-                    correlationId
+                const tokenBindingKeyManager = new TokenBindingKeyManager(
+                    logger,
+                    performanceClient
                 );
+                validatedRequest.dpopJkt =
+                    await tokenBindingKeyManager.provisionTokenBindingKey({
+                        tokenBindingKeyType: "dpop",
+                        tokenBindingKeyAlgorithm: "ES256",
+                        keyScope: `dpop.${config.auth.clientId}.${authority}`,
+                        correlationId,
+                    });
+                break;
             }
-
-            const tokenBindingKeyManager = new TokenBindingKeyManager(
-                logger,
-                performanceClient
-            );
-            validatedRequest.dpopJkt =
-                await tokenBindingKeyManager.provisionTokenBindingKey({
-                    tokenBindingKeyType: "dpop",
-                    tokenBindingKeyAlgorithm: "ES256",
-                    keyScope: `dpop.${config.auth.clientId}.${authority}`,
-                    correlationId,
-                });
         }
         logger.verbose(
             `Authentication Scheme set to "'${validatedRequest.authenticationScheme}'" as configured in Auth request`,
