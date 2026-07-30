@@ -22,4 +22,11 @@ export type CommonUserFederatedIdentityCredentialRequest = Omit<
     userObjectId?: string;
     /** Target user's UPN — exactly one of userObjectId or username must be provided */
     username?: string;
+    /**
+     * Client-originated claims to forward to the token endpoint, sent as the `claims` parameter on the wire.
+     * Unlike `claims` (a server-issued challenge), these are client-originated. The user_fic grant always calls
+     * the network, so `claimsFromClient` is forwarded on every request and does not participate in this flow's cache
+     * key (tokens are still written to the cache, but not partitioned by `claimsFromClient`).
+     */
+    claimsFromClient?: string;
 };

@@ -226,6 +226,14 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Given claims parameter must be a stringified JSON object.
 
+### `invalid_dpop_htm`
+
+-   DPoP HTTP method (`htm`) must be a non-empty RFC HTTP method token.
+
+### `invalid_dpop_htu`
+
+-   DPoP HTTP target URI (`htu`) must be an HTTPS URL without userinfo.
+
 ### `token_request_empty`
 
 -   Token request was empty and not found in cache.
@@ -750,6 +758,10 @@ If you do not want to use a dedicated `redirectUri` for this purpose, you should
 ### `crypto_key_not_found`
 
 -   Cryptographic Key or Keypair not found in browser storage.
+
+### `invalid_public_jwk`
+
+-   Public JWK must include the required RFC 7638 thumbprint members for its supported key type.
 
 ### `auth_code_required`
 

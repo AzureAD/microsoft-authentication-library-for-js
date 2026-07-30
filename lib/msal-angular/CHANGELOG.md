@@ -1,8 +1,34 @@
 # Change Log - @azure/msal-angular
 
-<!-- This log was last generated on Tue, 30 Jun 2026 21:04:20 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 29 Jul 2026 00:26:31 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 6.0.2
+
+Wed, 29 Jul 2026 00:26:31 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.17.3
+
+## 6.0.1
+
+Wed, 15 Jul 2026 22:35:35 GMT
+
+### Patches
+
+- Disallow major changes in MSAL Angular [#8702](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8702) (shylasummers@microsoft.com)
+- Bump @azure/msal-browser to v5.17.1
+
+## 6.0.0
+
+Tue, 07 Jul 2026 22:16:01 GMT
+
+### Major changes
+
+- Upgrade MSAL Angular to Angular 22 [#8646](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8646) (shylasummers@microsoft.com)
+- Bump @azure/msal-browser to v5.17.0
 
 ## 5.3.1
 

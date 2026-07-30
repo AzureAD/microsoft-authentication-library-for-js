@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Add `claimsFromClient` request parameter to forward client-originated claims to IDP  [#8686](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8686)",
+    "packageName": "@azure/msal-node",
+    "email": "rginsburg@microsoft.com",
+    "dependentChangeType": "patch"
+}

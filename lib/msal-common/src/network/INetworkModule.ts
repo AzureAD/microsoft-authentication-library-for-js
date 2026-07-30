@@ -8,6 +8,7 @@ import {
     createClientAuthError,
 } from "../error/ClientAuthError.js";
 import { NetworkResponse } from "./NetworkResponse.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 
 /**
  * Certificate material used to establish a mutual-TLS (mTLS) connection for
@@ -32,6 +33,10 @@ export type NetworkRequestOptions = {
      * Only honored by mTLS-capable transports (the built-in msal-node HttpClient).
      */
     mtlsCertificate?: MtlsCertificate;
+    /** Correlation id for request-scoped telemetry. Used by internal retry logic. */
+    correlationId?: string;
+    /** Performance client for request-scoped telemetry. Used by internal retry logic. */
+    performanceClient?: IPerformanceClient;
 };
 
 /**
@@ -54,7 +59,7 @@ export interface INetworkModule {
     /**
      * Interface function for async network "POST" requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/
      * @param url
-     * @param options - Headers and/or body to include on the request
+     * @param options - Headers, body, and optional telemetry context to include on the request
      */
     sendPostRequestAsync<T>(
         url: string,

@@ -1,8 +1,41 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 30 Jun 2026 21:04:20 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 29 Jul 2026 00:26:31 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.4.3
+
+Wed, 29 Jul 2026 00:26:31 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.11.3
+
+## 5.4.2
+
+Tue, 21 Jul 2026 22:25:04 GMT
+
+### Patches
+
+- Upgrade Azure Arc HIMDS token endpoint api-version from 2019-11-01 to 2020-06-01 [#8711](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8711) (gladjohn@microsoft.com)
+
+## 5.4.1
+
+Wed, 15 Jul 2026 22:35:35 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.11.2
+
+## 5.4.0
+
+Tue, 07 Jul 2026 22:16:01 GMT
+
+### Minor changes
+
+- Add form_post response mode support, preferredPort option, and deprecate custom loopbackClient [#8694](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8694) (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v16.11.1
 
 ## 5.3.1
 
