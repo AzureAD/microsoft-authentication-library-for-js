@@ -1,5 +1,17 @@
 import * as puppeteer from "puppeteer";
 
+/**
+ * Returns true if the parsed cache entry is an encrypted token entity
+ * (i.e., stored as `{ id, nonce, data, lastUpdatedAt }`.
+ */
+export function isCachedTokenEncrypted(parsedEntity: object): boolean {
+    return (
+        Object.prototype.hasOwnProperty.call(parsedEntity, "id") &&
+        Object.prototype.hasOwnProperty.call(parsedEntity, "nonce") &&
+        Object.prototype.hasOwnProperty.call(parsedEntity, "data")
+    );
+}
+
 export interface ServerTelemetryEntity {
     failedRequests: Array<string | number>;
     errors: string[];
