@@ -61,6 +61,10 @@ export const NodeAuthErrorMessage = {
         code: "send_certificate_over_mtls_missing_certificate",
         desc: "sendCertificateOverMtls was enabled but no usable client certificate is configured. Provide a clientCertificate with both an x5c (public certificate or chain) and a privateKey; sendCertificateOverMtls presents that certificate on the TLS handshake to the mTLS token endpoint.",
     },
+    sendCertificateOverMtlsWithClientAssertion: {
+        code: "send_certificate_over_mtls_with_client_assertion",
+        desc: "sendCertificateOverMtls requires the configured clientCertificate to produce the client_assertion so it carries the forced x5c chain that authenticates the certificate over the mTLS channel. A developer-supplied clientAssertion (static string or callback) cannot be given an x5c header and is not supported with sendCertificateOverMtls. Remove clientAssertion, or disable sendCertificateOverMtls.",
+    },
 };
 
 export class NodeAuthError extends AuthError {
@@ -230,6 +234,23 @@ export class NodeAuthError extends AuthError {
             NodeAuthErrorMessage.sendCertificateOverMtlsMissingCertificate.code,
             correlationId,
             NodeAuthErrorMessage.sendCertificateOverMtlsMissingCertificate.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when sendCertificateOverMtls is enabled together with a
+     * developer-supplied clientAssertion. The opaque assertion would populate the request body
+     * without the forced x5c chain the mTLS SN/I match requires, so the combination is rejected
+     * (fail-closed, mirroring MSAL.NET's InvalidCredentialMaterial) rather than silently emitting
+     * an x5c-less assertion on the mTLS handshake.
+     */
+    static createSendCertificateOverMtlsWithClientAssertionError(
+        correlationId: string = ""
+    ): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.sendCertificateOverMtlsWithClientAssertion.code,
+            correlationId,
+            NodeAuthErrorMessage.sendCertificateOverMtlsWithClientAssertion.desc
         );
     }
 }

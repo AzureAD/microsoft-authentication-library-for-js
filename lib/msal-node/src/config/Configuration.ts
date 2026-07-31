@@ -224,6 +224,18 @@ export function buildAppConfiguration({
         throw NodeAuthError.createSendCertificateOverMtlsMissingCertificateError();
     }
 
+    // sendCertificateOverMtls must build the client_assertion FROM the certificate so it carries the
+    // forced x5c chain ESTS uses to SN/I-match over the mTLS channel. A developer-supplied opaque
+    // clientAssertion would instead win the request body without an x5c header, so reject the
+    // combination (fail-closed, mirroring MSAL.NET's InvalidCredentialMaterial) rather than silently
+    // emitting an x5c-less assertion on the mTLS handshake.
+    if (
+        auth.clientCertificate?.sendCertificateOverMtls &&
+        auth.clientAssertion
+    ) {
+        throw NodeAuthError.createSendCertificateOverMtlsWithClientAssertionError();
+    }
+
     // if client certificate was provided, ensure that at least one of the SHA-1 or SHA-256 thumbprints were provided
     if (
         !!auth.clientCertificate &&

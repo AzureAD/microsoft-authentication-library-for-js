@@ -339,5 +339,61 @@ describe("ClientConfiguration tests", () => {
                 })
             ).toThrow(/sendCertificateOverMtls/);
         });
+
+        // Fail-closed parity with .NET (ConfidentialClientApplicationBuilder.Validate throws
+        // InvalidCredentialMaterial): sendCertificateOverMtls must build the client_assertion FROM the
+        // certificate so it carries the forced x5c chain that lets ESTS SN/I-match over the mTLS
+        // channel. A developer-supplied opaque clientAssertion would win the request body but cannot be
+        // given an x5c header, so the combination is rejected rather than silently emitting an
+        // x5c-less assertion on the mTLS handshake.
+        test("throws an error naming the flag when enabled alongside a static clientAssertion", () => {
+            expect(() =>
+                buildAppConfiguration({
+                    auth: {
+                        clientId: TEST_CONSTANTS.CLIENT_ID,
+                        clientAssertion: "developer.supplied.jwt",
+                        clientCertificate: {
+                            thumbprintSha256: TEST_CONSTANTS.THUMBPRINT256,
+                            privateKey: TEST_CONSTANTS.PRIVATE_KEY,
+                            x5c: TEST_CONSTANTS.PUBLIC_CERTIFICATE,
+                            sendCertificateOverMtls: true,
+                        },
+                    },
+                })
+            ).toThrow(/sendCertificateOverMtls/);
+        });
+
+        test("throws an error naming the flag when enabled alongside a clientAssertion callback", () => {
+            expect(() =>
+                buildAppConfiguration({
+                    auth: {
+                        clientId: TEST_CONSTANTS.CLIENT_ID,
+                        clientAssertion: async () => "developer.supplied.jwt",
+                        clientCertificate: {
+                            thumbprintSha256: TEST_CONSTANTS.THUMBPRINT256,
+                            privateKey: TEST_CONSTANTS.PRIVATE_KEY,
+                            x5c: TEST_CONSTANTS.PUBLIC_CERTIFICATE,
+                            sendCertificateOverMtls: true,
+                        },
+                    },
+                })
+            ).toThrow(/sendCertificateOverMtls/);
+        });
+
+        test("does not throw for a clientAssertion when the flag is not set", () => {
+            expect(() =>
+                buildAppConfiguration({
+                    auth: {
+                        clientId: TEST_CONSTANTS.CLIENT_ID,
+                        clientAssertion: "developer.supplied.jwt",
+                        clientCertificate: {
+                            thumbprintSha256: TEST_CONSTANTS.THUMBPRINT256,
+                            privateKey: TEST_CONSTANTS.PRIVATE_KEY,
+                            x5c: TEST_CONSTANTS.PUBLIC_CERTIFICATE,
+                        },
+                    },
+                })
+            ).not.toThrow();
+        });
     });
 });
