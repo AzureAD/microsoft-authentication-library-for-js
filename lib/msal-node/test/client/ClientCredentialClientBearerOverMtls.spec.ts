@@ -225,6 +225,32 @@ describe("ClientCredentialClient Bearer-over-mTLS (sendCertificateOverMtls)", ()
             expect(postSpy).toHaveBeenCalledTimes(1);
             expect(second.fromCache).toBe(true);
             expect(second.accessToken).toEqual(first.accessToken);
+            expect(second.tokenType).toBe(
+                Constants.AuthenticationScheme.BEARER
+            );
+
+            // Note #3: the Bearer-over-mTLS token must be cached under the PLAIN Bearer key (credentialType
+            // "AccessToken"), NOT the scheme-fenced "accesstoken_with_authscheme" key that mtls_pop uses -
+            // that is what lets an ordinary Bearer lookup (the 2nd call above) find it.
+            const accessTokenKey = config.storageInterface
+                ?.getKeys()
+                .find((key) => key.indexOf("accesstoken") >= 0);
+            expect(accessTokenKey).toBeDefined();
+            expect(accessTokenKey).not.toContain("accesstoken_with_authscheme");
+
+            // And it must be keyed under the CANONICAL authority environment (login.*/preferred_cache),
+            // never the physical mtlsauth.* POST host - so a 2nd lookup needs no region/instance metadata.
+            const cachedToken =
+                config.storageInterface?.getAccessTokenCredential(
+                    accessTokenKey!,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            expect(cachedToken?.credentialType).toBe("AccessToken");
+            expect(cachedToken?.tokenType).toBe(
+                Constants.AuthenticationScheme.BEARER
+            );
+            expect(cachedToken?.environment).not.toContain("mtlsauth");
+            expect(accessTokenKey).not.toContain("mtlsauth");
         });
     });
 

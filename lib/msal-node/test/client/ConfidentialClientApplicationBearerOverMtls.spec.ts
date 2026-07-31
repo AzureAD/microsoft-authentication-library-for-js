@@ -30,8 +30,13 @@ jest.mock("jsonwebtoken");
  * Bearer. jsonwebtoken is mocked, so the certificate-derived assertion is a stub string.
  */
 describe("ConfidentialClientApplication Bearer-over-mTLS (sendCertificateOverMtls)", () => {
-    beforeAll(() => {
-        jest.spyOn(jwt, <any>"sign").mockReturnValue("fake_jwt_string");
+    let signSpy: jest.SpyInstance;
+    beforeEach(() => {
+        // Spy (not just stub) so the certificate-derived assertion header can be inspected: the x5c
+        // chain must be forced onto every Bearer-over-mTLS client_assertion for ESTS SN/I matching.
+        signSpy = jest
+            .spyOn(jwt, <any>"sign")
+            .mockReturnValue("fake_jwt_string");
     });
 
     afterEach(() => {
@@ -97,6 +102,18 @@ describe("ConfidentialClientApplication Bearer-over-mTLS (sendCertificateOverMtl
         expect(mtlsCertificate).toBeDefined();
         expect(mtlsCertificate.key).toEqual(TEST_CONSTANTS.PRIVATE_KEY);
         expect(mtlsCertificate.cert).toContain("BEGIN CERTIFICATE");
+
+        // The x5c chain must be FORCED onto the client_assertion JWT header (mirrors .NET
+        // CredentialMaterialResolver Mode=OAuth) - that public issuer chain is what lets ESTS do SN/I
+        // matching over the mTLS channel. Assert it is present on the signed assertion (msal-node
+        // parses the configured PEM into the base64 DER chain used for the x5c header).
+        const signedWithX5c = signSpy.mock.calls.find(
+            (call) => call[2]?.header?.x5c
+        );
+        expect(signedWithX5c).toBeDefined();
+        expect(signedWithX5c![2].header.x5c).toEqual(
+            TEST_CONSTANTS.X5C_FROM_PUBLIC_CERTIFICATE
+        );
     }
 
     test("client-credentials routes to the mTLS endpoint with a Bearer + client_assertion", async () => {
