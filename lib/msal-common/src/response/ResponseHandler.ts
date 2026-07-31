@@ -192,7 +192,6 @@ export class ResponseHandler {
         handlingRefreshTokenResponse?: boolean,
         forceCacheRefreshTokenResponse?: boolean,
         serverRequestId?: string,
-        additionalCacheKeyComponentsHash?: string,
         additionalCacheKeyComponents?: Record<string, string>
     ): Promise<AuthenticationResult> {
         // create an idToken object (not entity)
@@ -240,19 +239,16 @@ export class ResponseHandler {
             serverTokenResponse.key_id || request.sshKid || undefined;
 
         // Compute components once for entity storage (fallback if hash not provided by client)
+        const attributeTokenPartition = CacheHelpers.serializeAttributeTokens(
+            request.attributeTokens
+        );
         const cacheKeyComponents: Record<string, string> | undefined =
             additionalCacheKeyComponents ??
-            CacheHelpers.getAttributeTokenComponents(request.attributeTokens);
-
-        let cacheKeyComponentsHash: string | undefined =
-            additionalCacheKeyComponentsHash;
-        if (!cacheKeyComponentsHash && cacheKeyComponents) {
-            const payload =
-                CacheHelpers.getAdditionalCacheKeyComponentsHashPayload(
-                    cacheKeyComponents
-                );
-            cacheKeyComponentsHash = await this.cryptoObj.hashString(payload);
-        }
+            (attributeTokenPartition
+                ? {
+                      attribute_tokens: attributeTokenPartition,
+                  }
+                : undefined);
 
         const cacheRecord = this.generateCacheRecord(
             serverTokenResponse,
@@ -264,12 +260,6 @@ export class ResponseHandler {
             authCodePayload,
             cacheKeyComponents
         );
-        /*
-         * Thread the hash through CacheRecord as transient metadata so
-         * generateCredentialKey receives it without persisting it on the
-         * credential entity itself.
-         */
-        cacheRecord.accessTokenCacheKeyHash = cacheKeyComponentsHash;
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {

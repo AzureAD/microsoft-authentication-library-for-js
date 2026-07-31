@@ -278,7 +278,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         // Preserve FMI partition semantics for silent cache filtering.
         if (request.attributeTokens) {
-            silentRequest.attributeTokens = [request.attributeTokens];
+            silentRequest.attributeTokens = request.attributeTokens.split(" ");
         }
 
         return silentRequest;
@@ -900,6 +900,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             request.scope
         );
 
+        const additionalCacheKeyComponents = request.attributeTokens
+            ? {
+                  attribute_tokens: request.attributeTokens,
+              }
+            : undefined;
+
         const cachedAccessToken: AccessTokenEntity | null =
             CacheHelpers.createAccessTokenEntity(
                 homeAccountIdentifier,
@@ -915,22 +921,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 undefined,
                 request.tokenType as Constants.AuthenticationScheme,
                 undefined,
-                request.keyId
+                request.keyId,
+                additionalCacheKeyComponents
             );
-
-        // Get hash and components for attribute token cache key isolation
-        const additionalCacheKeyHash =
-            await CacheHelpers.getAttributeTokensHash(
-                request.attributeTokens,
-                this.browserCrypto
-            );
-
-        if (cachedAccessToken) {
-            cachedAccessToken.additionalCacheKeyComponents =
-                CacheHelpers.getAttributeTokenComponents(
-                    request.attributeTokens
-                );
-        }
 
         // save idtoken credential in configured browser storage
         if (!!cachedIdToken && storeInCache?.idToken !== false) {
@@ -944,7 +937,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // save access token credential in memory storage
         const nativeCacheRecord = {
             accessToken: cachedAccessToken,
-            accessTokenCacheKeyHash: additionalCacheKeyHash,
         };
 
         return this.nativeStorageManager.saveCacheRecord(

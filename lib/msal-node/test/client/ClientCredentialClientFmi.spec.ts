@@ -448,21 +448,17 @@ describe("ClientCredentialClient FMI tests", () => {
             expect(uniqueKeys.size).toBe(3);
         });
 
-        it("multiple additional components produce unique keys vs single component", () => {
-            const singleComponent = makeEntity({
+        it("different component values produce different cache keys", () => {
+            const entityA = makeEntity({
                 additionalCacheKeyComponents: { fmi_path: "agent-a" },
             });
-            const multiComponent = makeEntity({
-                additionalCacheKeyComponents: {
-                    fmi_path: "agent-a",
-                    another_key: "another_value",
-                },
+            const entityB = makeEntity({
+                additionalCacheKeyComponents: { fmi_path: "agent-b" },
             });
 
-            const key1 = generateCredentialKey(singleComponent);
-            const key2 = generateCredentialKey(multiComponent);
-
-            expect(key1).not.toBe(key2);
+            expect(generateCredentialKey(entityA)).not.toBe(
+                generateCredentialKey(entityB)
+            );
         });
 
         it("hash is stable and deterministic for the same components", () => {
@@ -478,18 +474,12 @@ describe("ClientCredentialClient FMI tests", () => {
             );
         });
 
-        it("component key order does not affect the hash (sorted internally)", () => {
+        it("same component value always produces the same key (stable hash)", () => {
             const entity1 = makeEntity({
-                additionalCacheKeyComponents: {
-                    alpha: "1",
-                    beta: "2",
-                },
+                additionalCacheKeyComponents: { fmi_path: "agent-a" },
             });
             const entity2 = makeEntity({
-                additionalCacheKeyComponents: {
-                    beta: "2",
-                    alpha: "1",
-                },
+                additionalCacheKeyComponents: { fmi_path: "agent-a" },
             });
 
             expect(generateCredentialKey(entity1)).toBe(

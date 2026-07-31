@@ -13,7 +13,6 @@ import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest.
 import { Authority } from "../authority/Authority.js";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
 import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
-import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import * as UrlUtils from "../utils/UrlUtils.js";
 import * as Constants from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
@@ -130,13 +129,6 @@ export class RefreshTokenClient {
             request.correlationId
         )(request, this.authority);
 
-        // Compute hash for cache key isolation
-        const additionalCacheKeyHash =
-            await CacheHelpers.getAttributeTokensHash(
-                request.attributeTokens,
-                this.cryptoUtils
-            );
-
         // Retrieve requestId from response headers
         const requestId =
             response.headers?.[Constants.HeaderNames.X_MS_REQUEST_ID];
@@ -170,8 +162,7 @@ export class RefreshTokenClient {
             undefined,
             true,
             request.forceCache,
-            requestId,
-            additionalCacheKeyHash
+            requestId
         );
     }
 

@@ -130,7 +130,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param accessToken - the access token entity to cache
      * @param correlationId - unique identifier for the request
      * @param kmsi - keep me signed in flag
-     * @param additionalCacheKeyHash - optional precomputed hash of additionalCacheKeyComponents used in credential key generation.
+     * @param additionalCacheKeyHash - hash of additionalCacheKeyComponents for credential key generation
      */
     abstract setAccessTokenCredential(
         accessToken: AccessTokenEntity,
@@ -648,8 +648,7 @@ export abstract class CacheManager implements ICacheManager {
                 await this.saveAccessToken(
                     cacheRecord.accessToken,
                     correlationId,
-                    kmsi,
-                    cacheRecord.accessTokenCacheKeyHash
+                    kmsi
                 );
             }
 
@@ -685,14 +684,22 @@ export abstract class CacheManager implements ICacheManager {
      * @param credential - the access token entity to save
      * @param correlationId - unique identifier for the request
      * @param kmsi - keep me signed in flag
-     * @param additionalCacheKeyHash - optional precomputed hash of additionalCacheKeyComponents
      */
     private async saveAccessToken(
         credential: AccessTokenEntity,
         correlationId: string,
-        kmsi: boolean,
-        additionalCacheKeyHash?: string
+        kmsi: boolean
     ): Promise<void> {
+        // Compute hash from components on the entity itself — no need to thread externally.
+        let additionalCacheKeyHash: string | undefined;
+        if (
+            credential.additionalCacheKeyComponents &&
+            Object.keys(credential.additionalCacheKeyComponents).length > 0
+        ) {
+            additionalCacheKeyHash = await this.cryptoImpl.hashString(
+                JSON.stringify(credential.additionalCacheKeyComponents)
+            );
+        }
         const accessTokenFilter: CredentialFilter = {
             clientId: credential.clientId,
             credentialType: credential.credentialType,
@@ -1363,8 +1370,14 @@ export abstract class CacheManager implements ICacheManager {
                 ? Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
                 : Constants.CredentialType.ACCESS_TOKEN;
 
-        const additionalCacheKeyComponents =
-            CacheHelpers.getAttributeTokenComponents(request.attributeTokens);
+        const attributeTokenPartition = CacheHelpers.serializeAttributeTokens(
+            request.attributeTokens
+        );
+        const additionalCacheKeyComponents = attributeTokenPartition
+            ? {
+                  attribute_tokens: attributeTokenPartition,
+              }
+            : undefined;
 
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,

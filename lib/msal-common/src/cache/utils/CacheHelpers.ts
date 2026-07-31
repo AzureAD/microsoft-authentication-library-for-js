@@ -11,7 +11,6 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../../error/ClientAuthError.js";
-import * as AADServerParamKeys from "../../constants/AADServerParamKeys.js";
 import * as Constants from "../../utils/Constants.js";
 import * as TimeUtils from "../../utils/TimeUtils.js";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity.js";
@@ -407,77 +406,4 @@ export function serializeAttributeTokens(
 
     // Serialize: sort and join tokens
     return [...attributeTokens].sort().join(" ");
-}
-
-/**
- * Get attribute token components (partition wrapped in cache-key format).
- * Handles both array of tokens (serializes first) and pre-computed partition string.
- * @param attributeTokens - array of tokens or pre-computed partition string
- * @returns components object or undefined if no tokens
- */
-export function getAttributeTokenComponents(
-    attributeTokens?: Array<string> | string
-): Record<string, string> | undefined {
-    if (!attributeTokens) {
-        return undefined;
-    }
-
-    const partition = Array.isArray(attributeTokens)
-        ? serializeAttributeTokens(attributeTokens)
-        : attributeTokens;
-
-    if (!partition) {
-        return undefined;
-    }
-
-    // Build components object
-    return {
-        [AADServerParamKeys.ATTRIBUTE_TOKENS]: partition,
-    };
-}
-
-/**
- * Build deterministic netstring payload for additional cache key components.
- * Format: <byteLen(key)>:<key><byteLen(value)>:<value>...
- */
-export function getAdditionalCacheKeyComponentsHashPayload(
-    components: Record<string, string>
-): string {
-    const sortedEntries = Object.entries(components).sort(([a], [b]) =>
-        a < b ? -1 : a > b ? 1 : 0
-    );
-
-    const encoder = new TextEncoder();
-    let payload = "";
-    for (const [key, value] of sortedEntries) {
-        const keyByteLen = encoder.encode(key).length;
-        const valueByteLen = encoder.encode(value).length;
-        payload += `${keyByteLen}:${key}${valueByteLen}:${value}`;
-    }
-    return payload;
-}
-
-/**
- * Compute hash of attribute tokens.
- * Handles both array of tokens (serializes first) and pre-computed partition string.
- * @param attributeTokens - array of tokens or pre-computed partition string
- * @param crypto - crypto object with a `hashString` method, or a bare `(input: string) => Promise<string>` function
- * @returns hash string or undefined if no tokens provided
- */
-export async function getAttributeTokensHash(
-    attributeTokens: Array<string> | string | undefined,
-    crypto:
-        | { hashString: (input: string) => Promise<string> }
-        | ((input: string) => Promise<string>)
-): Promise<string | undefined> {
-    const components = getAttributeTokenComponents(attributeTokens);
-    if (!components) {
-        return undefined;
-    }
-    const payload = getAdditionalCacheKeyComponentsHashPayload(components);
-    const hashFn =
-        typeof crypto === "function"
-            ? crypto
-            : (input: string) => crypto.hashString(input);
-    return hashFn(payload);
 }

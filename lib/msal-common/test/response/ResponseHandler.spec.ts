@@ -38,7 +38,6 @@ import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { mockCrypto, MockStorageClass } from "../client/ClientTestUtils.js";
 import {
     AUTHENTICATION_RESULT,
-    TEST_CRYPTO_VALUES,
     ID_TOKEN_CLAIMS,
     POP_AUTHENTICATION_RESULT,
     TEST_CONFIG,
@@ -498,12 +497,9 @@ describe("ResponseHandler.ts", () => {
                         ).toEqual({
                             attribute_tokens: "alpha zeta",
                         });
+                        // hash input is JSON.stringify of additionalCacheKeyComponents
                         expect(hashStringSpy).toHaveBeenCalledWith(
-                            "16:attribute_tokens10:alpha zeta"
-                        );
-                        // hash is now on cacheRecord, not on the entity
-                        expect(cacheRecord.accessTokenCacheKeyHash).toBe(
-                            TEST_CRYPTO_VALUES.TEST_SHA256_HASH
+                            JSON.stringify({ attribute_tokens: "alpha zeta" })
                         );
                         // The entity itself must not carry the hash field
                         const entityAsRecord =

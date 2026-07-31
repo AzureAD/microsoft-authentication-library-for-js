@@ -1729,6 +1729,14 @@ export class StandardController implements IController {
             );
 
             // Create accessToken entity and store in native internal storage
+            const attributeTokenPartition =
+                CacheHelpers.serializeAttributeTokens(request.attributeTokens);
+            const additionalCacheKeyComponents = attributeTokenPartition
+                ? {
+                      attribute_tokens: attributeTokenPartition,
+                  }
+                : undefined;
+
             const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
                 result.account.homeAccountId,
                 result.account.environment,
@@ -1747,23 +1755,21 @@ export class StandardController implements IController {
                 undefined, // refreshOn
                 result.tokenType as Constants.AuthenticationScheme,
                 undefined, // userAssertionHash
-                request.sshKid
+                request.sshKid,
+                additionalCacheKeyComponents
             );
 
             if (request.resource) {
                 accessTokenEntity.resource = request.resource;
             }
 
-            // Get attribute token partition and components if available
-            const additionalCacheKeyHash =
-                await CacheHelpers.getAttributeTokensHash(
-                    request.attributeTokens,
-                    this.browserCrypto
-                );
-            accessTokenEntity.additionalCacheKeyComponents =
-                CacheHelpers.getAttributeTokenComponents(
-                    request.attributeTokens
-                );
+            // Get attribute token partition hash for cache key isolation
+            const components = additionalCacheKeyComponents;
+            const additionalCacheKeyHash = components
+                ? await this.browserCrypto.hashString(
+                      JSON.stringify(components)
+                  )
+                : undefined;
 
             const kmsi = AuthToken.isKmsi(result.idTokenClaims);
 

@@ -48,11 +48,11 @@ import { createHash } from "crypto";
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
 
-/** Compute additional-cache-key hash deterministically — matches msal-node sync algo. */
+/** Compute additional-cache-key hash deterministically — matches production algo. */
 function computeTestHash(components: Record<string, string>): string {
-    const payload =
-        CacheHelpers.getAdditionalCacheKeyComponentsHashPayload(components);
-    return createHash("sha256").update(payload, "utf8").digest("base64url");
+    return createHash("sha256")
+        .update(JSON.stringify(components), "utf8")
+        .digest("base64url");
 }
 
 export function generateCredentialKey(

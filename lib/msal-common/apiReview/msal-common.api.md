@@ -798,10 +798,7 @@ declare namespace CacheHelpers {
         updateAuthorityEndpointMetadata,
         updateCloudDiscoveryMetadata,
         isAuthorityMetadataExpired,
-        serializeAttributeTokens,
-        getAttributeTokenComponents,
-        getAdditionalCacheKeyComponentsHashPayload,
-        getAttributeTokensHash
+        serializeAttributeTokens
     }
 }
 export { CacheHelpers }
@@ -892,7 +889,6 @@ export type CacheRecord = {
     account?: AccountEntity | null;
     idToken?: IdTokenEntity | null;
     accessToken?: AccessTokenEntity | null;
-    accessTokenCacheKeyHash?: string;
     refreshToken?: RefreshTokenEntity | null;
     appMetadata?: AppMetadataEntity | null;
 };
@@ -1609,17 +1605,6 @@ function generateLibraryState(cryptoObj: ICrypto, correlationId: string, meta?: 
 
 // @internal
 function getAccountInfo(accountEntity: AccountEntity): AccountInfo;
-
-// @public
-function getAdditionalCacheKeyComponentsHashPayload(components: Record<string, string>): string;
-
-// @public
-function getAttributeTokenComponents(attributeTokens?: Array<string> | string): Record<string, string> | undefined;
-
-// @public
-function getAttributeTokensHash(attributeTokens: Array<string> | string | undefined, crypto: {
-    hashString: (input: string) => Promise<string>;
-} | ((input: string) => Promise<string>)): Promise<string | undefined>;
 
 // @public
 const GetAuthCodeUrl = "getAuthCodeUrl";
@@ -2851,7 +2836,7 @@ const RESPONSE_TYPE = "response_type";
 export class ResponseHandler {
     constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null);
     static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, idTokenClaims?: TokenClaims, requestState?: RequestStateObject, serverTokenResponse?: ServerAuthorizationTokenResponse, requestId?: string): Promise<AuthenticationResult>;
-    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponentsHash?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
+    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
     validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse, correlationId: string, refreshAccessToken?: boolean): void;
 }
 

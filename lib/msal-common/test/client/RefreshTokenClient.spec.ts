@@ -65,7 +65,6 @@ import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import * as TokenProtocol from "../../src/protocol/Token.js";
 import { ResponseHandler } from "../../src/response/ResponseHandler.js";
-import * as CacheHelpers from "../../src/cache/utils/CacheHelpers.js";
 
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
     '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
@@ -324,16 +323,6 @@ describe("RefreshTokenClient unit tests", () => {
 
             await client.acquireToken(refreshTokenRequest, 0);
 
-            if (!config.cryptoInterface) {
-                throw new Error(
-                    "configuration cryptoInterface not initialized correctly."
-                );
-            }
-            const expectedHash = await CacheHelpers.getAttributeTokensHash(
-                refreshTokenRequest.attributeTokens,
-                (input) => config.cryptoInterface!.hashString(input)
-            );
-
             expect(validateTokenResponseSpy).toHaveBeenCalled();
             expect(handleServerTokenResponseSpy).toHaveBeenCalledWith(
                 AUTHENTICATION_RESULT.body,
@@ -345,8 +334,7 @@ describe("RefreshTokenClient unit tests", () => {
                 undefined,
                 true,
                 undefined,
-                undefined,
-                expectedHash
+                undefined
             );
         });
 

@@ -37,7 +37,6 @@ import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import * as TokenProtocol from "../../src/protocol/Token.js";
 import * as AuthorityFactory from "../../src/authority/AuthorityFactory.js";
 import { ResponseHandler } from "../../src/response/ResponseHandler.js";
-import * as CacheHelpers from "../../src/cache/utils/CacheHelpers.js";
 
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
     '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
@@ -905,16 +904,6 @@ describe("AuthorizationCodeClient unit tests", () => {
                 state: "test-state",
             });
 
-            if (!config.cryptoInterface) {
-                throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
-                );
-            }
-            const expectedHash = await CacheHelpers.getAttributeTokensHash(
-                authorizationCodeRequest.attributeTokens,
-                (input) => config.cryptoInterface!.hashString(input)
-            );
-
             expect(validateTokenResponseSpy).toHaveBeenCalled();
             expect(handleServerTokenResponseSpy).toHaveBeenCalledWith(
                 AUTHENTICATION_RESULT.body,
@@ -926,8 +915,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 undefined,
                 undefined,
                 undefined,
-                undefined,
-                expectedHash
+                undefined
             );
         });
 
