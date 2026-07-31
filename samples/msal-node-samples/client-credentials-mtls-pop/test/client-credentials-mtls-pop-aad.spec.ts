@@ -160,7 +160,10 @@ describe("Client Credentials mTLS Proof-of-Possession AAD Prod Tests", () => {
     // Credential_X509_Output_Bearer (cert signs a client_assertion to the REGULAR endpoint; cert
     // never on the handshake) and Credential_X509_Output_Pop (bound token, token_type=mtls_pop).
     // Runs GLOBAL (no azureRegion) for determinism, and the second acquire (skipCache=false)
-    // exercises the plain-Bearer cache hit against the mtlsauth.* environment.
+    // exercises the plain-Bearer cache hit from cache.
+    // The AT caches under the original login.* environment (only the token ENDPOINT is
+    // rewritten to mtlsauth.* via getMtlsTokenEndpoint(), never the authority), so the 2nd call
+    // resolves metadata against login.* and cannot hit the .NET-style mtlsauth.* discovery trap.
     describe("Credential_X509_SendCertificateOverMtls_Output_Bearer", () => {
         let bearerOverMtlsConfig: Configuration;
         beforeAll(async () => {
@@ -201,7 +204,9 @@ describe("Client Credentials mTLS Proof-of-Possession AAD Prod Tests", () => {
 
             // Second acquire without skipCache: the plain Bearer entry is cached under the standard
             // (non-thumbprint-fenced) access-token key, so an ordinary Bearer lookup must serve it
-            // from cache without crashing on the mtlsauth.* environment / regional metadata.
+            // from cache without crashing on region/instance metadata: the entry is
+            // keyed under the canonical login.* environment (only the token endpoint was mtlsauth.*),
+            // so the ordinary lookup resolves against login.* and never the rewritten host.
             const cachedResult: AuthenticationResult | null =
                 await getBearerOverMtlsToken(
                     confidentialClientApplication,
@@ -214,6 +219,18 @@ describe("Client Credentials mTLS Proof-of-Possession AAD Prod Tests", () => {
                 authenticationResult?.accessToken
             );
             expect(cachedResult?.fromCache).toBe(true);
+
+            // Env-lock tripwire (parity with Java/Go/Python): the certificate only rewrote the token
+            // ENDPOINT to mtlsauth.*; the AT must be cached under the canonical login.* environment,
+            // never the mtlsauth.* host - so a mis-cache under the rewritten host fails instantly.
+            const cachedTokens = await NodeCacheTestUtils.getTokens(
+                TEST_CACHE_LOCATION
+            );
+            expect(cachedTokens.accessTokens).toHaveLength(1);
+            const cachedAccessToken = cachedTokens.accessTokens[0];
+            expect(cachedAccessToken.credentialType).toBe("AccessToken");
+            expect(cachedAccessToken.environment).toContain("login");
+            expect(cachedAccessToken.environment).not.toContain("mtlsauth");
         });
     });
 });
