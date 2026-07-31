@@ -8,10 +8,7 @@ import {
     DpopProofGenerator,
 } from "../../src/crypto/DpopProofGenerator.js";
 import { ICrypto, JsonWebTokenAlgorithms } from "../../src/crypto/ICrypto.js";
-import {
-    ITokenBindingKeyManager,
-    TokenBindingKeyContext,
-} from "../../src/crypto/ITokenBindingKeyManager.js";
+import { ITokenBindingKeyManager } from "../../src/crypto/ITokenBindingKeyManager.js";
 import { JoseHeader } from "../../src/crypto/JoseHeader.js";
 import { JsonWebTokenTypes } from "../../src/utils/Constants.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
@@ -45,9 +42,6 @@ describe("DpopProofGenerator Unit Tests", () => {
     };
     const dpopSignature = "A".repeat(86);
     const dpopKeyId = "dpop-key-id";
-    const dpopKeyContext: TokenBindingKeyContext = {
-        keyScope: `dpop.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_CONFIG.validAuthority}`,
-    };
 
     beforeEach(() => {
         generator = new DpopProofGenerator(
@@ -99,19 +93,14 @@ describe("DpopProofGenerator Unit Tests", () => {
                 .spyOn(tokenBindingKeyManager, "provisionTokenBindingKey")
                 .mockResolvedValue(dpopKeyId);
 
-            const dpopJkt = await generator.generateJkt(
-                {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    authority: TEST_CONFIG.validAuthority,
-                },
+            const generatedKeyId = await generator.generateJkt(
                 TEST_CONFIG.CORRELATION_ID
             );
 
-            expect(dpopJkt).toBe(dpopKeyId);
+            expect(generatedKeyId).toBe(dpopKeyId);
             expect(provisionTokenBindingKeySpy).toHaveBeenCalledWith({
                 tokenBindingKeyType: "dpop",
                 tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
-                keyScope: `dpop.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_CONFIG.validAuthority}`,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
             });
         });
@@ -588,9 +577,8 @@ describe("DpopProofGenerator Unit Tests", () => {
                     tokenEndpoint:
                         "https://login.microsoftonline.com/tenant/oauth2/v2.0/token?client_id=abc",
                     nonce: "server-nonce",
-                    keyId: dpopKeyId,
-                    keyContext: dpopKeyContext,
                 },
+                dpopKeyId,
                 TEST_CONFIG.CORRELATION_ID
             );
             const decodedProof = decodeDpopProof(proof);
@@ -609,40 +597,37 @@ describe("DpopProofGenerator Unit Tests", () => {
             });
             expect(
                 tokenBindingKeyManager.getTokenBindingPublicKeyJwk
-            ).toHaveBeenCalledWith(
-                dpopKeyId,
-                TEST_CONFIG.CORRELATION_ID,
-                dpopKeyContext
-            );
+            ).toHaveBeenCalledWith(dpopKeyId, TEST_CONFIG.CORRELATION_ID);
             expect(cryptoInterface.signTokenBindingJwt).toHaveBeenCalledWith(
                 decodedProof.header,
                 decodedProof.claims,
                 dpopKeyId,
-                TEST_CONFIG.CORRELATION_ID,
-                dpopKeyContext
+                TEST_CONFIG.CORRELATION_ID
             );
             expect(decodedProof.signature).toBe(dpopSignature);
         });
 
         it("uses the DPoP proof header algorithm", async () => {
-            const proof = await generator.generateTokenProof({
-                tokenEndpoint:
-                    "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
-                keyId: dpopKeyId,
-                keyContext: dpopKeyContext,
-            });
+            const proof = await generator.generateTokenProof(
+                {
+                    tokenEndpoint:
+                        "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
+                },
+                dpopKeyId
+            );
             const decodedProof = decodeDpopProof(proof);
 
             expect(decodedProof.header.alg).toBe(JsonWebTokenAlgorithms.ES256);
         });
 
         it("uses the public JWK resolved from the token-binding key", async () => {
-            const proof = await generator.generateTokenProof({
-                tokenEndpoint:
-                    "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
-                keyId: dpopKeyId,
-                keyContext: dpopKeyContext,
-            });
+            const proof = await generator.generateTokenProof(
+                {
+                    tokenEndpoint:
+                        "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
+                },
+                dpopKeyId
+            );
             const decodedProof = decodeDpopProof(proof);
 
             expect(decodedProof.header.alg).toBe(JsonWebTokenAlgorithms.ES256);
@@ -662,9 +647,8 @@ describe("DpopProofGenerator Unit Tests", () => {
                     htm: "get",
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                     nonce: "resource-nonce",
-                    keyId: dpopKeyId,
-                    keyContext: dpopKeyContext,
                 },
+                dpopKeyId,
                 TEST_CONFIG.CORRELATION_ID
             );
             const decodedProof = decodeDpopProof(proof);
@@ -684,17 +668,12 @@ describe("DpopProofGenerator Unit Tests", () => {
             });
             expect(
                 tokenBindingKeyManager.getTokenBindingPublicKeyJwk
-            ).toHaveBeenCalledWith(
-                dpopKeyId,
-                TEST_CONFIG.CORRELATION_ID,
-                dpopKeyContext
-            );
+            ).toHaveBeenCalledWith(dpopKeyId, TEST_CONFIG.CORRELATION_ID);
             expect(cryptoInterface.signTokenBindingJwt).toHaveBeenCalledWith(
                 decodedProof.header,
                 decodedProof.claims,
                 dpopKeyId,
-                TEST_CONFIG.CORRELATION_ID,
-                dpopKeyContext
+                TEST_CONFIG.CORRELATION_ID
             );
             expect(decodedProof.signature).toBe(dpopSignature);
         });

@@ -4,10 +4,7 @@
  */
 
 import { ICrypto, JsonWebTokenAlgorithms } from "./ICrypto.js";
-import {
-    ITokenBindingKeyManager,
-    TokenBindingKeyContext,
-} from "./ITokenBindingKeyManager.js";
+import { ITokenBindingKeyManager } from "./ITokenBindingKeyManager.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import {
     createClientConfigurationError,
@@ -47,25 +44,6 @@ export type DpopResourceProofParams = {
     htm: string;
     ath: string;
     nonce?: string;
-};
-
-/**
- * Parameters for provisioning a DPoP key and producing its JWK thumbprint
- * (`dpop_jkt`).
- * @internal
- */
-export type DpopJktGenerationParams = {
-    clientId: string;
-    authority: string;
-};
-
-/**
- * Parameters shared by token and resource DPoP proof generation.
- * @internal
- */
-export type DpopProofGenerationParams = {
-    keyId: string;
-    keyContext: TokenBindingKeyContext;
 };
 
 const DPOP_HTM_REGEX = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
@@ -154,17 +132,13 @@ export class DpopProofGenerator {
     }
 
     /**
-     * Provisions or reuses the DPoP key for a client/authority pair and
-     * returns the RFC 7638 JWK thumbprint used as `dpop_jkt`.
+     * Provisions a fresh DPoP key and returns the RFC 7638 JWK thumbprint used
+     * as `dpop_jkt`.
      */
-    async generateJkt(
-        params: DpopJktGenerationParams,
-        correlationId: string = ""
-    ): Promise<string> {
+    async generateJkt(correlationId: string = ""): Promise<string> {
         return this.tokenBindingKeyManager.provisionTokenBindingKey({
             tokenBindingKeyType: DPOP_TOKEN_BINDING_KEY_TYPE,
             tokenBindingKeyAlgorithm: DPOP_JWT_HEADER_ALGORITHM,
-            keyScope: this.getKeyScope(params),
             correlationId,
         });
     }
@@ -195,12 +169,13 @@ export class DpopProofGenerator {
      * Builds and signs a compact DPoP proof JWT for a token-endpoint request.
      */
     async generateTokenProof(
-        params: DpopTokenProofParams & DpopProofGenerationParams,
+        params: DpopTokenProofParams,
+        keyId: string,
         correlationId: string = ""
     ): Promise<string> {
         return this.generateProof(
             this.buildTokenProofClaims(params, correlationId),
-            params,
+            keyId,
             correlationId
         );
     }
@@ -233,38 +208,33 @@ export class DpopProofGenerator {
      * Builds and signs a compact DPoP proof JWT for a resource request.
      */
     async generateResourceProof(
-        params: DpopResourceProofParams & DpopProofGenerationParams,
+        params: DpopResourceProofParams,
+        keyId: string,
         correlationId: string = ""
     ): Promise<string> {
         return this.generateProof(
             this.buildResourceProofClaims(params, correlationId),
-            params,
+            keyId,
             correlationId
         );
     }
 
     private async generateProof(
         claims: DpopProofClaims,
-        params: DpopProofGenerationParams,
+        keyId: string,
         correlationId: string
     ): Promise<string> {
         const publicJwk =
             await this.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
-                params.keyId,
-                correlationId,
-                params.keyContext
+                keyId,
+                correlationId
             );
 
         return this.cryptoUtils.signTokenBindingJwt(
             buildProofHeader(publicJwk, correlationId),
             claims,
-            params.keyId,
-            correlationId,
-            params.keyContext
+            keyId,
+            correlationId
         );
-    }
-
-    private getKeyScope(params: DpopJktGenerationParams): string {
-        return `${DPOP_TOKEN_BINDING_KEY_TYPE}.${params.clientId}.${params.authority}`;
     }
 }

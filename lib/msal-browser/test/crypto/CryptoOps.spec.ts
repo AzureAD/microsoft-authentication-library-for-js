@@ -31,7 +31,6 @@ let mockDatabase = {
 const DPOP_KEY_CONTEXT = {
     tokenBindingKeyType: "dpop",
     tokenBindingKeyAlgorithm: "ES256",
-    keyScope: `dpop.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_CONFIG.validAuthority}`,
     correlationId: TEST_CONFIG.CORRELATION_ID,
 } as const;
 
@@ -423,19 +422,16 @@ describe("CryptoOps.ts Unit Tests", () => {
             success: true,
             tokenBindingKeyType: "shr",
             tokenBindingKeyAlgorithm: "RS256",
-            tokenBindingKeyCacheHit: false,
         });
         expect(endMeasurement).toHaveBeenNthCalledWith(2, {
             success: true,
             tokenBindingKeyType: "dpop",
             tokenBindingKeyAlgorithm: "ES256",
-            tokenBindingKeyCacheHit: false,
         });
         expect(endMeasurement).toHaveBeenNthCalledWith(3, {
             success: true,
             tokenBindingKeyType: "dpop",
             tokenBindingKeyAlgorithm: "ES256",
-            tokenBindingKeyCacheHit: true,
         });
     }, 30000);
 
@@ -480,52 +476,6 @@ describe("CryptoOps.ts Unit Tests", () => {
             success: false,
             tokenBindingKeyType: "dpop",
             tokenBindingKeyAlgorithm: "ES256",
-            tokenBindingKeyCacheHit: false,
-        });
-    }, 30000);
-
-    it("emits token-binding key metadata when scoped key lookup fails", async () => {
-        const performanceClient = new StubPerformanceClient();
-        const endMeasurement = jest.fn();
-        jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
-            (measureName, correlationId) => {
-                expectCorrelationId(correlationId);
-                return {
-                    end: endMeasurement,
-                    discard: jest.fn(),
-                    add: jest.fn(),
-                    increment: jest.fn(),
-                    event: {
-                        eventId: "test-event-id",
-                        status: PerformanceEventStatus.InProgress,
-                        authority: "",
-                        libraryName: "",
-                        libraryVersion: "",
-                        clientId: "",
-                        name: measureName,
-                        startTimeMs: Date.now(),
-                        correlationId,
-                    },
-                };
-            }
-        );
-        jest.spyOn(DatabaseStorage.prototype, "getKeys").mockRejectedValueOnce(
-            new Error("scoped lookup failed")
-        );
-        tokenBindingKeyManager = new TokenBindingKeyManager(
-            new Logger({}),
-            performanceClient
-        );
-
-        await expect(
-            tokenBindingKeyManager.provisionTokenBindingKey(DPOP_KEY_CONTEXT)
-        ).rejects.toThrow("scoped lookup failed");
-
-        expect(endMeasurement).toHaveBeenCalledWith({
-            success: false,
-            tokenBindingKeyType: "dpop",
-            tokenBindingKeyAlgorithm: "ES256",
-            tokenBindingKeyCacheHit: false,
         });
     }, 30000);
 
@@ -570,7 +520,6 @@ describe("CryptoOps.ts Unit Tests", () => {
             success: false,
             tokenBindingKeyType: "shr",
             tokenBindingKeyAlgorithm: "RS256",
-            tokenBindingKeyCacheHit: false,
         });
     }, 30000);
 
@@ -611,8 +560,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         const dpopPublicJwk =
             await tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
                 dpopKeyId,
-                TEST_CONFIG.CORRELATION_ID,
-                DPOP_KEY_CONTEXT
+                TEST_CONFIG.CORRELATION_ID
             );
         endMeasurement.mockClear();
 
@@ -636,8 +584,7 @@ describe("CryptoOps.ts Unit Tests", () => {
             ),
             { htm: "POST", htu: TEST_URIS.TEST_AUTH_ENDPT, iat: 1, jti: "jti" },
             dpopKeyId,
-            TEST_CONFIG.CORRELATION_ID,
-            DPOP_KEY_CONTEXT
+            TEST_CONFIG.CORRELATION_ID
         );
 
         expect(performanceClient.startMeasurement).toHaveBeenCalledWith(
@@ -704,8 +651,7 @@ describe("CryptoOps.ts Unit Tests", () => {
                     jti: "jti",
                 },
                 "missing-key-id",
-                TEST_CONFIG.CORRELATION_ID,
-                DPOP_KEY_CONTEXT
+                TEST_CONFIG.CORRELATION_ID
             )
         ).rejects.toThrow(
             createBrowserAuthError(
@@ -1220,8 +1166,7 @@ describe("CryptoOps.ts Unit Tests", () => {
             const publicJwk =
                 await tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
                     keyId,
-                    TEST_CONFIG.CORRELATION_ID,
-                    DPOP_KEY_CONTEXT
+                    TEST_CONFIG.CORRELATION_ID
                 );
             const dpopPublicJwk: Record<string, unknown> = {};
             Object.entries(publicJwk).forEach(([key, value]) => {
@@ -1234,9 +1179,8 @@ describe("CryptoOps.ts Unit Tests", () => {
             const proof = await dpopProofGenerator.generateTokenProof(
                 {
                     tokenEndpoint: TEST_URIS.TEST_AUTH_ENDPT,
-                    keyId,
-                    keyContext: DPOP_KEY_CONTEXT,
                 },
+                keyId,
                 TEST_CONFIG.CORRELATION_ID
             );
             const [encodedHeader, encodedClaims, signature] = proof.split(".");
@@ -1296,9 +1240,8 @@ describe("CryptoOps.ts Unit Tests", () => {
             const proof = await dpopProofGenerator.generateTokenProof(
                 {
                     tokenEndpoint: TEST_URIS.TEST_AUTH_ENDPT,
-                    keyId,
-                    keyContext: DPOP_KEY_CONTEXT,
                 },
+                keyId,
                 TEST_CONFIG.CORRELATION_ID
             );
 

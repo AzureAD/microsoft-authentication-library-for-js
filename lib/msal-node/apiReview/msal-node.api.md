@@ -68,7 +68,6 @@ import { ServerTelemetryManager } from '@azure/msal-common/node';
 import { StaticAuthorityOptions } from '@azure/msal-common/node';
 import { StringDict } from '@azure/msal-common/node';
 import { ThrottlingEntity } from '@azure/msal-common/node';
-import type { TokenBindingKeyContext } from '@azure/msal-common/node';
 import { TokenCacheContext } from '@azure/msal-common/node';
 import { TokenKeys } from '@azure/msal-common/node';
 import { ValidCacheType } from '@azure/msal-common/node';
@@ -175,8 +174,8 @@ export class CryptoProvider implements ICrypto {
     encodeKid(): string;
     generatePkceCodes(): Promise<PkceCodes>;
     hashString(plainText: string): Promise<string>;
-    removeTokenBindingKey(kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<void>;
-    signTokenBindingJwt(header: object, payload: object, kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<string>;
+    removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
+    signTokenBindingJwt(header: object, payload: object, kid: string, correlationId: string): Promise<string>;
 }
 
 // @internal

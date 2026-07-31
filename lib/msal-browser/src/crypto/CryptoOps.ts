@@ -9,7 +9,6 @@ import {
     JoseHeader,
     Logger,
 } from "@azure/msal-common/browser";
-import type { TokenBindingKeyContext } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     base64Encode,
@@ -108,13 +107,11 @@ export class CryptoOps implements ICrypto {
      */
     async removeTokenBindingKey(
         kid: string,
-        correlationId: string,
-        context?: TokenBindingKeyContext
+        correlationId: string
     ): Promise<void> {
         await this.tokenBindingKeyManager.removeTokenBindingKey(
             kid,
-            correlationId,
-            context
+            correlationId
         );
     }
 
@@ -131,8 +128,7 @@ export class CryptoOps implements ICrypto {
         header: JoseHeader,
         payload: object,
         kid: string,
-        correlationId: string,
-        context?: TokenBindingKeyContext
+        correlationId: string
     ): Promise<string> {
         let telemetry: TokenBindingKeyTelemetry = {};
         const signTokenBindingJwtMeasurement =
@@ -144,8 +140,7 @@ export class CryptoOps implements ICrypto {
             const cachedKeyPair =
                 await this.tokenBindingKeyManager.getTokenBindingKeyPair(
                     kid,
-                    correlationId,
-                    context
+                    correlationId
                 );
             await this.validateTokenBindingJwtHeaderKey(
                 header,

@@ -8,7 +8,6 @@ import {
     createClientAuthError,
 } from "../error/ClientAuthError.js";
 import type { BaseAuthRequest } from "../request/BaseAuthRequest.js";
-import type { TokenBindingKeyContext } from "./ITokenBindingKeyManager.js";
 import type { JoseHeader } from "./JoseHeader.js";
 
 /**
@@ -73,13 +72,8 @@ export interface ICrypto {
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid
      * @param correlationId
-     * @param context
      */
-    removeTokenBindingKey(
-        kid: string,
-        correlationId: string,
-        context?: TokenBindingKeyContext
-    ): Promise<void>;
+    removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
     /**
      * Removes all cryptographic keys from IndexedDB storage
      * @param correlationId
@@ -92,14 +86,12 @@ export interface ICrypto {
      * @param payload
      * @param kid
      * @param correlationId
-     * @param context
      */
     signTokenBindingJwt(
         header: JoseHeader,
         payload: object,
         kid: string,
-        correlationId: string,
-        context?: TokenBindingKeyContext
+        correlationId: string
     ): Promise<string>;
     /**
      * Returns the SHA-256 hash of an input string
@@ -145,11 +137,9 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     },
     async removeTokenBindingKey(
         kid: string,
-        correlationId: string,
-        context?: TokenBindingKeyContext
+        correlationId: string
     ): Promise<void> {
         void kid;
-        void context;
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
             correlationId
