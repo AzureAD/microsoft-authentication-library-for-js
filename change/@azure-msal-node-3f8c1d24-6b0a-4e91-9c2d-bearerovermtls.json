@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add Bearer-over-mTLS for confidential clients: opt in at the app level with auth.clientCertificate.sendCertificateOverMtls to present the configured certificate on the TLS handshake to the mTLS token endpoint and receive a plain Bearer token (transport-authenticated, not certificate-bound). Honored across client-credentials, on-behalf-of, refresh-token and auth-code; a per-request mtlsProofOfPossession always takes precedence [#8738](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8738)",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
