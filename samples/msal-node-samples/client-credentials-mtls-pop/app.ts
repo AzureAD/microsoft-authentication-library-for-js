@@ -47,6 +47,33 @@ export const getMtlsPopToken = async (
 };
 
 /**
+ * SN/I certificate over mTLS -> plain Bearer.
+ *
+ * The confidential client is configured with an SN/I certificate AND the app-level
+ * `auth.clientCertificate.sendCertificateOverMtls` flag. MSAL presents that certificate as the
+ * client TLS certificate on the mutual-TLS handshake and routes to the mTLS token endpoint
+ * (mtlsauth.microsoft.com), but - because the request is NOT mtls_pop - Entra ID returns a plain
+ * Bearer access token authenticated by the transport (a `client_assertion` is sent; the token is
+ * NOT cryptographically bound to the certificate). Contrast with getMtlsPopToken (bound,
+ * token_type=mtls_pop) and with the ordinary client-assertion Bearer (certificate never on the TLS
+ * handshake, regular token endpoint).
+ */
+export const getBearerOverMtlsToken = async (
+    cca: ConfidentialClientApplication,
+    clientCredentialRequestScopes: Array<string>,
+    region?: string,
+    skipCache: boolean = true
+): Promise<AuthenticationResult | null> => {
+    const clientCredentialRequest = {
+        scopes: clientCredentialRequestScopes,
+        azureRegion: region, // recommended; falls back to the global mTLS endpoint if omitted
+        skipCache,
+    };
+
+    return cca.acquireTokenByClientCredential(clientCredentialRequest);
+};
+
+/**
  * The code below checks if the script is being executed manually or in automation.
  * If the script was executed manually, it will initialize a ConfidentialClientApplication object
  * and execute the sample mTLS Proof-of-Possession client credentials application.

@@ -565,6 +565,8 @@ export abstract class ClientApplication {
                     discoveredAuthority
                 ),
                 mtlsBindingCertificate: mtlsBindingCertificate,
+                sendCertificateOverMtls:
+                    clientCertificate?.sendCertificateOverMtls,
             },
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,

@@ -12,7 +12,7 @@ import {
     Configuration,
 } from "@azure/msal-node";
 import { DefaultAzureCredential } from "@azure/identity";
-import { getMtlsPopToken } from "../app";
+import { getMtlsPopToken, getBearerOverMtlsToken } from "../app";
 
 // Enable SNI (send certificate chain) for cert-based auth in CI
 process.env["AZURE_CLIENT_SEND_CERTIFICATE_CHAIN"] = "true";
@@ -149,6 +149,88 @@ describe("Client Credentials mTLS Proof-of-Possession AAD Prod Tests", () => {
             // token is a plain Bearer token — not certificate-bound.
             expect(authenticationResult?.tokenType).not.toBe("mtls_pop");
             expect(authenticationResult?.bindingCertificate).toBeFalsy();
+        });
+    });
+
+    // Credential_X509_SendCertificateOverMtls_Output_Bearer: the SN/I (X509) certificate is
+    // presented on the TLS handshake via the app-level auth.clientCertificate.sendCertificateOverMtls
+    // flag, so MSAL routes to the mTLS token endpoint (mtlsauth.microsoft.com) - but because the
+    // request is NOT mtls_pop, Entra returns a plain (non-bound) Bearer token. This is the distinct
+    // Bearer-over-mTLS path: cert ON the handshake -> Bearer from the mTLS endpoint. Contrast with
+    // Credential_X509_Output_Bearer (cert signs a client_assertion to the REGULAR endpoint; cert
+    // never on the handshake) and Credential_X509_Output_Pop (bound token, token_type=mtls_pop).
+    // Runs GLOBAL (no azureRegion) for determinism, and the second acquire (skipCache=false)
+    // exercises the plain-Bearer cache hit from cache.
+    // The AT caches under the original login.* environment (only the token ENDPOINT is
+    // rewritten to mtlsauth.* via getMtlsTokenEndpoint(), never the authority), so the 2nd call
+    // resolves metadata against login.* and cannot hit the .NET-style mtlsauth.* discovery trap.
+    describe("Credential_X509_SendCertificateOverMtls_Output_Bearer", () => {
+        let bearerOverMtlsConfig: Configuration;
+        beforeAll(async () => {
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+            bearerOverMtlsConfig = {
+                auth: {
+                    ...config.auth,
+                    clientCertificate: {
+                        ...config.auth.clientCertificate,
+                        // App-level opt-in: present the certificate on the mTLS handshake and route
+                        // to the mTLS endpoint, but keep a plain Bearer token (not mtls_pop-bound).
+                        sendCertificateOverMtls: true,
+                    },
+                },
+            };
+        });
+
+        afterEach(async () => {
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+        });
+
+        it("presents the certificate on the mTLS handshake and receives a plain Bearer token, then serves the second call from cache", async () => {
+            const confidentialClientApplication: ConfidentialClientApplication =
+                new ConfidentialClientApplication(bearerOverMtlsConfig);
+
+            const authenticationResult: AuthenticationResult | null =
+                await getBearerOverMtlsToken(
+                    confidentialClientApplication,
+                    clientCredentialRequestScopes
+                );
+
+            expect(authenticationResult?.accessToken).toBeTruthy();
+            // The certificate authenticates the transport; the issued token is a plain Bearer, NOT
+            // certificate-bound - the whole point of Bearer-over-mTLS (contrast with the PoP cell).
+            expect(authenticationResult?.tokenType).not.toBe("mtls_pop");
+            expect(authenticationResult?.bindingCertificate).toBeFalsy();
+            expect(authenticationResult?.fromCache).toBe(false);
+
+            // Second acquire without skipCache: the plain Bearer entry is cached under the standard
+            // (non-thumbprint-fenced) access-token key, so an ordinary Bearer lookup must serve it
+            // from cache without crashing on region/instance metadata: the entry is
+            // keyed under the canonical login.* environment (only the token endpoint was mtlsauth.*),
+            // so the ordinary lookup resolves against login.* and never the rewritten host.
+            const cachedResult: AuthenticationResult | null =
+                await getBearerOverMtlsToken(
+                    confidentialClientApplication,
+                    clientCredentialRequestScopes,
+                    undefined,
+                    false
+                );
+
+            expect(cachedResult?.accessToken).toEqual(
+                authenticationResult?.accessToken
+            );
+            expect(cachedResult?.fromCache).toBe(true);
+
+            // Env-lock tripwire (parity with Java/Go/Python): the certificate only rewrote the token
+            // ENDPOINT to mtlsauth.*; the AT must be cached under the canonical login.* environment,
+            // never the mtlsauth.* host - so a mis-cache under the rewritten host fails instantly.
+            const cachedTokens = await NodeCacheTestUtils.getTokens(
+                TEST_CACHE_LOCATION
+            );
+            expect(cachedTokens.accessTokens).toHaveLength(1);
+            const cachedAccessToken = cachedTokens.accessTokens[0];
+            expect(cachedAccessToken.credentialType).toBe("AccessToken");
+            expect(cachedAccessToken.environment).toContain("login");
+            expect(cachedAccessToken.environment).not.toContain("mtlsauth");
         });
     });
 });

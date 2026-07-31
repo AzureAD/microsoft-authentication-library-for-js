@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Bearer-over-mTLS: add the getBearerOverMtlsCertificate helper and ClientCredentials.sendCertificateOverMtls so RefreshTokenClient and AuthorizationCodeClient can route to the mTLS token endpoint and present the client certificate on the TLS handshake while keeping a plain Bearer token. Per-request mTLS Proof-of-Possession still takes precedence [#8738](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8738)",
+  "packageName": "@azure/msal-common",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}

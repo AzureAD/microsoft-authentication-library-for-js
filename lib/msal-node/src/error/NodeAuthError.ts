@@ -57,6 +57,14 @@ export const NodeAuthErrorMessage = {
         code: "mtls_custom_network_client_unsupported",
         desc: "mTLS Proof-of-Possession requires MSAL's built-in HttpClient to attach the client certificate to the TLS connection. A custom networkClient cannot be used with mtlsProofOfPossession.",
     },
+    sendCertificateOverMtlsMissingCertificate: {
+        code: "send_certificate_over_mtls_missing_certificate",
+        desc: "sendCertificateOverMtls was enabled but no usable client certificate is configured. Provide a clientCertificate with both an x5c (public certificate or chain) and a privateKey; sendCertificateOverMtls presents that certificate on the TLS handshake to the mTLS token endpoint.",
+    },
+    sendCertificateOverMtlsWithClientAssertion: {
+        code: "send_certificate_over_mtls_with_client_assertion",
+        desc: "sendCertificateOverMtls requires the configured clientCertificate to produce the client_assertion so it carries the forced x5c chain that authenticates the certificate over the mTLS channel. A developer-supplied clientAssertion (static string or callback) cannot be given an x5c header and is not supported with sendCertificateOverMtls. Remove clientAssertion, or disable sendCertificateOverMtls.",
+    },
 };
 
 export class NodeAuthError extends AuthError {
@@ -212,6 +220,37 @@ export class NodeAuthError extends AuthError {
             NodeAuthErrorMessage.mtlsCustomNetworkClientUnsupported.code,
             correlationId,
             NodeAuthErrorMessage.mtlsCustomNetworkClientUnsupported.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when sendCertificateOverMtls is enabled but no usable client
+     * certificate (x5c + privateKey) is configured.
+     */
+    static createSendCertificateOverMtlsMissingCertificateError(
+        correlationId: string = ""
+    ): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.sendCertificateOverMtlsMissingCertificate.code,
+            correlationId,
+            NodeAuthErrorMessage.sendCertificateOverMtlsMissingCertificate.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when sendCertificateOverMtls is enabled together with a
+     * developer-supplied clientAssertion. The opaque assertion would populate the request body
+     * without the forced x5c chain the mTLS SN/I match requires, so the combination is rejected
+     * (fail-closed, mirroring MSAL.NET's InvalidCredentialMaterial) rather than silently emitting
+     * an x5c-less assertion on the mTLS handshake.
+     */
+    static createSendCertificateOverMtlsWithClientAssertionError(
+        correlationId: string = ""
+    ): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.sendCertificateOverMtlsWithClientAssertion.code,
+            correlationId,
+            NodeAuthErrorMessage.sendCertificateOverMtlsWithClientAssertion.desc
         );
     }
 }

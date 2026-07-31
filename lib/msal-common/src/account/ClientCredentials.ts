@@ -43,4 +43,12 @@ export type ClientCredentials = {
      * configured `clientCertificate`.
      */
     mtlsBindingCertificate?: MtlsBindingCertificate;
+    /**
+     * App-level opt-in to present the configured certificate as the client TLS certificate on the
+     * token request handshake (routing to the mTLS endpoint) while still receiving a plain Bearer
+     * token — i.e. Bearer-over-mTLS. Distinct from per-request mTLS Proof-of-Possession, which
+     * always takes precedence when both are set. Populated from the app's
+     * `clientCertificate.sendCertificateOverMtls`.
+     */
+    sendCertificateOverMtls?: boolean;
 };

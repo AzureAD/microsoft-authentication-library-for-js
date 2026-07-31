@@ -1622,6 +1622,9 @@ function getAuthorizationCodePayload(serverParams: AuthorizeResponse, cachedStat
 // @internal
 function getAuthorizeUrl(authority: Authority, requestParameters: Map<string, string>): string;
 
+// @public
+export function getBearerOverMtlsCertificate(clientCredentials: ClientCredentials, authenticationScheme?: AuthenticationScheme): MtlsCertificate | undefined;
+
 // @public (undocumented)
 export function getClientAssertion(clientAssertion: string | ClientAssertionCallback, clientId: string, tokenEndpoint?: string, fmiPath?: string): Promise<string>;
 
