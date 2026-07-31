@@ -6,7 +6,9 @@
 import {
     Authority,
     AuthorityOptions,
+    AuthenticationResult,
     ClientConfiguration,
+    Constants,
     Logger,
     MtlsBindingCertificate,
     NetworkResponse,
@@ -185,5 +187,65 @@ describe("OnBehalfOfClient Bearer-over-mTLS (sendCertificateOverMtls)", () => {
         expect(endpoint).toContain("login.microsoftonline.com");
         expect(endpoint).not.toContain("mtlsauth.microsoft.com");
         expect(postSpy.mock.calls[0][1]?.mtlsCertificate).toBeUndefined();
+    });
+
+    it("serves the second on-behalf-of acquisition from the plain Bearer cache under the canonical login environment", async () => {
+        const { config, postSpy } = await buildConfig({
+            mtlsBindingCertificate: APP_CERT,
+            clientAssertion: CLIENT_ASSERTION,
+            sendCertificateOverMtls: true,
+        });
+        const client = new OnBehalfOfClient(config);
+
+        // A cache-enabled OBO request (skipCache defaults on in oboRequest()); the tenant matches the
+        // id_token tid so the first response caches cleanly and a second identical call can hit it.
+        const cacheableRequest = (): CommonOnBehalfOfRequest => ({
+            authority: TENANTED_AUTHORITY,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            oboAssertion: "user_assertion_hash",
+            scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
+            skipCache: false,
+        });
+
+        const first = (await client.acquireToken(
+            cacheableRequest()
+        )) as AuthenticationResult;
+        expect(postSpy.mock.calls[0][0] as string).toContain(
+            "mtlsauth.microsoft.com"
+        );
+        expect(first.fromCache).toBe(false);
+
+        const second = (await client.acquireToken(
+            cacheableRequest()
+        )) as AuthenticationResult;
+
+        // Note #3 (OBO 2nd call): the metadata path is exercised (login host reachable/resolvable), and
+        // the Bearer-over-mTLS token is served from cache with NO second network POST.
+        expect(postSpy).toHaveBeenCalledTimes(1);
+        expect(second.fromCache).toBe(true);
+        expect(second.accessToken).toEqual(first.accessToken);
+        expect(second.tokenType).toBe(Constants.AuthenticationScheme.BEARER);
+
+        // It must be cached under the PLAIN Bearer key (credentialType AccessToken, not the scheme-fenced
+        // accesstoken_with_authscheme key mtls_pop uses) and under the CANONICAL authority environment
+        // (login.windows.net / preferred_cache), never the physical mtlsauth.* POST host - the cert is
+        // transport-only, so the entry is indistinguishable from a regular Bearer and reusable.
+        const accessTokenKey = config.storageInterface
+            ?.getKeys()
+            .find((key) => key.indexOf("accesstoken") >= 0);
+        expect(accessTokenKey).toBeDefined();
+        expect(accessTokenKey).not.toContain("accesstoken_with_authscheme");
+        expect(accessTokenKey).not.toContain("mtlsauth");
+
+        const cachedToken = config.storageInterface?.getAccessTokenCredential(
+            accessTokenKey!,
+            TEST_CONFIG.CORRELATION_ID
+        );
+        expect(cachedToken?.credentialType).toBe("AccessToken");
+        expect(cachedToken?.tokenType).toBe(
+            Constants.AuthenticationScheme.BEARER
+        );
+        expect(cachedToken?.environment).toContain("login");
+        expect(cachedToken?.environment).not.toContain("mtlsauth");
     });
 });

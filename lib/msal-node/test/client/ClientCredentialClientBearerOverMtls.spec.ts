@@ -249,6 +249,7 @@ describe("ClientCredentialClient Bearer-over-mTLS (sendCertificateOverMtls)", ()
             expect(cachedToken?.tokenType).toBe(
                 Constants.AuthenticationScheme.BEARER
             );
+            expect(cachedToken?.environment).toContain("login");
             expect(cachedToken?.environment).not.toContain("mtlsauth");
             expect(accessTokenKey).not.toContain("mtlsauth");
         });
