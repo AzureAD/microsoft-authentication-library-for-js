@@ -2074,6 +2074,12 @@ export class JoseHeader {
     typ?: JsonWebTokenTypes;
 }
 
+// @internal
+export const JsonWebTokenAlgorithms: {
+    readonly ES256: "ES256";
+    readonly RS256: "RS256";
+};
+
 // @public (undocumented)
 const JsonWebTokenTypes: {
     readonly Jwt: "JWT";

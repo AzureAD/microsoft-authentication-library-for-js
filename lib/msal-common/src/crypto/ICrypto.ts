@@ -35,6 +35,7 @@ export type SignedHttpRequestParameters = Pick<
 
 /**
  * Shared JOSE algorithm literals used by MSAL package internals.
+ * @internal
  */
 export const JsonWebTokenAlgorithms = {
     ES256: "ES256",

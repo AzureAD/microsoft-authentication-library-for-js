@@ -104,6 +104,7 @@ export {
     PkceCodes,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     SignedHttpRequestParameters,
+    JsonWebTokenAlgorithms,
 } from "./crypto/ICrypto.js";
 export {
     ITokenBindingKeyManager,
