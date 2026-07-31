@@ -1375,7 +1375,7 @@ export function createInteractionRequiredAuthError(errorCode: string, correlatio
 export function createNetworkError(error: AuthError, httpStatus?: number, responseHeaders?: Record<string, string>, additionalError?: Error): NetworkError;
 
 // @public
-function createRefreshTokenEntity(homeAccountId: string, environment: string, refreshToken: string, clientId: string, familyId?: string, userAssertionHash?: string, expiresOn?: number): RefreshTokenEntity;
+function createRefreshTokenEntity(homeAccountId: string, environment: string, refreshToken: string, clientId: string, familyId?: string, userAssertionHash?: string, expiresOn?: number, keyId?: string): RefreshTokenEntity;
 
 // @public
 function createTokenQueryParameters(request: BaseAuthRequest, clientId: string, redirectUri: string, performanceClient: IPerformanceClient): string;
@@ -1787,9 +1787,9 @@ export interface ICrypto {
     createNewGuid(): string;
     encodeKid(inputKid: string): string;
     hashString(plainText: string): Promise<string>;
-    removeTokenBindingKey(kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<void>;
+    removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
     // @internal
-    signTokenBindingJwt(header: JoseHeader, payload: object, kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<string>;
+    signTokenBindingJwt(header: JoseHeader, payload: object, kid: string, correlationId: string): Promise<string>;
 }
 
 // @public (undocumented)
@@ -2054,9 +2054,9 @@ function isTokenExpired(expiresOn: string, offset: number): boolean;
 
 // @internal
 export interface ITokenBindingKeyManager {
-    getTokenBindingPublicKeyJwk(kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<JsonWebKey>;
+    getTokenBindingPublicKeyJwk(kid: string, correlationId: string): Promise<JsonWebKey>;
     provisionTokenBindingKey(request: TokenBindingKeyProvisioningParameters): Promise<string>;
-    removeTokenBindingKey(kid: string, correlationId: string, context?: TokenBindingKeyContext): Promise<void>;
+    removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
 }
 
 // @public
@@ -2428,8 +2428,6 @@ export type PerformanceEvent = {
     cacheOutcome?: number;
     tokenBindingKeyType?: string;
     tokenBindingKeyAlgorithm?: string;
-    tokenBindingKeyCacheHit?: boolean;
-    tokenBindingKeyRequestCoalesced?: boolean;
     incompleteSubMeasurements?: Map<string, SubMeasurement>;
     visibilityChangeCount?: number;
     onlineStatusChangeCount?: number;
@@ -3272,16 +3270,10 @@ function toDateFromSeconds(seconds: number | string | undefined): Date;
 const TOKEN_TYPE = "token_type";
 
 // @public
-export type TokenBindingKeyContext = {
-    keyScope?: string;
-};
-
-// @public
 export type TokenBindingKeyProvisioningParameters = {
     tokenBindingKeyType: string;
     tokenBindingKeyAlgorithm: string;
     correlationId: string;
-    keyScope?: string;
 };
 
 // @public

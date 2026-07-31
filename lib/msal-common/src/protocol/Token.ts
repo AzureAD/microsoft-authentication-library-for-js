@@ -79,7 +79,6 @@ export async function addDpopTokenProofHeader(
     headers: Record<string, string>,
     request: BaseAuthRequest,
     tokenEndpoint: string,
-    clientId: string,
     cryptoUtils: ICrypto,
     tokenBindingKeyManager: ITokenBindingKeyManager
 ): Promise<void> {
@@ -94,11 +93,8 @@ export async function addDpopTokenProofHeader(
     headers[HeaderNames.DPOP] = await dpopProofGenerator.generateTokenProof(
         {
             tokenEndpoint,
-            keyId: request.dpopJkt || "",
-            keyContext: {
-                keyScope: `${AuthenticationScheme.DPOP.toLowerCase()}.${clientId}.${request.authority}`,
-            },
         },
+        request.dpopJkt || "",
         request.correlationId
     );
 }

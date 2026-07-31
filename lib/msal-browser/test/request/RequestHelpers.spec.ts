@@ -197,7 +197,6 @@ describe("RequestHelpers tests", () => {
                 tokenBindingKeyType: dpopTokenBindingKeyType,
                 tokenBindingKeyAlgorithm:
                     Constants.DPOP_TOKEN_BINDING_KEY_ALGORITHM,
-                keyScope: `${dpopTokenBindingKeyType}.${TEST_CONFIG.MSAL_CLIENT_ID}.https://login.microsoftonline.com/common`,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
             });
         });

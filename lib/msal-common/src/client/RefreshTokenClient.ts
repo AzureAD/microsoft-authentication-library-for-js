@@ -365,7 +365,6 @@ export class RefreshTokenClient {
             headers,
             request,
             endpoint,
-            this.config.authOptions.clientId,
             this.cryptoUtils,
             this.config.tokenBindingKeyManager
         );

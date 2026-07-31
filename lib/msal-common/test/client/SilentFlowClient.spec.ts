@@ -959,10 +959,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.dpopProof).toBe("fresh-dpop-proof-1");
             expect(getPublicJwkSpy).toHaveBeenCalledWith(
                 TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
-                TEST_CONFIG.CORRELATION_ID,
-                {
-                    keyScope: `${AuthenticationScheme.DPOP.toLowerCase()}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_CONFIG.validAuthority}`,
-                }
+                TEST_CONFIG.CORRELATION_ID
             );
         });
 

@@ -185,6 +185,10 @@ export class SilentFlowClient {
             cachedAccessToken.tokenType === AuthenticationScheme.DPOP
         ) {
             if (!cachedAccessToken.keyId) {
+                this.logger.info(
+                    "SilentFlowClient:acquireCachedToken - Cached DPoP access token is missing keyId; refresh required",
+                    request.correlationId
+                );
                 this.setCacheOutcome(
                     CacheOutcome.NO_CACHED_ACCESS_TOKEN,
                     request.correlationId
@@ -198,12 +202,13 @@ export class SilentFlowClient {
             try {
                 await this.config.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
                     cachedAccessToken.keyId,
-                    request.correlationId,
-                    {
-                        keyScope: `${AuthenticationScheme.DPOP.toLowerCase()}.${cachedAccessToken.clientId}.${request.authority}`,
-                    }
+                    request.correlationId
                 );
             } catch {
+                this.logger.info(
+                    "SilentFlowClient:acquireCachedToken - Local DPoP key was not found for cached access token; refresh required",
+                    request.correlationId
+                );
                 this.setCacheOutcome(
                     CacheOutcome.NO_CACHED_ACCESS_TOKEN,
                     request.correlationId

@@ -622,11 +622,8 @@ export class ResponseHandler {
                         resourceUrl: request.resourceRequestUri || "",
                         htm: request.resourceRequestMethod || "",
                         accessToken: cacheRecord.accessToken.secret,
-                        keyId: cacheRecord.accessToken.keyId,
-                        keyContext: {
-                            keyScope: `${Constants.AuthenticationScheme.DPOP.toLowerCase()}.${cacheRecord.accessToken.clientId}.${request.authority}`,
-                        },
                     },
+                    cacheRecord.accessToken.keyId,
                     request.correlationId
                 );
             }

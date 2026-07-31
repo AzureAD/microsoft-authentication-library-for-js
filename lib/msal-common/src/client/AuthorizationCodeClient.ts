@@ -277,7 +277,6 @@ export class AuthorizationCodeClient {
             headers,
             request,
             endpoint,
-            this.config.authOptions.clientId,
             this.cryptoUtils,
             this.config.tokenBindingKeyManager
         );

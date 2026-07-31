@@ -11,14 +11,11 @@ import {
 } from "@azure/msal-common/browser";
 import type {
     ITokenBindingKeyManager,
-    TokenBindingKeyContext,
     TokenBindingKeyProvisioningParameters,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
-import { urlEncode } from "../encode/Base64Encode.js";
 import * as BrowserCrypto from "./BrowserCrypto.js";
 import {
-    BrowserAuthError,
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
@@ -44,10 +41,6 @@ export type CachedKeyPair = {
      * JOSE algorithm policy associated with the key.
      */
     tokenBindingKeyAlgorithm?: string;
-    /**
-     * Optional stable scope used to resolve scoped keys.
-     */
-    keyScope?: string;
     /**
      * JWK thumbprint used as the key identifier.
      */
@@ -89,8 +82,6 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
         "verify",
     ];
     private static tokenBindingKeyStorage: AsyncMemoryStorage<CachedKeyPair>;
-    private static activeScopedKeyRequests: Map<string, Promise<string>> =
-        new Map();
     private cache: AsyncMemoryStorage<CachedKeyPair>;
     private logger: Logger;
     private performanceClient: IPerformanceClient | undefined;
@@ -115,33 +106,10 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
     }
 
     /**
-     * Provisions or reuses a browser token-binding key and returns its key identifier.
-     * @param request - Key provisioning policy and cache scope.
+     * Provisions a browser token-binding key and returns its key identifier.
+     * @param request - Key provisioning policy.
      */
     async provisionTokenBindingKey(
-        request: TokenBindingKeyProvisioningParameters
-    ): Promise<string> {
-        if (!request.keyScope) {
-            return this.provisionTokenBindingKeyInternal(request);
-        }
-
-        const scopedRequestFingerprint =
-            this.getScopedRequestFingerprint(request);
-        const activeRequest =
-            TokenBindingKeyManager.activeScopedKeyRequests.get(
-                scopedRequestFingerprint
-            );
-        if (activeRequest) {
-            return this.observeCoalescedScopedKeyRequest(
-                request,
-                activeRequest
-            );
-        }
-
-        return this.startScopedKeyRequest(scopedRequestFingerprint, request);
-    }
-
-    private async provisionTokenBindingKeyInternal(
         request: TokenBindingKeyProvisioningParameters
     ): Promise<string> {
         const publicKeyThumbMeasurement =
@@ -149,51 +117,36 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
                 BrowserPerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
                 request.correlationId
             );
-        let cachedKeyPair: GeneratedKeyPair | null = null;
         try {
-            cachedKeyPair = request.keyScope
-                ? await this.getScopedTokenBindingKeyPair(request)
-                : null;
-            const activeKeyPair =
-                cachedKeyPair || (await this.createTokenBindingKey(request));
+            const activeKeyPair = await this.createTokenBindingKey(request);
 
             publicKeyThumbMeasurement?.end({
                 success: true,
                 ...this.getTokenBindingKeyTelemetry(activeKeyPair),
-                tokenBindingKeyCacheHit: !!cachedKeyPair?.keyId,
             });
 
             return activeKeyPair.keyId;
         } catch (e) {
             publicKeyThumbMeasurement?.end({
                 success: false,
-                ...(cachedKeyPair
-                    ? this.getTokenBindingKeyTelemetry(cachedKeyPair)
-                    : {
-                          tokenBindingKeyType: request.tokenBindingKeyType,
-                          tokenBindingKeyAlgorithm:
-                              request.tokenBindingKeyAlgorithm,
-                      }),
-                tokenBindingKeyCacheHit: !!cachedKeyPair?.keyId,
+                tokenBindingKeyType: request.tokenBindingKeyType,
+                tokenBindingKeyAlgorithm: request.tokenBindingKeyAlgorithm,
             });
             throw e;
         }
     }
 
     /**
-     * Removes a browser token-binding key by identifier and optional lookup context.
+     * Removes a browser token-binding key by identifier.
      * @param kid - Token-binding key identifier.
      * @param correlationId - Request correlation identifier.
-     * @param context - Optional scoped lookup context.
      */
     async removeTokenBindingKey(
         kid: string,
-        correlationId: string,
-        context?: TokenBindingKeyContext
+        correlationId: string
     ): Promise<void> {
-        const cacheKey = this.getTokenBindingCacheKey(kid, context);
-        await this.cache.removeItem(cacheKey, correlationId);
-        const keyFound = await this.cache.containsKey(cacheKey, correlationId);
+        await this.cache.removeItem(kid, correlationId);
+        const keyFound = await this.cache.containsKey(kid, correlationId);
         if (keyFound) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.bindingKeyNotRemoved,
@@ -230,20 +183,17 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
     }
 
     /**
-     * Gets a token-binding public key as a JWK by identifier and optional lookup context.
+     * Gets a token-binding public key as a JWK by identifier.
      * @param keyId - Token-binding key identifier.
      * @param correlationId - Request correlation identifier.
-     * @param context - Optional scoped lookup context.
      */
     async getTokenBindingPublicKeyJwk(
         keyId: string,
-        correlationId: string,
-        context?: TokenBindingKeyContext
+        correlationId: string
     ): Promise<JsonWebKey> {
         const cachedKeyPair = await this.getTokenBindingKeyPair(
             keyId,
-            correlationId,
-            context
+            correlationId
         );
 
         return BrowserCrypto.exportJwk(cachedKeyPair.publicKey);
@@ -262,10 +212,9 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
             request.correlationId
         );
         await this.cache.setItem(
-            this.getTokenBindingCacheKey(generatedKeyPair.keyId, request),
+            generatedKeyPair.keyId,
             {
                 ...generatedKeyPair,
-                keyScope: request.keyScope,
                 tokenBindingKeyType: request.tokenBindingKeyType,
                 tokenBindingKeyAlgorithm: request.tokenBindingKeyAlgorithm,
             },
@@ -274,7 +223,6 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
 
         return {
             ...generatedKeyPair,
-            keyScope: request.keyScope,
             tokenBindingKeyType: request.tokenBindingKeyType,
             tokenBindingKeyAlgorithm: request.tokenBindingKeyAlgorithm,
         };
@@ -304,47 +252,12 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
         };
     }
 
-    private async getScopedTokenBindingKeyPair(
-        request: TokenBindingKeyProvisioningParameters
-    ): Promise<GeneratedKeyPair | null> {
-        const scopedCacheKeyPrefix = `${urlEncode(request.keyScope || "")}.`;
-        const cacheKeys =
-            (await this.cache.getKeys(request.correlationId)) || [];
-        const scopedCacheKeys = cacheKeys
-            .filter((cacheKey) => cacheKey.startsWith(scopedCacheKeyPrefix))
-            .sort();
-
-        for (const scopedCacheKey of scopedCacheKeys) {
-            const cachedKeyPair = await this.cache.getItem(
-                scopedCacheKey,
-                request.correlationId
-            );
-            if (
-                cachedKeyPair?.keyId &&
-                cachedKeyPair.keyScope === request.keyScope &&
-                cachedKeyPair.tokenBindingKeyType ===
-                    request.tokenBindingKeyType &&
-                cachedKeyPair.tokenBindingKeyAlgorithm ===
-                    request.tokenBindingKeyAlgorithm
-            ) {
-                return {
-                    ...cachedKeyPair,
-                    keyId: cachedKeyPair.keyId,
-                };
-            }
-        }
-
-        return null;
-    }
-
     /** @internal */
     async getTokenBindingKeyPair(
         keyId: string,
-        correlationId: string,
-        context?: TokenBindingKeyContext
+        correlationId: string
     ): Promise<CachedKeyPair> {
-        const cacheKey = this.getTokenBindingCacheKey(keyId, context);
-        const cachedKeyPair = await this.cache.getItem(cacheKey, correlationId);
+        const cachedKeyPair = await this.cache.getItem(keyId, correlationId);
         if (!cachedKeyPair) {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.cryptoKeyNotFound,
@@ -390,83 +303,5 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
             BrowserAuthErrorCodes.unsupportedTokenBindingAlgorithm,
             correlationId
         );
-    }
-
-    private getTokenBindingCacheKey(
-        keyId: string,
-        context?: TokenBindingKeyContext
-    ): string {
-        return context?.keyScope
-            ? `${urlEncode(context.keyScope)}.${keyId}`
-            : keyId;
-    }
-
-    private startScopedKeyRequest(
-        scopedRequestFingerprint: string,
-        request: TokenBindingKeyProvisioningParameters
-    ): Promise<string> {
-        const requestPromise = this.provisionTokenBindingKeyInternal(
-            request
-        ).finally(() => {
-            if (
-                TokenBindingKeyManager.activeScopedKeyRequests.get(
-                    scopedRequestFingerprint
-                ) === requestPromise
-            ) {
-                TokenBindingKeyManager.activeScopedKeyRequests.delete(
-                    scopedRequestFingerprint
-                );
-            }
-        });
-        TokenBindingKeyManager.activeScopedKeyRequests.set(
-            scopedRequestFingerprint,
-            requestPromise
-        );
-        return requestPromise;
-    }
-
-    private async observeCoalescedScopedKeyRequest(
-        request: TokenBindingKeyProvisioningParameters,
-        activeRequest: Promise<string>
-    ): Promise<string> {
-        const measurement = this.performanceClient?.startMeasurement(
-            BrowserPerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
-            request.correlationId
-        );
-        try {
-            const keyId = await activeRequest;
-            measurement?.end({
-                success: true,
-                tokenBindingKeyType: request.tokenBindingKeyType,
-                tokenBindingKeyAlgorithm: request.tokenBindingKeyAlgorithm,
-                tokenBindingKeyRequestCoalesced: true,
-            });
-            return keyId;
-        } catch (e) {
-            measurement?.end({
-                success: false,
-                tokenBindingKeyType: request.tokenBindingKeyType,
-                tokenBindingKeyAlgorithm: request.tokenBindingKeyAlgorithm,
-                tokenBindingKeyRequestCoalesced: true,
-            });
-            if (e instanceof BrowserAuthError) {
-                throw createBrowserAuthError(
-                    e.errorCode,
-                    request.correlationId,
-                    e.subError
-                );
-            }
-            throw e;
-        }
-    }
-
-    private getScopedRequestFingerprint(
-        request: TokenBindingKeyProvisioningParameters
-    ): string {
-        return JSON.stringify([
-            request.keyScope,
-            request.tokenBindingKeyType,
-            request.tokenBindingKeyAlgorithm,
-        ]);
     }
 }

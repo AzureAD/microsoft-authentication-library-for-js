@@ -126,7 +126,6 @@ export async function initializeBaseRequest(
                         tokenBindingKeyType: dpopTokenBindingKeyType,
                         tokenBindingKeyAlgorithm:
                             Constants.DPOP_TOKEN_BINDING_KEY_ALGORITHM,
-                        keyScope: `${dpopTokenBindingKeyType}.${config.auth.clientId}.${authority}`,
                         correlationId,
                     });
                 break;
