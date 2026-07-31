@@ -1,8 +1,8 @@
 import { LogLevel } from "@azure/msal-browser";
 
-// TODO: register a dedicated host app and replace this client id. The host app
-// must be registered as an NAA host authorized to broker for the nested client.
-const HOST_APP_CLIENT_ID = "dd138a81-f5f8-4d9c-8d24-d7bdd6ecc58f";
+const HOST_APP_CLIENT_ID =
+    import.meta.env.VITE_HOST_APP_CLIENT_ID ||
+    "00000000-0000-0000-0000-000000000001";
 const TEST_TENANT_AUTHORITY =
     "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133";
 
@@ -10,16 +10,13 @@ const TEST_TENANT_AUTHORITY =
  * MSAL configuration for the host (top-frame) app.
  *
  * `system.allowPlatformBroker` enables brokering through the platform broker
- * (JS-WAM / Web Account Manager). `auth.supportsNestedAppAuth` advertises the
- * host as a Nested App Authentication host so the embedded nested app can
- * acquire tokens through it. The platform broker provides the actual
- * `nestedAppAuthBridge` in the WAM-enabled environment.
+ * (JS-WAM / Web Account Manager). The WAM-enabled browser environment provides
+ * the `nestedAppAuthBridge` used by the embedded app.
  */
 export const msalConfig = {
     auth: {
         clientId: HOST_APP_CLIENT_ID,
         authority: TEST_TENANT_AUTHORITY,
-        supportsNestedAppAuth: true,
     },
     cache: {
         cacheLocation: "localStorage",
