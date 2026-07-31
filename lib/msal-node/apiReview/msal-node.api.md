@@ -382,6 +382,7 @@ export type NodeAuthOptions = {
         thumbprintSha256?: string;
         privateKey: string;
         x5c?: string;
+        sendCertificateOverMtls?: boolean;
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;

@@ -27,6 +27,7 @@ import {
     UrlString,
     ClientAssertion,
     getClientAssertion,
+    getBearerOverMtlsCertificate,
     UrlUtils,
 } from "@azure/msal-common/node";
 import { ApiId } from "../utils/Constants.js";
@@ -301,8 +302,19 @@ export class OnBehalfOfClient extends BaseClient {
         additionalCacheKeyComponents?: Record<string, string>
     ): Promise<AuthenticationResult | null> {
         const queryParametersString = this.createTokenQueryParameters(request);
+        /*
+         * Bearer-over-mTLS: when the app opts in via clientCertificate.sendCertificateOverMtls, present
+         * the certificate as the client TLS certificate and route to the mTLS token endpoint while
+         * keeping token_type Bearer. Per-request mtls_pop always takes precedence over the flag.
+         */
+        const bearerOverMtlsCertificate = getBearerOverMtlsCertificate(
+            this.config.clientCredentials,
+            request.authenticationScheme
+        );
         const endpoint = UrlString.appendQueryString(
-            authority.tokenEndpoint,
+            bearerOverMtlsCertificate
+                ? authority.getMtlsTokenEndpoint()
+                : authority.tokenEndpoint,
             queryParametersString
         );
         const requestBody = await this.createTokenRequestBody(request);
@@ -326,7 +338,8 @@ export class OnBehalfOfClient extends BaseClient {
             requestBody,
             headers,
             thumbprint,
-            request.correlationId
+            request.correlationId,
+            bearerOverMtlsCertificate
         );
 
         const responseHandler = new ResponseHandler(

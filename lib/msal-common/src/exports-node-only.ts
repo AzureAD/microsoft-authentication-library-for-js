@@ -24,6 +24,7 @@ export {
     ClientAssertionCallback,
     MtlsBindingCertificate,
 } from "./account/ClientCredentials.js";
+export { getBearerOverMtlsCertificate } from "./network/MtlsCertificateUtils.js";
 export {
     DeviceCodeResponse,
     ServerDeviceCodeResponse,

@@ -43,6 +43,14 @@ export type NodeAuthOptions = {
         thumbprintSha256?: string;
         privateKey: string;
         x5c?: string;
+        /**
+         * When true, the certificate is presented as the client TLS certificate on the handshake to
+         * the mTLS token endpoint (Bearer-over-mTLS): the transport is authenticated by the certificate
+         * and a plain Bearer token is returned (the token is NOT bound to the certificate). Requires a
+         * certificate credential (both x5c and privateKey). Defaults to false. A per-request mtls_pop
+         * opt-in always takes precedence over this app-level flag.
+         */
+        sendCertificateOverMtls?: boolean;
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
@@ -138,6 +146,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
         thumbprintSha256: "",
         privateKey: "",
         x5c: "",
+        sendCertificateOverMtls: false,
     },
     knownAuthorities: [],
     cloudDiscoveryMetadata: "",
@@ -205,6 +214,15 @@ export function buildAppConfiguration({
         loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
         disableInternalRetries: system?.disableInternalRetries || false,
     };
+
+    // Bearer-over-mTLS requires a full certificate credential (public chain + private key) to present
+    // on the TLS handshake. Fail fast, naming the flag, if it is enabled without one.
+    if (
+        auth.clientCertificate?.sendCertificateOverMtls &&
+        !(auth.clientCertificate.x5c && auth.clientCertificate.privateKey)
+    ) {
+        throw NodeAuthError.createSendCertificateOverMtlsMissingCertificateError();
+    }
 
     // if client certificate was provided, ensure that at least one of the SHA-1 or SHA-256 thumbprints were provided
     if (

@@ -30,6 +30,7 @@ import {
     createClientAuthError,
     ClientAssertion,
     getClientAssertion,
+    getBearerOverMtlsCertificate,
     UrlUtils,
 } from "@azure/msal-common/node";
 import { ApiId } from "../utils/Constants.js";
@@ -398,6 +399,21 @@ export class ClientCredentialClient extends BaseClient {
                     cert: x5cToPem(bindingCertificate.x5c),
                     key: bindingCertificate.privateKey,
                 };
+            } else {
+                /*
+                 * Bearer-over-mTLS: when the app opts in via clientCertificate.sendCertificateOverMtls,
+                 * present the same certificate as the client TLS certificate and route to the mTLS token
+                 * endpoint, but keep token_type Bearer — the certificate authenticates the transport, the
+                 * token is not bound to it. Per-request mtls_pop always takes precedence over the flag.
+                 */
+                const bearerOverMtlsCertificate = getBearerOverMtlsCertificate(
+                    this.config.clientCredentials,
+                    request.authenticationScheme
+                );
+                if (bearerOverMtlsCertificate) {
+                    tokenEndpoint = authority.getMtlsTokenEndpoint();
+                    mtlsCertificate = bearerOverMtlsCertificate;
+                }
             }
 
             const endpoint = UrlString.appendQueryString(

@@ -44,6 +44,7 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.
 import { invoke, invokeAsync } from "../utils/FunctionWrappers.js";
 import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
+import { getBearerOverMtlsCertificate } from "../network/MtlsCertificateUtils.js";
 import { getRequestThumbprint } from "../network/RequestThumbprint.js";
 import {
     createTokenQueryParameters,
@@ -342,8 +343,14 @@ export class RefreshTokenClient {
             this.config.authOptions.redirectUri,
             this.performanceClient
         );
+        const bearerOverMtlsCertificate = getBearerOverMtlsCertificate(
+            this.config.clientCredentials,
+            request.authenticationScheme
+        );
         const endpoint = UrlString.appendQueryString(
-            authority.tokenEndpoint,
+            bearerOverMtlsCertificate
+                ? authority.getMtlsTokenEndpoint()
+                : authority.tokenEndpoint,
             queryParametersString
         );
 
@@ -381,7 +388,8 @@ export class RefreshTokenClient {
             this.networkClient,
             this.logger,
             this.performanceClient,
-            this.serverTelemetryManager
+            this.serverTelemetryManager,
+            bearerOverMtlsCertificate
         );
     }
 
