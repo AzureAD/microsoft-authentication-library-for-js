@@ -20,6 +20,7 @@ import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
 import { generateCredentialKey } from "../../src/cache/CacheHelpers.js";
+import { createHash } from "crypto";
 
 describe("ClientCredentialClient FMI tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
@@ -527,6 +528,205 @@ describe("ClientCredentialClient FMI tests", () => {
             expect(bearerKey).not.toContain("-pop-");
             // But should end with the same hash (same components)
             expect(bearerKey).toMatch(/[a-z0-9_-]{43}$/);
+        });
+    });
+
+    describe("Additional cache key hash injectivity (length-prefix encoding)", () => {
+        /**
+         * These tests exercise `computeAdditionalCacheKeyHash` (indirectly, via the
+         * trailing 43-char Base64URL segment of the credential key). The hash uses a
+         * length-prefixed (netstring) encoding — `<byteLen(key)>:<key><byteLen(value)>:<value>`
+         * per sorted key — so it must be injective: distinct component maps must never
+         * collide. The golden vectors are byte-identical across the MSAL SDK family
+         * (Go/.NET/Java/Python), so they double as a cross-SDK consistency guard.
+         *
+         * NOTE: `computeAdditionalCacheKeyHash` is not exported and is not lowercased
+         * internally — lowercasing happens downstream in `generateCredentialKey`. Golden
+         * vectors are therefore compared case-insensitively.
+         */
+
+        function baseEntity(
+            overrides: Partial<CredentialEntity>
+        ): CredentialEntity {
+            return {
+                homeAccountId: "",
+                environment: "login.microsoftonline.com",
+                credentialType: Constants.CredentialType.ACCESS_TOKEN,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                realm: TEST_CONFIG.TENANT,
+                target: TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
+                secret: "fake-token",
+                ...overrides,
+            } as CredentialEntity;
+        }
+
+        // Extract the appended 43-char Base64URL hash (SHA-256 → Base64URL, no padding)
+        // from the end of the credential key.
+        function hashFor(components: Record<string, string>): string {
+            const key = generateCredentialKey(
+                baseEntity({ additionalCacheKeyComponents: components })
+            );
+            return key.slice(-43);
+        }
+
+        describe("boundary ambiguity", () => {
+            it("key/value boundary cannot be forged (fmi_path/value vs fmi_pat/hvalue)", () => {
+                // Delimiter-less concatenation would serialize both to "fmi_pathvalue".
+                expect(hashFor({ fmi_path: "value" })).not.toBe(
+                    hashFor({ fmi_pat: "hvalue" })
+                );
+            });
+
+            it("multi-entry boundary cannot be forged ({a:b, cd:e} vs {ab:c, d:e})", () => {
+                expect(hashFor({ a: "b", cd: "e" })).not.toBe(
+                    hashFor({ ab: "c", d: "e" })
+                );
+            });
+
+            it("values containing the encoding characters (: | \\ digits) cannot forge a boundary", () => {
+                const a = hashFor({ k: "1:2|3\\4" });
+                const b = hashFor({ k: "1", "2|3\\4": "" });
+                const c = hashFor({ k1: ":2|3\\4" });
+                expect(new Set([a, b, c]).size).toBe(3);
+            });
+        });
+
+        it("is injective over an adversarial alphabet (no collisions)", () => {
+            // Includes empty string, digits, the encoding delimiters (: | \), a 2-byte
+            // char (é), an astral emoji, and a combining sequence (e + U+0301).
+            const alphabet = [
+                "",
+                "0",
+                "1",
+                "9",
+                ":",
+                "|",
+                "\\",
+                "a",
+                "\u00e9", // é (precomposed, 2 UTF-8 bytes)
+                "\u{1f600}", // 😀 (astral, 4 UTF-8 bytes)
+                "e\u0301", // e + combining acute accent
+            ];
+
+            const maps: Record<string, string>[] = [];
+            // Single-entry maps: every (key, value) pair.
+            for (const k of alphabet) {
+                for (const v of alphabet) {
+                    maps.push({ [k]: v });
+                }
+            }
+            // Two-entry maps: every unordered distinct key pair × every value pair.
+            for (let i = 0; i < alphabet.length; i++) {
+                for (let j = i + 1; j < alphabet.length; j++) {
+                    for (const v1 of alphabet) {
+                        for (const v2 of alphabet) {
+                            maps.push({
+                                [alphabet[i]]: v1,
+                                [alphabet[j]]: v2,
+                            });
+                        }
+                    }
+                }
+            }
+
+            const hashes = new Set(maps.map(hashFor));
+            // Every constructed map is distinct, so every hash must be distinct.
+            expect(hashes.size).toBe(maps.length);
+        });
+
+        describe("determinism", () => {
+            it("produces the same hash for repeated calls", () => {
+                expect(hashFor({ fmi_path: "agent-a", another: "b" })).toBe(
+                    hashFor({ fmi_path: "agent-a", another: "b" })
+                );
+            });
+
+            it("is independent of key insertion order", () => {
+                expect(hashFor({ alpha: "1", beta: "2" })).toBe(
+                    hashFor({ beta: "2", alpha: "1" })
+                );
+            });
+        });
+
+        describe("UTF-8 byte-length correctness", () => {
+            it("uses UTF-8 byte length, not UTF-16 code-unit length", () => {
+                // "é" (U+00E9) is 1 UTF-16 code unit but 2 UTF-8 bytes.
+                const actual = hashFor({ "\u00e9": "\u00e9" });
+
+                // Correct (byte-length) encoding: "2:é2:é".
+                const correct = createHash("sha256")
+                    .update("2:\u00e92:\u00e9", "utf8")
+                    .digest("base64url")
+                    .toLowerCase();
+                // Incorrect (String.length / code-unit) encoding: "1:é1:é".
+                const wrong = createHash("sha256")
+                    .update("1:\u00e91:\u00e9", "utf8")
+                    .digest("base64url")
+                    .toLowerCase();
+
+                expect(actual.toLowerCase()).toBe(correct);
+                expect(actual.toLowerCase()).not.toBe(wrong);
+            });
+
+            it("precomposed é and e + combining accent do not collide", () => {
+                expect(hashFor({ x: "\u00e9" })).not.toBe(
+                    hashFor({ x: "e\u0301" })
+                );
+            });
+        });
+
+        describe("empty and single-entry edges", () => {
+            it("does not append a hash for empty components", () => {
+                const withEmpty = generateCredentialKey(
+                    baseEntity({ additionalCacheKeyComponents: {} })
+                );
+                const without = generateCredentialKey(baseEntity({}));
+                expect(withEmpty).toBe(without);
+            });
+
+            it("handles an empty value distinctly from a non-empty value", () => {
+                expect(hashFor({ k: "" })).not.toBe(hashFor({ k: "x" }));
+                // Empty value still yields a well-formed 43-char Base64URL hash.
+                expect(hashFor({ k: "" })).toMatch(/^[a-z0-9_-]{43}$/);
+            });
+
+            it("distinguishes an empty key from an empty value", () => {
+                expect(hashFor({ "": "k" })).not.toBe(hashFor({ k: "" }));
+            });
+        });
+
+        describe("golden vectors (cross-SDK consistency)", () => {
+            // Byte-identical to MSAL Go/.NET/Java/Python. Compared case-insensitively
+            // because the hash is only lowercased downstream in generateCredentialKey.
+            const vectors: Array<[Record<string, string>, string]> = [
+                [
+                    { fmi_path: "agent-app-id" },
+                    "a0ry_zl4gccsdp7gnw927x8s0mrmnodv6tyilt0u07m",
+                ],
+                [
+                    { a: "b", cd: "e" },
+                    "cybgactkrvlzlen1aiwzwl3ay5krkyixommrobc-ri4",
+                ],
+                [
+                    { fmi_path: "value" },
+                    "n_lucewkadzv_nybtg-2wtorgf2nrns6ihlfa7vbuzg",
+                ],
+                [
+                    { fmi_pat: "hvalue" },
+                    "tjtm16m-suk2_bkniblr25lyuki40qyceco7knuyu0k",
+                ],
+                [
+                    { "\u00e9": "\u00e9" },
+                    "xskzaoz4ibr3mznftyxctvg1ptuh-0fuzpty7ndbfls",
+                ],
+            ];
+
+            it.each(vectors)(
+                "matches the cross-SDK golden hash for %j",
+                (components, expected) => {
+                    expect(hashFor(components).toLowerCase()).toBe(expected);
+                }
+            );
         });
     });
 });

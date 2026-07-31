@@ -209,13 +209,15 @@ export function addSid(parameters: Map<string, string>, sid: string): void {
  * @param claims - The claims string from the request
  * @param clientCapabilities - The client capabilities from configuration
  * @param skipBrokerClaims - When true and BROKER_CLIENT_ID is present, excludes clientCapabilities from claims
+ * @param claimsToMerge - Optional client-originated claims JSON string (e.g. `claimsFromClient`) deep-merged into `claims` with precedence on conflicts
  */
 export function addClaims(
     parameters: Map<string, string>,
     correlationId: string,
     claims?: string,
     clientCapabilities?: Array<string>,
-    skipBrokerClaims?: boolean
+    skipBrokerClaims?: boolean,
+    claimsToMerge?: string
 ): void {
     // Skip clientCapabilities if skipBrokerClaims is set to true and this is a brokered authentication flow
     const configClaims =
@@ -223,7 +225,12 @@ export function addClaims(
             ? undefined
             : clientCapabilities;
 
-    const mergedClaims = buildMergedClaims(claims, configClaims, correlationId);
+    const mergedClaims = buildMergedClaims(
+        claims,
+        configClaims,
+        correlationId,
+        claimsToMerge
+    );
     parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
 }
 
@@ -491,40 +498,103 @@ const DEFAULT_ID_TOKEN_CLAIMS: Record<string, { essential: false }> = {
 };
 
 /**
- * Parses claims JSON, merges default optional idToken claims (signin_state, login_hint),
- * and appends client capabilities (xms_cc) to the access_token section.
+ * Parses a claims JSON string into an object, throwing a ClientConfigurationError
+ * (error code `invalid_claims`) if the value is not a valid JSON object. The raw
+ * claims value is never included in the error - it may contain sensitive data.
+ * @param claims - Claims JSON string. Must be valid JSON representing an object.
+ * @param correlationId - The request correlation id
+ * @returns The parsed claims object
+ */
+function parseClaims(
+    claims: string,
+    correlationId: string = ""
+): Record<string, unknown> {
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(claims);
+    } catch (e) {
+        // Malformed JSON
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidClaims,
+            correlationId
+        );
+    }
+
+    if (!isPlainObject(parsed)) {
+        // Valid JSON, but not an object (e.g. an array, a scalar, or the literal `null`).
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidClaims,
+            correlationId
+        );
+    }
+
+    return parsed;
+}
+
+/**
+ * Type guard for a non-null, non-array object (a JSON "object" value).
+ * @param value - The value to test
+ * @returns True when value is a plain object that can be deep-merged
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Recursively deep-merges two parsed claims objects. Nested objects are merged key-by-key;
+ * for any other value type (arrays, scalars, null) the value from `claimsToMerge` replaces
+ * the base. This mirrors the deep merge used by msal-dotnet so that, for example, a server
+ * `access_token` challenge and a client-originated `access_token` claim are combined rather
+ * than one clobbering the other.
+ * @param baseClaims - The parsed base claims object
+ * @param claimsToMerge - The parsed claims object merged in with precedence
+ * @returns The deep-merged claims object
+ */
+function deepMergeClaims(
+    baseClaims: Record<string, unknown>,
+    claimsToMerge: Record<string, unknown>
+): Record<string, unknown> {
+    const merged: Record<string, unknown> = { ...baseClaims };
+    for (const [key, mergeInValue] of Object.entries(claimsToMerge)) {
+        const baseValue = merged[key];
+        if (isPlainObject(baseValue) && isPlainObject(mergeInValue)) {
+            merged[key] = deepMergeClaims(baseValue, mergeInValue);
+        } else {
+            merged[key] = mergeInValue;
+        }
+    }
+    return merged;
+}
+
+/**
+ * Parses claims JSON, optionally deep-merges a second client-originated claims string
+ * (`claimsToMerge`, e.g. `claimsFromClient`) with precedence on conflicting keys, merges
+ * default optional idToken claims (signin_state, login_hint), and appends client
+ * capabilities (xms_cc) to the access_token section.
  * Does not overwrite idToken claims already specified by the caller.
  * @param claims - Existing claims JSON string from the request (may be undefined)
  * @param clientCapabilities - Client capabilities array from configuration
+ * @param correlationId - The request correlation id
+ * @param claimsToMerge - Optional second claims JSON string (e.g. client-originated `claimsFromClient`)
+ * deep-merged into `claims` with precedence on conflicts; parsed and validated when present. Nested
+ * objects are merged recursively; arrays and scalar values are replaced.
  * @returns Merged claims JSON string
  */
 export function buildMergedClaims(
     claims?: string,
     clientCapabilities?: Array<string>,
-    correlationId: string = ""
+    correlationId: string = "",
+    claimsToMerge?: string
 ): string {
-    let mergedClaims: object;
-
     // Parse provided claims into JSON object or initialize empty object
-    if (!claims) {
-        mergedClaims = {};
-    } else {
-        try {
-            const parsed = JSON.parse(claims);
-            if (
-                typeof parsed !== "object" ||
-                parsed === null ||
-                Array.isArray(parsed)
-            ) {
-                throw new Error("Claims must be a JSON object");
-            }
-            mergedClaims = parsed;
-        } catch (e) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaims,
-                correlationId
-            );
-        }
+    let mergedClaims: object = claims ? parseClaims(claims, correlationId) : {};
+
+    // Deep-merge client-originated claims (e.g. `claimsFromClient`) with precedence on conflicts
+    if (claimsToMerge?.trim()) {
+        mergedClaims = deepMergeClaims(
+            mergedClaims as Record<string, unknown>,
+            parseClaims(claimsToMerge, correlationId)
+        );
     }
 
     // Add default optional idToken claims
