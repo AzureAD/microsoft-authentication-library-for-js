@@ -7,11 +7,8 @@
         "start": "node server.js",
         "start:all": "node server.js",
         "start:build": "npm run build:package && npm start",
-        "build:package": "npm run build:all --workspace=@azure/msal-browser && npm run build --workspace=@azure/msal-react",
+        "build:package": "cd ../.. && npm run build:all --workspace=lib/msal-browser",
         "test:e2e": "jest"
-    },
-    "dependencies": {
-        "yargs": "^17.7.2"
     },
     "workspaces": [
         "hostApp",
@@ -20,7 +17,7 @@
     "devDependencies": {
         "@types/jest": "^29.5.0",
         "dotenv": "^16.6.1",
-        "e2e-test-utils": "^0.0.1",
+        "e2e-test-utils": "file:../e2eTestUtils",
         "env-cmd": "^10.1.0",
         "jest": "^29.5.0",
         "jest-junit": "^16.0.0",

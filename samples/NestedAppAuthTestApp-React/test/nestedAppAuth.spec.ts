@@ -1,5 +1,3 @@
-process.env.VITE_NESTED_APP_PORT = "30667";
-
 import { Browser, Page, BrowserContext, Frame } from "puppeteer";
 import {
     Screenshot,
@@ -10,12 +8,6 @@ import {
     AzureEnvironments,
     AppTypes,
     BrowserCacheUtils,
-    BrokerCacheSnapshot,
-    verifyBrokerTokenStore as verifyBrokerTokenStoreShared,
-    verifyBrokeredTokenStore as verifyBrokeredTokenStoreShared,
-    getBrokerFrame as getBrokerFrameShared,
-    getEmbeddedFrame as getEmbeddedFrameShared,
-    getAuthenticatedEmbeddedFrame as getAuthenticatedEmbeddedFrameShared,
 } from "e2e-test-utils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/nestedAppAuth`;
@@ -26,29 +18,51 @@ const jestTimeout = 120000;
 const hostPort = 30668;
 const nestedPort = 30667;
 
-let hostSnapshot: BrokerCacheSnapshot;
-
-const getHostFrame = (page: Page): Promise<Frame> =>
-    getBrokerFrameShared(page, hostPort, puppeteerTimeout);
-
-const getNestedFrame = (page: Page): Promise<Frame> =>
-    getEmbeddedFrameShared(page, nestedPort, puppeteerTimeout);
-
-const getAuthenticatedNestedFrame = (page: Page): Promise<Frame> =>
-    getAuthenticatedEmbeddedFrameShared(page, nestedPort, puppeteerTimeout);
+const getNestedFrame = async (page: Page): Promise<Frame> => {
+    const frame = await page.waitForFrame(
+        (candidate) => candidate.url().includes(nestedPort.toString()),
+        { timeout: puppeteerTimeout }
+    );
+    await frame.waitForSelector(
+        "xpath=//button[contains(., 'acquireTokenSilent')]",
+        { timeout: puppeteerTimeout }
+    );
+    return frame;
+};
 
 const verifyHostTokenStore = async (
     browserCache: BrowserCacheUtils,
     scopes: string[]
 ): Promise<void> => {
-    hostSnapshot = await verifyBrokerTokenStoreShared(browserCache, scopes);
+    const tokenStore = await browserCache.getTokens();
+    expect(tokenStore.idTokens).toHaveLength(1);
+    expect(tokenStore.accessTokens).toHaveLength(1);
+    expect(tokenStore.refreshTokens).toHaveLength(1);
+    expect(await browserCache.getAccountFromCache()).not.toBeNull();
+    expect(
+        await browserCache.accessTokenForScopesExists(
+            tokenStore.accessTokens,
+            scopes
+        )
+    ).toBeTruthy();
 };
 
-const verifyNestedTokenStore = (
+const verifyNestedTokenStore = async (
     browserCache: BrowserCacheUtils,
     scopes: string[]
-): Promise<void> =>
-    verifyBrokeredTokenStoreShared(browserCache, scopes, hostSnapshot);
+): Promise<void> => {
+    const tokenStore = await browserCache.getTokens();
+    expect(tokenStore.idTokens).toHaveLength(1);
+    expect(tokenStore.accessTokens).toHaveLength(1);
+    expect(tokenStore.refreshTokens).toHaveLength(0);
+    expect(await browserCache.getAccountFromCache()).not.toBeNull();
+    expect(
+        await browserCache.accessTokenForScopesExists(
+            tokenStore.accessTokens,
+            scopes
+        )
+    ).toBeTruthy();
+};
 
 /**
  * Nested App Authentication (NAA) brokered through the platform broker.
@@ -67,13 +81,10 @@ describe("Nested App Authentication brokered via platform broker", () => {
     let username: string;
     let accountPwd: string;
     let hostCache: BrowserCacheUtils;
-    let nestedCache: BrowserCacheUtils;
 
     beforeAll(async () => {
         // @ts-ignore
-        browser = await puppeteer.launch({
-            ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"],
-        });
+        browser = await global.__BROWSER__;
 
         const labApiParams: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.CLOUD,
@@ -95,16 +106,10 @@ describe("Nested App Authentication brokered via platform broker", () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
         hostCache = new BrowserCacheUtils(page, "localStorage");
-        nestedCache = new BrowserCacheUtils(page, "localStorage");
     });
 
     afterEach(async () => {
-        await page.close();
         await context.close();
-    });
-
-    afterAll(async () => {
-        await browser.close();
     });
 
     it("nested app acquires a token through the host without holding a refresh token", async () => {
@@ -115,9 +120,10 @@ describe("Nested App Authentication brokered via platform broker", () => {
         await page.goto(`http://localhost:${hostPort}`);
 
         // Sign the host in through the platform broker.
-        const hostFrame = await getHostFrame(page);
+        const hostFrame = page.mainFrame();
         const loginButton = await hostFrame.waitForSelector(
-            "xpath=//button[contains(., 'Login')]"
+            "xpath=//button[contains(., 'Login')]",
+            { timeout: puppeteerTimeout }
         );
         const popupPromise = new Promise<Page | null>((resolve) =>
             page.once("popup", resolve)
@@ -139,10 +145,19 @@ describe("Nested App Authentication brokered via platform broker", () => {
             "xpath=//button[contains(., 'acquireTokenSilent')]"
         );
         await acquireButton?.click();
-        await getAuthenticatedNestedFrame(page);
+        await nestedFrame.waitForSelector(
+            "xpath=//th[contains(., 'homeAccountId')]",
+            { timeout: puppeteerTimeout }
+        );
         await screenshot.takeScreenshot(page, "Nested app authenticated");
 
         // Nested app must not hold a refresh token — it stays with the host/broker.
+        const nestedCachePage = await context.newPage();
+        await nestedCachePage.goto(`http://localhost:${nestedPort}`);
+        const nestedCache = new BrowserCacheUtils(
+            nestedCachePage,
+            "localStorage"
+        );
         await verifyNestedTokenStore(nestedCache, ["User.Read"]);
     });
 });

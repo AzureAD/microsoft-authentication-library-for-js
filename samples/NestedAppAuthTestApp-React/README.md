@@ -16,25 +16,28 @@ brokering test suite to validate NAA token acquisition.
  │ @azure/msal-browser              │         │ @azure/msal-browser          │
  │ PublicClientApplication          │  NAA    │ createNestablePublicClient   │
  │  system.allowPlatformBroker:true │◀────────│  Application()               │
- │  auth.supportsNestedAppAuth:true │ bridge  │  (talks to host via          │
+ │                                  │ bridge  │  (talks to host via          │
  │                                  │         │   window.nestedAppAuthBridge)│
  │ relays to the platform broker ───┼──▶ WAM  │                              │
  └──────────────────────────────────┘         └──────────────────────────────┘
 ```
 
 -   **hostApp** — the top-level host. It initializes MSAL with the **platform
-    broker** enabled (`system.allowPlatformBroker: true`) and advertises itself as
-    an NAA host (`auth.supportsNestedAppAuth: true`). It embeds the nested app in
-    an iframe and exposes the `nestedAppAuthBridge` that the nested app talks to.
-    Token requests from the nested app are relayed to the platform broker.
+    broker** enabled (`system.allowPlatformBroker: true`) and embeds the nested
+    app in an iframe. The WAM-enabled browser environment supplies the
+    `nestedAppAuthBridge` used by the nested app.
 -   **nestedApp** — the embedded child. It creates its client with
     `createNestablePublicClientApplication()` and acquires tokens **through the
     host bridge**, never contacting the identity provider directly.
 
 The platform broker (WAM) provides the actual brokered token acquisition. In CI
-this requires the browser-side platform-broker bridge to be present (see the
-repo `chrome-extension/`); running locally requires a machine with the platform
-broker available.
+this requires the browser-side platform-broker bridge to be configured by the
+test environment; running locally requires a machine with the platform broker
+available.
+
+The host and nested apps require separate app registrations. Set
+`VITE_HOST_APP_CLIENT_ID` and `VITE_NESTED_APP_CLIENT_ID` to those client IDs;
+the checked-in defaults are distinct placeholders.
 
 ## Structure
 
@@ -48,9 +51,12 @@ broker available.
 ## Running the sample
 
 ```bash
-# From this directory
+# From the repository root
 npm install
-npm run build:package   # build @azure/msal-browser and @azure/msal-react
+
+# Then from this directory
+npm install
+npm run build:package   # build the in-repo @azure/msal-browser package
 npm start               # hostApp -> http://localhost:30668
 ```
 
@@ -60,5 +66,5 @@ npm start               # hostApp -> http://localhost:30668
 npm run test:e2e
 ```
 
-The e2e specs consume the shared brokering helpers published from
-`samples/e2eTestUtils` (Foundation PR 1).
+The e2e specs consume the shared browser, cache, credential, and screenshot
+utilities from `samples/e2eTestUtils`.
