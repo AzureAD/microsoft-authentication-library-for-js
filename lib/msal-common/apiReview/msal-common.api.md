@@ -1368,7 +1368,7 @@ export function createInteractionRequiredAuthError(errorCode: string, correlatio
 export function createNetworkError(error: AuthError, httpStatus?: number, responseHeaders?: Record<string, string>, additionalError?: Error): NetworkError;
 
 // @public
-function createRefreshTokenEntity(homeAccountId: string, environment: string, refreshToken: string, clientId: string, familyId?: string, userAssertionHash?: string, expiresOn?: number, keyId?: string): RefreshTokenEntity;
+function createRefreshTokenEntity(homeAccountId: string, environment: string, refreshToken: string, clientId: string, familyId?: string, userAssertionHash?: string, expiresOn?: number): RefreshTokenEntity;
 
 // @public
 function createTokenQueryParameters(request: BaseAuthRequest, clientId: string, redirectUri: string, performanceClient: IPerformanceClient): string;
