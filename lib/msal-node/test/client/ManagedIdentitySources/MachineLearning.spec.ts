@@ -225,7 +225,7 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
                 ManagedIdentitySourceNames.MACHINE_LEARNING
             );
 
-            let serverError: ServerError = new ServerError();
+            let serverError: ServerError = new ServerError("", "");
             try {
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams

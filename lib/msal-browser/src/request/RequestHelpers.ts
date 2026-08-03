@@ -62,12 +62,14 @@ export async function initializeBaseRequest(
         ) {
             if (!request.sshJwk) {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    ""
                 );
             }
             if (!request.sshKid) {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshKid
+                    ClientConfigurationErrorCodes.missingSshKid,
+                    ""
                 );
             }
         }
@@ -120,7 +122,8 @@ export function validateRequestMethod(
         // Validate that method can only be POST when protocol mode is EAR
         if (requestMethod && requestMethod !== Constants.HttpMethod.POST) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+                ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
+                ""
             );
         } else {
             httpMethod = Constants.HttpMethod.POST;

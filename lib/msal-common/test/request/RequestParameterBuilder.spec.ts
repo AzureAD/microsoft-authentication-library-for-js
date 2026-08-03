@@ -20,6 +20,13 @@ import { getClientAssertion } from "../../src/utils/ClientAssertionUtils.js";
 import { ClientAssertionConfig } from "../../src/account/ClientCredentials.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 
+const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS =
+    '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_CLIENT_CAPABILITIES =
+    '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
+const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
+    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+
 describe("RequestParameterBuilder unit tests", () => {
     afterEach(() => {
         jest.restoreAllMocks();
@@ -37,7 +44,8 @@ describe("RequestParameterBuilder unit tests", () => {
         );
         RequestParameterBuilder.addScopes(
             parameters,
-            TEST_CONFIG.DEFAULT_SCOPES
+            TEST_CONFIG.DEFAULT_SCOPES,
+            ""
         );
         RequestParameterBuilder.addClientId(
             parameters,
@@ -55,7 +63,12 @@ describe("RequestParameterBuilder unit tests", () => {
             parameters,
             TEST_CONFIG.LOGIN_HINT
         );
-        RequestParameterBuilder.addClaims(parameters, TEST_CONFIG.CLAIMS, []);
+        RequestParameterBuilder.addClaims(
+            parameters,
+            "",
+            TEST_CONFIG.CLAIMS,
+            []
+        );
         RequestParameterBuilder.addCorrelationId(
             parameters,
             TEST_CONFIG.CORRELATION_ID
@@ -144,7 +157,7 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                    TEST_CONFIG.CLAIMS
+                    DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS
                 )}`
             )
         ).toBe(true);
@@ -300,7 +313,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes appends oidc scopes by default", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, ["testScope"]);
+        RequestParameterBuilder.addScopes(parameters, ["testScope"], "");
         let requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
@@ -309,7 +322,7 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
 
         const parameters2 = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters2, []);
+        RequestParameterBuilder.addScopes(parameters2, [], "");
         requestQueryString = UrlUtils.mapToQueryString(parameters2);
         expect(
             requestQueryString.includes(
@@ -320,7 +333,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes does not append oidc scopes if flag set to false", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, ["testScope"], false);
+        RequestParameterBuilder.addScopes(parameters, ["testScope"], "", false);
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(`${AADServerParamKeys.SCOPE}=testScope`)
@@ -329,7 +342,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes overrides OIDC_DEFAULT_SCOPES with defaultScopes", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, [], true, [
+        RequestParameterBuilder.addScopes(parameters, [], "", true, [
             "openid",
             "profile",
         ]);
@@ -346,7 +359,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addScopes adds openid scope when in OIDC protocol mode", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addScopes(parameters, [], true, []);
+        RequestParameterBuilder.addScopes(parameters, [], "", true, []);
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
@@ -365,7 +378,8 @@ describe("RequestParameterBuilder unit tests", () => {
             )
         ).toThrow(
             new ClientConfigurationError(
-                ClientConfigurationErrorCodes.pkceParamsMissing
+                ClientConfigurationErrorCodes.pkceParamsMissing,
+                ""
             )
         );
     });
@@ -380,7 +394,8 @@ describe("RequestParameterBuilder unit tests", () => {
             )
         ).toThrow(
             new ClientConfigurationError(
-                ClientConfigurationErrorCodes.pkceParamsMissing
+                ClientConfigurationErrorCodes.pkceParamsMissing,
+                ""
             )
         );
     });
@@ -404,7 +419,7 @@ describe("RequestParameterBuilder unit tests", () => {
     it("addClaims sets claims parameter with merged claims when valid claims and capabilities are provided", () => {
         const parameters = new Map<string, string>();
         const claims = JSON.stringify({ userinfo: { given_name: null } });
-        RequestParameterBuilder.addClaims(parameters, claims, ["CP1"]);
+        RequestParameterBuilder.addClaims(parameters, "", claims, ["CP1"]);
 
         const claimsParam = parameters.get(AADServerParamKeys.CLAIMS);
         expect(claimsParam).toBeDefined();
@@ -589,23 +604,22 @@ describe("RequestParameterBuilder unit tests", () => {
         });
     });
 
-    describe("addClientCapabilitiesToClaims tests", () => {
-        it("passing just claims returns claims", () => {
+    describe("buildMergedClaims tests", () => {
+        it("passing just claims returns claims with default idToken claims", () => {
             const testClaims = TEST_CONFIG.CLAIMS;
+            const expectedString =
+                '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
             expect(
-                RequestParameterBuilder.addClientCapabilitiesToClaims(
-                    testClaims,
-                    []
-                )
-            ).toBe(testClaims);
+                RequestParameterBuilder.buildMergedClaims(testClaims, [])
+            ).toBe(expectedString);
         });
 
-        it("passing just clientCapabilities returns clientCapabilities as claims request", () => {
+        it("passing just clientCapabilities returns clientCapabilities and default idToken claims", () => {
             const clientCapabilities = ["CP1"];
             const expectedString =
-                '{"access_token":{"xms_cc":{"values":["CP1"]}}}';
+                '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
             expect(
-                RequestParameterBuilder.addClientCapabilitiesToClaims(
+                RequestParameterBuilder.buildMergedClaims(
                     undefined,
                     clientCapabilities
                 )
@@ -617,9 +631,9 @@ describe("RequestParameterBuilder unit tests", () => {
                 '{"access_token":{"example_claim":{"values":["example_value"]}}}';
             const clientCapabilities = ["CP1"];
             const expectedString =
-                '{"access_token":{"example_claim":{"values":["example_value"]},"xms_cc":{"values":["CP1"]}}}';
+                '{"access_token":{"example_claim":{"values":["example_value"]},"xms_cc":{"values":["CP1"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
             expect(
-                RequestParameterBuilder.addClientCapabilitiesToClaims(
+                RequestParameterBuilder.buildMergedClaims(
                     claimsRequest,
                     clientCapabilities
                 )
@@ -631,28 +645,228 @@ describe("RequestParameterBuilder unit tests", () => {
                 '{"id_token":{"example_claim":{"values":["example_value"]}}}';
             const clientCapabilities = ["CP1"];
             const expectedString =
-                '{"id_token":{"example_claim":{"values":["example_value"]}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
+                '{"id_token":{"example_claim":{"values":["example_value"]},"signin_state":{"essential":false},"login_hint":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
             expect(
-                RequestParameterBuilder.addClientCapabilitiesToClaims(
+                RequestParameterBuilder.buildMergedClaims(
                     claimsRequest,
                     clientCapabilities
                 )
             ).toBe(expectedString);
         });
 
+        it("does not overwrite caller-specified idToken claims", () => {
+            const claimsRequest =
+                '{"id_token":{"signin_state":{"essential":true}}}';
+            const expectedString =
+                '{"id_token":{"signin_state":{"essential":true},"login_hint":{"essential":false}}}';
+            expect(
+                RequestParameterBuilder.buildMergedClaims(claimsRequest, [])
+            ).toBe(expectedString);
+        });
+
         it("throws error if claims passed is not stringified JSON object", () => {
             const testClaims = "not-a-valid-JSON-object";
             expect(() =>
-                RequestParameterBuilder.addClientCapabilitiesToClaims(
-                    testClaims,
-                    []
-                )
+                RequestParameterBuilder.buildMergedClaims(testClaims, [])
             ).toThrow(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.invalidClaims
+                    ClientConfigurationErrorCodes.invalidClaims,
+                    ""
                 )
             );
         });
+    });
+
+    describe("buildMergedClaims claimsToMerge (client-originated claims) tests", () => {
+        /*
+         * `claimsToMerge` is deep-merged into the base claims with precedence; buildMergedClaims
+         * also injects the default idToken claims, so assertions parse the result and check the
+         * merged sections rather than exact-matching the whole string.
+         */
+        it("returns just the base claims when claimsToMerge is empty/whitespace/undefined", () => {
+            const base = '{"nsp":{"essential":true}}';
+            const fromUndefined = RequestParameterBuilder.buildMergedClaims(
+                base,
+                [],
+                "",
+                undefined
+            );
+            const fromWhitespace = RequestParameterBuilder.buildMergedClaims(
+                base,
+                [],
+                "",
+                "   "
+            );
+            expect(fromWhitespace).toBe(fromUndefined);
+            expect(JSON.parse(fromUndefined)).toHaveProperty("nsp");
+        });
+
+        it("returns just claimsToMerge when base claims are empty", () => {
+            const claimsFromClient = '{"nsp":{"essential":true}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    undefined,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed).toHaveProperty("nsp");
+        });
+
+        it("merges non-overlapping top-level keys", () => {
+            const base = '{"nsp":{"essential":true}}';
+            const claimsFromClient =
+                '{"userinfo":{"given_name":{"essential":true}}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed).toHaveProperty("nsp");
+            expect(parsed).toHaveProperty("userinfo");
+        });
+
+        it("lets claimsToMerge win on overlapping keys", () => {
+            const base = '{"nsp":{"value":"v1"}}';
+            const claimsFromClient = '{"nsp":{"value":"v2"}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.nsp.value).toBe("v2");
+        });
+
+        it("deep-merges a colliding object key, preserving sibling sub-claims", () => {
+            const base = '{"access_token":{"nbf":{"essential":true}}}';
+            const claimsFromClient =
+                '{"access_token":{"xms_az_nwperimid":{"value":"perimid-1"}}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.access_token.nbf).toEqual({ essential: true });
+            expect(parsed.access_token.xms_az_nwperimid).toEqual({
+                value: "perimid-1",
+            });
+        });
+
+        it("deep-merges recursively across multiple nesting levels", () => {
+            const base = '{"a":{"b":{"keep":1}}}';
+            const claimsFromClient =
+                '{"a":{"b":{"add":2}},"c":{"essential":true}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.a.b).toEqual({ keep: 1, add: 2 });
+            expect(parsed.c).toEqual({ essential: true });
+        });
+
+        it("replaces arrays and scalars (no element merging) with claimsToMerge winning", () => {
+            const base =
+                '{"access_token":{"groups":{"values":["a","b"]},"scalar":1}}';
+            const claimsFromClient =
+                '{"access_token":{"groups":{"values":["c"]},"scalar":2}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.access_token.groups.values).toEqual(["c"]);
+            expect(parsed.access_token.scalar).toBe(2);
+        });
+
+        it("appends xms_cc capabilities on top of the merged claims", () => {
+            const base = '{"access_token":{"nbf":{"essential":true}}}';
+            const claimsFromClient =
+                '{"access_token":{"xms_az_nwperimid":{"value":"perimid-1"}}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    ["CP1"],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.access_token.nbf).toEqual({ essential: true });
+            expect(parsed.access_token.xms_az_nwperimid).toEqual({
+                value: "perimid-1",
+            });
+            expect(parsed.access_token.xms_cc).toEqual({ values: ["CP1"] });
+        });
+
+        it("throws invalidClaims when base claims are invalid JSON", () => {
+            const valid = '{"a":1}';
+            expect(() =>
+                RequestParameterBuilder.buildMergedClaims(
+                    "not-json",
+                    [],
+                    "",
+                    valid
+                )
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidClaims,
+                    ""
+                )
+            );
+        });
+
+        it("throws invalidClaims when claimsToMerge is invalid JSON", () => {
+            const valid = '{"a":1}';
+            expect(() =>
+                RequestParameterBuilder.buildMergedClaims(
+                    valid,
+                    [],
+                    "",
+                    "not-json"
+                )
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidClaims,
+                    ""
+                )
+            );
+        });
+
+        it.each(["[]", '"string"', "null", "5"])(
+            "throws invalidClaims when claimsToMerge is valid JSON but not an object (%s)",
+            (nonObjectJson: string) => {
+                const valid = '{"a":1}';
+                expect(() =>
+                    RequestParameterBuilder.buildMergedClaims(
+                        valid,
+                        [],
+                        "",
+                        nonObjectJson
+                    )
+                ).toThrow(
+                    new ClientConfigurationError(
+                        ClientConfigurationErrorCodes.invalidClaims,
+                        ""
+                    )
+                );
+            }
+        );
     });
 
     describe("addExtraParameters tests", () => {
@@ -828,6 +1042,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 false
@@ -848,6 +1063,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 false
@@ -868,6 +1084,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 true
@@ -894,6 +1111,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 JSON.stringify({ userinfo: { given_name: null } }),
                 ["CP1", "CP2"],
                 true
@@ -906,17 +1124,20 @@ describe("RequestParameterBuilder unit tests", () => {
             expect(parsedClaims.access_token?.xms_cc).toBeUndefined();
         });
 
-        it("does not add claims parameter when claims and clientCapabilities are both empty", () => {
+        it("adds default id token claims parameter when claims and clientCapabilities are both empty", () => {
             const parameters = new Map<string, string>();
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 undefined,
                 undefined,
                 false
             );
 
-            expect(parameters.has(AADServerParamKeys.CLAIMS)).toBe(false);
+            expect(parameters.get(AADServerParamKeys.CLAIMS)).toBe(
+                DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS
+            );
         });
 
         it("adds claims when only clientCapabilities are provided", () => {
@@ -924,6 +1145,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
             RequestParameterBuilder.addClaims(
                 parameters,
+                "",
                 undefined,
                 ["CP1"],
                 false
@@ -931,8 +1153,52 @@ describe("RequestParameterBuilder unit tests", () => {
 
             const claimsParam = parameters.get(AADServerParamKeys.CLAIMS);
             expect(claimsParam).toBeDefined();
-            const parsedClaims = JSON.parse(claimsParam!);
-            expect(parsedClaims.access_token?.xms_cc?.values).toEqual(["CP1"]);
+            expect(claimsParam).toBe(
+                DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_CLIENT_CAPABILITIES
+            );
+        });
+    });
+
+    describe("addAttributeTokens", () => {
+        it("emits sorted, space-joined attribute_tokens when provided", () => {
+            const parameters = new Map<string, string>();
+            RequestParameterBuilder.addAttributeTokens(parameters, [
+                "zeta",
+                "alpha",
+                "mike",
+            ]);
+            expect(parameters.get(AADServerParamKeys.ATTRIBUTE_TOKENS)).toBe(
+                "alpha mike zeta"
+            );
+        });
+
+        it("deletes attribute_tokens when passed an empty array", () => {
+            const parameters = new Map<string, string>();
+            parameters.set(AADServerParamKeys.ATTRIBUTE_TOKENS, "keep");
+            RequestParameterBuilder.addAttributeTokens(parameters, []);
+            expect(parameters.has(AADServerParamKeys.ATTRIBUTE_TOKENS)).toBe(
+                false
+            );
+        });
+
+        it("preserves caller-provided values (including spacing/duplicates) after sorting", () => {
+            const parameters = new Map<string, string>();
+            RequestParameterBuilder.addAttributeTokens(parameters, [
+                "b",
+                "a",
+                "a",
+                " c ",
+            ]);
+            expect(parameters.get(AADServerParamKeys.ATTRIBUTE_TOKENS)).toBe(
+                " c  a a b"
+            );
+        });
+
+        it("does not mutate the caller-provided array", () => {
+            const parameters = new Map<string, string>();
+            const input = ["c", "a", "b"];
+            RequestParameterBuilder.addAttributeTokens(parameters, input);
+            expect(input).toEqual(["c", "a", "b"]);
         });
     });
 });

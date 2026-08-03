@@ -7,6 +7,7 @@ In this document:
     - [Include and initialize the MSAL module in your app module](#include-and-initialize-the-msal-module-in-your-app-module)
     - [Secure the routes in your application](#secure-the-routes-in-your-application)
     - [Get tokens for Web API calls](#get-tokens-for-web-api-calls)
+    - [Calling interactive and silent APIs](#calling-interactive-and-silent-apis)
     - [Subscribe to events](#subscribe-to-events)
 - [Next Steps](#next-steps)
 
@@ -150,6 +151,14 @@ export class AppModule {}
 Using the `MsalInterceptor` is optional. You may wish to explicitly acquire tokens using the acquireToken APIs instead.
 
 Please note that the `MsalInterceptor` is provided for your convenience and may not fit all use cases. We encourage you to write your own interceptor if you have specific needs that are not addressed by the `MsalInterceptor`. 
+
+### Calling interactive and silent APIs
+
+The interactive and silent `MsalService` methods — `loginPopup`, `loginRedirect`, `logoutPopup`, `logoutRedirect`, `acquireTokenPopup`, `acquireTokenRedirect`, `acquireTokenSilent`, and `ssoSilent` — internally `await instance.initialize()` before delegating to `@azure/msal-browser`. You do not need to wait for initialization to complete before calling them.
+
+You **do** still need to wait for any in-flight redirect response to finish processing before triggering an interactive call, otherwise `@azure/msal-browser` will throw `interaction_in_progress`. The standard pattern is to subscribe to [`MsalBroadcastService.inProgress$`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/events.md#the-inprogress-observable) and gate your UI on `InteractionStatus.None`. See [redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/redirects.md) for details.
+
+These methods return an `Observable` and must be subscribed to (e.g. via `.subscribe()` or `firstValueFrom`) for the work to execute.
 
 ## Subscribe to events
 

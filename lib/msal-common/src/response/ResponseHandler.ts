@@ -8,11 +8,7 @@ import {
     buildTenantProfile,
     updateAccountTenantProfileData,
 } from "../account/AccountInfo.js";
-import {
-    checkMaxAge,
-    extractTokenClaims,
-    isKmsi,
-} from "../account/AuthToken.js";
+import { extractTokenClaims, isKmsi } from "../account/AuthToken.js";
 import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,
@@ -117,7 +113,8 @@ export class ResponseHandler {
                 ? serverResponse.error_codes[0]
                 : undefined;
             const serverError = new ServerError(
-                serverResponse.error,
+                serverResponse.error || "",
+                serverResponse.correlation_id || "",
                 errString,
                 serverResponse.suberror,
                 serverErrorNo,
@@ -164,12 +161,12 @@ export class ResponseHandler {
                 )
             ) {
                 throw new InteractionRequiredAuthError(
-                    serverResponse.error,
+                    serverResponse.error || "",
+                    serverResponse.correlation_id || "",
                     serverResponse.error_description,
                     serverResponse.suberror,
                     serverResponse.timestamp || "",
                     serverResponse.trace_id || "",
-                    serverResponse.correlation_id || "",
                     serverResponse.claims || "",
                     serverErrorNo
                 );
@@ -202,28 +199,18 @@ export class ResponseHandler {
         if (serverTokenResponse.id_token) {
             idTokenClaims = extractTokenClaims(
                 serverTokenResponse.id_token || "",
-                this.cryptoObj.base64Decode
+                this.cryptoObj.base64Decode,
+                request.correlationId
             );
 
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (authCodePayload && authCodePayload.nonce) {
                 if (idTokenClaims.nonce !== authCodePayload.nonce) {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.nonceMismatch
+                        ClientAuthErrorCodes.nonceMismatch,
+                        request.correlationId
                     );
                 }
-            }
-
-            // token max_age check
-            if (request.maxAge || request.maxAge === 0) {
-                const authTime = idTokenClaims.auth_time;
-                if (!authTime) {
-                    throw createClientAuthError(
-                        ClientAuthErrorCodes.authTimeNotFound
-                    );
-                }
-
-                checkMaxAge(authTime, request.maxAge);
             }
         }
 
@@ -242,13 +229,26 @@ export class ResponseHandler {
         if (!!authCodePayload && !!authCodePayload.state) {
             requestStateObj = ProtocolUtils.parseRequestState(
                 this.cryptoObj.base64Decode,
-                authCodePayload.state
+                authCodePayload.state,
+                request.correlationId
             );
         }
 
         // Add keyId from request to serverTokenResponse if defined
         serverTokenResponse.key_id =
             serverTokenResponse.key_id || request.sshKid || undefined;
+
+        // Compute components once for entity storage (fallback if hash not provided by client)
+        const attributeTokenPartition = CacheHelpers.serializeAttributeTokens(
+            request.attributeTokens
+        );
+        const cacheKeyComponents: Record<string, string> | undefined =
+            additionalCacheKeyComponents ??
+            (attributeTokenPartition
+                ? {
+                      attribute_tokens: attributeTokenPartition,
+                  }
+                : undefined);
 
         const cacheRecord = this.generateCacheRecord(
             serverTokenResponse,
@@ -258,7 +258,7 @@ export class ResponseHandler {
             idTokenClaims,
             userAssertionHash,
             authCodePayload,
-            additionalCacheKeyComponents
+            cacheKeyComponents
         );
         let cacheContext;
         try {
@@ -371,7 +371,8 @@ export class ResponseHandler {
         const env = authority.getPreferredCache();
         if (!env) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.invalidCacheEnvironment
+                ClientAuthErrorCodes.invalidCacheEnvironment,
+                request.correlationId
             );
         }
 
@@ -411,8 +412,11 @@ export class ResponseHandler {
         if (serverTokenResponse.access_token) {
             // If scopes not returned in server response, use request scopes
             const responseScopes = serverTokenResponse.scope
-                ? ScopeSet.fromString(serverTokenResponse.scope)
-                : new ScopeSet(request.scopes || []);
+                ? ScopeSet.fromString(
+                      serverTokenResponse.scope,
+                      request.correlationId
+                  )
+                : new ScopeSet(request.scopes || [], request.correlationId);
 
             /*
              * Use timestamp calculated before request
@@ -449,6 +453,7 @@ export class ResponseHandler {
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
                 this.cryptoObj.base64Decode,
+                request.correlationId,
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
                 userAssertionHash,
@@ -557,7 +562,8 @@ export class ResponseHandler {
 
                 if (!keyId) {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.keyIdMissing
+                        ClientAuthErrorCodes.keyIdMissing,
+                        request.correlationId
                     );
                 }
 
@@ -570,7 +576,8 @@ export class ResponseHandler {
                 accessToken = cacheRecord.accessToken.secret;
             }
             responseScopes = ScopeSet.fromString(
-                cacheRecord.accessToken.target
+                cacheRecord.accessToken.target,
+                request.correlationId
             ).asArray();
             // Access token expiresOn cached in seconds, converting to Date for AuthenticationResult
             expiresOn = TimeUtils.toDateFromSeconds(
@@ -597,8 +604,20 @@ export class ResponseHandler {
 
         // for hybrid + native bridge enablement, send back the native account Id
         if (serverTokenResponse?.spa_accountid && !!cacheRecord.account) {
+            // Set on deprecated top-level for downgrade compat
             cacheRecord.account.nativeAccountId =
                 serverTokenResponse?.spa_accountid;
+            // Set on the matching tenant profile (source of truth)
+            const targetTenantId = tid || cacheRecord.account.realm;
+            if (cacheRecord.account.tenantProfiles) {
+                const matchingProfile = cacheRecord.account.tenantProfiles.find(
+                    (tp) => tp.tenantId === targetTenantId
+                );
+                if (matchingProfile) {
+                    matchingProfile.nativeAccountId =
+                        serverTokenResponse.spa_accountid;
+                }
+            }
         }
 
         const accountInfo: AccountInfo | null = cacheRecord.account
@@ -696,6 +715,7 @@ export function buildAccountToCache(
                 nativeAccountId: nativeAccountId,
             },
             authority,
+            correlationId,
             base64Decode
         );
 
@@ -711,6 +731,7 @@ export function buildAccountToCache(
             homeAccountId,
             baseAccount.localAccountId,
             tenantId,
+            nativeAccountId,
             idTokenClaims
         );
         tenantProfiles.push(newTenantProfile);

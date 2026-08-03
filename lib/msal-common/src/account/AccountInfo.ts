@@ -4,6 +4,7 @@
  */
 
 import { TokenClaims } from "./TokenClaims.js";
+import { isKmsi } from "./AuthToken.js";
 
 export type DataBoundary = "EU" | "None";
 
@@ -45,6 +46,11 @@ export type AccountInfo = {
     authorityType?: string;
     tenantProfiles?: Map<string, TenantProfile>;
     dataBoundary?: DataBoundary;
+    /**
+     * Indicates whether the user selected "Keep Me Signed In" (KMSI) during authentication.
+     * Derived from the signin_state claim in the ID token.
+     */
+    kmsi?: boolean;
 };
 
 /**
@@ -52,7 +58,13 @@ export type AccountInfo = {
  */
 export type TenantProfile = Pick<
     AccountInfo,
-    "tenantId" | "localAccountId" | "name" | "username" | "loginHint" | "upn"
+    | "tenantId"
+    | "localAccountId"
+    | "name"
+    | "username"
+    | "loginHint"
+    | "upn"
+    | "nativeAccountId"
 > & {
     /**
      * - isHomeTenant           - True if this is the home tenant profile of the account, false if it's a guest tenant profile
@@ -88,6 +100,7 @@ export function tenantIdMatchesHomeTenant(
  * @param homeAccountId - Home account identifier for this account object
  * @param localAccountId - Local account identifer for this account object
  * @param tenantId - Full tenant or organizational id that this account belongs to
+ * @param nativeAccountId - Native account identifier for this tenant
  * @param idTokenClaims - Claims from the ID token
  * @returns
  */
@@ -95,6 +108,7 @@ export function buildTenantProfile(
     homeAccountId: string,
     localAccountId: string,
     tenantId: string,
+    nativeAccountId?: string,
     idTokenClaims?: TokenClaims
 ): TenantProfile {
     if (idTokenClaims) {
@@ -126,6 +140,7 @@ export function buildTenantProfile(
             loginHint: login_hint,
             isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),
             upn: upn,
+            ...(nativeAccountId && { nativeAccountId }),
         };
     } else {
         return {
@@ -133,6 +148,7 @@ export function buildTenantProfile(
             localAccountId,
             username: "",
             isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),
+            ...(nativeAccountId && { nativeAccountId }),
         };
     }
 }
@@ -166,6 +182,7 @@ export function updateAccountTenantProfileData(
                 baseAccountInfo.homeAccountId,
                 baseAccountInfo.localAccountId,
                 baseAccountInfo.tenantId,
+                updatedAccountInfo.nativeAccountId,
                 idTokenClaims
             );
 
@@ -174,6 +191,7 @@ export function updateAccountTenantProfileData(
             ...claimsSourcedTenantProfile,
             idTokenClaims: idTokenClaims,
             idToken: idTokenSecret,
+            kmsi: isKmsi(idTokenClaims),
         };
 
         return updatedAccountInfo;

@@ -101,24 +101,30 @@ export function parseAuthResponseFromUrl(): {
         params = new URLSearchParams(payload);
     }
 
+    /*
+     * Called by the redirect-bridge entry point before any request context exists,
+     * so correlationId is intentionally empty for the throws below.
+     */
     if (!payload || !params) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.emptyResponse);
+        throw createBrowserAuthError(BrowserAuthErrorCodes.emptyResponse, "");
     }
 
     const state = params.get("state");
     if (!state) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
+        throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash, "");
     }
 
     const { libraryState } = ProtocolUtils.parseRequestState(
         base64Decode,
-        state
+        state,
+        ""
     );
 
     const { id, meta } = libraryState;
     if (!id || !meta) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.unableToParseState,
+            "",
             "missing_library_state"
         );
     }
@@ -240,7 +246,8 @@ export function cancelPendingBridgeResponse(
         activeBridgeMonitor.channel.close();
         activeBridgeMonitor.reject(
             createBrowserAuthError(
-                BrowserAuthErrorCodes.interactionInProgressCancelled
+                BrowserAuthErrorCodes.interactionInProgressCancelled,
+                ""
             )
         );
 
@@ -285,7 +292,8 @@ export async function waitForBridgeResponse(
 
         const { libraryState } = ProtocolUtils.parseRequestState(
             base64Decode,
-            request.state || ""
+            request.state || "",
+            request.correlationId
         );
         const channel = new BroadcastChannel(libraryState.id);
         let responseString: string | undefined = undefined;
@@ -313,6 +321,7 @@ export async function waitForBridgeResponse(
             reject(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.timedOut,
+                    "",
                     "redirect_bridge_timeout"
                 )
             );
@@ -357,7 +366,12 @@ export async function waitForBridgeResponse(
             if (responseString) {
                 resolve(responseString);
             } else {
-                reject(createBrowserAuthError(redirectBridgeEmptyResponse));
+                reject(
+                    createBrowserAuthError(
+                        redirectBridgeEmptyResponse,
+                        correlationId
+                    )
+                );
             }
         };
     });
@@ -377,8 +391,8 @@ export function getCurrentUri(): string {
 /**
  * Gets the homepage url for the current window location.
  */
-export function getHomepage(): string {
-    const currentUrl = new UrlString(window.location.href);
+export function getHomepage(correlationId?: string): string {
+    const currentUrl = new UrlString(window.location.href, correlationId || "");
     const urlComponents = currentUrl.getUrlComponents();
     return `${urlComponents.Protocol}//${urlComponents.HostNameAndPort}/`;
 }
@@ -393,7 +407,10 @@ export function blockReloadInHiddenIframes(): void {
     );
     // return an error if called from the hidden iframe created by the msal js silent calls
     if (isResponseHash && isInIframe()) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.blockIframeReload);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.blockIframeReload,
+            ""
+        );
     }
 }
 
@@ -405,7 +422,10 @@ export function blockReloadInHiddenIframes(): void {
 export function blockRedirectInIframe(allowRedirectInIframe: boolean): void {
     if (isInIframe() && !allowRedirectInIframe) {
         // If we are not in top frame, we shouldn't redirect. This is also handled by the service.
-        throw createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.redirectInIframe,
+            ""
+        );
     }
 }
 
@@ -415,7 +435,10 @@ export function blockRedirectInIframe(allowRedirectInIframe: boolean): void {
 export function blockAcquireTokenInPopups(): void {
     // Popups opened by msal popup APIs are given a name that starts with "msal."
     if (isInPopup()) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.blockNestedPopups);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.blockNestedPopups,
+            ""
+        );
     }
 }
 
@@ -426,7 +449,8 @@ export function blockAcquireTokenInPopups(): void {
 export function blockNonBrowserEnvironment(): void {
     if (typeof window === "undefined") {
         throw createBrowserAuthError(
-            BrowserAuthErrorCodes.nonBrowserEnvironment
+            BrowserAuthErrorCodes.nonBrowserEnvironment,
+            ""
         );
     }
 }
@@ -438,7 +462,8 @@ export function blockNonBrowserEnvironment(): void {
 export function blockAPICallsBeforeInitialize(initialized: boolean): void {
     if (!initialized) {
         throw createBrowserAuthError(
-            BrowserAuthErrorCodes.uninitializedPublicClientApplication
+            BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+            ""
         );
     }
 }
@@ -476,7 +501,8 @@ export function redirectPreflightCheck(
     // Block redirects if memory storage is enabled
     if (config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage) {
         throw createBrowserConfigurationAuthError(
-            BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
+            BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable,
+            ""
         );
     }
 }
@@ -511,5 +537,4 @@ export function createGuid(): string {
 
 export { invoke };
 export { invokeAsync };
-export const addClientCapabilitiesToClaims =
-    RequestParameterBuilder.addClientCapabilitiesToClaims;
+export const buildMergedClaims = RequestParameterBuilder.buildMergedClaims;

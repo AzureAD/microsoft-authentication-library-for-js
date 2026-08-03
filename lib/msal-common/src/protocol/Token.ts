@@ -179,7 +179,7 @@ export async function sendPostRequest<
             logger,
             performanceClient,
             correlationId
-        )(tokenEndpoint, options);
+        )(tokenEndpoint, { ...options, correlationId, performanceClient });
         const responseHeaders = response.headers || {};
         performanceClient?.addFields(
             {
@@ -217,7 +217,10 @@ export async function sendPostRequest<
         if (e instanceof AuthError) {
             throw e;
         } else {
-            throw createClientAuthError(ClientAuthErrorCodes.networkError);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.networkError,
+                correlationId
+            );
         }
     }
 

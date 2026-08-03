@@ -8,7 +8,10 @@
  * that are not defined in PerformanceEvent. Dynamic fields must use the "ext." prefix
  * so they are automatically routed to the PerformanceEvent.ext sub-object.
  * Additionally validates that static (non-computed) field names match known
- * PerformanceEvent properties to catch typos and invalid field names.
+ * PerformanceEvent properties to catch typos and invalid field names. This also
+ * covers global telemetry fields (addGlobalFields), which are stamped onto every
+ * emitted event and must likewise be defined in PerformanceEvent so downstream
+ * (e.g. 1P Kusto) pipelines pick them up.
  */
 
 const fs = require("fs");
@@ -82,6 +85,7 @@ module.exports = {
                         items: { type: "string" },
                         default: [
                             "addFields",
+                            "addGlobalFields",
                             "incrementFields",
                             "add",
                             "increment",
@@ -125,6 +129,7 @@ module.exports = {
         const options = context.options[0] || {};
         const telemetryMethods = options.telemetryMethods || [
             "addFields",
+            "addGlobalFields",
             "incrementFields",
             "add",
             "increment",

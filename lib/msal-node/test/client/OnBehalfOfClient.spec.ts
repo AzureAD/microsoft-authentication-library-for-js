@@ -132,7 +132,6 @@ describe("OnBehalfOf unit tests", () => {
             });
 
             it.each([
-                [CAE_CONSTANTS.EMPTY_CLAIMS, CAE_CONSTANTS.MERGED_EMPTY_CLAIMS],
                 [
                     CAE_CONSTANTS.CLAIMS_WITH_ADDITIONAL_CLAIMS,
                     CAE_CONSTANTS.MERGED_CLAIMS_WITH_ADDITIONAL_CLAIMS,
@@ -230,6 +229,34 @@ describe("OnBehalfOf unit tests", () => {
                     expect(authResult4.fromCache).toBe(false);
                 }
             );
+
+            it("does not bypass the cache when claims is an empty object", async () => {
+                // Empty-object claims add nothing to the request body, so they must not force a
+                // network call - an otherwise-identical request should be served from the cache.
+                oboRequest.claims = CAE_CONSTANTS.EMPTY_CLAIMS;
+
+                // first request: cache miss -> network; client capabilities are still merged in
+                const authResult = (await client.acquireToken(
+                    oboRequest
+                )) as AuthenticationResult;
+                expect(authResult.fromCache).toBe(false);
+                const returnVal: string = await createTokenRequestBodySpy.mock
+                    .results[0].value;
+                expect(
+                    decodeURIComponent(
+                        returnVal
+                            .split("&")
+                            .filter((key: string) => key.includes("claims="))[0]
+                            .split("claims=")[1]
+                    )
+                ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
+
+                // second identical request: served from the cache (not bypassed)
+                const cachedAuthResult = (await client.acquireToken(
+                    oboRequest
+                )) as AuthenticationResult;
+                expect(cachedAuthResult.fromCache).toBe(true);
+            });
         });
 
         it("Does not add claims when empty object provided", async () => {
@@ -305,7 +332,8 @@ describe("OnBehalfOf unit tests", () => {
 
             const idTokenClaims = AuthToken.extractTokenClaims(
                 TEST_TOKENS.IDTOKEN_V2,
-                EncodingUtils.base64Decode
+                EncodingUtils.base64Decode,
+                ""
             );
             const expectedAccountEntity: AccountEntity =
                 AccountEntityUtils.createAccountEntity(
@@ -313,7 +341,8 @@ describe("OnBehalfOf unit tests", () => {
                         homeAccountId: "123-test-uid.456-test-uid",
                         idTokenClaims: idTokenClaims,
                     },
-                    config.authOptions.authority
+                    config.authOptions.authority,
+                    ""
                 );
 
             const mockIdTokenCached = jest
@@ -346,7 +375,7 @@ describe("OnBehalfOf unit tests", () => {
                 oboRequest
             )) as AuthenticationResult;
             expect(authResult.scopes).toEqual(
-                ScopeSet.fromString(testAccessTokenEntity.target).asArray()
+                ScopeSet.fromString(testAccessTokenEntity.target, "").asArray()
             );
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.accessToken).toEqual(

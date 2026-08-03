@@ -16,7 +16,7 @@
     },
     "devDependencies": {
         "@types/jest": "^29.5.0",
-        "@vitejs/plugin-react": "^4.3.3",
+        "@vitejs/plugin-react": "^5.0.0",
         "e2e-test-utils": "file:../../e2eTestUtils",
         "jest": "^29.5.0",
         "jest-junit": "^16.0.0",

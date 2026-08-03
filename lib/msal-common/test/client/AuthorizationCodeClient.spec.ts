@@ -36,6 +36,10 @@ import {
 import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import * as TokenProtocol from "../../src/protocol/Token.js";
 import * as AuthorityFactory from "../../src/authority/AuthorityFactory.js";
+import { ResponseHandler } from "../../src/response/ResponseHandler.js";
+
+const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
+    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
 
 describe("AuthorizationCodeClient unit tests", () => {
     let stubPerformanceClient: StubPerformanceClient;
@@ -85,7 +89,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 // @ts-ignore
                 client.acquireToken({ code: null }, null)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade)
+                createClientAuthError(
+                    ClientAuthErrorCodes.requestCannotBeMade,
+                    ""
+                )
             );
             // @ts-ignore
             expect(config.storageInterface.getKeys().length).toBe(1);
@@ -125,7 +132,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 // @ts-ignore
                 client.acquireToken(codeRequest, null)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade)
+                createClientAuthError(
+                    ClientAuthErrorCodes.requestCannotBeMade,
+                    ""
+                )
             );
             // @ts-ignore
             expect(config.storageInterface.getKeys().length).toBe(1);
@@ -482,206 +492,6 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(executePostToTokenEndpointSpy).toHaveBeenCalled();
         });
 
-        it("Throws error if max age is equal to 0 or has transpired since the last end-user authentication", async () => {
-            jest.spyOn(
-                Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
-            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            jest.spyOn(
-                TokenProtocol,
-                "executePostToTokenEndpoint"
-            ).mockResolvedValue(AUTHENTICATION_RESULT);
-
-            if (!config.cryptoInterface) {
-                throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
-                );
-            }
-
-            // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
-            const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
-
-            jest.spyOn(
-                config.cryptoInterface,
-                "base64Decode"
-            ).mockImplementation((input) => {
-                switch (input) {
-                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                        return TEST_POP_VALUES.DECODED_REQ_CNF;
-                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
-                        return decodedLibState;
-                    default:
-                        return input;
-                }
-            });
-
-            jest.spyOn(
-                config.cryptoInterface,
-                "base64Encode"
-            ).mockImplementation((input) => {
-                switch (input) {
-                    case TEST_POP_VALUES.DECODED_REQ_CNF:
-                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
-                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                    default:
-                        return input;
-                }
-            });
-
-            // Set up stubs
-            const idTokenClaims = {
-                ver: "2.0",
-                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                exp: 1536361411,
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-                auth_time: Date.now() - Constants.ONE_DAY_IN_MS * 2,
-            };
-            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims
-            );
-            const client = new AuthorizationCodeClient(
-                config,
-                stubPerformanceClient
-            );
-            const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
-                scopes: [
-                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                    ...TEST_CONFIG.DEFAULT_SCOPES,
-                ],
-                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                code: TEST_TOKENS.AUTHORIZATION_CODE,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                claims: TEST_CONFIG.CLAIMS,
-                correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: Constants.AuthenticationScheme.BEARER,
-                maxAge: 0, // 0 indicates an immediate refresh
-            };
-
-            await expect(
-                client.acquireToken(authCodeRequest, 0, {
-                    code: authCodeRequest.code,
-                    nonce: idTokenClaims.nonce,
-                    state: testState,
-                })
-            ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired)
-            );
-        });
-
-        it("Throws error if max age is requested and auth time is not included in the token claims", async () => {
-            jest.spyOn(
-                Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
-            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            jest.spyOn(
-                TokenProtocol,
-                "executePostToTokenEndpoint"
-            ).mockResolvedValue(AUTHENTICATION_RESULT);
-
-            if (!config.cryptoInterface) {
-                throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
-                );
-            }
-
-            // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
-            const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
-
-            jest.spyOn(
-                config.cryptoInterface,
-                "base64Decode"
-            ).mockImplementation((input) => {
-                switch (input) {
-                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                        return TEST_POP_VALUES.DECODED_REQ_CNF;
-                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
-                        return decodedLibState;
-                    default:
-                        return input;
-                }
-            });
-
-            jest.spyOn(
-                config.cryptoInterface,
-                "base64Encode"
-            ).mockImplementation((input) => {
-                switch (input) {
-                    case TEST_POP_VALUES.DECODED_REQ_CNF:
-                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
-                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                    default:
-                        return input;
-                }
-            });
-
-            // Set up stubs
-            const idTokenClaims = {
-                ver: "2.0",
-                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                exp: 1536361411,
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-                // "auth_time" is missing for the purpose of this test
-            };
-            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims
-            );
-            const client = new AuthorizationCodeClient(
-                config,
-                stubPerformanceClient
-            );
-            const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
-                scopes: [
-                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                    ...TEST_CONFIG.DEFAULT_SCOPES,
-                ],
-                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                code: TEST_TOKENS.AUTHORIZATION_CODE,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                claims: TEST_CONFIG.CLAIMS,
-                correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: Constants.AuthenticationScheme.BEARER,
-                maxAge: Constants.ONE_DAY_IN_MS * 3,
-            };
-
-            await expect(
-                client.acquireToken(authCodeRequest, 0, {
-                    code: authCodeRequest.code,
-                    nonce: idTokenClaims.nonce,
-                    state: testState,
-                })
-            ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound)
-            );
-        });
-
         it("Acquires a token successfully", async () => {
             jest.spyOn(
                 Authority.prototype,
@@ -770,195 +580,6 @@ describe("AuthorizationCodeClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
-            };
-
-            const authenticationResult = await client.acquireToken(
-                authCodeRequest,
-                0,
-                {
-                    code: authCodeRequest.code,
-                    nonce: idTokenClaims.nonce,
-                    state: testState,
-                }
-            );
-            if (!authenticationResult.expiresOn) {
-                throw TestError.createTestSetupError(
-                    "mockedAccountInfo does not have a value"
-                );
-            }
-
-            expect(authenticationResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT.body.access_token
-            );
-            // @ts-ignore
-            expect(
-                Date.now() + AUTHENTICATION_RESULT.body.expires_in * 1000 >=
-                    authenticationResult.expiresOn.getMilliseconds()
-            ).toBe(true);
-            expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
-                authCodeRequest
-            );
-
-            const returnVal = (await createTokenRequestBodySpy.mock.results[0]
-                .value) as string;
-            expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-                )
-            ).toBe(true);
-            expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
-            ).toBe(true);
-            expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
-                    )}`
-                )
-            ).toBe(true);
-            expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`
-                )
-            ).toBe(true);
-            expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
-                )
-            ).toBe(true);
-            expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`
-                )
-            ).toBe(true);
-            expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-                )
-            ).toBe(true);
-            expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-                )
-            ).toBe(true);
-            expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-                )
-            ).toBe(true);
-            expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-                )
-            ).toBe(true);
-            expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-                )
-            ).toBe(true);
-            expect(
-                returnVal.includes(
-                    `${
-                        AADServerParamKeys.X_MS_LIB_CAPABILITY
-                    }=${encodeURIComponent(
-                        Constants.X_MS_LIB_CAPABILITY_VALUE
-                    )}`
-                )
-            ).toBe(true);
-        });
-
-        it("Acquires a token successfully when max age is provided and has not transpired yet", async () => {
-            jest.spyOn(
-                Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
-            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            jest.spyOn(
-                TokenProtocol,
-                "executePostToTokenEndpoint"
-            ).mockResolvedValue(AUTHENTICATION_RESULT);
-            const createTokenRequestBodySpy = jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody"
-            );
-            if (!config.cryptoInterface) {
-                throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
-                );
-            }
-
-            // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
-            const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
-
-            jest.spyOn(
-                config.cryptoInterface,
-                "base64Decode"
-            ).mockImplementation((input) => {
-                switch (input) {
-                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                        return TEST_POP_VALUES.DECODED_REQ_CNF;
-                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
-                        return decodedLibState;
-                    default:
-                        return input;
-                }
-            });
-
-            jest.spyOn(
-                config.cryptoInterface,
-                "base64Encode"
-            ).mockImplementation((input) => {
-                switch (input) {
-                    case TEST_POP_VALUES.DECODED_REQ_CNF:
-                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
-                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                    default:
-                        return input;
-                }
-            });
-
-            // Set up stubs
-            const idTokenClaims = {
-                ver: "2.0",
-                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                exp: 1536361411,
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-                auth_time: Date.now() - Constants.ONE_DAY_IN_MS * 2,
-            };
-            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims
-            );
-            const client = new AuthorizationCodeClient(
-                config,
-                stubPerformanceClient
-            );
-            const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
-                scopes: [
-                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                    ...TEST_CONFIG.DEFAULT_SCOPES,
-                ],
-                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                code: TEST_TOKENS.AUTHORIZATION_CODE,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                claims: TEST_CONFIG.CLAIMS,
-                correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: Constants.AuthenticationScheme.BEARER,
-                maxAge: Constants.ONE_DAY_IN_MS * 3,
             };
 
             const authenticationResult = await client.acquireToken(
@@ -1195,6 +816,162 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             client.acquireToken(authCodeRequest, 0).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("Adds sorted attribute_tokens to the /token request body", (done) => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                try {
+                    expect(body).toContain(
+                        "attribute_tokens=alpha%20mike%20zeta"
+                    );
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                attributeTokens: ["zeta", "alpha", "mike"],
+            };
+
+            client.acquireToken(authorizationCodeRequest, 0).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("passes attribute token cache components to ResponseHandler during auth code redemption", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT as any);
+
+            const validateTokenResponseSpy = jest
+                .spyOn(ResponseHandler.prototype, "validateTokenResponse")
+                .mockImplementation(() => undefined);
+            const handleServerTokenResponseSpy = jest
+                .spyOn(ResponseHandler.prototype, "handleServerTokenResponse")
+                .mockResolvedValue(AUTHENTICATION_RESULT as any);
+
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                attributeTokens: ["zeta", "alpha", "mike"],
+            };
+
+            await client.acquireToken(authorizationCodeRequest, 0, {
+                code: authorizationCodeRequest.code,
+                state: "test-state",
+            });
+
+            expect(validateTokenResponseSpy).toHaveBeenCalled();
+            expect(handleServerTokenResponseSpy).toHaveBeenCalledWith(
+                AUTHENTICATION_RESULT.body,
+                expect.anything(),
+                expect.any(Number),
+                authorizationCodeRequest,
+                0,
+                expect.objectContaining({ state: "test-state" }),
+                undefined,
+                undefined,
+                undefined,
+                undefined
+            );
+        });
+
+        it("emits hasAttributeTokens telemetry during auth code redemption", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT as any);
+            jest.spyOn(
+                ResponseHandler.prototype,
+                "validateTokenResponse"
+            ).mockImplementation(() => undefined);
+            jest.spyOn(
+                ResponseHandler.prototype,
+                "handleServerTokenResponse"
+            ).mockResolvedValue(AUTHENTICATION_RESULT as any);
+
+            const addFieldsSpy = jest.spyOn(stubPerformanceClient, "addFields");
+
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                attributeTokens: ["zeta", "alpha"],
+            };
+
+            await client.acquireToken(authorizationCodeRequest, 0, {
+                code: authorizationCodeRequest.code,
+                state: "test-state",
+            });
+
+            const hasAttributeTokensCalls = (
+                addFieldsSpy.mock.calls as any[]
+            ).filter(
+                (args: any[]) =>
+                    typeof args[0]?.hasAttributeTokens !== "undefined"
+            );
+            expect(hasAttributeTokensCalls.length).toBeGreaterThanOrEqual(1);
+            expect(hasAttributeTokensCalls[0][0]).toMatchObject({
+                hasAttributeTokens: true,
             });
         });
 
@@ -1610,7 +1387,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
+                        DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS
                     )}`
                 )
             ).toBe(true);
@@ -1802,7 +1579,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
+                        DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS
                     )}`
                 )
             ).toBe(true);
@@ -1925,7 +1702,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 })
             ).rejects.toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    ""
                 )
             );
         });
@@ -2556,6 +2334,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
                 addFields: jest.fn(),
+                addGlobalFields: jest.fn(),
                 incrementFields: jest.fn(),
                 discardMeasurements: jest.fn(),
                 removePerformanceCallback: jest.fn(),
@@ -2650,6 +2429,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
                 addFields: jest.fn(),
+                addGlobalFields: jest.fn(),
                 incrementFields: jest.fn(),
                 discardMeasurements: jest.fn(),
                 removePerformanceCallback: jest.fn(),

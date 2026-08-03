@@ -6,6 +6,7 @@
 import * as Constants from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ScopeSet } from "./ScopeSet.js";
+import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
@@ -18,7 +19,6 @@ import {
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
 import { ClientInfo } from "../account/ClientInfo.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { StringUtils } from "../utils/StringUtils.js";
 
 export function instrumentBrokerParams(
     parameters: Map<string, string>,
@@ -84,6 +84,7 @@ export function addNativeBroker(parameters: Map<string, string>): void {
 export function addScopes(
     parameters: Map<string, string>,
     scopes: string[],
+    correlationId: string,
     addOidcScopes: boolean = true,
     defaultScopes: Array<string> = Constants.OIDC_DEFAULT_SCOPES
 ): void {
@@ -98,7 +99,7 @@ export function addScopes(
     const requestScopes = addOidcScopes
         ? [...(scopes || []), ...defaultScopes]
         : scopes || [];
-    const scopeSet = new ScopeSet(requestScopes);
+    const scopeSet = new ScopeSet(requestScopes, correlationId);
     parameters.set(AADServerParamKeys.SCOPE, scopeSet.printScopes());
 }
 
@@ -205,15 +206,19 @@ export function addSid(parameters: Map<string, string>, sid: string): void {
  * Adds claims to request parameters, conditionally excluding clientCapabilities
  * when skipBrokerClaims is true and a brokered flow is in effect.
  * @param parameters - The request parameters map
+ * @param correlationId - The request correlation id
  * @param claims - The claims string from the request
  * @param clientCapabilities - The client capabilities from configuration
  * @param skipBrokerClaims - When true and BROKER_CLIENT_ID is present, excludes clientCapabilities from claims
+ * @param claimsToMerge - Optional client-originated claims JSON string (e.g. `claimsFromClient`) deep-merged into `claims` with precedence on conflicts
  */
 export function addClaims(
     parameters: Map<string, string>,
+    correlationId: string,
     claims?: string,
     clientCapabilities?: Array<string>,
-    skipBrokerClaims?: boolean
+    skipBrokerClaims?: boolean,
+    claimsToMerge?: string
 ): void {
     // Skip clientCapabilities if skipBrokerClaims is set to true and this is a brokered authentication flow
     const configClaims =
@@ -221,23 +226,13 @@ export function addClaims(
             ? undefined
             : clientCapabilities;
 
-    if (
-        !StringUtils.isEmptyObj(claims) ||
-        (configClaims && configClaims.length > 0)
-    ) {
-        const mergedClaims = addClientCapabilitiesToClaims(
-            claims,
-            configClaims
-        );
-        try {
-            JSON.parse(mergedClaims);
-        } catch (e) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaims
-            );
-        }
-        parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
-    }
+    const mergedClaims = buildMergedClaims(
+        claims,
+        configClaims,
+        correlationId,
+        claimsToMerge
+    );
+    parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
 }
 
 /**
@@ -335,7 +330,8 @@ export function addCodeChallengeParams(
         );
     } else {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.pkceParamsMissing
+            ClientConfigurationErrorCodes.pkceParamsMissing,
+            ""
         );
     }
 }
@@ -493,28 +489,136 @@ export function addExtraParameters(
     });
 }
 
-export function addClientCapabilitiesToClaims(
-    claims?: string,
-    clientCapabilities?: Array<string>
-): string {
-    let mergedClaims: object;
+/**
+ * Default optional idToken claims requested on all auth requests.
+ * signin_state enables KMSI detection; login_hint enables login hint propagation.
+ */
+const DEFAULT_ID_TOKEN_CLAIMS: Record<string, { essential: false }> = {
+    [Constants.ClaimsRequestKeys.SIGNIN_STATE]: { essential: false },
+    [Constants.ClaimsRequestKeys.LOGIN_HINT]: { essential: false },
+};
 
+/**
+ * Parses a claims JSON string into an object, throwing a ClientConfigurationError
+ * (error code `invalid_claims`) if the value is not a valid JSON object. The raw
+ * claims value is never included in the error - it may contain sensitive data.
+ * @param claims - Claims JSON string. Must be valid JSON representing an object.
+ * @param correlationId - The request correlation id
+ * @returns The parsed claims object
+ */
+function parseClaims(
+    claims: string,
+    correlationId: string = ""
+): Record<string, unknown> {
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(claims);
+    } catch (e) {
+        // Malformed JSON
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidClaims,
+            correlationId
+        );
+    }
+
+    if (!isPlainObject(parsed)) {
+        // Valid JSON, but not an object (e.g. an array, a scalar, or the literal `null`).
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidClaims,
+            correlationId
+        );
+    }
+
+    return parsed;
+}
+
+/**
+ * Type guard for a non-null, non-array object (a JSON "object" value).
+ * @param value - The value to test
+ * @returns True when value is a plain object that can be deep-merged
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Recursively deep-merges two parsed claims objects. Nested objects are merged key-by-key;
+ * for any other value type (arrays, scalars, null) the value from `claimsToMerge` replaces
+ * the base. This mirrors the deep merge used by msal-dotnet so that, for example, a server
+ * `access_token` challenge and a client-originated `access_token` claim are combined rather
+ * than one clobbering the other.
+ * @param baseClaims - The parsed base claims object
+ * @param claimsToMerge - The parsed claims object merged in with precedence
+ * @returns The deep-merged claims object
+ */
+function deepMergeClaims(
+    baseClaims: Record<string, unknown>,
+    claimsToMerge: Record<string, unknown>
+): Record<string, unknown> {
+    const merged: Record<string, unknown> = { ...baseClaims };
+    for (const [key, mergeInValue] of Object.entries(claimsToMerge)) {
+        const baseValue = merged[key];
+        if (isPlainObject(baseValue) && isPlainObject(mergeInValue)) {
+            merged[key] = deepMergeClaims(baseValue, mergeInValue);
+        } else {
+            merged[key] = mergeInValue;
+        }
+    }
+    return merged;
+}
+
+/**
+ * Parses claims JSON, optionally deep-merges a second client-originated claims string
+ * (`claimsToMerge`, e.g. `claimsFromClient`) with precedence on conflicting keys, merges
+ * default optional idToken claims (signin_state, login_hint), and appends client
+ * capabilities (xms_cc) to the access_token section.
+ * Does not overwrite idToken claims already specified by the caller.
+ * @param claims - Existing claims JSON string from the request (may be undefined)
+ * @param clientCapabilities - Client capabilities array from configuration
+ * @param correlationId - The request correlation id
+ * @param claimsToMerge - Optional second claims JSON string (e.g. client-originated `claimsFromClient`)
+ * deep-merged into `claims` with precedence on conflicts; parsed and validated when present. Nested
+ * objects are merged recursively; arrays and scalar values are replaced.
+ * @returns Merged claims JSON string
+ */
+export function buildMergedClaims(
+    claims?: string,
+    clientCapabilities?: Array<string>,
+    correlationId: string = "",
+    claimsToMerge?: string
+): string {
     // Parse provided claims into JSON object or initialize empty object
-    if (!claims) {
-        mergedClaims = {};
-    } else {
-        try {
-            mergedClaims = JSON.parse(claims);
-        } catch (e) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaims
-            );
+    let mergedClaims: object = claims ? parseClaims(claims, correlationId) : {};
+
+    // Deep-merge client-originated claims (e.g. `claimsFromClient`) with precedence on conflicts
+    if (claimsToMerge?.trim()) {
+        mergedClaims = deepMergeClaims(
+            mergedClaims as Record<string, unknown>,
+            parseClaims(claimsToMerge, correlationId)
+        );
+    }
+
+    // Add default optional idToken claims
+    if (
+        !Object.prototype.hasOwnProperty.call(
+            mergedClaims,
+            Constants.ClaimsRequestKeys.ID_TOKEN
+        )
+    ) {
+        mergedClaims[Constants.ClaimsRequestKeys.ID_TOKEN] = {};
+    }
+    const idTokenClaims = mergedClaims[Constants.ClaimsRequestKeys.ID_TOKEN];
+    for (const [key, value] of Object.entries(DEFAULT_ID_TOKEN_CLAIMS)) {
+        if (!(key in idTokenClaims)) {
+            idTokenClaims[key] = value;
         }
     }
 
+    // Add client capabilities
     if (clientCapabilities && clientCapabilities.length > 0) {
         if (
-            !mergedClaims.hasOwnProperty(
+            !Object.prototype.hasOwnProperty.call(
+                mergedClaims,
                 Constants.ClaimsRequestKeys.ACCESS_TOKEN
             )
         ) {
@@ -597,24 +701,14 @@ export function addServerTelemetry(
     parameters: Map<string, string>,
     serverTelemetryManager: ServerTelemetryManager
 ): void {
-    const currentTelemetryHeader =
-        serverTelemetryManager.generateCurrentRequestHeaderValue();
-    const lastTelemetryHeader =
-        serverTelemetryManager.generateLastRequestHeaderValue();
-
-    if (currentTelemetryHeader) {
-        parameters.set(
-            AADServerParamKeys.X_CLIENT_CURR_TELEM,
-            currentTelemetryHeader
-        );
-    }
-
-    if (lastTelemetryHeader) {
-        parameters.set(
-            AADServerParamKeys.X_CLIENT_LAST_TELEM,
-            lastTelemetryHeader
-        );
-    }
+    parameters.set(
+        AADServerParamKeys.X_CLIENT_CURR_TELEM,
+        serverTelemetryManager.generateCurrentRequestHeaderValue()
+    );
+    parameters.set(
+        AADServerParamKeys.X_CLIENT_LAST_TELEM,
+        serverTelemetryManager.generateLastRequestHeaderValue()
+    );
 }
 
 /**
@@ -675,5 +769,27 @@ export function addResource(
 ): void {
     if (resource) {
         parameters.set(AADServerParamKeys.RESOURCE, resource);
+    }
+}
+
+/**
+ * Add the `attribute_tokens` parameter to a /token request body.
+ *
+ * When `attributeTokens` is a non-empty array the values are sorted lexicographically and joined
+ * with a single space, then written to the request body. When `attributeTokens` is an empty array
+ * the parameter is deleted from the request body.
+ *
+ * @param parameters - request parameter map that will be serialized into the /token body
+ * @param attributeTokens - caller-provided attribute token strings
+ */
+export function addAttributeTokens(
+    parameters: Map<string, string>,
+    attributeTokens: Array<string>
+): void {
+    const serialized = CacheHelpers.serializeAttributeTokens(attributeTokens);
+    if (serialized) {
+        parameters.set(AADServerParamKeys.ATTRIBUTE_TOKENS, serialized);
+    } else {
+        parameters.delete(AADServerParamKeys.ATTRIBUTE_TOKENS);
     }
 }

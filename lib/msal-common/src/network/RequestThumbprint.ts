@@ -6,6 +6,7 @@
 import { ShrOptions } from "../crypto/SignedHttpRequest.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import { AuthenticationScheme } from "../utils/Constants.js";
+import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 
 /**
  * Type representing a unique request thumbprint.
@@ -23,6 +24,8 @@ export type RequestThumbprint = {
     sshKid?: string;
     shrOptions?: ShrOptions;
     embeddedClientId?: string;
+    resource?: string;
+    attributeTokens?: string;
 };
 
 export function getRequestThumbprint(
@@ -43,5 +46,9 @@ export function getRequestThumbprint(
         sshKid: request.sshKid,
         embeddedClientId:
             request.embeddedClientId || request.extraParameters?.clientId,
+        resource: request.resource,
+        attributeTokens: CacheHelpers.serializeAttributeTokens(
+            request.attributeTokens
+        ),
     };
 }

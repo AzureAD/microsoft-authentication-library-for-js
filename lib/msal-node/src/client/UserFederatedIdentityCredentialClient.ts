@@ -13,6 +13,7 @@ import {
     RequestThumbprint,
     ResponseHandler,
     ScopeSet,
+    StringUtils,
     TimeUtils,
     UrlString,
     ClientAssertion,
@@ -52,7 +53,10 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
         authority: Authority
     ): Promise<AuthenticationResult | null> {
         // Build augmented scopes once for both thumbprint and body
-        const scopeSet = new ScopeSet(request.scopes || []);
+        const scopeSet = new ScopeSet(
+            request.scopes || [],
+            request.correlationId
+        );
         scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
         const augmentedScopes = scopeSet.asArray();
 
@@ -128,7 +132,11 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
             this.config.authOptions.clientId
         );
 
-        RequestParameterBuilder.addScopes(parameters, augmentedScopes);
+        RequestParameterBuilder.addScopes(
+            parameters,
+            augmentedScopes,
+            request.correlationId
+        );
 
         RequestParameterBuilder.addGrantType(
             parameters,
@@ -201,15 +209,24 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
             );
         }
 
+        /*
+         * Deep-merge the server-issued `claims` challenge with client-originated `claimsFromClient`
+         * (via addClaims -> buildMergedClaims) so both are sent on the wire. Client capabilities
+         * are appended by buildMergedClaims.
+         */
         if (
-            request.claims ||
+            !StringUtils.isEmptyObj(request.claims) ||
+            !StringUtils.isEmptyObj(request.claimsFromClient) ||
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
             RequestParameterBuilder.addClaims(
                 parameters,
+                request.correlationId,
                 request.claims,
-                this.config.authOptions.clientCapabilities
+                this.config.authOptions.clientCapabilities,
+                undefined,
+                request.claimsFromClient
             );
         }
 

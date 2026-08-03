@@ -231,6 +231,11 @@ export type PerformanceEvent = {
     lateResponseExperimentEnabled?: boolean;
 
     /**
+     * Number of times a fetch POST request was retried due to transport failure
+     */
+    fetchRetryCount?: number;
+
+    /**
      * Size of the id token
      *
      * @type {number}
@@ -425,6 +430,11 @@ export type PerformanceEvent = {
     deduped?: boolean;
 
     /**
+     * Whether caller-provided attribute tokens are present on the request
+     */
+    hasAttributeTokens?: boolean;
+
+    /**
      * Whether the user has "Keep Me Signed In" enabled
      */
     kmsi?: boolean;
@@ -572,4 +582,5 @@ export const IntFields: ReadonlySet<string> = new Set([
     "networkRtt",
     "redirectBridgeTimeoutMs",
     "redirectBridgeMessageVersion",
+    "fetchRetryCount",
 ]);

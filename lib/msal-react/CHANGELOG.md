@@ -1,8 +1,49 @@
 # Change Log - @azure/msal-react
 
-<!-- This log was last generated on Tue, 16 Jun 2026 19:46:35 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 29 Jul 2026 00:26:31 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.5.4
+
+Wed, 29 Jul 2026 00:26:31 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.17.3
+
+## 5.5.3
+
+Wed, 15 Jul 2026 22:35:35 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.17.1
+
+## 5.5.2
+
+Tue, 07 Jul 2026 22:16:01 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.17.0
+
+## 5.5.1
+
+Tue, 30 Jun 2026 21:04:20 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v5.16.0
+
+## 5.5.0
+
+Tue, 23 Jun 2026 22:19:30 GMT
+
+### Minor changes
+
+- Match the updated msal-browser AuthError signature [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609) (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-browser to v5.15.0
 
 ## 5.4.5
 

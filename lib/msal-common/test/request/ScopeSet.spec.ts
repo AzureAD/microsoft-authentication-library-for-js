@@ -17,15 +17,17 @@ describe("ScopeSet.ts", () => {
     describe("Constructor and scope validation", () => {
         it("Throws error if scopes are null or empty and required", () => {
             // @ts-ignore
-            expect(() => new ScopeSet(null)).toThrow(
+            expect(() => new ScopeSet(null, "")).toThrow(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.emptyInputScopesError
+                    ClientConfigurationErrorCodes.emptyInputScopesError,
+                    ""
                 )
             );
 
-            expect(() => new ScopeSet([])).toThrow(
+            expect(() => new ScopeSet([], "")).toThrow(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.emptyInputScopesError
+                    ClientConfigurationErrorCodes.emptyInputScopesError,
+                    ""
                 )
             );
         });
@@ -37,7 +39,10 @@ describe("ScopeSet.ts", () => {
             const trimmedTestScope2 = "TeStScOpE2";
             const testScope3 = "   TESTSCOPE3   ";
             const trimmedTestScope3 = "TESTSCOPE3";
-            const scopeSet = new ScopeSet([testScope1, testScope2, testScope3]);
+            const scopeSet = new ScopeSet(
+                [testScope1, testScope2, testScope3],
+                ""
+            );
             expect(scopeSet.asArray()).toEqual([
                 trimmedTestScope1,
                 trimmedTestScope2,
@@ -51,13 +56,10 @@ describe("ScopeSet.ts", () => {
             const testScope3 = "TESTSCOPE";
             const testScope4 = "testscope";
             const testScope5 = "testscope";
-            const scopeSet = new ScopeSet([
-                testScope1,
-                testScope2,
-                testScope3,
-                testScope4,
-                testScope5,
-            ]);
+            const scopeSet = new ScopeSet(
+                [testScope1, testScope2, testScope3, testScope4, testScope5],
+                ""
+            );
             expect(scopeSet.asArray()).toEqual([
                 testScope1,
                 testScope2,
@@ -69,23 +71,26 @@ describe("ScopeSet.ts", () => {
 
     describe("fromString Constructor", () => {
         it("Throws error if scopeString is empty, null or undefined if scopes are required", () => {
-            expect(() => ScopeSet.fromString("")).toThrow(
+            expect(() => ScopeSet.fromString("", "")).toThrow(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.emptyInputScopesError
+                    ClientConfigurationErrorCodes.emptyInputScopesError,
+                    ""
                 )
             );
 
             // @ts-ignore
-            expect(() => ScopeSet.fromString(null)).toThrow(
+            expect(() => ScopeSet.fromString(null, "")).toThrow(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.emptyInputScopesError
+                    ClientConfigurationErrorCodes.emptyInputScopesError,
+                    ""
                 )
             );
 
             // @ts-ignore
-            expect(() => ScopeSet.fromString(undefined)).toThrow(
+            expect(() => ScopeSet.fromString(undefined, "")).toThrow(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.emptyInputScopesError
+                    ClientConfigurationErrorCodes.emptyInputScopesError,
+                    ""
                 )
             );
         });
@@ -98,7 +103,8 @@ describe("ScopeSet.ts", () => {
             const testScope3 = "   TESTSCOPE3  ";
             const trimmedTestScope3 = "TESTSCOPE3";
             const scopeSet = ScopeSet.fromString(
-                `${testScope1} ${testScope2} ${testScope3}`
+                `${testScope1} ${testScope2} ${testScope3}`,
+                ""
             );
             expect(scopeSet.asArray()).toEqual([
                 trimmedTestScope1,
@@ -114,7 +120,8 @@ describe("ScopeSet.ts", () => {
             const testScope4 = "testscope";
             const testScope5 = "testscope";
             const scopeSet = ScopeSet.fromString(
-                `${testScope1} ${testScope2} ${testScope3} ${testScope4} ${testScope5}`
+                `${testScope1} ${testScope2} ${testScope3} ${testScope4} ${testScope5}`,
+                ""
             );
             expect(scopeSet.asArray()).toEqual([
                 testScope1,
@@ -125,12 +132,40 @@ describe("ScopeSet.ts", () => {
         });
     });
 
+    describe("correlationId propagation", () => {
+        const correlationId = "scope-set-corr-id";
+
+        it("ScopeSet constructor propagates correlationId on empty scopes error", () => {
+            try {
+                new ScopeSet([], correlationId);
+                throw new Error("Expected ScopeSet constructor to throw");
+            } catch (err) {
+                expect(err).toBeInstanceOf(ClientConfigurationError);
+                expect((err as ClientConfigurationError).correlationId).toBe(
+                    correlationId
+                );
+            }
+        });
+
+        it("ScopeSet.fromString propagates correlationId on empty scopes error", () => {
+            try {
+                ScopeSet.fromString("", correlationId);
+                throw new Error("Expected ScopeSet.fromString to throw");
+            } catch (err) {
+                expect(err).toBeInstanceOf(ClientConfigurationError);
+                expect((err as ClientConfigurationError).correlationId).toBe(
+                    correlationId
+                );
+            }
+        });
+    });
+
     describe("Set functions", () => {
         let scopes: ScopeSet;
         let testScope: string;
         beforeEach(() => {
             testScope = "testscope";
-            scopes = new ScopeSet([testScope]);
+            scopes = new ScopeSet([testScope], "");
         });
 
         it("containsScope() checks if a given scope is present in the set of scopes", () => {
@@ -148,14 +183,13 @@ describe("ScopeSet.ts", () => {
         });
 
         it("containsScopeSet() checks if a given ScopeSet is fully contained in another - returns false otherwise", () => {
-            const biggerSet = new ScopeSet([
-                testScope,
-                "testScope2",
-                "testScope3",
-            ]);
+            const biggerSet = new ScopeSet(
+                [testScope, "testScope2", "testScope3"],
+                ""
+            );
             expect(biggerSet.containsScopeSet(scopes)).toBe(true);
 
-            const alternateSet = new ScopeSet(["testScope2"]);
+            const alternateSet = new ScopeSet(["testScope2"], "");
             expect(scopes.containsScopeSet(alternateSet)).toBe(false);
         });
 
@@ -204,12 +238,18 @@ describe("ScopeSet.ts", () => {
         it("appendScopes() throws error if given array is null or undefined", () => {
             // @ts-ignore
             expect(() => scopes.appendScopes(null)).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.cannotAppendScopeSet)
+                new ClientAuthError(
+                    ClientAuthErrorCodes.cannotAppendScopeSet,
+                    ""
+                )
             );
 
             // @ts-ignore
             expect(() => scopes.appendScopes(undefined)).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.cannotAppendScopeSet)
+                new ClientAuthError(
+                    ClientAuthErrorCodes.cannotAppendScopeSet,
+                    ""
+                )
             );
         });
 
@@ -246,10 +286,10 @@ describe("ScopeSet.ts", () => {
         });
 
         it("appendScopes() does not add duplicate scopes", () => {
-            const unchangedScopes = new ScopeSet([
-                testScope,
-                Constants.OFFLINE_ACCESS_SCOPE,
-            ]);
+            const unchangedScopes = new ScopeSet(
+                [testScope, Constants.OFFLINE_ACCESS_SCOPE],
+                ""
+            );
             const scopeArr = unchangedScopes.asArray();
             unchangedScopes.appendScopes([
                 testScope,
@@ -261,16 +301,25 @@ describe("ScopeSet.ts", () => {
         it("removeScopes() throws error if scope is null, undefined or empty", () => {
             // @ts-ignore
             expect(() => scopes.removeScope(null)).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.cannotRemoveEmptyScope)
+                new ClientAuthError(
+                    ClientAuthErrorCodes.cannotRemoveEmptyScope,
+                    ""
+                )
             );
 
             // @ts-ignore
             expect(() => scopes.removeScope(undefined)).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.cannotRemoveEmptyScope)
+                new ClientAuthError(
+                    ClientAuthErrorCodes.cannotRemoveEmptyScope,
+                    ""
+                )
             );
 
             expect(() => scopes.removeScope("")).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.cannotRemoveEmptyScope)
+                new ClientAuthError(
+                    ClientAuthErrorCodes.cannotRemoveEmptyScope,
+                    ""
+                )
             );
         });
 
@@ -285,19 +334,19 @@ describe("ScopeSet.ts", () => {
         it("unionScopeSets() throws error if input is null or undefined", () => {
             // @ts-ignore
             expect(() => scopes.unionScopeSets(null)).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.emptyInputScopeSet)
+                new ClientAuthError(ClientAuthErrorCodes.emptyInputScopeSet, "")
             );
 
             // @ts-ignore
             expect(() => scopes.unionScopeSets(undefined)).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.emptyInputScopeSet)
+                new ClientAuthError(ClientAuthErrorCodes.emptyInputScopeSet, "")
             );
         });
 
         it("unionScopeSets() combines multiple sets and returns new Set of scopes", () => {
             const testScope2 = "testScope2";
             const testScope3 = "testScope3";
-            const newScopeSet = new ScopeSet([testScope2, testScope3]);
+            const newScopeSet = new ScopeSet([testScope2, testScope3], "");
             newScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
 
             const unionSet = newScopeSet.unionScopeSets(scopes);
@@ -317,76 +366,79 @@ describe("ScopeSet.ts", () => {
         it("intersectingScopeSets() throws error if input is null or undefined", () => {
             // @ts-ignore
             expect(() => scopes.intersectingScopeSets(null)).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.emptyInputScopeSet)
+                new ClientAuthError(ClientAuthErrorCodes.emptyInputScopeSet, "")
             );
 
             // @ts-ignore
             expect(() => scopes.intersectingScopeSets(undefined)).toThrow(
-                new ClientAuthError(ClientAuthErrorCodes.emptyInputScopeSet)
+                new ClientAuthError(ClientAuthErrorCodes.emptyInputScopeSet, "")
             );
         });
 
         it("intersectingScopeSets() returns true if ScopeSets have one or more scopes in common", () => {
             const testScope2 = "testScope2";
-            const newScopeSet = new ScopeSet([testScope, testScope2]);
+            const newScopeSet = new ScopeSet([testScope, testScope2], "");
             expect(newScopeSet.intersectingScopeSets(scopes)).toBe(true);
         });
 
         it("intersectingScopeSets() returns false if ScopeSets have no scopes in common", () => {
             const testScope2 = "testScope2";
             const testScope3 = "testScope3";
-            const newScopeSet = new ScopeSet([testScope2, testScope3]);
+            const newScopeSet = new ScopeSet([testScope2, testScope3], "");
             newScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
 
             expect(newScopeSet.intersectingScopeSets(scopes)).toBe(false);
         });
 
         it("intersectingScopeSets() does not ignore OIDC scopes if they are only present", () => {
-            const scopeset1 = new ScopeSet([...Constants.OIDC_SCOPES]);
-            const scopeset2 = new ScopeSet([...Constants.OIDC_SCOPES]);
+            const scopeset1 = new ScopeSet([...Constants.OIDC_SCOPES], "");
+            const scopeset2 = new ScopeSet([...Constants.OIDC_SCOPES], "");
             expect(scopeset1.intersectingScopeSets(scopeset2)).toBe(true);
         });
 
         it("intersectingScopeSets() ignores OIDC scopes if other scopes are present", () => {
             const testScope = "testScope";
             const testScope2 = "testScope2";
-            const scopeset1 = new ScopeSet([
-                ...Constants.OIDC_SCOPES,
-                testScope,
-            ]);
-            const scopeset2 = new ScopeSet([
-                ...Constants.OIDC_SCOPES,
-                testScope2,
-            ]);
+            const scopeset1 = new ScopeSet(
+                [...Constants.OIDC_SCOPES, testScope],
+                ""
+            );
+            const scopeset2 = new ScopeSet(
+                [...Constants.OIDC_SCOPES, testScope2],
+                ""
+            );
             expect(scopeset1.intersectingScopeSets(scopeset2)).toBe(false);
 
-            const scopeset3 = new ScopeSet([
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
-                Constants.EMAIL_SCOPE,
-                testScope,
-            ]);
-            const scopeset4 = new ScopeSet([
-                ...Constants.OIDC_DEFAULT_SCOPES,
-                testScope,
-            ]);
+            const scopeset3 = new ScopeSet(
+                [
+                    Constants.OPENID_SCOPE,
+                    Constants.PROFILE_SCOPE,
+                    Constants.EMAIL_SCOPE,
+                    testScope,
+                ],
+                ""
+            );
+            const scopeset4 = new ScopeSet(
+                [...Constants.OIDC_DEFAULT_SCOPES, testScope],
+                ""
+            );
             expect(scopeset3.intersectingScopeSets(scopeset4)).toBe(true);
         });
 
         it("getScopeCount() correctly returns the size of the ScopeSet", () => {
             expect(scopes.getScopeCount()).toBe(1);
 
-            const twoScopes = new ScopeSet(["1", "2"]);
+            const twoScopes = new ScopeSet(["1", "2"], "");
             expect(twoScopes.getScopeCount()).toBe(2);
 
-            const threeScopes = new ScopeSet(["1", "2", "3"]);
+            const threeScopes = new ScopeSet(["1", "2", "3"], "");
             expect(threeScopes.getScopeCount()).toBe(3);
         });
     });
 
     describe("createSearchScopes static method", () => {
         it("handles empty scopes array by using default OIDC scopes", () => {
-            const result = ScopeSet.createSearchScopes([]);
+            const result = ScopeSet.createSearchScopes([], "");
             // After processing, it should have OIDC scopes except offline_access (which gets removed by the removeScope logic)
             const resultScopes = result.asArray();
             expect(resultScopes).toContain(Constants.OPENID_SCOPE);
@@ -398,14 +450,14 @@ describe("ScopeSet.ts", () => {
         it("handles null or undefined scopes array by using default OIDC scopes", () => {
             // Test null input
             // @ts-ignore - intentionally testing null input
-            const resultNull = ScopeSet.createSearchScopes(null);
+            const resultNull = ScopeSet.createSearchScopes(null, "");
             const nullScopes = resultNull.asArray();
             expect(nullScopes).toContain(Constants.OPENID_SCOPE);
             expect(nullScopes).toContain(Constants.PROFILE_SCOPE);
 
             // Test undefined input
             // @ts-ignore - intentionally testing undefined input
-            const resultUndefined = ScopeSet.createSearchScopes(undefined);
+            const resultUndefined = ScopeSet.createSearchScopes(undefined, "");
             const undefinedScopes = resultUndefined.asArray();
             expect(undefinedScopes).toContain(Constants.OPENID_SCOPE);
             expect(undefinedScopes).toContain(Constants.PROFILE_SCOPE);
@@ -413,7 +465,7 @@ describe("ScopeSet.ts", () => {
 
         it("creates ScopeSet with provided scopes and processes them correctly", () => {
             const scopes = ["testscope1", "testscope2"];
-            const result = ScopeSet.createSearchScopes(scopes);
+            const result = ScopeSet.createSearchScopes(scopes, "");
             const resultScopes = result.asArray();
             expect(resultScopes).toContain("testscope1");
             expect(resultScopes).toContain("testscope2");
@@ -429,7 +481,7 @@ describe("ScopeSet.ts", () => {
                 Constants.PROFILE_SCOPE,
                 Constants.OFFLINE_ACCESS_SCOPE,
             ];
-            const result = ScopeSet.createSearchScopes(oidcScopes);
+            const result = ScopeSet.createSearchScopes(oidcScopes, "");
             const resultScopes = result.asArray();
             expect(resultScopes).toContain(Constants.OPENID_SCOPE);
             expect(resultScopes).toContain(Constants.PROFILE_SCOPE);
@@ -448,10 +500,10 @@ describe("ScopeSet.ts", () => {
         beforeEach(() => {
             testScope = "testscope";
             testScope2 = "testScope";
-            requiredScopeSet = new ScopeSet([testScope]);
-            nonRequiredScopeSet = new ScopeSet([testScope]);
-            uppercaseScopeSet = new ScopeSet([testScope2]);
-            lowercaseScopeSet = new ScopeSet([testScope]);
+            requiredScopeSet = new ScopeSet([testScope], "");
+            nonRequiredScopeSet = new ScopeSet([testScope], "");
+            uppercaseScopeSet = new ScopeSet([testScope2], "");
+            lowercaseScopeSet = new ScopeSet([testScope], "");
         });
 
         it("asArray() returns ScopeSet as an array", () => {

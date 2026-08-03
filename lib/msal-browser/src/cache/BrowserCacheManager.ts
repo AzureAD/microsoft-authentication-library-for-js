@@ -446,7 +446,8 @@ export class BrowserCacheManager extends CacheManager {
                 const idToken = JSON.parse(rawValue) as IdTokenEntity;
                 const claims = AuthToken.extractTokenClaims(
                     idToken.secret,
-                    base64Decode
+                    base64Decode,
+                    ""
                 );
                 if (claims) {
                     kmsiMap[idToken.homeAccountId] = AuthToken.isKmsi(claims);
@@ -561,7 +562,8 @@ export class BrowserCacheManager extends CacheManager {
 
             const claims = AuthToken.extractTokenClaims(
                 oldSchemaData.secret,
-                base64Decode
+                base64Decode,
+                correlationId
             );
 
             const newIdTokenKey = this.generateCredentialKey(oldSchemaData);
@@ -576,7 +578,8 @@ export class BrowserCacheManager extends CacheManager {
                 Object.keys(
                     AuthToken.extractTokenClaims(
                         currentIdToken.secret,
-                        base64Decode
+                        base64Decode,
+                        correlationId
                     ) || {}
                 ).includes("signin_state");
 
@@ -603,6 +606,7 @@ export class BrowserCacheManager extends CacheManager {
                         account.homeAccountId,
                         account.localAccountId,
                         tenantId,
+                        account.nativeAccountId,
                         claims
                     );
                     tenantProfiles.push(newTenantProfile);
@@ -920,10 +924,9 @@ export class BrowserCacheManager extends CacheManager {
                 `MSAL.js was last initialized by version: '${previousVersion}'`,
                 correlationId
             );
-            this.performanceClient.addFields(
-                { previousLibraryVersion: previousVersion },
-                correlationId
-            );
+            this.performanceClient.addGlobalFields({
+                previousLibraryVersion: previousVersion,
+            });
         }
 
         if (previousVersion !== version) {
@@ -1568,19 +1571,23 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * set accessToken credential to the platform cache
-     * @param accessToken
+     * Set accessToken credential to the platform cache
+     * @param accessToken - the access token entity to cache
      */
     async setAccessTokenCredential(
         accessToken: AccessTokenEntity,
         correlationId: string,
-        kmsi: boolean
+        kmsi: boolean,
+        additionalCacheKeyHash?: string
     ): Promise<void> {
         this.logger.trace(
             "BrowserCacheManager.setAccessTokenCredential called",
             correlationId
         );
-        const accessTokenKey = this.generateCredentialKey(accessToken);
+        const accessTokenKey = this.generateCredentialKey(
+            accessToken,
+            additionalCacheKeyHash
+        );
         const timestamp = Date.now().toString();
         accessToken.lastUpdatedAt = timestamp;
 
@@ -2115,11 +2122,16 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Generate Credential Key. All changes to the key REQUIRE a schema version update.
-     * Cache Key: msal.<schema_version>|<home_account_id>|<environment>|<credential_type>|<client_id or familyId>|<realm>|<scopes>|<scheme>
+     * Cache Key: msal.<schema_version>|<home_account_id>|<environment>|<credential_type>|<client_id or familyId>|<realm>|<scopes>|<scheme>|<additional_cache_key_components_hash>
+     *
      * @param credentialEntity
+     * @param hash - optional precomputed hash of additionalCacheKeyComponents
      * @returns
      */
-    generateCredentialKey(credential: CredentialEntity): string {
+    generateCredentialKey(
+        credential: CredentialEntity,
+        additionalCacheKeyHash?: string
+    ): string {
         const familyId =
             (credential.credentialType ===
                 Constants.CredentialType.REFRESH_TOKEN &&
@@ -2141,6 +2153,15 @@ export class BrowserCacheManager extends CacheManager {
             credential.target || "",
             scheme,
         ];
+
+        // Append precomputed component-hash segment.
+        if (
+            credential.additionalCacheKeyComponents &&
+            Object.keys(credential.additionalCacheKeyComponents).length > 0 &&
+            additionalCacheKeyHash
+        ) {
+            credentialKey.push(additionalCacheKeyHash);
+        }
 
         return credentialKey.join(CacheKeys.CACHE_KEY_SEPARATOR).toLowerCase();
     }
@@ -2236,7 +2257,8 @@ export class BrowserCacheManager extends CacheManager {
         );
         if (!encodedTokenRequest) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.noTokenRequestCacheError
+                BrowserAuthErrorCodes.noTokenRequestCacheError,
+                ""
             );
         }
         const encodedVerifier = this.getTemporaryCache(
@@ -2262,7 +2284,8 @@ export class BrowserCacheManager extends CacheManager {
                 correlationId
             );
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
+                BrowserAuthErrorCodes.unableToParseTokenRequestCacheError,
+                ""
             );
         }
 
@@ -2363,7 +2386,8 @@ export class BrowserCacheManager extends CacheManager {
                     this.removeTemporaryItem(key);
                 } else {
                     throw createBrowserAuthError(
-                        BrowserAuthErrorCodes.interactionInProgress
+                        BrowserAuthErrorCodes.interactionInProgress,
+                        ""
                     );
                 }
             }
@@ -2425,6 +2449,7 @@ export class BrowserCacheManager extends CacheManager {
                 ? TimeUtils.toSecondsFromDate(result.extExpiresOn)
                 : 0,
             base64Decode,
+            request.correlationId || "",
             undefined, // refreshOn
             result.tokenType as Constants.AuthenticationScheme,
             undefined, // userAssertionHash
@@ -2443,7 +2468,11 @@ export class BrowserCacheManager extends CacheManager {
             cacheRecord,
             result.correlationId,
             AuthToken.isKmsi(
-                AuthToken.extractTokenClaims(result.idToken, base64Decode)
+                AuthToken.extractTokenClaims(
+                    result.idToken,
+                    base64Decode,
+                    result.correlationId
+                )
             ),
             ApiId.hydrateCache
         );

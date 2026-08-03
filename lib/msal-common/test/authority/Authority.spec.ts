@@ -43,6 +43,7 @@ import {
     UrlString,
 } from "../../src/index.js";
 import { RegionDiscovery } from "../../src/authority/RegionDiscovery.js";
+import { RegionDiscoveryMetadata } from "../../src/authority/RegionDiscoveryMetadata.js";
 import { InstanceDiscoveryMetadata } from "../../src/authority/AuthorityMetadata.js";
 import * as authorityMetadata from "../../src/authority/AuthorityMetadata.js";
 import { getDefaultErrorMessage } from "../../src/error/AuthError.js";
@@ -159,7 +160,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     )
             ).toThrow(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.authorityUriInsecure
+                    ClientConfigurationErrorCodes.authorityUriInsecure,
+                    ""
                 )
             );
             expect(
@@ -175,7 +177,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     )
             ).toThrow(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.urlParseError
+                    ClientConfigurationErrorCodes.urlParseError,
+                    ""
                 )
             );
             expect(
@@ -191,7 +194,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     )
             ).toThrow(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.urlEmptyError
+                    ClientConfigurationErrorCodes.urlEmptyError,
+                    ""
                 )
             );
         });
@@ -241,7 +245,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         "http://login.microsoftonline.com/common")
             ).toThrow(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.authorityUriInsecure
+                    ClientConfigurationErrorCodes.authorityUriInsecure,
+                    ""
                 )
             );
             expect(
@@ -253,7 +258,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 () => (authority.canonicalAuthority = "This is not a URI")
             ).toThrow(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.urlParseError
+                    ClientConfigurationErrorCodes.urlParseError,
+                    ""
                 )
             );
 
@@ -362,32 +368,38 @@ describe("Authority.ts Class Unit Tests", () => {
                 );
                 expect(() => authority.authorizationEndpoint).toThrowError(
                     createClientAuthError(
-                        ClientAuthErrorCodes.endpointResolutionError
+                        ClientAuthErrorCodes.endpointResolutionError,
+                        ""
                     )
                 );
                 expect(() => authority.tokenEndpoint).toThrowError(
                     createClientAuthError(
-                        ClientAuthErrorCodes.endpointResolutionError
+                        ClientAuthErrorCodes.endpointResolutionError,
+                        ""
                     )
                 );
                 expect(() => authority.endSessionEndpoint).toThrowError(
                     createClientAuthError(
-                        ClientAuthErrorCodes.endpointResolutionError
+                        ClientAuthErrorCodes.endpointResolutionError,
+                        ""
                     )
                 );
                 expect(() => authority.deviceCodeEndpoint).toThrowError(
                     createClientAuthError(
-                        ClientAuthErrorCodes.endpointResolutionError
+                        ClientAuthErrorCodes.endpointResolutionError,
+                        ""
                     )
                 );
                 expect(() => authority.selfSignedJwtAudience).toThrowError(
                     createClientAuthError(
-                        ClientAuthErrorCodes.endpointResolutionError
+                        ClientAuthErrorCodes.endpointResolutionError,
+                        ""
                     )
                 );
                 expect(() => authority.jwksUri).toThrowError(
                     createClientAuthError(
-                        ClientAuthErrorCodes.endpointResolutionError
+                        ClientAuthErrorCodes.endpointResolutionError,
+                        ""
                     )
                 );
             });
@@ -500,7 +512,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 const newAuthorityEndpoint =
                     response.authorization_endpoint.replace(tenant, newTenant);
                 const urlComponents = new UrlString(
-                    newAuthorityEndpoint
+                    newAuthorityEndpoint,
+                    ""
                 ).getUrlComponents();
 
                 // Mimic tenant switching
@@ -549,7 +562,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         newTenantDomain
                     );
                 const urlComponents = new UrlString(
-                    newAuthorityEndpoint
+                    newAuthorityEndpoint,
+                    ""
                 ).getUrlComponents();
 
                 // Mimic tenant switching
@@ -597,7 +611,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 const newAuthorityEndpoint =
                     response.authorization_endpoint.replace(tenant, newTenant);
                 const urlComponents = new UrlString(
-                    newAuthorityEndpoint
+                    newAuthorityEndpoint,
+                    ""
                 ).getUrlComponents();
 
                 // Mimic tenant switching
@@ -925,6 +940,188 @@ describe("Authority.ts Class Unit Tests", () => {
         });
     });
 
+    describe("RegionDiscovery IMDS compute endpoint", () => {
+        const correlationId = TEST_CONFIG.CORRELATION_ID;
+
+        const buildNetworkInterface = (
+            getImpl: (url: string, options?: NetworkRequestOptions) => unknown
+        ): INetworkModule => ({
+            sendGetRequestAsync: <T>(
+                url: string,
+                options?: NetworkRequestOptions
+            ): Promise<T> => Promise.resolve(getImpl(url, options) as T),
+            sendPostRequestAsync: <T>(): Promise<T> => Promise.resolve({} as T),
+        });
+
+        it("calls the IMDS /compute JSON endpoint and reads the location field", async () => {
+            let requestedUrl = "";
+            const networkInterface = buildNetworkInterface((url) => {
+                requestedUrl = url;
+                return {
+                    status: Constants.HTTP_SUCCESS,
+                    body: { location: "centralus" },
+                };
+            });
+
+            const regionDiscovery = new RegionDiscovery(
+                networkInterface,
+                logger,
+                new StubPerformanceClient(),
+                correlationId
+            );
+            const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
+
+            const region = await regionDiscovery.detectRegion(
+                undefined,
+                regionDiscoveryMetadata
+            );
+
+            expect(region).toBe("centralus");
+            expect(requestedUrl).toBe(
+                `${Constants.IMDS_ENDPOINT}?api-version=${Constants.IMDS_VERSION}`
+            );
+            expect(requestedUrl).toContain(
+                "metadata/instance/compute?api-version=2021-02-01"
+            );
+            expect(requestedUrl).not.toContain("format=text");
+            expect(requestedUrl).not.toContain("/compute/location");
+            expect(regionDiscoveryMetadata.region_source).toBe(
+                Constants.RegionDiscoverySources.IMDS
+            );
+        });
+
+        it("falls back to FAILED_AUTO_DETECTION when the location field is missing", async () => {
+            const networkInterface = buildNetworkInterface(() => ({
+                status: Constants.HTTP_SUCCESS,
+                body: { vmId: "11111111-1111-1111-1111-111111111111" },
+            }));
+
+            const regionDiscovery = new RegionDiscovery(
+                networkInterface,
+                logger,
+                new StubPerformanceClient(),
+                correlationId
+            );
+            const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
+
+            const region = await regionDiscovery.detectRegion(
+                undefined,
+                regionDiscoveryMetadata
+            );
+
+            expect(region).toBeNull();
+            expect(regionDiscoveryMetadata.region_source).toBe(
+                Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION
+            );
+        });
+
+        it("falls back to FAILED_AUTO_DETECTION when the location field is null", async () => {
+            const networkInterface = buildNetworkInterface(() => ({
+                status: Constants.HTTP_SUCCESS,
+                body: { location: null },
+            }));
+
+            const regionDiscovery = new RegionDiscovery(
+                networkInterface,
+                logger,
+                new StubPerformanceClient(),
+                correlationId
+            );
+            const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
+
+            const region = await regionDiscovery.detectRegion(
+                undefined,
+                regionDiscoveryMetadata
+            );
+
+            expect(region).toBeNull();
+            expect(regionDiscoveryMetadata.region_source).toBe(
+                Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION
+            );
+        });
+
+        it("falls back to FAILED_AUTO_DETECTION when the IMDS body is malformed JSON", async () => {
+            // The network client throws while parsing a malformed JSON body.
+            const networkInterface = buildNetworkInterface(() => {
+                throw new Error("Failed to parse response");
+            });
+
+            const regionDiscovery = new RegionDiscovery(
+                networkInterface,
+                logger,
+                new StubPerformanceClient(),
+                correlationId
+            );
+            const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
+
+            const region = await regionDiscovery.detectRegion(
+                undefined,
+                regionDiscoveryMetadata
+            );
+
+            expect(region).toBeNull();
+            expect(regionDiscoveryMetadata.region_source).toBe(
+                Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION
+            );
+        });
+
+        it("negotiates a new api-version on 400 then reads location from the retry", async () => {
+            const requestedUrls: string[] = [];
+            const networkInterface = buildNetworkInterface((url) => {
+                requestedUrls.push(url);
+
+                // Probe for supported versions (no api-version param).
+                if (url === `${Constants.IMDS_ENDPOINT}?format=json`) {
+                    return {
+                        status: Constants.HTTP_BAD_REQUEST,
+                        body: {
+                            error: "invalid",
+                            "newest-versions": ["2020-10-01"],
+                        },
+                    };
+                }
+
+                // First call with the default api-version is rejected.
+                if (
+                    url ===
+                    `${Constants.IMDS_ENDPOINT}?api-version=${Constants.IMDS_VERSION}`
+                ) {
+                    return { status: Constants.HTTP_BAD_REQUEST, body: {} };
+                }
+
+                // Retry with the negotiated api-version succeeds.
+                return {
+                    status: Constants.HTTP_SUCCESS,
+                    body: { location: "centralus" },
+                };
+            });
+
+            const regionDiscovery = new RegionDiscovery(
+                networkInterface,
+                logger,
+                new StubPerformanceClient(),
+                correlationId
+            );
+            const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
+
+            const region = await regionDiscovery.detectRegion(
+                undefined,
+                regionDiscoveryMetadata
+            );
+
+            expect(region).toBe("centralus");
+            expect(regionDiscoveryMetadata.region_source).toBe(
+                Constants.RegionDiscoverySources.IMDS
+            );
+            expect(requestedUrls).toContain(
+                `${Constants.IMDS_ENDPOINT}?api-version=2020-10-01`
+            );
+            requestedUrls.forEach((url) => {
+                expect(url).not.toContain("format=text");
+            });
+        });
+    });
+
     describe("Endpoint discovery", () => {
         const networkInterface: INetworkModule = {
             sendGetRequestAsync<T>(
@@ -1153,7 +1350,8 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 expect(() => authority.endSessionEndpoint).toThrowError(
                     createClientAuthError(
-                        ClientAuthErrorCodes.endSessionEndpointNotSupported
+                        ClientAuthErrorCodes.endSessionEndpointNotSupported,
+                        ""
                     )
                 );
             });
@@ -1651,7 +1849,8 @@ describe("Authority.ts Class Unit Tests", () => {
             describe("validateIssuer", () => {
                 const issuerValidationFailedError =
                     createClientConfigurationError(
-                        ClientConfigurationErrorCodes.issuerValidationFailed
+                        ClientConfigurationErrorCodes.issuerValidationFailed,
+                        ""
                     );
 
                 const buildAuthority = (
@@ -2942,7 +3141,8 @@ describe("Authority.ts Class Unit Tests", () => {
             it("getPreferredCache throws error if discovery is not complete", () => {
                 expect(() => authority.getPreferredCache()).toThrowError(
                     createClientAuthError(
-                        ClientAuthErrorCodes.endpointResolutionError
+                        ClientAuthErrorCodes.endpointResolutionError,
+                        ""
                     )
                 );
             });
@@ -3137,7 +3337,8 @@ describe("Authority.ts Class Unit Tests", () => {
 
             const regionalResponse = Authority.replaceWithRegionalInformation(
                 originResponse,
-                "westus2"
+                "westus2",
+                ""
             );
             expect(regionalResponse.authorization_endpoint).toBe(
                 "https://westus2.login.microsoft.com/{tenant}/oauth2/v2.0/authorize/"
@@ -3152,7 +3353,8 @@ describe("Authority.ts Class Unit Tests", () => {
 
             const regionalResponse = Authority.replaceWithRegionalInformation(
                 originResponse,
-                "westus2"
+                "westus2",
+                ""
             );
             expect(regionalResponse.end_session_endpoint).toBeUndefined();
         });
@@ -3161,25 +3363,31 @@ describe("Authority.ts Class Unit Tests", () => {
     describe("getTenantFromAuthorityString", () => {
         it("returns tenantId if authority is a tenant-specific authority", () => {
             expect(
-                getTenantFromAuthorityString(TEST_CONFIG.tenantedValidAuthority)
+                getTenantFromAuthorityString(
+                    TEST_CONFIG.tenantedValidAuthority,
+                    ""
+                )
             ).toBe(TEST_CONFIG.MSAL_TENANT_ID);
         });
         it("returns undefined if authority is a named authority (common, organizations, consumers", () => {
             expect(
-                getTenantFromAuthorityString(TEST_CONFIG.validAuthority)
+                getTenantFromAuthorityString(TEST_CONFIG.validAuthority, "")
             ).toBeUndefined();
             expect(
-                getTenantFromAuthorityString(TEST_CONFIG.organizationsAuthority)
+                getTenantFromAuthorityString(
+                    TEST_CONFIG.organizationsAuthority,
+                    ""
+                )
             ).toBeUndefined();
             expect(
-                getTenantFromAuthorityString(TEST_CONFIG.consumersAuthority)
+                getTenantFromAuthorityString(TEST_CONFIG.consumersAuthority, "")
             ).toBeUndefined();
         });
 
         it("should not throw if authority has no path segments (certain OIDC scenarios)", () => {
             const authorityUrl = "https://login.live.com";
             expect(() =>
-                getTenantFromAuthorityString(authorityUrl)
+                getTenantFromAuthorityString(authorityUrl, "")
             ).not.toThrow();
         });
     });
@@ -3262,7 +3470,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 );
             }).toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata
+                    ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata,
+                    ""
                 )
             );
         });

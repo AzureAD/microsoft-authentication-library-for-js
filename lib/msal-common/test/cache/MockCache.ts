@@ -63,6 +63,16 @@ export class MockCache {
         const accountWithNativeAccountId =
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
         accountWithNativeAccountId.nativeAccountId = "mocked_native_account_id";
+        // Also set nativeAccountId on the matching tenant profile (source of truth)
+        if (accountWithNativeAccountId.tenantProfiles) {
+            const matchingProfile =
+                accountWithNativeAccountId.tenantProfiles.find(
+                    (tp) => tp.tenantId === accountWithNativeAccountId.realm
+                );
+            if (matchingProfile) {
+                matchingProfile.nativeAccountId = "mocked_native_account_id";
+            }
+        }
 
         await this.cacheManager.setAccount(accountWithNativeAccountId);
     }
@@ -105,7 +115,7 @@ export class MockCache {
             tokenType: AuthenticationScheme.BEARER,
             lastUpdatedAt: Date.now().toString(),
         };
-        await this.cacheManager.setAccessTokenCredential(atOne);
+        await this.cacheManager.setAccessTokenCredential(atOne, "", false);
 
         const atTwo = {
             environment: "login.microsoftonline.com",
@@ -121,7 +131,7 @@ export class MockCache {
             tokenType: AuthenticationScheme.BEARER,
             lastUpdatedAt: Date.now().toString(),
         };
-        await this.cacheManager.setAccessTokenCredential(atTwo);
+        await this.cacheManager.setAccessTokenCredential(atTwo, "", false);
 
         // With requested claims
         const atThree = {
@@ -139,7 +149,7 @@ export class MockCache {
             lastUpdatedAt: Date.now().toString(),
         };
 
-        await this.cacheManager.setAccessTokenCredential(atThree);
+        await this.cacheManager.setAccessTokenCredential(atThree, "", false);
 
         // BEARER with AuthScheme Token
         const bearerAtWithAuthScheme = {
@@ -157,7 +167,9 @@ export class MockCache {
             lastUpdatedAt: Date.now().toString(),
         };
         await this.cacheManager.setAccessTokenCredential(
-            bearerAtWithAuthScheme
+            bearerAtWithAuthScheme,
+            "",
+            false
         );
 
         // POP Token
@@ -176,7 +188,11 @@ export class MockCache {
             keyId: "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y",
             lastUpdatedAt: Date.now().toString(),
         };
-        await this.cacheManager.setAccessTokenCredential(popAtWithAuthScheme);
+        await this.cacheManager.setAccessTokenCredential(
+            popAtWithAuthScheme,
+            "",
+            false
+        );
 
         // SSH Certificate
         const sshAtWithAuthScheme = {
@@ -194,7 +210,11 @@ export class MockCache {
             keyId: "some_key_id",
             lastUpdatedAt: Date.now().toString(),
         };
-        await this.cacheManager.setAccessTokenCredential(sshAtWithAuthScheme);
+        await this.cacheManager.setAccessTokenCredential(
+            sshAtWithAuthScheme,
+            "",
+            false
+        );
 
         // userAssertionHash
         const atWithUserAssertionHash = {
@@ -213,7 +233,9 @@ export class MockCache {
             lastUpdatedAt: Date.now().toString(),
         };
         await this.cacheManager.setAccessTokenCredential(
-            atWithUserAssertionHash
+            atWithUserAssertionHash,
+            "",
+            false
         );
     }
 

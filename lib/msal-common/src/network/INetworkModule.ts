@@ -8,6 +8,7 @@ import {
     createClientAuthError,
 } from "../error/ClientAuthError.js";
 import { NetworkResponse } from "./NetworkResponse.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 
 /**
  * Options allowed by network request APIs.
@@ -15,6 +16,10 @@ import { NetworkResponse } from "./NetworkResponse.js";
 export type NetworkRequestOptions = {
     headers?: Record<string, string>;
     body?: string;
+    /** Correlation id for request-scoped telemetry. Used by internal retry logic. */
+    correlationId?: string;
+    /** Performance client for request-scoped telemetry. Used by internal retry logic. */
+    performanceClient?: IPerformanceClient;
 };
 
 /**
@@ -37,7 +42,7 @@ export interface INetworkModule {
     /**
      * Interface function for async network "POST" requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/
      * @param url
-     * @param options - Headers and/or body to include on the request
+     * @param options - Headers, body, and optional telemetry context to include on the request
      */
     sendPostRequestAsync<T>(
         url: string,
@@ -46,14 +51,15 @@ export interface INetworkModule {
 }
 
 export const StubbedNetworkModule: INetworkModule = {
+    // Module-level singleton: no per-request correlationId available
     sendGetRequestAsync: () => {
         return Promise.reject(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
     },
     sendPostRequestAsync: () => {
         return Promise.reject(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented, "")
         );
     },
 };

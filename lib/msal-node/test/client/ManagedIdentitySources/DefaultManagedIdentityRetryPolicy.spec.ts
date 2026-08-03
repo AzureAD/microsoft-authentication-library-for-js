@@ -121,7 +121,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
                     managedIdentityNetworkErrorClientDefault500.sendGetRequestAsync()
                 );
 
-            let serverError: ServerError = new ServerError();
+            let serverError: ServerError = new ServerError("", "");
             try {
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
@@ -277,7 +277,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
                     managedIdentityNetworkErrorClientDefault500.sendGetRequestAsync()
                 );
 
-            let serverError: ServerError = new ServerError();
+            let serverError: ServerError = new ServerError("", "");
             try {
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
@@ -338,7 +338,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
                     managedIdentityNetworkErrorClient400.sendGetRequestAsync()
                 );
 
-            let serverError: ServerError = new ServerError();
+            let serverError: ServerError = new ServerError("", "");
             try {
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
@@ -374,7 +374,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
                     managedIdentityNetworkErrorClientDefault500.sendGetRequestAsync()
                 );
 
-            let serverError: ServerError = new ServerError();
+            let serverError: ServerError = new ServerError("", "");
             try {
                 await managedIdentityApplicationNoRetry.acquireToken(
                     managedIdentityRequestParams

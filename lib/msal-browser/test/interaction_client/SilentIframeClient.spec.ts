@@ -238,6 +238,7 @@ describe("SilentIframeClient", () => {
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.timedOut,
+                    "",
                     "redirect_bridge_timeout"
                 )
             );
@@ -254,6 +255,7 @@ describe("SilentIframeClient", () => {
                     expect(e).toMatchObject(
                         createBrowserAuthError(
                             BrowserAuthErrorCodes.timedOut,
+                            "",
                             "redirect_bridge_timeout"
                         )
                     );
@@ -678,7 +680,8 @@ describe("SilentIframeClient", () => {
                 .catch((e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashEmptyError
+                            BrowserAuthErrorCodes.hashEmptyError,
+                            ""
                         )
                     );
                     done();
@@ -696,7 +699,8 @@ describe("SilentIframeClient", () => {
                 .catch((e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                            ""
                         )
                     );
                     done();
@@ -729,6 +733,7 @@ describe("SilentIframeClient", () => {
                 status: 200,
             };
             const testAccount: AccountInfo = {
+                dataBoundary: undefined,
                 homeAccountId: ID_TOKEN_CLAIMS.sub,
                 environment: "login.windows.net",
                 tenantId: ID_TOKEN_CLAIMS.tid,
@@ -755,6 +760,7 @@ describe("SilentIframeClient", () => {
                 ]),
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
+                kmsi: false,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -809,7 +815,24 @@ describe("SilentIframeClient", () => {
                 nonce: "123523",
                 state: TEST_STATE_VALUES.USER_STATE,
             });
-            expect(tokenResp).toEqual(testTokenResponse);
+            // Expires dates can differ by up to 1 second at boundary transitions.
+            expect(tokenResp).toMatchObject({
+                ...testTokenResponse,
+                expiresOn: expect.any(Date),
+                extExpiresOn: expect.any(Date),
+            });
+            expect(
+                Math.abs(
+                    tokenResp.expiresOn!.getTime() -
+                        testTokenResponse.expiresOn!.getTime()
+                )
+            ).toBeLessThanOrEqual(1000);
+            expect(
+                Math.abs(
+                    tokenResp.extExpiresOn!.getTime() -
+                        testTokenResponse.extExpiresOn!.getTime()
+                )
+            ).toBeLessThanOrEqual(1000);
             expect(sendPostRequestSpy.mock.results[0].value).resolves.toEqual(
                 testServerErrorResponse
             );
@@ -1355,6 +1378,7 @@ describe("SilentIframeClient", () => {
                 ).mockRejectedValue(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.timedOut,
+                        "",
                         "redirect_bridge_timeout"
                     )
                 );
@@ -1749,17 +1773,39 @@ describe("SilentIframeClient", () => {
                 ).mockResolvedValue(
                     `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
                 );
-                jest.spyOn(
-                    AuthorizeProtocol,
-                    "handleResponseCode"
-                ).mockResolvedValue(getTestAuthenticationResult());
+                const handleResponseCodeSpy = jest
+                    .spyOn(AuthorizeProtocol, "handleResponseCode")
+                    .mockResolvedValue(getTestAuthenticationResult());
                 const earFormSpy = jest
                     .spyOn(SilentHandler, "initiateEarRequest")
                     .mockResolvedValue(document.createElement("iframe"));
 
-                const result = await pca.ssoSilent(validRequest);
+                const result = await pca.ssoSilent({
+                    ...validRequest,
+                    attributeTokens: ["zeta", "alpha", "mike"],
+                });
                 expect(result).toEqual(getTestAuthenticationResult());
                 expect(earFormSpy).toHaveBeenCalled();
+                expect(handleResponseCodeSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        attributeTokens: expect.arrayContaining([
+                            "zeta",
+                            "alpha",
+                            "mike",
+                        ]),
+                    }),
+                    expect.anything(),
+                    expect.any(String),
+                    expect.any(Number),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    undefined
+                );
             });
 
             it("throws if protocolMode is set to EAR and httpMethod is set to GET", async () => {
@@ -1770,7 +1816,8 @@ describe("SilentIframeClient", () => {
                     })
                 ).rejects.toThrow(
                     createClientConfigurationError(
-                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
+                        ""
                     )
                 );
             });
@@ -1949,6 +1996,7 @@ describe("SilentIframeClient", () => {
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.timedOut,
+                    "",
                     "redirect_bridge_timeout"
                 )
             );
@@ -1980,7 +2028,8 @@ describe("SilentIframeClient", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentIframeClient.logout).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.silentLogoutUnsupported
+                    BrowserAuthErrorCodes.silentLogoutUnsupported,
+                    ""
                 )
             );
         });

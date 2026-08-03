@@ -7,6 +7,8 @@ import { MsalBroadcastService } from "./msal.broadcast.service";
 import { MsalModule } from "./msal.module";
 import { MsalRedirectComponent } from "./msal.redirect.component";
 import { MsalService } from "./msal.service";
+import { MsalGuardConfiguration } from "./msal.guard.config";
+import { MsalInterceptorConfiguration } from "./msal.interceptor.config";
 
 let authService: MsalService;
 let broadcastService: MsalBroadcastService;
@@ -25,7 +27,13 @@ function initializeMsal() {
 
   TestBed.configureTestingModule({
     declarations: [MsalRedirectComponent],
-    imports: [MsalModule.forRoot(MSALInstanceFactory(), null, null)],
+    imports: [
+      MsalModule.forRoot(
+        MSALInstanceFactory(),
+        null as unknown as MsalGuardConfiguration,
+        null as unknown as MsalInterceptorConfiguration
+      ),
+    ],
     providers: [],
     teardown: { destroyAfterEach: false },
   });

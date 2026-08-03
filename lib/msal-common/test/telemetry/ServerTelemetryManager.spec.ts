@@ -93,7 +93,7 @@ describe("ServerTelemetryManager.ts", () => {
                 testCacheManager
             );
             telemetryManager.cacheFailedRequest(
-                new AuthError(testError, testError, "sub_error")
+                new AuthError(testError, "", testError, "sub_error")
             );
 
             const failures = {

@@ -132,7 +132,8 @@ export class AuthorizationCodeClient {
     ): Promise<AuthenticationResult> {
         if (!request.code) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.requestCannotBeMade
+                ClientAuthErrorCodes.requestCannotBeMade,
+                request.correlationId
             );
         }
 
@@ -205,7 +206,8 @@ export class AuthorizationCodeClient {
         // Throw error if logoutRequest is null/undefined
         if (!logoutRequest) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.logoutRequestEmpty
+                ClientConfigurationErrorCodes.logoutRequestEmpty,
+                ""
             );
         }
         const queryString = this.createLogoutUrlQueryString(logoutRequest);
@@ -319,7 +321,8 @@ export class AuthorizationCodeClient {
             // Just validate
             if (!request.redirectUri) {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.redirectUriEmpty
+                    ClientConfigurationErrorCodes.redirectUriEmpty,
+                    request.correlationId
                 );
             }
         } else {
@@ -334,11 +337,25 @@ export class AuthorizationCodeClient {
         RequestParameterBuilder.addScopes(
             parameters,
             request.scopes,
+            request.correlationId,
             true,
             this.oidcDefaultScopes
         );
 
         RequestParameterBuilder.addResource(parameters, request.resource);
+
+        if (request.attributeTokens) {
+            RequestParameterBuilder.addAttributeTokens(
+                parameters,
+                request.attributeTokens
+            );
+        }
+        this.performanceClient?.addFields(
+            {
+                hasAttributeTokens: !!request.attributeTokens?.length,
+            },
+            request.correlationId
+        );
 
         // add code: user set, not validated
         RequestParameterBuilder.addAuthorizationCode(parameters, request.code);
@@ -431,7 +448,8 @@ export class AuthorizationCodeClient {
                 RequestParameterBuilder.addSshJwk(parameters, request.sshJwk);
             } else {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                    request.correlationId
                 );
             }
         }
@@ -519,6 +537,7 @@ export class AuthorizationCodeClient {
 
         RequestParameterBuilder.addClaims(
             parameters,
+            request.correlationId,
             request.claims,
             this.config.authOptions.clientCapabilities,
             request.skipBrokerClaims

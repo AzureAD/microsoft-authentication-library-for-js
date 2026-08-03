@@ -20,7 +20,7 @@ const msalInstance = new PublicClientApplication({
   },
 });
 
-let eventHandler;
+let eventHandler: EventHandler;
 const eventSpy = jasmine.createSpy("addEventCallback");
 msalInstance.addEventCallback = eventSpy;
 
@@ -34,7 +34,7 @@ function initializeMsal(providers: any[] = []) {
 
   TestBed.configureTestingModule({
     imports: [
-      MsalModule.forRoot(msalInstance, null, {
+      MsalModule.forRoot(msalInstance, null as any, {
         interactionType: InteractionType.Popup,
         protectedResourceMap: new Map(),
       }),

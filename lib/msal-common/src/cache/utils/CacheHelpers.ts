@@ -68,6 +68,7 @@ export function createAccessTokenEntity(
     expiresOn: number,
     extExpiresOn: number,
     base64Decode: (input: string) => string,
+    correlationId: string,
     refreshOn?: number,
     tokenType?: Constants.AuthenticationScheme,
     userAssertionHash?: string,
@@ -112,11 +113,13 @@ export function createAccessTokenEntity(
                 // Make sure keyId is present and add it to credential
                 const tokenClaims: TokenClaims | null = extractTokenClaims(
                     accessToken,
-                    base64Decode
+                    base64Decode,
+                    correlationId
                 );
                 if (!tokenClaims?.cnf?.kid) {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.tokenClaimsCnfRequiredForSignedJwt
+                        ClientAuthErrorCodes.tokenClaimsCnfRequiredForSignedJwt,
+                        correlationId
                     );
                 }
                 atEntity.keyId = tokenClaims.cnf.kid;
@@ -386,4 +389,21 @@ export function isAuthorityMetadataExpired(
     metadata: AuthorityMetadataEntity
 ): boolean {
     return metadata.expiresAt <= TimeUtils.nowSeconds();
+}
+
+/**
+ * Serialize attribute tokens synchronously (sort and join).
+ * This is a sync-only operation for use at request construction time.
+ * @param attributeTokens - array of tokens
+ * @returns serialized partition string or undefined if no tokens
+ */
+export function serializeAttributeTokens(
+    attributeTokens?: Array<string>
+): string | undefined {
+    if (!attributeTokens || attributeTokens.length === 0) {
+        return undefined;
+    }
+
+    // Serialize: sort and join tokens
+    return [...attributeTokens].sort().join(" ");
 }

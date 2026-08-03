@@ -151,11 +151,11 @@ describe("ClientCredentialClient unit tests", () => {
         };
         const interactionRequiredAuthError = new InteractionRequiredAuthError(
             "interaction_required",
+            "",
             "AADSTS50079: Due to a configuration change made by your administrator, or because you moved to a new location, you must enroll in multifactor authentication to access 'bf8d80f9-9098-4972-b203-500f535113b1'.\r\nTrace ID: b72a68c3-0926-4b8e-bc35-3150069c2800\r\nCorrelation ID: 73d656cf-54b1-4eb2-b429-26d8165a52d7\r\nTimestamp: 2017-05-01 22:43:20Z",
             "",
             "2017-05-01 22:43:20Z",
             "b72a68c3-0926-4b8e-bc35-3150069c2800",
-            "73d656cf-54b1-4eb2-b429-26d8165a52d7",
             '{"access_token":{"polids":{"essential":true,"values":["9ab03e19-ed42-4168-b6b7-7001fb3e933a"]}}}'
         );
         await expect(
@@ -208,7 +208,10 @@ describe("ClientCredentialClient unit tests", () => {
         await expect(
             client.acquireToken(clientCredentialRequest)
         ).resolves.not.toThrow(
-            createClientAuthError(ClientAuthErrorCodes.multipleMatchingTokens)
+            createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingTokens,
+                ""
+            )
         );
     });
 
@@ -368,7 +371,6 @@ describe("ClientCredentialClient unit tests", () => {
         });
 
         it.each([
-            [CAE_CONSTANTS.EMPTY_CLAIMS, CAE_CONSTANTS.MERGED_EMPTY_CLAIMS],
             [
                 CAE_CONSTANTS.CLAIMS_WITH_ADDITIONAL_CLAIMS,
                 CAE_CONSTANTS.MERGED_CLAIMS_WITH_ADDITIONAL_CLAIMS,
@@ -462,6 +464,34 @@ describe("ClientCredentialClient unit tests", () => {
                 expect(authResult4.fromCache).toBe(false);
             }
         );
+
+        it("does not bypass the cache when claims is an empty object", async () => {
+            // Empty-object claims add nothing to the request body, so they must not force a
+            // network call - an otherwise-identical request should be served from the cache.
+            clientCredentialRequest.claims = CAE_CONSTANTS.EMPTY_CLAIMS;
+
+            // first request: cache miss -> network; client capabilities are still merged in
+            const authResult = (await client.acquireToken(
+                clientCredentialRequest
+            )) as AuthenticationResult;
+            expect(authResult.fromCache).toBe(false);
+            const returnVal: string = await createTokenRequestBodySpy.mock
+                .results[0].value;
+            expect(
+                decodeURIComponent(
+                    returnVal
+                        .split("&")
+                        .filter((key: string) => key.includes("claims="))[0]
+                        .split("claims=")[1]
+                )
+            ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
+
+            // second identical request: served from the cache (not bypassed)
+            const cachedAuthResult = (await client.acquireToken(
+                clientCredentialRequest
+            )) as AuthenticationResult;
+            expect(cachedAuthResult.fromCache).toBe(true);
+        });
     });
 
     it("Does not add claims when empty object provided", async () => {
@@ -675,6 +705,7 @@ describe("ClientCredentialClient unit tests", () => {
                 Date.now() + 60 * 30 * 1000,
                 Date.now() + 60 * 30 * 1000,
                 mockCrypto.base64Decode,
+                "",
                 undefined,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -722,6 +753,7 @@ describe("ClientCredentialClient unit tests", () => {
                 TimeUtils.nowSeconds() + 4600,
                 TimeUtils.nowSeconds() + 4600,
                 mockCrypto.base64Decode,
+                "",
                 TimeUtils.nowSeconds() - 4600, // expired refreshOn value
                 Constants.AuthenticationScheme.BEARER
             );
@@ -877,6 +909,7 @@ describe("ClientCredentialClient unit tests", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 undefined,
                 Constants.AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN
@@ -893,6 +926,7 @@ describe("ClientCredentialClient unit tests", () => {
                 4600,
                 4600,
                 mockCrypto.base64Decode,
+                "",
                 undefined,
                 Constants.AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN
@@ -916,7 +950,10 @@ describe("ClientCredentialClient unit tests", () => {
         await expect(
             client.acquireToken(clientCredentialRequest)
         ).rejects.toMatchObject(
-            createClientAuthError(ClientAuthErrorCodes.multipleMatchingTokens)
+            createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingTokens,
+                ""
+            )
         );
     });
 

@@ -41,7 +41,8 @@ export class ManagedIdentityId {
         if (userAssignedClientId) {
             if (userAssignedResourceId || userAssignedObjectId) {
                 throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType,
+                    ""
                 );
             }
 
@@ -50,7 +51,8 @@ export class ManagedIdentityId {
         } else if (userAssignedResourceId) {
             if (userAssignedClientId || userAssignedObjectId) {
                 throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType,
+                    ""
                 );
             }
 
@@ -59,7 +61,8 @@ export class ManagedIdentityId {
         } else if (userAssignedObjectId) {
             if (userAssignedClientId || userAssignedResourceId) {
                 throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType,
+                    ""
                 );
             }
 

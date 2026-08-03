@@ -2,6 +2,121 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 29 Jul 2026 00:26:31 GMT",
+      "version": "16.11.3",
+      "tag": "@azure/msal-common_v16.11.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3e4b83714371d1e9471fc65c7d9c69f1f746f741",
+            "comment": "Add optional correlationId and performanceClient to NetworkRequestOptions; add fetchRetryCount to PerformanceEvent [#8732](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8732)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 15 Jul 2026 22:35:35 GMT",
+      "version": "16.11.2",
+      "tag": "@azure/msal-common_v16.11.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5d1a16e9103853601886375dbcb15f06a02bc545",
+            "comment": "Add internal DPoP proof payload builder (DpopProofGenerator) with RFC 9449 token-endpoint and resource-endpoint claim helpers [#8683](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8683)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Jul 2026 22:16:01 GMT",
+      "version": "16.11.1",
+      "tag": "@azure/msal-common_v16.11.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "aa48c36402b908a4a7ef36a1b254d73fc66e4b3f",
+            "comment": "Add invalid_response_mode ClientConfigurationError code [#8694](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8694)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 30 Jun 2026 21:04:20 GMT",
+      "version": "16.11.0",
+      "tag": "@azure/msal-common_v16.11.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "8bb8acbc03c6bf968b8577e7d9e8b0a9b20ca65f",
+            "comment": "Add addGlobalFields method to PerformanceClient [#8688](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8688)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "8bb8acbc03c6bf968b8577e7d9e8b0a9b20ca65f",
+            "comment": "Include resource in the silent request thumbprint so concurrent MCP token requests for different resources are not deduplicated [#8680](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8680)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 23 Jun 2026 22:19:29 GMT",
+      "version": "16.10.0",
+      "tag": "@azure/msal-common_v16.10.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Migrate region auto-discovery to the IMDS /compute JSON endpoint (api-version 2021-02-01), reading the location field [#8660](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8660)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Deprecate the max_age request parameter and stop validating the auth_time of returned tokens. maxAge is now a no-op; the unused checkMaxAge helper and the auth_time_not_found/max_age_transpired error codes have been removed [#8664](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8664)"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Make correlationId a required parameter on AuthError and all derived error classes [#8609](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8609)"
+          },
+          {
+            "author": "thnorlin@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Add default idToken claims (signin_state, login_hint) and kmsi on AccountInfo [#8656](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8656)"
+          },
+          {
+            "author": "avdunn@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Add FMI cache key isolation and FIC grant type support (constants, cache infrastructure, assertion context) [#8614](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8614)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f8cf6a4a53416945a15981b8bcee57d7e31b6aed",
+            "comment": "Add NativeAccountId property to TenantProfile and deprecate top-level AccountEntity property [#8649](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8649)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 16 Jun 2026 19:46:34 GMT",
       "version": "16.9.0",
       "tag": "@azure/msal-common_v16.9.0",
