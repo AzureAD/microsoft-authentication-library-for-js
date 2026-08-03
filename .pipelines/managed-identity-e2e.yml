@@ -1,0 +1,157 @@
+# managed-identity-e2e.yml
+#
+# Real, end-to-end Managed Identity token-acquisition tests for @azure/msal-node,
+# built FROM SOURCE and run on the self-hosted Azure DevOps pools that are actual
+# Azure VM / Azure Arc machines with the lab managed identities assigned:
+#
+#   * MISEManagedIdentity - a Windows Azure VM. Exercises the IMDS source for the
+#                           system-assigned identity and each user-assigned binding
+#                           (client id / object id / resource id).
+#   * MISEAZUREARC        - a Windows Azure Arc-enabled machine. Exercises the Azure
+#                           Arc source for the system-assigned identity (Azure Arc
+#                           does not support user-assigned identities).
+#
+# Mirrors the MSAL Go ("MI E2E") and MSAL Python ("MI E2E") pipelines and uses the
+# SAME lab identities, so all SDKs validate the same lab configuration on the same
+# machines. The test itself lives at
+# samples/msal-node-samples/Managed-Identity/e2e and self-skips off-pool.
+#
+# This is a standalone pipeline (not part of the hosted PR/CI OneBranch pipelines)
+# because acquiring a managed identity token requires a real Azure VM / Arc machine;
+# hosted agents have no managed identity. Register it as a pipeline definition and
+# trigger it manually, on a schedule, or as an optional PR check.
+#
+# Pool prerequisites (pre-provisioned, like the Go/.NET toolchains already are):
+#   * Node.js 20+ installed for all users (so the agent account resolves it).
+#   * Outbound access to the internal npm mirror (https://packagefeedproxy.microsoft.io/npm/).
+#     The Arc pool's egress inspection blocks the public npm CDN, so the mirror is used.
+
+trigger: none # Disable push triggers - queued manually / on a schedule / as an optional PR check.
+pr: none # Disable automatic PR triggers - see note above.
+
+variables:
+    # Internal Microsoft npm mirror. The public registry (registry.npmjs.org) is
+    # unreachable from the Arc pool's egress-inspected network; npm's default
+    # replace-registry-host rewrites the lockfile's npmjs URLs to this mirror.
+    npmRegistry: "https://packagefeedproxy.microsoft.io/npm/"
+
+jobs:
+    # ══════════════════════════════════════════════════════════════════════════
+    # MI E2E - IMDS - REAL managed identity token acquisition on an Azure VM.
+    #   Runs the IMDS cases (gated on MSAL_TEST_MI_IMDS); the Arc case self-skips.
+    # ══════════════════════════════════════════════════════════════════════════
+    - job: MIE2EImds
+      displayName: "MI E2E - IMDS (Azure VM)"
+      # Fork guard: never run untrusted forked-PR code on the self-hosted pool.
+      condition: ne(variables['System.PullRequest.IsFork'], 'True')
+      pool:
+          name: MISEManagedIdentity
+      timeoutInMinutes: 60
+      steps:
+          - checkout: self
+            clean: true
+
+          - task: PowerShell@2
+            displayName: "Build msal-node from source and run MI E2E (IMDS)"
+            inputs:
+                targetType: "inline"
+                workingDirectory: "$(Build.SourcesDirectory)"
+                script: |
+                    $ErrorActionPreference = 'Stop'
+
+                    # Locate Node (pre-provisioned on the pool); do not depend on the agent PATH.
+                    $nodeExe = (Get-Command node.exe -ErrorAction SilentlyContinue).Source
+                    if (-not $nodeExe) {
+                        $nodeExe = Get-ChildItem 'C:\Program Files\nodejs\node.exe','C:\Program Files (x86)\nodejs\node.exe' -ErrorAction SilentlyContinue |
+                            Select-Object -First 1 -ExpandProperty FullName
+                    }
+                    if (-not $nodeExe) { throw 'Node.js not found on this agent. Install Node.js 20+ (all users) on the pool machine.' }
+                    $env:PATH = (Split-Path $nodeExe) + ';' + $env:PATH
+                    Write-Host "Using Node: $nodeExe"
+                    node --version
+                    npm --version
+
+                    # Point npm at the internal mirror (restricted-egress pools cannot reach the public CDN).
+                    npm config set registry $env:NPM_REGISTRY
+
+                    # Install monorepo build dependencies and build msal-common + msal-node FROM SOURCE.
+                    npm ci
+                    npm run build:all --workspace=lib/msal-node
+
+                    # Install the E2E package (consumes the just-built libraries via file: deps) and run it.
+                    Push-Location samples/msal-node-samples/Managed-Identity/e2e
+                    npm install
+                    npm run test:e2e
+                    Pop-Location
+            env:
+                NPM_REGISTRY: $(npmRegistry)
+                MSAL_TEST_MI_IMDS: "1"
+
+          - task: PublishTestResults@2
+            displayName: "Publish MI E2E (IMDS) test results"
+            condition: succeededOrFailed()
+            inputs:
+                testResultsFormat: "JUnit"
+                testResultsFiles: "samples/msal-node-samples/Managed-Identity/e2e/test-results/junit-mi-e2e.xml"
+                failTaskOnFailedTests: true
+                testRunTitle: "MI E2E - IMDS"
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # MI E2E - Azure Arc - REAL managed identity token acquisition on an Azure Arc
+    #   machine. Runs the Arc case (source auto-detected); the IMDS cases self-skip
+    #   because MSAL_TEST_MI_IMDS is unset.
+    # ══════════════════════════════════════════════════════════════════════════
+    - job: MIE2EAzureArc
+      displayName: "MI E2E - Azure Arc"
+      # Fork guard: never run untrusted forked-PR code on the self-hosted pool.
+      condition: ne(variables['System.PullRequest.IsFork'], 'True')
+      pool:
+          name: MISEAZUREARC
+      timeoutInMinutes: 60
+      steps:
+          - checkout: self
+            clean: true
+
+          - task: PowerShell@2
+            displayName: "Build msal-node from source and run MI E2E (Azure Arc)"
+            inputs:
+                targetType: "inline"
+                workingDirectory: "$(Build.SourcesDirectory)"
+                script: |
+                    $ErrorActionPreference = 'Stop'
+
+                    # Locate Node (pre-provisioned on the pool); do not depend on the agent PATH.
+                    $nodeExe = (Get-Command node.exe -ErrorAction SilentlyContinue).Source
+                    if (-not $nodeExe) {
+                        $nodeExe = Get-ChildItem 'C:\Program Files\nodejs\node.exe','C:\Program Files (x86)\nodejs\node.exe' -ErrorAction SilentlyContinue |
+                            Select-Object -First 1 -ExpandProperty FullName
+                    }
+                    if (-not $nodeExe) { throw 'Node.js not found on this agent. Install Node.js 20+ (all users) on the pool machine.' }
+                    $env:PATH = (Split-Path $nodeExe) + ';' + $env:PATH
+                    Write-Host "Using Node: $nodeExe"
+                    node --version
+                    npm --version
+
+                    # Point npm at the internal mirror (the Arc pool's egress blocks the public CDN).
+                    npm config set registry $env:NPM_REGISTRY
+
+                    # Install monorepo build dependencies and build msal-common + msal-node FROM SOURCE.
+                    npm ci
+                    npm run build:all --workspace=lib/msal-node
+
+                    # Install the E2E package (consumes the just-built libraries via file: deps) and run it.
+                    Push-Location samples/msal-node-samples/Managed-Identity/e2e
+                    npm install
+                    npm run test:e2e
+                    Pop-Location
+            env:
+                NPM_REGISTRY: $(npmRegistry)
+
+          - task: PublishTestResults@2
+            displayName: "Publish MI E2E (Azure Arc) test results"
+            condition: succeededOrFailed()
+            inputs:
+                testResultsFormat: "JUnit"
+                testResultsFiles: "samples/msal-node-samples/Managed-Identity/e2e/test-results/junit-mi-e2e.xml"
+                failTaskOnFailedTests: true
+                testRunTitle: "MI E2E - Azure Arc"

@@ -1,0 +1,24 @@
+{
+    "name": "managed-identity-e2e",
+    "version": "1.0.0",
+    "description": "End-to-end managed identity token acquisition tests for msal-node, run on the self-hosted Azure VM (IMDS) and Azure Arc pools.",
+    "private": true,
+    "scripts": {
+        "build:package": "cd ../../../.. && npm run build:all --workspace=lib/msal-node",
+        "test:e2e": "jest --passWithNoTests"
+    },
+    "dependencies": {
+        "@azure/msal-node": "file:../../../../lib/msal-node"
+    },
+    "overrides": {
+        "@azure/msal-common": "file:../../../../lib/msal-common"
+    },
+    "devDependencies": {
+        "@types/jest": "^29.5.0",
+        "@types/node": "^20.0.0",
+        "jest": "^29.5.0",
+        "jest-junit": "^16.0.0",
+        "ts-jest": "^29.1.0",
+        "typescript": "^5.3.3"
+    }
+}
