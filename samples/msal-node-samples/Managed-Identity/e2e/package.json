@@ -5,7 +5,7 @@
     "private": true,
     "scripts": {
         "build:package": "cd ../../../.. && npm run build:all --workspace=lib/msal-node",
-        "test:e2e": "jest --passWithNoTests"
+        "test:e2e": "jest"
     },
     "dependencies": {
         "@azure/msal-node": "file:../../../../lib/msal-node"
