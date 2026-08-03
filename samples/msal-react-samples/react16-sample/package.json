@@ -32,7 +32,7 @@
     },
     "devDependencies": {
         "@types/jest": "^29.5.0",
-        "@vitejs/plugin-react": "^5.0.0",
+        "@vitejs/plugin-react": "^5.2.0",
         "e2e-test-utils": "file:../../e2eTestUtils",
         "env-cmd": "^10.1.0",
         "jest": "^29.5.0",
