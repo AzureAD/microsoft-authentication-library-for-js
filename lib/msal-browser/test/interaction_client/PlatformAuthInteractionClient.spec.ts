@@ -2569,123 +2569,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
             startMeasurementSpy.mockRestore();
         });
 
-        it("emits isNativeBroker=true for acquireToken success", async () => {
-            jest.spyOn(
-                PlatformAuthExtensionHandler.prototype,
-                "sendMessage"
-            ).mockImplementation((): Promise<PlatformAuthResponse> => {
-                return Promise.resolve(MOCK_WAM_RESPONSE);
-            });
-
-            // Mock successful token acquisition from cache first
-            const mockAuthResult = {
-                accessToken: "mock_access_token",
-                idToken: "mock_id_token",
-                account: {
-                    homeAccountId: "test-home-account-id",
-                    environment: "login.microsoftonline.com",
-                    nativeAccountId: "test-native-account-id",
-                    tenantId: "test-tenant-id",
-                    username: "test@example.com",
-                    localAccountId: "test-local-account-id",
-                    name: "Test User",
-                    idTokenClaims: {},
-                },
-                scopes: ["User.Read"],
-                expiresOn: new Date(Date.now() + 3600000),
-                tenantId: "test-tenant-id",
-                uniqueId: "test-unique-id",
-                tokenType: "Bearer" as const,
-                correlationId: RANDOM_TEST_GUID,
-                extExpiresOn: new Date(Date.now() + 7200000),
-                state: "",
-                fromCache: false,
-            };
-
-            // Mock the acquireTokensFromCache method to simulate a cache miss (rejects first), then WAM success (resolves)
-            jest.spyOn(
-                platformAuthInteractionClient as any,
-                "acquireTokensFromCache"
-            )
-                // First call rejects (simulates cache miss), second call resolves (simulates WAM success)
-                .mockRejectedValueOnce(new Error("No cached tokens"))
-                .mockResolvedValue(mockAuthResult);
-
-            await platformAuthInteractionClient.acquireToken({
-                scopes: ["User.Read"],
-                account: mockAuthResult.account,
-                correlationId: RANDOM_TEST_GUID,
-            });
-
-            // Get the latest mock measurement object
-            const mockMeasurement =
-                startMeasurementSpy.mock.results[
-                    startMeasurementSpy.mock.results.length - 1
-                ].value;
-
-            // Verify isNativeBroker is set during successful completion
-            expect(mockMeasurement.end).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: true,
-                    isNativeBroker: true,
-                })
-            );
-
-            // Verify the measurement was started with correct correlation ID
-            expect(startMeasurementSpy).toHaveBeenCalledWith(
-                expect.any(String),
-                RANDOM_TEST_GUID
-            );
-        });
-
-        it("should emit isNativeBroker=true for handleRedirectPromise", async () => {
-            // @ts-ignore
-            pca.browserStorage.setInteractionInProgress(true);
-            // @ts-ignore
-            pca.browserStorage.setTemporaryCache(
-                "request.native",
-                JSON.stringify({
-                    scopes: ["User.Read"],
-                    correlationId: RANDOM_TEST_GUID,
-                }),
-                true
-            );
-
-            jest.spyOn(
-                PlatformAuthExtensionHandler.prototype,
-                "sendMessage"
-            ).mockImplementation((): Promise<PlatformAuthResponse> => {
-                return Promise.resolve(MOCK_WAM_RESPONSE);
-            });
-
-            // Mock the protected handleNativeResponse method
-            jest.spyOn(
-                platformAuthInteractionClient as any,
-                "handleNativeResponse"
-            ).mockResolvedValue({
-                accessToken: "mock_access_token",
-                idToken: "mock_id_token",
-                account: null,
-                scopes: ["User.Read"],
-                expiresOn: new Date(Date.now() + 3600000),
-                tenantId: "mock_tenant_id",
-                uniqueId: "mock_unique_id",
-                tokenType: "Bearer",
-                correlationId: RANDOM_TEST_GUID,
-            });
-
-            // Spy on performanceClient.addFields since handleRedirectPromise uses it directly
-            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
-
-            await platformAuthInteractionClient.handleRedirectPromise();
-
-            // Verify that addFields was called with isNativeBroker: true
-            expect(addFieldsSpy).toHaveBeenCalledWith(
-                { isNativeBroker: true },
-                RANDOM_TEST_GUID
-            );
-        });
-
         it("should use synchronized correlationId in performance measurements", async () => {
             const customCorrelationId = "custom-correlation-123";
 
@@ -2757,12 +2640,13 @@ describe("PlatformAuthInteractionClient Tests", () => {
             // Get the mock measurement object that was returned
             const mockMeasurement = startMeasurementSpy.mock.results[0].value;
 
-            // Check that measurement.end was called with success: false and errorCode
+            // Check that measurement.end was called with success: false and the
+            // error object (perf client derives errorCode/subErrorCode from it)
             expect(mockMeasurement.end).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    errorCode: "test_error",
-                })
+                }),
+                authError
             );
         });
 
@@ -2792,12 +2676,174 @@ describe("PlatformAuthInteractionClient Tests", () => {
             // Get the mock measurement object that was returned
             const mockMeasurement = startMeasurementSpy.mock.results[0].value;
 
-            // After the fix, measurement.end should now be called when sendMessage fails
+            // After the fix, measurement.end should now be called when sendMessage
+            // fails, passing the error object as the second argument
             expect(mockMeasurement.end).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                })
+                }),
+                nativeError
             );
+        });
+
+        describe("brokerErrorName/brokerErrorCode telemetry", () => {
+            it("acquireToken records brokerErrorName/brokerErrorCode when the broker rejects with a NativeAuthError", async () => {
+                // Broker dispatch (sendMessage) rejects with a NativeAuthError
+                const brokerError = new NativeAuthError(
+                    "OSError",
+                    RANDOM_TEST_GUID,
+                    "there is an OSError",
+                    { error: -2147186943 }
+                );
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockRejectedValue(brokerError);
+
+                await expect(
+                    platformAuthInteractionClient.acquireToken({
+                        scopes: ["User.Read"],
+                        correlationId: RANDOM_TEST_GUID,
+                    })
+                ).rejects.toBe(brokerError);
+
+                // NativeAuthError is an AuthError, so its name/errorCode land on the root event
+                expect(performanceSpy).toHaveBeenCalledWith(
+                    {
+                        isNativeBroker: true,
+                        brokerErrorName: "NativeAuthError",
+                        brokerErrorCode: "OSError",
+                    },
+                    RANDOM_TEST_GUID
+                );
+            });
+
+            it("acquireToken records brokerErrorName/brokerErrorCode when handleNativeResponse rejects with an AuthError", async () => {
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockResolvedValue(MOCK_WAM_RESPONSE);
+
+                const authError = new AuthError(
+                    "broker_response_error",
+                    "Broker response could not be handled"
+                );
+                jest.spyOn(
+                    platformAuthInteractionClient as any,
+                    "handleNativeResponse"
+                ).mockRejectedValue(authError);
+
+                await expect(
+                    platformAuthInteractionClient.acquireToken({
+                        scopes: ["User.Read"],
+                        correlationId: RANDOM_TEST_GUID,
+                    })
+                ).rejects.toBe(authError);
+
+                expect(performanceSpy).toHaveBeenCalledWith(
+                    {
+                        isNativeBroker: true,
+                        brokerErrorName: "AuthError",
+                        brokerErrorCode: "broker_response_error",
+                    },
+                    RANDOM_TEST_GUID
+                );
+            });
+
+            it("acquireToken does not record broker error fields when the broker rejects with a non-AuthError", async () => {
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockResolvedValue(MOCK_WAM_RESPONSE);
+
+                const plainError = new Error("unexpected failure");
+                jest.spyOn(
+                    platformAuthInteractionClient as any,
+                    "handleNativeResponse"
+                ).mockRejectedValue(plainError);
+
+                await expect(
+                    platformAuthInteractionClient.acquireToken({
+                        scopes: ["User.Read"],
+                        correlationId: RANDOM_TEST_GUID,
+                    })
+                ).rejects.toBe(plainError);
+
+                // Non-AuthError errors carry no broker name/code, so nothing is recorded
+                expect(performanceSpy).not.toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        brokerErrorName: expect.anything(),
+                    }),
+                    expect.anything()
+                );
+            });
+
+            it("acquireTokenRedirect records brokerErrorName/brokerErrorCode on a fatal broker error", async () => {
+                const fatalError = new NativeAuthError(
+                    "OSError",
+                    RANDOM_TEST_GUID,
+                    "there is an OSError",
+                    { error: -2147186943 }
+                );
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockRejectedValue(fatalError);
+
+                await expect(
+                    platformAuthInteractionClient.acquireTokenRedirect(
+                        { scopes: ["User.Read"] },
+                        perfMeasurement
+                    )
+                ).rejects.toBe(fatalError);
+
+                expect(performanceSpy).toHaveBeenCalledWith(
+                    {
+                        isNativeBroker: true,
+                        brokerErrorName: "NativeAuthError",
+                        brokerErrorCode: "OSError",
+                    },
+                    RANDOM_TEST_GUID
+                );
+            });
+
+            it("handleRedirectPromise records brokerErrorName/brokerErrorCode when the broker rejects with a NativeAuthError", async () => {
+                // @ts-ignore
+                pca.browserStorage.setInteractionInProgress(true);
+                // @ts-ignore
+                pca.browserStorage.setTemporaryCache(
+                    "request.native",
+                    JSON.stringify({
+                        scopes: ["User.Read"],
+                        correlationId: RANDOM_TEST_GUID,
+                    }),
+                    true
+                );
+
+                const brokerError = new NativeAuthError(
+                    "OSError",
+                    RANDOM_TEST_GUID,
+                    "there is an OSError",
+                    { error: -2147186943 }
+                );
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockRejectedValue(brokerError);
+
+                await expect(
+                    platformAuthInteractionClient.handleRedirectPromise()
+                ).rejects.toBe(brokerError);
+
+                expect(performanceSpy).toHaveBeenCalledWith(
+                    {
+                        isNativeBroker: true,
+                        brokerErrorName: "NativeAuthError",
+                        brokerErrorCode: "OSError",
+                    },
+                    RANDOM_TEST_GUID
+                );
+            });
         });
     });
 });

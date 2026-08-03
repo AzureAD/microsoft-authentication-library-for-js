@@ -204,7 +204,7 @@ function addCcsOid(parameters: Map<string, string>, clientInfo: ClientInfo): voi
 function addCcsUpn(parameters: Map<string, string>, loginHint: string): void;
 
 // @public
-function addClaims(parameters: Map<string, string>, correlationId: string, claims?: string, clientCapabilities?: Array<string>, skipBrokerClaims?: boolean): void;
+function addClaims(parameters: Map<string, string>, correlationId: string, claims?: string, clientCapabilities?: Array<string>, skipBrokerClaims?: boolean, claimsToMerge?: string): void;
 
 // @public
 function addCliData(parameters: Map<string, string>): void;
@@ -739,7 +739,7 @@ export function buildClientInfo(rawClientInfo: string, base64Decode: (input: str
 export function buildClientInfoFromHomeAccountId(homeAccountId: string): ClientInfo;
 
 // @public
-function buildMergedClaims(claims?: string, clientCapabilities?: Array<string>, correlationId?: string): string;
+function buildMergedClaims(claims?: string, clientCapabilities?: Array<string>, correlationId?: string, claimsToMerge?: string): string;
 
 // @public (undocumented)
 export function buildStaticAuthorityOptions(authOptions: Partial<AuthorityOptions>): StaticAuthorityOptions;
@@ -2212,6 +2212,8 @@ const networkError = "network_error";
 export type NetworkRequestOptions = {
     headers?: Record<string, string>;
     body?: string;
+    correlationId?: string;
+    performanceClient?: IPerformanceClient;
 };
 
 // @public (undocumented)
@@ -2396,6 +2398,7 @@ export type PerformanceEvent = {
     isRedirectUriCrossOrigin?: boolean;
     redirectBridgeMessageVersion?: number;
     lateResponseExperimentEnabled?: boolean;
+    fetchRetryCount?: number;
     idTokenSize?: number;
     accessTokenSize?: number;
     refreshTokenSize?: number | undefined;
@@ -3401,7 +3404,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.11.2";
+export const version = "16.11.3";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;

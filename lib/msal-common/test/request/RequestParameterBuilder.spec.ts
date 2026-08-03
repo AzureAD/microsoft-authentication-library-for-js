@@ -677,6 +677,198 @@ describe("RequestParameterBuilder unit tests", () => {
         });
     });
 
+    describe("buildMergedClaims claimsToMerge (client-originated claims) tests", () => {
+        /*
+         * `claimsToMerge` is deep-merged into the base claims with precedence; buildMergedClaims
+         * also injects the default idToken claims, so assertions parse the result and check the
+         * merged sections rather than exact-matching the whole string.
+         */
+        it("returns just the base claims when claimsToMerge is empty/whitespace/undefined", () => {
+            const base = '{"nsp":{"essential":true}}';
+            const fromUndefined = RequestParameterBuilder.buildMergedClaims(
+                base,
+                [],
+                "",
+                undefined
+            );
+            const fromWhitespace = RequestParameterBuilder.buildMergedClaims(
+                base,
+                [],
+                "",
+                "   "
+            );
+            expect(fromWhitespace).toBe(fromUndefined);
+            expect(JSON.parse(fromUndefined)).toHaveProperty("nsp");
+        });
+
+        it("returns just claimsToMerge when base claims are empty", () => {
+            const claimsFromClient = '{"nsp":{"essential":true}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    undefined,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed).toHaveProperty("nsp");
+        });
+
+        it("merges non-overlapping top-level keys", () => {
+            const base = '{"nsp":{"essential":true}}';
+            const claimsFromClient =
+                '{"userinfo":{"given_name":{"essential":true}}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed).toHaveProperty("nsp");
+            expect(parsed).toHaveProperty("userinfo");
+        });
+
+        it("lets claimsToMerge win on overlapping keys", () => {
+            const base = '{"nsp":{"value":"v1"}}';
+            const claimsFromClient = '{"nsp":{"value":"v2"}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.nsp.value).toBe("v2");
+        });
+
+        it("deep-merges a colliding object key, preserving sibling sub-claims", () => {
+            const base = '{"access_token":{"nbf":{"essential":true}}}';
+            const claimsFromClient =
+                '{"access_token":{"xms_az_nwperimid":{"value":"perimid-1"}}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.access_token.nbf).toEqual({ essential: true });
+            expect(parsed.access_token.xms_az_nwperimid).toEqual({
+                value: "perimid-1",
+            });
+        });
+
+        it("deep-merges recursively across multiple nesting levels", () => {
+            const base = '{"a":{"b":{"keep":1}}}';
+            const claimsFromClient =
+                '{"a":{"b":{"add":2}},"c":{"essential":true}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.a.b).toEqual({ keep: 1, add: 2 });
+            expect(parsed.c).toEqual({ essential: true });
+        });
+
+        it("replaces arrays and scalars (no element merging) with claimsToMerge winning", () => {
+            const base =
+                '{"access_token":{"groups":{"values":["a","b"]},"scalar":1}}';
+            const claimsFromClient =
+                '{"access_token":{"groups":{"values":["c"]},"scalar":2}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.access_token.groups.values).toEqual(["c"]);
+            expect(parsed.access_token.scalar).toBe(2);
+        });
+
+        it("appends xms_cc capabilities on top of the merged claims", () => {
+            const base = '{"access_token":{"nbf":{"essential":true}}}';
+            const claimsFromClient =
+                '{"access_token":{"xms_az_nwperimid":{"value":"perimid-1"}}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    ["CP1"],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.access_token.nbf).toEqual({ essential: true });
+            expect(parsed.access_token.xms_az_nwperimid).toEqual({
+                value: "perimid-1",
+            });
+            expect(parsed.access_token.xms_cc).toEqual({ values: ["CP1"] });
+        });
+
+        it("throws invalidClaims when base claims are invalid JSON", () => {
+            const valid = '{"a":1}';
+            expect(() =>
+                RequestParameterBuilder.buildMergedClaims(
+                    "not-json",
+                    [],
+                    "",
+                    valid
+                )
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidClaims,
+                    ""
+                )
+            );
+        });
+
+        it("throws invalidClaims when claimsToMerge is invalid JSON", () => {
+            const valid = '{"a":1}';
+            expect(() =>
+                RequestParameterBuilder.buildMergedClaims(
+                    valid,
+                    [],
+                    "",
+                    "not-json"
+                )
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidClaims,
+                    ""
+                )
+            );
+        });
+
+        it.each(["[]", '"string"', "null", "5"])(
+            "throws invalidClaims when claimsToMerge is valid JSON but not an object (%s)",
+            (nonObjectJson: string) => {
+                const valid = '{"a":1}';
+                expect(() =>
+                    RequestParameterBuilder.buildMergedClaims(
+                        valid,
+                        [],
+                        "",
+                        nonObjectJson
+                    )
+                ).toThrow(
+                    new ClientConfigurationError(
+                        ClientConfigurationErrorCodes.invalidClaims,
+                        ""
+                    )
+                );
+            }
+        );
+    });
+
     describe("addExtraParameters tests", () => {
         it("adds extra query parameters to the request", () => {
             const parameters = new Map<string, string>();
