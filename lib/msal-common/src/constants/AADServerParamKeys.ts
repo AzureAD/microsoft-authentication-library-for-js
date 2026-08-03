@@ -68,3 +68,4 @@ export const USER_FEDERATED_IDENTITY_CREDENTIAL =
 export const USERNAME = "username";
 export const USER_ID = "user_id";
 export const FMI_PATH = "fmi_path";
+export const ATTRIBUTE_TOKENS = "attribute_tokens";

@@ -238,6 +238,18 @@ export class ResponseHandler {
         serverTokenResponse.key_id =
             serverTokenResponse.key_id || request.sshKid || undefined;
 
+        // Compute components once for entity storage (fallback if hash not provided by client)
+        const attributeTokenPartition = CacheHelpers.serializeAttributeTokens(
+            request.attributeTokens
+        );
+        const cacheKeyComponents: Record<string, string> | undefined =
+            additionalCacheKeyComponents ??
+            (attributeTokenPartition
+                ? {
+                      attribute_tokens: attributeTokenPartition,
+                  }
+                : undefined);
+
         const cacheRecord = this.generateCacheRecord(
             serverTokenResponse,
             authority,
@@ -246,7 +258,7 @@ export class ResponseHandler {
             idTokenClaims,
             userAssertionHash,
             authCodePayload,
-            additionalCacheKeyComponents
+            cacheKeyComponents
         );
         let cacheContext;
         try {
