@@ -72,6 +72,34 @@ describe("NestedAppAuthAdapter tests", () => {
         });
     });
 
+    describe("attributeTokens serialization", () => {
+        it("omits attributeTokens field when request has none", () => {
+            const result: TokenRequest =
+                nestedAppAuthAdapter.toNaaTokenRequest(POPUP_REQUEST);
+            expect(result.attributeTokens).toBeUndefined();
+        });
+
+        it("omits attributeTokens when explicitly empty", () => {
+            const result: TokenRequest = nestedAppAuthAdapter.toNaaTokenRequest(
+                {
+                    ...POPUP_REQUEST,
+                    attributeTokens: [],
+                }
+            );
+            expect(result.attributeTokens).toBeUndefined();
+        });
+
+        it("serializes sorted, space-joined attributeTokens string", () => {
+            const result: TokenRequest = nestedAppAuthAdapter.toNaaTokenRequest(
+                {
+                    ...POPUP_REQUEST,
+                    attributeTokens: ["zeta", "alpha", "mike"],
+                }
+            );
+            expect(result.attributeTokens).toBe("alpha mike zeta");
+        });
+    });
+
     describe("to AuthenticationResult from TokenResponse tests", () => {
         it("TokenResponse to AuthenticationResult", () => {
             const result: AuthenticationResult =
