@@ -1,4 +1,4 @@
-# Nested App Authentication (NAA) Platform-Broker Test App
+# Nested Auth App Sample
 
 This sample demonstrates **Nested App Authentication (NAA)** brokered through the
 **platform broker** (JS-WAM / Web Account Manager). It is used by the end-to-end

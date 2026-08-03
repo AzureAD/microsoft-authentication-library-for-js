@@ -1,5 +1,5 @@
 {
-    "name": "naa-sample-nested-app",
+    "name": "nested-auth-app-sample-host",
     "version": "1.0.0",
     "license": "MIT",
     "private": true,
@@ -9,7 +9,7 @@
         "build": "vite build"
     },
     "dependencies": {
-        "@azure/msal-browser": "file:../../../lib/msal-browser",
+        "@azure/msal-browser": "file:../../../../lib/msal-browser",
         "react": "^19.2.1",
         "react-dom": "^19.2.1"
     },
