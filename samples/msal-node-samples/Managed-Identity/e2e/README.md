@@ -44,5 +44,5 @@ npm install             # installs the just-built libraries + test dependencies
 npm run test:e2e        # runs the tests (self-skips off-pool)
 ```
 
-The [`managed-identity-e2e` pipeline](../../../../.pipelines/managed-identity-e2e.yml)
+The [`MSAL.js Nightly Build` pipeline](../../../../.pipelines/nightly-build.yml)
 runs these steps automatically on the two self-hosted pools.
