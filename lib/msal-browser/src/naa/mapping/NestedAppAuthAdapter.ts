@@ -364,21 +364,18 @@ function bridgeErrorToWebBrokerBridgeError(
                 code: WebBrokerBridgeErrorCode.TransientError,
                 innerErrorCode: error.code,
                 description: error.description,
-                subError: error.subError,
             };
         case BridgeStatusCode.PersistentError:
             return {
                 code: WebBrokerBridgeErrorCode.PersistentError,
                 innerErrorCode: error.code,
                 description: error.description,
-                subError: error.subError,
             };
         case BridgeStatusCode.UserInteractionRequired:
             return {
                 code: WebBrokerBridgeErrorCode.UserInteractionRequired,
                 innerErrorCode: error.code,
                 description: error.description,
-                subError: error.subError,
             };
         default:
             return {
