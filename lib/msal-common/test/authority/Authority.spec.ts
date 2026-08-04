@@ -42,7 +42,10 @@ import {
     TimeUtils,
     UrlString,
 } from "../../src/index.js";
-import { RegionDiscovery } from "../../src/authority/RegionDiscovery.js";
+import {
+    isValidRegionName,
+    RegionDiscovery,
+} from "../../src/authority/RegionDiscovery.js";
 import { RegionDiscoveryMetadata } from "../../src/authority/RegionDiscoveryMetadata.js";
 import { InstanceDiscoveryMetadata } from "../../src/authority/AuthorityMetadata.js";
 import * as authorityMetadata from "../../src/authority/AuthorityMetadata.js";
@@ -767,6 +770,49 @@ describe("Authority.ts Class Unit Tests", () => {
             );
         });
 
+        it.each([
+            "hostile.example/path",
+            "hostile.example?query",
+            "hostile.example#fragment",
+            "east.us",
+            "EastUS",
+            "east us",
+        ])(
+            "falls back to global endpoints for invalid configured region %s",
+            async (invalidRegion) => {
+                const deepCopyOpenIdResponse = JSON.parse(
+                    JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE)
+                );
+                networkInterface.sendGetRequestAsync = (): any =>
+                    deepCopyOpenIdResponse;
+
+                const authority = new Authority(
+                    Constants.DEFAULT_AUTHORITY,
+                    networkInterface,
+                    mockStorage,
+                    {
+                        ...authorityOptions,
+                        azureRegionConfiguration: {
+                            azureRegion: invalidRegion,
+                            environmentRegion: undefined,
+                        },
+                    },
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
+                );
+
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.tokenEndpoint).toBe(
+                    deepCopyOpenIdResponse.body.token_endpoint.replace(
+                        "{tenant}",
+                        "common"
+                    )
+                );
+            }
+        );
+
         it("region is not auto-discovered if a region is provided by the user", async () => {
             const deepCopyOpenIdResponse = JSON.parse(
                 JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE)
@@ -951,6 +997,76 @@ describe("Authority.ts Class Unit Tests", () => {
                 options?: NetworkRequestOptions
             ): Promise<T> => Promise.resolve(getImpl(url, options) as T),
             sendPostRequestAsync: <T>(): Promise<T> => Promise.resolve({} as T),
+        });
+
+        it.each(["eastus", "westus2", "east-us-2", "a", "a1", "a-1"])(
+            "accepts valid region name %s",
+            (region) => {
+                expect(isValidRegionName(region)).toBe(true);
+            }
+        );
+
+        it.each([
+            "",
+            "hostile.example/path",
+            "hostile.example?query",
+            "hostile.example#fragment",
+            "EastUS",
+            "1eastus",
+            "-eastus",
+            "east_us",
+            "east us",
+            "eastus\n",
+        ])("rejects invalid region name %s", (region) => {
+            expect(isValidRegionName(region)).toBe(false);
+        });
+
+        it("ignores an invalid environment region and uses a valid IMDS region", async () => {
+            const networkInterface = buildNetworkInterface(() => ({
+                status: Constants.HTTP_SUCCESS,
+                body: { location: "centralus" },
+            }));
+            const regionDiscovery = new RegionDiscovery(
+                networkInterface,
+                logger,
+                new StubPerformanceClient(),
+                correlationId
+            );
+            const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
+
+            const region = await regionDiscovery.detectRegion(
+                "hostile.example/path",
+                regionDiscoveryMetadata
+            );
+
+            expect(region).toBe("centralus");
+            expect(regionDiscoveryMetadata.region_source).toBe(
+                Constants.RegionDiscoverySources.IMDS
+            );
+        });
+
+        it("rejects an invalid region returned by IMDS", async () => {
+            const networkInterface = buildNetworkInterface(() => ({
+                status: Constants.HTTP_SUCCESS,
+                body: { location: "hostile.example/path" },
+            }));
+            const regionDiscovery = new RegionDiscovery(
+                networkInterface,
+                logger,
+                new StubPerformanceClient(),
+                correlationId
+            );
+            const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
+
+            const region = await regionDiscovery.detectRegion(
+                undefined,
+                regionDiscoveryMetadata
+            );
+
+            expect(region).toBeNull();
+            expect(regionDiscoveryMetadata.region_source).toBe(
+                Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION
+            );
         });
 
         it("calls the IMDS /compute JSON endpoint and reads the location field", async () => {
@@ -3329,6 +3445,19 @@ describe("Authority.ts Class Unit Tests", () => {
     });
 
     describe("replaceWithRegionalInformation", () => {
+        it("does not regionalize an endpoint when the region is invalid", () => {
+            const tokenEndpoint =
+                "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token";
+
+            expect(
+                Authority.buildRegionalAuthorityString(
+                    tokenEndpoint,
+                    "hostile.example/path",
+                    ""
+                )
+            ).toBe(tokenEndpoint);
+        });
+
         it("replaces authorization_endpoint", () => {
             const originResponse: OpenIdConfigResponse = {
                 ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
@@ -3357,6 +3486,20 @@ describe("Authority.ts Class Unit Tests", () => {
                 ""
             );
             expect(regionalResponse.end_session_endpoint).toBeUndefined();
+        });
+
+        it("does not modify metadata when the region is invalid", () => {
+            const originResponse: OpenIdConfigResponse = {
+                ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+            };
+
+            const regionalResponse = Authority.replaceWithRegionalInformation(
+                originResponse,
+                "hostile.example/path",
+                ""
+            );
+
+            expect(regionalResponse).toBe(originResponse);
         });
     });
 

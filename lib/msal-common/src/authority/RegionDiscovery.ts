@@ -15,6 +15,32 @@ import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.j
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { Logger } from "../logger/Logger.js";
 
+/**
+ * Returns whether the value follows the Azure region short-name format.
+ */
+export function isValidRegionName(region: unknown): region is string {
+    if (typeof region !== "string" || region.length === 0) {
+        return false;
+    }
+
+    const firstCharacter = region.charCodeAt(0);
+    if (firstCharacter < 97 || firstCharacter > 122) {
+        return false;
+    }
+
+    for (let i = 1; i < region.length; i++) {
+        const character = region.charCodeAt(i);
+        const isLowercaseLetter = character >= 97 && character <= 122;
+        const isDigit = character >= 48 && character <= 57;
+        const isHyphen = character === 45;
+        if (!isLowercaseLetter && !isDigit && !isHyphen) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 export class RegionDiscovery {
     // Network interface to make requests with.
     protected networkInterface: INetworkModule;
@@ -52,8 +78,20 @@ export class RegionDiscovery {
         environmentRegion: string | undefined,
         regionDiscoveryMetadata: RegionDiscoveryMetadata
     ): Promise<string | null> {
-        // Initialize auto detected region with the region from the envrionment
-        let autodetectedRegionName = environmentRegion;
+        let autodetectedRegionName: string | undefined;
+
+        if (environmentRegion) {
+            if (isValidRegionName(environmentRegion)) {
+                autodetectedRegionName = environmentRegion;
+                regionDiscoveryMetadata.region_source =
+                    Constants.RegionDiscoverySources.ENVIRONMENT_VARIABLE;
+            } else {
+                this.logger.warning(
+                    "Region discovery ignored an invalid environment region.",
+                    this.correlationId
+                );
+            }
+        }
 
         // Check if a region was detected from the environment, if not, attempt to get the region from IMDS
         if (!autodetectedRegionName) {
@@ -120,9 +158,17 @@ export class RegionDiscovery {
                     Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION;
                 return null;
             }
-        } else {
-            regionDiscoveryMetadata.region_source =
-                Constants.RegionDiscoverySources.ENVIRONMENT_VARIABLE;
+        }
+
+        if (
+            autodetectedRegionName &&
+            !isValidRegionName(autodetectedRegionName)
+        ) {
+            this.logger.warning(
+                "Region discovery ignored an invalid IMDS region.",
+                this.correlationId
+            );
+            autodetectedRegionName = undefined;
         }
 
         // If no region was auto detected from the environment or from the IMDS endpoint, mark the attempt as a FAILED_AUTO_DETECTION
