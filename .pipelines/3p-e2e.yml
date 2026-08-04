@@ -88,6 +88,13 @@ extends:
                               testFilter: "browserB2C|browserMCP"
                             - name: "ExpressSample"
                             - name: "NativeAuthSample"
+                            # NestedAuthAppSample is disabled in CI for now: the
+                            # web-flow NAA broker requires the nested app client
+                            # id to trust the host origin (https://localhost:30668)
+                            # as a SPA redirect URI, otherwise it fails with
+                            # AADSTS50011. Re-enable once that redirect URI is
+                            # registered (the spec is also gated behind RUN_NAA_E2E).
+                            # - name: "NestedAuthAppSample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}

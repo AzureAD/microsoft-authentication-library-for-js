@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { loginRequest, nestedAppPort } from "./authConfig";
+import { loginRequest, nestedAppPort, nestedAppProtocol } from "./authConfig";
 
 /**
  * Host (top-frame) app UI. Signs the user in through the platform broker, then
@@ -29,7 +29,7 @@ function App({ pca }) {
             {account && <p>Signed in as {account.username}</p>}
             <iframe
                 title="nestedApp"
-                src={`http://localhost:${nestedAppPort}`}
+                src={`${nestedAppProtocol}://localhost:${nestedAppPort}`}
                 style={{ width: "100%", height: "400px", border: "1px solid" }}
             />
         </div>

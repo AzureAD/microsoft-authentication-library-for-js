@@ -1,10 +1,7 @@
 import { LogLevel } from "@azure/msal-browser";
 
-const NESTED_APP_CLIENT_ID =
-    import.meta.env.VITE_NESTED_APP_CLIENT_ID ||
-    "00000000-0000-0000-0000-000000000002";
-const TEST_TENANT_AUTHORITY =
-    "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133";
+const NESTED_APP_CLIENT_ID = import.meta.env.VITE_NESTED_CLIENT_ID;
+const TEST_TENANT_AUTHORITY = import.meta.env.VITE_AUTHORITY;
 
 /**
  * MSAL configuration for the nested (child) app.

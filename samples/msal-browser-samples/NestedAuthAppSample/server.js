@@ -1,6 +1,12 @@
 const { spawn } = require("child_process");
 const path = require("path");
 
+// Load manual-testing configuration from `.env`. For e2e runs the jest start
+// command wraps this process with `env-cmd -f .env.e2e`, which pre-populates
+// process.env; dotenv does not override already-set variables, so `.env.e2e`
+// wins during e2e while `.env` supplies the defaults for `npm start`.
+require("dotenv").config();
+
 /**
  * Spawns a child process to serve one of the sample apps.
  *
@@ -37,18 +43,22 @@ const nestedAppPort = 30667;
 // Host (top frame) app runs on port 30668. It enables the platform broker and
 // exposes the Nested App Authentication bridge to the embedded nested app.
 const hostAppPort = 30668;
+const useHttps = process.argv.includes("--https");
+const startCommand = useHttps ? "npm run start:https" : "npm start";
+const protocol = useHttps ? "https" : "http";
 
 const nestedServer = startServer(
-    "npm start",
+    startCommand,
     path.join(__dirname, "nestedApp"),
     nestedAppPort
 );
 const hostServer = startServer(
-    "npm start",
+    startCommand,
     path.join(__dirname, "hostApp"),
     hostAppPort,
     {
         VITE_NESTED_APP_PORT: nestedAppPort.toString(),
+        VITE_NESTED_APP_PROTOCOL: protocol,
     }
 );
 
