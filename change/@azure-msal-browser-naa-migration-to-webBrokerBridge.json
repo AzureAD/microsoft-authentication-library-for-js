@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Route NAA BridgeProxy through the shared webBrokerBridge PendingRequestRegistry and consolidate NestedAppAuthAdapter.fromBridgeError through the shared WebBrokerBridgeErrorMap — internal-only, no NAA public API or on-wire changes",
+    "packageName": "@azure/msal-browser",
+    "email": "shylasummers@microsoft.com",
+    "dependentChangeType": "patch"
+}
