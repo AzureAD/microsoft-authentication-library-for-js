@@ -1,5 +1,8 @@
-import { Browser, Page, BrowserContext, Frame } from "puppeteer";
 import {
+    Browser,
+    Page,
+    BrowserContext,
+    Frame,
     Screenshot,
     setupCredentials,
     enterCredentials,
@@ -14,9 +17,9 @@ const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/nestedAppAuth`;
 const puppeteerTimeout = 15000;
 const jestTimeout = 120000;
 
-// Host is the top frame (also enables the platform broker); nested app is an iframe.
 const hostPort = 30668;
 const nestedPort = 30667;
+const protocol = "https";
 
 const getNestedFrame = async (page: Page): Promise<Frame> => {
     const frame = await page.waitForFrame(
@@ -35,9 +38,12 @@ const verifyHostTokenStore = async (
     scopes: string[]
 ): Promise<void> => {
     const tokenStore = await browserCache.getTokens();
-    expect(tokenStore.idTokens).toHaveLength(1);
-    expect(tokenStore.accessTokens).toHaveLength(1);
-    expect(tokenStore.refreshTokens).toHaveLength(1);
+    expect(tokenStore.idTokens.length).toBe(1);
+    expect(tokenStore.accessTokens.length).toBe(1);
+    // The host completes regular web authentication, so it keeps its own
+    // refresh token. (Under a platform broker the refresh token would instead
+    // be held by the OS broker and the host cache would hold none.)
+    expect(tokenStore.refreshTokens.length).toBe(1);
     expect(await browserCache.getAccountFromCache()).not.toBeNull();
     expect(
         await browserCache.accessTokenForScopesExists(
@@ -52,9 +58,9 @@ const verifyNestedTokenStore = async (
     scopes: string[]
 ): Promise<void> => {
     const tokenStore = await browserCache.getTokens();
-    expect(tokenStore.idTokens).toHaveLength(1);
-    expect(tokenStore.accessTokens).toHaveLength(1);
-    expect(tokenStore.refreshTokens).toHaveLength(0);
+    expect(tokenStore.idTokens.length).toBe(1);
+    expect(tokenStore.accessTokens.length).toBe(1);
+    expect(tokenStore.refreshTokens.length).toBe(0);
     expect(await browserCache.getAccountFromCache()).not.toBeNull();
     expect(
         await browserCache.accessTokenForScopesExists(
@@ -65,13 +71,23 @@ const verifyNestedTokenStore = async (
 };
 
 /**
- * Nested App Authentication (NAA) brokered through the platform broker.
+ * Nested App Authentication (NAA) exercised through the host app.
  *
- * NOTE: this suite requires the platform-broker (JS-WAM) bridge to be present in
- * the browser environment and lab credentials, so it runs only in the e2e
- * pipeline, not in a plain local checkout.
+ * The host app implements and supplies `window.nestedAppAuthBridge`, brokering
+ * the nested app's tokens over the regular web flow. The nested app acquires a
+ * token silently through that bridge and never holds a refresh token — that is
+ * the core NAA property under test. (When a platform broker is available the
+ * host can forward the same requests to it; that path is wired up separately.)
+ *
+ * NOTE: brokering the nested token over the web flow has the host redeem the
+ * auth code for the nested client id on the HOST origin, so the nested app
+ * registration must trust `https://localhost:30668` as a SPA redirect URI.
+ * Until that redirect URI is added to the nested client id the brokered
+ * acquisition fails with AADSTS50011 — which is why this sample is currently
+ * commented out of the e2e pipeline (see `.pipelines/3p-e2e.yml`). Requires lab
+ * credentials.
  */
-describe("Nested App Authentication brokered via platform broker", () => {
+describe("Nested App Authentication brokered through the host app", () => {
     jest.setTimeout(jestTimeout);
 
     let browser: Browser;
@@ -105,6 +121,10 @@ describe("Nested App Authentication brokered via platform broker", () => {
     beforeEach(async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
+        const client = await page.createCDPSession();
+        await client.send("Security.setIgnoreCertificateErrors", {
+            ignore: true,
+        });
         hostCache = new BrowserCacheUtils(page, "localStorage");
     });
 
@@ -117,9 +137,9 @@ describe("Nested App Authentication brokered via platform broker", () => {
             `${SCREENSHOT_BASE_FOLDER_NAME}/nestedAcquireToken`
         );
 
-        await page.goto(`http://localhost:${hostPort}`);
+        await page.goto(`${protocol}://localhost:${hostPort}`);
 
-        // Sign the host in through the platform broker.
+        // Sign the host in through the standard web (popup) authentication flow.
         const hostFrame = page.mainFrame();
         const loginButton = await hostFrame.waitForSelector(
             "xpath=//button[contains(., 'Login')]",
@@ -139,7 +159,8 @@ describe("Nested App Authentication brokered via platform broker", () => {
         });
         await verifyHostTokenStore(hostCache, ["User.Read"]);
 
-        // Nested app acquires a token silently through the NAA bridge.
+        // Nested app acquires a token silently through the host-supplied NAA
+        // bridge (`window.nestedAppAuthBridge`).
         const nestedFrame = await getNestedFrame(page);
         const acquireButton = await nestedFrame.waitForSelector(
             "xpath=//button[contains(., 'acquireTokenSilent')]"
@@ -153,7 +174,7 @@ describe("Nested App Authentication brokered via platform broker", () => {
 
         // Nested app must not hold a refresh token — it stays with the host/broker.
         const nestedCachePage = await context.newPage();
-        await nestedCachePage.goto(`http://localhost:${nestedPort}`);
+        await nestedCachePage.goto(`${protocol}://localhost:${nestedPort}`);
         const nestedCache = new BrowserCacheUtils(
             nestedCachePage,
             "localStorage"

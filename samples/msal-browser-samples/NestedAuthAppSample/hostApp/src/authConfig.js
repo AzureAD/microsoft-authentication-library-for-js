@@ -1,22 +1,11 @@
 import { LogLevel } from "@azure/msal-browser";
 
-const HOST_APP_CLIENT_ID =
-    import.meta.env.VITE_HOST_APP_CLIENT_ID ||
-    "00000000-0000-0000-0000-000000000001";
-const TEST_TENANT_AUTHORITY =
-    "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133";
+const HOST_APP_CLIENT_ID = import.meta.env.VITE_HOST_CLIENT_ID;
 
-/**
- * MSAL configuration for the host (top-frame) app.
- *
- * `system.allowPlatformBroker` enables brokering through the platform broker
- * (JS-WAM / Web Account Manager). The WAM-enabled browser environment provides
- * the `nestedAppAuthBridge` used by the embedded app.
- */
 export const msalConfig = {
     auth: {
         clientId: HOST_APP_CLIENT_ID,
-        authority: TEST_TENANT_AUTHORITY,
+        authority: import.meta.env.VITE_AUTHORITY,
     },
     cache: {
         cacheLocation: "localStorage",
@@ -51,3 +40,5 @@ export const loginRequest = {
 
 // Port the nested app is served on; injected by server.js.
 export const nestedAppPort = import.meta.env.VITE_NESTED_APP_PORT || "30667";
+export const nestedAppProtocol =
+    import.meta.env.VITE_NESTED_APP_PROTOCOL || "http";
