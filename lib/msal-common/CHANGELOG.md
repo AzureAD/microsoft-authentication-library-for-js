@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Wed, 29 Jul 2026 00:26:31 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 04 Aug 2026 18:09:34 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.12.0
+
+Tue, 04 Aug 2026 18:09:34 GMT
+
+### Minor changes
+
+- Add attribute-tokens support [#8700](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8700) (spingale@microsoft.com)
+- Support merging client-originated claims into request claims via `addClaims`/`buildMergedClaims` [#8686](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8686) (rginsburg@microsoft.com)
 
 ## 16.11.3
 

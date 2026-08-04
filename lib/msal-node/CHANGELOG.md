@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Wed, 29 Jul 2026 00:26:31 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 04 Aug 2026 18:09:34 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.5.0
+
+Tue, 04 Aug 2026 18:09:34 GMT
+
+### Minor changes
+
+- Add `claimsFromClient` request parameter to forward client-originated claims to IDP  [#8686](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8686) (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v16.12.0
+
+### Patches
+
+- Add attribute-tokens support [#8700](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8700) (spingale@microsoft.com)
+- Use length-prefix encoding for the additional cache key hash to prevent credential cache-key collisions [#8713](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8713) (nichoudhary@microsoft.com)
 
 ## 5.4.3
 

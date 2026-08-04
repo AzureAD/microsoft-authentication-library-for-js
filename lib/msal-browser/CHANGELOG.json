@@ -2,6 +2,35 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 04 Aug 2026 18:09:34 GMT",
+      "version": "5.18.0",
+      "tag": "@azure/msal-browser_v5.18.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "spingale@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5c53ac62bb060632b340e850e80ceaff950655a7",
+            "comment": "Add attribute-tokens support [#8700](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8700)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.12.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5c53ac62bb060632b340e850e80ceaff950655a7",
+            "comment": "Add internal webBrokerBridge scaffold (shared message interfaces, error taxonomy, pending-request registry) — no callers yet, no public API surface change [#8729](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8729)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 29 Jul 2026 00:26:30 GMT",
       "version": "5.17.3",
       "tag": "@azure/msal-browser_v5.17.3",
