@@ -777,41 +777,29 @@ describe("Authority.ts Class Unit Tests", () => {
             "east.us",
             "EastUS",
             "east us",
-        ])(
-            "falls back to global endpoints for invalid configured region %s",
-            async (invalidRegion) => {
-                const deepCopyOpenIdResponse = JSON.parse(
-                    JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE)
-                );
-                networkInterface.sendGetRequestAsync = (): any =>
-                    deepCopyOpenIdResponse;
-
-                const authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
-                    networkInterface,
-                    mockStorage,
-                    {
-                        ...authorityOptions,
-                        azureRegionConfiguration: {
-                            azureRegion: invalidRegion,
-                            environmentRegion: undefined,
-                        },
+        ])("throws for invalid configured region %s", async (invalidRegion) => {
+            const authority = new Authority(
+                Constants.DEFAULT_AUTHORITY,
+                networkInterface,
+                mockStorage,
+                {
+                    ...authorityOptions,
+                    azureRegionConfiguration: {
+                        azureRegion: invalidRegion,
+                        environmentRegion: undefined,
                     },
-                    logger,
-                    TEST_CONFIG.CORRELATION_ID,
-                    new StubPerformanceClient()
-                );
+                },
+                logger,
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
+            );
 
-                await authority.resolveEndpointsAsync();
-
-                expect(authority.tokenEndpoint).toBe(
-                    deepCopyOpenIdResponse.body.token_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-            }
-        );
+            await expect(
+                authority.resolveEndpointsAsync()
+            ).rejects.toMatchObject({
+                errorCode: "invalid_azure_region",
+            });
+        });
 
         it("region is not auto-discovered if a region is provided by the user", async () => {
             const deepCopyOpenIdResponse = JSON.parse(
@@ -1021,7 +1009,7 @@ describe("Authority.ts Class Unit Tests", () => {
             expect(isValidRegionName(region)).toBe(false);
         });
 
-        it("ignores an invalid environment region and uses a valid IMDS region", async () => {
+        it("throws for an invalid environment region", async () => {
             const networkInterface = buildNetworkInterface(() => ({
                 status: Constants.HTTP_SUCCESS,
                 body: { location: "centralus" },
@@ -1034,18 +1022,17 @@ describe("Authority.ts Class Unit Tests", () => {
             );
             const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
 
-            const region = await regionDiscovery.detectRegion(
-                "hostile.example/path",
-                regionDiscoveryMetadata
-            );
-
-            expect(region).toBe("centralus");
-            expect(regionDiscoveryMetadata.region_source).toBe(
-                Constants.RegionDiscoverySources.IMDS
-            );
+            await expect(
+                regionDiscovery.detectRegion(
+                    "hostile.example/path",
+                    regionDiscoveryMetadata
+                )
+            ).rejects.toMatchObject({
+                errorCode: "invalid_azure_region",
+            });
         });
 
-        it("rejects an invalid region returned by IMDS", async () => {
+        it("throws for an invalid region returned by IMDS", async () => {
             const networkInterface = buildNetworkInterface(() => ({
                 status: Constants.HTTP_SUCCESS,
                 body: { location: "hostile.example/path" },
@@ -1058,15 +1045,11 @@ describe("Authority.ts Class Unit Tests", () => {
             );
             const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
 
-            const region = await regionDiscovery.detectRegion(
-                undefined,
-                regionDiscoveryMetadata
-            );
-
-            expect(region).toBeNull();
-            expect(regionDiscoveryMetadata.region_source).toBe(
-                Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION
-            );
+            await expect(
+                regionDiscovery.detectRegion(undefined, regionDiscoveryMetadata)
+            ).rejects.toMatchObject({
+                errorCode: "invalid_azure_region",
+            });
         });
 
         it("calls the IMDS /compute JSON endpoint and reads the location field", async () => {
@@ -3445,17 +3428,21 @@ describe("Authority.ts Class Unit Tests", () => {
     });
 
     describe("replaceWithRegionalInformation", () => {
-        it("does not regionalize an endpoint when the region is invalid", () => {
+        it("throws before regionalizing an endpoint when the region is invalid", () => {
             const tokenEndpoint =
                 "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token";
 
-            expect(
+            expect(() =>
                 Authority.buildRegionalAuthorityString(
                     tokenEndpoint,
                     "hostile.example/path",
                     ""
                 )
-            ).toBe(tokenEndpoint);
+            ).toThrow(
+                expect.objectContaining({
+                    errorCode: "invalid_azure_region",
+                })
+            );
         });
 
         it("replaces authorization_endpoint", () => {
@@ -3488,18 +3475,22 @@ describe("Authority.ts Class Unit Tests", () => {
             expect(regionalResponse.end_session_endpoint).toBeUndefined();
         });
 
-        it("does not modify metadata when the region is invalid", () => {
+        it("throws before modifying metadata when the region is invalid", () => {
             const originResponse: OpenIdConfigResponse = {
                 ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
             };
 
-            const regionalResponse = Authority.replaceWithRegionalInformation(
-                originResponse,
-                "hostile.example/path",
-                ""
+            expect(() =>
+                Authority.replaceWithRegionalInformation(
+                    originResponse,
+                    "hostile.example/path",
+                    ""
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    errorCode: "invalid_azure_region",
+                })
             );
-
-            expect(regionalResponse).toBe(originResponse);
         });
     });
 

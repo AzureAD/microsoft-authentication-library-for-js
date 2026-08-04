@@ -435,35 +435,27 @@ describe("ConfidentialClientApplication", () => {
                 checkRegion(sendPostRequestAsyncSpy.mock.lastCall[0], region);
             });
 
-            test("invalid MSAL_FORCE_REGION falls back to the global endpoint", async () => {
+            test("invalid MSAL_FORCE_REGION throws", async () => {
                 process.env[MSAL_FORCE_REGION] = "hostile.example/path";
 
-                const authResult = (await client.acquireTokenByClientCredential(
-                    request
-                )) as AuthenticationResult;
-
-                expect(authResult.accessToken).toEqual(
-                    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
-                );
-                expect(
-                    new URL(sendPostRequestAsyncSpy.mock.lastCall[0]).host
-                ).toBe("login.microsoftonline.com");
+                await expect(
+                    client.acquireTokenByClientCredential(request)
+                ).rejects.toMatchObject({
+                    errorCode: "invalid_azure_region",
+                });
+                expect(sendPostRequestAsyncSpy).not.toHaveBeenCalled();
             });
 
-            test("invalid request region falls back to the global endpoint", async () => {
-                const authResult = (await client.acquireTokenByClientCredential(
-                    {
+            test("invalid request region throws", async () => {
+                await expect(
+                    client.acquireTokenByClientCredential({
                         ...request,
                         azureRegion: "hostile.example/path",
-                    }
-                )) as AuthenticationResult;
-
-                expect(authResult.accessToken).toEqual(
-                    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
-                );
-                expect(
-                    new URL(sendPostRequestAsyncSpy.mock.lastCall[0]).host
-                ).toBe("login.microsoftonline.com");
+                    })
+                ).rejects.toMatchObject({
+                    errorCode: "invalid_azure_region",
+                });
+                expect(sendPostRequestAsyncSpy).not.toHaveBeenCalled();
             });
 
             test('region is not passed in through the request, the MSAL_FORCE_REGION environment variable is set to "DisableMsalForceRegion"', async () => {
