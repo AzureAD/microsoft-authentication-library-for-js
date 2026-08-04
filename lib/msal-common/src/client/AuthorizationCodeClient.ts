@@ -344,6 +344,19 @@ export class AuthorizationCodeClient {
 
         RequestParameterBuilder.addResource(parameters, request.resource);
 
+        if (request.attributeTokens) {
+            RequestParameterBuilder.addAttributeTokens(
+                parameters,
+                request.attributeTokens
+            );
+        }
+        this.performanceClient?.addFields(
+            {
+                hasAttributeTokens: !!request.attributeTokens?.length,
+            },
+            request.correlationId
+        );
+
         // add code: user set, not validated
         RequestParameterBuilder.addAuthorizationCode(parameters, request.code);
 
