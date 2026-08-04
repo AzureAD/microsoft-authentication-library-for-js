@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Validate Azure region names before constructing regional authority URLs [#8744](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8744)",
+    "packageName": "@azure/msal-common",
+    "email": "bogavril@microsoft.com",
+    "dependentChangeType": "patch"
+}
