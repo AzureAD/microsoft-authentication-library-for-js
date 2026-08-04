@@ -88,10 +88,24 @@ async function isServerUp(port, timeout) {
 }
 
 /**
- * Spawns a child process to serve the sample
+ * Spawns a child process to serve the sample.
+ *
+ * @param {string} cmd - command to run (e.g. "npm start")
+ * @param {string} directory - working directory of the app
+ * @param {number} [port] - port the app should listen on (exposed to the child as PORT)
+ * @param {object} [env] - extra environment variables for the child process
+ * @returns {import("child_process").ChildProcess} the spawned process
  */
-function startServer(cmd, directory) {
-    const serverProcess = spawn(cmd, { shell: true, cwd: directory });
+function startServer(cmd, directory, port, env) {
+    const serverProcess = spawn(cmd, {
+        shell: true,
+        cwd: directory,
+        env: {
+            ...process.env,
+            ...env,
+            ...(port ? { PORT: port.toString() } : {}),
+        },
+    });
 
     serverProcess.on("error", (err) => {
         console.error("Failed to start sample.");
@@ -109,6 +123,8 @@ function startServer(cmd, directory) {
     serverProcess.on("close", (code) => {
         console.log(`child process exited with code ${code}`);
     });
+
+    return serverProcess;
 }
 
 /**

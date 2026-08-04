@@ -1,42 +1,11 @@
-const { spawn } = require("child_process");
 const path = require("path");
+const serverUtils = require("../../e2eTestUtils/jest-puppeteer-utils/serverUtils");
 
 // Load manual-testing configuration from `.env`. For e2e runs the jest start
 // command wraps this process with `env-cmd -f .env.e2e`, which pre-populates
 // process.env; dotenv does not override already-set variables, so `.env.e2e`
 // wins during e2e while `.env` supplies the defaults for `npm start`.
 require("dotenv").config();
-
-/**
- * Spawns a child process to serve one of the sample apps.
- *
- * @param {string} cmd - command to run (e.g. "npm start")
- * @param {string} directory - working directory of the app
- * @param {number} port - port the app should listen on
- * @param {object} [env] - extra environment variables
- * @returns {import("child_process").ChildProcess}
- */
-function startServer(cmd, directory, port, env) {
-    const serverProcess = spawn(cmd, {
-        shell: true,
-        cwd: directory,
-        env: { ...process.env, ...env, PORT: port.toString() },
-    });
-    serverProcess.on("error", (err) => {
-        console.error("Failed to start sample.");
-        throw err;
-    });
-    serverProcess.stdout.on("data", (data) => {
-        console.log(`stdout: ${data}`);
-    });
-    serverProcess.stderr.on("data", (data) => {
-        console.error(`stderr: ${data}`);
-    });
-    serverProcess.on("close", (code) => {
-        console.log(`child process exited with code ${code}`);
-    });
-    return serverProcess;
-}
 
 // Nested (child) app runs on port 30667 and is embedded in an iframe by the host.
 const nestedAppPort = 30667;
@@ -47,12 +16,15 @@ const useHttps = process.argv.includes("--https");
 const startCommand = useHttps ? "npm run start:https" : "npm start";
 const protocol = useHttps ? "https" : "http";
 
-const nestedServer = startServer(
+// Reuse the shared e2e spawn helper (used by the jest setup for every sample)
+// so process spawning/logging stays consistent; this file only adds the
+// two-app orchestration and coordinated shutdown on top of it.
+const nestedServer = serverUtils.startServer(
     startCommand,
     path.join(__dirname, "nestedApp"),
     nestedAppPort
 );
-const hostServer = startServer(
+const hostServer = serverUtils.startServer(
     startCommand,
     path.join(__dirname, "hostApp"),
     hostAppPort,
