@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 29 Jul 2026 00:26:30 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 04 Aug 2026 20:17:38 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.18.0
+
+Tue, 04 Aug 2026 20:17:38 GMT
+
+### Minor changes
+
+- Add attribute-tokens support [#8700](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8700) (spingale@microsoft.com)
+- Bump @azure/msal-common to v16.12.0
+
+### Patches
+
+- Add internal webBrokerBridge scaffold (shared message interfaces, error taxonomy, pending-request registry) — no callers yet, no public API surface change [#8729](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8729) (shylasummers@microsoft.com)
 
 ## 5.17.3
 
