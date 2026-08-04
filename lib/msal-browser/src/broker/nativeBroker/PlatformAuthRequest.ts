@@ -32,7 +32,8 @@ export type PlatformAuthRequest = {
     resourceRequestUri?: string;
     extendedExpiryToken?: boolean;
     extraParameters?: StringDict;
-    signPopToken?: boolean; // Set to true only if token request deos not contain a PoP keyId
+    signPopToken?: boolean; // Set to true only if token request does not contain a PoP keyId
+    attributeTokens?: string; // Pre-serialized attribute tokens (sorted, space-separated)
 };
 
 /**

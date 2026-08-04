@@ -22,4 +22,5 @@ export type TokenRequest = {
     extendedExpiryToken?: boolean;
     extraParameters?: Map<string, string>;
     forceRefresh?: boolean;
+    attributeTokens?: string; // Pre-serialized attribute tokens forwarded to the host app; defaults to `undefined` when missing or empty.
 };

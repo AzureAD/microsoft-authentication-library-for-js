@@ -58,8 +58,8 @@ const TOKEN_KEYS = "TOKEN_KEYS";
 export class MockStorageClass extends CacheManager {
     store = {};
 
-    generateCredentialKey(credential: CredentialEntity): string {
-        return generateCredentialKey(credential);
+    generateCredentialKey(credential: CredentialEntity, hash?: string): string {
+        return generateCredentialKey(credential, hash);
     }
 
     generateAccountKey(account: AccountInfo): string {
@@ -137,8 +137,13 @@ export class MockStorageClass extends CacheManager {
     getAccessTokenCredential(key: string): AccessTokenEntity | null {
         return (this.store[key] as AccessTokenEntity) || null;
     }
-    async setAccessTokenCredential(value: AccessTokenEntity): Promise<void> {
-        const key = this.generateCredentialKey(value);
+    async setAccessTokenCredential(
+        value: AccessTokenEntity,
+        _correlationId: string,
+        _kmsi: boolean,
+        additionalCacheKeyHash?: string
+    ): Promise<void> {
+        const key = this.generateCredentialKey(value, additionalCacheKeyHash);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();

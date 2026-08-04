@@ -64,6 +64,7 @@ import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import * as TokenProtocol from "../../src/protocol/Token.js";
+import { ResponseHandler } from "../../src/response/ResponseHandler.js";
 
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
     '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
@@ -253,6 +254,132 @@ describe("RefreshTokenClient unit tests", () => {
 
             client.acquireToken(refreshTokenRequest, 0).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("Adds sorted attribute_tokens to the /token request body", (done) => {
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                try {
+                    expect(body).toContain(
+                        "attribute_tokens=alpha%20mike%20zeta"
+                    );
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+                attributeTokens: ["zeta", "alpha", "mike"],
+            };
+
+            client.acquireToken(refreshTokenRequest, 0).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("passes attribute token cache components to ResponseHandler during refresh token redemption", async () => {
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT as any);
+
+            const validateTokenResponseSpy = jest
+                .spyOn(ResponseHandler.prototype, "validateTokenResponse")
+                .mockImplementation(() => undefined);
+            const handleServerTokenResponseSpy = jest
+                .spyOn(ResponseHandler.prototype, "handleServerTokenResponse")
+                .mockResolvedValue(AUTHENTICATION_RESULT as any);
+
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+                attributeTokens: ["zeta", "alpha", "mike"],
+            };
+
+            await client.acquireToken(refreshTokenRequest, 0);
+
+            expect(validateTokenResponseSpy).toHaveBeenCalled();
+            expect(handleServerTokenResponseSpy).toHaveBeenCalledWith(
+                AUTHENTICATION_RESULT.body,
+                expect.anything(),
+                expect.any(Number),
+                refreshTokenRequest,
+                0,
+                undefined,
+                undefined,
+                true,
+                undefined,
+                undefined
+            );
+        });
+
+        it("emits hasAttributeTokens telemetry during refresh token redemption", async () => {
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT as any);
+            jest.spyOn(
+                ResponseHandler.prototype,
+                "validateTokenResponse"
+            ).mockImplementation(() => undefined);
+            jest.spyOn(
+                ResponseHandler.prototype,
+                "handleServerTokenResponse"
+            ).mockResolvedValue(AUTHENTICATION_RESULT as any);
+
+            const addFieldsSpy = jest.spyOn(stubPerformanceClient, "addFields");
+
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+                attributeTokens: ["zeta", "alpha"],
+            };
+
+            await client.acquireToken(refreshTokenRequest, 0);
+
+            const hasAttributeTokensCalls = (
+                addFieldsSpy.mock.calls as any[]
+            ).filter(
+                (args: any[]) =>
+                    typeof args[0]?.hasAttributeTokens !== "undefined"
+            );
+            expect(hasAttributeTokensCalls.length).toBeGreaterThanOrEqual(1);
+            expect(hasAttributeTokensCalls[0][0]).toMatchObject({
+                hasAttributeTokens: true,
             });
         });
 

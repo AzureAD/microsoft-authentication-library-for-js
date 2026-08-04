@@ -6,6 +6,7 @@
 import * as Constants from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ScopeSet } from "./ScopeSet.js";
+import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
@@ -768,5 +769,27 @@ export function addResource(
 ): void {
     if (resource) {
         parameters.set(AADServerParamKeys.RESOURCE, resource);
+    }
+}
+
+/**
+ * Add the `attribute_tokens` parameter to a /token request body.
+ *
+ * When `attributeTokens` is a non-empty array the values are sorted lexicographically and joined
+ * with a single space, then written to the request body. When `attributeTokens` is an empty array
+ * the parameter is deleted from the request body.
+ *
+ * @param parameters - request parameter map that will be serialized into the /token body
+ * @param attributeTokens - caller-provided attribute token strings
+ */
+export function addAttributeTokens(
+    parameters: Map<string, string>,
+    attributeTokens: Array<string>
+): void {
+    const serialized = CacheHelpers.serializeAttributeTokens(attributeTokens);
+    if (serialized) {
+        parameters.set(AADServerParamKeys.ATTRIBUTE_TOKENS, serialized);
+    } else {
+        parameters.delete(AADServerParamKeys.ATTRIBUTE_TOKENS);
     }
 }
