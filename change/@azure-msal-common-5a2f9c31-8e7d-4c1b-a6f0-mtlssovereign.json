@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "mTLS Proof-of-Possession: align the sovereign-cloud deny-list with MSAL .NET so only US Gov `login.usgovcloudapi.net` and China `login.chinacloudapi.cn` fail fast; other sovereign hosts (e.g. `login.microsoftonline.us`, `login.partner.microsoftonline.cn`) are now rewritten to their `mtlsauth.*` equivalent [#8693](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8693)",
+    "packageName": "@azure/msal-common",
+    "email": "rginsburg@microsoft.com",
+    "dependentChangeType": "patch"
+}

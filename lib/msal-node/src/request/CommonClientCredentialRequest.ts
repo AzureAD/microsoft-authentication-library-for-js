@@ -33,6 +33,13 @@ export type CommonClientCredentialRequest = Omit<
      */
     fmiPath?: string;
     /**
+     * When true, requests an mTLS-bound Proof-of-Possession token (`token_type=mtls_pop`) from Entra ID.
+     * The app's configured `clientCertificate` is presented as the client TLS certificate in the
+     * mutual-TLS handshake to the token endpoint, and the returned token is cryptographically bound
+     * to that certificate.
+     */
+    mtlsProofOfPossession?: boolean;
+    /**
      * Client-originated claims to forward to the token endpoint, sent as the `claims` parameter on the wire.
      * Unlike `claims` (a server-issued challenge, which bypasses the token cache), client claims are cached and
      * the cache entry is keyed on the claims value. Must use stable, non-dynamic values to avoid unbounded cache growth.

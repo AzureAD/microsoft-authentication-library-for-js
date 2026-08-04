@@ -302,6 +302,130 @@ describe("Authority.ts Class Unit Tests", () => {
             expect(authority.options).toBe(authorityOptions);
         });
 
+        describe("getMtlsTokenEndpoint", () => {
+            const mockEndpoints = (
+                tokenEndpoint: string,
+                tenant: string
+            ): void => {
+                jest.spyOn(
+                    Authority.prototype,
+                    "tokenEndpoint",
+                    "get"
+                ).mockReturnValue(tokenEndpoint);
+                jest.spyOn(
+                    Authority.prototype,
+                    "tenant",
+                    "get"
+                ).mockReturnValue(tenant);
+            };
+
+            it("transforms a global public-cloud host to mtlsauth.microsoft.com", () => {
+                mockEndpoints(
+                    `https://login.microsoftonline.com/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(authority.getMtlsTokenEndpoint()).toBe(
+                    `https://mtlsauth.microsoft.com/${RANDOM_TEST_GUID}/oauth2/v2.0/token`
+                );
+            });
+
+            it("transforms a regional host by replacing the login. segment with mtlsauth.", () => {
+                mockEndpoints(
+                    `https://westus3.login.microsoft.com/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(authority.getMtlsTokenEndpoint()).toBe(
+                    `https://westus3.mtlsauth.microsoft.com/${RANDOM_TEST_GUID}/oauth2/v2.0/token`
+                );
+            });
+
+            it("rewrites a mixed-case discovery host case-insensitively (UrlString preserves host casing)", () => {
+                mockEndpoints(
+                    `https://WestUS3.Login.Microsoft.com/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(authority.getMtlsTokenEndpoint()).toBe(
+                    `https://westus3.mtlsauth.microsoft.com/${RANDOM_TEST_GUID}/oauth2/v2.0/token`
+                );
+            });
+
+            it("throws mtlsPopUnsupportedCloud for the US Gov (usgovcloudapi.net) and China (chinacloudapi.cn) hosts blocked by MSAL .NET", () => {
+                mockEndpoints(
+                    `https://login.usgovcloudapi.net/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(() => authority.getMtlsTokenEndpoint()).toThrow(
+                    ClientAuthErrorCodes.mtlsPopUnsupportedCloud
+                );
+
+                mockEndpoints(
+                    `https://login.chinacloudapi.cn/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(() => authority.getMtlsTokenEndpoint()).toThrow(
+                    ClientAuthErrorCodes.mtlsPopUnsupportedCloud
+                );
+            });
+
+            it("transforms other sovereign hosts (microsoftonline.us, partner.microsoftonline.cn) to mtlsauth.*, matching MSAL .NET", () => {
+                mockEndpoints(
+                    `https://login.microsoftonline.us/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(authority.getMtlsTokenEndpoint()).toBe(
+                    `https://mtlsauth.microsoftonline.us/${RANDOM_TEST_GUID}/oauth2/v2.0/token`
+                );
+
+                mockEndpoints(
+                    `https://login.partner.microsoftonline.cn/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(authority.getMtlsTokenEndpoint()).toBe(
+                    `https://mtlsauth.partner.microsoftonline.cn/${RANDOM_TEST_GUID}/oauth2/v2.0/token`
+                );
+            });
+
+            it("throws mtlsPopUnsupportedCloud for a B2C host that merely contains 'login.'", () => {
+                mockEndpoints(
+                    `https://contoso.b2clogin.com/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(() => authority.getMtlsTokenEndpoint()).toThrow(
+                    ClientAuthErrorCodes.mtlsPopUnsupportedCloud
+                );
+            });
+
+            it("throws mtlsPopUnsupportedCloud for a CIAM host that merely contains 'login.'", () => {
+                mockEndpoints(
+                    `https://contoso.ciamlogin.com/${RANDOM_TEST_GUID}/oauth2/v2.0/token`,
+                    RANDOM_TEST_GUID
+                );
+                expect(() => authority.getMtlsTokenEndpoint()).toThrow(
+                    ClientAuthErrorCodes.mtlsPopUnsupportedCloud
+                );
+            });
+
+            it("throws mtlsPopNonTenantedAuthority for a /common authority", () => {
+                mockEndpoints(
+                    "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                    "common"
+                );
+                expect(() => authority.getMtlsTokenEndpoint()).toThrow(
+                    ClientAuthErrorCodes.mtlsPopNonTenantedAuthority
+                );
+            });
+
+            it("throws mtlsPopNonTenantedAuthority for an /organizations authority", () => {
+                mockEndpoints(
+                    "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
+                    "organizations"
+                );
+                expect(() => authority.getMtlsTokenEndpoint()).toThrow(
+                    ClientAuthErrorCodes.mtlsPopNonTenantedAuthority
+                );
+            });
+        });
+
         describe("OAuth Endpoints", () => {
             beforeEach(async () => {
                 jest.spyOn(

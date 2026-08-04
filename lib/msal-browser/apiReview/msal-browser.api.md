@@ -106,6 +106,7 @@ export const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
     readonly SSH: "ssh-cert";
+    readonly MTLS_POP: "mtls_pop";
 };
 
 // @public (undocumented)

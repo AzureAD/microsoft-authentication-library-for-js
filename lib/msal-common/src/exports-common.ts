@@ -88,6 +88,7 @@ export { AuthorityMetadataEntity } from "./cache/entities/AuthorityMetadataEntit
 export { ThrottlingEntity } from "./cache/entities/ThrottlingEntity.js";
 export {
     INetworkModule,
+    MtlsCertificate,
     NetworkRequestOptions,
     StubbedNetworkModule,
 } from "./network/INetworkModule.js";

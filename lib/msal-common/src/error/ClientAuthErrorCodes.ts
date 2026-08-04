@@ -43,3 +43,6 @@ export const nestedAppAuthBridgeDisabled = "nested_app_auth_bridge_disabled";
 export const platformBrokerError = "platform_broker_error";
 export const resourceParameterRequired = "resource_parameter_required";
 export const misplacedResourceParam = "misplaced_resource_parameter";
+export const mtlsPopUnsupportedCloud = "mtls_pop_unsupported_cloud";
+export const mtlsPopNonTenantedAuthority = "mtls_pop_non_tenanted_authority";
+export const tokenTypeMismatch = "token_type_mismatch";

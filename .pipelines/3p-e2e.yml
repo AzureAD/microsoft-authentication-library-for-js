@@ -112,6 +112,7 @@ extends:
                             - name: "auth-code-cli-app"
                             - name: "client-credentials"
                             - name: "client-credentials-with-cert-from-key-vault"
+                            - name: "client-credentials-mtls-pop"
                             - name: "device-code"
                             - name: "silent-flow-1"
                               dir: "silent-flow"

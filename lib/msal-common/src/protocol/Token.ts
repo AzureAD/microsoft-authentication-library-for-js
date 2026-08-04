@@ -15,6 +15,7 @@ import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizatio
 import { RequestThumbprint } from "../network/RequestThumbprint.js";
 import {
     INetworkModule,
+    MtlsCertificate,
     NetworkRequestOptions,
 } from "../network/INetworkModule.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
@@ -120,12 +121,20 @@ export async function executePostToTokenEndpoint(
     networkClient: INetworkModule,
     logger: Logger,
     performanceClient: IPerformanceClient,
-    serverTelemetryManager: ServerTelemetryManager | null
+    serverTelemetryManager: ServerTelemetryManager | null,
+    mtlsCertificate?: MtlsCertificate
 ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    const options: NetworkRequestOptions = {
+        body: queryString,
+        headers: headers,
+    };
+    if (mtlsCertificate) {
+        options.mtlsCertificate = mtlsCertificate;
+    }
     const response = await sendPostRequest<ServerAuthorizationTokenResponse>(
         thumbprint,
         tokenEndpoint,
-        { body: queryString, headers: headers },
+        options,
         correlationId,
         cacheManager,
         networkClient,

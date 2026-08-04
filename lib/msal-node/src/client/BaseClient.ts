@@ -21,6 +21,7 @@ import {
     NetworkResponse,
     BaseAuthRequest,
     StubPerformanceClient,
+    MtlsCertificate,
 } from "@azure/msal-common/node";
 import { version, name } from "../packageMetadata.js";
 
@@ -102,7 +103,8 @@ export abstract class BaseClient {
         queryString: string,
         headers: Record<string, string>,
         thumbprint: RequestThumbprint,
-        correlationId: string
+        correlationId: string,
+        mtlsCertificate?: MtlsCertificate
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         return TokenProtocol.executePostToTokenEndpoint(
             tokenEndpoint,
@@ -114,7 +116,8 @@ export abstract class BaseClient {
             this.networkClient,
             this.logger,
             this.performanceClient,
-            this.serverTelemetryManager
+            this.serverTelemetryManager,
+            mtlsCertificate
         );
     }
 
