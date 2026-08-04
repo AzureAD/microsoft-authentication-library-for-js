@@ -69,14 +69,17 @@ export interface ICacheManager {
     ): AccessTokenEntity | null;
 
     /**
-     * set idToken entity to the platform cache
-     * @param accessToken
-     * @param correlationId
+     * set accessToken entity to the platform cache
+     * @param accessToken - the access token entity to cache
+     * @param correlationId - unique identifier for the request
+     * @param kmsi - keep me signed in flag
+     * @param additionalCacheKeyHash - optional precomputed hash of additionalCacheKeyComponents used in key generation
      */
     setAccessTokenCredential(
         accessToken: AccessTokenEntity,
         correlationId: string,
-        kmsi: boolean
+        kmsi: boolean,
+        additionalCacheKeyHash?: string
     ): Promise<void>;
 
     /**

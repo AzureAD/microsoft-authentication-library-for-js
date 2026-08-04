@@ -815,7 +815,24 @@ describe("SilentIframeClient", () => {
                 nonce: "123523",
                 state: TEST_STATE_VALUES.USER_STATE,
             });
-            expect(tokenResp).toEqual(testTokenResponse);
+            // Expires dates can differ by up to 1 second at boundary transitions.
+            expect(tokenResp).toMatchObject({
+                ...testTokenResponse,
+                expiresOn: expect.any(Date),
+                extExpiresOn: expect.any(Date),
+            });
+            expect(
+                Math.abs(
+                    tokenResp.expiresOn!.getTime() -
+                        testTokenResponse.expiresOn!.getTime()
+                )
+            ).toBeLessThanOrEqual(1000);
+            expect(
+                Math.abs(
+                    tokenResp.extExpiresOn!.getTime() -
+                        testTokenResponse.extExpiresOn!.getTime()
+                )
+            ).toBeLessThanOrEqual(1000);
             expect(sendPostRequestSpy.mock.results[0].value).resolves.toEqual(
                 testServerErrorResponse
             );
@@ -1756,17 +1773,39 @@ describe("SilentIframeClient", () => {
                 ).mockResolvedValue(
                     `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
                 );
-                jest.spyOn(
-                    AuthorizeProtocol,
-                    "handleResponseCode"
-                ).mockResolvedValue(getTestAuthenticationResult());
+                const handleResponseCodeSpy = jest
+                    .spyOn(AuthorizeProtocol, "handleResponseCode")
+                    .mockResolvedValue(getTestAuthenticationResult());
                 const earFormSpy = jest
                     .spyOn(SilentHandler, "initiateEarRequest")
                     .mockResolvedValue(document.createElement("iframe"));
 
-                const result = await pca.ssoSilent(validRequest);
+                const result = await pca.ssoSilent({
+                    ...validRequest,
+                    attributeTokens: ["zeta", "alpha", "mike"],
+                });
                 expect(result).toEqual(getTestAuthenticationResult());
                 expect(earFormSpy).toHaveBeenCalled();
+                expect(handleResponseCodeSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        attributeTokens: expect.arrayContaining([
+                            "zeta",
+                            "alpha",
+                            "mike",
+                        ]),
+                    }),
+                    expect.anything(),
+                    expect.any(String),
+                    expect.any(Number),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    undefined
+                );
             });
 
             it("throws if protocolMode is set to EAR and httpMethod is set to GET", async () => {
