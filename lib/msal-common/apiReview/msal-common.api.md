@@ -240,6 +240,9 @@ function addDeviceCode(parameters: Map<string, string>, code: string): void;
 // @public
 function addDomainHint(parameters: Map<string, string>, domainHint: string): void;
 
+// @internal
+function addDpopTokenProofHeader(headers: Record<string, string>, request: BaseAuthRequest, tokenEndpoint: string, cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager): Promise<void>;
+
 // @public
 function addEARParameters(parameters: Map<string, string>, jwk: string): void;
 
@@ -1048,6 +1051,7 @@ declare namespace ClientAuthErrorCodes {
         noAccountFound,
         noCryptoObject,
         unexpectedCredentialType,
+        dpopTokenTypeMismatch,
         tokenRefreshRequired,
         tokenClaimsCnfRequiredForSignedJwt,
         authorizationCodeMissingFromServerResponse,
@@ -1384,7 +1388,7 @@ export function createInteractionRequiredAuthError(errorCode: string, correlatio
 export function createNetworkError(error: AuthError, httpStatus?: number, responseHeaders?: Record<string, string>, additionalError?: Error): NetworkError;
 
 // @public
-function createRefreshTokenEntity(homeAccountId: string, environment: string, refreshToken: string, clientId: string, familyId?: string, userAssertionHash?: string, expiresOn?: number, keyId?: string): RefreshTokenEntity;
+function createRefreshTokenEntity(homeAccountId: string, environment: string, refreshToken: string, clientId: string, familyId?: string, userAssertionHash?: string, expiresOn?: number): RefreshTokenEntity;
 
 // @public
 function createTokenQueryParameters(request: BaseAuthRequest, clientId: string, redirectUri: string, performanceClient: IPerformanceClient): string;
@@ -1539,6 +1543,9 @@ const DPOP_TOKEN_BINDING_KEY_ALGORITHM = "ES256";
 
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";
+
+// @public (undocumented)
+const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
 
 // @public (undocumented)
 const DSTS = "dstsv2";
@@ -2531,6 +2538,7 @@ export type PerformanceEvent = {
     silentRefreshReason?: string;
     deduped?: boolean;
     hasAttributeTokens?: boolean;
+    dpopTokenTypeMismatch?: string;
     kmsi?: boolean;
     ssoCapable?: boolean;
     isBackground?: boolean;
@@ -3100,7 +3108,7 @@ export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequest
 // @internal (undocumented)
 export class SilentFlowClient {
     constructor(configuration: ClientConfiguration, performanceClient: IPerformanceClient);
-    acquireCachedToken(request: CommonSilentFlowRequest): Promise<[AuthenticationResult, Constants_2.CacheOutcome]>;
+    acquireCachedToken(request: CommonSilentFlowRequest): Promise<[AuthenticationResult, CacheOutcome]>;
     // (undocumented)
     authority: Authority;
     // (undocumented)
@@ -3364,6 +3372,7 @@ const tokenParsingError = "token_parsing_error";
 declare namespace TokenProtocol {
     export {
         createTokenRequestHeaders,
+        addDpopTokenProofHeader,
         createTokenQueryParameters,
         executePostToTokenEndpoint,
         sendPostRequest

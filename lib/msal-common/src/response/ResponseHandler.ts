@@ -260,6 +260,21 @@ export class ResponseHandler {
         if (
             request.authenticationScheme === Constants.AuthenticationScheme.DPOP
         ) {
+            if (
+                serverTokenResponse.token_type?.toLowerCase() !==
+                Constants.AuthenticationScheme.DPOP.toLowerCase()
+            ) {
+                this.performanceClient?.addFields(
+                    {
+                        dpopTokenTypeMismatch: serverTokenResponse.token_type,
+                    },
+                    request.correlationId
+                );
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.dpopTokenTypeMismatch,
+                    request.correlationId
+                );
+            }
             serverTokenResponse.token_type =
                 Constants.AuthenticationScheme.DPOP;
         }

@@ -737,6 +737,7 @@ describe("ResponseHandler.ts", () => {
             const testResponse: ServerAuthorizationTokenResponse = {
                 ...AUTHENTICATION_RESULT.body,
                 access_token: TEST_DPOP_VALUES.ACCESS_TOKEN,
+                token_type: AuthenticationScheme.DPOP,
             };
             claimsStub.mockImplementation(
                 (encodedToken: string): TokenClaims | null => {
@@ -772,6 +773,53 @@ describe("ResponseHandler.ts", () => {
             expect(result.dpopProof).toBe("fresh-dpop-proof");
             expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(signSpy).toHaveBeenCalled();
+        });
+
+        it("throws when DPoP request receives non-DPoP token_type", async () => {
+            const addFieldsSpy = jest.spyOn(stubPerformanceClient, "addFields");
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                scopes: ["openid", "profile", "User.Read", "email"],
+                authenticationScheme: AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                access_token: TEST_DPOP_VALUES.ACCESS_TOKEN,
+                token_type: AuthenticationScheme.BEARER,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null,
+                mockShrTokenBindingKeyManager
+            );
+
+            await expect(
+                responseHandler.handleServerTokenResponse(
+                    testResponse,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    testRequest,
+                    0
+                )
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.dpopTokenTypeMismatch,
+            });
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    dpopTokenTypeMismatch: AuthenticationScheme.BEARER,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("Does not sign access token when PoP kid is set and PoP scheme enabled", async () => {

@@ -74,6 +74,7 @@ export function createTokenRequestHeaders(
 
 /**
  * Adds the DPoP proof header for token endpoint requests when DPoP is requested.
+ * @internal
  */
 export async function addDpopTokenProofHeader(
     headers: Record<string, string>,
