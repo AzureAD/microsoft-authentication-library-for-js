@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785883007687,
+  "lastUpdate": 1785961240033,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22745,6 +22745,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.73%",
             "unit": "ops/sec",
             "extra": "217 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6df85a3f54337a9dd8d6ba399205d5f976e64d37",
+          "message": "Add internal DPoP crypto key storage and cache helpers (#8708)\n\n## Summary\n\nAdds the internal DPoP proof/key primitives needed for L1 DPoP while\nkeeping app-facing DPoP acquisition disabled until the public PCA\nenablement work item.\n\nThis PR now uses a keyId-only DPoP key lifecycle. It removes the prior\n`clientId + authority` scoped key reuse model so `dpop_jkt` is not made\nstable by this WI-2 foundation. Token response/cache-family binding and\nrefresh-token reuse wiring remain out of scope for WI-3.\n\n## Implements\n\n- AB#3677516 - WI-2: Add internal DPoP crypto key storage and cache\nhelpers\n\n## Consolidation note\n\nThis is the canonical single WI-2 PR targeting `dev`. The attempted\nfoundation split PR #8725 was closed because the split did not\nmaterially reduce review complexity, and its reusable review fixes were\nconsolidated back into this branch.\n\nConsolidated review fixes include:\n\n- `JoseHeader` owns JOSE header validation/normalization; `CryptoOps`\nsigns validated headers instead of re-cloning/dropping fields.\n- `DEFAULT_CRYPTO_IMPLEMENTATION.removeTokenBindingKey` preserves caller\ncorrelation ID in default stub errors.\n- `AsyncMemoryStorage.getKeys` only silently falls back for\n`databaseUnavailable`; unexpected persistent enumeration errors surface.\n- `unsupported_authentication_scheme` request guard/docs/API review are\nrestored so runtime DPoP acquisition remains fail-closed.\n- Node/common/browser token-binding stubs and API reports are aligned.\n\n## Scope\n\n- Adds browser token-binding key lifecycle support for ES256/P-256 DPoP\nkeys stored and retrieved directly by keyId/JKT.\n- Removes the scoped key abstraction (`keyScope` /\n`TokenBindingKeyContext`) and the scoped\nprovisioning/cache-hit/coalescing behavior that reused keys by `clientId\n+ authority`.\n- Keeps token-binding lookup, signing, and removal keyId-only through\nthe internal `ICrypto` and `ITokenBindingKeyManager` contracts.\n- Adds internal RFC 9449 DPoP proof generation helpers that build\ntoken/resource proof claims and sign with the caller-provided keyId.\n- Preserves existing RSA/SHR PoP behavior while moving legacy PoP\nsigning onto token-binding primitives.\n- Removes obsolete scoped-key telemetry fields that no longer have\nmeaning without scoped reuse.\n- Keeps runtime DPoP acquisition fail-closed; this PR does not export\n`AuthenticationScheme.DPOP`, add `ResponseHandler` DPoP cache binding,\nbind refresh-token families, or enable app-facing DPoP flows.\n- Splits TokenBindingKeyManager lifecycle coverage into a focused spec\nwhile keeping CryptoOps proof/signing integration coverage in\n`CryptoOps.spec.ts`.\n\n## Feature flag / waiver\n\n- **Feature flag waiver:** No runtime feature flag is required because\nthis PR is internal scaffolding and is not wired into public token\nacquisition flows or enabled by user-facing configuration.\n- **Default state:** No user-visible DPoP behavior is enabled by default\nin this PR.\n- **Release-safety posture:** The branch is merge-safe before full L1\nDPoP wiring because the public feature remains disabled until\nAB#3677517.\n\n## Rollout / rollback\n\n- **Owner:** MSAL.js team.\n- **Rollout stages:** Merge internal primitives first, monitor\nCI/package validation, then enable public L1 PCA DPoP acquisition in a\nseparate PR/work item.\n- **Success criteria:** Existing Bearer/PoP/SHR/SSH behavior remains\nunchanged, DPoP internal key/proof tests pass, and telemetry records\ntoken-binding key metadata without logging proof or key material.\n- **Rollback path:** Revert PR #8708 if the internal primitives cause\nregressions. No flag flip is needed because public DPoP behavior is not\nenabled here.\n\n## How to validate\n\nTargeted validation for the narrowed DPoP key lifecycle scope:\n\n- `npm test --workspace=@azure/msal-common -- --runTestsByPath\ntest\\crypto\\DpopProofGenerator.spec.ts --silent`\n- `npm test --workspace=@azure/msal-browser -- --runTestsByPath\ntest\\crypto\\CryptoOps.spec.ts test\\crypto\\TokenBindingKeyManager.spec.ts\n--silent`\n- `npm run format:check --workspace=@azure/msal-common`\n- `npm run format:check --workspace=@azure/msal-browser`\n\nBroader validation previously run during WI-2 consolidation:\n\n- `npm test -- --runTestsByPath test\\config\\ClientConfiguration.spec.ts\ntest\\crypto\\JoseHeader.spec.ts test\\crypto\\DpopProofGenerator.spec.ts\n--runInBand` in `lib/msal-common`\n- `npm test -- --runTestsByPath test\\response\\ResponseHandler.spec.ts\n--runInBand` in `lib/msal-common`\n- `npm test -- --runTestsByPath test\\cache\\AsyncMemoryStorage.spec.ts\ntest\\crypto\\CryptoOps.spec.ts test\\request\\RequestHelpers.spec.ts\n--runInBand` in `lib/msal-browser`\n- `npm run build:all` and `npm run apiExtractor -- --local` in\n`lib/msal-common`, `lib/msal-browser`, and `lib/msal-node`\n- `npm run format:check` in `lib/msal-common`, `lib/msal-browser`, and\n`lib/msal-node`\n- `npm run lint` in `lib/msal-common`, `lib/msal-browser`, and\n`lib/msal-node` (existing warnings only in common/browser)\n\n## Notes\n\nThis PR previously referenced removed work item AB#3674407. The active\nWI-2 tracking item is AB#3677516.\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCo-authored-by: Forge <forge-bot@entra.github.io>",
+          "timestamp": "2026-08-05T13:12:21-07:00",
+          "tree_id": "a027ea66ded6b639c490310075d9598f322ee967",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/6df85a3f54337a9dd8d6ba399205d5f976e64d37"
+        },
+        "date": 1785961235789,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 378761,
+            "range": "±0.56%",
+            "unit": "ops/sec",
+            "extra": "238 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 372700,
+            "range": "±0.86%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
           }
         ]
       }
