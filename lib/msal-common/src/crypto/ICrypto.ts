@@ -8,7 +8,7 @@ import {
     createClientAuthError,
 } from "../error/ClientAuthError.js";
 import type { BaseAuthRequest } from "../request/BaseAuthRequest.js";
-import type { ShrOptions, SignedHttpRequest } from "./SignedHttpRequest.js";
+import type { JoseHeader } from "./JoseHeader.js";
 
 /**
  * PKCE code verifier and challenge pair used by authorization code flows.
@@ -35,9 +35,11 @@ export type SignedHttpRequestParameters = Pick<
 
 /**
  * Shared JOSE algorithm literals used by MSAL package internals.
+ * @internal
  */
 export const JsonWebTokenAlgorithms = {
     ES256: "ES256",
+    RS256: "RS256",
 } as const;
 /**
  * Interface for crypto functions used by library
@@ -68,13 +70,6 @@ export interface ICrypto {
      */
     encodeKid(inputKid: string): string;
     /**
-     * Generates an JWK RSA S256 Thumbprint
-     * @param request
-     */
-    getPublicKeyThumbprint(
-        request: SignedHttpRequestParameters
-    ): Promise<string>;
-    /**
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid
      * @param correlationId
@@ -86,14 +81,18 @@ export interface ICrypto {
      */
     clearKeystore(correlationId: string): Promise<boolean>;
     /**
-     * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
-     * @param accessToken
+     * Signs a compact JWT with the token-binding key identified by kid.
+     * @internal
+     * @param header
+     * @param payload
+     * @param kid
+     * @param correlationId
      */
-    signJwt(
-        payload: SignedHttpRequest,
+    signTokenBindingJwt(
+        header: JoseHeader,
+        payload: object,
         kid: string,
-        shrOptions?: ShrOptions,
-        correlationId?: string
+        correlationId: string
     ): Promise<string>;
     /**
      * Returns the SHA-256 hash of an input string
@@ -137,28 +136,34 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
             ""
         );
     },
-    async getPublicKeyThumbprint(): Promise<string> {
+    async removeTokenBindingKey(
+        kid: string,
+        correlationId: string
+    ): Promise<void> {
+        void kid;
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
-            ""
+            correlationId
         );
     },
-    async removeTokenBindingKey(): Promise<void> {
+    async clearKeystore(correlationId: string): Promise<boolean> {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
-            ""
+            correlationId
         );
     },
-    async clearKeystore(): Promise<boolean> {
+    async signTokenBindingJwt(
+        header: JoseHeader,
+        payload: object,
+        kid: string,
+        correlationId: string
+    ): Promise<string> {
+        void header;
+        void payload;
+        void kid;
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
-            ""
-        );
-    },
-    async signJwt(): Promise<string> {
-        throw createClientAuthError(
-            ClientAuthErrorCodes.methodNotImplemented,
-            ""
+            correlationId
         );
     },
     async hashString(): Promise<string> {

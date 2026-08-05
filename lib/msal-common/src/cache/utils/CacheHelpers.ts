@@ -98,6 +98,7 @@ export function createAccessTokenEntity(
         atEntity.refreshOn = refreshOn.toString();
     }
 
+    const normalizedTokenType = atEntity.tokenType?.toLowerCase();
     /*
      * Create Access Token With Auth Scheme instead of regular access token
      * Cast to lower to handle "bearer" from ADFS
@@ -108,7 +109,7 @@ export function createAccessTokenEntity(
     ) {
         atEntity.credentialType =
             Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
-        switch (atEntity.tokenType) {
+        switch (normalizedTokenType) {
             case Constants.AuthenticationScheme.POP:
                 // Make sure keyId is present and add it to credential
                 const tokenClaims: TokenClaims | null = extractTokenClaims(
@@ -123,6 +124,15 @@ export function createAccessTokenEntity(
                     );
                 }
                 atEntity.keyId = tokenClaims.cnf.kid;
+                break;
+            case "dpop":
+                if (!keyId) {
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.keyIdMissing,
+                        correlationId
+                    );
+                }
+                atEntity.keyId = keyId;
                 break;
             case Constants.AuthenticationScheme.SSH:
                 atEntity.keyId = keyId;

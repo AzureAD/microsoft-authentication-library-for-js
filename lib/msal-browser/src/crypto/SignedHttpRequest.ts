@@ -4,6 +4,7 @@
  */
 
 import { CryptoOps } from "./CryptoOps.js";
+import { TokenBindingKeyManager } from "./TokenBindingKeyManager.js";
 import {
     Logger,
     LoggerOptions,
@@ -30,8 +31,10 @@ export class SignedHttpRequest {
         const loggerOptions = (shrOptions && shrOptions.loggerOptions) || {};
         this.logger = new Logger(loggerOptions, name, version);
         this.cryptoOps = new CryptoOps(this.logger);
+        const tokenBindingKeyManager = new TokenBindingKeyManager(this.logger);
         this.popTokenGenerator = new PopTokenGenerator(
             this.cryptoOps,
+            tokenBindingKeyManager,
             new StubPerformanceClient()
         );
         this.shrParameters = shrParameters;

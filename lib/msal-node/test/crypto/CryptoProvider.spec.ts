@@ -3,12 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { PkceCodes } from "@azure/msal-common";
+import { ClientAuthErrorCodes, PkceCodes } from "@azure/msal-common";
 import { CryptoProvider } from "./../../src/crypto/CryptoProvider.js";
 import { GuidGenerator } from "./../../src/crypto/GuidGenerator.js";
+import { TEST_CONSTANTS } from "../utils/TestConstants.js";
 
 describe("CryptoOps", () => {
     const cryptoOps = new CryptoProvider();
+    const correlationId = "test-correlationId";
 
     // tests instantiating CryptoOps class
     test("CryptoOps() generates a valid instance", () => {
@@ -49,6 +51,24 @@ describe("CryptoOps", () => {
         const pkceRegExp = new RegExp("[A-Za-z0-9-_+/]{43}");
         expect(pkceRegExp.test(pkceCodes.challenge)).toBe(true);
         expect(pkceRegExp.test(pkceCodes.verifier)).toBe(true);
+    });
+
+    test("signTokenBindingJwt() throws methodNotImplemented with correlationId", () => {
+        try {
+            cryptoOps.signTokenBindingJwt(
+                {},
+                {},
+                TEST_CONSTANTS.THUMBPRINT,
+                correlationId
+            );
+            throw new Error("Expected signTokenBindingJwt to throw");
+        } catch (e) {
+            expect(e).toHaveProperty(
+                "errorCode",
+                ClientAuthErrorCodes.methodNotImplemented
+            );
+            expect(e).toHaveProperty("correlationId", correlationId);
+        }
     });
 
     describe("Localization tests", () => {

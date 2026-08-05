@@ -5,6 +5,10 @@
 
 import { INetworkModule } from "../network/INetworkModule.js";
 import { DEFAULT_CRYPTO_IMPLEMENTATION, ICrypto } from "../crypto/ICrypto.js";
+import {
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+    ITokenBindingKeyManager,
+} from "../crypto/ITokenBindingKeyManager.js";
 import { ILoggerCallback, Logger, LogLevel } from "../logger/Logger.js";
 import {
     DEFAULT_COMMON_TENANT,
@@ -32,6 +36,7 @@ import { StubPerformanceClient } from "../telemetry/performance/StubPerformanceC
  * This object allows you to configure important elements of MSAL functionality:
  * - authOptions                - Authentication for application
  * - cryptoInterface            - Implementation of crypto functions
+ * - tokenBindingKeyManager     - Implementation of token-binding key lifecycle functions
  * - libraryInfo                - Library metadata
  * - telemetry                  - Telemetry options and data
  * - loggerOptions              - Logging for application
@@ -48,6 +53,7 @@ export type ClientConfiguration = {
     storageInterface?: CacheManager;
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
+    tokenBindingKeyManager?: ITokenBindingKeyManager;
     clientCredentials?: ClientCredentials;
     libraryInfo?: LibraryInfo;
     telemetry?: TelemetryOptions;
@@ -66,6 +72,7 @@ export type CommonClientConfiguration = {
     storageInterface: CacheManager;
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
+    tokenBindingKeyManager: ITokenBindingKeyManager;
     libraryInfo: LibraryInfo;
     telemetry: Required<TelemetryOptions>;
     serverTelemetryManager: ServerTelemetryManager | null;
@@ -226,6 +233,7 @@ export function buildClientConfiguration({
     storageInterface: storageImplementation,
     networkInterface: networkImplementation,
     cryptoInterface: cryptoImplementation,
+    tokenBindingKeyManager: tokenBindingKeyManager,
     clientCredentials: clientCredentials,
     libraryInfo: libraryInfo,
     telemetry: telemetry,
@@ -253,6 +261,8 @@ export function buildClientConfiguration({
         networkInterface:
             networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
+        tokenBindingKeyManager:
+            tokenBindingKeyManager || DEFAULT_TOKEN_BINDING_KEY_MANAGER,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },

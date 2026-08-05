@@ -4,15 +4,11 @@
  */
 
 import {
-    ClientAuthErrorCodes,
-    createClientAuthError,
     ICrypto,
     IPerformanceClient,
+    JsonWebTokenAlgorithms,
     JoseHeader,
     Logger,
-    ShrOptions,
-    SignedHttpRequest,
-    SignedHttpRequestParameters,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
@@ -23,17 +19,14 @@ import {
 import { base64Decode } from "../encode/Base64Decode.js";
 import * as BrowserCrypto from "./BrowserCrypto.js";
 import {
-    createBrowserAuthError,
+    CachedKeyPair,
+    TokenBindingKeyTelemetry,
+    TokenBindingKeyManager,
+} from "./TokenBindingKeyManager.js";
+import {
     BrowserAuthErrorCodes,
+    createBrowserAuthError,
 } from "../error/BrowserAuthError.js";
-import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage.js";
-
-export type CachedKeyPair = {
-    publicKey: CryptoKey;
-    privateKey: CryptoKey;
-    requestMethod?: string;
-    requestUri?: string;
-};
 
 /**
  * This class implements MSAL's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and
@@ -47,10 +40,7 @@ export class CryptoOps implements ICrypto {
      * meaning there won't be a performance manager available.
      */
     private performanceClient: IPerformanceClient | undefined;
-
-    private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
-    private static EXTRACTABLE: boolean = true;
-    private cache: AsyncMemoryStorage<CachedKeyPair>;
+    private tokenBindingKeyManager: TokenBindingKeyManager;
 
     constructor(
         logger: Logger,
@@ -62,8 +52,11 @@ export class CryptoOps implements ICrypto {
         BrowserCrypto.validateCryptoAvailable(
             skipValidateSubtleCrypto ?? false
         );
-        this.cache = new AsyncMemoryStorage<CachedKeyPair>(this.logger);
         this.performanceClient = performanceClient;
+        this.tokenBindingKeyManager = new TokenBindingKeyManager(
+            this.logger,
+            this.performanceClient
+        );
     }
 
     /**
@@ -108,69 +101,6 @@ export class CryptoOps implements ICrypto {
     }
 
     /**
-     * Generates a keypair, stores it and returns a thumbprint
-     * @param request
-     */
-    async getPublicKeyThumbprint(
-        request: SignedHttpRequestParameters
-    ): Promise<string> {
-        const publicKeyThumbMeasurement =
-            this.performanceClient?.startMeasurement(
-                BrowserPerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
-                request.correlationId
-            );
-
-        // Generate Keypair
-        const keyPair: CryptoKeyPair = await BrowserCrypto.generateKeyPair(
-            CryptoOps.EXTRACTABLE,
-            CryptoOps.POP_KEY_USAGES,
-            BrowserCrypto.RSA_KEYGEN_ALGORITHM_OPTIONS
-        );
-
-        // Generate Thumbprint for Public Key
-        const publicKeyJwk: JsonWebKey = await BrowserCrypto.exportJwk(
-            keyPair.publicKey
-        );
-
-        const publicJwkHash = await BrowserCrypto.computeJwkThumbprint(
-            publicKeyJwk
-        );
-
-        // Generate Thumbprint for Private Key
-        const privateKeyJwk: JsonWebKey = await BrowserCrypto.exportJwk(
-            keyPair.privateKey
-        );
-        // Re-import private key to make it unextractable
-        const unextractablePrivateKey: CryptoKey =
-            await BrowserCrypto.importJwk(
-                privateKeyJwk,
-                false,
-                ["sign"],
-                BrowserCrypto.RSA_KEYGEN_ALGORITHM_OPTIONS
-            );
-
-        // Store Keypair data in keystore
-        await this.cache.setItem(
-            publicJwkHash,
-            {
-                privateKey: unextractablePrivateKey,
-                publicKey: keyPair.publicKey,
-                requestMethod: request.resourceRequestMethod,
-                requestUri: request.resourceRequestUri,
-            },
-            request.correlationId
-        );
-
-        if (publicKeyThumbMeasurement) {
-            publicKeyThumbMeasurement.end({
-                success: true,
-            });
-        }
-
-        return publicJwkHash;
-    }
-
-    /**
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid
      * @param correlationId
@@ -179,14 +109,10 @@ export class CryptoOps implements ICrypto {
         kid: string,
         correlationId: string
     ): Promise<void> {
-        await this.cache.removeItem(kid, correlationId);
-        const keyFound = await this.cache.containsKey(kid, correlationId);
-        if (keyFound) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.bindingKeyNotRemoved,
-                correlationId
-            );
-        }
+        await this.tokenBindingKeyManager.removeTokenBindingKey(
+            kid,
+            correlationId
+        );
     }
 
     /**
@@ -194,104 +120,65 @@ export class CryptoOps implements ICrypto {
      * @param correlationId
      */
     async clearKeystore(correlationId: string): Promise<boolean> {
-        // Delete in-memory keystores
-        this.cache.clearInMemory(correlationId);
-
-        /**
-         * There is only one database, so calling clearPersistent on asymmetric keystore takes care of
-         * every persistent keystore
-         */
-        try {
-            await this.cache.clearPersistent(correlationId);
-            return true;
-        } catch (e) {
-            if (e instanceof Error) {
-                this.logger.error(
-                    `Clearing keystore failed with error: '${e.message}'`,
-                    correlationId
-                );
-            } else {
-                this.logger.error(
-                    "Clearing keystore failed with unknown error",
-                    correlationId
-                );
-            }
-
-            return false;
-        }
+        return this.tokenBindingKeyManager.clearKeystore(correlationId);
     }
 
-    /**
-     * Signs the given object as a jwt payload with private key retrieved by given kid.
-     * @param payload
-     * @param kid
-     */
-    async signJwt(
-        payload: SignedHttpRequest,
+    /** @internal */
+    async signTokenBindingJwt(
+        header: JoseHeader,
+        payload: object,
         kid: string,
-        shrOptions?: ShrOptions,
-        correlationId?: string
+        correlationId: string
     ): Promise<string> {
-        const signJwtMeasurement = this.performanceClient?.startMeasurement(
-            BrowserPerformanceEvents.CryptoOptsSignJwt,
-            correlationId
-        );
-        const cachedKeyPair = await this.cache.getItem(
-            kid,
-            correlationId || ""
-        );
-
-        if (!cachedKeyPair) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.cryptoKeyNotFound,
-                correlationId || ""
+        let telemetry: TokenBindingKeyTelemetry = {};
+        const signTokenBindingJwtMeasurement =
+            this.performanceClient?.startMeasurement(
+                BrowserPerformanceEvents.CryptoOptsSignJwt,
+                correlationId
             );
-        }
+        try {
+            const cachedKeyPair =
+                await this.tokenBindingKeyManager.getTokenBindingKeyPair(
+                    kid,
+                    correlationId
+                );
+            await this.validateTokenBindingJwtHeaderKey(
+                header,
+                kid,
+                correlationId
+            );
+            telemetry = this.tokenBindingKeyManager.getTokenBindingKeyTelemetry(
+                cachedKeyPair,
+                header.alg
+            );
 
-        // Get public key as JWK
-        const publicKeyJwk = await BrowserCrypto.exportJwk(
-            cachedKeyPair.publicKey
-        );
-        const publicKeyJwkString = getSortedObjectString(publicKeyJwk);
-        // Base64URL encode public key thumbprint with keyId only: BASE64URL({ kid: "FULL_PUBLIC_KEY_HASH" })
-        const encodedKeyIdThumbprint = urlEncode(JSON.stringify({ kid: kid }));
-        // Generate header
-        const shrHeader = JoseHeader.getShrHeaderString({
-            ...shrOptions?.header,
-            alg: publicKeyJwk.alg,
-            kid: encodedKeyIdThumbprint,
-        });
+            const signingAlgorithm = this.getTokenBindingKeySigningAlgorithm(
+                cachedKeyPair,
+                header.alg,
+                correlationId
+            );
 
-        const encodedShrHeader = urlEncode(shrHeader);
+            const tokenString = `${urlEncode(
+                JSON.stringify(header)
+            )}.${urlEncode(JSON.stringify(payload))}`;
+            const encodedSignature = await this.signInput(
+                cachedKeyPair,
+                tokenString,
+                signingAlgorithm
+            );
 
-        // Generate payload
-        payload.cnf = {
-            jwk: JSON.parse(publicKeyJwkString),
-        };
-        const encodedPayload = urlEncode(JSON.stringify(payload));
-
-        // Form token string
-        const tokenString = `${encodedShrHeader}.${encodedPayload}`;
-
-        // Sign token
-        const encoder = new TextEncoder();
-        const tokenBuffer = encoder.encode(tokenString);
-        const signatureBuffer = await BrowserCrypto.sign(
-            cachedKeyPair.privateKey,
-            tokenBuffer,
-            BrowserCrypto.RSA_SIGN_ALGORITHM_OPTIONS
-        );
-        const encodedSignature = urlEncodeArr(new Uint8Array(signatureBuffer));
-
-        const signedJwt = `${tokenString}.${encodedSignature}`;
-
-        if (signJwtMeasurement) {
-            signJwtMeasurement.end({
+            signTokenBindingJwtMeasurement?.end({
                 success: true,
+                ...telemetry,
             });
+            return `${tokenString}.${encodedSignature}`;
+        } catch (e) {
+            signTokenBindingJwtMeasurement?.end({
+                success: false,
+                ...telemetry,
+            });
+            throw e;
         }
-
-        return signedJwt;
     }
 
     /**
@@ -301,8 +188,81 @@ export class CryptoOps implements ICrypto {
     async hashString(plainText: string): Promise<string> {
         return BrowserCrypto.hashString(plainText);
     }
-}
 
-function getSortedObjectString(obj: object): string {
-    return JSON.stringify(obj, Object.keys(obj).sort());
+    private async signInput(
+        cachedKeyPair: CachedKeyPair,
+        signingInput: string,
+        algorithm: AlgorithmIdentifier
+    ): Promise<string> {
+        const encoder = new TextEncoder();
+        const signatureBuffer = await BrowserCrypto.sign(
+            cachedKeyPair.privateKey,
+            encoder.encode(signingInput),
+            algorithm
+        );
+
+        return urlEncodeArr(new Uint8Array(signatureBuffer));
+    }
+
+    private getTokenBindingKeySigningAlgorithm(
+        cachedKeyPair: CachedKeyPair,
+        requestedAlgorithm: string,
+        correlationId: string
+    ): AlgorithmIdentifier {
+        const keyAlgorithm = cachedKeyPair.privateKey.algorithm;
+        if (
+            requestedAlgorithm === JsonWebTokenAlgorithms.RS256 &&
+            keyAlgorithm.name === BrowserCrypto.RSA_SIGN_ALGORITHM_OPTIONS.name
+        ) {
+            return BrowserCrypto.RSA_SIGN_ALGORITHM_OPTIONS;
+        }
+
+        if (
+            requestedAlgorithm === JsonWebTokenAlgorithms.ES256 &&
+            keyAlgorithm.name ===
+                BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS.name &&
+            (keyAlgorithm as EcKeyAlgorithm).namedCurve ===
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS.namedCurve
+        ) {
+            return BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS;
+        }
+
+        if (
+            requestedAlgorithm === JsonWebTokenAlgorithms.RS256 ||
+            requestedAlgorithm === JsonWebTokenAlgorithms.ES256
+        ) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.unsupportedTokenBindingAlgorithm,
+                correlationId,
+                BrowserAuthErrorCodes.tokenBindingKeyAlgorithmMismatch
+            );
+        }
+
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.unsupportedTokenBindingAlgorithm,
+            correlationId
+        );
+    }
+
+    private async validateTokenBindingJwtHeaderKey(
+        header: JoseHeader,
+        kid: string,
+        correlationId: string
+    ): Promise<void> {
+        if (!header.jwk) {
+            return;
+        }
+
+        const headerKeyId = await BrowserCrypto.computeJwkThumbprint(
+            header.jwk,
+            correlationId
+        );
+        if (headerKeyId !== kid) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.invalidPublicJwk,
+                correlationId,
+                BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch
+            );
+        }
+    }
 }

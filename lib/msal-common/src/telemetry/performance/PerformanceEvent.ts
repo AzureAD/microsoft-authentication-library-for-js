@@ -203,6 +203,16 @@ export type PerformanceEvent = {
     cacheOutcome?: number;
 
     /**
+     * Token binding key type used by crypto operations.
+     */
+    tokenBindingKeyType?: string;
+
+    /**
+     * JOSE algorithm used by token binding crypto operations.
+     */
+    tokenBindingKeyAlgorithm?: string;
+
+    /**
      * Sub-measurements for internal use. To be deleted before flushing.
      */
     incompleteSubMeasurements?: Map<string, SubMeasurement>;

@@ -237,7 +237,7 @@ export async function importJwk(
  */
 export async function sign(
     key: CryptoKey,
-    data: ArrayBuffer,
+    data: BufferSource,
     algorithm: AlgorithmIdentifier
 ): Promise<ArrayBuffer> {
     return window.crypto.subtle.sign(
@@ -463,13 +463,14 @@ const JWK_THUMBPRINT_REQUIRED_MEMBERS: Record<string, Array<string>> = {
 };
 
 function getJwkThumbprintMembers(
-    publicJwk: JsonWebKey
+    publicJwk: JsonWebKey,
+    correlationId: string
 ): Record<string, string> {
     const kty = publicJwk.kty;
     if (typeof kty !== "string" || kty.length === 0) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.invalidPublicJwk,
-            "",
+            correlationId,
             MISSING_JWK_KTY_SUBERROR
         );
     }
@@ -478,7 +479,7 @@ function getJwkThumbprintMembers(
     if (!requiredMembers) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.invalidPublicJwk,
-            "",
+            correlationId,
             UNSUPPORTED_JWK_KTY_SUBERROR
         );
     }
@@ -488,7 +489,7 @@ function getJwkThumbprintMembers(
         if (typeof memberValue !== "string") {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.invalidPublicJwk,
-                "",
+                correlationId,
                 MISSING_JWK_MEMBER_SUBERROR
             );
         }
@@ -496,7 +497,7 @@ function getJwkThumbprintMembers(
         if (memberValue.length === 0) {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.invalidPublicJwk,
-                "",
+                correlationId,
                 EMPTY_JWK_MEMBER_SUBERROR
             );
         }
@@ -513,9 +514,10 @@ function getJwkThumbprintMembers(
  * @internal
  */
 export async function computeJwkThumbprint(
-    publicJwk: JsonWebKey
+    publicJwk: JsonWebKey,
+    correlationId: string
 ): Promise<string> {
-    const thumbprintMembers = getJwkThumbprintMembers(publicJwk);
+    const thumbprintMembers = getJwkThumbprintMembers(publicJwk, correlationId);
     // RFC 7638 §3.3: use only required members, sorted lexicographically
     const thumbprintJson = JSON.stringify(
         thumbprintMembers,

@@ -104,7 +104,13 @@ export {
     PkceCodes,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     SignedHttpRequestParameters,
+    JsonWebTokenAlgorithms,
 } from "./crypto/ICrypto.js";
+export {
+    ITokenBindingKeyManager,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+    TokenBindingKeyProvisioningParameters,
+} from "./crypto/ITokenBindingKeyManager.js";
 
 export * as AuthorizeProtocol from "./protocol/Authorize.js";
 export * as TokenProtocol from "./protocol/Token.js";
@@ -127,6 +133,7 @@ export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload.js
 export { AuthorizeResponse } from "./response/AuthorizeResponse.js";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse.js";
 export {
+    GenerateAuthenticationResultOptions,
     ResponseHandler,
     buildAccountToCache,
 } from "./response/ResponseHandler.js";
