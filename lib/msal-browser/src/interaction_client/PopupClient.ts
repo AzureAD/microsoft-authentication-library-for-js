@@ -20,6 +20,7 @@ import {
     CommonAuthorizationUrlRequest,
     ProtocolUtils,
     Authority,
+    ITokenBindingKeyManager,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
@@ -100,7 +101,8 @@ export class PopupClient extends StandardInteractionClient {
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
         platformAuthHandler?: IPlatformAuthHandler,
-        waitForPopupResponseHook?: WaitForPopupResponseFn
+        waitForPopupResponseHook?: WaitForPopupResponseFn,
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,
@@ -111,7 +113,8 @@ export class PopupClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            platformAuthHandler
+            platformAuthHandler,
+            tokenBindingKeyManager
         );
         this.nativeStorage = nativeStorageImpl;
         this.eventHandler = eventHandler;

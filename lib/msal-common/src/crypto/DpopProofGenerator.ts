@@ -4,11 +4,13 @@
  */
 
 import { ICrypto, JsonWebTokenAlgorithms } from "./ICrypto.js";
+import { ITokenBindingKeyManager } from "./ITokenBindingKeyManager.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError.js";
+import { JoseHeader } from "./JoseHeader.js";
 
 /**
  * RFC 9449 DPoP proof JWT payload claims.
@@ -44,51 +46,21 @@ export type DpopResourceProofParams = {
     nonce?: string;
 };
 
-/**
- * Public JWK embedded in the DPoP proof header.
- * @internal
- */
-export type DpopPublicJwk = Record<string, unknown>;
-
-/**
- * RFC 9449 DPoP proof JWT header.
- * @internal
- */
-export type DpopProofHeader = {
-    typ: typeof DPOP_JWT_HEADER_TYPE;
-    alg: string;
-    jwk: DpopPublicJwk;
-};
-
-/**
- * Signs the ASCII DPoP JWT signing input with the declared JOSE alg
- * and returns a base64url-encoded signature.
- * @internal
- */
-export type DpopProofSigner = {
-    alg: string;
-    sign: (signingInput: string, correlationId: string) => Promise<string>;
-};
-
-/**
- * Parameters shared by token and resource DPoP proof generation.
- * @internal
- */
-export type DpopProofGenerationParams = {
-    publicJwk: DpopPublicJwk;
-    signer: DpopProofSigner;
-};
-
 const DPOP_HTM_REGEX = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
-export const DPOP_JWT_HEADER_TYPE = "dpop+jwt";
-export const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
+const DPOP_TOKEN_BINDING_KEY_TYPE = "dpop";
+const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
 
-function buildProofHeader(params: DpopProofGenerationParams): DpopProofHeader {
-    return {
-        typ: DPOP_JWT_HEADER_TYPE,
-        alg: params.signer.alg,
-        jwk: params.publicJwk,
-    };
+function buildProofHeader(
+    publicJwk: JsonWebKey,
+    correlationId: string
+): JoseHeader {
+    return JoseHeader.getDpopHeader(
+        {
+            alg: DPOP_JWT_HEADER_ALGORITHM,
+            jwk: publicJwk,
+        },
+        correlationId
+    );
 }
 
 function normalizeHtm(htm: string, correlationId: string): string {
@@ -149,9 +121,26 @@ function normalizeHtu(url: string, correlationId: string): string {
  */
 export class DpopProofGenerator {
     private cryptoUtils: ICrypto;
+    private tokenBindingKeyManager: ITokenBindingKeyManager;
 
-    constructor(cryptoUtils: ICrypto) {
+    constructor(
+        cryptoUtils: ICrypto,
+        tokenBindingKeyManager: ITokenBindingKeyManager
+    ) {
         this.cryptoUtils = cryptoUtils;
+        this.tokenBindingKeyManager = tokenBindingKeyManager;
+    }
+
+    /**
+     * Provisions a fresh DPoP key and returns the RFC 7638 JWK thumbprint used
+     * as `dpop_jkt`.
+     */
+    async generateJkt(correlationId: string = ""): Promise<string> {
+        return this.tokenBindingKeyManager.provisionTokenBindingKey({
+            tokenBindingKeyType: DPOP_TOKEN_BINDING_KEY_TYPE,
+            tokenBindingKeyAlgorithm: DPOP_JWT_HEADER_ALGORITHM,
+            correlationId,
+        });
     }
 
     /**
@@ -180,12 +169,13 @@ export class DpopProofGenerator {
      * Builds and signs a compact DPoP proof JWT for a token-endpoint request.
      */
     async generateTokenProof(
-        params: DpopTokenProofParams & DpopProofGenerationParams,
+        params: DpopTokenProofParams,
+        keyId: string,
         correlationId: string = ""
     ): Promise<string> {
         return this.generateProof(
             this.buildTokenProofClaims(params, correlationId),
-            params,
+            keyId,
             correlationId
         );
     }
@@ -218,30 +208,33 @@ export class DpopProofGenerator {
      * Builds and signs a compact DPoP proof JWT for a resource request.
      */
     async generateResourceProof(
-        params: DpopResourceProofParams & DpopProofGenerationParams,
+        params: DpopResourceProofParams,
+        keyId: string,
         correlationId: string = ""
     ): Promise<string> {
         return this.generateProof(
             this.buildResourceProofClaims(params, correlationId),
-            params,
+            keyId,
             correlationId
         );
     }
 
     private async generateProof(
         claims: DpopProofClaims,
-        params: DpopProofGenerationParams,
+        keyId: string,
         correlationId: string
     ): Promise<string> {
-        const encodedHeader = this.cryptoUtils.base64UrlEncode(
-            JSON.stringify(buildProofHeader(params))
-        );
-        const encodedClaims = this.cryptoUtils.base64UrlEncode(
-            JSON.stringify(claims)
-        );
-        const signingInput = `${encodedHeader}.${encodedClaims}`;
-        const signature = await params.signer.sign(signingInput, correlationId);
+        const publicJwk =
+            await this.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                keyId,
+                correlationId
+            );
 
-        return `${signingInput}.${signature}`;
+        return this.cryptoUtils.signTokenBindingJwt(
+            buildProofHeader(publicJwk, correlationId),
+            claims,
+            keyId,
+            correlationId
+        );
     }
 }

@@ -3,13 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, SignedHttpRequestParameters } from "./ICrypto.js";
+import {
+    ICrypto,
+    JsonWebTokenAlgorithms,
+    SignedHttpRequestParameters,
+} from "./ICrypto.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import { UrlString } from "../url/UrlString.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { Logger } from "../logger/Logger.js";
+import { JoseHeader } from "./JoseHeader.js";
+import { SignedHttpRequest } from "./SignedHttpRequest.js";
+import { ITokenBindingKeyManager } from "./ITokenBindingKeyManager.js";
 
 /**
  * See eSTS docs for more info.
@@ -34,13 +41,22 @@ const KeyLocation = {
 } as const;
 export type KeyLocation = (typeof KeyLocation)[keyof typeof KeyLocation];
 
+const SHR_TOKEN_BINDING_KEY_TYPE = "shr";
+const SHR_TOKEN_BINDING_KEY_ALGORITHM = JsonWebTokenAlgorithms.RS256;
+
 /** @internal */
 export class PopTokenGenerator {
     private cryptoUtils: ICrypto;
+    private tokenBindingKeyManager: ITokenBindingKeyManager;
     private performanceClient: IPerformanceClient;
 
-    constructor(cryptoUtils: ICrypto, performanceClient: IPerformanceClient) {
+    constructor(
+        cryptoUtils: ICrypto,
+        tokenBindingKeyManager: ITokenBindingKeyManager,
+        performanceClient: IPerformanceClient
+    ) {
         this.cryptoUtils = cryptoUtils;
+        this.tokenBindingKeyManager = tokenBindingKeyManager;
         this.performanceClient = performanceClient;
     }
 
@@ -77,9 +93,12 @@ export class PopTokenGenerator {
      * @returns
      */
     async generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf> {
-        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(
-            request
-        );
+        const kidThumbprint =
+            await this.tokenBindingKeyManager.provisionTokenBindingKey({
+                correlationId: request.correlationId,
+                tokenBindingKeyType: SHR_TOKEN_BINDING_KEY_TYPE,
+                tokenBindingKeyAlgorithm: SHR_TOKEN_BINDING_KEY_ALGORITHM,
+            });
 
         return {
             kid: kidThumbprint,
@@ -128,22 +147,47 @@ export class PopTokenGenerator {
             ? new UrlString(resourceRequestUri, request.correlationId)
             : undefined;
         const resourceUrlComponents = resourceUrlString?.getUrlComponents();
-        return this.cryptoUtils.signJwt(
+        const publicKeyJwk =
+            await this.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                keyId,
+                request.correlationId
+            );
+        const encodedKeyIdThumbprint = this.cryptoUtils.base64UrlEncode(
+            JSON.stringify({ kid: keyId })
+        );
+        const shrAlgorithm =
+            shrOptions?.header?.alg ||
+            publicKeyJwk.alg ||
+            SHR_TOKEN_BINDING_KEY_ALGORITHM;
+        const shrHeader = JoseHeader.getShrHeader(
             {
-                at: payload,
-                ts: TimeUtils.nowSeconds(),
-                m: resourceRequestMethod?.toUpperCase(),
-                u: resourceUrlComponents?.HostNameAndPort,
-                nonce: shrNonce || this.cryptoUtils.createNewGuid(),
-                p: resourceUrlComponents?.AbsolutePath,
-                q: resourceUrlComponents?.QueryString
-                    ? [[], resourceUrlComponents.QueryString]
-                    : undefined,
-                client_claims: shrClaims || undefined,
-                ...claims,
+                ...shrOptions?.header,
+                alg: shrAlgorithm,
+                kid: encodedKeyIdThumbprint,
             },
+            request.correlationId
+        );
+        const shrPayload: SignedHttpRequest = {
+            at: payload,
+            ts: TimeUtils.nowSeconds(),
+            m: resourceRequestMethod?.toUpperCase(),
+            u: resourceUrlComponents?.HostNameAndPort,
+            nonce: shrNonce || this.cryptoUtils.createNewGuid(),
+            p: resourceUrlComponents?.AbsolutePath,
+            q: resourceUrlComponents?.QueryString
+                ? [[], resourceUrlComponents.QueryString]
+                : undefined,
+            client_claims: shrClaims || undefined,
+            ...claims,
+            cnf: {
+                jwk: publicKeyJwk,
+            },
+        };
+
+        return this.cryptoUtils.signTokenBindingJwt(
+            shrHeader,
+            shrPayload,
             keyId,
-            shrOptions,
             request.correlationId
         );
     }
