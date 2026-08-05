@@ -446,6 +446,19 @@ export class RefreshTokenClient {
             request.refreshToken
         );
 
+        if (request.attributeTokens) {
+            RequestParameterBuilder.addAttributeTokens(
+                parameters,
+                request.attributeTokens
+            );
+        }
+        this.performanceClient?.addFields(
+            {
+                hasAttributeTokens: !!request.attributeTokens?.length,
+            },
+            request.correlationId
+        );
+
         if (this.config.clientCredentials.clientSecret) {
             RequestParameterBuilder.addClientSecret(
                 parameters,

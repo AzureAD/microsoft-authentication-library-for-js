@@ -310,7 +310,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         request: PlatformAuthRequest,
         cachedAccount: AccountInfo
     ): CommonSilentFlowRequest {
-        return {
+        const silentRequest: CommonSilentFlowRequest = {
             authority: request.authority,
             correlationId: this.correlationId,
             scopes: ScopeSet.fromString(
@@ -320,6 +320,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             account: cachedAccount,
             forceRefresh: false,
         };
+
+        // Preserve FMI partition semantics for silent cache filtering.
+        if (request.attributeTokens) {
+            silentRequest.attributeTokens = request.attributeTokens.split(" ");
+        }
+
+        return silentRequest;
     }
 
     /**
@@ -943,6 +950,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             request.scope
         );
 
+        const additionalCacheKeyComponents = request.attributeTokens
+            ? {
+                  attribute_tokens: request.attributeTokens,
+              }
+            : undefined;
+
         const cachedAccessToken: AccessTokenEntity | null =
             CacheHelpers.createAccessTokenEntity(
                 homeAccountIdentifier,
@@ -958,7 +971,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 undefined,
                 request.tokenType as Constants.AuthenticationScheme,
                 undefined,
-                request.keyId
+                request.keyId,
+                additionalCacheKeyComponents
             );
 
         // save idtoken credential in configured browser storage
@@ -1086,7 +1100,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 ? undefined
                 : this.config.auth.clientCapabilities;
 
-        // scopes are expected to be received by the native broker as "scope" and will be added to the request below. 'resource' is added in extraParameters for MCP scenarios.
+        /*
+         * scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
+         * attributeTokens is destructured out because PlatformAuthRequest represents it as a pre-serialized string, not the caller-provided Array<string>.
+         */
         const { scopes, claims } = request;
         const scopeSet = new ScopeSet(scopes || [], this.correlationId);
         scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
@@ -1094,6 +1111,14 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const mergedClaims = RequestParameterBuilder.buildMergedClaims(
             claims,
             configClaims?.length ? configClaims : undefined
+        );
+
+        const hasAttributeTokens = !!request.attributeTokens?.length;
+        this.performanceClient?.addFields(
+            {
+                hasAttributeTokens,
+            },
+            this.correlationId
         );
 
         const validatedRequest: PlatformAuthRequest = {
@@ -1127,6 +1152,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             shrClaims: request.shrClaims,
             shrNonce: request.shrNonce,
         };
+
+        if (hasAttributeTokens) {
+            validatedRequest.attributeTokens =
+                CacheHelpers.serializeAttributeTokens(
+                    request.attributeTokens as Array<string>
+                );
+        }
 
         // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
         if (validatedRequest.signPopToken && !!request.popKid) {

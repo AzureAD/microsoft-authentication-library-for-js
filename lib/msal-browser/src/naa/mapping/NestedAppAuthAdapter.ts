@@ -30,6 +30,7 @@ import {
     getTenantIdFromIdTokenClaims,
     TimeUtils,
     Constants,
+    CacheHelpers,
 } from "@azure/msal-common/browser";
 import { isBridgeError } from "../BridgeError.js";
 import { BridgeStatusCode } from "../BridgeStatusCode.js";
@@ -80,6 +81,9 @@ export class NestedAppAuthAdapter {
             this.clientCapabilities
         );
         const scopes = request.scopes || Constants.OIDC_DEFAULT_SCOPES;
+        const attributeTokens = CacheHelpers.serializeAttributeTokens(
+            request.attributeTokens
+        );
         const tokenRequest: TokenRequest = {
             platformBrokerId: request.account?.homeAccountId,
             clientId: this.clientId,
@@ -93,6 +97,7 @@ export class NestedAppAuthAdapter {
                 request.authenticationScheme ||
                 Constants.AuthenticationScheme.BEARER,
             extraParameters: extraParams,
+            attributeTokens,
         };
 
         return tokenRequest;

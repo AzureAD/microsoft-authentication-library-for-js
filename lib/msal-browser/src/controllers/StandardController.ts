@@ -1740,6 +1740,14 @@ export class StandardController implements IController {
             );
 
             // Create accessToken entity and store in native internal storage
+            const attributeTokenPartition =
+                CacheHelpers.serializeAttributeTokens(request.attributeTokens);
+            const additionalCacheKeyComponents = attributeTokenPartition
+                ? {
+                      attribute_tokens: attributeTokenPartition,
+                  }
+                : undefined;
+
             const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
                 result.account.homeAccountId,
                 result.account.environment,
@@ -1758,12 +1766,21 @@ export class StandardController implements IController {
                 undefined, // refreshOn
                 result.tokenType as Constants.AuthenticationScheme,
                 undefined, // userAssertionHash
-                request.sshKid
+                request.sshKid,
+                additionalCacheKeyComponents
             );
 
             if (request.resource) {
                 accessTokenEntity.resource = request.resource;
             }
+
+            // Get attribute token partition hash for cache key isolation
+            const components = additionalCacheKeyComponents;
+            const additionalCacheKeyHash = components
+                ? await this.browserCrypto.hashString(
+                      JSON.stringify(components)
+                  )
+                : undefined;
 
             const kmsi = AuthToken.isKmsi(result.idTokenClaims);
 
@@ -1778,7 +1795,8 @@ export class StandardController implements IController {
             await this.nativeInternalStorage.setAccessTokenCredential(
                 accessTokenEntity,
                 result.correlationId,
-                kmsi
+                kmsi,
+                additionalCacheKeyHash
             );
         } else {
             return this.browserStorage.hydrateCache(result, request);
