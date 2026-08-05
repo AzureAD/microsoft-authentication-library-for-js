@@ -248,7 +248,13 @@ export {
 export { CustomAuthV2Result } from "./core/auth_flow/CustomAuthV2Result.js";
 
 // Native Auth V2 Error
-export { CustomAuthV2Error } from "./core/auth_flow/v2/error/CustomAuthV2Error.js";
+export { CustomAuthV2ApiError } from "./core/auth_flow/v2/error/CustomAuthV2ApiError.js";
+export { ResetPasswordStartError } from "./core/auth_flow/v2/error/ResetPasswordStartError.js";
+export { SignInStartError } from "./core/auth_flow/v2/error/SignInStartError.js";
+export { SignUpStartError } from "./core/auth_flow/v2/error/SignUpStartError.js";
+export { RequestChallengeError } from "./core/auth_flow/v2/error/RequestChallengeError.js";
+export { VerifyChallengeError } from "./core/auth_flow/v2/error/VerifyChallengeError.js";
+export { SubmitNewPasswordError } from "./core/auth_flow/v2/error/SubmitNewPasswordError.js";
 
 // Native Auth V2 Flow Scenario
 export { CustomAuthV2FlowScenario } from "./core/auth_flow/CustomAuthV2FlowScenario.js";
@@ -272,9 +278,9 @@ export { MfaChallengeVerificationRequiredState } from "./core/auth_flow/v2/state
 
 // Native Auth V2 Results
 export {
-    ResetPasswordV2Result,
-    ResetPasswordV2ResultState,
-} from "./core/auth_flow/v2/result/ResetPasswordV2Result.js";
+    ResetPasswordStartV2Result,
+    ResetPasswordStartV2ResultState,
+} from "./core/auth_flow/v2/result/ResetPasswordStartV2Result.js";
 export {
     RequestChallengeResult,
     RequestChallengeResultState,
@@ -288,13 +294,13 @@ export {
     SubmitNewPasswordResultState,
 } from "./core/auth_flow/v2/result/SubmitNewPasswordResult.js";
 export {
-    SignInV2Result,
-    SignInV2ResultState,
-} from "./core/auth_flow/v2/result/SignInV2Result.js";
+    SignInStartV2Result,
+    SignInStartV2ResultState,
+} from "./core/auth_flow/v2/result/SignInStartV2Result.js";
 export {
-    SignUpV2Result,
-    SignUpV2ResultState,
-} from "./core/auth_flow/v2/result/SignUpV2Result.js";
+    SignUpStartV2Result,
+    SignUpStartV2ResultState,
+} from "./core/auth_flow/v2/result/SignUpStartV2Result.js";
 
 // Components from msal_browser
 export { LogLevel } from "@azure/msal-common/browser";

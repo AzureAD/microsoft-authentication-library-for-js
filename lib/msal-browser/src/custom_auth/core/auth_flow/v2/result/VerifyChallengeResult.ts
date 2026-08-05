@@ -4,7 +4,8 @@
  */
 
 import { CustomAuthV2Result } from "../../CustomAuthV2Result.js";
-import type { CustomAuthV2Error } from "../error/CustomAuthV2Error.js";
+import type { VerifyChallengeError } from "../error/VerifyChallengeError.js";
+import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import type { CompletedState } from "../state/CompletedState.js";
 import type { FailedState } from "../state/FailedState.js";
 import type { AuthenticationMethodSelectionRequiredState } from "../state/AuthenticationMethodSelectionRequiredState.js";
@@ -29,8 +30,16 @@ export type VerifyChallengeResultState =
 
 /**
  * Result of verifying a challenge.
+ *
+ * `VerifyChallenge` is the shared credential-verification (submit-code) action.
+ * In SSPR it resolves to `NewPasswordRequiredState` (never completes here). In
+ * sign-in-with-code it is the completion point: the SDK internally redeems the
+ * verified continuation via authorize-challenge → token, so this result carries
+ * `CustomAuthAccountData` on the terminal `CompletedState`. `CompletedState` and
+ * the account payload are declared together because they always occur together.
  */
 export type VerifyChallengeResult = CustomAuthV2Result<
     VerifyChallengeResultState,
-    CustomAuthV2Error
+    VerifyChallengeError,
+    CustomAuthAccountData
 >;

@@ -3,12 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowResultBase } from "./AuthFlowResultBase.js";
-import { AuthFlowErrorBase } from "./AuthFlowErrorBase.js";
 import { AuthFlowStateBase } from "./AuthFlowState.js";
 import { FailedState } from "./v2/state/FailedState.js";
-import { CustomAuthV2Error } from "./v2/error/CustomAuthV2Error.js";
-import { CustomAuthV2FlowScenario } from "./CustomAuthV2FlowScenario.js";
+import { AuthFlowErrorV2Base } from "./v2/error/AuthFlowErrorV2Base.js";
 
 /**
  * Result of a native auth V2 operation.
@@ -17,6 +14,11 @@ import { CustomAuthV2FlowScenario } from "./CustomAuthV2FlowScenario.js";
  * its own state union (TState) and error type (TError) via a result alias. Use
  * {@link CustomAuthV2Result.isState} to narrow to a specific state before
  * accessing its members.
+ *
+ * V2 results are intentionally decoupled from the V1 `AuthFlowResultBase`: their
+ * error type is bound to the standalone {@link AuthFlowErrorV2Base} hierarchy
+ * (whose payload uses the V2 wire-error format), not the V1
+ * `AuthFlowErrorBase`/`CustomAuthError` model.
  *
  * All V2 states extend `AuthFlowStateBase` and carry a `stateType`
  * discriminator, so `TState` is bound to it. Each flow narrows the union via a
@@ -28,9 +30,21 @@ import { CustomAuthV2FlowScenario } from "./CustomAuthV2FlowScenario.js";
  */
 export class CustomAuthV2Result<
     TState extends AuthFlowStateBase,
-    TError extends AuthFlowErrorBase,
+    TError extends AuthFlowErrorV2Base,
     TData = void
-> extends AuthFlowResultBase<TState, TError, TData> {
+> {
+    /**
+     * constructor for CustomAuthV2Result
+     * @param state - The current state of the operation.
+     * @param data - The optional data payload attached to the result.
+     */
+    constructor(public state: TState, public data?: TData) {}
+
+    /**
+     * The error that occurred during the authentication operation.
+     */
+    error?: TError;
+
     /**
      * Narrows the result to a specific state by its `stateType` discriminator.
      * @param stateType - The state type to test for.
@@ -53,27 +67,25 @@ export class CustomAuthV2Result<
     }
 
     /**
-     * Builds a failed result carrying a unified {@link CustomAuthV2Error}.
+     * Builds a failed result carrying the given flow-specific error.
      *
      * The result's state is set to the shared {@link FailedState} terminal
      * marker; the error detail is exposed via the result's `error` payload.
-     * @param error - The error that occurred.
-     * @param scenario - The V2 flow the error originated from. Defaults to "unknown".
-     * @returns A failed result for the given flow.
+     * Callers construct the concrete {@link AuthFlowErrorV2Base} subclass for
+     * the action (for example `ResetPasswordV2Error`) so the returned result
+     * surfaces only that action's detectors.
+     * @param error - The flow-specific error that occurred.
+     * @returns A failed result carrying the given error.
      */
-    static createWithError<TState extends AuthFlowStateBase, TData = void>(
-        error: unknown,
-        scenario: CustomAuthV2FlowScenario = "unknown"
-    ): CustomAuthV2Result<TState, CustomAuthV2Error, TData> {
-        const result = new CustomAuthV2Result<
-            TState,
-            CustomAuthV2Error,
-            TData
-        >(new FailedState() as unknown as TState);
-        result.error = new CustomAuthV2Error(
-            CustomAuthV2Result.createErrorData(error),
-            scenario
+    static createWithError<
+        TState extends AuthFlowStateBase,
+        TError extends AuthFlowErrorV2Base,
+        TData = void
+    >(error: TError): CustomAuthV2Result<TState, TError, TData> {
+        const result = new CustomAuthV2Result<TState, TError, TData>(
+            new FailedState() as unknown as TState
         );
+        result.error = error;
         return result;
     }
 }

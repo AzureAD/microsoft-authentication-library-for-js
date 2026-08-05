@@ -9,9 +9,9 @@ import {
     SignInV2Inputs,
     SignUpV2Inputs,
 } from "./CustomAuthV2ActionInputs.js";
-import { ResetPasswordV2Result } from "./core/auth_flow/v2/result/ResetPasswordV2Result.js";
-import { SignInV2Result } from "./core/auth_flow/v2/result/SignInV2Result.js";
-import { SignUpV2Result } from "./core/auth_flow/v2/result/SignUpV2Result.js";
+import { ResetPasswordStartV2Result } from "./core/auth_flow/v2/result/ResetPasswordStartV2Result.js";
+import { SignInStartV2Result } from "./core/auth_flow/v2/result/SignInStartV2Result.js";
+import { SignUpStartV2Result } from "./core/auth_flow/v2/result/SignUpStartV2Result.js";
 
 /**
  * Public interface for the native auth V2 surface.
@@ -29,23 +29,23 @@ export interface ICustomAuthPublicClientApplicationV2
     /**
      * Initiates the native auth V2 sign-in flow.
      * @param {SignInV2Inputs} inputs - Inputs for the sign-in V2 flow
-     * @returns {Promise<SignInV2Result>} A promise that resolves to SignInV2Result
+     * @returns {Promise<SignInStartV2Result>} A promise that resolves to SignInStartV2Result
      */
-    signInV2(inputs: SignInV2Inputs): Promise<SignInV2Result>;
+    signInV2(inputs: SignInV2Inputs): Promise<SignInStartV2Result>;
 
     /**
      * Initiates the native auth V2 sign-up flow.
      * @param {SignUpV2Inputs} inputs - Inputs for the sign-up V2 flow
-     * @returns {Promise<SignUpV2Result>} A promise that resolves to SignUpV2Result
+     * @returns {Promise<SignUpStartV2Result>} A promise that resolves to SignUpStartV2Result
      */
-    signUpV2(inputs: SignUpV2Inputs): Promise<SignUpV2Result>;
+    signUpV2(inputs: SignUpV2Inputs): Promise<SignUpStartV2Result>;
 
     /**
      * Initiates the native auth V2 reset-password flow.
      * @param {ResetPasswordV2Inputs} inputs - Inputs for the reset-password V2 flow
-     * @returns {Promise<ResetPasswordV2Result>} A promise that resolves to ResetPasswordV2Result
+     * @returns {Promise<ResetPasswordStartV2Result>} A promise that resolves to ResetPasswordStartV2Result
      */
     resetPasswordV2(
         inputs: ResetPasswordV2Inputs
-    ): Promise<ResetPasswordV2Result>;
+    ): Promise<ResetPasswordStartV2Result>;
 }

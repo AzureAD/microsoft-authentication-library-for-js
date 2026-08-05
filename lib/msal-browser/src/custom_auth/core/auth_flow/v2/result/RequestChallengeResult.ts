@@ -4,7 +4,7 @@
  */
 
 import { CustomAuthV2Result } from "../../CustomAuthV2Result.js";
-import type { CustomAuthV2Error } from "../error/CustomAuthV2Error.js";
+import type { RequestChallengeError } from "../error/RequestChallengeError.js";
 import type { ChallengeVerificationRequiredState } from "../state/ChallengeVerificationRequiredState.js";
 import type { PasswordRequiredState } from "../state/PasswordRequiredState.js";
 import type { FailedState } from "../state/FailedState.js";
@@ -24,5 +24,5 @@ export type RequestChallengeResultState =
  */
 export type RequestChallengeResult = CustomAuthV2Result<
     RequestChallengeResultState,
-    CustomAuthV2Error
+    RequestChallengeError
 >;
