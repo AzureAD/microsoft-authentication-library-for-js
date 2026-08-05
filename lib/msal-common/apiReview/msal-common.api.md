@@ -88,7 +88,8 @@ declare namespace AADServerParamKeys {
         USER_FEDERATED_IDENTITY_CREDENTIAL,
         USERNAME,
         USER_ID,
-        FMI_PATH
+        FMI_PATH,
+        ATTRIBUTE_TOKENS
     }
 }
 export { AADServerParamKeys }
@@ -187,6 +188,9 @@ export type ActiveAccountFilters = {
 
 // @public
 function addApplicationTelemetry(parameters: Map<string, string>, appTelemetry: ApplicationTelemetry): void;
+
+// @public
+function addAttributeTokens(parameters: Map<string, string>, attributeTokens: Array<string>): void;
 
 // @public
 function addAuthorizationCode(parameters: Map<string, string>, code: string): void;
@@ -356,6 +360,9 @@ export type AppTokenProviderResult = {
     expiresInSeconds: number;
     refreshInSeconds?: number;
 };
+
+// @public (undocumented)
+const ATTRIBUTE_TOKENS = "attribute_tokens";
 
 // @public (undocumented)
 const AuthClientCreateTokenRequestBody = "authClientCreateTokenRequestBody";
@@ -711,6 +718,7 @@ export type BaseAuthRequest = {
     skipBrokerClaims?: boolean;
     extraQueryParameters?: StringDict;
     extraParameters?: StringDict;
+    attributeTokens?: Array<string>;
 };
 
 // @public (undocumented)
@@ -793,7 +801,8 @@ declare namespace CacheHelpers {
         generateAuthorityMetadataExpiresAt,
         updateAuthorityEndpointMetadata,
         updateCloudDiscoveryMetadata,
-        isAuthorityMetadataExpired
+        isAuthorityMetadataExpired,
+        serializeAttributeTokens
     }
 }
 export { CacheHelpers }
@@ -809,7 +818,7 @@ export abstract class CacheManager implements ICacheManager {
     protected cryptoImpl: ICrypto;
     abstract generateAccountKey(account: AccountInfo): string;
     generateAuthorityMetadataCacheKey(authority: string): string;
-    abstract generateCredentialKey(credential: CredentialEntity): string;
+    abstract generateCredentialKey(credential: CredentialEntity, additionalCacheKeyHash?: string): string;
     getAccessToken(account: AccountInfo, request: BaseAuthRequest, tokenKeys?: TokenKeys, targetRealm?: string): AccessTokenEntity | null;
     abstract getAccessTokenCredential(accessTokenKey: string, correlationId: string): AccessTokenEntity | null;
     getAccessTokensByFilter(filter: CredentialFilter, correlationId: string): AccessTokenEntity[];
@@ -850,7 +859,7 @@ export abstract class CacheManager implements ICacheManager {
     abstract removeItem(key: string, correlationId: string): void;
     removeRefreshToken(key: string, correlationId: string): void;
     saveCacheRecord(cacheRecord: CacheRecord, correlationId: string, kmsi: boolean, apiId: number, storeInCache?: StoreInCache): Promise<void>;
-    abstract setAccessTokenCredential(accessToken: AccessTokenEntity, correlationId: string, kmsi: boolean): Promise<void>;
+    abstract setAccessTokenCredential(accessToken: AccessTokenEntity, correlationId: string, kmsi: boolean, additionalCacheKeyHash?: string): Promise<void>;
     abstract setAccount(account: AccountEntity, correlationId: string, kmsi: boolean, apiId: number): Promise<void>;
     abstract setAppMetadata(appMetadata: AppMetadataEntity, correlationId: string): void;
     abstract setAuthorityMetadata(key: string, value: AuthorityMetadataEntity, correlationId: string): void;
@@ -1458,7 +1467,7 @@ export class DefaultStorageClass extends CacheManager {
     // (undocumented)
     generateAccountKey(): string;
     // (undocumented)
-    generateCredentialKey(): string;
+    generateCredentialKey(_credential: CredentialEntity, _hash?: string): string;
     // (undocumented)
     getAccessTokenCredential(): AccessTokenEntity;
     // (undocumented)
@@ -2094,6 +2103,12 @@ export class JoseHeader {
     typ?: JsonWebTokenTypes;
 }
 
+// @internal
+export const JsonWebTokenAlgorithms: {
+    readonly ES256: "ES256";
+    readonly RS256: "RS256";
+};
+
 // @public (undocumented)
 const JsonWebTokenTypes: {
     readonly Jwt: "JWT";
@@ -2515,6 +2530,7 @@ export type PerformanceEvent = {
     removeTokenBindingKeyFailure?: number;
     silentRefreshReason?: string;
     deduped?: boolean;
+    hasAttributeTokens?: boolean;
     kmsi?: boolean;
     ssoCapable?: boolean;
     isBackground?: boolean;
@@ -2831,7 +2847,8 @@ declare namespace RequestParameterBuilder {
         addLogoutHint,
         addBrokerParameters,
         addEARParameters,
-        addResource
+        addResource,
+        addAttributeTokens
     }
 }
 
@@ -2856,6 +2873,7 @@ export type RequestThumbprint = {
     shrOptions?: ShrOptions;
     embeddedClientId?: string;
     resource?: string;
+    attributeTokens?: string;
 };
 
 // @public (undocumented)
@@ -2922,6 +2940,9 @@ export class ScopeSet {
 
 // @internal
 function sendPostRequest<T extends ServerAuthorizationTokenResponse>(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions, correlationId: string, cacheManager: CacheManager, networkClient: INetworkModule, logger: Logger, performanceClient: IPerformanceClient): Promise<NetworkResponse<T>>;
+
+// @public
+function serializeAttributeTokens(attributeTokens?: Array<string>): string | undefined;
 
 // @public (undocumented)
 const SERVER_TELEM_CACHE_KEY: string;
@@ -3449,7 +3470,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.11.3";
+export const version = "16.12.0";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;

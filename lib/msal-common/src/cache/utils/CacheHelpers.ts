@@ -125,7 +125,7 @@ export function createAccessTokenEntity(
                 }
                 atEntity.keyId = tokenClaims.cnf.kid;
                 break;
-            case Constants.AuthenticationScheme.DPOP.toLowerCase():
+            case "dpop":
                 if (!keyId) {
                     throw createClientAuthError(
                         ClientAuthErrorCodes.keyIdMissing,
@@ -399,4 +399,21 @@ export function isAuthorityMetadataExpired(
     metadata: AuthorityMetadataEntity
 ): boolean {
     return metadata.expiresAt <= TimeUtils.nowSeconds();
+}
+
+/**
+ * Serialize attribute tokens synchronously (sort and join).
+ * This is a sync-only operation for use at request construction time.
+ * @param attributeTokens - array of tokens
+ * @returns serialized partition string or undefined if no tokens
+ */
+export function serializeAttributeTokens(
+    attributeTokens?: Array<string>
+): string | undefined {
+    if (!attributeTokens || attributeTokens.length === 0) {
+        return undefined;
+    }
+
+    // Serialize: sort and join tokens
+    return [...attributeTokens].sort().join(" ");
 }

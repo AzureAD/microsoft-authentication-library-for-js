@@ -2483,6 +2483,65 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "CP3",
             ]);
         });
+
+        it("omits attributeTokens when not provided", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializePlatformRequest({
+                    scopes: ["User.Read"],
+                });
+
+            expect(nativeRequest.attributeTokens).toBeUndefined();
+        });
+
+        it("omits attributeTokens when explicitly empty", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializePlatformRequest({
+                    scopes: ["User.Read"],
+                    attributeTokens: [],
+                });
+
+            expect(nativeRequest.attributeTokens).toBeUndefined();
+        });
+
+        it("serializes sorted, space-joined attributeTokens string", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializePlatformRequest({
+                    scopes: ["User.Read"],
+                    attributeTokens: ["zeta", "alpha", "mike"],
+                });
+
+            expect(nativeRequest.attributeTokens).toBe("alpha mike zeta");
+        });
+
+        it("emits hasAttributeTokens telemetry for absent and present attributeTokens", async () => {
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+
+            // @ts-ignore
+            await platformAuthInteractionClient.initializePlatformRequest({
+                scopes: ["User.Read"],
+            });
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { hasAttributeTokens: false },
+                expect.any(String)
+            );
+
+            addFieldsSpy.mockClear();
+
+            // @ts-ignore
+            await platformAuthInteractionClient.initializePlatformRequest({
+                scopes: ["User.Read"],
+                attributeTokens: ["zeta", "alpha", "mike"],
+            });
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { hasAttributeTokens: true },
+                expect.any(String)
+            );
+        });
     });
 
     describe("Performance Event Validation", () => {

@@ -6,6 +6,7 @@
 import {
     ICrypto,
     IPerformanceClient,
+    JsonWebTokenAlgorithms,
     JoseHeader,
     Logger,
 } from "@azure/msal-common/browser";
@@ -19,7 +20,6 @@ import { base64Decode } from "../encode/Base64Decode.js";
 import * as BrowserCrypto from "./BrowserCrypto.js";
 import {
     CachedKeyPair,
-    TOKEN_BINDING_KEY_ALGORITHMS,
     TokenBindingKeyTelemetry,
     TokenBindingKeyManager,
 } from "./TokenBindingKeyManager.js";
@@ -211,14 +211,14 @@ export class CryptoOps implements ICrypto {
     ): AlgorithmIdentifier {
         const keyAlgorithm = cachedKeyPair.privateKey.algorithm;
         if (
-            requestedAlgorithm === TOKEN_BINDING_KEY_ALGORITHMS.RS256 &&
+            requestedAlgorithm === JsonWebTokenAlgorithms.RS256 &&
             keyAlgorithm.name === BrowserCrypto.RSA_SIGN_ALGORITHM_OPTIONS.name
         ) {
             return BrowserCrypto.RSA_SIGN_ALGORITHM_OPTIONS;
         }
 
         if (
-            requestedAlgorithm === TOKEN_BINDING_KEY_ALGORITHMS.ES256 &&
+            requestedAlgorithm === JsonWebTokenAlgorithms.ES256 &&
             keyAlgorithm.name ===
                 BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS.name &&
             (keyAlgorithm as EcKeyAlgorithm).namedCurve ===
@@ -228,8 +228,8 @@ export class CryptoOps implements ICrypto {
         }
 
         if (
-            requestedAlgorithm === TOKEN_BINDING_KEY_ALGORITHMS.RS256 ||
-            requestedAlgorithm === TOKEN_BINDING_KEY_ALGORITHMS.ES256
+            requestedAlgorithm === JsonWebTokenAlgorithms.RS256 ||
+            requestedAlgorithm === JsonWebTokenAlgorithms.ES256
         ) {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unsupportedTokenBindingAlgorithm,

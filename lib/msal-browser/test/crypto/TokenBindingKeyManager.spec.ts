@@ -1,10 +1,7 @@
-import { Logger } from "@azure/msal-common";
+import { JsonWebTokenAlgorithms, Logger } from "@azure/msal-common";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
-import {
-    TOKEN_BINDING_KEY_ALGORITHMS,
-    TokenBindingKeyManager,
-} from "../../src/crypto/TokenBindingKeyManager";
+import { TokenBindingKeyManager } from "../../src/crypto/TokenBindingKeyManager";
 import {
     BrowserAuthErrorCodes,
     createBrowserAuthError,
@@ -17,7 +14,7 @@ let mockDatabase = {
 
 const DPOP_KEY_CONTEXT = {
     tokenBindingKeyType: "dpop",
-    tokenBindingKeyAlgorithm: TOKEN_BINDING_KEY_ALGORITHMS.ES256,
+    tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
     correlationId: TEST_CONFIG.CORRELATION_ID,
 } as const;
 
@@ -86,7 +83,7 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
         expect(cachedKeyPair.keyId).toBe(keyId);
         expect(cachedKeyPair.tokenBindingKeyType).toBe("dpop");
         expect(cachedKeyPair.tokenBindingKeyAlgorithm).toBe(
-            TOKEN_BINDING_KEY_ALGORITHMS.ES256
+            JsonWebTokenAlgorithms.ES256
         );
         expect(cachedKeyPair.publicKey.extractable).toBe(true);
         expect(cachedKeyPair.privateKey.extractable).toBe(false);

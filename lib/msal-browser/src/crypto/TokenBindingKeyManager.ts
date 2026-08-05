@@ -7,6 +7,7 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
     IPerformanceClient,
+    JsonWebTokenAlgorithms,
     Logger,
 } from "@azure/msal-common/browser";
 import type {
@@ -62,15 +63,6 @@ export type TokenBindingKeyTelemetry = {
      */
     tokenBindingKeyAlgorithm?: string;
 };
-
-/**
- * Supported token-binding key algorithm names.
- * @internal
- */
-export const TOKEN_BINDING_KEY_ALGORITHMS = {
-    ES256: "ES256",
-    RS256: "RS256",
-} as const;
 
 /**
  * Owns browser token-binding key lifecycle and storage lookup.
@@ -291,11 +283,11 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
         tokenBindingKeyAlgorithm: string,
         correlationId: string
     ): AlgorithmIdentifier {
-        if (tokenBindingKeyAlgorithm === TOKEN_BINDING_KEY_ALGORITHMS.RS256) {
+        if (tokenBindingKeyAlgorithm === JsonWebTokenAlgorithms.RS256) {
             return BrowserCrypto.RSA_KEYGEN_ALGORITHM_OPTIONS;
         }
 
-        if (tokenBindingKeyAlgorithm === TOKEN_BINDING_KEY_ALGORITHMS.ES256) {
+        if (tokenBindingKeyAlgorithm === JsonWebTokenAlgorithms.ES256) {
             return BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS;
         }
 

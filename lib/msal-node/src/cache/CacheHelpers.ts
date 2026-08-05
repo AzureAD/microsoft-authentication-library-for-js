@@ -44,7 +44,10 @@ function computeAdditionalCacheKeyHash(
     return createHash("sha256").update(input, "utf8").digest("base64url");
 }
 
-export function generateCredentialKey(credential: CredentialEntity): string {
+export function generateCredentialKey(
+    credential: CredentialEntity,
+    hash?: string
+): string {
     const familyId =
         (credential.credentialType === Constants.CredentialType.REFRESH_TOKEN &&
             credential.familyId) ||
@@ -65,15 +68,20 @@ export function generateCredentialKey(credential: CredentialEntity): string {
         scheme,
     ];
 
-    // Compute and append a combined hash from additional cache key components (e.g., fmi_path)
+    /*
+     * Compute and append a combined hash from additional cache key components (e.g., fmi_path).
+     * Use the explicitly passed hash if available; fall back to synchronous inline compute
+     * for lookup paths where the entity was read from storage without a cached hash.
+     */
     if (
         credential.additionalCacheKeyComponents &&
         Object.keys(credential.additionalCacheKeyComponents).length > 0
     ) {
         credentialKey.push(
-            computeAdditionalCacheKeyHash(
-                credential.additionalCacheKeyComponents
-            )
+            hash ??
+                computeAdditionalCacheKeyHash(
+                    credential.additionalCacheKeyComponents
+                )
         );
     }
 

@@ -116,6 +116,10 @@ export type BaseAuthRequest = {
      * String to string map of custom parameters added to outgoing token service requests.
      */
     extraParameters?: StringDict;
+    /**
+     * Optional caller-provided attribute tokens (opaque assertions from external Attribute Authorities).
+     */
+    attributeTokens?: Array<string>;
 };
 
 /**

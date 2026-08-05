@@ -73,4 +73,38 @@ describe("RequestThumbprint.ts Unit Tests", () => {
             JSON.stringify(thumbprintTwo)
         );
     });
+
+    it("normalizes attribute token ordering and isolates distinct attribute token sets", () => {
+        const sameSetDifferentOrderA = getRequestThumbprint(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            {
+                ...baseRequest,
+                attributeTokens: ["zeta", "alpha"],
+            },
+            "uid.utid"
+        );
+        const sameSetDifferentOrderB = getRequestThumbprint(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            {
+                ...baseRequest,
+                attributeTokens: ["alpha", "zeta"],
+            },
+            "uid.utid"
+        );
+        const differentSet = getRequestThumbprint(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            {
+                ...baseRequest,
+                attributeTokens: ["alpha", "mike"],
+            },
+            "uid.utid"
+        );
+
+        expect(JSON.stringify(sameSetDifferentOrderA)).toEqual(
+            JSON.stringify(sameSetDifferentOrderB)
+        );
+        expect(JSON.stringify(sameSetDifferentOrderA)).not.toEqual(
+            JSON.stringify(differentSet)
+        );
+    });
 });

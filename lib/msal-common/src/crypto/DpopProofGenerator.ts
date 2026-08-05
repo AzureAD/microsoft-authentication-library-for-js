@@ -7,10 +7,6 @@ import { ICrypto, JsonWebTokenAlgorithms } from "./ICrypto.js";
 import { ITokenBindingKeyManager } from "./ITokenBindingKeyManager.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import {
-    AuthenticationScheme,
-    DPOP_TOKEN_BINDING_KEY_ALGORITHM,
-} from "../utils/Constants.js";
-import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError.js";
@@ -46,11 +42,19 @@ export type DpopTokenProofParams = {
 export type DpopResourceProofParams = {
     resourceUrl: string;
     htm: string;
-    accessToken: string;
+    ath: string;
     nonce?: string;
 };
 
+export type GenerateDpopResourceProofParams = Omit<
+    DpopResourceProofParams,
+    "ath"
+> & {
+    accessToken: string;
+};
+
 const DPOP_HTM_REGEX = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
+const DPOP_TOKEN_BINDING_KEY_TYPE = "dpop";
 const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
 
 function buildProofHeader(
@@ -152,8 +156,8 @@ export class DpopProofGenerator {
      */
     async generateJkt(correlationId: string = ""): Promise<string> {
         return this.tokenBindingKeyManager.provisionTokenBindingKey({
-            tokenBindingKeyType: AuthenticationScheme.DPOP.toLowerCase(),
-            tokenBindingKeyAlgorithm: DPOP_TOKEN_BINDING_KEY_ALGORITHM,
+            tokenBindingKeyType: DPOP_TOKEN_BINDING_KEY_TYPE,
+            tokenBindingKeyAlgorithm: DPOP_JWT_HEADER_ALGORITHM,
             correlationId,
         });
     }
@@ -203,16 +207,16 @@ export class DpopProofGenerator {
      * - ath is the base64url-encoded SHA-256 hash of the ASCII access token.
      * - jti is a fresh CSPRNG-backed unique identifier for every proof.
      */
-    async buildResourceProofClaims(
+    buildResourceProofClaims(
         params: DpopResourceProofParams,
         correlationId: string = ""
-    ): Promise<DpopProofClaims> {
+    ): DpopProofClaims {
         validateDpopNonce(params.nonce, correlationId);
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
             htm: normalizeHtm(params.htm, correlationId),
             htu: normalizeHtu(params.resourceUrl, correlationId),
-            ath: await this.cryptoUtils.hashString(params.accessToken),
+            ath: params.ath,
             iat: TimeUtils.nowSeconds(),
         };
         if (params.nonce !== undefined) {
@@ -225,12 +229,13 @@ export class DpopProofGenerator {
      * Builds and signs a compact DPoP proof JWT for a resource request.
      */
     async generateResourceProof(
-        params: DpopResourceProofParams,
+        params: GenerateDpopResourceProofParams,
         keyId: string,
         correlationId: string = ""
     ): Promise<string> {
+        const ath = await this.cryptoUtils.hashString(params.accessToken);
         return this.generateProof(
-            await this.buildResourceProofClaims(params, correlationId),
+            this.buildResourceProofClaims({ ...params, ath }, correlationId),
             keyId,
             correlationId
         );
