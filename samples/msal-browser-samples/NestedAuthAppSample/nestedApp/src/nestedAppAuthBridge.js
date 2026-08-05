@@ -27,14 +27,26 @@ export function installNestedAppAuthBridge() {
         return false;
     }
 
-    // Resolve the host (parent) origin so we never post tokens to the wrong frame.
-    let hostOrigin = "*";
+    // Resolve the host (parent) origin so we never post tokens to (or accept
+    // them from) the wrong frame. If it can't be derived — e.g. a Referrer-
+    // Policy stripped `document.referrer` — fail closed: installing the bridge
+    // with a "*" targetOrigin would relay messages to an unverified parent
+    // origin, defeating the purpose of the origin check. MSAL then falls back to
+    // its standard (non-brokered) behavior.
+    let hostOrigin;
     try {
-        if (document.referrer) {
-            hostOrigin = new URL(document.referrer).origin;
-        }
+        hostOrigin = document.referrer
+            ? new URL(document.referrer).origin
+            : "";
     } catch {
-        hostOrigin = "*";
+        hostOrigin = "";
+    }
+    if (!hostOrigin) {
+        console.error(
+            "nestedAppAuthBridge: could not determine the host origin from " +
+                "document.referrer; bridge not installed."
+        );
+        return false;
     }
 
     const listeners = new Map();
@@ -45,7 +57,7 @@ export function installNestedAppAuthBridge() {
                 if (event.source !== window.parent) {
                     return;
                 }
-                if (hostOrigin !== "*" && event.origin !== hostOrigin) {
+                if (event.origin !== hostOrigin) {
                     return;
                 }
                 if (typeof event.data !== "string") {
