@@ -29,10 +29,18 @@ This sample demonstrates a 3P **Nested Authentication App (NAA)** brokered throu
 
 | Path         | Description                                            |
 | ------------ | ------------------------------------------------------ |
+| `sampleConfig.cjs` | Single source of truth for the host/nested app ports.  |
 | `server.js`  | Spawns the `hostApp` and `nestedApp` vite dev servers. |
 | `hostApp/`   | Top-frame host app (platform broker + NAA host).       |
 | `nestedApp/` | Embedded nested app.                                   |
 | `test/`      | Jest + Puppeteer end-to-end specs.                     |
+
+The host and nested app ports are defined once in `sampleConfig.cjs` and
+imported everywhere they are needed (`server.js`, both `vite.config.js` files,
+the Jest config, and the e2e setup/spec). The host app receives the nested
+app's port and protocol at runtime from `server.js` via the
+`VITE_NESTED_APP_PORT` / `VITE_NESTED_APP_PROTOCOL` environment variables, so
+changing a port only requires editing `sampleConfig.cjs`.
 
 
 ### Registering the apps for NAA
