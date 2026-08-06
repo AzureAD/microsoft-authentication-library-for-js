@@ -7,6 +7,7 @@ import { CustomAuthError } from "../../src/custom_auth/core/error/CustomAuthErro
 import { ResetPasswordStartResult } from "../../src/custom_auth/reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { GetAccountResult } from "../../src/custom_auth/get_account/auth_flow/result/GetAccountResult.js";
 import { CustomAuthStandardController } from "../../src/custom_auth/controller/CustomAuthStandardController.js";
+import { MethodNotImplementedError } from "../../src/custom_auth/core/error/MethodNotImplementedError.js";
 
 describe("CustomAuthPublicClientApplication", () => {
     let mockController: jest.Mocked<ICustomAuthStandardController>;
@@ -219,6 +220,54 @@ describe("CustomAuthPublicClientApplication", () => {
                 mockResetPasswordInputs
             );
             expect(result).toEqual(mockResetPasswordResult);
+        });
+    });
+
+    describe("resetPasswordV2", () => {
+        it("should delegate to the controller resetPasswordV2 with correct inputs", async () => {
+            const mockResetPasswordV2Inputs = {
+                username: "testuser",
+            };
+
+            const mockResetPasswordV2Result = { state: { stateType: "failed" } };
+
+            const app = await CustomAuthPublicClientApplication.create(
+                customAuthConfig
+            );
+
+            const controllerMock = {
+                resetPasswordV2: jest
+                    .fn()
+                    .mockResolvedValueOnce(mockResetPasswordV2Result),
+            };
+            (app as any)["customAuthController"] = controllerMock;
+
+            const result = await app.resetPasswordV2(
+                mockResetPasswordV2Inputs
+            );
+
+            expect(controllerMock.resetPasswordV2).toHaveBeenCalledWith(
+                mockResetPasswordV2Inputs
+            );
+            expect(result).toEqual(mockResetPasswordV2Result);
+        });
+
+        it("should throw MethodNotImplementedError from the real controller stub", async () => {
+            const app = await CustomAuthPublicClientApplication.create(
+                customAuthConfig
+            );
+
+            const controller = (app as CustomAuthPublicClientApplication)[
+                "customAuthController"
+            ] as CustomAuthStandardController;
+
+            try {
+                expect(() =>
+                    app.resetPasswordV2({ username: "testuser" })
+                ).toThrow(MethodNotImplementedError);
+            } finally {
+                controller["eventHandler"]["broadcastChannel"]?.close();
+            }
         });
     });
 

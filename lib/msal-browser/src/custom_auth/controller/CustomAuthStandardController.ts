@@ -24,6 +24,10 @@ import { ICustomAuthStandardController } from "./ICustomAuthStandardController.j
 import { CustomAuthAccountData } from "../get_account/auth_flow/CustomAuthAccountData.js";
 import { UnexpectedError } from "../core/error/UnexpectedError.js";
 import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/ResetPasswordStartResult.js";
+import { ResetPasswordStartV2Result } from "../core/auth_flow/v2/result/ResetPasswordStartV2Result.js";
+import { ResetPasswordV2Inputs } from "../CustomAuthV2ActionInputs.js";
+import { ICustomAuthStandardControllerV2 } from "./ICustomAuthStandardControllerV2.js";
+import { MethodNotImplementedError } from "../core/error/MethodNotImplementedError.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
@@ -66,7 +70,7 @@ import { name } from "../../packageMetadata.js";
  */
 export class CustomAuthStandardController
     extends StandardController
-    implements ICustomAuthStandardController
+    implements ICustomAuthStandardController, ICustomAuthStandardControllerV2
 {
     private readonly signInClient: SignInClient;
     private readonly signUpClient: SignUpClient;
@@ -579,6 +583,13 @@ export class CustomAuthStandardController
 
             return ResetPasswordStartResult.createWithError(error);
         }
+    }
+
+    resetPasswordV2(
+        inputs: ResetPasswordV2Inputs
+    ): Promise<ResetPasswordStartV2Result> {
+        void inputs;
+        throw new MethodNotImplementedError("resetPasswordV2");
     }
 
     private getCorrelationId(
