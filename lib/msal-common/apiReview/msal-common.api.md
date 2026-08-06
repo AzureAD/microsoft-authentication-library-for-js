@@ -3244,6 +3244,7 @@ export class ThrottlingUtils {
     static calculateThrottleTime(throttleTime: number): number;
     static checkResponseForRetryAfter(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean;
     static checkResponseStatus(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean;
+    static generateAppWideThrottlingStorageKey(thumbprint: RequestThumbprint): string;
     static generateThrottlingStorageKey(thumbprint: RequestThumbprint): string;
     static postProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint, response: NetworkResponse<ServerAuthorizationTokenResponse>, correlationId: string): void;
     static preProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint, correlationId: string): void;
