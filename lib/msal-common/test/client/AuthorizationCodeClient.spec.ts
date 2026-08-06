@@ -417,13 +417,13 @@ describe("AuthorizationCodeClient unit tests", () => {
                             false
                         );
 
-                        return Promise.resolve(
-                            JSON.parse(
-                                JSON.stringify(
-                                    AUTHENTICATION_RESULT_WITH_HEADERS
-                                )
-                            )
-                        );
+                        return Promise.resolve({
+                            ...AUTHENTICATION_RESULT_WITH_HEADERS,
+                            body: {
+                                ...AUTHENTICATION_RESULT_WITH_HEADERS.body,
+                                token_type: Constants.AuthenticationScheme.DPOP,
+                            },
+                        });
                     }
                 );
             const client = new AuthorizationCodeClient(
