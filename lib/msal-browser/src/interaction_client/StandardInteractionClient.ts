@@ -293,6 +293,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 correlationId: this.correlationId,
             },
             cryptoInterface: this.browserCrypto,
+            tokenBindingKeyManager: this.tokenBindingKeyManager,
             networkInterface: this.networkClient,
             storageInterface: this.browserStorage,
             serverTelemetryManager: serverTelemetryManager,

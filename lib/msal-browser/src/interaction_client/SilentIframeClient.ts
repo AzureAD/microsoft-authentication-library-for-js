@@ -17,6 +17,7 @@ import {
     CommonAuthorizationUrlRequest,
     AuthorizeProtocol,
     PkceCodes,
+    ITokenBindingKeyManager,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
@@ -99,7 +100,8 @@ export class SilentIframeClient extends StandardInteractionClient {
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
         platformAuthProvider?: IPlatformAuthHandler,
-        waitForIframeResponseHook?: WaitForIframeResponseFn
+        waitForIframeResponseHook?: WaitForIframeResponseFn,
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,
@@ -110,7 +112,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            platformAuthProvider
+            platformAuthProvider,
+            tokenBindingKeyManager
         );
         this.apiId = apiId;
         this.nativeStorage = nativeStorageImpl;

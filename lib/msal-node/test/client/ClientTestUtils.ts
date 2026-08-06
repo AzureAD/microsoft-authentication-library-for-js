@@ -269,13 +269,10 @@ export const mockCrypto = {
             verifier: TEST_CONFIG.TEST_VERIFIER,
         };
     },
-    async getPublicKeyThumbprint(): Promise<string> {
-        return TEST_POP_VALUES.KID;
-    },
     async removeTokenBindingKey(): Promise<void> {
         return Promise.resolve();
     },
-    async signJwt(): Promise<string> {
+    async signTokenBindingJwt(): Promise<string> {
         return "";
     },
     async clearKeystore(): Promise<boolean> {

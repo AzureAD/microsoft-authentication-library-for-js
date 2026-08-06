@@ -43,6 +43,7 @@ import { PlatformAuthInteractionClient } from "../interaction_client/PlatformAut
 import { EventHandler } from "../event/EventHandler.js";
 import { decryptEarResponse } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 /**
  * Parsed representation of the clientdata response parameter from the /authorize endpoint.
@@ -189,8 +190,13 @@ async function getStandardParameters(
             request.authenticationScheme === Constants.AuthenticationScheme.POP
         ) {
             const cryptoOps = new CryptoOps(logger, performanceClient);
+            const tokenBindingKeyManager = new TokenBindingKeyManager(
+                logger,
+                performanceClient
+            );
             const popTokenGenerator = new PopTokenGenerator(
                 cryptoOps,
+                tokenBindingKeyManager,
                 performanceClient
             );
 
@@ -709,7 +715,8 @@ export async function handleResponseEAR(
         logger,
         performanceClient,
         null,
-        null
+        null,
+        new TokenBindingKeyManager(logger, performanceClient)
     );
 
     // Validate response. This function throws a server error if an error is returned by the server.

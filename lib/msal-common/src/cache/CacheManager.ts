@@ -909,18 +909,8 @@ export abstract class CacheManager implements ICacheManager {
             entity.credentialType ===
             Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
         ) {
-            if (
-                !!filter.tokenType &&
-                !this.matchTokenType(entity, filter.tokenType)
-            ) {
+            if (!this.matchAccessTokenWithAuthScheme(entity, filter)) {
                 return false;
-            }
-
-            // KeyId (sshKid) in request must match cached SSH certificate keyId because SSH cert is bound to a specific key
-            if (filter.tokenType === Constants.AuthenticationScheme.SSH) {
-                if (filter.keyId && !this.matchKeyId(entity, filter.keyId)) {
-                    return false;
-                }
             }
         }
 
@@ -1387,7 +1377,10 @@ export abstract class CacheManager implements ICacheManager {
             realm: targetRealm || account.tenantId,
             target: scopes,
             tokenType: authScheme,
-            keyId: request.sshKid,
+            keyId:
+                authScheme === Constants.AuthenticationScheme.SSH
+                    ? request.sshKid
+                    : undefined,
             additionalCacheKeyComponents: additionalCacheKeyComponents,
         };
 
@@ -1970,7 +1963,47 @@ export abstract class CacheManager implements ICacheManager {
         entity: CredentialEntity,
         tokenType: Constants.AuthenticationScheme
     ): boolean {
-        return !!(entity.tokenType && entity.tokenType === tokenType);
+        return !!(
+            entity.tokenType &&
+            entity.tokenType.toLowerCase() === tokenType.toLowerCase()
+        );
+    }
+
+    private matchAccessTokenWithAuthScheme(
+        entity: CredentialEntity,
+        filter: CredentialFilter
+    ): boolean {
+        const normalizedFilterTokenType = (
+            filter.tokenType as string | undefined
+        )?.toLowerCase();
+
+        if (
+            !!filter.tokenType &&
+            !this.matchTokenType(entity, filter.tokenType)
+        ) {
+            return false;
+        }
+
+        switch (normalizedFilterTokenType) {
+            case "dpop":
+                return this.matchKeyBoundAccessToken(entity, filter, true);
+            case Constants.AuthenticationScheme.SSH:
+                return this.matchKeyBoundAccessToken(entity, filter, false);
+            default:
+                return true;
+        }
+    }
+
+    private matchKeyBoundAccessToken(
+        entity: CredentialEntity,
+        filter: CredentialFilter,
+        requireKeyId: boolean
+    ): boolean {
+        if (!filter.keyId) {
+            return !requireKeyId;
+        }
+
+        return this.matchKeyId(entity, filter.keyId);
     }
 
     /**

@@ -213,6 +213,9 @@ declare namespace BrowserAuthErrorCodes {
         nativePromptNotSupported,
         invalidBase64String,
         invalidPopTokenRequest,
+        unsupportedTokenBindingAlgorithm,
+        tokenBindingKeyAlgorithmMismatch,
+        tokenBindingKeyJwkThumbprintMismatch,
         failedToBuildHeaders,
         failedToParseHeaders,
         failedToDecryptEarResponse,
@@ -736,6 +739,7 @@ export const JsonWebTokenTypes: {
     readonly Jwt: "JWT";
     readonly Jwk: "JWK";
     readonly Pop: "pop";
+    readonly Dpop: "dpop+jwt";
 };
 
 // @public (undocumented)
@@ -1091,6 +1095,12 @@ export { TenantProfile }
 const timedOut = "timed_out";
 
 // @public (undocumented)
+const tokenBindingKeyAlgorithmMismatch = "token_binding_key_algorithm_mismatch";
+
+// @public (undocumented)
+const tokenBindingKeyJwkThumbprintMismatch = "token_binding_key_jwk_thumbprint_mismatch";
+
+// @public (undocumented)
 const unableToAcquireTokenFromNativePlatform = "unable_to_acquire_token_from_native_platform";
 
 // @public (undocumented)
@@ -1104,6 +1114,9 @@ const unableToParseTokenRequestCacheError = "unable_to_parse_token_request_cache
 
 // @public (undocumented)
 const uninitializedPublicClientApplication = "uninitialized_public_client_application";
+
+// @public (undocumented)
+const unsupportedTokenBindingAlgorithm = "unsupported_token_binding_algorithm";
 
 // @public (undocumented)
 const userCancelled = "user_cancelled";
