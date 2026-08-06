@@ -17,8 +17,14 @@ const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/nestedAppAuth`;
 const puppeteerTimeout = 15000;
 const jestTimeout = 120000;
 
-const hostPort = 30668;
-const nestedPort = 30667;
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { HOST_APP_PORT, NESTED_APP_PORT } = require("../sampleConfig.cjs") as {
+    HOST_APP_PORT: number;
+    NESTED_APP_PORT: number;
+};
+
+const hostPort = HOST_APP_PORT;
+const nestedPort = NESTED_APP_PORT;
 const protocol = "https";
 
 const getNestedFrame = async (page: Page): Promise<Frame> => {

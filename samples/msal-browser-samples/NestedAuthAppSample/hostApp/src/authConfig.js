@@ -39,6 +39,6 @@ export const loginRequest = {
 };
 
 // Port the nested app is served on; injected by server.js.
-export const nestedAppPort = import.meta.env.VITE_NESTED_APP_PORT || "30667";
+export const nestedAppPort = import.meta.env.VITE_NESTED_APP_PORT;
 export const nestedAppProtocol =
-    import.meta.env.VITE_NESTED_APP_PROTOCOL || "http";
+    import.meta.env.VITE_NESTED_APP_PROTOCOL;

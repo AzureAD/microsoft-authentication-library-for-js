@@ -1,5 +1,6 @@
 const path = require("path");
 const serverUtils = require("../../e2eTestUtils/jest-puppeteer-utils/serverUtils");
+const { HOST_APP_PORT, NESTED_APP_PORT } = require("./sampleConfig.cjs");
 
 // Load manual-testing configuration from `.env`. For e2e runs the jest start
 // command wraps this process with `env-cmd -f .env.e2e`, which pre-populates
@@ -7,11 +8,11 @@ const serverUtils = require("../../e2eTestUtils/jest-puppeteer-utils/serverUtils
 // wins during e2e while `.env` supplies the defaults for `npm start`.
 require("dotenv").config();
 
-// Nested (child) app runs on port 30667 and is embedded in an iframe by the host.
-const nestedAppPort = 30667;
-// Host (top frame) app runs on port 30668. It enables the platform broker and
-// exposes the Nested App Authentication bridge to the embedded nested app.
-const hostAppPort = 30668;
+// Nested (child) app is embedded in an iframe by the host.
+const nestedAppPort = NESTED_APP_PORT;
+// Host (top frame) app enables the platform broker and exposes the Nested App
+// Authentication bridge to the embedded nested app.
+const hostAppPort = HOST_APP_PORT;
 const useHttps = process.argv.includes("--https");
 const startCommand = useHttps ? "npm run start:https" : "npm start";
 const protocol = useHttps ? "https" : "http";
