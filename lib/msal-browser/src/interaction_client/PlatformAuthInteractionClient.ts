@@ -30,6 +30,7 @@ import {
     StoreInCache,
     TimeUtils,
     TokenClaims,
+    ITokenBindingKeyManager,
     UrlString,
     buildAccountToCache,
     createClientAuthError,
@@ -102,7 +103,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         provider: IPlatformAuthHandler,
         accountId: string,
         nativeStorageImpl: BrowserCacheManager,
-        correlationId: string
+        correlationId: string,
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,
@@ -113,7 +115,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            provider
+            provider,
+            tokenBindingKeyManager
         );
         this.apiId = apiId;
         this.accountId = accountId;
@@ -128,7 +131,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            provider
+            provider,
+            this.tokenBindingKeyManager
         );
 
         const extensionName = this.platformAuthProvider.getExtensionName();
@@ -756,6 +760,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             // Generate SHR in msal js if WAM does not compute it when POP is enabled
             const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(
                 this.browserCrypto,
+                this.tokenBindingKeyManager,
                 this.performanceClient
             );
             const shrParameters: SignedHttpRequestParameters = {
@@ -1186,6 +1191,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
             const popTokenGenerator = new PopTokenGenerator(
                 this.browserCrypto,
+                this.tokenBindingKeyManager,
                 this.performanceClient
             );
 

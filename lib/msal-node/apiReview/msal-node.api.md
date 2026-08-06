@@ -58,7 +58,7 @@ import { LoggerOptions } from '@azure/msal-common/node';
 import { LogLevel } from '@azure/msal-common/node';
 import { NetworkRequestOptions } from '@azure/msal-common/node';
 import { NetworkResponse } from '@azure/msal-common/node';
-import { PkceCodes } from '@azure/msal-common/node';
+import type { PkceCodes } from '@azure/msal-common/node';
 import { ProtocolMode } from '@azure/msal-common/node';
 import { RefreshTokenCache } from '@azure/msal-common/node';
 import { RefreshTokenEntity } from '@azure/msal-common/node';
@@ -169,14 +169,13 @@ export class CryptoProvider implements ICrypto {
     base64Decode(input: string): string;
     base64Encode(input: string): string;
     base64UrlEncode(): string;
-    clearKeystore(): Promise<boolean>;
+    clearKeystore(correlationId: string): Promise<boolean>;
     createNewGuid(): string;
     encodeKid(): string;
     generatePkceCodes(): Promise<PkceCodes>;
-    getPublicKeyThumbprint(): Promise<string>;
     hashString(plainText: string): Promise<string>;
-    removeTokenBindingKey(): Promise<void>;
-    signJwt(): Promise<string>;
+    removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
+    signTokenBindingJwt(header: object, payload: object, kid: string, correlationId: string): Promise<string>;
 }
 
 // @internal
@@ -575,6 +574,6 @@ export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest
 export { ValidCacheType }
 
 // @public (undocumented)
-export const version = "5.4.3";
+export const version = "5.5.0";
 
 ```

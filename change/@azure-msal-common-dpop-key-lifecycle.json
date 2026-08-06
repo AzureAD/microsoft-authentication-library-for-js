@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Add internal keyId-bound contracts for DPoP proof generation [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708)",
+    "packageName": "@azure/msal-common",
+    "email": "hectormmg@microsoft.com",
+    "dependentChangeType": "minor"
+}

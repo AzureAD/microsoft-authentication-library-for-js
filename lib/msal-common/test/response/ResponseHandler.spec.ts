@@ -35,7 +35,11 @@ import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAutho
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 import { AuthenticationScheme } from "../../src/utils/Constants.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
-import { mockCrypto, MockStorageClass } from "../client/ClientTestUtils.js";
+import {
+    mockCrypto,
+    mockShrTokenBindingKeyManager,
+    MockStorageClass,
+} from "../client/ClientTestUtils.js";
 import {
     AUTHENTICATION_RESULT,
     ID_TOKEN_CLAIMS,
@@ -479,17 +483,7 @@ describe("ResponseHandler.ts", () => {
                 ResponseHandler,
                 "generateAuthenticationResult"
             ).mockImplementation(
-                async (
-                    _cryptoObj,
-                    _authority,
-                    cacheRecord,
-                    _fromTokenCache,
-                    _request,
-                    _idTokenClaims,
-                    _requestState,
-                    _serverTokenResponse,
-                    _requestId
-                ) => {
+                async (_cryptoObj, _authority, cacheRecord) => {
                     try {
                         expect(
                             cacheRecord.accessToken
@@ -620,17 +614,7 @@ describe("ResponseHandler.ts", () => {
                 ResponseHandler,
                 "generateAuthenticationResult"
             ).mockImplementation(
-                async (
-                    _cryptoObj,
-                    _authority,
-                    cacheRecord,
-                    _fromTokenCache,
-                    _request,
-                    _idTokenClaims,
-                    _requestState,
-                    _serverTokenResponse,
-                    _requestId
-                ) => {
+                async (_cryptoObj, _authority, cacheRecord) => {
                     expect(cacheRecord.accessToken?.realm).toBeDefined();
 
                     done();
@@ -717,7 +701,8 @@ describe("ResponseHandler.ts", () => {
                 logger,
                 stubPerformanceClient,
                 null,
-                null
+                null,
+                mockShrTokenBindingKeyManager
             );
             const timestamp = TimeUtils.nowSeconds();
             const result = await responseHandler.handleServerTokenResponse(

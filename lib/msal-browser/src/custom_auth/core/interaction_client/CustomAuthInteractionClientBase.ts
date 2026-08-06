@@ -13,6 +13,7 @@ import { BrowserCacheManager } from "../../../cache/BrowserCacheManager.js";
 import {
     Constants,
     ICrypto,
+    ITokenBindingKeyManager,
     IPerformanceClient,
     Logger,
     ResponseHandler,
@@ -39,7 +40,8 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         protected customAuthApiClient: ICustomAuthApiClient,
-        protected customAuthAuthority: CustomAuthAuthority
+        protected customAuthAuthority: CustomAuthAuthority,
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,
@@ -49,7 +51,9 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
             eventHandler,
             navigationClient,
             performanceClient,
-            ""
+            "",
+            undefined,
+            tokenBindingKeyManager
         );
 
         this.tokenResponseHandler = new ResponseHandler(
@@ -59,7 +63,8 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
             this.logger,
             this.performanceClient,
             null,
-            null
+            null,
+            this.tokenBindingKeyManager
         );
     }
 

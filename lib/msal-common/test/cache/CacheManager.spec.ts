@@ -18,6 +18,7 @@ import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js
 import { AccountFilter } from "../../src/cache/utils/CacheTypes.js";
 import {
     CacheHelpers,
+    ClientAuthErrorCodes,
     CommonSilentFlowRequest,
     ScopeSet,
 } from "../../src/index.js";
@@ -40,6 +41,7 @@ import {
     TEST_ACCOUNT_INFO,
     TEST_CONFIG,
     TEST_CRYPTO_VALUES,
+    TEST_DPOP_VALUES,
     TEST_POP_VALUES,
     TEST_SSH_VALUES,
     TEST_TOKEN_LIFETIMES,
@@ -49,6 +51,7 @@ import { TestError } from "../test_kit/TestErrors.js";
 import { MockCache } from "./MockCache.js";
 
 describe("CacheManager.ts test cases", () => {
+    const DPOP_AUTHENTICATION_SCHEME = "dpop" as AuthenticationScheme;
     const mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockCrypto, {
         canonicalAuthority: TEST_CONFIG.validAuthority,
         cloudDiscoveryMetadata: JSON.parse(TEST_CONFIG.CLOUD_DISCOVERY_METADATA)
@@ -230,6 +233,69 @@ describe("CacheManager.ts test cases", () => {
             );
             expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.POP);
             expect(mockCacheAT.keyId).toBeDefined();
+        });
+
+        it("save accessToken with Auth Scheme (dpop)", async () => {
+            const at = CacheHelpers.createAccessTokenEntity(
+                "someUid.someUtid",
+                "login.microsoftonline.com",
+                TEST_DPOP_VALUES.ACCESS_TOKEN,
+                "mock_client_id",
+                "microsoft",
+                "scope6 scope7",
+                4600,
+                4600,
+                mockCrypto.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                undefined,
+                DPOP_AUTHENTICATION_SCHEME,
+                undefined,
+                TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+            );
+
+            const atKey = generateCredentialKey(at);
+            const cacheRecord: CacheRecord = {};
+            cacheRecord.accessToken = at;
+            await mockCache.cacheManager.saveCacheRecord(
+                cacheRecord,
+                TEST_CONFIG.CORRELATION_ID,
+                true,
+                0
+            );
+            const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(
+                atKey
+            ) as AccessTokenEntity;
+            if (!mockCacheAT) {
+                throw TestError.createTestSetupError(
+                    "mockCacheAT does not have a value"
+                );
+            }
+            expect(mockCacheAT.credentialType).toEqual(
+                CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
+            );
+            expect(mockCacheAT.tokenType).toEqual(DPOP_AUTHENTICATION_SCHEME);
+            expect(mockCacheAT.keyId).toEqual(
+                TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+            );
+        });
+
+        it("requires request-context keyId metadata for accessToken with Auth Scheme (dpop)", () => {
+            expect(() =>
+                CacheHelpers.createAccessTokenEntity(
+                    "someUid.someUtid",
+                    "login.microsoftonline.com",
+                    TEST_DPOP_VALUES.ACCESS_TOKEN,
+                    "mock_client_id",
+                    "microsoft",
+                    "scope6 scope7",
+                    4600,
+                    4600,
+                    mockCrypto.base64Decode,
+                    TEST_CONFIG.CORRELATION_ID,
+                    undefined,
+                    DPOP_AUTHENTICATION_SCHEME
+                )
+            ).toThrow(ClientAuthErrorCodes.keyIdMissing);
         });
 
         it("does not save idToken if storeInCache.idToken = false", async () => {
@@ -2674,6 +2740,142 @@ describe("CacheManager.ts test cases", () => {
         ).toEqual(mockedSshAtEntity);
     });
 
+    it("getAccessToken only uses sshKid as request key context for SSH", async () => {
+        const mockedAtEntity = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            "access_token",
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            TEST_CONFIG.TENANT,
+            TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            "",
+            500,
+            AuthenticationScheme.BEARER,
+            undefined,
+            undefined
+        );
+        const mockedPopAtEntity = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            TEST_TOKENS.POP_TOKEN,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            TEST_CONFIG.TENANT,
+            "User.Read test_scope",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            "",
+            500,
+            AuthenticationScheme.POP,
+            TEST_TOKENS.ACCESS_TOKEN
+        );
+        const mockedDpopAtEntity = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            TEST_DPOP_VALUES.ACCESS_TOKEN,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            TEST_CONFIG.TENANT,
+            "User.Read test_scope",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            TEST_CONFIG.CORRELATION_ID,
+            500,
+            DPOP_AUTHENTICATION_SCHEME,
+            undefined,
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+        );
+
+        const accountData = {
+            username: "John Doe",
+            localAccountId: "uid",
+            realm: "common",
+            environment: "login.microsoftonline.com",
+            homeAccountId: "uid.utid",
+            authorityType: "MSSTS",
+            clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+        };
+        const mockedAccount: AccountEntity = CacheManager.toObject(
+            {} as AccountEntity,
+            accountData
+        );
+
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedAtEntity,
+            "",
+            false
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedPopAtEntity,
+            "",
+            false
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedDpopAtEntity,
+            "",
+            false
+        );
+        await mockCache.cacheManager.setAccount(mockedAccount);
+
+        const mockedAccountInfo: AccountInfo = {
+            homeAccountId: "uid.utid",
+            localAccountId: "uid",
+            environment: "login.microsoftonline.com",
+            tenantId: TEST_CONFIG.TENANT,
+            username: "John Doe",
+            loginHint: "testLoginHint",
+        };
+        const bearerSilentFlowRequest: CommonSilentFlowRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            account: mockedAccountInfo,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false,
+            authenticationScheme: AuthenticationScheme.BEARER,
+            sshKid: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+        };
+        const popSilentFlowRequest: CommonSilentFlowRequest = {
+            scopes: ["user.read"],
+            account: mockedAccountInfo,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false,
+            authenticationScheme: AuthenticationScheme.POP,
+            sshKid: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+        };
+        const dpopSilentFlowRequest: CommonSilentFlowRequest = {
+            scopes: ["user.read"],
+            account: mockedAccountInfo,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false,
+            authenticationScheme: DPOP_AUTHENTICATION_SCHEME,
+            sshKid: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+        };
+
+        expect(
+            mockCache.cacheManager.getAccessToken(
+                mockedAccountInfo,
+                bearerSilentFlowRequest
+            )
+        ).toBe(mockedAtEntity);
+        expect(
+            mockCache.cacheManager.getAccessToken(
+                mockedAccountInfo,
+                popSilentFlowRequest
+            )
+        ).toBe(mockedPopAtEntity);
+        expect(
+            mockCache.cacheManager.getAccessToken(
+                mockedAccountInfo,
+                dpopSilentFlowRequest
+            )
+        ).toBeNull();
+    });
+
     it("schema-compat upgrade: legacy and partitioned access tokens can coexist and resolve correctly", async () => {
         await mockCache.cacheManager.clear();
 
@@ -2844,6 +3046,107 @@ describe("CacheManager.ts test cases", () => {
                 legacyRequest
             )
         ).toBeNull();
+    });
+
+    it("getAccessTokensByFilter matches DPoP access tokens by tokenType and jkt", async () => {
+        const SPEC_DPOP_AUTHENTICATION_SCHEME = "DPoP" as AuthenticationScheme;
+        const mockedDpopAtEntity = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            TEST_DPOP_VALUES.ACCESS_TOKEN,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            TEST_CONFIG.TENANT,
+            "User.Read test_scope",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            TEST_CONFIG.CORRELATION_ID,
+            500,
+            DPOP_AUTHENTICATION_SCHEME,
+            undefined,
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+        );
+        const specCasedDpopAtEntity = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            TEST_DPOP_VALUES.ACCESS_TOKEN,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            TEST_CONFIG.TENANT,
+            "User.Read test_scope_2",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            TEST_CONFIG.CORRELATION_ID,
+            500,
+            SPEC_DPOP_AUTHENTICATION_SCHEME,
+            undefined,
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+        );
+
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedDpopAtEntity,
+            "",
+            false
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            specCasedDpopAtEntity,
+            "",
+            false
+        );
+
+        expect(
+            mockCache.cacheManager.getAccessTokensByFilter(
+                {
+                    credentialType:
+                        CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                    tokenType: DPOP_AUTHENTICATION_SCHEME,
+                    keyId: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).toEqual([mockedDpopAtEntity, specCasedDpopAtEntity]);
+        expect(
+            mockCache.cacheManager.getAccessTokensByFilter(
+                {
+                    credentialType:
+                        CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                    tokenType: SPEC_DPOP_AUTHENTICATION_SCHEME,
+                    keyId: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).toEqual([mockedDpopAtEntity, specCasedDpopAtEntity]);
+        expect(
+            mockCache.cacheManager.getAccessTokensByFilter(
+                {
+                    credentialType:
+                        CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                    tokenType: DPOP_AUTHENTICATION_SCHEME,
+                    keyId: "different-jkt",
+                },
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).toEqual([]);
+        expect(
+            mockCache.cacheManager.getAccessTokensByFilter(
+                {
+                    credentialType:
+                        CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                    tokenType: DPOP_AUTHENTICATION_SCHEME,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).toEqual([]);
+        expect(
+            mockCache.cacheManager.getAccessTokensByFilter(
+                {
+                    credentialType:
+                        CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                    tokenType: SPEC_DPOP_AUTHENTICATION_SCHEME,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).toEqual([]);
     });
 
     it("getAccountsFilteredBy nativeAccountId", () => {

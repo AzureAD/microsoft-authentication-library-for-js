@@ -1254,16 +1254,16 @@ describe("AuthorizationCodeClient unit tests", () => {
             const signedJwt =
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
-            config.cryptoInterface.signJwt = async (
-                // @ts-ignore
-                payload: SignedHttpRequest,
-                kid: string
-            ): Promise<string> => {
-                expect(payload.at).toBe(
+            jest.spyOn(
+                config.cryptoInterface,
+                "signTokenBindingJwt"
+            ).mockImplementation(async (header, payload, kid) => {
+                expect((payload as { at?: string }).at).toBe(
                     POP_AUTHENTICATION_RESULT.body.access_token
                 );
+                expect(kid).toBe(TEST_POP_VALUES.KID);
                 return signedJwt;
-            };
+            });
             // Set up stubs
             const idTokenClaims = {
                 ver: "2.0",
@@ -1447,16 +1447,16 @@ describe("AuthorizationCodeClient unit tests", () => {
             const signedJwt =
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
-            config.cryptoInterface.signJwt = async (
-                // @ts-ignore
-                payload: SignedHttpRequest,
-                kid: string
-            ): Promise<string> => {
-                expect(payload.at).toBe(
+            jest.spyOn(
+                config.cryptoInterface,
+                "signTokenBindingJwt"
+            ).mockImplementation(async (header, payload, kid) => {
+                expect((payload as { at?: string }).at).toBe(
                     POP_AUTHENTICATION_RESULT.body.access_token
                 );
+                expect(kid).toBe(TEST_POP_VALUES.KID);
                 return signedJwt;
-            };
+            });
             // Set up stubs
             const idTokenClaims = {
                 ver: "2.0",
@@ -1635,16 +1635,16 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             const signedJwt = "signedJwt";
 
-            config.cryptoInterface.signJwt = async (
-                // @ts-ignore
-                payload: SignedHttpRequest,
-                kid: string
-            ): Promise<string> => {
-                expect(payload.at).toBe(
+            jest.spyOn(
+                config.cryptoInterface,
+                "signTokenBindingJwt"
+            ).mockImplementation(async (header, payload, kid) => {
+                expect((payload as { at?: string }).at).toBe(
                     POP_AUTHENTICATION_RESULT.body.access_token
                 );
+                expect(kid).toBe(TEST_POP_VALUES.KID);
                 return signedJwt;
-            };
+            });
             // Set up stubs
             const idTokenClaims = {
                 ver: "2.0",

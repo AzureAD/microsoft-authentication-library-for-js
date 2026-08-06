@@ -1,7 +1,0 @@
-{
-    "type": "minor",
-    "comment": "Support merging client-originated claims into request claims via `addClaims`/`buildMergedClaims` [#8686](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8686)",
-    "packageName": "@azure/msal-common",
-    "email": "rginsburg@microsoft.com",
-    "dependentChangeType": "patch"
-}

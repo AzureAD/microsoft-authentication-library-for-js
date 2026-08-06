@@ -212,6 +212,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
                 correlationId: correlationId,
             },
             cryptoInterface: this.browserCrypto,
+            tokenBindingKeyManager: this.tokenBindingKeyManager,
             networkInterface: this.networkClient,
             storageInterface: this.browserStorage,
             serverTelemetryManager: serverTelemetryManager,
