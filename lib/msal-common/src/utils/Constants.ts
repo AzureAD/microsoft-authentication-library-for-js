@@ -342,6 +342,7 @@ export const JsonWebTokenTypes = {
     Jwt: "JWT",
     Jwk: "JWK",
     Pop: "pop",
+    Dpop: "dpop+jwt",
 } as const;
 export type JsonWebTokenTypes =
     (typeof JsonWebTokenTypes)[keyof typeof JsonWebTokenTypes];

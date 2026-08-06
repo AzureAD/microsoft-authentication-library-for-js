@@ -19,6 +19,8 @@ export const invalidAuthorityMetadata = "invalid_authority_metadata";
 export const untrustedAuthority = "untrusted_authority";
 export const missingSshJwk = "missing_ssh_jwk";
 export const missingSshKid = "missing_ssh_kid";
+export const unsupportedAuthenticationScheme =
+    "unsupported_authentication_scheme";
 export const missingNonceAuthenticationHeader =
     "missing_nonce_authentication_header";
 export const invalidAuthenticationHeader = "invalid_authentication_header";

@@ -20,6 +20,7 @@ import {
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
     ProtocolUtils,
+    ITokenBindingKeyManager,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
@@ -89,7 +90,8 @@ export class RedirectClient extends StandardInteractionClient {
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
-        platformAuthHandler?: IPlatformAuthHandler
+        platformAuthHandler?: IPlatformAuthHandler,
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,
@@ -100,7 +102,8 @@ export class RedirectClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            platformAuthHandler
+            platformAuthHandler,
+            tokenBindingKeyManager
         );
         this.nativeStorage = nativeStorageImpl;
     }

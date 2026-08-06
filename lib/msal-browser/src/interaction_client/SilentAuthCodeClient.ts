@@ -10,6 +10,7 @@ import {
     AuthError,
     IPerformanceClient,
     PerformanceEvents,
+    ITokenBindingKeyManager,
     invokeAsync,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
@@ -47,7 +48,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         apiId: ApiId,
         performanceClient: IPerformanceClient,
         correlationId: string,
-        platformAuthProvider?: IPlatformAuthHandler
+        platformAuthProvider?: IPlatformAuthHandler,
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,
@@ -58,7 +60,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            platformAuthProvider
+            platformAuthProvider,
+            tokenBindingKeyManager
         );
         this.apiId = apiId;
     }

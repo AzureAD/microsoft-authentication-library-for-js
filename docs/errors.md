@@ -258,6 +258,10 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Missing sshKid in SSH certificate request. A string that uniquely identifies the public SSH key is required when using the SSH authentication scheme.
 
+### `unsupported_authentication_scheme`
+
+-   Unsupported authentication scheme. MSAL.js only accepts authentication schemes that are explicitly enabled for the current runtime.
+
 ### `missing_nonce_authentication_header`
 
 -   Unable to find an authentication header containing server nonce. Either the Authentication-Info or WWW-Authenticate headers must be present in order to obtain a server nonce.
@@ -341,6 +345,14 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ### `missing_alg_error`
 
 -   The JOSE Header for the requested JWT, JWS or JWK object requires an algorithm to be specified as the 'alg' header claim. No 'alg' value was provided.
+
+### `missing_jwk_error`
+
+-   The JOSE Header for the requested JWT, JWS or JWK object requires a public key to be specified as the 'jwk' header claim. No 'jwk' value was provided.
+
+### `invalid_jwk_error`
+
+-   The JOSE Header for the requested JWT, JWS or JWK object requires a supported public key in the 'jwk' header claim.
 
 ## Browser auth errors
 
@@ -750,6 +762,13 @@ If you do not want to use a dedicated `redirectUri` for this purpose, you should
 ### `invalid_public_jwk`
 
 -   Public JWK must include the required RFC 7638 thumbprint members for its supported key type.
+-   This error may include one of the following sub-errors:
+    -   `token_binding_key_jwk_thumbprint_mismatch` - The token-binding JWT header JWK thumbprint does not match the signing key identifier.
+
+### `token_binding_key_jwk_thumbprint_mismatch`
+
+-   Sub-error of `invalid_public_jwk`.
+-   The token-binding JWT header JWK thumbprint does not match the signing key identifier.
 
 ### `auth_code_required`
 
@@ -840,6 +859,17 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 ### `invalid_pop_token_request`
 
 -   Invalid PoP token request. The request should not have both a popKid value and signPopToken set to true.
+
+### `unsupported_token_binding_algorithm`
+
+-   The token-binding key algorithm is not supported by the browser crypto implementation.
+-   This error may include one of the following sub-errors:
+    -   `token_binding_key_algorithm_mismatch` - The requested token-binding JWT alg is supported, but is incompatible with the stored key material.
+
+### `token_binding_key_algorithm_mismatch`
+
+-   Sub-error of `unsupported_token_binding_algorithm`.
+-   The requested token-binding JWT alg is supported, but is incompatible with the stored key material.
 
 ### `failed_to_build_headers`
 

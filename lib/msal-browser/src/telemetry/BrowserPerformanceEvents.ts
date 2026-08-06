@@ -22,15 +22,15 @@ export const AcquireTokenByRefreshToken = "acquireTokenByRefreshToken";
 export const AcquireTokenSilentAsync = "acquireTokenSilentAsync";
 
 /**
- * getPublicKeyThumbprint API in CryptoOpts class (msal-browser).
- * Used to generate a public/private keypair and generate a public key thumbprint for pop requests.
+ * provisionTokenBindingKey API in TokenBindingKeyManager class (msal-browser).
+ * Used to provision token-binding key material and return a key identifier.
  */
 export const CryptoOptsGetPublicKeyThumbprint =
     "cryptoOptsGetPublicKeyThumbprint";
 
 /**
- * signJwt API in CryptoOpts class (msal-browser).
- * Used to signed a pop token.
+ * signTokenBindingJwt API in CryptoOpts class (msal-browser).
+ * Used to sign token-binding JWTs.
  */
 export const CryptoOptsSignJwt = "cryptoOptsSignJwt";
 
