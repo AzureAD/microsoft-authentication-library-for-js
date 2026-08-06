@@ -271,8 +271,6 @@ export const AuthenticationScheme = {
 export type AuthenticationScheme =
     (typeof AuthenticationScheme)[keyof typeof AuthenticationScheme];
 
-export const DPOP_TOKEN_BINDING_KEY_ALGORITHM = "ES256";
-
 /**
  * Constants related to throttling
  */

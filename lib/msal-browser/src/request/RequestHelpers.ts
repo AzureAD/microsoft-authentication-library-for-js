@@ -12,6 +12,7 @@ import {
     IPerformanceClient,
     Logger,
     ProtocolMode,
+    JsonWebTokenAlgorithms,
     createClientConfigurationError,
     invokeAsync,
 } from "@azure/msal-common/browser";
@@ -124,8 +125,7 @@ export async function initializeBaseRequest(
                 validatedRequest.dpopJkt =
                     await tokenBindingKeyManager.provisionTokenBindingKey({
                         tokenBindingKeyType: dpopTokenBindingKeyType,
-                        tokenBindingKeyAlgorithm:
-                            Constants.DPOP_TOKEN_BINDING_KEY_ALGORITHM,
+                        tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
                         correlationId,
                     });
                 break;

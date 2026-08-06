@@ -1324,7 +1324,6 @@ declare namespace Constants {
         SERVER_TELEM_OVERFLOW_FALSE,
         SERVER_TELEM_UNKNOWN_ERROR,
         AuthenticationScheme,
-        DPOP_TOKEN_BINDING_KEY_ALGORITHM,
         DEFAULT_THROTTLE_TIME_SECONDS,
         DEFAULT_MAX_THROTTLE_TIME_SECONDS,
         THROTTLING_PREFIX,
@@ -1537,9 +1536,6 @@ const DOMAIN_HINT = "domain_hint";
 
 // @public (undocumented)
 const DPOP_JKT = "dpop_jkt";
-
-// @public (undocumented)
-const DPOP_TOKEN_BINDING_KEY_ALGORITHM = "ES256";
 
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";

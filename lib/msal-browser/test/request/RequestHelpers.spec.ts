@@ -8,6 +8,7 @@ import {
     BaseAuthRequest,
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
+    JsonWebTokenAlgorithms,
     Logger,
     StubPerformanceClient,
 } from "@azure/msal-common";
@@ -219,8 +220,7 @@ describe("RequestHelpers tests", () => {
                 Constants.AuthenticationScheme.DPOP.toLowerCase();
             expect(provisionSpy).toHaveBeenCalledWith({
                 tokenBindingKeyType: dpopTokenBindingKeyType,
-                tokenBindingKeyAlgorithm:
-                    Constants.DPOP_TOKEN_BINDING_KEY_ALGORITHM,
+                tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
             });
         });
