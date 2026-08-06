@@ -2,20 +2,8 @@
  * Nested App Authentication (NAA) bridge — host (top-frame) side.
  *
  * The host app is the bridge *provider*: it implements the message handler that
- * the nested app's `window.nestedAppAuthBridge` shim relays requests to. When a
- * platform broker (e.g. the Microsoft SSO extension) is present the host would
- * forward these requests to the broker; this sample instead brokers them over
- * the regular web flow so the nested app never talks to the identity provider
- * directly and never receives a refresh token — the core NAA property.
- *
- * Web-flow brokering: the platform-broker `child_client_id` mechanism (minting a
- * token for a *different* client id) is only available through the broker, so in
- * web mode the host acquires the nested app's token with a second MSAL instance
- * configured for the nested client id. That instance leverages the host user's
- * existing ESTS session (ssoSilent, popup fallback); the resulting id + access
- * tokens are handed to the nested app, while the refresh token stays on the host
- * side — mirroring how the broker would keep it out of the embedded app.
- *
+ * the nested app's `window.nestedAppAuthBridge` shim relays requests to. 
+
  * Wire protocol: see `lib/msal-browser/src/naa` (`BridgeRequestEnvelope`,
  * `BridgeResponseEnvelope`, `TokenResponse`, `AccountInfo`, `InitContext`).
  */
@@ -71,10 +59,10 @@ function buildInitContext(hostPca) {
         capabilities: { queryAccount: false },
         accountContext: account
             ? {
-                  homeAccountId: account.homeAccountId,
-                  environment: account.environment,
-                  tenantId: account.tenantId,
-              }
+                homeAccountId: account.homeAccountId,
+                environment: account.environment,
+                tenantId: account.tenantId,
+            }
             : undefined,
     };
 }
@@ -149,8 +137,8 @@ async function brokerToken(hostPca, tokenParams, interactive, defaultAuthority) 
     // rather than the host opening an unexpected popup for a silent request.
     const existing = loginHint
         ? brokerPca
-              .getAllAccounts()
-              .find((account) => account.username === loginHint)
+            .getAllAccounts()
+            .find((account) => account.username === loginHint)
         : undefined;
     if (existing) {
         return brokerPca.acquireTokenSilent({
