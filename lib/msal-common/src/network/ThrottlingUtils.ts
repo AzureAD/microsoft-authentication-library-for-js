@@ -26,16 +26,31 @@ export class ThrottlingUtils {
     }
 
     /**
-     * Performs necessary throttling checks before a network request.
-     * @param cacheManager
+     * Prepares an app-wide throttling key that ignores any user component
+     * (homeAccountIdentifier). This is used for service-directed throttling
+     * (HTTP 429 / Retry-After) which applies to the whole application.
      * @param thumbprint
      */
-    static preProcess(
+    static generateAppWideThrottlingStorageKey(
+        thumbprint: RequestThumbprint
+    ): string {
+        const appWideThumbprint: RequestThumbprint = { ...thumbprint };
+        delete appWideThumbprint.homeAccountIdentifier;
+        return ThrottlingUtils.generateThrottlingStorageKey(appWideThumbprint);
+    }
+
+    /**
+     * Throws a ServerError if there is a live throttling entry for the given key,
+     * removing it first if it has expired.
+     * @param cacheManager
+     * @param key
+     * @param correlationId
+     */
+    private static throttleIfCached(
         cacheManager: CacheManager,
-        thumbprint: RequestThumbprint,
+        key: string,
         correlationId: string
     ): void {
-        const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
         const value = cacheManager.getThrottlingCache(key, correlationId);
 
         if (value) {
@@ -53,6 +68,41 @@ export class ThrottlingUtils {
     }
 
     /**
+     * Performs necessary throttling checks before a network request.
+     * @param cacheManager
+     * @param thumbprint
+     */
+    static preProcess(
+        cacheManager: CacheManager,
+        thumbprint: RequestThumbprint,
+        correlationId: string
+    ): void {
+        // Service-directed throttles (HTTP 429 / Retry-After) are stored app-wide.
+        const appWideKey =
+            ThrottlingUtils.generateAppWideThrottlingStorageKey(thumbprint);
+        ThrottlingUtils.throttleIfCached(
+            cacheManager,
+            appWideKey,
+            correlationId
+        );
+
+        /*
+         * Error-class throttles (HTTP 5xx) are stored per-user so one user's failure does
+         * not throttle a different user sharing the same clientId/authority/scopes.
+         * Only check the user-aware key when it actually differs (i.e. a user component exists).
+         */
+        const userAwareKey =
+            ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
+        if (userAwareKey !== appWideKey) {
+            ThrottlingUtils.throttleIfCached(
+                cacheManager,
+                userAwareKey,
+                correlationId
+            );
+        }
+    }
+
+    /**
      * Performs necessary throttling checks after a network request.
      * @param cacheManager
      * @param thumbprint
@@ -64,10 +114,25 @@ export class ThrottlingUtils {
         response: NetworkResponse<ServerAuthorizationTokenResponse>,
         correlationId: string
     ): void {
-        if (
-            ThrottlingUtils.checkResponseStatus(response) ||
-            ThrottlingUtils.checkResponseForRetryAfter(response)
-        ) {
+        /*
+         * HTTP 429 and explicit Retry-After are service-directed rate limiting for the whole
+         * application, so they are throttled app-wide.
+         */
+        const isServiceThrottle =
+            response.status === 429 ||
+            ThrottlingUtils.checkResponseForRetryAfter(response);
+
+        /*
+         * HTTP 5xx (without a Retry-After) is a server/credential error that can be specific to a
+         * single user (e.g. a federated STS returning HTTP 500 for one user's bad password), so it
+         * is throttled per-user to avoid blocking other users.
+         */
+        const isServerError =
+            !isServiceThrottle &&
+            response.status >= 500 &&
+            response.status < 600;
+
+        if (isServiceThrottle || isServerError) {
             const thumbprintValue: ThrottlingEntity = {
                 throttleTime: ThrottlingUtils.calculateThrottleTime(
                     parseInt(
@@ -79,8 +144,15 @@ export class ThrottlingUtils {
                 errorMessage: response.body.error_description,
                 subError: response.body.suberror,
             };
+
+            const key = isServerError
+                ? ThrottlingUtils.generateThrottlingStorageKey(thumbprint)
+                : ThrottlingUtils.generateAppWideThrottlingStorageKey(
+                      thumbprint
+                  );
+
             cacheManager.setThrottlingCache(
-                ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
+                key,
                 thumbprintValue,
                 correlationId
             );
@@ -146,7 +218,14 @@ export class ThrottlingUtils {
             request,
             homeAccountIdentifier
         );
-        const key = this.generateThrottlingStorageKey(thumbprint);
-        cacheManager.removeItem(key, request.correlationId);
+
+        // Remove both the app-wide (429 / Retry-After) and user-aware (5xx) throttling entries.
+        const userAwareKey = this.generateThrottlingStorageKey(thumbprint);
+        cacheManager.removeItem(userAwareKey, request.correlationId);
+
+        const appWideKey = this.generateAppWideThrottlingStorageKey(thumbprint);
+        if (appWideKey !== userAwareKey) {
+            cacheManager.removeItem(appWideKey, request.correlationId);
+        }
     }
 }

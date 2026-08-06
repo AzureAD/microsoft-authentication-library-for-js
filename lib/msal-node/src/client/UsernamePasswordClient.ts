@@ -111,6 +111,11 @@ export class UsernamePasswordClient extends BaseClient {
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
             sshKid: request.sshKid,
+            /*
+             * Include the username as the user component so that error-class (HTTP 5xx) throttling
+             * is scoped per-user and one user's failure does not throttle others.
+             */
+            homeAccountIdentifier: request.username,
         };
 
         return this.executePostToTokenEndpoint(

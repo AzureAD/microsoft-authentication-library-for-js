@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Include the username as the throttling user component for username/password (ROPC) so error-class (HTTP 5xx) throttling is scoped per-user (issue #1019)",
+    "packageName": "@azure/msal-node",
+    "email": "avdunn@microsoft.com",
+    "dependentChangeType": "patch"
+}

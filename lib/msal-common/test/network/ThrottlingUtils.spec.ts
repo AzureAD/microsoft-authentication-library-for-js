@@ -4,7 +4,10 @@
  */
 
 import { ThrottlingUtils } from "../../src/network/ThrottlingUtils.js";
-import { RequestThumbprint } from "../../src/network/RequestThumbprint.js";
+import {
+    RequestThumbprint,
+    getRequestThumbprint,
+} from "../../src/network/RequestThumbprint.js";
 import { ThrottlingEntity } from "../../src/cache/entities/ThrottlingEntity.js";
 import { NetworkResponse } from "../../src/network/NetworkResponse.js";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse.js";
@@ -302,6 +305,174 @@ describe("ThrottlingUtils", () => {
 
             ThrottlingUtils.removeThrottle(cache, clientId, request);
             expect(removeItemStub).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    // Documents the app-wide fallback: when the thumbprint has NO user component
+    // (homeAccountIdentifier), error-class throttling remains app-wide. This confirms the
+    // per-user keying does not change behavior for flows that cannot supply a user identity.
+    describe("App-wide throttling when no user component is present", () => {
+        it("throttles a different user after another user's 5xx because the thumbprint has no user component", () => {
+            const cache = new MockStorageClass(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                mockCrypto,
+                new Logger({}),
+                performanceClient
+            );
+
+            // Two logically different users issuing the same public-client request
+            // (same clientId, authority and scopes). Because no user component is
+            // supplied, the requests are indistinguishable.
+            const userARequest: BaseAuthRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            };
+            const userBRequest: BaseAuthRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            };
+
+            const thumbprintA = getRequestThumbprint(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                userARequest
+            );
+            const thumbprintB = getRequestThumbprint(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                userBRequest
+            );
+
+            // The two users collide on the same app-wide throttling key.
+            expect(
+                ThrottlingUtils.generateThrottlingStorageKey(thumbprintA)
+            ).toEqual(
+                ThrottlingUtils.generateThrottlingStorageKey(thumbprintB)
+            );
+
+            // User A's token request fails with a server-side 500.
+            const userAResponse: NetworkResponse<ServerAuthorizationTokenResponse> =
+                {
+                    headers: {},
+                    body: {
+                        error: "server_error",
+                        error_description: "user A's request failed",
+                    },
+                    status: 500,
+                };
+            ThrottlingUtils.postProcess(
+                cache,
+                thumbprintA,
+                userAResponse,
+                RANDOM_TEST_GUID
+            );
+
+            // With no user component the 5xx is stored app-wide, so User B is throttled.
+            expect(() =>
+                ThrottlingUtils.preProcess(cache, thumbprintB, RANDOM_TEST_GUID)
+            ).toThrowError(ServerError);
+        });
+    });
+
+    // Verifies response-type-aware throttling: when a user component (homeAccountIdentifier) is
+    // present, error-class (HTTP 5xx) throttling is scoped per-user, while service-directed
+    // throttling (HTTP 429 / Retry-After) stays app-wide.
+    describe("Response-type-aware throttling", () => {
+        const baseRequest: BaseAuthRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+        };
+
+        const server500Response: NetworkResponse<ServerAuthorizationTokenResponse> =
+            {
+                headers: {},
+                body: {
+                    error: "server_error",
+                    error_description: "user A's request failed",
+                },
+                status: 500,
+            };
+
+        const http429Response: NetworkResponse<ServerAuthorizationTokenResponse> =
+            {
+                headers: {},
+                body: {
+                    error: "temporarily_unavailable",
+                    error_description: "too many requests",
+                },
+                status: 429,
+            };
+
+        it("does NOT throttle a different user after another user's 5xx (per-user error-class throttling)", () => {
+            const cache = new MockStorageClass(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                mockCrypto,
+                new Logger({}),
+                performanceClient
+            );
+
+            const thumbprintA = getRequestThumbprint(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                baseRequest,
+                "userA-home-account-id"
+            );
+            const thumbprintB = getRequestThumbprint(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                baseRequest,
+                "userB-home-account-id"
+            );
+
+            // User A's request fails with HTTP 500.
+            ThrottlingUtils.postProcess(
+                cache,
+                thumbprintA,
+                server500Response,
+                RANDOM_TEST_GUID
+            );
+
+            // User B (a different user) is NOT throttled by user A's failure.
+            expect(() =>
+                ThrottlingUtils.preProcess(cache, thumbprintB, RANDOM_TEST_GUID)
+            ).not.toThrow();
+
+            // User A itself remains throttled.
+            expect(() =>
+                ThrottlingUtils.preProcess(cache, thumbprintA, RANDOM_TEST_GUID)
+            ).toThrowError(ServerError);
+        });
+
+        it("DOES throttle a different user after another user's 429 (service-directed throttling stays app-wide)", () => {
+            const cache = new MockStorageClass(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                mockCrypto,
+                new Logger({}),
+                performanceClient
+            );
+
+            const thumbprintA = getRequestThumbprint(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                baseRequest,
+                "userA-home-account-id"
+            );
+            const thumbprintB = getRequestThumbprint(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                baseRequest,
+                "userB-home-account-id"
+            );
+
+            // User A's request fails with HTTP 429 (service-directed rate limiting).
+            ThrottlingUtils.postProcess(
+                cache,
+                thumbprintA,
+                http429Response,
+                RANDOM_TEST_GUID
+            );
+
+            // User B is throttled because 429 back-off is app-wide.
+            expect(() =>
+                ThrottlingUtils.preProcess(cache, thumbprintB, RANDOM_TEST_GUID)
+            ).toThrowError(ServerError);
         });
     });
 });

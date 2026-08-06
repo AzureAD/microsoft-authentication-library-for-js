@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Scope error-class (HTTP 5xx) throttling per-user while keeping 429/Retry-After app-wide, so one user's failure no longer throttles other users (issue #1019)",
+    "packageName": "@azure/msal-common",
+    "email": "avdunn@microsoft.com",
+    "dependentChangeType": "patch"
+}
