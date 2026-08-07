@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "target": "es2021",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "types": ["node", "jest"]
+    },
+    "include": ["test/**/*.ts"]
+}
