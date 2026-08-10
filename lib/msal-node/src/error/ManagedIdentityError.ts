@@ -44,6 +44,8 @@ export const ManagedIdentityErrorMessages = {
         "Unable to read the secret file.",
     [ManagedIdentityErrorCodes.userAssignedNotAvailableAtRuntime]:
         "Service Fabric user assigned managed identity ClientId or ResourceId is not configurable at runtime.",
+    [ManagedIdentityErrorCodes.userAssignedManagedIdentityNotConfirmed]:
+        "Azure Arc did not confirm the requested user-assigned managed identity in the token response. The agent likely does not support user-assigned managed identity and returned the system-assigned identity.",
     [ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing]:
         "A 401 response was received form the Azure Arc Managed Identity, but the www-authenticate header is missing.",
     [ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat]:
