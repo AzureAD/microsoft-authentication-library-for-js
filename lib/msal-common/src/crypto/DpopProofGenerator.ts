@@ -40,16 +40,16 @@ export type DpopTokenProofParams = {
  * @internal
  */
 export type DpopResourceProofParams = {
-    resourceUrl: string;
+    htu: string;
     htm: string;
     ath: string;
     nonce?: string;
 };
 
-export type GenerateDpopResourceProofParams = Omit<
-    DpopResourceProofParams,
-    "ath"
-> & {
+export type GenerateDpopResourceProofParams = {
+    htu?: string;
+    htm?: string;
+    nonce?: string;
     accessToken: string;
 };
 
@@ -215,7 +215,7 @@ export class DpopProofGenerator {
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
             htm: normalizeHtm(params.htm, correlationId),
-            htu: normalizeHtu(params.resourceUrl, correlationId),
+            htu: normalizeHtu(params.htu, correlationId),
             ath: params.ath,
             iat: TimeUtils.nowSeconds(),
         };
@@ -233,9 +233,25 @@ export class DpopProofGenerator {
         keyId: string,
         correlationId: string = ""
     ): Promise<string> {
+        const { htu, htm, nonce } = params;
+        if (!htu || !htm) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.dpopMissingResourceContext,
+                correlationId
+            );
+        }
+
         const ath = await this.cryptoUtils.hashString(params.accessToken);
         return this.generateProof(
-            this.buildResourceProofClaims({ ...params, ath }, correlationId),
+            this.buildResourceProofClaims(
+                {
+                    htu,
+                    htm,
+                    ath,
+                    nonce,
+                },
+                correlationId
+            ),
             keyId,
             correlationId
         );

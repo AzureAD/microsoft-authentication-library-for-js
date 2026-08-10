@@ -454,6 +454,45 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(executePostToTokenEndpointSpy).toHaveBeenCalled();
         });
 
+        it("throws before token request when DPoP key id is missing", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const executePostToTokenEndpointSpy = jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            );
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+
+            await expect(
+                client.acquireToken(authCodeRequest, 0, {
+                    code: authCodeRequest.code,
+                    nonce: "123523",
+                })
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.keyIdMissing,
+            });
+            expect(executePostToTokenEndpointSpy).not.toHaveBeenCalled();
+        });
+
         it("Does not add headers that do not qualify for a simple request", async () => {
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
             jest.spyOn(

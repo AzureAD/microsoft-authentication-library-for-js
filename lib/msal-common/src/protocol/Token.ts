@@ -91,11 +91,19 @@ export async function addDpopTokenProofHeader(
         cryptoUtils,
         tokenBindingKeyManager
     );
+    const keyId = request.dpopJkt;
+    if (!keyId?.trim()) {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.keyIdMissing,
+            request.correlationId
+        );
+    }
+
     headers[HeaderNames.DPOP] = await dpopProofGenerator.generateTokenProof(
         {
             tokenEndpoint,
         },
-        request.dpopJkt || "",
+        keyId,
         request.correlationId
     );
 }

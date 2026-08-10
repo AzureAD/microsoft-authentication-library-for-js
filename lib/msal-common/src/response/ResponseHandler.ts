@@ -646,8 +646,8 @@ export class ResponseHandler {
                 );
                 dpopProof = await dpopProofGenerator.generateResourceProof(
                     {
-                        resourceUrl: request.resourceRequestUri || "",
-                        htm: request.resourceRequestMethod || "",
+                        htu: request.resourceRequestUri,
+                        htm: request.resourceRequestMethod,
                         accessToken: cacheRecord.accessToken.secret,
                     },
                     cacheRecord.accessToken.keyId,
