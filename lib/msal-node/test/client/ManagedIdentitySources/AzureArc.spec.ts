@@ -316,7 +316,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             expect(networkManagedIdentityResult.accessToken).toBeTruthy();
             // The request must carry msi_res_id, not the mi_res_id spelling Azure Arc ignores.
             expect(requestUrl).toContain("msi_res_id=");
-            expect(requestUrl).not.toContain("&mi_res_id=");
+            expect(requestUrl).not.toContain("mi_res_id=");
         });
 
         test("fails closed when Azure Arc does not confirm the requested user-assigned identity", async () => {

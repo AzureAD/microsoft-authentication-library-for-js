@@ -1,6 +1,6 @@
 {
     "type": "minor",
-    "comment": "Add Azure Arc user-assigned managed identity support: forward the client_id/object_id/msi_res_id selector and fail closed when the token response does not confirm the requested identity",
+    "comment": "Add Azure Arc user-assigned managed identity support: forward the client_id/object_id/msi_res_id selector and fail closed when the token response does not confirm the requested identity [#8761](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8761)",
     "packageName": "@azure/msal-node",
     "email": "90415114+gladjohn@users.noreply.github.com",
     "dependentChangeType": "patch"

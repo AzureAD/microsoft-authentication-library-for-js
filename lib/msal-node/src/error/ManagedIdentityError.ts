@@ -47,9 +47,9 @@ export const ManagedIdentityErrorMessages = {
     [ManagedIdentityErrorCodes.userAssignedManagedIdentityNotConfirmed]:
         "Azure Arc did not confirm the requested user-assigned managed identity in the token response. The agent likely does not support user-assigned managed identity and returned the system-assigned identity.",
     [ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing]:
-        "A 401 response was received form the Azure Arc Managed Identity, but the www-authenticate header is missing.",
+        "A 401 response was received from the Azure Arc Managed Identity, but the www-authenticate header is missing.",
     [ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat]:
-        "A 401 response was received form the Azure Arc Managed Identity, but the www-authenticate header is in an unsupported format.",
+        "A 401 response was received from the Azure Arc Managed Identity, but the www-authenticate header is in an unsupported format.",
 };
 
 export class ManagedIdentityError extends AuthError {
