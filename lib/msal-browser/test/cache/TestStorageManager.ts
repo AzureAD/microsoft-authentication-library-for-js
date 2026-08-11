@@ -24,7 +24,6 @@ import {
     ITokenBindingKeyManager,
     Logger,
     StaticAuthorityOptions,
-    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
 } from "@azure/msal-common";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
 
@@ -39,9 +38,8 @@ export class TestStorageManager extends CacheManager {
         cryptoImpl: ICrypto,
         logger: Logger,
         performanceClient: IPerformanceClient,
-        staticAuthorityOptions?: StaticAuthorityOptions,
-        tokenBindingKeyManager: ITokenBindingKeyManager =
-            DEFAULT_TOKEN_BINDING_KEY_MANAGER
+        staticAuthorityOptions: StaticAuthorityOptions | undefined,
+        tokenBindingKeyManager: ITokenBindingKeyManager
     ) {
         super(
             clientId,
