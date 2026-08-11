@@ -3,9 +3,9 @@
  * See LICENSE in the source repository root for complete license information.
  */
 
-import { showError, showSuccess } from './utils.js';
-import { updateUI } from './ui.js';
-import { createMsalConfig, loginRequest } from './authConfig.js';
+import { showError, showSuccess } from "./utils.js";
+import { updateUI } from "./ui.js";
+import { createMsalConfig, loginRequest } from "./authConfig.js";
 
 // Authentication module - handles all MSAL authentication logic
 
@@ -22,15 +22,17 @@ export async function initializeMsal() {
         const msalConfig = createMsalConfig();
         msalInstance = new msal.PublicClientApplication(msalConfig);
         await msalInstance.initialize();
-        await msalInstance.handleRedirectPromise().then((response) => {
-            if (response) {
-                msalInstance.setActiveAccount(response.account);
-            }
-            updateUI(msalInstance.getActiveAccount());
-        });
+        if (window.location.pathname !== "/playground") {
+            await msalInstance.handleRedirectPromise().then((response) => {
+                if (response) {
+                    msalInstance.setActiveAccount(response.account);
+                }
+            });
+        }
+        updateUI(msalInstance.getActiveAccount());
     } catch (error) {
-        console.error('MSAL initialization failed:', error);
-        showError('Initialization failed: ' + error.message);
+        console.error("MSAL initialization failed:", error);
+        showError("Initialization failed: " + error.message);
     }
 }
 
@@ -39,22 +41,25 @@ export async function handleProtectedRouteAuth(path) {
     console.log(`Attempting authentication for protected route: ${path}`);
 
     // First attempt SSO silent
-    return msalInstance.ssoSilent({
-        scopes: loginRequest.scopes
-    }).then((response) => {
-        msalInstance.setActiveAccount(response.account);
-        updateUI(response.account);
-    }).catch(async (error) => {
-        console.error('SSO silent failed:', error);
-        if (error instanceof msal.InteractionRequiredAuthError) {
-            console.log('SSO silent failed - interaction required');
-            await msalInstance.acquireTokenRedirect(loginRequest);
-        } else {
-            console.warn('SSO silent failed with unexpected error:', error);
-        }
-        showError('Authentication failed: ' + error.message);
-        return false;
-    });
+    return msalInstance
+        .ssoSilent({
+            scopes: loginRequest.scopes,
+        })
+        .then((response) => {
+            msalInstance.setActiveAccount(response.account);
+            updateUI(response.account);
+        })
+        .catch(async (error) => {
+            console.error("SSO silent failed:", error);
+            if (error instanceof msal.InteractionRequiredAuthError) {
+                console.log("SSO silent failed - interaction required");
+                await msalInstance.acquireTokenRedirect(loginRequest);
+            } else {
+                console.warn("SSO silent failed with unexpected error:", error);
+            }
+            showError("Authentication failed: " + error.message);
+            return false;
+        });
 }
 
 // Sign in with popup
@@ -66,7 +71,7 @@ export async function signInPopup() {
         const response = await msalInstance.loginPopup({
             ...loginRequest,
             // Only override if user explicitly clicked retry
-            overrideInteractionInProgress: retryRequested
+            overrideInteractionInProgress: retryRequested,
         });
 
         // Hide warning on success
@@ -75,19 +80,19 @@ export async function signInPopup() {
 
         msalInstance.setActiveAccount(response.account);
         updateUI(response.account);
-        showSuccess('Successfully signed in!');
+        showSuccess("Successfully signed in!");
     } catch (error) {
         // Hide warning on error
         hidePopupWarning();
 
-        if (error.errorCode === 'interaction_in_progress') {
+        if (error.errorCode === "interaction_in_progress") {
             // Show retry modal - let user decide whether to retry
             showRetryModal();
         } else {
             // Reset retry flag for other errors
             retryRequested = false;
-            console.error('Popup sign in failed:', error);
-            showError('Sign in failed: ' + error.message);
+            console.error("Popup sign in failed:", error);
+            showError("Sign in failed: " + error.message);
         }
     }
 }
@@ -97,8 +102,8 @@ export async function signInRedirect() {
     try {
         await msalInstance.loginRedirect(loginRequest);
     } catch (error) {
-        console.error('Redirect sign in failed:', error);
-        showError('Sign in failed: ' + error.message);
+        console.error("Redirect sign in failed:", error);
+        showError("Sign in failed: " + error.message);
     }
 }
 
@@ -106,15 +111,15 @@ export async function signInRedirect() {
 export async function signOutPopup() {
     try {
         const logoutRequest = {
-            account: msalInstance.getActiveAccount()
+            account: msalInstance.getActiveAccount(),
         };
 
         await msalInstance.logoutPopup(logoutRequest);
         updateUI(null);
-        showSuccess('Successfully signed out!');
+        showSuccess("Successfully signed out!");
     } catch (error) {
-        console.error('Popup sign out failed:', error);
-        showError('Sign out failed: ' + error.message);
+        console.error("Popup sign out failed:", error);
+        showError("Sign out failed: " + error.message);
     }
 }
 
@@ -122,43 +127,46 @@ export async function signOutPopup() {
 export async function signOutRedirect() {
     try {
         const logoutRequest = {
-            account: msalInstance.getActiveAccount()
+            account: msalInstance.getActiveAccount(),
         };
 
         await msalInstance.logoutRedirect(logoutRequest);
     } catch (error) {
-        console.error('Redirect sign out failed:', error);
-        showError('Sign out failed: ' + error.message);
+        console.error("Redirect sign out failed:", error);
+        showError("Sign out failed: " + error.message);
     }
 }
 
 // Get access token silently
 export async function getAccessToken() {
-    return msalInstance.acquireTokenSilent({
-        ...loginRequest
-    }).then((response) => {
-        return response;
-    }).catch(async (error) => {
-        console.error('Silent token acquisition failed:', error);
+    return msalInstance
+        .acquireTokenSilent({
+            ...loginRequest,
+        })
+        .then((response) => {
+            return response;
+        })
+        .catch(async (error) => {
+            console.error("Silent token acquisition failed:", error);
 
-        if (error instanceof msal.InteractionRequiredAuthError) {
-            // Fallback to redirect
-            await msalInstance.acquireTokenRedirect({
-                ...loginRequest,
-                account: msalInstance.getActiveAccount()
-            });
-        }
-        throw error;
-    });
+            if (error instanceof msal.InteractionRequiredAuthError) {
+                // Fallback to redirect
+                await msalInstance.acquireTokenRedirect({
+                    ...loginRequest,
+                    account: msalInstance.getActiveAccount(),
+                });
+            }
+            throw error;
+        });
 }
 
 /**
  * Show warning message during popup authentication
  */
 function showPopupWarning() {
-    const warningDiv = document.getElementById('popup-warning');
+    const warningDiv = document.getElementById("popup-warning");
     if (warningDiv) {
-        warningDiv.style.display = 'block';
+        warningDiv.style.display = "block";
     }
 }
 
@@ -166,9 +174,9 @@ function showPopupWarning() {
  * Hide warning message
  */
 function hidePopupWarning() {
-    const warningDiv = document.getElementById('popup-warning');
+    const warningDiv = document.getElementById("popup-warning");
     if (warningDiv) {
-        warningDiv.style.display = 'none';
+        warningDiv.style.display = "none";
     }
 }
 
@@ -176,9 +184,9 @@ function hidePopupWarning() {
  * Show retry modal for interaction_in_progress error
  */
 function showRetryModal() {
-    const modal = document.getElementById('retry-modal');
+    const modal = document.getElementById("retry-modal");
     if (modal) {
-        modal.style.display = 'block';
+        modal.style.display = "block";
     }
 }
 
@@ -187,9 +195,9 @@ function showRetryModal() {
  */
 export function handleRetry() {
     retryRequested = true; // User explicitly requested retry
-    const modal = document.getElementById('retry-modal');
+    const modal = document.getElementById("retry-modal");
     if (modal) {
-        modal.style.display = 'none';
+        modal.style.display = "none";
     }
     signInPopup();
 }
@@ -199,9 +207,8 @@ export function handleRetry() {
  */
 export function handleCancelRetry() {
     retryRequested = false;
-    const modal = document.getElementById('retry-modal');
+    const modal = document.getElementById("retry-modal");
     if (modal) {
-        modal.style.display = 'none';
+        modal.style.display = "none";
     }
 }
-
