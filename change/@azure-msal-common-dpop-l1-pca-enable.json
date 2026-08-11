@@ -1,6 +1,6 @@
 {
     "type": "minor",
-    "comment": "Enable public L1 PCA DPoP request, cache, and AuthenticationResult support",
+    "comment": "Enable public L1 PCA DPoP request, cache, and AuthenticationResult support [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735)",
     "packageName": "@azure/msal-common",
     "email": "hectormmg@microsoft.com",
     "dependentChangeType": "minor"
