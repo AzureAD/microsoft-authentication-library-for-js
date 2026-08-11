@@ -19,6 +19,12 @@ import {
     AccountInfo,
     Constants,
     AccountEntityUtils,
+    ICrypto,
+    IPerformanceClient,
+    ITokenBindingKeyManager,
+    Logger,
+    StaticAuthorityOptions,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
 } from "@azure/msal-common";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
 
@@ -27,6 +33,25 @@ const TOKEN_KEYS = "TOKEN_KEYS";
 
 export class TestStorageManager extends CacheManager {
     store = {};
+
+    constructor(
+        clientId: string,
+        cryptoImpl: ICrypto,
+        logger: Logger,
+        performanceClient: IPerformanceClient,
+        staticAuthorityOptions?: StaticAuthorityOptions,
+        tokenBindingKeyManager: ITokenBindingKeyManager =
+            DEFAULT_TOKEN_BINDING_KEY_MANAGER
+    ) {
+        super(
+            clientId,
+            cryptoImpl,
+            logger,
+            performanceClient,
+            staticAuthorityOptions,
+            tokenBindingKeyManager
+        );
+    }
 
     generateCredentialKey(
         credential: CredentialEntity,
