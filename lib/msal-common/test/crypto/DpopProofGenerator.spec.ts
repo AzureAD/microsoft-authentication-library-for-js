@@ -449,8 +449,7 @@ describe("DpopProofGenerator Unit Tests", () => {
         it("strips both query and fragment from resource htu", () => {
             const claims = generator.buildResourceProofClaims(
                 {
-                    htu:
-                        "https://graph.microsoft.com/v1.0/me?$select=id#profile",
+                    htu: "https://graph.microsoft.com/v1.0/me?$select=id#profile",
                     htm: "GET",
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 },
@@ -465,8 +464,7 @@ describe("DpopProofGenerator Unit Tests", () => {
         it("preserves mixed-case resource path casing", () => {
             const claims = generator.buildResourceProofClaims(
                 {
-                    htu:
-                        "https://api.example.com/v1.0/MyResource/Items",
+                    htu: "https://api.example.com/v1.0/MyResource/Items",
                     htm: "GET",
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 },
@@ -645,8 +643,7 @@ describe("DpopProofGenerator Unit Tests", () => {
 
             const proof = await generator.generateResourceProof(
                 {
-                    htu:
-                        "https://graph.microsoft.com/v1.0/me?$select=id",
+                    htu: "https://graph.microsoft.com/v1.0/me?$select=id",
                     htm: "get",
                     accessToken: TEST_DPOP_VALUES.ACCESS_TOKEN,
                     nonce: "resource-nonce",

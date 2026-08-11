@@ -26,7 +26,10 @@ import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
-import { getTokenBindingRequestParams } from "../request/RequestHelpers.js";
+import {
+    getTokenBindingRequestParams,
+    validateRequestMethod,
+} from "../request/RequestHelpers.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { EventType } from "../event/EventType.js";
 import {
@@ -62,7 +65,6 @@ import {
     getDiscoveredAuthority,
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
-import { validateRequestMethod } from "../request/RequestHelpers.js";
 
 /**
  * Signature of the popup-response handler supplied by

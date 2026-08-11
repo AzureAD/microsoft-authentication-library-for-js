@@ -187,7 +187,8 @@ async function getStandardParameters(
 
         // pass the req_cnf for POP
         if (
-            request.authenticationScheme === Constants.AuthenticationScheme.POP &&
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.POP &&
             request.reqCnf
         ) {
             RequestParameterBuilder.addPopToken(parameters, request.reqCnf);

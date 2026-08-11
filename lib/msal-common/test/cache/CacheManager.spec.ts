@@ -2213,10 +2213,7 @@ describe("CacheManager.ts test cases", () => {
         expect(mockCache.cacheManager.getAccessTokenCredential(atKey)).toEqual(
             atWithAuthScheme
         );
-        mockCache.cacheManager.removeAccessToken(
-            atKey,
-            RANDOM_TEST_GUID
-        );
+        mockCache.cacheManager.removeAccessToken(atKey, RANDOM_TEST_GUID);
         expect(
             mockCache.cacheManager.getAccessTokenCredential(atKey)
         ).toBeNull();

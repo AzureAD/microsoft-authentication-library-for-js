@@ -87,14 +87,12 @@ export async function getTokenBindingRequestParams(
             }
 
             return {
-                dpopJkt: await tokenBindingKeyManager.provisionTokenBindingKey(
-                    {
-                        tokenBindingKeyType:
-                            Constants.AuthenticationScheme.DPOP.toLowerCase(),
-                        tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
-                        correlationId: request.correlationId,
-                    }
-                ),
+                dpopJkt: await tokenBindingKeyManager.provisionTokenBindingKey({
+                    tokenBindingKeyType:
+                        Constants.AuthenticationScheme.DPOP.toLowerCase(),
+                    tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
+                    correlationId: request.correlationId,
+                }),
             };
         case Constants.AuthenticationScheme.POP:
             if (!request.platformBroker) {

@@ -238,13 +238,12 @@ describe("RequestHelpers tests", () => {
                 mockPerformanceClient
             );
 
-            const result =
-                await RequestHelpers.getTokenBindingRequestParams(
-                    request,
-                    tokenBindingKeyManager,
-                    mockLogger,
-                    mockPerformanceClient
-                );
+            const result = await RequestHelpers.getTokenBindingRequestParams(
+                request,
+                tokenBindingKeyManager,
+                mockLogger,
+                mockPerformanceClient
+            );
 
             expect(result.dpopJkt).toBe("test-dpop-jkt");
             expect(request.dpopJkt).toBeUndefined();
@@ -273,13 +272,12 @@ describe("RequestHelpers tests", () => {
                 mockPerformanceClient
             );
 
-            const result =
-                await RequestHelpers.getTokenBindingRequestParams(
-                    request,
-                    tokenBindingKeyManager,
-                    mockLogger,
-                    mockPerformanceClient
-                );
+            const result = await RequestHelpers.getTokenBindingRequestParams(
+                request,
+                tokenBindingKeyManager,
+                mockLogger,
+                mockPerformanceClient
+            );
 
             expect(result.dpopJkt).toBe("caller-dpop-jkt");
             expect(provisionSpy).not.toHaveBeenCalled();
@@ -301,13 +299,12 @@ describe("RequestHelpers tests", () => {
                 mockPerformanceClient
             );
 
-            const result =
-                await RequestHelpers.getTokenBindingRequestParams(
-                    request,
-                    tokenBindingKeyManager,
-                    mockLogger,
-                    mockPerformanceClient
-                );
+            const result = await RequestHelpers.getTokenBindingRequestParams(
+                request,
+                tokenBindingKeyManager,
+                mockLogger,
+                mockPerformanceClient
+            );
 
             expect(result).toEqual({});
             expect(provisionSpy).not.toHaveBeenCalled();
@@ -331,13 +328,12 @@ describe("RequestHelpers tests", () => {
                 mockPerformanceClient
             );
 
-            const result =
-                await RequestHelpers.getTokenBindingRequestParams(
-                    request,
-                    tokenBindingKeyManager,
-                    mockLogger,
-                    mockPerformanceClient
-                );
+            const result = await RequestHelpers.getTokenBindingRequestParams(
+                request,
+                tokenBindingKeyManager,
+                mockLogger,
+                mockPerformanceClient
+            );
 
             expect(result).toEqual({});
             expect(provisionSpy).not.toHaveBeenCalled();

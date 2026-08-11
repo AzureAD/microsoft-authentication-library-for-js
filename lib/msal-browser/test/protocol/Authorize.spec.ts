@@ -530,9 +530,9 @@ describe("Authorize Protocol Tests", () => {
             expect(authUrl.searchParams.get(AADServerParamKeys.REQ_CNF)).toBe(
                 "test-req-cnf"
             );
-            expect(
-                authUrl.searchParams.has(AADServerParamKeys.DPOP_JKT)
-            ).toBe(false);
+            expect(authUrl.searchParams.has(AADServerParamKeys.DPOP_JKT)).toBe(
+                false
+            );
         });
     });
 
