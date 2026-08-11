@@ -1187,6 +1187,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     sid?: string;
     state: string;
     platformBroker?: boolean;
+    reqCnf?: string;
 };
 
 // @internal (undocumented)

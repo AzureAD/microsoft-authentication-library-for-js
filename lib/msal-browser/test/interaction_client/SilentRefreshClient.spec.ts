@@ -181,10 +181,12 @@ describe("SilentRefreshClient", () => {
                     <any>"acquireTokenByRefreshToken"
                 )
                 .mockResolvedValue(testTokenResponse);
-            jest.spyOn(
-                (silentRefreshClient as any).tokenBindingKeyManager,
-                "provisionTokenBindingKey"
-            ).mockResolvedValue("test-dpop-jkt");
+            const provisionTokenBindingKeySpy = jest
+                .spyOn(
+                    (silentRefreshClient as any).tokenBindingKeyManager,
+                    "provisionTokenBindingKey"
+                )
+                .mockResolvedValue("test-dpop-jkt");
 
             const tokenResp = await silentRefreshClient.acquireToken({
                 scopes: ["scope1"],
@@ -206,6 +208,15 @@ describe("SilentRefreshClient", () => {
                 }),
                 ApiId.acquireTokenSilent_silentFlow
             );
+            expect(provisionTokenBindingKeySpy).toHaveBeenCalledWith({
+                tokenBindingKeyType:
+                    Constants.AuthenticationScheme.DPOP.toLowerCase(),
+                tokenBindingKeyAlgorithm: "ES256",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            });
+            const refreshRequest = silentATStub.mock
+                .calls[0][0] as CommonSilentFlowRequest;
+            expect(refreshRequest.dpopJkt).toBe("test-dpop-jkt");
             expect(tokenResp).toEqual(testTokenResponse);
         });
 

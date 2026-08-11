@@ -19,6 +19,7 @@ import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
+import { DpopProofGenerator } from "../crypto/DpopProofGenerator.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import {
@@ -299,6 +300,19 @@ export class RefreshTokenClient {
                 type: CcsCredentialType.HOME_ACCOUNT_ID,
             },
         };
+        if (
+            refreshTokenRequest.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP &&
+            !refreshTokenRequest.dpopJkt
+        ) {
+            const dpopProofGenerator = new DpopProofGenerator(
+                this.cryptoUtils,
+                this.config.tokenBindingKeyManager
+            );
+            refreshTokenRequest.dpopJkt = await dpopProofGenerator.generateJkt(
+                request.correlationId
+            );
+        }
 
         try {
             return await invokeAsync(

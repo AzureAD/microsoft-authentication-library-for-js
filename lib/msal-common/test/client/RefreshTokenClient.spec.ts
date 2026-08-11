@@ -1023,10 +1023,9 @@ describe("RefreshTokenClient unit tests", () => {
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
             };
-            const refreshTokenClientSpy = jest.spyOn(
-                RefreshTokenClient.prototype,
-                "acquireToken"
-            );
+            const refreshTokenClientSpy = jest
+                .spyOn(RefreshTokenClient.prototype, "acquireToken")
+                .mockResolvedValue({} as AuthenticationResult);
 
             await client.acquireTokenByRefreshToken(silentFlowRequest, 0);
             expect(refreshTokenClientSpy).toHaveBeenCalledWith(
@@ -1057,13 +1056,102 @@ describe("RefreshTokenClient unit tests", () => {
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
             };
-            const refreshTokenClientSpy = jest.spyOn(
-                RefreshTokenClient.prototype,
-                "acquireToken"
-            );
+            const refreshTokenClientSpy = jest
+                .spyOn(RefreshTokenClient.prototype, "acquireToken")
+                .mockResolvedValue({} as AuthenticationResult);
 
             await client.acquireTokenByRefreshToken(silentFlowRequest, 0);
             expect(refreshTokenClientSpy).toHaveBeenCalled();
+            expect(refreshTokenClientSpy).toHaveBeenCalledWith(
+                expectedRefreshRequest,
+                0
+            );
+        });
+
+        it("acquireTokenByRefreshToken uses request DPoP key id when provided", async () => {
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            const requestDpopJkt = "request-dpop-jkt";
+            const provisionTokenBindingKeySpy = jest.spyOn(
+                config.tokenBindingKeyManager!,
+                "provisionTokenBindingKey"
+            );
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                dpopJkt: requestDpopJkt,
+            };
+
+            const expectedRefreshRequest: CommonRefreshTokenRequest = {
+                ...silentFlowRequest,
+                refreshToken: testRefreshTokenEntity.secret,
+                ccsCredential: {
+                    credential: testAccount.homeAccountId,
+                    type: CcsCredentialType.HOME_ACCOUNT_ID,
+                },
+            };
+            const refreshTokenClientSpy = jest
+                .spyOn(RefreshTokenClient.prototype, "acquireToken")
+                .mockResolvedValue({} as AuthenticationResult);
+
+            await client.acquireTokenByRefreshToken(silentFlowRequest, 0);
+            expect(provisionTokenBindingKeySpy).not.toHaveBeenCalled();
+            expect(refreshTokenClientSpy).toHaveBeenCalledWith(
+                expectedRefreshRequest,
+                0
+            );
+        });
+
+        it("acquireTokenByRefreshToken provisions DPoP key id when request has none", async () => {
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            const provisionTokenBindingKeySpy = jest
+                .spyOn(
+                    config.tokenBindingKeyManager!,
+                    "provisionTokenBindingKey"
+                )
+                .mockResolvedValue(TEST_DPOP_VALUES.ACCESS_TOKEN_JKT);
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            const expectedRefreshRequest: CommonRefreshTokenRequest = {
+                ...silentFlowRequest,
+                refreshToken: testRefreshTokenEntity.secret,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                ccsCredential: {
+                    credential: testAccount.homeAccountId,
+                    type: CcsCredentialType.HOME_ACCOUNT_ID,
+                },
+            };
+            const refreshTokenClientSpy = jest
+                .spyOn(RefreshTokenClient.prototype, "acquireToken")
+                .mockResolvedValue({} as AuthenticationResult);
+
+            await client.acquireTokenByRefreshToken(silentFlowRequest, 0);
+            expect(provisionTokenBindingKeySpy).toHaveBeenCalledWith({
+                tokenBindingKeyType:
+                    Constants.AuthenticationScheme.DPOP.toLowerCase(),
+                tokenBindingKeyAlgorithm: "ES256",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            });
             expect(refreshTokenClientSpy).toHaveBeenCalledWith(
                 expectedRefreshRequest,
                 0
