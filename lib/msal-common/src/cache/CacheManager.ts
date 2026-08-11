@@ -1368,7 +1368,6 @@ export abstract class CacheManager implements ICacheManager {
                   attribute_tokens: attributeTokenPartition,
               }
             : undefined;
-
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
@@ -1383,7 +1382,6 @@ export abstract class CacheManager implements ICacheManager {
                     : undefined,
             additionalCacheKeyComponents: additionalCacheKeyComponents,
         };
-
         const accessTokenKeys =
             (tokenKeys && tokenKeys.accessToken) ||
             this.getTokenKeys().accessToken;
@@ -1986,7 +1984,7 @@ export abstract class CacheManager implements ICacheManager {
 
         switch (normalizedFilterTokenType) {
             case "dpop":
-                return this.matchKeyBoundAccessToken(entity, filter, true);
+                return this.matchKeyBoundAccessToken(entity, filter, false);
             case Constants.AuthenticationScheme.SSH:
                 return this.matchKeyBoundAccessToken(entity, filter, false);
             default:

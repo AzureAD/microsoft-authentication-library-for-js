@@ -511,6 +511,29 @@ describe("Authorize Protocol Tests", () => {
                 authUrl.searchParams.has(AADServerParamKeys.TOKEN_TYPE)
             ).toBe(false);
         });
+
+        it("Includes precomputed req_cnf for platform broker PoP authorization URLs", async () => {
+            const url = await Authorize.getAuthCodeRequestUrl(
+                config,
+                authority,
+                {
+                    ...validRequest,
+                    authenticationScheme: Constants.AuthenticationScheme.POP,
+                    platformBroker: true,
+                    reqCnf: "test-req-cnf",
+                },
+                logger,
+                performanceClient
+            );
+
+            const authUrl = new URL(url);
+            expect(authUrl.searchParams.get(AADServerParamKeys.REQ_CNF)).toBe(
+                "test-req-cnf"
+            );
+            expect(
+                authUrl.searchParams.has(AADServerParamKeys.DPOP_JKT)
+            ).toBe(false);
+        });
     });
 
     describe("instrumentClientData Tests", () => {

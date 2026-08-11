@@ -18,6 +18,7 @@ import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
+import { getTokenBindingRequestParams } from "../request/RequestHelpers.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
@@ -100,7 +101,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
              * correlationId is optional in request payload, while this.correlationId is always instantiated as request.correlationId || createGuid().
              * Each auth request creates a new instance of *Client so we can safely use this.correlationId.
              */
-            this.correlationId
+             this.correlationId
         );
 
         const serverTelemetryManager = initializeServerTelemetryManager(
@@ -114,10 +115,17 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         );
 
         try {
+            const tokenBindingParams = await getTokenBindingRequestParams(
+                silentRequest,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
             // Create auth code request (PKCE not needed)
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 ...silentRequest,
                 code: request.code,
+                ...tokenBindingParams,
             };
 
             // Initialize the client

@@ -8,11 +8,15 @@ import {
     Constants,
     BaseAuthRequest,
     ClientConfigurationErrorCodes,
+    CommonAuthorizationUrlRequest,
     CommonSilentFlowRequest,
     IPerformanceClient,
+    ITokenBindingKeyManager,
     Logger,
     ProtocolMode,
     JsonWebTokenAlgorithms,
+    PerformanceEvents,
+    PopTokenGenerator,
     createClientConfigurationError,
     invokeAsync,
 } from "@azure/msal-common/browser";
@@ -21,7 +25,7 @@ import { BrowserConfiguration } from "../config/Configuration.js";
 import { SilentRequest } from "./SilentRequest.js";
 import { PopupRequest } from "./PopupRequest.js";
 import { RedirectRequest } from "./RedirectRequest.js";
-import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
+import { CryptoOps } from "../crypto/CryptoOps.js";
 
 const SUPPORTED_AUTHENTICATION_SCHEMES = new Set<string>([
     Constants.AuthenticationScheme.BEARER,
@@ -60,6 +64,64 @@ function validateDpopRequest(
             ClientConfigurationErrorCodes.dpopMissingResourceContext,
             correlationId
         );
+    }
+}
+
+export async function getTokenBindingRequestParams(
+    request: Partial<BaseAuthRequest> & {
+        correlationId: string;
+        platformBroker?: boolean;
+    },
+    tokenBindingKeyManager: ITokenBindingKeyManager,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<Pick<CommonAuthorizationUrlRequest, "dpopJkt" | "reqCnf">> {
+    switch (request.authenticationScheme) {
+        case Constants.AuthenticationScheme.DPOP:
+            if (request.platformBroker) {
+                return {};
+            }
+
+            if (request.dpopJkt) {
+                return { dpopJkt: request.dpopJkt };
+            }
+
+            return {
+                dpopJkt: await tokenBindingKeyManager.provisionTokenBindingKey(
+                    {
+                        tokenBindingKeyType:
+                            Constants.AuthenticationScheme.DPOP.toLowerCase(),
+                        tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
+                        correlationId: request.correlationId,
+                    }
+                ),
+            };
+        case Constants.AuthenticationScheme.POP:
+            if (!request.platformBroker) {
+                return {};
+            }
+
+            const cryptoOps = new CryptoOps(logger, performanceClient);
+            if (request.popKid) {
+                return { reqCnf: cryptoOps.encodeKid(request.popKid) };
+            }
+
+            const popTokenGenerator = new PopTokenGenerator(
+                cryptoOps,
+                tokenBindingKeyManager,
+                performanceClient
+            );
+            const generatedReqCnfData = await invokeAsync(
+                popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                PerformanceEvents.PopTokenGenerateCnf,
+                logger,
+                performanceClient,
+                request.correlationId
+            )(request, logger);
+
+            return { reqCnf: generatedReqCnfData.reqCnfString };
+        default:
+            return {};
     }
 }
 
@@ -115,19 +177,6 @@ export async function initializeBaseRequest(
                 break;
             case Constants.AuthenticationScheme.DPOP: {
                 validateDpopRequest(request, correlationId);
-                const dpopTokenBindingKeyType =
-                    Constants.AuthenticationScheme.DPOP.toLowerCase();
-
-                const tokenBindingKeyManager = new TokenBindingKeyManager(
-                    logger,
-                    performanceClient
-                );
-                validatedRequest.dpopJkt =
-                    await tokenBindingKeyManager.provisionTokenBindingKey({
-                        tokenBindingKeyType: dpopTokenBindingKeyType,
-                        tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
-                        correlationId,
-                    });
                 break;
             }
         }

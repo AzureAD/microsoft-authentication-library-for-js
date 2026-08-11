@@ -21,7 +21,10 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
-import { initializeBaseRequest } from "../request/RequestHelpers.js";
+import {
+    initializeBaseRequest,
+    getTokenBindingRequestParams,
+} from "../request/RequestHelpers.js";
 import {
     getRedirectUri,
     initializeServerTelemetryManager,
@@ -48,9 +51,16 @@ export class SilentRefreshClient extends StandardInteractionClient {
             this.logger,
             this.correlationId
         );
+        const tokenBindingParams = await getTokenBindingRequestParams(
+            baseRequest,
+            this.tokenBindingKeyManager,
+            this.logger,
+            this.performanceClient
+        );
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
             ...baseRequest,
+            ...tokenBindingParams,
         };
 
         if (request.redirectUri) {

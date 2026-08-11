@@ -26,6 +26,7 @@ import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
+import { getTokenBindingRequestParams } from "../request/RequestHelpers.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { EventType } from "../event/EventType.js";
 import {
@@ -337,9 +338,16 @@ export class PopupClient extends StandardInteractionClient {
                 correlationId
             )(this.performanceClient, this.logger, correlationId));
 
+        const tokenBindingParams = await getTokenBindingRequestParams(
+            request,
+            this.tokenBindingKeyManager,
+            this.logger,
+            this.performanceClient
+        );
         const popupRequest = {
             ...request,
             codeChallenge: pkce.challenge,
+            ...tokenBindingParams,
         };
 
         try {
@@ -515,10 +523,17 @@ export class PopupClient extends StandardInteractionClient {
                 this.performanceClient,
                 correlationId
             )(this.performanceClient, this.logger, correlationId));
+        const tokenBindingParams = await getTokenBindingRequestParams(
+            request,
+            this.tokenBindingKeyManager,
+            this.logger,
+            this.performanceClient
+        );
         const popupRequest = {
             ...request,
             earJwk: earJwk,
             codeChallenge: pkce.challenge,
+            ...tokenBindingParams,
         };
         const popupWindow = await this.openPostFormPopup(
             popupRequest,
