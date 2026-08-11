@@ -227,21 +227,89 @@ describe("PublicClientApplication", () => {
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
     });
 
-    test("acquireTokenByCode with nonce", async () => {
+    test("acquireTokenByCode forwards request nonce in auth code payload", async () => {
+        const nonce = new CryptoProvider().createNewGuid();
+        const request: AuthorizationCodeRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            nonce,
+        };
+
+        const MockAuthorizationCodeClient =
+            getMsalCommonAutoMock().AuthorizationCodeClient;
+        const acquireTokenSpy = jest.spyOn(
+            MockAuthorizationCodeClient.prototype,
+            "acquireToken"
+        );
+
+        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+            (config) =>
+                new MockAuthorizationCodeClient(
+                    config,
+                    new StubPerformanceClient()
+                )
+        );
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenByCode(request);
+
+        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        expect(acquireTokenSpy.mock.calls[0][2]).toEqual({
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            nonce,
+        });
+    });
+
+    test("acquireTokenByCode with request nonce does not enable payload state validation", async () => {
+        const nonce = new CryptoProvider().createNewGuid();
+        const request: AuthorizationCodeRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            nonce,
+            state: "request-state",
+        };
+        const MockAuthorizationCodeClient =
+            getMsalCommonAutoMock().AuthorizationCodeClient;
+        const acquireTokenSpy = jest.spyOn(
+            MockAuthorizationCodeClient.prototype,
+            "acquireToken"
+        );
+
+        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+            (config) =>
+                new MockAuthorizationCodeClient(
+                    config,
+                    new StubPerformanceClient()
+                )
+        );
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenByCode(request);
+
+        expect(acquireTokenSpy.mock.calls[0][2]).toEqual({
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            nonce,
+        });
+    });
+
+    test("acquireTokenByCode preserves legacy nonce payload", async () => {
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
             code: TEST_CONSTANTS.AUTHORIZATION_CODE,
         };
-
-        const cryptoProvider = new CryptoProvider();
         const authCodePayLoad = {
-            nonce: cryptoProvider.createNewGuid(),
+            nonce: new CryptoProvider().createNewGuid(),
             code: TEST_CONSTANTS.AUTHORIZATION_CODE,
         };
-
         const MockAuthorizationCodeClient =
             getMsalCommonAutoMock().AuthorizationCodeClient;
+        const acquireTokenSpy = jest.spyOn(
+            MockAuthorizationCodeClient.prototype,
+            "acquireToken"
+        );
 
         jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
             (config) =>
@@ -254,7 +322,44 @@ describe("PublicClientApplication", () => {
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByCode(request, authCodePayLoad);
 
-        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        expect(acquireTokenSpy.mock.calls[0][2]).toEqual(authCodePayLoad);
+    });
+
+    test("acquireTokenByCode request nonce takes precedence and preserves payload metadata", async () => {
+        const nonce = new CryptoProvider().createNewGuid();
+        const request: AuthorizationCodeRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            nonce,
+        };
+        const authCodePayLoad = {
+            nonce: "legacy-nonce",
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+        };
+        const MockAuthorizationCodeClient =
+            getMsalCommonAutoMock().AuthorizationCodeClient;
+        const acquireTokenSpy = jest.spyOn(
+            MockAuthorizationCodeClient.prototype,
+            "acquireToken"
+        );
+
+        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+            (config) =>
+                new MockAuthorizationCodeClient(
+                    config,
+                    new StubPerformanceClient()
+                )
+        );
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenByCode(request, authCodePayLoad);
+
+        expect(acquireTokenSpy.mock.calls[0][2]).toEqual({
+            ...authCodePayLoad,
+            nonce,
+        });
     });
 
     test("acquireTokenByCode with state validation", async () => {
@@ -820,6 +925,7 @@ describe("PublicClientApplication", () => {
 
         test("acquireTokenInteractive - with custom loopback client succeeds", async () => {
             const authApp = new PublicClientApplication(appConfig);
+            const nonce = new CryptoProvider().createNewGuid();
 
             const openBrowser = (url: string) => {
                 expect(
@@ -854,6 +960,7 @@ describe("PublicClientApplication", () => {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 openBrowser: openBrowser,
                 loopbackClient: customLoopbackClient,
+                nonce,
             };
 
             const MockAuthorizationCodeClient =
@@ -874,17 +981,19 @@ describe("PublicClientApplication", () => {
                 "getAuthCodeRequestUrl"
             ).mockImplementation((_config, _authority, req, _logger) => {
                 expect(req.redirectUri).toEqual(TEST_CONSTANTS.REDIRECT_URI);
+                expect(req.nonce).toEqual(nonce);
                 return TEST_CONSTANTS.AUTH_CODE_URL;
             });
 
             jest.spyOn(
                 MockAuthorizationCodeClient.prototype,
                 "acquireToken"
-            ).mockImplementation((tokenRequest) => {
+            ).mockImplementation((tokenRequest, _apiId, authCodePayload) => {
                 expect(tokenRequest.scopes).toEqual([
                     ...TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONSTANTS.DEFAULT_OIDC_SCOPES,
                 ]);
+                expect(authCodePayload?.nonce).toEqual(nonce);
                 return Promise.resolve(mockAuthenticationResult);
             });
 

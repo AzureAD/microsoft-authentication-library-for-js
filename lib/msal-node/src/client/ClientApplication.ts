@@ -161,18 +161,28 @@ export abstract class ClientApplication {
             "acquireTokenByCode called",
             request.correlationId || ""
         );
-        if (request.state && authCodePayLoad) {
+        let validatedAuthCodePayload = authCodePayLoad;
+        if (request.state && validatedAuthCodePayload) {
             this.logger.info(
                 "acquireTokenByCode - validating state",
                 request.correlationId || ""
             );
             this.validateState(
                 request.state,
-                authCodePayLoad.state || "",
+                validatedAuthCodePayload.state || "",
                 request.correlationId || ""
             );
-            // eslint-disable-next-line no-param-reassign
-            authCodePayLoad = { ...authCodePayLoad, state: "" };
+            validatedAuthCodePayload = {
+                ...validatedAuthCodePayload,
+                state: "",
+            };
+        }
+        if (request.nonce) {
+            validatedAuthCodePayload = {
+                code: request.code,
+                ...validatedAuthCodePayload,
+                nonce: request.nonce,
+            };
         }
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
@@ -208,7 +218,7 @@ export abstract class ClientApplication {
             return await authorizationCodeClient.acquireToken(
                 validRequest,
                 ApiId.acquireTokenByCode,
-                authCodePayLoad
+                validatedAuthCodePayload
             );
         } catch (e) {
             if (e instanceof AuthError) {

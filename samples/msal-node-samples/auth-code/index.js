@@ -123,9 +123,8 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     });
 
     app.get("/redirect", (req, res) => {
-        const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code, state: req.query.state };
+        const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code, nonce: req.session.nonce, state: req.query.state };
         const authCodeResponse = {
-            nonce: req.session.nonce,
             code: req.query.code,
             state: req.session.state
         };
@@ -137,8 +136,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
          * Authorization Code Grant: Second Leg
          *
          * In this code block, the application uses MSAL to obtain an Access Token from the configured authentication service.
-         * The cached nonce is passed in authCodeResponse object and shall later be validated by MSAL once the Access Token and ID
-         * token are returned.
+         * The cached nonce is passed in tokenRequest and validated by MSAL against the nonce claim in the ID Token.
          * The response contains an `accessToken` property. Said property contains a string representing an encoded Json Web Token
          * which can be added to the `Authorization` header in a protected resource request to demonstrate authorization.
          */
