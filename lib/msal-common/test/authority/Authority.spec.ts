@@ -1421,6 +1421,67 @@ describe("Authority.ts Class Unit Tests", () => {
                 ).not.toHaveBeenCalled();
             });
 
+            it("Gets China cloud endpoints from hardcoded values for preferred and legacy aliases", async () => {
+                const customAuthorityOptions: AuthorityOptions = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: [],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: "",
+                };
+
+                const chinaAuthorityHosts = [
+                    "login.partner.microsoftonline.cn",
+                    "login.chinacloudapi.cn",
+                ];
+
+                for (const host of chinaAuthorityHosts) {
+                    jest.clearAllMocks();
+                    const authority = new Authority(
+                        `https://${host}/common/`,
+                        networkInterface,
+                        new MockStorageClass(
+                            TEST_CONFIG.MSAL_CLIENT_ID,
+                            mockCrypto,
+                            logger,
+                            new StubPerformanceClient()
+                        ),
+                        customAuthorityOptions,
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
+                    );
+
+                    await authority.resolveEndpointsAsync();
+
+                    expect(authority.discoveryComplete()).toBe(true);
+                    expect(
+                        authority.isAlias("login.partner.microsoftonline.cn")
+                    ).toBe(true);
+                    expect(authority.isAlias("login.chinacloudapi.cn")).toBe(
+                        true
+                    );
+                    expect(authority.canonicalAuthority).toContain(
+                        "login.partner.microsoftonline.cn"
+                    );
+                    expect(authority.authorizationEndpoint).toBe(
+                        "https://login.partner.microsoftonline.cn/common/oauth2/v2.0/authorize"
+                    );
+                    expect(authority.tokenEndpoint).toBe(
+                        "https://login.partner.microsoftonline.cn/common/oauth2/v2.0/token"
+                    );
+                    expect(authority.selfSignedJwtAudience).toBe(
+                        "https://login.partner.microsoftonline.cn/common/v2.0"
+                    );
+                    expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
+                    expect(
+                        getEndpointMetadataFromHarcodedValuesSpy
+                    ).toHaveBeenCalled();
+                    expect(
+                        getEndpointMetadataFromNetworkSpy
+                    ).not.toHaveBeenCalled();
+                }
+            });
+
             it("Gets endpoints for tenanted Microsoft authority from hardcoded values", async () => {
                 const customAuthorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,

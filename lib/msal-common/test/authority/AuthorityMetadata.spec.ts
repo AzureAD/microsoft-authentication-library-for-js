@@ -119,23 +119,23 @@ describe("AuthorityMetadata.ts Unit Tests", () => {
                 );
             });
 
-            it("uses alternate issuer host only for login.chinacloudapi.cn", () => {
-                const chinaConfig = EndpointMetadata["login.chinacloudapi.cn"];
-                expect(chinaConfig).toBeDefined();
-                expect(chinaConfig.issuer).toBe(
+            it("uses partner host for China authority endpoint metadata", () => {
+                const preferredChinaConfig =
+                    EndpointMetadata["login.partner.microsoftonline.cn"];
+                expect(preferredChinaConfig).toBeDefined();
+                expect(preferredChinaConfig.issuer).toBe(
                     "https://login.partner.microsoftonline.cn/{tenantid}/v2.0"
                 );
-                // Ensure other props still use original host
-                expect(chinaConfig.token_endpoint).toContain(
-                    "login.chinacloudapi.cn"
+                expect(preferredChinaConfig.token_endpoint).toContain(
+                    "login.partner.microsoftonline.cn"
                 );
-                expect(chinaConfig.authorization_endpoint).toContain(
-                    "login.chinacloudapi.cn"
+                expect(preferredChinaConfig.authorization_endpoint).toContain(
+                    "login.partner.microsoftonline.cn"
                 );
 
                 Object.entries(EndpointMetadata).forEach(
                     ([host, cfg]: [string, any]) => {
-                        if (host !== "login.chinacloudapi.cn") {
+                        if (host !== "login.partner.microsoftonline.cn") {
                             expect(cfg.issuer).toBe(
                                 `https://${host}/{tenantid}/v2.0`
                             );

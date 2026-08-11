@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix hardcoded China authority metadata to use the preferred partner host.",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
