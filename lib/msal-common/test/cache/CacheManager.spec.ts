@@ -31,6 +31,7 @@ import {
     generateAccountKey,
     generateCredentialKey,
     mockCrypto,
+    mockTokenBindingKeyManager,
 } from "../client/ClientTestUtils.js";
 import {
     CACHE_MOCKS,
@@ -52,12 +53,18 @@ import { MockCache } from "./MockCache.js";
 
 describe("CacheManager.ts test cases", () => {
     const DPOP_AUTHENTICATION_SCHEME = "dpop" as AuthenticationScheme;
-    const mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockCrypto, {
-        canonicalAuthority: TEST_CONFIG.validAuthority,
-        cloudDiscoveryMetadata: JSON.parse(TEST_CONFIG.CLOUD_DISCOVERY_METADATA)
-            .metadata,
-        knownAuthorities: [TEST_CONFIG.validAuthorityHost],
-    });
+    const mockCache = new MockCache(
+        CACHE_MOCKS.MOCK_CLIENT_ID,
+        mockCrypto,
+        {
+            canonicalAuthority: TEST_CONFIG.validAuthority,
+            cloudDiscoveryMetadata: JSON.parse(
+                TEST_CONFIG.CLOUD_DISCOVERY_METADATA
+            ).metadata,
+            knownAuthorities: [TEST_CONFIG.validAuthorityHost],
+        },
+        mockTokenBindingKeyManager
+    );
     let authorityMetadataStub: jest.SpyInstance;
     beforeEach(async () => {
         await mockCache.initializeCache();
@@ -2198,7 +2205,51 @@ describe("CacheManager.ts test cases", () => {
         };
 
         const removeTokenBindingKeySpy = jest.spyOn(
-            mockCrypto,
+            mockTokenBindingKeyManager,
+            "removeTokenBindingKey"
+        );
+
+        const atKey = generateCredentialKey(atWithAuthScheme);
+        expect(mockCache.cacheManager.getAccessTokenCredential(atKey)).toEqual(
+            atWithAuthScheme
+        );
+        mockCache.cacheManager.removeAccessToken(
+            atKey,
+            RANDOM_TEST_GUID
+        );
+        expect(
+            mockCache.cacheManager.getAccessTokenCredential(atKey)
+        ).toBeNull();
+        expect(removeTokenBindingKeySpy.mock.calls[0][0]).toEqual(
+            atWithAuthScheme.keyId
+        );
+    });
+
+    it("removes token binding key when removeAccessToken is called for a DPoP AccessToken_With_AuthScheme credential", async () => {
+        const atWithAuthScheme = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            TEST_DPOP_VALUES.ACCESS_TOKEN,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            "microsoft",
+            "scope1 scope2 scope3",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            TEST_CONFIG.CORRELATION_ID,
+            undefined,
+            DPOP_AUTHENTICATION_SCHEME,
+            undefined,
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            atWithAuthScheme,
+            RANDOM_TEST_GUID,
+            false
+        );
+
+        const removeTokenBindingKeySpy = jest.spyOn(
+            mockTokenBindingKeyManager,
             "removeTokenBindingKey"
         );
 
@@ -2231,7 +2282,7 @@ describe("CacheManager.ts test cases", () => {
         };
 
         const removeTokenBindingKeySpy = jest.spyOn(
-            mockCrypto,
+            mockTokenBindingKeyManager,
             "removeTokenBindingKey"
         );
 

@@ -37,7 +37,7 @@ import { AuthenticationScheme } from "../../src/utils/Constants.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import {
     mockCrypto,
-    mockShrTokenBindingKeyManager,
+    mockTokenBindingKeyManager,
     MockStorageClass,
 } from "../client/ClientTestUtils.js";
 import {
@@ -703,7 +703,7 @@ describe("ResponseHandler.ts", () => {
                 stubPerformanceClient,
                 null,
                 null,
-                mockShrTokenBindingKeyManager
+                mockTokenBindingKeyManager
             );
             const timestamp = TimeUtils.nowSeconds();
             const result = await responseHandler.handleServerTokenResponse(
@@ -758,7 +758,7 @@ describe("ResponseHandler.ts", () => {
                 stubPerformanceClient,
                 null,
                 null,
-                mockShrTokenBindingKeyManager
+                mockTokenBindingKeyManager
             );
             const result = await responseHandler.handleServerTokenResponse(
                 testResponse,
@@ -800,7 +800,7 @@ describe("ResponseHandler.ts", () => {
                 stubPerformanceClient,
                 null,
                 null,
-                mockShrTokenBindingKeyManager
+                mockTokenBindingKeyManager
             );
 
             await expect(
