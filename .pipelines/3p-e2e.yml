@@ -51,7 +51,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: dev
+          ref: refs/heads/copilot/ab-3677517-enable-public-l1-pca-dpop
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
     parameters:
