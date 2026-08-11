@@ -306,7 +306,6 @@ export const TEST_STATE_VALUES = {
 export const CLOUD_HOSTS = {
     PublicCloud: "login.microsoftonline.com",
     ChinaCloud: "login.chinacloudapi.cn",
-    ChinaCloudPreferred: "login.partner.microsoftonline.cn",
     GermanyCloud: "login.microsoftonline.de",
     USGovAGCloud: "login.microsoftonline.us",
     USGovCloud: "login-us.microsoftonline.com",
@@ -323,10 +322,6 @@ export const METADATA_ALIASES = {
         "sts.windows.net",
     ],
     ChinaCloud: ["login.partner.microsoftonline.cn", "login.chinacloudapi.cn"],
-    ChinaCloudPreferred: [
-        "login.partner.microsoftonline.cn",
-        "login.chinacloudapi.cn",
-    ],
     GermanyCloud: ["login.microsoftonline.de"],
     USGovAGCloud: ["login.microsoftonline.us", "login.usgovcloudapi.net"],
     USGovCloud: ["login-us.microsoftonline.com"],

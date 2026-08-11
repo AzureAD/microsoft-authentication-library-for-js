@@ -105,16 +105,9 @@ describe("AuthorityMetadata.ts Unit Tests", () => {
                             `https://${host}/{tenantid}/oauth2/v2.0/logout`
                         );
 
-                        // Issuer pattern (may differ for specific hosts)
-                        if (host === "login.chinacloudapi.cn") {
-                            expect(cfg.issuer).toBe(
-                                `https://login.partner.microsoftonline.cn/{tenantid}/v2.0`
-                            );
-                        } else {
-                            expect(cfg.issuer).toBe(
-                                `https://${host}/{tenantid}/v2.0`
-                            );
-                        }
+                        expect(cfg.issuer).toBe(
+                            `https://${host}/{tenantid}/v2.0`
+                        );
                     }
                 );
             });
@@ -135,10 +128,10 @@ describe("AuthorityMetadata.ts Unit Tests", () => {
 
                 Object.entries(EndpointMetadata).forEach(
                     ([host, cfg]: [string, any]) => {
+                        expect(cfg.issuer).toBe(
+                            `https://${host}/{tenantid}/v2.0`
+                        );
                         if (host !== "login.partner.microsoftonline.cn") {
-                            expect(cfg.issuer).toBe(
-                                `https://${host}/{tenantid}/v2.0`
-                            );
                             expect(
                                 cfg.issuer.includes(
                                     "partner.microsoftonline.cn"
