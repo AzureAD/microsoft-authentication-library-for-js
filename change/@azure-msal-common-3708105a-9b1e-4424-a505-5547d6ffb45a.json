@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix hardcoded China authority metadata to use the preferred partner host.",
+  "comment": "Fix hardcoded China authority metadata to use the preferred partner host [#8762](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8762)",
   "packageName": "@azure/msal-common",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
