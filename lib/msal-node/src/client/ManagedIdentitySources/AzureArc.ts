@@ -156,9 +156,10 @@ export class AzureArc extends BaseManagedIdentitySource {
      * Attempts to create an AzureArc managed identity source instance.
      *
      * Validates the Azure Arc environment by checking environment variables
-     * and performing file-based detection. It ensures that only system-assigned managed identities
-     * are supported for Azure Arc scenarios. The method performs comprehensive validation of
-     * endpoint URLs and logs detailed information about the detection process.
+     * and performing file-based detection. Azure Arc supports both system-assigned and user-assigned
+     * managed identities; when a user-assigned identity is requested, its selector is forwarded on the
+     * request and validated against the token response echo (fail closed). The method performs
+     * comprehensive validation of endpoint URLs and logs detailed information about the detection process.
      *
      * @param logger - Logger instance for capturing creation and validation steps
      * @param nodeStorage - Storage implementation for the managed identity source
