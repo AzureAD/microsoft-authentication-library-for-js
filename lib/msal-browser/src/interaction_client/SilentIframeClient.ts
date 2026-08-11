@@ -544,10 +544,8 @@ export class SilentIframeClient extends StandardInteractionClient {
         authClient: AuthorizationCodeClient,
         request: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
-        const { serverParams, pkceCodes } = await this.silentAuthorizeHelper(
-            authClient,
-            request
-        );
+        const { serverParams, pkceCodes, silentRequest } =
+            await this.silentAuthorizeHelper(authClient, request);
 
         return invokeAsync(
             Authorize.handleResponseCode,
@@ -556,7 +554,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient,
             request.correlationId
         )(
-            request,
+            silentRequest,
             serverParams,
             pkceCodes.verifier,
             this.apiId,

@@ -662,6 +662,56 @@ describe("PopupClient", () => {
             expect(tokenResp).toEqual(testTokenResponse);
         });
 
+        it("passes generated DPoP key id to popup auth code response handling", async () => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(PopupClient.prototype, "initiateAuthRequest")
+                .mockClear()
+                .mockReturnValue(window);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+            );
+            const handleResponseCodeSpy = jest
+                .spyOn(AuthorizeProtocol, "handleResponseCode")
+                .mockResolvedValue(getTestAuthenticationResult());
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(
+                (popupClient as any).tokenBindingKeyManager,
+                "provisionTokenBindingKey"
+            ).mockResolvedValue("test-dpop-jkt");
+
+            await popupClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            });
+
+            expect(handleResponseCodeSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    dpopJkt: "test-dpop-jkt",
+                }),
+                expect.anything(),
+                TEST_CONFIG.TEST_VERIFIER,
+                ApiId.acquireTokenPopup,
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                undefined
+            );
+        });
+
         it("throws hash_empty_error if popup returns to redirectUri without a hash", (done) => {
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 ""

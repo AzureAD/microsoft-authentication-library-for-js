@@ -446,7 +446,7 @@ export class PopupClient extends StandardInteractionClient {
                     this.performanceClient,
                     correlationId
                 )(
-                    request,
+                    popupRequest,
                     serverParams,
                     pkce.verifier,
                     ApiId.acquireTokenPopup,

@@ -764,5 +764,47 @@ describe("Authorize Protocol Tests", () => {
             );
             addFieldsSpy.mockRestore();
         });
+
+        it("handleResponseCode preserves DPoP key id on auth code token request", async () => {
+            const acquireTokenSpy = jest
+                .fn()
+                .mockResolvedValue(getTestAuthenticationResult());
+            const dpopRequest: CommonAuthorizationUrlRequest = {
+                ...validRequest,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt: "test-dpop-jkt",
+            };
+
+            const result = await Authorize.handleResponseCode(
+                dpopRequest,
+                {
+                    code: "thisIsATestCode",
+                    state: dpopRequest.state,
+                },
+                "test-code-verifier",
+                ApiId.acquireTokenPopup,
+                config,
+                { acquireToken: acquireTokenSpy } as any,
+                cacheManager,
+                cacheManager,
+                eventHandler,
+                logger,
+                performanceClient
+            );
+
+            expect(result).toEqual(getTestAuthenticationResult());
+            expect(acquireTokenSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    dpopJkt: "test-dpop-jkt",
+                    code: "thisIsATestCode",
+                    codeVerifier: "test-code-verifier",
+                }),
+                ApiId.acquireTokenPopup,
+                expect.objectContaining({
+                    code: "thisIsATestCode",
+                })
+            );
+        });
     });
 });
