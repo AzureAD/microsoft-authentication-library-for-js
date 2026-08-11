@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785961240033,
+  "lastUpdate": 1786482902856,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22783,6 +22783,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.86%",
             "unit": "ops/sec",
             "extra": "230 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e23cf48826d9772508b31cf5369802724c6eb733",
+          "message": "Fix mso.cn authority hardcoded metadata entry (#8762)\n\n## Summary\n- Fix hardcoded China authority endpoint metadata to use the preferred\n`login.partner.microsoftonline.cn` host\n- Preserve `login.chinacloudapi.cn` as an alias and add regression\ncoverage for both China authority hosts\n- Add a Beachball patch changefile for `@azure/msal-common`\n\n## Validation\n- `npm test -- AuthorityMetadata.spec.ts Authority.spec.ts --runInBand`\n- `npm run format:check` from `lib/msal-common`\n- `npm run lint` from `lib/msal-common`\n- `npm run build:all` from `lib/msal-common`\n- `npm run apiExtractor` from `lib/msal-common`\n- `npx beachball check --no-fetch`\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: bug\nagent-tool: copilot-cli\nagent-model: gpt-5.5\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCo-authored-by: Forge <forge-bot@entra.github.io>",
+          "timestamp": "2026-08-11T14:07:12-07:00",
+          "tree_id": "b2bd752f676810b36fa7833aa00b3b29ab03fd4f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e23cf48826d9772508b31cf5369802724c6eb733"
+        },
+        "date": 1786482897877,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 393853,
+            "range": "±0.51%",
+            "unit": "ops/sec",
+            "extra": "238 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 395987,
+            "range": "±0.74%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
           }
         ]
       }
