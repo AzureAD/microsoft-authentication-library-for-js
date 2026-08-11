@@ -51,7 +51,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          # Temporarily use the matching 1P branch for filtered E2E template fixes. Revert to dev after the 1P PR merges.
+          # Temporarily use the matching 1P branch for the filtered E2E npm-exec template fix. Revert to dev after the 1P PR merges.
           ref: refs/heads/copilot/ab-3677517-enable-public-l1-pca-dpop
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
