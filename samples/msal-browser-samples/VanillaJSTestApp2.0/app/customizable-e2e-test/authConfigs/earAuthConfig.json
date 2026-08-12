@@ -10,7 +10,7 @@
             "cacheLocation": "sessionStorage"
         },
         "system": {
-            "allowPlatformBroker": false
+            "allowPlatformBroker": true
         }
     },
     "request": {
