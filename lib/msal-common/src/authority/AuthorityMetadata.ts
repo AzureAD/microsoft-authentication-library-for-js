@@ -19,10 +19,7 @@ type RawMetadata = {
 // Build endpoint metadata dynamically to avoid string duplication
 const endpointHosts: Array<{ host: string; issuerHost?: string }> = [
     { host: "login.microsoftonline.com" },
-    {
-        host: "login.chinacloudapi.cn",
-        issuerHost: "login.partner.microsoftonline.cn", // Issuer differs
-    },
+    { host: "login.partner.microsoftonline.cn" },
     { host: "login.microsoftonline.us" },
     { host: "login.sovcloud-identity.fr" },
     { host: "login.sovcloud-identity.de" },
