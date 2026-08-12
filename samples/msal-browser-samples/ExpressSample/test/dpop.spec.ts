@@ -250,11 +250,12 @@ async function runLogoutPopup(
         throw new Error(response.error || "Logout popup window was not opened");
     }
 
+    const logoutPopupPage = popupPage;
     const popupWindowClosed = new Promise<void>((resolve) =>
-        popupPage.once("close", resolve)
+        logoutPopupPage.once("close", resolve)
     );
 
-    return [popupPage, popupWindowClosed];
+    return [logoutPopupPage, popupWindowClosed];
 }
 
 describe("ExpressSample DPoP tests", () => {
