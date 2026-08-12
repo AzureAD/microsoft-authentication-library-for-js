@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Route NAA BridgeProxy through the shared webBrokerBridge PendingRequestRegistry and consolidate NestedAppAuthAdapter.fromBridgeError through the shared WebBrokerBridgeErrorMap — internal-only, no NAA public API or on-wire changes [#8748](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8748)",
+    "packageName": "@azure/msal-browser",
+    "email": "shylasummers@microsoft.com",
+    "dependentChangeType": "patch"
+}
