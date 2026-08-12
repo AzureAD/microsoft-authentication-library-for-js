@@ -117,6 +117,26 @@ async function applyPlaygroundConfiguration(
     });
 }
 
+async function loadAndConfigurePlayground(
+    page: puppeteer.Page,
+    port: number,
+    screenshot: Screenshot,
+    loginHint?: string,
+    redirectPath?: string
+): Promise<void> {
+    await page.goto(`http://localhost:${port}/playground`, {
+        timeout: 10000,
+    });
+    await screenshot.takeScreenshot(page, "Playground loaded");
+    await switchToVersion("local", page, screenshot);
+
+    await populatePlayground(page, port, loginHint, redirectPath);
+    await screenshot.takeScreenshot(page, "DPoP request populated");
+
+    await applyPlaygroundConfiguration(page);
+    await screenshot.takeScreenshot(page, "Configuration applied");
+}
+
 async function readPlaygroundResponse(
     page: puppeteer.Page,
     apiName: string,
@@ -212,6 +232,11 @@ async function acquireTokenPopup(
 async function runLogoutPopup(
     page: puppeteer.Page
 ): Promise<[puppeteer.Page, Promise<void>]> {
+    await page.waitForSelector("button#btnLogoutPopupActiveAccount", {
+        visible: true,
+        timeout: 10000,
+    });
+
     const popupPagePromise = new Promise<puppeteer.Page | null>((resolve) =>
         page.once("popup", resolve)
     );
@@ -299,17 +324,7 @@ describe("ExpressSample DPoP tests", () => {
             screenshot = new Screenshot(
                 `${SCREENSHOT_BASE_FOLDER_NAME}/popup-silent-sso`
             );
-            await page.goto(`http://localhost:${port}/playground`, {
-                timeout: 10000,
-            });
-            await screenshot.takeScreenshot(page, "Playground loaded");
-            await switchToVersion("local", page, screenshot);
-
-            await populatePlayground(page, port);
-            await screenshot.takeScreenshot(page, "DPoP request populated");
-
-            await applyPlaygroundConfiguration(page);
-            await screenshot.takeScreenshot(page, "Configuration applied");
+            await loadAndConfigurePlayground(page, port, screenshot);
         });
 
         afterEach(async () => {
@@ -362,17 +377,7 @@ describe("ExpressSample DPoP tests", () => {
             screenshot = new Screenshot(
                 `${SCREENSHOT_BASE_FOLDER_NAME}/logout`
             );
-            await page.goto(`http://localhost:${port}/playground`, {
-                timeout: 10000,
-            });
-            await screenshot.takeScreenshot(page, "Playground loaded");
-            await switchToVersion("local", page, screenshot);
-
-            await populatePlayground(page, port);
-            await screenshot.takeScreenshot(page, "DPoP request populated");
-
-            await applyPlaygroundConfiguration(page);
-            await screenshot.takeScreenshot(page, "Configuration applied");
+            await loadAndConfigurePlayground(page, port, screenshot);
 
             const popupResponse = await acquireTokenPopup(
                 page,
@@ -382,6 +387,8 @@ describe("ExpressSample DPoP tests", () => {
             );
             assertDpopResult(popupResponse);
             await assertDpopAccessTokenCached(browserCache);
+
+            await loadAndConfigurePlayground(page, port, screenshot);
         });
 
         afterEach(async () => {
