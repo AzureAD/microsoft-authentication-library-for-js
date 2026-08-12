@@ -207,40 +207,10 @@ async function acquireTokenPopup(
     return readPlaygroundResponse(page, "acquireTokenPopup");
 }
 
-async function clickVisibleButton(
-    page: puppeteer.Page,
-    selector: string,
-    timeout: number
-): Promise<void> {
-    const button = await page.waitForSelector(selector, {
-        visible: true,
-        timeout,
-    });
-    if (!button) {
-        throw new Error(`Button ${selector} was not found`);
-    }
-
-    await button.evaluate((element) =>
-        element.scrollIntoView({ block: "center", inline: "center" })
-    );
-    const box = await button.boundingBox();
-    if (!box) {
-        throw new Error(`Button ${selector} is not visible`);
-    }
-
-    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-}
-
 async function runLogoutPopup(page: puppeteer.Page): Promise<void> {
     const popupPagePromise = new Promise<puppeteer.Page | null>((resolve) =>
         page.once("popup", resolve)
     );
-    await clickVisibleButton(
-        page,
-        "button#btnLogoutPopupActiveAccount",
-        LOGOUT_POPUP_TIMEOUT_MS
-    );
-
     const logoutErrorPromise = page
         .waitForFunction(
             () => {
@@ -258,6 +228,7 @@ async function runLogoutPopup(page: puppeteer.Page): Promise<void> {
         )
         .then(() => null);
 
+    await page.locator("button#btnLogoutPopupActiveAccount").click();
     let popupPage: puppeteer.Page | null;
     try {
         popupPage = await Promise.race([popupPagePromise, logoutErrorPromise]);
@@ -425,6 +396,12 @@ describe("ExpressSample DPoP tests", () => {
         it(
             "logoutPopup clears cached DPoP tokens",
             async () => {
+                await page.goto(`http://localhost:${port}/playground`, {
+                    timeout: 10000,
+                });
+                await populatePlayground(page, port);
+                await applyPlaygroundConfiguration(page);
+
                 await runLogoutPopup(page);
 
                 const tokenStore = await browserCache.getTokens();
