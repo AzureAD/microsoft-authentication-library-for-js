@@ -81,7 +81,6 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
     });
 
     afterAll(async () => {
-        await context.close();
         await browser.close();
     });
 
