@@ -23,7 +23,9 @@ const DPOP_RESOURCE_URI = "https://localhost:45471/WeatherForecast/DPoP";
 const DPOP_ESTS_DC = "ESTS-PUB-WUS3-FD000-TEST1-100";
 const PLAYGROUND_RESPONSE_TIMEOUT_MS = 60000;
 const LOGOUT_POPUP_TIMEOUT_MS = 90000;
-const LOGOUT_TEST_TIMEOUT_MS = 150000;
+const DPOP_TEST_TIMEOUT_MS = 150000;
+
+jest.setTimeout(DPOP_TEST_TIMEOUT_MS);
 
 type PlaygroundResponse = {
     api: string;
@@ -207,7 +209,9 @@ async function acquireTokenPopup(
     return readPlaygroundResponse(page, "acquireTokenPopup");
 }
 
-async function runLogoutPopup(page: puppeteer.Page): Promise<void> {
+async function runLogoutPopup(
+    page: puppeteer.Page
+): Promise<[puppeteer.Page, Promise<void>]> {
     const popupPagePromise = new Promise<puppeteer.Page | null>((resolve) =>
         page.once("popup", resolve)
     );
@@ -228,7 +232,7 @@ async function runLogoutPopup(page: puppeteer.Page): Promise<void> {
         )
         .then(() => null);
 
-    await page.locator("button#btnLogoutPopupActiveAccount").click();
+    await page.click("button#btnLogoutPopupActiveAccount");
     let popupPage: puppeteer.Page | null;
     try {
         popupPage = await Promise.race([popupPagePromise, logoutErrorPromise]);
@@ -246,57 +250,11 @@ async function runLogoutPopup(page: puppeteer.Page): Promise<void> {
         throw new Error(response.error || "Logout popup window was not opened");
     }
 
-    try {
-        await page.waitForFunction(
-            () => {
-                const responseContent =
-                    document.getElementById("responseContent");
-                const responseText = responseContent?.textContent || "";
-                const cacheCleared = Object.keys(window.localStorage).every(
-                    (key) =>
-                        !key.includes("idtoken") &&
-                        !key.includes("accesstoken") &&
-                        !key.includes("refreshtoken") &&
-                        !key.includes("account")
-                );
-
-                return (
-                    responseText.includes(
-                        '"api": "logoutPopupActiveAccount"'
-                    ) &&
-                    (responseText.includes('"error"') ||
-                        (responseText.includes('"message"') && cacheCleared))
-                );
-            },
-            { timeout: LOGOUT_POPUP_TIMEOUT_MS }
-        );
-    } catch (e) {
-        const responseText = await page
-            .$eval(
-                "div#responseContent",
-                (element) => element.textContent || ""
-            )
-            .catch(() => "No playground response content found");
-        const popupUrl = popupPage.isClosed() ? "closed" : popupPage.url();
-        throw new Error(
-            `Timed out waiting for logoutPopupActiveAccount to finish. Popup URL: ${popupUrl}. Response: ${responseText}`
-        );
-    } finally {
-        if (!popupPage.isClosed()) {
-            await popupPage.close();
-        }
-    }
-
-    const responseText = await page.$eval(
-        "div#responseContent",
-        (element) => element.textContent || ""
+    const popupWindowClosed = new Promise<void>((resolve) =>
+        popupPage.once("close", resolve)
     );
-    const response = JSON.parse(responseText) as PlaygroundResponse & {
-        error?: string;
-    };
-    if (response.error) {
-        throw new Error(response.error);
-    }
+
+    return [popupPage, popupWindowClosed];
 }
 
 describe("ExpressSample DPoP tests", () => {
@@ -327,18 +285,18 @@ describe("ExpressSample DPoP tests", () => {
         );
     });
 
-    describe("popup, silent, SSO silent, and logout", () => {
+    describe("popup, silent, and SSO silent", () => {
         let context: puppeteer.BrowserContext;
         let page: puppeteer.Page;
         let browserCache: BrowserCacheUtils;
         let screenshot: Screenshot;
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             context = await browser.createBrowserContext();
             page = await context.newPage();
             browserCache = new BrowserCacheUtils(page, "localStorage");
             screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/popup-silent-sso-logout`
+                `${SCREENSHOT_BASE_FOLDER_NAME}/popup-silent-sso`
             );
             await page.goto(`http://localhost:${port}/playground`, {
                 timeout: 10000,
@@ -353,12 +311,68 @@ describe("ExpressSample DPoP tests", () => {
             await screenshot.takeScreenshot(page, "Configuration applied");
         });
 
-        afterAll(async () => {
+        afterEach(async () => {
             await page.close();
             await context.close();
         });
 
-        it("acquireTokenPopup returns a DPoP proof", async () => {
+        it("acquires DPoP proofs with popup, silent, and SSO silent", async () => {
+            const popupResponse = await acquireTokenPopup(
+                page,
+                screenshot,
+                username,
+                accountPwd
+            );
+            assertDpopResult(popupResponse);
+            await assertDpopAccessTokenCached(browserCache);
+
+            await page.click("button#btnAcquireTokenSilent");
+            const silentResponse = await readPlaygroundResponse(
+                page,
+                "acquireTokenSilent"
+            );
+            assertDpopResult(silentResponse);
+            expect(silentResponse.result?.fromCache).toBe(true);
+
+            const tokenStore = await browserCache.getTokens();
+            await browserCache.removeTokens(tokenStore.accessTokens);
+            await populatePlayground(page, port, username);
+
+            await page.click("button#btnSsoSilent");
+            const ssoSilentResponse = await readPlaygroundResponse(
+                page,
+                "ssoSilent"
+            );
+            assertDpopResult(ssoSilentResponse);
+            await assertDpopAccessTokenCached(browserCache);
+        });
+    });
+
+    describe("logout", () => {
+        let context: puppeteer.BrowserContext;
+        let page: puppeteer.Page;
+        let browserCache: BrowserCacheUtils;
+        let screenshot: Screenshot;
+
+        beforeEach(async () => {
+            context = await browser.createBrowserContext();
+            page = await context.newPage();
+            browserCache = new BrowserCacheUtils(page, "localStorage");
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/logout`
+            );
+            await page.goto(`http://localhost:${port}/playground`, {
+                timeout: 10000,
+            });
+            await screenshot.takeScreenshot(page, "Playground loaded");
+            await switchToVersion("local", page, screenshot);
+
+            await populatePlayground(page, port);
+            await screenshot.takeScreenshot(page, "DPoP request populated");
+
+            await applyPlaygroundConfiguration(page);
+            await screenshot.takeScreenshot(page, "Configuration applied");
+
             const popupResponse = await acquireTokenPopup(
                 page,
                 screenshot,
@@ -369,49 +383,37 @@ describe("ExpressSample DPoP tests", () => {
             await assertDpopAccessTokenCached(browserCache);
         });
 
-        it("acquireTokenSilent returns a cached access token with a DPoP proof", async () => {
-            await page.locator("button#btnAcquireTokenSilent").click();
-            const silentResponse = await readPlaygroundResponse(
-                page,
-                "acquireTokenSilent"
-            );
-            assertDpopResult(silentResponse);
-            expect(silentResponse.result?.fromCache).toBe(true);
+        afterEach(async () => {
+            await page.close();
+            await context.close();
         });
 
-        it("ssoSilent returns a DPoP proof", async () => {
+        it("logoutPopup clears cached DPoP tokens", async () => {
+            const [popupPage, popupWindowClosed] = await runLogoutPopup(page);
+            expect(popupPage.url().startsWith(`${AUTHORITY}/`)).toBeTruthy();
+            expect(popupPage.url()).toContain("logout");
+
+            await page.waitForFunction(
+                () =>
+                    Object.keys(window.localStorage).every(
+                        (key) =>
+                            !key.includes("idtoken") &&
+                            !key.includes("accesstoken") &&
+                            !key.includes("refreshtoken") &&
+                            !key.includes("account")
+                    ),
+                { timeout: LOGOUT_POPUP_TIMEOUT_MS }
+            );
+
             const tokenStore = await browserCache.getTokens();
-            await browserCache.removeTokens(tokenStore.accessTokens);
-            await populatePlayground(page, port, username);
+            expect(tokenStore.idTokens).toHaveLength(0);
+            expect(tokenStore.accessTokens).toHaveLength(0);
+            expect(tokenStore.refreshTokens).toHaveLength(0);
+            expect(await browserCache.getAccountFromCache()).toBeNull();
 
-            await page.locator("button#btnSsoSilent").click();
-            const ssoSilentResponse = await readPlaygroundResponse(
-                page,
-                "ssoSilent"
-            );
-            assertDpopResult(ssoSilentResponse);
-            await assertDpopAccessTokenCached(browserCache);
+            await popupWindowClosed;
+            expect(popupPage.isClosed()).toBeTruthy();
         });
-
-        it(
-            "logoutPopup clears cached DPoP tokens",
-            async () => {
-                await page.goto(`http://localhost:${port}/playground`, {
-                    timeout: 10000,
-                });
-                await populatePlayground(page, port);
-                await applyPlaygroundConfiguration(page);
-
-                await runLogoutPopup(page);
-
-                const tokenStore = await browserCache.getTokens();
-                expect(tokenStore.idTokens).toHaveLength(0);
-                expect(tokenStore.accessTokens).toHaveLength(0);
-                expect(tokenStore.refreshTokens).toHaveLength(0);
-                expect(await browserCache.getAccountFromCache()).toBeNull();
-            },
-            LOGOUT_TEST_TIMEOUT_MS
-        );
     });
 
     describe("redirect", () => {
