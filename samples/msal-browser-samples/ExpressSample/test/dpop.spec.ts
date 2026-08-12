@@ -24,6 +24,13 @@ const DPOP_ESTS_DC = "ESTS-PUB-WUS3-FD000-TEST1-100";
 const PLAYGROUND_RESPONSE_TIMEOUT_MS = 60000;
 const LOGOUT_POPUP_TIMEOUT_MS = 90000;
 const DPOP_TEST_TIMEOUT_MS = 150000;
+const PLAYGROUND_CONTROL_SELECTORS = [
+    "textarea#msalConfig",
+    "textarea#tokenRequest",
+    "button#applyConfig",
+    "button#btnAcquireTokenPopup",
+    "button#btnLogoutPopupActiveAccount",
+];
 
 jest.setTimeout(DPOP_TEST_TIMEOUT_MS);
 
@@ -42,6 +49,57 @@ type PlaygroundResponse = {
     };
     message?: string;
 };
+
+async function getPlaygroundPageState(page: puppeteer.Page): Promise<string> {
+    const state = await page
+        .evaluate((selectors) => {
+            return {
+                url: window.location.href,
+                readyState: document.readyState,
+                title: document.title,
+                hasPlaygroundContainer: !!document.querySelector(
+                    ".playground-container"
+                ),
+                selectors: selectors.reduce<Record<string, boolean>>(
+                    (result, selector) => {
+                        result[selector] = !!document.querySelector(selector);
+                        return result;
+                    },
+                    {}
+                ),
+                responseText:
+                    document
+                        .getElementById("responseContent")
+                        ?.textContent?.slice(0, 1000) || "",
+                bodyText: document.body?.innerText?.slice(0, 1000) || "",
+            };
+        }, PLAYGROUND_CONTROL_SELECTORS)
+        .catch((error: Error) => ({
+            url: page.url(),
+            evaluateError: error.message,
+        }));
+
+    return JSON.stringify(state, null, 2);
+}
+
+async function waitForPlaygroundControls(
+    page: puppeteer.Page,
+    timeout = PLAYGROUND_RESPONSE_TIMEOUT_MS
+): Promise<void> {
+    try {
+        await Promise.all(
+            PLAYGROUND_CONTROL_SELECTORS.map((selector) =>
+                page.locator(selector).setTimeout(timeout).waitHandle()
+            )
+        );
+    } catch {
+        throw new Error(
+            `Timed out waiting for playground controls: ${await getPlaygroundPageState(
+                page
+            )}`
+        );
+    }
+}
 
 function createPlaygroundConfig(port: number, redirectPath = "/redirect") {
     return {
@@ -78,8 +136,7 @@ async function populatePlayground(
     loginHint?: string,
     redirectPath?: string
 ): Promise<void> {
-    await page.locator("textarea#msalConfig").waitHandle();
-    await page.locator("textarea#tokenRequest").waitHandle();
+    await waitForPlaygroundControls(page);
     await page.evaluate(
         ({ config, request }) => {
             const configElement = document.getElementById(
@@ -129,6 +186,7 @@ async function loadAndConfigurePlayground(
     });
     await screenshot.takeScreenshot(page, "Playground loaded");
     await switchToVersion("local", page, screenshot);
+    await waitForPlaygroundControls(page);
 
     await populatePlayground(page, port, loginHint, redirectPath);
     await screenshot.takeScreenshot(page, "DPoP request populated");
@@ -232,10 +290,7 @@ async function acquireTokenPopup(
 async function runLogoutPopup(
     page: puppeteer.Page
 ): Promise<[puppeteer.Page, Promise<void>]> {
-    await page.waitForSelector("button#btnLogoutPopupActiveAccount", {
-        visible: true,
-        timeout: 10000,
-    });
+    await waitForPlaygroundControls(page, LOGOUT_POPUP_TIMEOUT_MS);
 
     const popupPagePromise = new Promise<puppeteer.Page | null>((resolve) =>
         page.once("popup", resolve)
