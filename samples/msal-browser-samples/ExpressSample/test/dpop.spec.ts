@@ -228,7 +228,10 @@ async function runLogoutPopup(page: puppeteer.Page): Promise<void> {
         )
         .then(() => null);
 
-    await page.locator("button#btnLogoutPopupActiveAccount").click();
+    await page
+        .locator("button#btnLogoutPopupActiveAccount")
+        .setTimeout(LOGOUT_POPUP_TIMEOUT_MS)
+        .click();
     let popupPage: puppeteer.Page | null;
     try {
         popupPage = await Promise.race([popupPagePromise, logoutErrorPromise]);
