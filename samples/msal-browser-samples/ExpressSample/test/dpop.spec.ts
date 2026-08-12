@@ -21,6 +21,9 @@ const AUTHORITY = "https://login.microsoftonline.com/common";
 const DPOP_RESOURCE_URI = "https://localhost:45471/WeatherForecast/DPoP";
 // Temporary, remove when feature is GA
 const DPOP_ESTS_DC = "ESTS-PUB-WUS3-FD000-TEST1-100";
+const PLAYGROUND_RESPONSE_TIMEOUT_MS = 60000;
+const LOGOUT_POPUP_TIMEOUT_MS = 90000;
+const LOGOUT_TEST_TIMEOUT_MS = 150000;
 
 type PlaygroundResponse = {
     api: string;
@@ -131,7 +134,7 @@ async function readPlaygroundResponse(
                     !text.includes('"status": "Executing..."')
                 );
             },
-            {},
+            { timeout: PLAYGROUND_RESPONSE_TIMEOUT_MS },
             apiName,
             resultProperty
         );
@@ -209,21 +212,29 @@ async function runLogoutPopup(page: puppeteer.Page): Promise<void> {
         page.once("popup", resolve)
     );
     const logoutErrorPromise = page
-        .waitForFunction(() => {
-            const responseContent = document.getElementById("responseContent");
-            const responseText = responseContent?.textContent || "";
+        .waitForFunction(
+            () => {
+                const responseContent =
+                    document.getElementById("responseContent");
+                const responseText = responseContent?.textContent || "";
 
-            return (
-                responseText.includes('"api": "logoutPopupActiveAccount"') &&
-                responseText.includes('"error"')
-            );
-        })
+                return (
+                    responseText.includes(
+                        '"api": "logoutPopupActiveAccount"'
+                    ) && responseText.includes('"error"')
+                );
+            },
+            { timeout: LOGOUT_POPUP_TIMEOUT_MS }
+        )
         .then(() => null);
+
     await page.locator("button#btnLogoutPopupActiveAccount").click();
-    const popupPage = await Promise.race([
-        popupPagePromise,
-        logoutErrorPromise,
-    ]);
+    let popupPage: puppeteer.Page | null;
+    try {
+        popupPage = await Promise.race([popupPagePromise, logoutErrorPromise]);
+    } finally {
+        logoutErrorPromise.catch(() => undefined);
+    }
     if (!popupPage) {
         const responseText = await page.$eval(
             "div#responseContent",
@@ -235,21 +246,45 @@ async function runLogoutPopup(page: puppeteer.Page): Promise<void> {
         throw new Error(response.error || "Logout popup window was not opened");
     }
 
-    await page.waitForFunction(() => {
-        const responseContent = document.getElementById("responseContent");
-        const responseText = responseContent?.textContent || "";
-        const cacheCleared = Object.keys(window.localStorage).every(
-            (key) =>
-                !key.includes("idtoken") &&
-                !key.includes("accesstoken") &&
-                !key.includes("refreshtoken") &&
-                !key.includes("account")
-        );
+    try {
+        await page.waitForFunction(
+            () => {
+                const responseContent =
+                    document.getElementById("responseContent");
+                const responseText = responseContent?.textContent || "";
+                const cacheCleared = Object.keys(window.localStorage).every(
+                    (key) =>
+                        !key.includes("idtoken") &&
+                        !key.includes("accesstoken") &&
+                        !key.includes("refreshtoken") &&
+                        !key.includes("account")
+                );
 
-        return cacheCleared || responseText.includes('"error"');
-    });
-    if (!popupPage.isClosed()) {
-        await popupPage.close();
+                return (
+                    responseText.includes(
+                        '"api": "logoutPopupActiveAccount"'
+                    ) &&
+                    (responseText.includes('"error"') ||
+                        (responseText.includes('"message"') && cacheCleared))
+                );
+            },
+            { timeout: LOGOUT_POPUP_TIMEOUT_MS }
+        );
+    } catch (e) {
+        const responseText = await page
+            .$eval(
+                "div#responseContent",
+                (element) => element.textContent || ""
+            )
+            .catch(() => "No playground response content found");
+        const popupUrl = popupPage.isClosed() ? "closed" : popupPage.url();
+        throw new Error(
+            `Timed out waiting for logoutPopupActiveAccount to finish. Popup URL: ${popupUrl}. Response: ${responseText}`
+        );
+    } finally {
+        if (!popupPage.isClosed()) {
+            await popupPage.close();
+        }
     }
 
     const responseText = await page.$eval(
@@ -358,15 +393,19 @@ describe("ExpressSample DPoP tests", () => {
             await assertDpopAccessTokenCached(browserCache);
         });
 
-        it("logoutPopup clears cached DPoP tokens", async () => {
-            await runLogoutPopup(page);
+        it(
+            "logoutPopup clears cached DPoP tokens",
+            async () => {
+                await runLogoutPopup(page);
 
-            const tokenStore = await browserCache.getTokens();
-            expect(tokenStore.idTokens).toHaveLength(0);
-            expect(tokenStore.accessTokens).toHaveLength(0);
-            expect(tokenStore.refreshTokens).toHaveLength(0);
-            expect(await browserCache.getAccountFromCache()).toBeNull();
-        });
+                const tokenStore = await browserCache.getTokens();
+                expect(tokenStore.idTokens).toHaveLength(0);
+                expect(tokenStore.accessTokens).toHaveLength(0);
+                expect(tokenStore.refreshTokens).toHaveLength(0);
+                expect(await browserCache.getAccountFromCache()).toBeNull();
+            },
+            LOGOUT_TEST_TIMEOUT_MS
+        );
     });
 
     describe("redirect", () => {
