@@ -1,0 +1,19 @@
+{
+    "msalConfig": {
+        "auth": {
+            "clientId": "9f33d0de-fdfd-431b-a565-af47c697a4c4",
+            "authority": "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133",
+            "redirectUri": "/redirect",
+            "postLogoutRedirectUri": "/redirect"
+        },
+        "cache": {
+            "cacheLocation": "sessionStorage"
+        },
+        "system": {
+            "allowPlatformBroker": false
+        }
+    },
+    "request": {
+        "scopes": ["User.Read"]
+    }
+}
