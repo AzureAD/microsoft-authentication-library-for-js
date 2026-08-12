@@ -247,4 +247,59 @@ describe("BridgeProxy tests", () => {
             );
         });
     });
+
+    describe("shared pending-request registry", () => {
+        let bridgeProxy: IBridgeProxy;
+        let mockBridge: MockBridge;
+
+        beforeAll(async () => {
+            mockBridge = window.nestedAppAuthBridge as MockBridge;
+            mockBridge.addInitContextResponse(
+                "GetInitContext",
+                INIT_CONTEXT_RESPONSE
+            );
+            bridgeProxy = await BridgeProxy.create();
+        });
+
+        it("routes token responses through the shared PendingRequestRegistry", async () => {
+            expect(BridgeProxy.pendingRegistry).toBeDefined();
+            const sendAndAwaitSpy = jest.spyOn(
+                BridgeProxy.pendingRegistry,
+                "sendAndAwait"
+            );
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+            const first = await bridgeProxy.getTokenSilent(
+                SILENT_TOKEN_REQUEST
+            );
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+            const second = await bridgeProxy.getTokenSilent(
+                SILENT_TOKEN_REQUEST
+            );
+            expect(first.token.scope).toEqual(
+                SILENT_TOKEN_RESPONSE.token?.scope
+            );
+            expect(second.token.scope).toEqual(
+                SILENT_TOKEN_RESPONSE.token?.scope
+            );
+            /*
+             * Prove the registry actually intermediated: each outbound
+             * request must have been routed through `sendAndAwait`, and
+             * the correlation key it received must match the requestId
+             * that went over the bridge.
+             */
+            const requests = mockBridge.getBridgeRequests();
+            const lastTwo = requests
+                .slice(-2)
+                .map((raw) => JSON.parse(raw).requestId);
+            expect(sendAndAwaitSpy).toHaveBeenCalledTimes(2);
+            const sentIds = sendAndAwaitSpy.mock.calls
+                .slice(-2)
+                .map(([msg]) => msg.requestId);
+            expect(sentIds).toEqual(lastTwo);
+            // Registry must not leak completed requests.
+            expect(BridgeProxy.pendingRegistry.has(lastTwo[0])).toBe(false);
+            expect(BridgeProxy.pendingRegistry.has(lastTwo[1])).toBe(false);
+            sendAndAwaitSpy.mockRestore();
+        });
+    });
 });
