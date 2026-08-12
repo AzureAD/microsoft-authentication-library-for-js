@@ -636,9 +636,10 @@ export class ResponseHandler {
          * and cache-served tokens because SilentFlowClient shares this method, so the field
          * is present on silent requests that never hit the network.
          */
-        if (idTokenClaims?.tenant_region_sub_scope) {
+        const regionSubScope = idTokenClaims?.tenant_region_sub_scope;
+        if (typeof regionSubScope === "string") {
             performanceClient?.addFields(
-                { regionSubScope: idTokenClaims.tenant_region_sub_scope },
+                { regionSubScope },
                 request.correlationId
             );
         }
