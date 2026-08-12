@@ -206,6 +206,7 @@ Putting together the routing and all the logic for starting the sign in yields t
 
 ```javascript
 app.get("/", (req, res) => {
+    const cryptoProvider = new msal.CryptoProvider();
     const nonce = cryptoProvider.createNewGuid();
 
     // You can also build the authCodeUrlParameters object directly in the JavaScript file like this

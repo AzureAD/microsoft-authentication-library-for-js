@@ -179,8 +179,8 @@ export abstract class ClientApplication {
         }
         if (request.nonce) {
             validatedAuthCodePayload = {
-                code: request.code,
                 ...validatedAuthCodePayload,
+                code: request.code,
                 nonce: request.nonce,
             };
         }
