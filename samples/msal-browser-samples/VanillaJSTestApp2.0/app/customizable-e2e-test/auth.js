@@ -17,7 +17,7 @@ async function initializeMsal() {
         if (EAR_ENABLED) {
             authConfig.msalConfig.system = {
                 ...authConfig.msalConfig.system,
-                protocolMode: "EAR",
+                protocolMode: msal.ProtocolMode.EAR,
             };
         }
         myMSALObj = new msal.PublicClientApplication(authConfig.msalConfig);
