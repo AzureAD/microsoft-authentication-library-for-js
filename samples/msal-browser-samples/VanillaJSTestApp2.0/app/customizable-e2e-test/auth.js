@@ -4,8 +4,7 @@ let myMSALObj, requestConfig, tenantConfig, signInType;
 
 // EAR (Encrypted Authorize Response) toggle. When the sample is loaded with
 // ?ear=true, force the EAR protocol mode on top of whatever testConfig.json
-// provides. Mirrors the UntrustedTopFrameSample toggle so the EAR e2e spec (and
-// the automation pipeline) can opt into EAR without a dedicated sample build.
+// provides.
 const EAR_ENABLED =
     new URLSearchParams(window.location.search).get("ear") === "true";
 
