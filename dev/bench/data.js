@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786482902856,
+  "lastUpdate": 1786559477800,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22821,6 +22821,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.74%",
             "unit": "ops/sec",
             "extra": "237 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7c7205b15faf4ab1f1c58436116ab3f8b212426e",
+          "message": "[NAA/PWB One Bridge] PR 2/6: Migrate NAA BridgeProxy to shared PendingRequestRegistry + toAuthError (#8748)\n\nSummary:\nRefactor-only, wire-preserving migration of NAA's `BridgeProxy`\npending-request tracking and `NestedAppAuthAdapter.fromBridgeError` onto\nthe shared `webBrokerBridge/` primitives introduced in PR-1. No public\nAPI change, no on-wire change, no behavior change. Sets up PR-5 (PWB) to\nshare the same registry and error mapper.\n\nFull description:\n\nPart 2 of 6 in the NAA/PWB \"One Bridge\" unification (Feature\n`AB#3668028`). PR-1 (#8729) landed the shared scaffold — this PR is the\nfirst live consumer.\n\n### What changes\n\n**1. `BridgeProxy` — shared `PendingRequestRegistry`**\n- Replaces the static `bridgeRequests: BridgeRequest[]` array +\nhand-written promise/push/splice correlation logic with\n`PendingRequestRegistry<BridgeResponseEnvelope>` from\n`webBrokerBridge/`.\n- Send path unchanged:\n`window.nestedAppAuthBridge.postMessage(JSON.stringify(message))` — JSON\npayload byte-identical.\n- Correlation key `{ requestId, type: msg.method }` is built in-memory\nat the call site so `BridgeRequestEnvelope` (which uses\n`method`/`messageType`) does not gain a `type` wire field. This\npreserves FR-2 / AC-2 (byte-identical wire) while still routing through\nthe shared registry.\n- `PendingRequestRegistry<TResp>` type parameter widened (drops the\n`extends IWebBrokerBridgeResponse` bound). The registry only correlates\nby `requestId` and never reads `type` off a response, so the bound was\nover-tight; documented in JSDoc.\n- `naa/BridgeRequest.ts` deleted — no callers after the migration.\n\n**2. `NestedAppAuthAdapter.fromBridgeError` — shared `toAuthError`**\n- The 60-line `switch` over `BridgeStatusCode` collapses to a two-line\nglue: translate `BridgeStatusCode` → `WebBrokerBridgeErrorCode`, then\ndelegate to the shared `toAuthError` mapper.\n- Same four MSAL classes come out (`ClientAuthError`, `ServerError`,\n`InteractionRequiredAuthError`, `AuthError`); same error codes and\nmessages. Existing `NestedAppAuthAdapter.spec.ts` fixtures for all 8\n`BridgeStatusCode` values pass unchanged (AC-9).\n\n### What does NOT change\n- Public API surface — `npm run apiExtractor` diff is empty in NAA /\n`webBrokerBridge` scope.\n- Wire format — `BridgeRequestEnvelope` / `BridgeResponseEnvelope` JSON\nis unchanged.\n- Behavior for callers of `PublicClientNext` / NAA — same errors, same\npromise resolution semantics.\n- PWB (1P) — that's PR-5.\n\n### Test evidence\n- 91 tests pass across `test/naa/**` and `test/webBrokerBridge/**`.\n- Existing `NestedAppAuthAdapter.spec.ts` regression fixtures cover\nevery `BridgeStatusCode` branch — no fixture changes required (AC-9).\n- New regression block in `BridgeProxy.spec.ts` asserts the shared\nregistry is wired in and doesn't leak completed requests.\n- `npm run lint` clean (2 pre-existing warnings); `npm run format:check`\nclean.\n- Beachball changefile added.\n\n### PR sequence\n- PR-1 (#8729) — scaffold ✅ merged\n- **PR-2 (this)** — NAA migration\n- PR-3 — cross-version adapter framework relocation (3P)\n- PR-4 / PR-5 / PR-6 — 1P PWB migration\n\nFeature: `AB#3668028`\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: refactor\nagent-tool: copilot-cli\nagent-model: claude-opus-4.7\nwork-item: AB#3668028\n<!-- END pr-telemetry -->",
+          "timestamp": "2026-08-12T11:24:27-07:00",
+          "tree_id": "8ff24e999ec4feb27b18df4b3317cd845938961d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/7c7205b15faf4ab1f1c58436116ab3f8b212426e"
+        },
+        "date": 1786559472239,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 362980,
+            "range": "±0.91%",
+            "unit": "ops/sec",
+            "extra": "212 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 369480,
+            "range": "±0.65%",
+            "unit": "ops/sec",
+            "extra": "226 samples"
           }
         ]
       }
