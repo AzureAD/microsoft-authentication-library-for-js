@@ -67,7 +67,7 @@ import * as TokenProtocol from "../../src/protocol/Token.js";
 import { ResponseHandler } from "../../src/response/ResponseHandler.js";
 
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
-    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
 
 const testAccountEntity: AccountEntity = {
     homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,

@@ -21,11 +21,11 @@ import { ClientAssertionConfig } from "../../src/account/ClientCredentials.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS =
-    '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+    '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_CLIENT_CAPABILITIES =
-    '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
+    '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
-    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
 
 describe("RequestParameterBuilder unit tests", () => {
     afterEach(() => {
@@ -608,7 +608,7 @@ describe("RequestParameterBuilder unit tests", () => {
         it("passing just claims returns claims with default idToken claims", () => {
             const testClaims = TEST_CONFIG.CLAIMS;
             const expectedString =
-                '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+                '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
             expect(
                 RequestParameterBuilder.buildMergedClaims(testClaims, [])
             ).toBe(expectedString);
@@ -617,7 +617,7 @@ describe("RequestParameterBuilder unit tests", () => {
         it("passing just clientCapabilities returns clientCapabilities and default idToken claims", () => {
             const clientCapabilities = ["CP1"];
             const expectedString =
-                '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
+                '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
             expect(
                 RequestParameterBuilder.buildMergedClaims(
                     undefined,
@@ -631,7 +631,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 '{"access_token":{"example_claim":{"values":["example_value"]}}}';
             const clientCapabilities = ["CP1"];
             const expectedString =
-                '{"access_token":{"example_claim":{"values":["example_value"]},"xms_cc":{"values":["CP1"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+                '{"access_token":{"example_claim":{"values":["example_value"]},"xms_cc":{"values":["CP1"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
             expect(
                 RequestParameterBuilder.buildMergedClaims(
                     claimsRequest,
@@ -645,7 +645,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 '{"id_token":{"example_claim":{"values":["example_value"]}}}';
             const clientCapabilities = ["CP1"];
             const expectedString =
-                '{"id_token":{"example_claim":{"values":["example_value"]},"signin_state":{"essential":false},"login_hint":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
+                '{"id_token":{"example_claim":{"values":["example_value"]},"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
             expect(
                 RequestParameterBuilder.buildMergedClaims(
                     claimsRequest,
@@ -658,10 +658,30 @@ describe("RequestParameterBuilder unit tests", () => {
             const claimsRequest =
                 '{"id_token":{"signin_state":{"essential":true}}}';
             const expectedString =
-                '{"id_token":{"signin_state":{"essential":true},"login_hint":{"essential":false}}}';
+                '{"id_token":{"signin_state":{"essential":true},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
             expect(
                 RequestParameterBuilder.buildMergedClaims(claimsRequest, [])
             ).toBe(expectedString);
+        });
+
+        it("requests tenant_region_sub_scope as a non-essential idToken claim", () => {
+            const merged = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(undefined, [])
+            );
+            expect(merged.id_token.tenant_region_sub_scope).toEqual({
+                essential: false,
+            });
+        });
+
+        it("does not overwrite a caller-specified tenant_region_sub_scope claim", () => {
+            const claimsRequest =
+                '{"id_token":{"tenant_region_sub_scope":{"essential":true}}}';
+            const merged = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(claimsRequest, [])
+            );
+            expect(merged.id_token.tenant_region_sub_scope).toEqual({
+                essential: true,
+            });
         });
 
         it("throws error if claims passed is not stringified JSON object", () => {
