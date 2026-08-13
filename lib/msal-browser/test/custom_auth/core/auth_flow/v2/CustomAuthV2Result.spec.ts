@@ -7,7 +7,7 @@ import { CustomAuthBrowserConfiguration } from "../../../../../src/custom_auth/c
 import { CustomAuthV2Result } from "../../../../../src/custom_auth/core/auth_flow/CustomAuthV2Result.js";
 import { ResetPasswordStartV2Result } from "../../../../../src/custom_auth/core/auth_flow/v2/result/ResetPasswordStartV2Result.js";
 import { ResetPasswordStartError } from "../../../../../src/custom_auth/core/auth_flow/v2/error/ResetPasswordStartError.js";
-import { CustomAuthV2ApiError } from "../../../../../src/custom_auth/core/auth_flow/v2/error/CustomAuthV2ApiError.js";
+import { CustomAuthV2ApiError } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/error/CustomAuthV2ApiError.js";
 import { AuthenticationMethodSelectionRequiredState } from "../../../../../src/custom_auth/core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
 import { FailedState } from "../../../../../src/custom_auth/core/auth_flow/v2/state/FailedState.js";
 import { AuthenticationMethodV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/AuthenticationMethodV2.js";

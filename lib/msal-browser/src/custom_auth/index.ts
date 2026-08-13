@@ -260,7 +260,7 @@ export { CustomAuthV2FlowScenario } from "./core/auth_flow/CustomAuthV2FlowScena
 export { AuthenticationMethodV2 } from "./core/auth_flow/v2/AuthenticationMethodV2.js";
 
 // Native Auth V2 Errors
-export { CustomAuthV2ApiError } from "./core/auth_flow/v2/error/CustomAuthV2ApiError.js";
+export { CustomAuthV2ApiError } from "./core/network_client/custom_auth_api/v2/error/CustomAuthV2ApiError.js";
 export { ResetPasswordStartError } from "./core/auth_flow/v2/error/ResetPasswordStartError.js";
 export { RequestChallengeError } from "./core/auth_flow/v2/error/RequestChallengeError.js";
 export { VerifyChallengeError } from "./core/auth_flow/v2/error/VerifyChallengeError.js";

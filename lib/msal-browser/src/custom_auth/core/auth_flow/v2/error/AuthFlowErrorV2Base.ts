@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import type { CustomAuthV2ApiError } from "./CustomAuthV2ApiError.js";
+import type { CustomAuthV2ApiError } from "../../../network_client/custom_auth_api/v2/error/CustomAuthV2ApiError.js";
 import type { CustomAuthV2FlowScenario } from "../../CustomAuthV2FlowScenario.js";
 
 /*
