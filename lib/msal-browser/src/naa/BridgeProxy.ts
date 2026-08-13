@@ -8,7 +8,6 @@ import { AuthResult } from "./AuthResult.js";
 import { BridgeCapabilities } from "./BridgeCapabilities.js";
 import { AccountContext } from "./BridgeAccountContext.js";
 import { BridgeError } from "./BridgeError.js";
-import { BridgeRequest } from "./BridgeRequest.js";
 import {
     BridgeRequestEnvelope,
     BridgeMethods,
@@ -21,6 +20,8 @@ import { TokenRequest } from "./TokenRequest.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import { BrowserConstants } from "../utils/BrowserConstants.js";
 import { version } from "../packageMetadata.js";
+import { IWebBrokerBridgeMessage } from "../webBrokerBridge/IWebBrokerBridgeMessage.js";
+import { PendingRequestRegistry } from "../webBrokerBridge/PendingRequestRegistry.js";
 
 declare global {
     interface Window {
@@ -34,7 +35,12 @@ declare global {
  * platform broker
  */
 export class BridgeProxy implements IBridgeProxy {
-    static bridgeRequests: BridgeRequest[] = [];
+    /**
+     * Correlates outbound bridge requests with inbound responses by
+     * `requestId`
+     */
+    static pendingRegistry =
+        new PendingRequestRegistry<BridgeResponseEnvelope>();
     sdkName: string;
     sdkVersion: string;
     capabilities?: BridgeCapabilities;
@@ -62,39 +68,22 @@ export class BridgeProxy implements IBridgeProxy {
                         typeof response === "string" ? response : response.data;
                     const responseEnvelope: BridgeResponseEnvelope =
                         JSON.parse(responsePayload);
-                    const request = BridgeProxy.bridgeRequests.find(
-                        (element) =>
-                            element.requestId === responseEnvelope.requestId
-                    );
-                    if (request !== undefined) {
-                        BridgeProxy.bridgeRequests.splice(
-                            BridgeProxy.bridgeRequests.indexOf(request),
-                            1
+                    if (responseEnvelope.success) {
+                        BridgeProxy.pendingRegistry.resolve(
+                            responseEnvelope.requestId,
+                            responseEnvelope
                         );
-                        if (responseEnvelope.success) {
-                            request.resolve(responseEnvelope);
-                        } else {
-                            request.reject(responseEnvelope.error);
-                        }
+                    } else {
+                        BridgeProxy.pendingRegistry.reject(
+                            responseEnvelope.requestId,
+                            responseEnvelope.error
+                        );
                     }
                 }
             );
 
-            const bridgeResponse = await new Promise<BridgeResponseEnvelope>(
-                (resolve, reject) => {
-                    const message = BridgeProxy.buildRequest("GetInitContext");
-
-                    const request: BridgeRequest = {
-                        requestId: message.requestId,
-                        method: message.method,
-                        resolve: resolve,
-                        reject: reject,
-                    };
-                    BridgeProxy.bridgeRequests.push(request);
-                    window.nestedAppAuthBridge.postMessage(
-                        JSON.stringify(message)
-                    );
-                }
+            const bridgeResponse = await BridgeProxy.sendRequestViaRegistry(
+                BridgeProxy.buildRequest("GetInitContext")
             );
 
             return BridgeProxy.validateBridgeResultOrThrow(
@@ -169,22 +158,27 @@ export class BridgeProxy implements IBridgeProxy {
         method: BridgeMethods,
         requestParams?: Partial<BridgeRequestEnvelope>
     ): Promise<BridgeResponseEnvelope> {
-        const message = BridgeProxy.buildRequest(method, requestParams);
-
-        const promise = new Promise<BridgeResponseEnvelope>(
-            (resolve, reject) => {
-                const request: BridgeRequest = {
-                    requestId: message.requestId,
-                    method: message.method,
-                    resolve: resolve,
-                    reject: reject,
-                };
-                BridgeProxy.bridgeRequests.push(request);
-                window.nestedAppAuthBridge.postMessage(JSON.stringify(message));
-            }
+        return BridgeProxy.sendRequestViaRegistry(
+            BridgeProxy.buildRequest(method, requestParams)
         );
+    }
 
-        return promise;
+    /**
+     * Registers `message.requestId` with the shared pending-request
+     * registry, then posts the envelope over the host bridge. Resolves
+     * with the matching response envelope; rejects with the raw
+     * `BridgeError` payload.
+     */
+    private static sendRequestViaRegistry(
+        message: BridgeRequestEnvelope
+    ): Promise<BridgeResponseEnvelope> {
+        const correlationKey: IWebBrokerBridgeMessage = {
+            requestId: message.requestId,
+            type: message.method,
+        };
+        return BridgeProxy.pendingRegistry.sendAndAwait(correlationKey, () => {
+            window.nestedAppAuthBridge.postMessage(JSON.stringify(message));
+        });
     }
 
     private static validateBridgeResultOrThrow<T>(input: T | undefined): T {

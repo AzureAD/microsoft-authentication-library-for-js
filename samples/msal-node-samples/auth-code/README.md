@@ -206,11 +206,18 @@ Putting together the routing and all the logic for starting the sign in yields t
 
 ```javascript
 app.get("/", (req, res) => {
+    const cryptoProvider = new msal.CryptoProvider();
+    const nonce = cryptoProvider.createNewGuid();
+
     // You can also build the authCodeUrlParameters object directly in the JavaScript file like this
     const authCodeUrlParameters = {
         scopes: ["user.read"],
         redirectUri: "http://localhost:3000/redirect",
+        nonce,
     };
+
+    // Store the nonce with the authentication transaction for validation after the redirect.
+    req.session.nonce = nonce;
 
     clientApplication.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
         res.redirect(response);
@@ -255,6 +262,7 @@ The above JSON is the _configuration_ for the access token request. The followin
 
 ```javascript
 tokenRequest.code = "AUTH_CODE_FROM_RESPONSE";
+tokenRequest.nonce = req.session.nonce;
 
 clientApplication
     .acquireTokenByCode(tokenRequest)
@@ -276,9 +284,11 @@ app.get("/redirect", (req, res) => {
         code: req.query.code,
         scopes: ["user.read"],
         redirectUri: "http://localhost:3000/redirect",
+        // Use the same nonce that was stored before calling getAuthCodeUrl.
+        nonce: req.session.nonce,
     };
 
-    // Pass the tokenRequest object with the Auth Code, scopes and redirectUri to acquireTokenByCode API
+    // Pass the tokenRequest object with the Auth Code and original request parameters to acquireTokenByCode API
     clientApplication
         .acquireTokenByCode(tokenRequest)
         .then((response) => {

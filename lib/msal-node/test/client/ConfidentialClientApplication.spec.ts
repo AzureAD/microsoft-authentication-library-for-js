@@ -15,6 +15,7 @@ import {
     ClientAssertion,
     AccountEntityUtils,
     INetworkModule,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -52,6 +53,26 @@ import { ClientApplication } from "../../src/client/ClientApplication.js";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
 
 jest.mock("jsonwebtoken");
+
+function createIdToken(idTokenClaims: Record<string, unknown>): string {
+    return [
+        Buffer.from(JSON.stringify({ alg: "none" })).toString("base64url"),
+        Buffer.from(JSON.stringify(idTokenClaims)).toString("base64url"),
+        "signature",
+    ].join(".");
+}
+
+function createAuthCodeNetworkClient(
+    idTokenClaims: Record<string, unknown>
+): INetworkModule {
+    return mockNetworkClient(DEFAULT_OPENID_CONFIG_RESPONSE.body, {
+        ...CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
+        body: {
+            ...CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body,
+            id_token: createIdToken(idTokenClaims),
+        },
+    });
+}
 
 describe("ConfidentialClientApplication", () => {
     beforeAll(() => {
@@ -124,6 +145,72 @@ describe("ConfidentialClientApplication", () => {
                 CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
             );
             expect(acquireTokenByCodeSpy).toHaveBeenCalledTimes(1);
+        });
+
+        test("acquireTokenByAuthorizationCode validates matching request nonce", async () => {
+            const matchingConfig =
+                await ClientTestUtils.createTestConfidentialClientConfiguration(
+                    undefined,
+                    createAuthCodeNetworkClient(ID_TOKEN_CLAIMS)
+                );
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                nonce: ID_TOKEN_CLAIMS.nonce,
+            };
+            const client = new ConfidentialClientApplication(matchingConfig);
+
+            const authResult = await client.acquireTokenByCode(request);
+
+            expect(authResult.accessToken).toEqual(
+                CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+            );
+        });
+
+        test("acquireTokenByAuthorizationCode rejects mismatched request nonce", async () => {
+            const mismatchedConfig =
+                await ClientTestUtils.createTestConfidentialClientConfiguration(
+                    undefined,
+                    createAuthCodeNetworkClient(ID_TOKEN_CLAIMS)
+                );
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                nonce: "different-nonce",
+            };
+            const client = new ConfidentialClientApplication(mismatchedConfig);
+
+            await expect(
+                client.acquireTokenByCode(request)
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.nonceMismatch,
+            });
+        });
+
+        test("acquireTokenByAuthorizationCode rejects missing ID Token nonce when request nonce is provided", async () => {
+            const { nonce: _nonce, ...claimsWithoutNonce } = ID_TOKEN_CLAIMS;
+            const configWithoutNonce =
+                await ClientTestUtils.createTestConfidentialClientConfiguration(
+                    undefined,
+                    createAuthCodeNetworkClient(claimsWithoutNonce)
+                );
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                nonce: ID_TOKEN_CLAIMS.nonce,
+            };
+            const client = new ConfidentialClientApplication(
+                configWithoutNonce
+            );
+
+            await expect(
+                client.acquireTokenByCode(request)
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.nonceMismatch,
+            });
         });
 
         describe("CAE, claims and client capabilities", () => {
