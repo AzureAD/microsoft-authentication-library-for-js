@@ -3,10 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    IWebBrokerBridgeMessage,
-    IWebBrokerBridgeResponse,
-} from "./IWebBrokerBridgeMessage.js";
+import { IWebBrokerBridgeMessage } from "./IWebBrokerBridgeMessage.js";
 
 interface PendingRequest<TResp> {
     resolve: (response: TResp) => void;
@@ -20,7 +17,7 @@ export type WebBrokerBridgeSendFn<TReq extends IWebBrokerBridgeMessage> = (
 /**
  * Correlates outbound requests with inbound responses by `requestId`.
  */
-export class PendingRequestRegistry<TResp extends IWebBrokerBridgeResponse> {
+export class PendingRequestRegistry<TResp> {
     private readonly pending = new Map<string, PendingRequest<TResp>>();
 
     /**
