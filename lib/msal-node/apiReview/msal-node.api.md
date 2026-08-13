@@ -92,6 +92,7 @@ export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeReque
     scopes: Array<string>;
     redirectUri: string;
     code: string;
+    nonce?: string;
     state?: string;
 };
 
