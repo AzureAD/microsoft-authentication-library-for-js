@@ -55,10 +55,12 @@ calling out:
     rejected — which is itself informative to observe in the network trace.
 
 -   **`extraQueryParameters` from the nested app do not cross the bridge
-    (ceiling)** — `TokenRequest.extraParameters` is a `Map`, which
-    `JSON.stringify` drops when the request is relayed over `postMessage`. This
-    is an MSAL-side limitation, so a testslice (e.g. `dc=…`) set on the *nested*
-    app's request will not survive; set it on the *host* request instead.
+    (ceiling)** — MSAL converts a request's `extraQueryParameters` into
+    `TokenRequest.extraParameters`, a `Map`, before it builds the NAA message.
+    `JSON.stringify` serializes a `Map` to `{}`, so those entries are dropped
+    when the request is relayed to the host over `postMessage`. This is an
+    MSAL-side limitation, so a testslice (e.g. `dc=…`) set on the *nested* app's
+    request will not survive; set it on the *host* request instead.
 
 
 ## Structure

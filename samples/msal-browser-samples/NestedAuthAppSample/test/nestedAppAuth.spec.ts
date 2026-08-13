@@ -131,7 +131,7 @@ describe("Nested App Authentication brokered through the host app", () => {
         await client.send("Security.setIgnoreCertificateErrors", {
             ignore: true,
         });
-        hostCache = new BrowserCacheUtils(page, "localStorage");
+        hostCache = new BrowserCacheUtils(page, "sessionStorage");
     });
 
     afterEach(async () => {
@@ -183,7 +183,7 @@ describe("Nested App Authentication brokered through the host app", () => {
         await nestedCachePage.goto(`${protocol}://localhost:${nestedPort}`);
         const nestedCache = new BrowserCacheUtils(
             nestedCachePage,
-            "localStorage"
+            "sessionStorage"
         );
         await verifyNestedTokenStore(nestedCache, ["User.Read"]);
     });

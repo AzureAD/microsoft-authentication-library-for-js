@@ -6,7 +6,12 @@ export const msalConfig = {
     auth: {
         clientId: HOST_APP_CLIENT_ID,
         authority: import.meta.env.VITE_AUTHORITY,
-        redirectUri: "https://localhost:30663",
+        // Derive the redirect URI from the running origin so it stays accurate
+        // whether the host is served over http (`npm start`) or https
+        // (`npm run start:https`). The host is always served on port 30663, so
+        // this resolves to `http(s)://localhost:30663`; register both schemes
+        // (or just the one you run) as SPA redirect URIs on the host app.
+        redirectUri: window.location.origin,
     },
     cache: {
         cacheLocation: "sessionStorage",
