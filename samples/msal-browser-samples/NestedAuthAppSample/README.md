@@ -25,42 +25,23 @@ This sample demonstrates a 3P **Nested Authentication App (NAA)** brokered throu
     `createNestablePublicClientApplication()` and acquires tokens **through the
     host bridge**, never contacting the identity provider directly.
 
-## Fidelity to the NAA protocol
+## The NAA bridge
 
-This sample supplies its **own** host-side bridge
-(`hostApp/src/nestedAppAuthBridge.js`) rather than relying on a platform broker
-injecting `window.nestedAppAuthBridge`. It is faithful to the real NAA protocol
-in the ways that matter for a sample, with a couple of deliberate ceilings worth
-calling out:
+The nested app talks to the host through `window.nestedAppAuthBridge`. In a
+production NAA host (Teams, Outlook) that bridge is injected by the platform;
+in this sample the host app supplies its own implementation
+(`hostApp/src/nestedAppAuthBridge.js`).
 
--   **Message protocol** — the bridge speaks the exact NAA wire contract from
-    `lib/msal-browser/src/naa`: `NestedAppAuthRequest` / `NestedAppAuthResponse`
-    envelopes, the `GetInitContext` / `GetToken` / `GetTokenPopup` methods, and
-    the `TokenResponse` + `AccountInfo` response shape. Errors are mapped to
-    `BridgeStatusCode` values (`USER_INTERACTION_REQUIRED`, `USER_CANCEL`,
-    `NO_NETWORK`, `ACCOUNT_UNAVAILABLE`, …).
-
--   **Real brokered params (`embeddedClientId`)** — the host brokers the nested
-    app's token through its **own** MSAL instance, passing the nested app's
-    client id as MSAL's `embeddedClientId` request parameter. This makes MSAL
-    emit a genuine brokered authorize/token request: the host is the broker
-    (`brk_client_id` / `brk_redirect_uri` from the host config) and the nested
-    app is the embedded/child client (`client_id` / `child_redirect_uri`) — the
-    same mechanism a production NAA host (Teams, Outlook) uses.
-
--   **ESTS app-registration linkage is required (ceiling)** — emitting brokered
-    params is not enough for a token to be *issued*. ESTS only honors a brokered
-    request when the host (broker) and nested (child) app registrations are
-    linked / pre-authorized. Without that trust relationship the request is
-    rejected — which is itself informative to observe in the network trace.
-
--   **`extraQueryParameters` from the nested app do not cross the bridge
-    (ceiling)** — MSAL converts a request's `extraQueryParameters` into
-    `TokenRequest.extraParameters`, a `Map`, before it builds the NAA message.
-    `JSON.stringify` serializes a `Map` to `{}`, so those entries are dropped
-    when the request is relayed to the host over `postMessage`. This is an
-    MSAL-side limitation, so a testslice (e.g. `dc=…`) set on the *nested* app's
-    request will not survive; set it on the *host* request instead.
+-   **Injection** — the host installs the bridge on `window` by calling
+    `installHostNestedAppAuthBridge(hostPca, nestedOrigin, brokerExtraParams)`
+    from `hostApp/src/index.jsx` after MSAL initializes. The bridge only accepts
+    `postMessage` requests from the nested app's origin.
+-   **Usage** — the nested app creates its client with
+    `createNestablePublicClientApplication()`, which detects the bridge and
+    routes `acquireTokenSilent` / `acquireToken` calls through it. The host
+    receives those requests and brokers the token via its **own** MSAL instance,
+    passing the nested app's client id as MSAL's `embeddedClientId` request
+    parameter so the host acts as the broker.
 
 
 ## Structure
