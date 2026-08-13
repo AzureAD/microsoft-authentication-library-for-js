@@ -44,6 +44,14 @@ function isAuthorizePost(request: puppeteer.HTTPRequest): boolean {
 }
 
 /**
+ * True when a POST hit the /token endpoint. acquireTokenSilent(forceRefresh)
+ * renews the access token from the cached refresh token via this call.
+ */
+function isTokenPost(request: puppeteer.HTTPRequest): boolean {
+    return request.url().includes("/token") && request.method() === "POST";
+}
+
+/**
  * AES-GCM WebCrypto decrypt count. In the EAR sessionStorage config the only such
  * call is decryptEarResponse, so a non-zero count proves the ear_jwe was decrypted.
  */
@@ -52,6 +60,27 @@ async function getEarDecryptCount(target: puppeteer.Page): Promise<number> {
         (key) => parseInt(window.sessionStorage.getItem(key) || "0", 10),
         EAR_DECRYPT_COUNT_KEY
     );
+}
+
+/**
+ * Interactive EAR redirect login. Silent tests need a prior interactive login in
+ * the same context to seed the ESTS session and cache the EAR-issued tokens.
+ */
+async function performRedirectLogin(
+    page: puppeteer.Page,
+    screenshot: Screenshot,
+    username: string,
+    accountPwd: string
+): Promise<void> {
+    await page.locator("button#signInButton").click();
+    await page.locator("a#signInRedirect").click();
+    await screenshot.takeScreenshot(page, "Sign in redirect clicked");
+    await enterCredentials(page, screenshot, username, accountPwd);
+    await page.waitForSelector("a#viewProfileButton", {
+        visible: true,
+        timeout: 30000,
+    });
+    await screenshot.takeScreenshot(page, "Logged In");
 }
 
 describe("EAR (Encrypted Authorize Response) Tests", () => {
@@ -262,6 +291,79 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
         // MSAL decrypted the EAR response (ear_jwe) in this window.
         expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
         // Cache has Account, idToken, AccessToken, RefreshToken (RT inline via EAR).
+        await BrowserCache.verifyTokenStore({ scopes: EAR_SCOPES });
+    });
+
+    it("Performs EAR ssoSilent", async () => {
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/earSsoSilentBaseCase`
+        );
+        await screenshot.takeScreenshot(page, "Page loaded");
+
+        // Seed an interactive EAR login so ssoSilent has an ESTS session + account.
+        await performRedirectLogin(page, screenshot, username, accountPwd);
+
+        // ssoSilent runs a hidden-iframe authorize; with EAR that iframe POSTs
+        // /authorize and MSAL decrypts a fresh ear_jwe. Capture both signals.
+        let ssoAuthorizeWasPost = false;
+        page.on("request", (request) => {
+            if (isAuthorizePost(request)) {
+                ssoAuthorizeWasPost = true;
+            }
+        });
+        const decryptCountBefore = await getEarDecryptCount(page);
+
+        await page.locator("button#ssoSilentButton").click();
+        await page.waitForSelector('div#silentStatus[data-status="ssoSilent:success"]', {
+            timeout: 30000,
+        });
+        await screenshot.takeScreenshot(page, "ssoSilent completed");
+
+        // Silent EAR authorize used POST /authorize (not an auth-code GET).
+        expect(ssoAuthorizeWasPost).toBe(true);
+        // A new ear_jwe was decrypted during the silent authorize.
+        expect(await getEarDecryptCount(page)).toBeGreaterThan(decryptCountBefore);
+        // Token store still holds a full EAR token set after the silent renewal.
+        await BrowserCache.verifyTokenStore({ scopes: EAR_SCOPES });
+    });
+
+    it("Performs EAR acquireTokenSilent", async () => {
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/earAcquireTokenSilentBaseCase`
+        );
+        await screenshot.takeScreenshot(page, "Page loaded");
+
+        // Seed an interactive EAR login so the EAR-issued refresh token is cached.
+        await performRedirectLogin(page, screenshot, username, accountPwd);
+
+        // acquireTokenSilent(forceRefresh) renews the AT from the cached RT via a
+        // /token POST. It must NOT re-run the EAR /authorize flow or decrypt an
+        // ear_jwe, validating the EAR-issued RT works with the standard RT grant.
+        let tokenWasPost = false;
+        let authorizeWasPost = false;
+        page.on("request", (request) => {
+            if (isTokenPost(request)) {
+                tokenWasPost = true;
+            }
+            if (isAuthorizePost(request)) {
+                authorizeWasPost = true;
+            }
+        });
+        const decryptCountBefore = await getEarDecryptCount(page);
+
+        await page.locator("button#acquireTokenSilentButton").click();
+        await page.waitForSelector(
+            'div#silentStatus[data-status="acquireTokenSilent:success"]',
+            { timeout: 30000 }
+        );
+        await screenshot.takeScreenshot(page, "acquireTokenSilent completed");
+
+        // RT -> AT exchange happened over /token.
+        expect(tokenWasPost).toBe(true);
+        // No new EAR authorize and no new decrypt: the RT grant was used, not EAR.
+        expect(authorizeWasPost).toBe(false);
+        expect(await getEarDecryptCount(page)).toBe(decryptCountBefore);
+        // Token store still holds a full EAR token set after the silent renewal.
         await BrowserCache.verifyTokenStore({ scopes: EAR_SCOPES });
     });
 });

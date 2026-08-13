@@ -15,7 +15,13 @@
 
         <div class="btn-group">
             <a href="/profile" id="viewProfileButton" class="btn spa-link">View Your Profile</a>
+            <button id="ssoSilentButton" class="btn">SSO Silent</button>
+            <button id="acquireTokenSilentButton" class="btn">Acquire Token Silently</button>
         </div>
+
+        <!-- Result of the last silent call. data-status is read by the e2e tests
+             (e.g. ssoSilent:success, acquireTokenSilent:error). -->
+        <div id="silentStatus" data-status="" style="display: none;"></div>
     </div>
 </div>
 

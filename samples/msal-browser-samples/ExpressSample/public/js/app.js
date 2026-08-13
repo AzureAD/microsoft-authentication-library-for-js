@@ -12,6 +12,8 @@ import {
     signOutRedirect,
     handleRetry,
     handleCancelRetry,
+    ssoSilent,
+    acquireTokenSilent,
     msalInstance
 } from './auth.js';
 import { toggleDropdown, closeAllDropdowns, updateUI } from './ui.js';
@@ -96,9 +98,25 @@ function setupEventListeners() {
         });
     }
 
+    // Silent API buttons (authenticated home view)
+    const ssoSilentBtn = document.getElementById('ssoSilentButton');
+    if (ssoSilentBtn) {
+        ssoSilentBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            ssoSilent();
+        });
+    }
+
+    const acquireTokenSilentBtn = document.getElementById('acquireTokenSilentButton');
+    if (acquireTokenSilentBtn) {
+        acquireTokenSilentBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            acquireTokenSilent();
+        });
+    }
+
     // Profile page sign in buttons (may not exist on all pages)
-    const profileSignInPopupBtn = document.getElementById('profileSignInPopup');
-    const profileSignInRedirectBtn = document.getElementById('profileSignInRedirect');
+    const profileSignInPopupBtn = document.getElementById('profileSignInPopup');    const profileSignInRedirectBtn = document.getElementById('profileSignInRedirect');
 
     if (profileSignInPopupBtn) {
         profileSignInPopupBtn.addEventListener('click', function(e) {
