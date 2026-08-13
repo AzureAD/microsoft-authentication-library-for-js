@@ -1129,7 +1129,7 @@ export abstract class CacheManager implements ICacheManager {
                             .removeTokenBindingKey(kid, correlationId)
                             .catch(() => {
                                 this.commonLogger.error(
-                                    `Failed to remove token binding key '${kid}'`,
+                                    "Failed to remove token binding key",
                                     correlationId
                                 );
                                 this.performanceClient?.incrementFields(

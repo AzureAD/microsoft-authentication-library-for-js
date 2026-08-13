@@ -33,6 +33,7 @@ import {
     mockCrypto,
     mockTokenBindingKeyManager,
 } from "../client/ClientTestUtils.js";
+import { Logger } from "../../src/logger/Logger.js";
 import {
     CACHE_MOCKS,
     GUEST_ID_TOKEN_CLAIMS,
@@ -2258,6 +2259,51 @@ describe("CacheManager.ts test cases", () => {
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
         expect(removeTokenBindingKeySpy.mock.calls[0][0]).toEqual(
             atWithAuthScheme.keyId
+        );
+    });
+
+    it("does not log token binding key ID when DPoP key removal fails", async () => {
+        const atWithAuthScheme = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            TEST_DPOP_VALUES.ACCESS_TOKEN,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            "microsoft",
+            "scope1 scope2 scope3",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            TEST_CONFIG.CORRELATION_ID,
+            undefined,
+            DPOP_AUTHENTICATION_SCHEME,
+            undefined,
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            atWithAuthScheme,
+            RANDOM_TEST_GUID,
+            false
+        );
+
+        jest.spyOn(
+            mockTokenBindingKeyManager,
+            "removeTokenBindingKey"
+        ).mockRejectedValueOnce(new Error("remove failed"));
+        const loggerErrorSpy = jest.spyOn(Logger.prototype, "error");
+
+        mockCache.cacheManager.removeAccessToken(
+            generateCredentialKey(atWithAuthScheme),
+            RANDOM_TEST_GUID
+        );
+        await Promise.resolve();
+
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
+            "Failed to remove token binding key",
+            RANDOM_TEST_GUID
+        );
+        expect(loggerErrorSpy).not.toHaveBeenCalledWith(
+            expect.stringContaining(TEST_DPOP_VALUES.ACCESS_TOKEN_JKT),
+            expect.anything()
         );
     });
 
