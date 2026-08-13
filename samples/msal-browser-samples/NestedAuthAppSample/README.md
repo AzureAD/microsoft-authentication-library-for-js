@@ -5,7 +5,7 @@ This sample demonstrates a 3P **Nested Authentication App (NAA)** brokered throu
 ## Architecture
 
 ```text
- hostApp (top frame, port 30668)              nestedApp (iframe, port 30667)
+ hostApp (top frame, port 30663)              nestedApp (iframe, port 30667)
  ┌──────────────────────────────────┐         ┌──────────────────────────────┐
  │ @azure/msal-browser              │         │ @azure/msal-browser          │
  │ PublicClientApplication          │  NAA    │ createNestablePublicClient   │
@@ -24,6 +24,42 @@ This sample demonstrates a 3P **Nested Authentication App (NAA)** brokered throu
 -   **nestedApp** — the embedded child. It creates its client with
     `createNestablePublicClientApplication()` and acquires tokens **through the
     host bridge**, never contacting the identity provider directly.
+
+## Fidelity to the NAA protocol
+
+This sample supplies its **own** host-side bridge
+(`hostApp/src/nestedAppAuthBridge.js`) rather than relying on a platform broker
+injecting `window.nestedAppAuthBridge`. It is faithful to the real NAA protocol
+in the ways that matter for a sample, with a couple of deliberate ceilings worth
+calling out:
+
+-   **Message protocol** — the bridge speaks the exact NAA wire contract from
+    `lib/msal-browser/src/naa`: `NestedAppAuthRequest` / `NestedAppAuthResponse`
+    envelopes, the `GetInitContext` / `GetToken` / `GetTokenPopup` methods, and
+    the `TokenResponse` + `AccountInfo` response shape. Errors are mapped to
+    `BridgeStatusCode` values (`USER_INTERACTION_REQUIRED`, `USER_CANCEL`,
+    `NO_NETWORK`, `ACCOUNT_UNAVAILABLE`, …).
+
+-   **Real brokered params (`embeddedClientId`)** — the host brokers the nested
+    app's token through its **own** MSAL instance, passing the nested app's
+    client id as MSAL's `embeddedClientId` request parameter. This makes MSAL
+    emit a genuine brokered authorize/token request: the host is the broker
+    (`brk_client_id` / `brk_redirect_uri` from the host config) and the nested
+    app is the embedded/child client (`client_id` / `child_redirect_uri`) — the
+    same mechanism a production NAA host (Teams, Outlook) uses.
+
+-   **ESTS app-registration linkage is required (ceiling)** — emitting brokered
+    params is not enough for a token to be *issued*. ESTS only honors a brokered
+    request when the host (broker) and nested (child) app registrations are
+    linked / pre-authorized. Without that trust relationship the request is
+    rejected — which is itself informative to observe in the network trace.
+
+-   **`extraQueryParameters` from the nested app do not cross the bridge
+    (ceiling)** — `TokenRequest.extraParameters` is a `Map`, which
+    `JSON.stringify` drops when the request is relayed over `postMessage`. This
+    is an MSAL-side limitation, so a testslice (e.g. `dc=…`) set on the *nested*
+    app's request will not survive; set it on the *host* request instead.
+
 
 ## Structure
 
@@ -88,14 +124,14 @@ npm install
 # Then from this directory
 npm install
 npm run build:package   # build the in-repo @azure/msal-browser package
-npm start               # hostApp -> http://localhost:30668
+npm start               # hostApp -> http://localhost:30663
 ```
 
 To serve both apps over HTTPS with locally generated development certificates:
 
 ```bash
 npm run start:https     
-# hostApp -> https://localhost:30668
+# hostApp -> https://localhost:30663
 # nestedApp -> https://localhost:30667
 ```
 

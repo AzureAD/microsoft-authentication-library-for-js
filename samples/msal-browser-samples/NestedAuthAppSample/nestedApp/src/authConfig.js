@@ -16,7 +16,7 @@ export const msalConfig = {
         authority: TEST_TENANT_AUTHORITY,
     },
     cache: {
-        cacheLocation: "localStorage",
+        cacheLocation: "sessionStorage",
     },
     system: {
         loggerOptions: {
@@ -43,4 +43,5 @@ export const msalConfig = {
 
 export const loginRequest = {
     scopes: ["User.Read"],
+    extraQueryParameters: { dc: "ESTS-PUB-SCUS-FD000-TEST3-100" },
 };

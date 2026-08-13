@@ -6,9 +6,10 @@ export const msalConfig = {
     auth: {
         clientId: HOST_APP_CLIENT_ID,
         authority: import.meta.env.VITE_AUTHORITY,
+        redirectUri: "https://localhost:30663",
     },
     cache: {
-        cacheLocation: "localStorage",
+        cacheLocation: "sessionStorage",
     },
     system: {
         allowPlatformBroker: true,
@@ -36,6 +37,7 @@ export const msalConfig = {
 
 export const loginRequest = {
     scopes: ["User.Read"],
+    extraQueryParameters: { dc: "ESTS-PUB-SCUS-FD000-TEST3-100" },
 };
 
 // Port the nested app is served on; injected by server.js.
