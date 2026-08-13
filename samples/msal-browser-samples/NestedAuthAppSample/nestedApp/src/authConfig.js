@@ -41,7 +41,12 @@ export const msalConfig = {
     },
 };
 
+// The nested app requests tokens through the host bridge, so these extra params
+// do not themselves reach ESTS (the host applies its own `brokerExtraParams` to
+// the brokered request). They are declared here for symmetry with the host and
+// to document the intended test slice on both the authorize and token requests.
 export const loginRequest = {
     scopes: ["User.Read"],
     extraQueryParameters: { dc: "ESTS-PUB-SCUS-FD000-TEST3-100" },
+    extraParameters: { dc: "ESTS-PUB-SCUS-FD000-TEST3-100" },
 };

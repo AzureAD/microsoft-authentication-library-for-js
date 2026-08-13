@@ -101,7 +101,14 @@ function toBridgeError(error) {
  * registrations must be linked (the child app pre-authorizing the broker, or an
  * equivalent trust relationship); otherwise the request is rejected.
  */
-async function brokerToken(hostPca, tokenParams, interactive, defaultAuthority) {
+async function brokerToken(
+    hostPca,
+    tokenParams,
+    interactive,
+    defaultAuthority,
+    childRedirectUri,
+    extraParams
+) {
     const authority = tokenParams.authority || defaultAuthority;
     const scopes = (tokenParams.scope || "")
         .split(" ")
@@ -111,15 +118,23 @@ async function brokerToken(hostPca, tokenParams, interactive, defaultAuthority) 
 
     // Forward the NAA TokenRequest fields a real host honors (claims,
     // authentication scheme, and state), and broker on behalf of the nested app
-    // via `embeddedClientId`.
+    // via `embeddedClientId`. `redirectUri` is the *nested* app's registered
+    // reply URI: MSAL emits it as the child `redirect_uri` (web flow) or
+    // `child_redirect_uri` (platform-broker flow), while `brk_redirect_uri`
+    // stays the host's configured redirect. `extraQueryParameters` /
+    // `extraParameters` carry host-level params (e.g. an ESTS test slice) onto
+    // both the authorize and token requests.
     const baseRequest = {
         scopes,
         authority,
+        redirectUri: childRedirectUri,
         correlationId: tokenParams.correlationId,
         claims: tokenParams.claims || undefined,
         state: tokenParams.state || undefined,
         authenticationScheme: tokenParams.authenticationScheme || undefined,
         embeddedClientId: tokenParams.clientId,
+        extraQueryParameters: extraParams?.extraQueryParameters,
+        extraParameters: extraParams?.extraParameters,
     };
 
     if (interactive) {
@@ -149,11 +164,25 @@ async function brokerToken(hostPca, tokenParams, interactive, defaultAuthority) 
  *
  * @param {import("@azure/msal-browser").IPublicClientApplication} hostPca The host MSAL instance (its signed-in user brokers the nested tokens).
  * @param {string} nestedOrigin The exact origin of the embedded nested app (messages from any other origin are ignored).
+ * @param {{ extraQueryParameters?: Record<string,string>, extraParameters?: Record<string,string> }} [extraParams] Host-level params applied to every brokered authorize/token request (e.g. an ESTS test slice).
  */
-export function installHostNestedAppAuthBridge(hostPca, nestedOrigin) {
+export function installHostNestedAppAuthBridge(
+    hostPca,
+    nestedOrigin,
+    extraParams = {}
+) {
     // Authority used to broker tokens when a nested-app request omits one; the
     // host and nested apps share the same tenant, so reuse the host's authority.
     const defaultAuthority = hostPca.getConfiguration().auth.authority;
+
+    // The nested app's registered reply URI. NAA nested apps register their SPA
+    // redirect under the multi-hub scheme (`brk-multihub://<host>[:<port>]`), so
+    // the brokered request carries the child's real redirect_uri rather than the
+    // host's. See the "Registering the apps for NAA" section of the README.
+    const childRedirectUri = nestedOrigin.replace(
+        /^https?:\/\//i,
+        "brk-multihub://"
+    );
 
     window.addEventListener("message", async (event) => {
         if (event.origin !== nestedOrigin) {
@@ -193,7 +222,9 @@ export function installHostNestedAppAuthBridge(hostPca, nestedOrigin) {
                         hostPca,
                         request.tokenParams || {},
                         request.method === "GetTokenPopup",
-                        defaultAuthority
+                        defaultAuthority,
+                        childRedirectUri,
+                        extraParams
                     );
                     post(toNaaAuthResult(result));
                     break;
