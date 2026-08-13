@@ -3,10 +3,8 @@
  * See LICENSE in the source repository root for complete license information.
  */
 
-// Separate EAR (Encrypted Authorize Response) flow configuration. Kept apart
-// from the default sample config so the EAR test-app credentials and settings
-// live in one place. These values are only applied when the sample is loaded
-// with ?ear=true (see authConfig.js) and otherwise have no effect.
+// Separate EAR (Encrypted Authorize Response) config, applied only with ?ear=true
+// (see authConfig.js). Keeps EAR test-app credentials in one place.
 export const earConfig = {
     auth: {
         clientId: "9f33d0de-fdfd-431b-a565-af47c697a4c4",
@@ -26,7 +24,7 @@ export const earConfig = {
     },
 };
 
-// Returns true when the current page was loaded with the ?ear=true query string.
+// True when the page was loaded with ?ear=true.
 export function isEarEnabled() {
     return new URLSearchParams(window.location.search).get("ear") === "true";
 }

@@ -407,16 +407,13 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Serve over HTTPS when HTTPS=true (used by the e2e harness). A secure origin is
-// required for platform-broker / WAM extension scenarios, which only inject on
-// https origins. Manual `npm start` stays on http unless HTTPS=true is set.
+// Serve over HTTPS when HTTPS=true (e2e harness). Secure origin needed for
+// platform-broker/WAM injection. Manual `npm start` stays http.
 if (process.env.HTTPS === 'true') {
     const https = require('https');
-    // Generate a throwaway self-signed localhost certificate in-memory so no
-    // private key is ever written to disk or committed to the repo.
+    // Throwaway in-memory self-signed cert; nothing written to disk.
     const selfsigned = require('selfsigned');
-    // selfsigned v5 returns a Promise from generate(); older 2.x returns the
-    // pems object synchronously. Promise.resolve() handles both.
+    // selfsigned v5 generate() returns a Promise (v2 was sync); handle both.
     Promise.resolve(
         selfsigned.generate(
             [{ name: 'commonName', value: 'localhost' }],

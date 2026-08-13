@@ -12,54 +12,40 @@ import {
     BrowserCacheUtils,
 } from "e2e-test-utils";
 
-// serverUtils is a plain CommonJS helper (not a package export), so require it
-// by relative path.
+// CommonJS helper, not a package export -> require by relative path.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serverUtils = require("../../../e2eTestUtils/jest-puppeteer-utils/serverUtils");
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/browserEAR`;
 
-// The EAR e2e runs on its own isolated HTTPS server + browser (Approach B). A
-// secure origin is required for upcoming platform-broker / WAM extension
-// scenarios, which only inject on https origins. The rest of the ExpressSample
-// e2e (started by the shared jest harness on port 3000) stays on http, so this
-// spec spins up its own dedicated https server and cert-tolerant browser rather
-// than touching the shared puppeteer environment.
+// Approach B: EAR runs on its own isolated HTTPS server + cert-tolerant browser.
+// https is required for future platform-broker/WAM injection. The shared jest
+// harness (http, port 3000) is left untouched.
 const EAR_PORT = 3443;
-// env-cmd loads .env.ear.e2e (HTTPS=true, PORT=3443, EAR app config); server.js
-// then generates an in-memory self-signed localhost cert for the https origin.
+// env-cmd loads .env.ear.e2e (HTTPS=true, PORT=3443, EAR config); server.js makes
+// an in-memory self-signed cert.
 const EAR_START_CMD = "env-cmd -f .env.ear.e2e npm start";
 const EXPRESS_SAMPLE_ROOT = path.join(__dirname, "..");
 
-// These mirror the separate EAR flow config in public/js/earConfig.js. The
-// ?ear=true toggle (see public/js/authConfig.js) applies that config and forces
-// system.protocolMode = "EAR" so the sample exercises the Encrypted Authorize
-// Response flow.
+// Mirrors public/js/earConfig.js; ?ear=true applies it and forces protocolMode "EAR".
 const EAR_QUERY_STRING = "?ear=true";
 const EAR_CACHE_LOCATION = "sessionStorage";
 const EAR_SCOPES = ["User.Read"];
 const EAR_ORIGIN = `https://localhost:${EAR_PORT}`;
-// sessionStorage key used by the WebCrypto decrypt spy (installed per-document in
-// beforeEach). sessionStorage survives the same-origin redirect round-trip to
-// ESTS and back, so the count is readable after both the popup and redirect
-// flows complete.
+// sessionStorage key for the decrypt spy count; survives the redirect round-trip.
 const EAR_DECRYPT_COUNT_KEY = "__earDecryptCount";
 
 /**
- * Returns true when a request to the /authorize endpoint used HTTP POST. EAR
- * forces the /authorize request to be a POST form (the encrypted JWK travels in
- * the body), so this is the distinguishing signal of an EAR flow versus the
- * default auth-code GET navigation.
+ * True when the /authorize request used POST. EAR posts the encrypted JWK in the
+ * body, so this distinguishes EAR from the default auth-code GET.
  */
 function isAuthorizePost(request: puppeteer.HTTPRequest): boolean {
     return request.url().includes("/authorize") && request.method() === "POST";
 }
 
 /**
- * Reads how many times MSAL invoked an AES-GCM WebCrypto decrypt in the sample
- * origin. In the EAR sessionStorage config the only AES-GCM subtle.decrypt call
- * is decryptEarResponse, so a non-zero count proves MSAL decrypted the ear_jwe
- * response rather than falling back to a non-EAR auth-code flow.
+ * AES-GCM WebCrypto decrypt count. In the EAR sessionStorage config the only such
+ * call is decryptEarResponse, so a non-zero count proves the ear_jwe was decrypted.
  */
 async function getEarDecryptCount(target: puppeteer.Page): Promise<number> {
     return target.evaluate(
@@ -78,15 +64,11 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
     let earServerProcess: ChildProcess;
 
     beforeAll(async () => {
-        // Approach B: start a dedicated HTTPS server for the EAR flow and launch
-        // our own browser that tolerates the in-memory self-signed cert. This
-        // keeps the shared jest-puppeteer harness (http, port 3000) untouched.
-        //
-        // Spawn the server directly with stdio "ignore" rather than via
-        // serverUtils.startServer: that helper attaches stdout/stderr/close
-        // console handlers which, when the server is killed in afterAll, log
-        // after the suite has torn down ("Cannot log after tests are done") and
-        // make jest exit non-zero even though every test passed.
+        // Start a dedicated HTTPS server for EAR and a cert-tolerant browser,
+        // leaving the shared http harness (port 3000) untouched. Spawn directly
+        // with stdio "ignore" instead of serverUtils.startServer: that helper's
+        // stdout/stderr/close handlers log after teardown ("Cannot log after
+        // tests are done") and make jest exit non-zero despite passing tests.
         earServerProcess = spawn(EAR_START_CMD, {
             shell: true,
             cwd: EXPRESS_SAMPLE_ROOT,
@@ -101,7 +83,7 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
 
         browser = await puppeteer.launch({
             headless: true,
-            acceptInsecureCerts: true, // trust the in-memory self-signed localhost cert
+            acceptInsecureCerts: true, // trust in-memory self-signed cert
             timeout: 60000,
         });
 
@@ -123,8 +105,8 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
 
     afterAll(async () => {
         await browser.close();
-        // Kill the node process listening on the EAR port, then wait for the
-        // spawned wrapper to exit so no async output races jest teardown.
+        // Kill the EAR server, then await the wrapper exit so no async output
+        // races jest teardown.
         await serverUtils.killServer(EAR_PORT);
         await new Promise<void>((resolve) => {
             if (!earServerProcess || earServerProcess.exitCode !== null) {
@@ -143,10 +125,9 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
         page = await context.newPage();
         BrowserCache = new BrowserCacheUtils(page, EAR_CACHE_LOCATION);
         // Install a WebCrypto decrypt spy on every same-origin document before
-        // navigating. evaluateOnNewDocument re-applies on each navigation (so it
-        // survives the redirect round-trip to ESTS and back), the origin guard
-        // keeps it off the ESTS pages, and the count is persisted in
-        // sessionStorage so it can be read after the flow completes.
+        // navigating. evaluateOnNewDocument re-applies across the redirect
+        // round-trip, the origin guard keeps it off ESTS, and the count is kept
+        // in sessionStorage to read after the flow.
         await page.evaluateOnNewDocument(
             (config: { origin: string; key: string }) => {
                 try {
@@ -183,13 +164,13 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
                                     String(next)
                                 );
                             } catch (e) {
-                                // ignore storage access issues
+                                // ignore storage errors
                             }
                         }
                         return realDecrypt(algorithm, key, data);
                     };
                 } catch (e) {
-                    // best-effort spy: must never break the auth flow
+                    // best-effort spy: never break the auth flow
                 }
             },
             { origin: EAR_ORIGIN, key: EAR_DECRYPT_COUNT_KEY }
@@ -212,8 +193,7 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
         );
         await screenshot.takeScreenshot(page, "Page loaded");
 
-        // EAR forces the /authorize request to be a POST form. Capture the
-        // method to assert the encrypted-response protocol was actually used.
+        // EAR posts /authorize; capture the method to assert the protocol.
         let authorizeWasPost = false;
         page.on("request", (request) => {
             if (isAuthorizePost(request)) {
@@ -227,8 +207,7 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
 
         await enterCredentials(page, screenshot, username, accountPwd);
 
-        // The auth-required home content (and its profile button) is only made
-        // visible once login completes, so this is a reliable "logged in" signal.
+        // Profile button only shows once login completes -> reliable signal.
         await page.waitForSelector("a#viewProfileButton", {
             visible: true,
             timeout: 30000,
@@ -236,11 +215,9 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
         await screenshot.takeScreenshot(page, "Logged In");
 
         expect(authorizeWasPost).toBe(true);
-        // Assert MSAL actually decrypted the EAR response (ear_jwe) rather than
-        // falling back to a non-EAR auth-code flow.
+        // MSAL decrypted the EAR response (ear_jwe), not an auth-code fallback.
         expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
-        // Verify browser cache contains Account, idToken, AccessToken and
-        // RefreshToken (EAR delivers the RefreshToken inline in the response).
+        // Cache has Account, idToken, AccessToken, RefreshToken (RT inline via EAR).
         await BrowserCache.verifyTokenStore({ scopes: EAR_SCOPES });
     });
 
@@ -263,10 +240,8 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
             throw new Error("Popup window was not opened");
         }
 
-        // EAR forces the /authorize request to be a POST form. In the popup flow
-        // that request is issued by the popup window, so listen there. Attach
-        // the listener as soon as the popup exists, before credentials are
-        // entered, so the /authorize navigation is captured.
+        // EAR posts /authorize from the popup window, so listen there. Attach
+        // before entering credentials so the navigation is captured.
         let authorizeWasPost = false;
         popupPage.on("request", (request) => {
             if (isAuthorizePost(request)) {
@@ -282,14 +257,11 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
         });
         await screenshot.takeScreenshot(page, "Logged In");
 
-        // Assert the popup actually used the Encrypted Authorize Response flow
-        // (POST /authorize), not the default auth-code GET navigation.
+        // POST /authorize -> EAR flow was used, not auth-code GET.
         expect(authorizeWasPost).toBe(true);
-        // Assert MSAL actually decrypted the EAR response (ear_jwe) in this
-        // window rather than falling back to a non-EAR auth-code flow.
+        // MSAL decrypted the EAR response (ear_jwe) in this window.
         expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
-        // Verify browser cache contains Account, idToken, AccessToken and
-        // RefreshToken (EAR delivers the RefreshToken inline in the response).
+        // Cache has Account, idToken, AccessToken, RefreshToken (RT inline via EAR).
         await BrowserCache.verifyTokenStore({ scopes: EAR_SCOPES });
     });
 });

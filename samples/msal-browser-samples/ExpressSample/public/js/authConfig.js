@@ -45,9 +45,7 @@ export function createMsalConfig() {
         }
     };
 
-    // EAR (Encrypted Authorize Response) toggle. When the sample is loaded with
-    // ?ear=true, apply the separate EAR flow config (see earConfig.js) and force
-    // the EAR protocol mode so the sample exercises the encrypted-response flow.
+    // ?ear=true -> apply EAR flow config (earConfig.js) and force EAR protocol.
     if (isEarEnabled()) {
         msalConfig.auth.clientId = earConfig.auth.clientId;
         msalConfig.auth.authority = earConfig.auth.authority;
