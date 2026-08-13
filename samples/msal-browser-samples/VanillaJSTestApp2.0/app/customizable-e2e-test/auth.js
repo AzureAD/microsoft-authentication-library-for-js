@@ -2,24 +2,12 @@
 // configuration parameters are located at authConfig.js
 let myMSALObj, requestConfig, tenantConfig, signInType;
 
-// EAR (Encrypted Authorize Response) toggle. When the sample is loaded with
-// ?ear=true, force the EAR protocol mode on top of whatever testConfig.json
-// provides.
-const EAR_ENABLED =
-    new URLSearchParams(window.location.search).get("ear") === "true";
-
 initializeMsal();
 
 async function initializeMsal() {
     return fetch("testConfig.json").then(response => {
         return response.json();
     }).then((authConfig) => {
-        if (EAR_ENABLED) {
-            authConfig.msalConfig.system = {
-                ...authConfig.msalConfig.system,
-                protocolMode: msal.ProtocolMode.EAR,
-            };
-        }
         myMSALObj = new msal.PublicClientApplication(authConfig.msalConfig);
         window.msalApp = myMSALObj;
         requestConfig = authConfig.request;

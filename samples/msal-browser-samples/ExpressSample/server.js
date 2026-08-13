@@ -407,7 +407,47 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`Express server listening on port ${PORT}`);
-    console.log(`Navigate to http://localhost:${PORT}`);
-});
+// Serve over HTTPS when HTTPS=true (used by the e2e harness). A secure origin is
+// required for platform-broker / WAM extension scenarios, which only inject on
+// https origins. Manual `npm start` stays on http unless HTTPS=true is set.
+if (process.env.HTTPS === 'true') {
+    const https = require('https');
+    // Generate a throwaway self-signed localhost certificate in-memory so no
+    // private key is ever written to disk or committed to the repo.
+    const selfsigned = require('selfsigned');
+    // selfsigned v5 returns a Promise from generate(); older 2.x returns the
+    // pems object synchronously. Promise.resolve() handles both.
+    Promise.resolve(
+        selfsigned.generate(
+            [{ name: 'commonName', value: 'localhost' }],
+            {
+                days: 1,
+                keySize: 2048,
+                algorithm: 'sha256',
+                extensions: [
+                    {
+                        name: 'subjectAltName',
+                        altNames: [
+                            { type: 2, value: 'localhost' },
+                            { type: 7, ip: '127.0.0.1' },
+                        ],
+                    },
+                ],
+            }
+        )
+    ).then((pems) => {
+        https
+            .createServer({ key: pems.private, cert: pems.cert }, app)
+            .listen(PORT, () => {
+                console.log(
+                    `Express server listening on port ${PORT} (HTTPS)`
+                );
+                console.log(`Navigate to https://localhost:${PORT}`);
+            });
+    });
+} else {
+    app.listen(PORT, () => {
+        console.log(`Express server listening on port ${PORT}`);
+        console.log(`Navigate to http://localhost:${PORT}`);
+    });
+}
