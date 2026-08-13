@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786559477800,
+  "lastUpdate": 1786580114547,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22859,6 +22859,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.65%",
             "unit": "ops/sec",
             "extra": "226 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "904959f0f6be7ef57b9b89dc926497e5ce49124c",
+          "message": "Add authorization code nonce validation (#8763)\n\n## Summary\n- add nonce to authorization code token requests\n- validate the returned ID Token nonce using the existing\nresponse-handler validation\n- preserve the legacy authorization response payload behavior and\ndocument nonce persistence across redirects\n\n## Testing\n- msal-common and msal-node builds\n- msal-node lint and formatting checks\n- API Extractor\n- targeted public and confidential client tests\n\n---------\n\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>\nCopilot-Session: 06136601-7c55-448a-8a6b-e8625db27eac",
+          "timestamp": "2026-08-12T17:06:28-07:00",
+          "tree_id": "98fd01c1459eee7c0534cfdbc27bba7dc8718a89",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/904959f0f6be7ef57b9b89dc926497e5ce49124c"
+        },
+        "date": 1786580110789,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 356756,
+            "range": "±0.71%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 353755,
+            "range": "±0.72%",
+            "unit": "ops/sec",
+            "extra": "216 samples"
           }
         ]
       }
