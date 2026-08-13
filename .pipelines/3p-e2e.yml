@@ -94,6 +94,7 @@ extends:
                               dir: "ExpressSample"
                               testFilter: "dpop\\.spec"
                             - name: "NativeAuthSample"
+                            # - name: "NestedAuthAppSample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}

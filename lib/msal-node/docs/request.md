@@ -6,7 +6,7 @@ Since MSAL Node supports various authorization code grants, there is support for
 
 ### acquireTokenInteractive
 
-[acquireTokenInteractive()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.PublicClientApplication.html#acquireTokenInteractive): This API handles both legs of the authorization code flow. It is available for PublicClientApplication only. The request type is documented here: [InteractiveRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_node.InteractiveRequest.html). The only required parameter is a `openBrowser` callback which should accept a `url` parameter and open the browser of choice to complete the sign-in. A sample demonstrating its usage can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-cli-app)
+[acquireTokenInteractive()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.PublicClientApplication.html#acquireTokenInteractive): This API handles both legs of the authorization code flow. It is available for PublicClientApplication only. The request type is documented here: [InteractiveRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_node.InteractiveRequest.html). The only required parameter is an `openBrowser` callback which should accept a `url` parameter and open the browser of choice to complete the sign-in. When a nonce is included in the request, MSAL carries the same value into the token exchange and validates it against the ID Token nonce claim. A sample demonstrating its usage can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-cli-app)
 
 ```javascript
 import { PublicClientApplication }  from "@azure/msal-node";
@@ -46,10 +46,21 @@ pca.acquireTokenInteractive(loginRequest).then((response) => {
 getAuthCodeUrl returns a url that can be used to generate an `authorization code`. This URL can be opened in a browser of choice, where the user can input their credentials, and will be redirected back to the `redirectUri` (registered during the [app registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-desktop-app-registration)) with an `authorization code`. The `authorization code` can now be redeemed for a `token` using acquireTokenByCode, documented below. Note that if authorization code flow is being done for a public client application, we recommend using `acquireTokenInteractive` documented above, otherwise the use of [PKCE](https://tools.ietf.org/html/rfc7636) is recommended.
 
 ```javascript
+import {
+    ConfidentialClientApplication,
+    CryptoProvider,
+} from "@azure/msal-node";
+
+const cryptoProvider = new CryptoProvider();
 const authCodeUrlParameters = {
     scopes: ["sample_scope"],
     redirectUri: "your_redirect_uri",
+    nonce: cryptoProvider.createNewGuid(),
 };
+
+// Store the nonce with the authentication transaction so the same value can
+// be provided to acquireTokenByCode after the redirect.
+req.session.nonce = authCodeUrlParameters.nonce;
 
 const cca = new ConfidentialClientApplication({
     auth: { 
@@ -67,7 +78,7 @@ cca.getAuthCodeUrl(authCodeUrlParameters)
 
 ## acquireTokenByCode
 
-[acquireTokenByCode()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_node.IConfidentialClientApplication.html#acquireTokenByCode): This API is the second leg of the authorization code flow. The request is of the type [AuthorizationCodeRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_node.AuthorizationCodeRequest.html). The application should have received an `authorization code` as a part of the above step and can now exchange it for a `token`. Note that if authorization code flow is being done for a public client application, we recommend using `acquireTokenInteractive` documented above, otherwise the use of [PKCE](https://tools.ietf.org/html/rfc7636) is recommended.
+[acquireTokenByCode()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_node.IConfidentialClientApplication.html#acquireTokenByCode): This API is the second leg of the authorization code flow. The request is of the type [AuthorizationCodeRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_node.AuthorizationCodeRequest.html). The application should have received an `authorization code` as a part of the above step and can now exchange it for a `token`. If a nonce was sent in the authorization request, the same stored nonce must be provided on `AuthorizationCodeRequest`; do not generate a new nonce for the token exchange. MSAL validates that the ID Token contains a matching nonce claim. Note that if authorization code flow is being done for a public client application, we recommend using `acquireTokenInteractive` documented above, otherwise the use of [PKCE](https://tools.ietf.org/html/rfc7636) is recommended.
 
 
 ```javascript
@@ -75,6 +86,7 @@ const tokenRequest = {
     code: "authorization_code",
     redirectUri: "your_redirect_uri",
     scopes: ["sample_scope"],
+    nonce: req.session.nonce,
 };
 
 const cca = new ConfidentialClientApplication({
