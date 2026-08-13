@@ -7,6 +7,8 @@ import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity.js";
+import { CacheRecord } from "../../src/cache/entities/CacheRecord.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
 import {
     AuthError,
@@ -33,7 +35,10 @@ import {
 } from "../../src/response/ResponseHandler.js";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse.js";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
-import { AuthenticationScheme } from "../../src/utils/Constants.js";
+import {
+    AuthenticationScheme,
+    CredentialType,
+} from "../../src/utils/Constants.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import {
     mockCrypto,
@@ -771,6 +776,61 @@ describe("ResponseHandler.ts", () => {
             expect(result.tokenType).toBe(AuthenticationScheme.DPOP);
             expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(result.dpopProof).toBe("fresh-dpop-proof");
+            expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
+            expect(signSpy).toHaveBeenCalled();
+        });
+
+        it("returns fresh proof for lowercase cached DPoP access token", async () => {
+            const hashSpy = jest
+                .spyOn(cryptoInterface, "hashString")
+                .mockResolvedValue(TEST_DPOP_VALUES.ACCESS_TOKEN_ATH);
+            const signSpy = jest
+                .spyOn(cryptoInterface, "signTokenBindingJwt")
+                .mockResolvedValue("cached-dpop-proof");
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                authenticationScheme: AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+            const dpopAccessToken: AccessTokenEntity = {
+                homeAccountId: testAccount.homeAccountId,
+                environment: testAccount.environment,
+                credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                clientId: "this-is-a-client-id",
+                secret: TEST_DPOP_VALUES.ACCESS_TOKEN,
+                realm: testAccount.tenantId,
+                target: testRequest.scopes.join(" "),
+                cachedAt: TimeUtils.nowSeconds().toString(),
+                expiresOn: (TimeUtils.nowSeconds() + 3600).toString(),
+                tokenType:
+                    AuthenticationScheme.DPOP.toLowerCase() as AuthenticationScheme,
+                keyId: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                lastUpdatedAt: TimeUtils.nowSeconds().toString(),
+            };
+            const cacheRecord: CacheRecord = {
+                accessToken: dpopAccessToken,
+            };
+
+            const result = await ResponseHandler.generateAuthenticationResult(
+                cryptoInterface,
+                testAuthority,
+                cacheRecord,
+                true,
+                testRequest,
+                stubPerformanceClient,
+                {
+                    idTokenClaims: ID_TOKEN_CLAIMS as TokenClaims,
+                    tokenBindingKeyManager: mockTokenBindingKeyManager,
+                }
+            );
+
+            expect(result.tokenType).toBe(AuthenticationScheme.DPOP);
+            expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
+            expect(result.dpopProof).toBe("cached-dpop-proof");
             expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(signSpy).toHaveBeenCalled();
         });

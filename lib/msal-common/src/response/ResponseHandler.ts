@@ -598,6 +598,8 @@ export class ResponseHandler {
         let dpopProof: string | undefined;
 
         if (cacheRecord.accessToken) {
+            const accessTokenType =
+                cacheRecord.accessToken.tokenType?.toLowerCase();
             /*
              * if the request object has `popKid` property, `signPopToken` will be set to false and
              * the token will be returned unsigned
@@ -631,8 +633,8 @@ export class ResponseHandler {
                 accessToken = cacheRecord.accessToken.secret;
             }
             if (
-                cacheRecord.accessToken.tokenType ===
-                Constants.AuthenticationScheme.DPOP
+                accessTokenType ===
+                Constants.AuthenticationScheme.DPOP.toLowerCase()
             ) {
                 if (!cacheRecord.accessToken.keyId) {
                     throw createClientAuthError(
@@ -726,8 +728,8 @@ export class ResponseHandler {
             requestId: requestId || "",
             familyId: familyId,
             tokenType:
-                cacheRecord.accessToken?.tokenType ===
-                Constants.AuthenticationScheme.DPOP
+                cacheRecord.accessToken?.tokenType?.toLowerCase() ===
+                Constants.AuthenticationScheme.DPOP.toLowerCase()
                     ? Constants.AuthenticationScheme.DPOP
                     : cacheRecord.accessToken?.tokenType || "",
             state: requestState ? requestState.userRequestState : "",

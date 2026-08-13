@@ -963,7 +963,7 @@ describe("SilentFlowClient unit tests", () => {
             );
         });
 
-        it("acquireCachedToken treats missing local DPoP key as cache miss", async () => {
+        it("acquireCachedToken treats missing local lowercase DPoP key as cache miss", async () => {
             jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(false);
             jest.spyOn(
                 CacheManager.prototype,
@@ -971,7 +971,8 @@ describe("SilentFlowClient unit tests", () => {
             ).mockReturnValue({
                 ...testAccessTokenEntity,
                 credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-                tokenType: AuthenticationScheme.DPOP,
+                tokenType:
+                    AuthenticationScheme.DPOP.toLowerCase() as AuthenticationScheme,
                 secret: TEST_DPOP_VALUES.ACCESS_TOKEN,
                 keyId: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
             });

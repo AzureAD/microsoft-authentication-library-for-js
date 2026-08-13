@@ -181,7 +181,9 @@ export class SilentFlowClient {
             // don't throw ClientAuthError.createRefreshRequiredError(), return cached token instead
         }
 
-        if (cachedAccessToken.tokenType === AuthenticationScheme.DPOP) {
+        const cachedAccessTokenType =
+            cachedAccessToken.tokenType?.toLowerCase();
+        if (cachedAccessTokenType === AuthenticationScheme.DPOP.toLowerCase()) {
             if (!cachedAccessToken.keyId) {
                 this.logger.info(
                     "SilentFlowClient:acquireCachedToken - Cached DPoP access token is missing keyId; refresh required",
