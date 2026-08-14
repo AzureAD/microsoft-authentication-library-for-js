@@ -42,3 +42,14 @@ export type SignUpV2Inputs = CustomAuthActionInputs & {
     password?: string;
     attributes?: UserAccountAttributes;
 };
+
+/**
+ * Inputs for signing the user in after a V2 password reset completes. The
+ * continuation that identifies the just-reset user is held by the
+ * `SignInAfterResetPasswordState`, so only the optional `scopes` and `claims`
+ * requested for the issued token are supplied here.
+ */
+export type SignInAfterResetPasswordInputs = CustomAuthActionInputs & {
+    scopes?: Array<string>;
+    claims?: string;
+};

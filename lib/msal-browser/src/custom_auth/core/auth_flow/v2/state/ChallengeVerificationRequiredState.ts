@@ -44,7 +44,7 @@ export class ChallengeVerificationRequiredState extends AuthFlowActionRequiredSt
      * @param code - The code to verify.
      * @returns The result of verifying the challenge.
      */
-    verifyChallenge(code: string): Promise<VerifyChallengeResult> {
+    async verifyChallenge(code: string): Promise<VerifyChallengeResult> {
         void code;
         throw new MethodNotImplementedError(
             "ChallengeVerificationRequiredState.verifyChallenge"
@@ -57,7 +57,7 @@ export class ChallengeVerificationRequiredState extends AuthFlowActionRequiredSt
      * challenge-verification state with a freshly issued code.
      * @returns The result of requesting a new challenge.
      */
-    requestNewChallenge(): Promise<RequestChallengeResult> {
+    async requestNewChallenge(): Promise<RequestChallengeResult> {
         throw new MethodNotImplementedError(
             "ChallengeVerificationRequiredState.requestNewChallenge"
         );

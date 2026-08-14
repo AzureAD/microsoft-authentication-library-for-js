@@ -21,3 +21,14 @@ export interface ChallengeVerificationRequiredStateParameters
 
 export type NewPasswordRequiredStateParameters =
     AuthFlowActionRequiredStateParameters;
+
+/**
+ * Parameters for the sign-in-after-reset-password state. Carries the reset-flow
+ * `continuationToken` (inherited from the base) that authorizes the follow-up
+ * sign-in, plus the `username` of the just-reset account so the issued tokens
+ * are associated with the right user.
+ */
+export interface SignInAfterResetPasswordStateParameters
+    extends AuthFlowActionRequiredStateParameters {
+    username?: string;
+}

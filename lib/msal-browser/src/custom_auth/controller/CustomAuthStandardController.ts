@@ -585,7 +585,7 @@ export class CustomAuthStandardController
         }
     }
 
-    resetPasswordV2(
+    async resetPasswordV2(
         inputs: ResetPasswordV2Inputs
     ): Promise<ResetPasswordStartV2Result> {
         void inputs;

@@ -262,9 +262,9 @@ describe("CustomAuthPublicClientApplication", () => {
             ] as CustomAuthStandardController;
 
             try {
-                expect(() =>
+                await expect(
                     app.resetPasswordV2({ username: "testuser" })
-                ).toThrow(MethodNotImplementedError);
+                ).rejects.toThrow(MethodNotImplementedError);
             } finally {
                 controller["eventHandler"]["broadcastChannel"]?.close();
             }

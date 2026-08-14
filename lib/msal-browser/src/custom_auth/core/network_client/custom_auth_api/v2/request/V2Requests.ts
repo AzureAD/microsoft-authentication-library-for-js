@@ -65,12 +65,15 @@ export interface AuthorizeChallengeContinueRequest {
 
 /*
  * Step 8 token exchange (POST /oauth2/v2.0/token). Redeems the authorization `code` for
- * tokens. OAuth form-encoded, so it carries `client_id` (via V2OAuthFormRequest). `claims` is
- * an optional app-provided OAuth claims-request JSON string.
+ * tokens. OAuth form-encoded, so it carries `client_id` (via V2OAuthFormRequest). `client_info`
+ * is required so the server returns the `client_info` blob (base64 `{uid, utid}`) that MSAL needs
+ * to build the account's home id; `claims` is an optional app-provided OAuth claims-request JSON
+ * string.
  */
 export interface V2TokenRequest extends V2OAuthFormRequest {
     grant_type: string;
     code: string;
+    client_info: string;
     scope?: string;
     claims?: string;
 }

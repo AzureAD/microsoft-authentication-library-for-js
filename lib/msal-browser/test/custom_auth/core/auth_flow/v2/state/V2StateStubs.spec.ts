@@ -8,6 +8,7 @@ import { MethodNotImplementedError } from "../../../../../../src/custom_auth/cor
 import { AuthenticationMethodSelectionRequiredState } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
 import { ChallengeVerificationRequiredState } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredState.js";
 import { NewPasswordRequiredState } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/NewPasswordRequiredState.js";
+import { SignInAfterResetPasswordState } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/SignInAfterResetPasswordState.js";
 import { AuthenticationMethodV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/AuthenticationMethodV2.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
@@ -23,7 +24,7 @@ describe("Native auth V2 action-required state stubs", () => {
         type: "email",
     };
 
-    it("AuthenticationMethodSelectionRequiredState.requestChallenge throws MethodNotImplementedError", () => {
+    it("AuthenticationMethodSelectionRequiredState.requestChallenge rejects with MethodNotImplementedError", async () => {
         const state = new AuthenticationMethodSelectionRequiredState({
             correlationId,
             logger: getDefaultLogger(),
@@ -31,12 +32,12 @@ describe("Native auth V2 action-required state stubs", () => {
             methods: [method],
         });
 
-        expect(() => state.requestChallenge("email")).toThrow(
+        await expect(state.requestChallenge("email")).rejects.toThrow(
             MethodNotImplementedError
         );
     });
 
-    it("ChallengeVerificationRequiredState.verifyChallenge / requestNewChallenge throw MethodNotImplementedError", () => {
+    it("ChallengeVerificationRequiredState.verifyChallenge / requestNewChallenge reject with MethodNotImplementedError", async () => {
         const state = new ChallengeVerificationRequiredState({
             correlationId,
             logger: getDefaultLogger(),
@@ -44,23 +45,35 @@ describe("Native auth V2 action-required state stubs", () => {
             method,
         });
 
-        expect(() => state.verifyChallenge("12345678")).toThrow(
+        await expect(state.verifyChallenge("12345678")).rejects.toThrow(
             MethodNotImplementedError
         );
-        expect(() => state.requestNewChallenge()).toThrow(
+        await expect(state.requestNewChallenge()).rejects.toThrow(
             MethodNotImplementedError
         );
     });
 
-    it("NewPasswordRequiredState.submitNewPassword throws MethodNotImplementedError", () => {
+    it("NewPasswordRequiredState.submitNewPassword rejects with MethodNotImplementedError", async () => {
         const state = new NewPasswordRequiredState({
             correlationId,
             logger: getDefaultLogger(),
             config: mockConfig,
         });
 
-        expect(() => state.submitNewPassword("new-password")).toThrow(
+        await expect(state.submitNewPassword("new-password")).rejects.toThrow(
             MethodNotImplementedError
         );
+    });
+
+    it("SignInAfterResetPasswordState.signIn rejects with MethodNotImplementedError", async () => {
+        const state = new SignInAfterResetPasswordState({
+            correlationId,
+            logger: getDefaultLogger(),
+            config: mockConfig,
+            continuationToken: "continuation-token",
+            username: "user@contoso.com",
+        });
+
+        await expect(state.signIn()).rejects.toThrow(MethodNotImplementedError);
     });
 });

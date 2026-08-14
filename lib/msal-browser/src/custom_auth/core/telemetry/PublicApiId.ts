@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { CustomAuthV2FlowScenario } from "../auth_flow/CustomAuthV2FlowScenario.js";
+
 /*
  * The public API ids should be claim in the MSAL telemtry tracker.
  * All the following ids are hardcoded; so we need to find a way to claim them in the future and update them here.
@@ -43,3 +45,41 @@ export const JIT_SUBMIT_CHALLENGE = 100082;
 // MFA
 export const MFA_REQUEST_CHALLENGE = 100101;
 export const MFA_SUBMIT_CHALLENGE = 100102;
+
+/*
+ * Native Auth V2 (server-driven HAL flows). Dedicated ids so V2 telemetry is distinguishable from
+ * the V1 flows above, mirroring iOS which added a separate V2 range (telemetryApiIdV2ResetPassword*
+ * = 76010/76013/76015/76020). Values are placeholders in the JS 100xxx space pending central
+ * telemetry claiming (INV-apiid). Sign-in-after-reset intentionally has no dedicated id - like iOS
+ * it reuses SIGN_IN_AFTER_PASSWORD_RESET above.
+ */
+export const RESET_PASSWORD_V2_START = 100201;
+export const RESET_PASSWORD_V2_SUBMIT_CODE = 100202;
+export const RESET_PASSWORD_V2_RESEND_CODE = 100203;
+export const RESET_PASSWORD_V2_SUBMIT = 100204;
+
+/*
+ * The generic (flow-agnostic) V2 interaction-client steps. Every server-driven flow reuses the same
+ * step methods, so the telemetry api id for a step cannot be hardcoded in the step itself - it
+ * varies by the originating flow. `V2_FLOW_STEP_API_IDS` maps the flow scenario (carried on the
+ * continuation) plus the step to the public api id to report, letting one shared step serve every
+ * flow. New flows (sign-in, sign-up) register their own row here when they are wired up. Colocated
+ * with the ids above so the mapping and its targets stay in one place.
+ */
+export type V2FlowStep =
+    | "submitCode"
+    | "resendCode"
+    | "submitPassword"
+    | "signInAfterReset";
+
+export const V2_FLOW_STEP_API_IDS: Partial<
+    Record<CustomAuthV2FlowScenario, Record<V2FlowStep, number>>
+> = {
+    [CustomAuthV2FlowScenario.ResetPassword]: {
+        submitCode: RESET_PASSWORD_V2_SUBMIT_CODE,
+        resendCode: RESET_PASSWORD_V2_RESEND_CODE,
+        submitPassword: RESET_PASSWORD_V2_SUBMIT,
+        // Sign-in-after-reset has no dedicated V2 id; it reuses the V1 id (mirrors iOS).
+        signInAfterReset: SIGN_IN_AFTER_PASSWORD_RESET,
+    },
+};

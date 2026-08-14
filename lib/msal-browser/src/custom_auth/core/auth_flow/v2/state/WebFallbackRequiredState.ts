@@ -6,10 +6,14 @@
 import { AuthFlowStateBase } from "../../AuthFlowState.js";
 
 /**
- * Terminal state indicating the flow cannot continue natively and the
- * application must hand off to the web-based experience.
+ * Terminal state signaling that the flow cannot continue natively and the
+ * application should leave the native flow and start its normal browser-based
+ * authentication path.
  *
- * The web-fallback URL is carried by the result payload, not by this state.
+ * This is only a signal: Native Auth does not own or drive the browser
+ * navigation, and no server-provided fallback URL is exposed on this state or
+ * on the result (mirroring iOS, which surfaces only an `isBrowserRequired`
+ * indication). The application initiates its existing web sign-in itself.
  */
 export class WebFallbackRequiredState extends AuthFlowStateBase {
     readonly stateType = "webFallbackRequired";

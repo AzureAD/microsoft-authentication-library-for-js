@@ -11,6 +11,7 @@ import { CustomAuthV2ApiError } from "../../../../../src/custom_auth/core/networ
 import { AuthenticationMethodSelectionRequiredState } from "../../../../../src/custom_auth/core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
 import { FailedState } from "../../../../../src/custom_auth/core/auth_flow/v2/state/FailedState.js";
 import { AuthenticationMethodV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/AuthenticationMethodV2.js";
+import { CustomAuthV2FlowScenario } from "../../../../../src/custom_auth/core/auth_flow/CustomAuthV2FlowScenario.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 describe("CustomAuthV2Result", () => {
@@ -94,6 +95,46 @@ describe("CustomAuthV2Result", () => {
             expect(result.isFailed()).toBe(true);
             expect(result.state).toBeInstanceOf(FailedState);
             expect(result.error).toBe(error);
+        });
+
+        it("propagates the scenario from the error", () => {
+            const error = new ResetPasswordStartError(
+                new CustomAuthV2ApiError("user_not_found", "User not found", {
+                    correlationId,
+                }),
+                CustomAuthV2FlowScenario.ResetPassword
+            );
+
+            const result = CustomAuthV2Result.createWithError<
+                ResetPasswordStartV2Result["state"],
+                ResetPasswordStartError
+            >(error);
+
+            expect(result.scenario).toBe(
+                CustomAuthV2FlowScenario.ResetPassword
+            );
+        });
+    });
+
+    describe("scenario", () => {
+        it("defaults to Unknown when none is supplied", () => {
+            const result: ResetPasswordStartV2Result = new CustomAuthV2Result(
+                buildSelectionState()
+            );
+
+            expect(result.scenario).toBe(CustomAuthV2FlowScenario.Unknown);
+        });
+
+        it("carries the scenario passed to the constructor", () => {
+            const result: ResetPasswordStartV2Result = new CustomAuthV2Result(
+                buildSelectionState(),
+                undefined,
+                CustomAuthV2FlowScenario.ResetPassword
+            );
+
+            expect(result.scenario).toBe(
+                CustomAuthV2FlowScenario.ResetPassword
+            );
         });
     });
 });

@@ -36,7 +36,7 @@ export class AuthenticationMethodSelectionRequiredState extends AuthFlowActionRe
      * @param verificationContact - Optional destination override for the challenge.
      * @returns The result of requesting the challenge.
      */
-    requestChallenge(
+    async requestChallenge(
         methodId: string,
         verificationContact?: string
     ): Promise<RequestChallengeResult> {

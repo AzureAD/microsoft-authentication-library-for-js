@@ -177,5 +177,6 @@ export interface V2TokenResponse {
     refresh_token?: string;
     scope: string;
     id_token?: string;
+    client_info?: string;
     ext_expires_in?: number;
 }

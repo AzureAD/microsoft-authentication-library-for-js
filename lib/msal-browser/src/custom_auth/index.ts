@@ -248,6 +248,7 @@ export {
     ResetPasswordV2Inputs,
     SignInV2Inputs,
     SignUpV2Inputs,
+    SignInAfterResetPasswordInputs,
 } from "./CustomAuthV2ActionInputs.js";
 
 // Native Auth V2 Result
@@ -265,6 +266,7 @@ export { ResetPasswordStartError } from "./core/auth_flow/v2/error/ResetPassword
 export { RequestChallengeError } from "./core/auth_flow/v2/error/RequestChallengeError.js";
 export { VerifyChallengeError } from "./core/auth_flow/v2/error/VerifyChallengeError.js";
 export { SubmitNewPasswordError } from "./core/auth_flow/v2/error/SubmitNewPasswordError.js";
+export { SignInAfterResetPasswordError } from "./core/auth_flow/v2/error/SignInAfterResetPasswordError.js";
 
 // Native Auth V2 States
 export { CompletedState } from "./core/auth_flow/v2/state/CompletedState.js";
@@ -273,6 +275,7 @@ export { WebFallbackRequiredState } from "./core/auth_flow/v2/state/WebFallbackR
 export { NewPasswordRequiredState } from "./core/auth_flow/v2/state/NewPasswordRequiredState.js";
 export { ChallengeVerificationRequiredState } from "./core/auth_flow/v2/state/ChallengeVerificationRequiredState.js";
 export { AuthenticationMethodSelectionRequiredState } from "./core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
+export { SignInAfterResetPasswordState } from "./core/auth_flow/v2/state/SignInAfterResetPasswordState.js";
 
 // Native Auth V2 Results
 export {
@@ -292,13 +295,9 @@ export {
     SubmitNewPasswordResultState,
 } from "./core/auth_flow/v2/result/SubmitNewPasswordResult.js";
 export {
-    SignInStartV2Result,
-    SignInStartV2ResultState,
-} from "./core/auth_flow/v2/result/SignInStartV2Result.js";
-export {
-    SignUpStartV2Result,
-    SignUpStartV2ResultState,
-} from "./core/auth_flow/v2/result/SignUpStartV2Result.js";
+    SignInAfterResetPasswordResult,
+    SignInAfterResetPasswordResultState,
+} from "./core/auth_flow/v2/result/SignInAfterResetPasswordResult.js";
 
 // Components from msal_browser
 export { LogLevel } from "@azure/msal-common/browser";

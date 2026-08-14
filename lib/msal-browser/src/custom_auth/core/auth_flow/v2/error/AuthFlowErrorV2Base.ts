@@ -4,7 +4,7 @@
  */
 
 import type { CustomAuthV2ApiError } from "../../../network_client/custom_auth_api/v2/error/CustomAuthV2ApiError.js";
-import type { CustomAuthV2FlowScenario } from "../../CustomAuthV2FlowScenario.js";
+import { CustomAuthV2FlowScenario } from "../../CustomAuthV2FlowScenario.js";
 
 /*
  * Base class for all native auth V2 errors.
@@ -25,7 +25,7 @@ export abstract class AuthFlowErrorV2Base {
 
     constructor(
         public errorData: CustomAuthV2ApiError,
-        scenario: CustomAuthV2FlowScenario = "unknown"
+        scenario: CustomAuthV2FlowScenario = CustomAuthV2FlowScenario.Unknown
     ) {
         this.scenario = scenario;
     }

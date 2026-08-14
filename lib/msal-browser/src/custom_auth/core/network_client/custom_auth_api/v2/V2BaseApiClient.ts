@@ -183,6 +183,8 @@ export abstract class V2BaseApiClient {
             client_id: this.clientId,
             grant_type: AUTHORIZATION_CODE_GRANT,
             code,
+            // Required so the server returns the client_info blob MSAL uses to build the home account id.
+            client_info: "1",
         };
 
         if (scopes.length > 0) {

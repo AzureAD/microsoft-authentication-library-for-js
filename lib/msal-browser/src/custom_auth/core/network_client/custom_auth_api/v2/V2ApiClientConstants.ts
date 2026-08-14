@@ -34,6 +34,9 @@ export const INVALID_RESPONSE_BODY = "invalid_response_body";
 export const CONTINUATION_TOKEN_MISSING = "continuation_token_missing";
 export const INVALID_HAL_RESPONSE = "invalid_hal_response";
 export const RESET_PASSWORD_UNSUPPORTED = "reset_password_unsupported";
+export const CONTINUATION_LINK_MISSING = "continuation_link_missing";
+export const RESET_PASSWORD_TIMEOUT = "reset_password_timeout";
+export const UNSUPPORTED_FLOW_STEP = "unsupported_flow_step";
 
 /*
  * HAL `_links` relation keys the flows follow to advance a server-driven V2 flow. These are the
