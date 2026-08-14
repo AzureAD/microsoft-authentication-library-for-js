@@ -204,9 +204,12 @@ describe("Upgrade/Downgrade Tests", () => {
             await signIn(page, screenshot, username, accountPwd);
 
             await switchToVersion("latest-v3", page, screenshot);
-            // v3 shares the cache written by the local build, so it should be
-            // able to read the account and pull tokens from the cache directly
-            // without re-authenticating.
+            // v3 cannot read the local build's schema-versioned cache directly.
+            // However, switching versions reloads the /profile page, which
+            // triggers a silent token request (ssoSilent/acquireTokenSilent).
+            // That silent request rides the existing Entra session cookie and
+            // hydrates the cache with v3-format tokens without any interactive
+            // sign-in, so the user is already signed in and the cache is used.
             await verifyCacheWasUsed(page, screenshot);
 
             await switchToVersion("local", page, screenshot);
