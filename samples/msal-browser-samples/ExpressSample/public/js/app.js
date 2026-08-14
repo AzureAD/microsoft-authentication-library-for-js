@@ -116,7 +116,8 @@ function setupEventListeners() {
     }
 
     // Profile page sign in buttons (may not exist on all pages)
-    const profileSignInPopupBtn = document.getElementById('profileSignInPopup');    const profileSignInRedirectBtn = document.getElementById('profileSignInRedirect');
+    const profileSignInPopupBtn = document.getElementById('profileSignInPopup');
+    const profileSignInRedirectBtn = document.getElementById('profileSignInRedirect');
 
     if (profileSignInPopupBtn) {
         profileSignInPopupBtn.addEventListener('click', function(e) {
