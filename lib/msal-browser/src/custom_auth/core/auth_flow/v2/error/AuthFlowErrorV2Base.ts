@@ -7,18 +7,9 @@ import type { CustomAuthV2ApiError } from "../../../network_client/custom_auth_a
 import { CustomAuthV2FlowScenario } from "../../CustomAuthV2FlowScenario.js";
 
 /*
- * Base class for all native auth V2 errors.
- *
- * Standalone V2 base: it does NOT extend the V1 `AuthFlowErrorBase`. It holds a
- * V2 wire-error payload ({@link CustomAuthV2ApiError}) as `errorData` and the
- * originating {@link CustomAuthV2FlowScenario}, and provides the detectors that
- * are common to every V2 flow. Each concrete per-action error subclass adds only
- * the `isXxx()` detectors relevant to its own action (mirroring the V1 per-action
- * error split), so an app inspecting `result.error` sees a small, relevant set.
- *
- * The protected `isXxxError()` helpers classify the underlying `errorData`; the
- * exact server codes they compare against are finalized alongside the V2 network
- * error handler.
+ * Standalone V2 error base; intentionally does NOT extend the V1 AuthFlowErrorBase.
+ * Provides the detectors common to every V2 flow; each per-action subclass adds only
+ * the detectors relevant to its own action.
  */
 export abstract class AuthFlowErrorV2Base {
     readonly scenario: CustomAuthV2FlowScenario;
@@ -63,11 +54,9 @@ export abstract class AuthFlowErrorV2Base {
     }
 
     /*
-     * @todo Finalize the exact server code mapping with the V2 network error
-     * handler. Browser-required is keyed off
-     * `redirect_to_web` (per iOS `isWebFallbackRequired`) — NOT the entry
-     * `insufficient_authorization` 401, which is the expected start-of-flow
-     * response, not a failure.
+     * TODO: finalize the exact server-code mapping with the V2 network error handler.
+     * Browser-required keys off `redirect_to_web` (per iOS `isWebFallbackRequired`), NOT
+     * the entry `insufficient_authorization` 401, which is the expected start-of-flow response.
      */
     protected isBrowserRequiredError(): boolean {
         return this.errorData.code === "redirect_to_web";

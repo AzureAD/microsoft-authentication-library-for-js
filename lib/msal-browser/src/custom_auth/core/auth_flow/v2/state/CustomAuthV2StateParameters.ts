@@ -10,12 +10,6 @@ import { V2FlowInteractionClient } from "../../../interaction_client/v2/V2FlowIn
 import { V2FlowMethod } from "../../../interaction_client/v2/result/V2FlowActionResult.js";
 import { CustomAuthSilentCacheClient } from "../../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
-/*
- * Shared parameters for every native auth V2 action-required state. Beyond the base (correlation
- * id, logger, config), each V2 state carries the generic `V2FlowInteractionClient` it drives, the
- * opaque `continuationState` (token + scenario + next-step hrefs) produced by the previous step,
- * and the `cacheClient` used to build the account on completion.
- */
 export interface CustomAuthV2ActionRequiredStateParameters
     extends AuthFlowActionRequiredStateParameters {
     flowClient: V2FlowInteractionClient;
@@ -39,12 +33,6 @@ export interface ChallengeVerificationRequiredStateParameters
 export type NewPasswordRequiredStateParameters =
     CustomAuthV2ActionRequiredStateParameters;
 
-/**
- * Parameters for the sign-in-after-reset-password state. Carries the reset-flow
- * continuation (inherited) that authorizes the follow-up sign-in, plus the
- * `username` of the just-reset account so the issued tokens are associated with
- * the right user.
- */
 export interface SignInAfterResetPasswordStateParameters
     extends CustomAuthV2ActionRequiredStateParameters {
     username?: string;
