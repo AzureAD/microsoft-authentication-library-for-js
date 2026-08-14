@@ -40,6 +40,10 @@ export const msalConfig = {
         },
     },
 };
+// ESTS test slice used for manual validation. Passed on BOTH the authorize
+// request (extraQueryParameters) and the token request (extraParameters) so
+// every ESTS call — authorize and token — is routed to the same slice.
+const TEST_SLICE = { dc: "ESTS-PUB-SCUS-FD000-TEST3-100" };
 
 // The nested app requests tokens through the host bridge, so these extra params
 // do not themselves reach ESTS (the host applies its own `brokerExtraParams` to
@@ -47,6 +51,6 @@ export const msalConfig = {
 // to document the intended test slice on both the authorize and token requests.
 export const loginRequest = {
     scopes: ["User.Read"],
-    extraQueryParameters: { dc: "ESTS-PUB-SCUS-FD000-TEST3-100" },
-    extraParameters: { dc: "ESTS-PUB-SCUS-FD000-TEST3-100" },
+    extraQueryParameters: { ...TEST_SLICE },
+    extraParameters: { ...TEST_SLICE },
 };
