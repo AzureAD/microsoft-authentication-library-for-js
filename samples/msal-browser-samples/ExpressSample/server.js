@@ -407,13 +407,12 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Serve over HTTPS when HTTPS=true (e2e harness). Secure origin needed for
-// platform-broker/WAM injection. Manual `npm start` stays http.
+// HTTPS when HTTPS=true (e2e); plain http otherwise.
 if (process.env.HTTPS === 'true') {
     const https = require('https');
-    // Throwaway in-memory self-signed cert; nothing written to disk.
+    // In-memory self-signed cert.
     const selfsigned = require('selfsigned');
-    // selfsigned v5 generate() returns a Promise (v2 was sync); handle both.
+    // generate() may be sync or async.
     Promise.resolve(
         selfsigned.generate(
             [{ name: 'commonName', value: 'localhost' }],
