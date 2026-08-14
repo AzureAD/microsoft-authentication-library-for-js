@@ -93,15 +93,16 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
     let earServerProcess: ChildProcess;
 
     beforeAll(async () => {
-        // Start a dedicated HTTPS server for EAR and a cert-tolerant browser,
-        // leaving the shared http harness (port 3000) untouched. Spawn directly
-        // with stdio "ignore" instead of serverUtils.startServer: that helper's
-        // stdout/stderr/close handlers log after teardown ("Cannot log after
-        // tests are done") and make jest exit non-zero despite passing tests.
+        // Dedicated EAR HTTPS server + cert-tolerant browser; shared http
+        // harness (port 3000) untouched. Spawn directly (not
+        // serverUtils.startServer) to avoid its console-based stdout/close
+        // handlers that logged after teardown ("Cannot log after tests are
+        // done"). Inherit stdio so server logs surface; afterAll awaits child
+        // exit so no output races teardown.
         earServerProcess = spawn(EAR_START_CMD, {
             shell: true,
             cwd: EXPRESS_SAMPLE_ROOT,
-            stdio: "ignore",
+            stdio: ["ignore", "inherit", "inherit"],
         });
         const serverUp = await serverUtils.isServerUp(EAR_PORT, 60000);
         if (!serverUp) {
