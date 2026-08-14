@@ -4,7 +4,7 @@
  */
 
 import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
-import { CustomAuthV2Result } from "../../CustomAuthV2Result.js";
+import { CustomAuthV2Result } from "../CustomAuthV2Result.js";
 import { SubmitNewPasswordError } from "../error/SubmitNewPasswordError.js";
 import { toV2ApiError } from "./V2StateErrorHelper.js";
 import { SignInAfterResetPasswordState } from "./SignInAfterResetPasswordState.js";

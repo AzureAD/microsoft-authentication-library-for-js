@@ -6,7 +6,7 @@
 import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
 import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
 import { InvalidArgumentError } from "../../../error/InvalidArgumentError.js";
-import { CustomAuthV2Result } from "../../CustomAuthV2Result.js";
+import { CustomAuthV2Result } from "../CustomAuthV2Result.js";
 import { RequestChallengeError } from "../error/RequestChallengeError.js";
 import { toV2ApiError } from "./V2StateErrorHelper.js";
 import { ChallengeVerificationRequiredState } from "./ChallengeVerificationRequiredState.js";

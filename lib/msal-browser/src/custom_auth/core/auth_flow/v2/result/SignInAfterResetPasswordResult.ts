@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthV2Result } from "../../CustomAuthV2Result.js";
+import { CustomAuthV2Result } from "../CustomAuthV2Result.js";
 import type { SignInAfterResetPasswordError } from "../error/SignInAfterResetPasswordError.js";
 import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import type { CompletedState } from "../state/CompletedState.js";

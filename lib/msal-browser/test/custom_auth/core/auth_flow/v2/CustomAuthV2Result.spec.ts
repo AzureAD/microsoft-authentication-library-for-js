@@ -4,14 +4,14 @@
  */
 
 import { CustomAuthBrowserConfiguration } from "../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
-import { CustomAuthV2Result } from "../../../../../src/custom_auth/core/auth_flow/CustomAuthV2Result.js";
+import { CustomAuthV2Result } from "../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthV2Result.js";
 import { ResetPasswordStartV2Result } from "../../../../../src/custom_auth/core/auth_flow/v2/result/ResetPasswordStartV2Result.js";
 import { ResetPasswordStartError } from "../../../../../src/custom_auth/core/auth_flow/v2/error/ResetPasswordStartError.js";
 import { CustomAuthV2ApiError } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/error/CustomAuthV2ApiError.js";
 import { AuthenticationMethodSelectionRequiredState } from "../../../../../src/custom_auth/core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
 import { FailedState } from "../../../../../src/custom_auth/core/auth_flow/v2/state/FailedState.js";
 import { AuthenticationMethodV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/AuthenticationMethodV2.js";
-import { CustomAuthV2FlowScenario } from "../../../../../src/custom_auth/core/auth_flow/CustomAuthV2FlowScenario.js";
+import { CustomAuthV2FlowScenario } from "../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthV2FlowScenario.js";
 import { V2FlowInteractionClient } from "../../../../../src/custom_auth/core/interaction_client/v2/V2FlowInteractionClient.js";
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";

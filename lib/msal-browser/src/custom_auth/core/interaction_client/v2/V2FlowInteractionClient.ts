@@ -47,7 +47,7 @@ import {
 import {
     CustomAuthV2FlowScenario,
     toCustomAuthV2FlowScenario,
-} from "../../auth_flow/CustomAuthV2FlowScenario.js";
+} from "../../auth_flow/v2/CustomAuthV2FlowScenario.js";
 import * as PublicApiId from "../../telemetry/PublicApiId.js";
 
 /*

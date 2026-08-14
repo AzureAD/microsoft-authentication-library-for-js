@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthV2FlowScenario } from "../auth_flow/CustomAuthV2FlowScenario.js";
+import { CustomAuthV2FlowScenario } from "../auth_flow/v2/CustomAuthV2FlowScenario.js";
 
 /*
  * The public API ids should be claim in the MSAL telemtry tracker.

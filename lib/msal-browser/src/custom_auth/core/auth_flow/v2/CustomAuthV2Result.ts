@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowStateBase } from "./AuthFlowState.js";
-import { FailedState } from "./v2/state/FailedState.js";
-import { AuthFlowErrorV2Base } from "./v2/error/AuthFlowErrorV2Base.js";
+import { AuthFlowStateBase } from "../AuthFlowState.js";
+import { FailedState } from "./state/FailedState.js";
+import { AuthFlowErrorV2Base } from "./error/AuthFlowErrorV2Base.js";
 import { CustomAuthV2FlowScenario } from "./CustomAuthV2FlowScenario.js";
 
 /**

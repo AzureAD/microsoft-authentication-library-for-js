@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthV2Result } from "../../CustomAuthV2Result.js";
+import { CustomAuthV2Result } from "../CustomAuthV2Result.js";
 import type { RequestChallengeError } from "../error/RequestChallengeError.js";
 import type { ChallengeVerificationRequiredState } from "../state/ChallengeVerificationRequiredState.js";
 import type { FailedState } from "../state/FailedState.js";

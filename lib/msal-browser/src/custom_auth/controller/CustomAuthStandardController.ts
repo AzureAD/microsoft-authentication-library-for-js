@@ -31,9 +31,9 @@ import { CustomAuthV2ApiClient } from "../core/network_client/custom_auth_api/v2
 import { V2FlowInteractionClient } from "../core/interaction_client/v2/V2FlowInteractionClient.js";
 import { AuthenticationMethodSelectionRequiredState } from "../core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
 import { ResetPasswordStartError } from "../core/auth_flow/v2/error/ResetPasswordStartError.js";
-import { CustomAuthV2Result } from "../core/auth_flow/CustomAuthV2Result.js";
+import { CustomAuthV2Result } from "../core/auth_flow/v2/CustomAuthV2Result.js";
 import { toV2ApiError } from "../core/auth_flow/v2/state/V2StateErrorHelper.js";
-import { CustomAuthV2FlowScenario } from "../core/auth_flow/CustomAuthV2FlowScenario.js";
+import { CustomAuthV2FlowScenario } from "../core/auth_flow/v2/CustomAuthV2FlowScenario.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {

@@ -4,7 +4,7 @@
  */
 
 import type { CustomAuthV2ApiError } from "../../../network_client/custom_auth_api/v2/error/CustomAuthV2ApiError.js";
-import { CustomAuthV2FlowScenario } from "../../CustomAuthV2FlowScenario.js";
+import { CustomAuthV2FlowScenario } from "../CustomAuthV2FlowScenario.js";
 
 /*
  * Standalone V2 error base; intentionally does NOT extend the V1 AuthFlowErrorBase.

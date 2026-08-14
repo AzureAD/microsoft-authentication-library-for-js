@@ -5,7 +5,7 @@
 
 import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
 import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
-import { CustomAuthV2Result } from "../../CustomAuthV2Result.js";
+import { CustomAuthV2Result } from "../CustomAuthV2Result.js";
 import { VerifyChallengeError } from "../error/VerifyChallengeError.js";
 import { RequestChallengeError } from "../error/RequestChallengeError.js";
 import { toV2ApiError } from "./V2StateErrorHelper.js";
