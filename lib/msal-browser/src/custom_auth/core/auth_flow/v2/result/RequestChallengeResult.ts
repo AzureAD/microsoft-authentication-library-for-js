@@ -7,18 +7,15 @@ import { CustomAuthV2Result } from "../../CustomAuthV2Result.js";
 import type { RequestChallengeError } from "../error/RequestChallengeError.js";
 import type { ChallengeVerificationRequiredState } from "../state/ChallengeVerificationRequiredState.js";
 import type { FailedState } from "../state/FailedState.js";
-import type { WebFallbackRequiredState } from "../state/WebFallbackRequiredState.js";
 
 /**
  * The states a request-challenge action can resolve to. On success it resolves
  * to `ChallengeVerificationRequiredState` once a one-time code has been sent.
- * Failures resolve to `FailedState`, and a browser hand-off resolves to
- * `WebFallbackRequiredState`.
+ * Failures resolve to `FailedState`.
  */
 export type RequestChallengeResultState =
     | ChallengeVerificationRequiredState
-    | FailedState
-    | WebFallbackRequiredState;
+    | FailedState;
 
 /**
  * Result of requesting (or resending) a challenge. It wraps one of

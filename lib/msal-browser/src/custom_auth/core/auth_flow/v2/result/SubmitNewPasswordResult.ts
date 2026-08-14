@@ -7,20 +7,17 @@ import { CustomAuthV2Result } from "../../CustomAuthV2Result.js";
 import type { SubmitNewPasswordError } from "../error/SubmitNewPasswordError.js";
 import type { SignInAfterResetPasswordState } from "../state/SignInAfterResetPasswordState.js";
 import type { FailedState } from "../state/FailedState.js";
-import type { WebFallbackRequiredState } from "../state/WebFallbackRequiredState.js";
 
 /**
  * The states a submit-new-password action can resolve to. Submitting the new
  * password completes the reset; the flow does not sign the user in
  * automatically, so on success it surfaces `SignInAfterResetPasswordState`
  * (carrying the reset continuation) rather than the terminal `CompletedState`.
- * The app then calls its `signIn` to obtain tokens. `WebFallbackRequiredState`
- * is included because the server can signal a browser hand-off on any response.
+ * The app then calls its `signIn` to obtain tokens.
  */
 export type SubmitNewPasswordResultState =
     | SignInAfterResetPasswordState
-    | FailedState
-    | WebFallbackRequiredState;
+    | FailedState;
 
 /**
  * Result of submitting a new password. It wraps one of

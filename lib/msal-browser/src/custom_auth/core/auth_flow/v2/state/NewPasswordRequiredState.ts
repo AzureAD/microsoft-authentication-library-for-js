@@ -4,7 +4,10 @@
  */
 
 import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
-import { MethodNotImplementedError } from "../../../error/MethodNotImplementedError.js";
+import { CustomAuthV2Result } from "../../CustomAuthV2Result.js";
+import { SubmitNewPasswordError } from "../error/SubmitNewPasswordError.js";
+import { toV2ApiError } from "./V2StateErrorHelper.js";
+import { SignInAfterResetPasswordState } from "./SignInAfterResetPasswordState.js";
 import type { NewPasswordRequiredStateParameters } from "./CustomAuthV2StateParameters.js";
 import type { SubmitNewPasswordResult } from "../result/SubmitNewPasswordResult.js";
 
@@ -27,9 +30,45 @@ export class NewPasswordRequiredState extends AuthFlowActionRequiredStateBase<Ne
      * @returns The result of submitting the new password.
      */
     async submitNewPassword(password: string): Promise<SubmitNewPasswordResult> {
-        void password;
-        throw new MethodNotImplementedError(
-            "NewPasswordRequiredState.submitNewPassword"
-        );
+        const { correlationId, logger, continuationState, flowClient } =
+            this.stateParameters;
+
+        try {
+            this.ensurePasswordIsNotEmpty(password);
+
+            logger.verbose("Submitting V2 new password.", correlationId);
+
+            const result = await flowClient.submitPassword({
+                correlationId,
+                continuationState,
+                newPassword: password,
+            });
+
+            return new CustomAuthV2Result(
+                new SignInAfterResetPasswordState({
+                    correlationId: result.correlationId,
+                    logger,
+                    config: this.stateParameters.config,
+                    flowClient,
+                    continuationState: result.continuationState,
+                    cacheClient: this.stateParameters.cacheClient,
+                    username: result.username,
+                }),
+                undefined,
+                result.continuationState.scenario
+            );
+        } catch (error) {
+            logger.errorPii(
+                `Failed to submit V2 new password. Error: '${error}'.`,
+                correlationId
+            );
+
+            return CustomAuthV2Result.createWithError(
+                new SubmitNewPasswordError(
+                    toV2ApiError(error, correlationId),
+                    continuationState.scenario
+                )
+            );
+        }
     }
 }

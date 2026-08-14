@@ -43,11 +43,9 @@ export abstract class AuthFlowErrorV2Base {
     }
 
     /**
-     * Checks if the error requires the flow to continue in the browser. This is
-     * the terminal fallback for web fallback: the primary representation is the
-     * success-path `WebFallbackRequiredState`, and this detector covers the case
-     * where the same `redirect_to_web` signal is surfaced as a `FailedState`
-     * failure instead of a continuable state.
+     * Checks if the error requires the flow to continue in the browser. The
+     * server surfaces this as a `redirect_to_web` failure, so a browser hand-off
+     * always arrives as a `FailedState` on which this detector returns true.
      * @returns True if the browser is required, false otherwise.
      */
     isBrowserRequired(): boolean {

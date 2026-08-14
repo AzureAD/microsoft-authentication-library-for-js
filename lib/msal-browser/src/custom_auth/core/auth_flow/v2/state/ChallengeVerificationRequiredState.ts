@@ -5,7 +5,11 @@
 
 import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
 import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
-import { MethodNotImplementedError } from "../../../error/MethodNotImplementedError.js";
+import { CustomAuthV2Result } from "../../CustomAuthV2Result.js";
+import { VerifyChallengeError } from "../error/VerifyChallengeError.js";
+import { RequestChallengeError } from "../error/RequestChallengeError.js";
+import { toV2ApiError } from "./V2StateErrorHelper.js";
+import { NewPasswordRequiredState } from "./NewPasswordRequiredState.js";
 import type { ChallengeVerificationRequiredStateParameters } from "./CustomAuthV2StateParameters.js";
 import type { VerifyChallengeResult } from "../result/VerifyChallengeResult.js";
 import type { RequestChallengeResult } from "../result/RequestChallengeResult.js";
@@ -45,10 +49,47 @@ export class ChallengeVerificationRequiredState extends AuthFlowActionRequiredSt
      * @returns The result of verifying the challenge.
      */
     async verifyChallenge(code: string): Promise<VerifyChallengeResult> {
-        void code;
-        throw new MethodNotImplementedError(
-            "ChallengeVerificationRequiredState.verifyChallenge"
-        );
+        const { correlationId, logger, continuationState, flowClient } =
+            this.stateParameters;
+
+        try {
+            if (this.stateParameters.codeLength) {
+                this.ensureCodeIsValid(code, this.stateParameters.codeLength);
+            }
+
+            logger.verbose("Verifying V2 challenge code.", correlationId);
+
+            const result = await flowClient.submitCode({
+                correlationId,
+                continuationState,
+                code,
+            });
+
+            return new CustomAuthV2Result(
+                new NewPasswordRequiredState({
+                    correlationId: result.correlationId,
+                    logger,
+                    config: this.stateParameters.config,
+                    flowClient,
+                    continuationState: result.continuationState,
+                    cacheClient: this.stateParameters.cacheClient,
+                }),
+                undefined,
+                result.continuationState.scenario
+            );
+        } catch (error) {
+            logger.errorPii(
+                `Failed to verify V2 challenge. Error: '${error}'.`,
+                correlationId
+            );
+
+            return CustomAuthV2Result.createWithError(
+                new VerifyChallengeError(
+                    toV2ApiError(error, correlationId),
+                    continuationState.scenario
+                )
+            );
+        }
     }
 
     /**
@@ -58,8 +99,45 @@ export class ChallengeVerificationRequiredState extends AuthFlowActionRequiredSt
      * @returns The result of requesting a new challenge.
      */
     async requestNewChallenge(): Promise<RequestChallengeResult> {
-        throw new MethodNotImplementedError(
-            "ChallengeVerificationRequiredState.requestNewChallenge"
-        );
+        const { correlationId, logger, continuationState, flowClient } =
+            this.stateParameters;
+
+        try {
+            logger.verbose("Resending V2 challenge code.", correlationId);
+
+            const result = await flowClient.resendCode({
+                correlationId,
+                continuationState,
+            });
+
+            return new CustomAuthV2Result(
+                new ChallengeVerificationRequiredState({
+                    correlationId: result.correlationId,
+                    logger,
+                    config: this.stateParameters.config,
+                    flowClient,
+                    continuationState: result.continuationState,
+                    cacheClient: this.stateParameters.cacheClient,
+                    method: this.method,
+                    sentTo: result.sentTo,
+                    channel: result.channel,
+                    codeLength: result.codeLength,
+                }),
+                undefined,
+                result.continuationState.scenario
+            );
+        } catch (error) {
+            logger.errorPii(
+                `Failed to resend V2 challenge. Error: '${error}'.`,
+                correlationId
+            );
+
+            return CustomAuthV2Result.createWithError(
+                new RequestChallengeError(
+                    toV2ApiError(error, correlationId),
+                    continuationState.scenario
+                )
+            );
+        }
     }
 }

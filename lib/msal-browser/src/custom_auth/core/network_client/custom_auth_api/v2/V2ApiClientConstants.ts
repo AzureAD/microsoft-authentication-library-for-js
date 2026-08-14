@@ -37,6 +37,7 @@ export const RESET_PASSWORD_UNSUPPORTED = "reset_password_unsupported";
 export const CONTINUATION_LINK_MISSING = "continuation_link_missing";
 export const RESET_PASSWORD_TIMEOUT = "reset_password_timeout";
 export const UNSUPPORTED_FLOW_STEP = "unsupported_flow_step";
+export const NO_AUTHENTICATION_METHODS = "no_authentication_methods";
 
 /*
  * HAL `_links` relation keys the flows follow to advance a server-driven V2 flow. These are the

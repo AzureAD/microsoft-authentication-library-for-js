@@ -8,20 +8,16 @@ import type { SignInAfterResetPasswordError } from "../error/SignInAfterResetPas
 import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import type { CompletedState } from "../state/CompletedState.js";
 import type { FailedState } from "../state/FailedState.js";
-import type { WebFallbackRequiredState } from "../state/WebFallbackRequiredState.js";
 
 /**
  * The states a sign-in-after-reset-password action can resolve to. Signing in
  * redeems the reset-flow continuation for tokens, so the terminal
  * `CompletedState` carries `CustomAuthAccountData`. `CompletedState` and the
  * account payload are declared together because they always occur together.
- * `WebFallbackRequiredState` is included because the server can signal a browser
- * hand-off on the sign-in response.
  */
 export type SignInAfterResetPasswordResultState =
     | CompletedState
-    | FailedState
-    | WebFallbackRequiredState;
+    | FailedState;
 
 /**
  * Result of signing the user in after a password reset. It wraps one of

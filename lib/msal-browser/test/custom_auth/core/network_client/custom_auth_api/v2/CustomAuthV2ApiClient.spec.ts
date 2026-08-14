@@ -11,6 +11,7 @@ import {
     REDIRECT_TO_WEB,
     CONTINUATION_TOKEN_MISSING,
     INVALID_HAL_RESPONSE,
+    NO_AUTHENTICATION_METHODS,
 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/V2ApiClientConstants.js";
 import { HttpMethod } from "../../../../../../src/custom_auth/core/network_client/http_client/IHttpClient.js";
 
@@ -60,7 +61,7 @@ describe("CustomAuthV2ApiClient", () => {
     });
 
     describe("resetPasswordStart", () => {
-        it("runs the entry step then posts resetpassword-start and returns the challenge href", async () => {
+        it("throws NO_AUTHENTICATION_METHODS when the start response advertises no embedded methods", async () => {
             mockHttpClient.sendAsync
                 .mockResolvedValueOnce(
                     buildResponse({
@@ -78,17 +79,9 @@ describe("CustomAuthV2ApiClient", () => {
                     })
                 );
 
-            const result = await apiClient.resetPasswordStart("user@test.com", context);
-
-            expect(result.continuationToken).toBe("ct-start");
-            expect(result.challengeHref).toBe("/tenant/api/v0.1/challenge");
-
-            // First call = entry (form), second call = HAL start posted to the resolved href.
-            expect(mockHttpClient.sendAsync).toHaveBeenCalledTimes(2);
-            const [startUrl] = mockHttpClient.sendAsync.mock.calls[1];
-            expect(startUrl.href).toBe(
-                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/auth/resetpassword?dc=X"
-            );
+            await expect(
+                apiClient.resetPasswordStart("user@test.com", context)
+            ).rejects.toMatchObject({ code: NO_AUTHENTICATION_METHODS });
         });
 
         it("prefers the challenge href on an embedded method", async () => {
@@ -102,6 +95,7 @@ describe("CustomAuthV2ApiClient", () => {
                 .mockResolvedValueOnce(
                     buildResponse({
                         continuationToken: "ct-start",
+                        scenario: "recovery",
                         _embedded: {
                             methods: [
                                 {
@@ -121,8 +115,17 @@ describe("CustomAuthV2ApiClient", () => {
 
             const result = await apiClient.resetPasswordStart("user@test.com", context);
 
-            expect(result.challengeHref).toBe(
+            expect(result.continuationToken).toBe("ct-start");
+            expect(result.scenario).toBe("recovery");
+            expect(result.methods[0].challengeHref).toBe(
                 "/tenant/api/v0.1/methods/email/challenge"
+            );
+
+            // First call = entry (form), second call = HAL start posted to the resolved href.
+            expect(mockHttpClient.sendAsync).toHaveBeenCalledTimes(2);
+            const [startUrl] = mockHttpClient.sendAsync.mock.calls[1];
+            expect(startUrl.href).toBe(
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/auth/resetpassword?dc=X"
             );
         });
 

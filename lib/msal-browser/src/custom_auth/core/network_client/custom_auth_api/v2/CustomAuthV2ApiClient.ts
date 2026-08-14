@@ -13,6 +13,7 @@ import {
 } from "./result/ResetPasswordV2Results.js";
 import {
     V2StartResult,
+    V2StartMethod,
     V2ChallengeResult,
     V2VerifyResult,
 } from "./result/V2BaseResults.js";
@@ -44,6 +45,7 @@ import {
     CONTINUE_RELATION,
     RESET_PASSWORD_UNSUPPORTED,
     INVALID_HAL_RESPONSE,
+    NO_AUTHENTICATION_METHODS,
     V2ResponseState,
 } from "./V2ApiClientConstants.js";
 
@@ -142,10 +144,11 @@ export class CustomAuthV2ApiClient extends V2BaseApiClient {
 
         return {
             continuationToken,
-            challengeHref: this.resolveChallengeHref(
+            methods: this.resolveMethods(
                 parsedResponse.body,
                 parsedResponse.correlationId
             ),
+            scenario: parsedResponse.body.scenario,
             challengeContext: parsedResponse.body.challengeContext,
         };
     }
@@ -336,31 +339,49 @@ export class CustomAuthV2ApiClient extends V2BaseApiClient {
     }
 
     /*
-     * Challenge href resolution: prefer the per-method `challenge` link under
-     * `_embedded.methods[]`, falling back to the top-level `_links.challenge`. SSPR typically
-     * exposes a single email method; the first method advertising the relation is used.
+     * Resolve the selectable authentication methods from a flow-start response. Each embedded
+     * method under `_embedded.methods[]` that advertises a `challenge` link becomes a selectable
+     * method (its id/type/hint are display metadata; an id is synthesized from the type or position
+     * when the server omits one). The start response must advertise at least one embedded method
+     * with a challenge link - the challenge link lives only under `_embedded.methods[]._links`, never
+     * at the top level - so a response with no such method is malformed and raises an api error.
      */
-    private resolveChallengeHref(
+    private resolveMethods(
         body: ResetPasswordStartV2Response,
         correlationId: string
-    ): string {
-        const methods = this.handler.getMethods(body);
+    ): V2StartMethod[] {
+        const methods = this.handler.requireMethods(body, correlationId);
+        const resolved: V2StartMethod[] = [];
 
-        for (const method of methods) {
+        methods.forEach((method, index) => {
             const href = this.handler.getRelationHref(
                 method._links,
                 CHALLENGE_RELATION
             );
 
             if (href) {
-                return href;
+                resolved.push({
+                    id: method.id ?? method.type ?? `method-${index}`,
+                    type: method.type,
+                    hint: method.hint,
+                    challengeHref: href,
+                });
             }
+        });
+
+        if (resolved.length === 0) {
+            this.logger?.error(
+                "V2 start response has no authentication method advertising a challenge link",
+                correlationId
+            );
+
+            throw new CustomAuthV2ApiError(
+                NO_AUTHENTICATION_METHODS,
+                "The flow-start response contains no authentication method with a challenge link",
+                { correlationId }
+            );
         }
 
-        return this.handler.requireRelationHref(
-            body._links,
-            CHALLENGE_RELATION,
-            correlationId
-        );
+        return resolved;
     }
 }

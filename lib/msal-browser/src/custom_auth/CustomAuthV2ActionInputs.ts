@@ -8,14 +8,13 @@ import { UserAccountAttributes } from "./UserAccountAttributes.js";
 
 /**
  * Inputs for the native auth V2 reset-password flow. Carries the `username`
- * whose password is being reset and optional `scopes` requested for the token
- * the flow ultimately issues, alongside shared inputs such as `correlationId`.
- * It is consumed once on the initial `resetPasswordV2` call; later steps are
- * driven by the continuation token.
+ * whose password is being reset, alongside shared inputs such as
+ * `correlationId`. It is consumed once on the initial `resetPasswordV2` call;
+ * later steps are driven by the continuation token. Scopes are not requested
+ * here — they are supplied at the terminal sign-in after the reset completes.
  */
 export type ResetPasswordV2Inputs = CustomAuthActionInputs & {
     username: string;
-    scopes?: Array<string>;
 };
 
 /**

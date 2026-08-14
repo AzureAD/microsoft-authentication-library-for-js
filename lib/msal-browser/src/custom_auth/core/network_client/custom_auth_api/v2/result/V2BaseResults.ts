@@ -19,13 +19,28 @@ export interface AuthorizeChallengeEntryResult {
 }
 
 /*
+ * A selectable authentication method surfaced by a flow-start response, resolved from
+ * `_embedded.methods[]`. `challengeHref` is the per-method `challenge` link to POST to send the
+ * code to that method; `id`/`type`/`hint` are display/selection metadata.
+ */
+export interface V2StartMethod {
+    id: string;
+    type?: string;
+    hint?: string;
+    challengeHref: string;
+}
+
+/*
  * Result of a flow-start step (e.g. resetpassword-start / signup-start / signin-start): the token
- * to carry forward and the href to request a challenge. The step name differs per flow but the
- * shape is identical, so it lives on the shared base.
+ * to carry forward, the authentication methods the user can challenge, and the raw server
+ * `scenario` wire value so the caller can stamp the flow scenario from the response. The step name
+ * differs per flow but the shape is identical, so it lives on the shared base. The challenge is not
+ * sent here - the caller selects a method and requests its challenge next.
  */
 export interface V2StartResult {
     continuationToken: string;
-    challengeHref: string;
+    methods: V2StartMethod[];
+    scenario?: string;
     challengeContext?: V2ChallengeContext;
 }
 

@@ -23,6 +23,30 @@ interface V2FlowActionResultBase {
 }
 
 /*
+ * A selectable authentication method carried by a method-selection outcome. `challengeHref` is the
+ * internal per-method link the `requestChallenge` step posts to; the public state exposes only the
+ * `id`/`type`/`hint` and passes the chosen `id` back to resolve the href.
+ */
+export interface V2FlowMethod {
+    id: string;
+    type?: string;
+    hint?: string;
+    challengeHref: string;
+}
+
+/*
+ * The flow-start step resolved to a set of authentication methods and the user must select one
+ * before a challenge is sent. `continuationState` carries the token to present when requesting the
+ * chosen method's challenge; `methods` are the selectable methods (each with its challenge href).
+ */
+export interface V2FlowMethodSelectionRequiredResult
+    extends V2FlowActionResultBase {
+    type: typeof V2_FLOW_METHOD_SELECTION_REQUIRED;
+    continuationState: V2FlowContinuationState;
+    methods: V2FlowMethod[];
+}
+
+/*
  * A one-time code was sent and must be submitted next. `continuationState` carries the token and
  * the `verify`/`resend` hrefs; the remaining fields are display metadata for the app's prompt.
  */
@@ -57,28 +81,27 @@ export interface V2FlowCompletedResult extends V2FlowActionResultBase {
     authenticationResult: AuthenticationResult;
 }
 
-/*
- * The server can no longer continue natively and the app must fall back to the browser. Mapped to
- * the public web-fallback-required state by the caller.
- */
-export interface V2FlowBrowserRequiredResult extends V2FlowActionResultBase {
-    type: typeof V2_FLOW_BROWSER_REQUIRED;
-}
-
 export type V2FlowActionResult =
+    | V2FlowMethodSelectionRequiredResult
     | V2FlowCodeRequiredResult
     | V2FlowPasswordRequiredResult
     | V2FlowSignInAfterResetRequiredResult
-    | V2FlowCompletedResult
-    | V2FlowBrowserRequiredResult;
+    | V2FlowCompletedResult;
 
 // Result type discriminators.
+export const V2_FLOW_METHOD_SELECTION_REQUIRED =
+    "V2FlowMethodSelectionRequiredResult";
 export const V2_FLOW_CODE_REQUIRED = "V2FlowCodeRequiredResult";
 export const V2_FLOW_PASSWORD_REQUIRED = "V2FlowPasswordRequiredResult";
 export const V2_FLOW_SIGN_IN_AFTER_RESET_REQUIRED =
     "V2FlowSignInAfterResetRequiredResult";
 export const V2_FLOW_COMPLETED = "V2FlowCompletedResult";
-export const V2_FLOW_BROWSER_REQUIRED = "V2FlowBrowserRequiredResult";
+
+export function createV2FlowMethodSelectionRequiredResult(
+    input: Omit<V2FlowMethodSelectionRequiredResult, "type">
+): V2FlowMethodSelectionRequiredResult {
+    return { type: V2_FLOW_METHOD_SELECTION_REQUIRED, ...input };
+}
 
 export function createV2FlowCodeRequiredResult(
     input: Omit<V2FlowCodeRequiredResult, "type">
@@ -102,10 +125,4 @@ export function createV2FlowCompletedResult(
     input: Omit<V2FlowCompletedResult, "type">
 ): V2FlowCompletedResult {
     return { type: V2_FLOW_COMPLETED, ...input };
-}
-
-export function createV2FlowBrowserRequiredResult(
-    input: Omit<V2FlowBrowserRequiredResult, "type">
-): V2FlowBrowserRequiredResult {
-    return { type: V2_FLOW_BROWSER_REQUIRED, ...input };
 }

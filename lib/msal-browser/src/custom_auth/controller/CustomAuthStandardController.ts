@@ -27,7 +27,13 @@ import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/Res
 import { ResetPasswordStartV2Result } from "../core/auth_flow/v2/result/ResetPasswordStartV2Result.js";
 import { ResetPasswordV2Inputs } from "../CustomAuthV2ActionInputs.js";
 import { ICustomAuthStandardControllerV2 } from "./ICustomAuthStandardControllerV2.js";
-import { MethodNotImplementedError } from "../core/error/MethodNotImplementedError.js";
+import { CustomAuthV2ApiClient } from "../core/network_client/custom_auth_api/v2/CustomAuthV2ApiClient.js";
+import { V2FlowInteractionClient } from "../core/interaction_client/v2/V2FlowInteractionClient.js";
+import { AuthenticationMethodSelectionRequiredState } from "../core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
+import { ResetPasswordStartError } from "../core/auth_flow/v2/error/ResetPasswordStartError.js";
+import { CustomAuthV2Result } from "../core/auth_flow/CustomAuthV2Result.js";
+import { toV2ApiError } from "../core/auth_flow/v2/state/V2StateErrorHelper.js";
+import { CustomAuthV2FlowScenario } from "../core/auth_flow/CustomAuthV2FlowScenario.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
@@ -80,6 +86,7 @@ export class CustomAuthStandardController
     private readonly cacheClient: CustomAuthSilentCacheClient;
     private readonly customAuthConfig: CustomAuthBrowserConfiguration;
     private readonly authority: CustomAuthAuthority;
+    private readonly v2FlowClient: V2FlowInteractionClient;
 
     /*
      * Constructor for CustomAuthStandardController.
@@ -143,6 +150,25 @@ export class CustomAuthStandardController
         this.mfaClient = interactionClientFactory.create(MfaClient);
         this.cacheClient = interactionClientFactory.create(
             CustomAuthSilentCacheClient
+        );
+
+        this.v2FlowClient = new V2FlowInteractionClient(
+            this.customAuthConfig,
+            this.browserStorage,
+            this.browserCrypto,
+            this.logger,
+            this.eventHandler,
+            this.navigationClient,
+            this.performanceClient,
+            this.authority,
+            new CustomAuthV2ApiClient(
+                this.authority.getCustomAuthApiDomain(),
+                this.customAuthConfig.auth.clientId,
+                new FetchHttpClient(this.logger),
+                this.customAuthConfig.customAuth?.customAuthApiQueryParams,
+                this.customAuthConfig.customAuth?.requestInterceptor,
+                this.logger
+            )
         );
     }
 
@@ -588,8 +614,63 @@ export class CustomAuthStandardController
     async resetPasswordV2(
         inputs: ResetPasswordV2Inputs
     ): Promise<ResetPasswordStartV2Result> {
-        void inputs;
-        throw new MethodNotImplementedError("resetPasswordV2");
+        const correlationId = this.getCorrelationId(inputs);
+
+        try {
+            ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+                "inputs",
+                inputs,
+                correlationId
+            );
+
+            ArgumentValidator.ensureArgumentIsNotEmptyString(
+                "inputs.username",
+                inputs.username,
+                correlationId
+            );
+            this.ensureUserNotSignedIn(correlationId);
+
+            this.logger.verbose(
+                "Starting native auth V2 password-reset flow.",
+                correlationId
+            );
+
+            const result = await this.v2FlowClient.resetPassword({
+                correlationId,
+                username: inputs.username,
+            });
+
+            this.logger.verbose(
+                "Native auth V2 password-reset flow started.",
+                correlationId
+            );
+
+            return new CustomAuthV2Result(
+                new AuthenticationMethodSelectionRequiredState({
+                    correlationId: result.correlationId,
+                    logger: this.logger,
+                    config: this.customAuthConfig,
+                    flowClient: this.v2FlowClient,
+                    continuationState: result.continuationState,
+                    cacheClient: this.cacheClient,
+                    methods: result.methods,
+                }),
+                undefined,
+                result.continuationState.scenario
+            );
+        } catch (error) {
+            this.logger.errorPii(
+                `An error occurred during native auth V2 reset-password: '${error}'`,
+                correlationId
+            );
+
+            return CustomAuthV2Result.createWithError(
+                new ResetPasswordStartError(
+                    toV2ApiError(error, correlationId),
+                    CustomAuthV2FlowScenario.Recovery
+                )
+            );
+        }
     }
 
     private getCorrelationId(

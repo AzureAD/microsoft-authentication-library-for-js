@@ -6,10 +6,12 @@
 import { StubbedNetworkModule } from "@azure/msal-common/browser";
 import { V2FlowInteractionClient } from "../../../../../src/custom_auth/core/interaction_client/v2/V2FlowInteractionClient.js";
 import {
+    V2_FLOW_METHOD_SELECTION_REQUIRED,
     V2_FLOW_CODE_REQUIRED,
     V2_FLOW_PASSWORD_REQUIRED,
     V2_FLOW_SIGN_IN_AFTER_RESET_REQUIRED,
     V2_FLOW_COMPLETED,
+    V2FlowMethodSelectionRequiredResult,
     V2FlowCodeRequiredResult,
     V2FlowPasswordRequiredResult,
     V2FlowSignInAfterResetRequiredResult,
@@ -113,18 +115,18 @@ describe("V2FlowInteractionClient", () => {
     });
 
     describe("resetPassword", () => {
-        it("runs entry + challenge and returns a code-required result", async () => {
+        it("runs the entry and returns a method-selection result without sending a challenge", async () => {
             apiClient.resetPasswordStart.mockResolvedValue({
                 continuationToken: "ct-start",
-                challengeHref: "https://endpoint/challenge",
-            });
-            apiClient.requestChallenge.mockResolvedValue({
-                continuationToken: "ct-challenge",
-                verifyHref: "https://endpoint/verify",
-                resendHref: "https://endpoint/resend",
-                codeLength: 6,
-                hint: "u***@contoso.com",
-                channel: "email",
+                scenario: "recovery",
+                methods: [
+                    {
+                        id: "email",
+                        type: "email",
+                        hint: "u***@contoso.com",
+                        challengeHref: "https://endpoint/challenge",
+                    },
+                ],
             });
 
             const result = await client.resetPassword({
@@ -136,6 +138,52 @@ describe("V2FlowInteractionClient", () => {
                 "user@contoso.com",
                 expect.objectContaining({ correlationId })
             );
+            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+
+            expect(result.type).toBe(V2_FLOW_METHOD_SELECTION_REQUIRED);
+
+            const methodSelection =
+                result as V2FlowMethodSelectionRequiredResult;
+            expect(methodSelection.correlationId).toBe(correlationId);
+            expect(methodSelection.methods).toEqual([
+                {
+                    id: "email",
+                    type: "email",
+                    hint: "u***@contoso.com",
+                    challengeHref: "https://endpoint/challenge",
+                },
+            ]);
+            expect(methodSelection.continuationState).toEqual({
+                continuationToken: "ct-start",
+                scenario: "recovery",
+                links: {},
+            });
+        });
+    });
+
+    describe("requestChallenge", () => {
+        const continuationState: V2FlowContinuationState = {
+            continuationToken: "ct-start",
+            scenario: "recovery",
+            links: {},
+        };
+
+        it("posts the selected method's challenge href and returns a code-required result", async () => {
+            apiClient.requestChallenge.mockResolvedValue({
+                continuationToken: "ct-challenge",
+                verifyHref: "https://endpoint/verify",
+                resendHref: "https://endpoint/resend",
+                codeLength: 6,
+                hint: "u***@contoso.com",
+                channel: "email",
+            });
+
+            const result = await client.requestChallenge({
+                correlationId,
+                continuationState,
+                challengeHref: "https://endpoint/challenge",
+            });
+
             expect(apiClient.requestChallenge).toHaveBeenCalledWith(
                 "https://endpoint/challenge",
                 { continuationToken: "ct-start" },
@@ -145,14 +193,12 @@ describe("V2FlowInteractionClient", () => {
             expect(result.type).toBe(V2_FLOW_CODE_REQUIRED);
 
             const codeRequired = result as V2FlowCodeRequiredResult;
-            expect(codeRequired.correlationId).toBe(correlationId);
             expect(codeRequired.codeLength).toBe(6);
             expect(codeRequired.sentTo).toBe("u***@contoso.com");
             expect(codeRequired.channel).toBe("email");
             expect(codeRequired.continuationState).toEqual({
-                correlationId,
                 continuationToken: "ct-challenge",
-                scenario: "resetPassword",
+                scenario: "recovery",
                 links: {
                     verify: "https://endpoint/verify",
                     resend: "https://endpoint/resend",
@@ -163,9 +209,8 @@ describe("V2FlowInteractionClient", () => {
 
     describe("submitCode", () => {
         const continuationState: V2FlowContinuationState = {
-            correlationId,
             continuationToken: "ct-challenge",
-            scenario: "resetPassword",
+            scenario: "recovery",
             links: {
                 verify: "https://endpoint/verify",
                 resend: "https://endpoint/resend",
@@ -196,9 +241,8 @@ describe("V2FlowInteractionClient", () => {
             const passwordRequired = result as V2FlowPasswordRequiredResult;
             expect(passwordRequired.correlationId).toBe(correlationId);
             expect(passwordRequired.continuationState).toEqual({
-                correlationId,
                 continuationToken: "ct-verify",
-                scenario: "resetPassword",
+                scenario: "recovery",
                 links: { update: "https://endpoint/update" },
             });
         });
@@ -221,9 +265,8 @@ describe("V2FlowInteractionClient", () => {
 
     describe("resendCode", () => {
         const continuationState: V2FlowContinuationState = {
-            correlationId,
             continuationToken: "ct-challenge",
-            scenario: "resetPassword",
+            scenario: "recovery",
             links: {
                 verify: "https://endpoint/verify",
                 resend: "https://endpoint/resend",
@@ -259,9 +302,8 @@ describe("V2FlowInteractionClient", () => {
             expect(codeRequired.sentTo).toBe("u***@contoso.com");
             expect(codeRequired.channel).toBe("email");
             expect(codeRequired.continuationState).toEqual({
-                correlationId,
                 continuationToken: "ct-challenge-2",
-                scenario: "resetPassword",
+                scenario: "recovery",
                 links: {
                     verify: "https://endpoint/verify-2",
                     resend: "https://endpoint/resend-2",
@@ -286,9 +328,8 @@ describe("V2FlowInteractionClient", () => {
 
     describe("submitPassword", () => {
         const continuationState: V2FlowContinuationState = {
-            correlationId,
             continuationToken: "ct-verify",
-            scenario: "resetPassword",
+            scenario: "recovery",
             links: { update: "https://endpoint/update" },
         };
 
@@ -330,9 +371,8 @@ describe("V2FlowInteractionClient", () => {
                 result as V2FlowSignInAfterResetRequiredResult;
             expect(signInRequired.correlationId).toBe(correlationId);
             expect(signInRequired.continuationState).toEqual({
-                correlationId,
                 continuationToken: "ct-complete",
-                scenario: "resetPassword",
+                scenario: "recovery",
                 links: { continue: "https://endpoint/continue" },
             });
         });
@@ -419,9 +459,8 @@ describe("V2FlowInteractionClient", () => {
 
     describe("signInAfterReset", () => {
         const continuationState: V2FlowContinuationState = {
-            correlationId,
             continuationToken: "ct-complete",
-            scenario: "resetPassword",
+            scenario: "recovery",
             links: { continue: "https://endpoint/continue" },
         };
 

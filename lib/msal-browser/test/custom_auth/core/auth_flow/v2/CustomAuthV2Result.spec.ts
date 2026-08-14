@@ -12,6 +12,8 @@ import { AuthenticationMethodSelectionRequiredState } from "../../../../../src/c
 import { FailedState } from "../../../../../src/custom_auth/core/auth_flow/v2/state/FailedState.js";
 import { AuthenticationMethodV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/AuthenticationMethodV2.js";
 import { CustomAuthV2FlowScenario } from "../../../../../src/custom_auth/core/auth_flow/CustomAuthV2FlowScenario.js";
+import { V2FlowInteractionClient } from "../../../../../src/custom_auth/core/interaction_client/v2/V2FlowInteractionClient.js";
+import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 describe("CustomAuthV2Result", () => {
@@ -28,7 +30,14 @@ describe("CustomAuthV2Result", () => {
             correlationId,
             logger: getDefaultLogger(),
             config: mockConfig,
-            methods: [method],
+            flowClient: {} as unknown as V2FlowInteractionClient,
+            cacheClient: {} as unknown as CustomAuthSilentCacheClient,
+            continuationState: {
+                continuationToken: "ct",
+                scenario: CustomAuthV2FlowScenario.Recovery,
+                links: {},
+            },
+            methods: [{ id: "email", type: "email", challengeHref: "/c" }],
         });
 
     describe("isState narrowing", () => {
@@ -57,7 +66,6 @@ describe("CustomAuthV2Result", () => {
             );
 
             expect(result.isState("failed")).toBe(false);
-            expect(result.isState("webFallbackRequired")).toBe(false);
         });
     });
 
@@ -102,7 +110,7 @@ describe("CustomAuthV2Result", () => {
                 new CustomAuthV2ApiError("user_not_found", "User not found", {
                     correlationId,
                 }),
-                CustomAuthV2FlowScenario.ResetPassword
+                CustomAuthV2FlowScenario.Recovery
             );
 
             const result = CustomAuthV2Result.createWithError<
@@ -111,7 +119,7 @@ describe("CustomAuthV2Result", () => {
             >(error);
 
             expect(result.scenario).toBe(
-                CustomAuthV2FlowScenario.ResetPassword
+                CustomAuthV2FlowScenario.Recovery
             );
         });
     });
@@ -129,11 +137,11 @@ describe("CustomAuthV2Result", () => {
             const result: ResetPasswordStartV2Result = new CustomAuthV2Result(
                 buildSelectionState(),
                 undefined,
-                CustomAuthV2FlowScenario.ResetPassword
+                CustomAuthV2FlowScenario.Recovery
             );
 
             expect(result.scenario).toBe(
-                CustomAuthV2FlowScenario.ResetPassword
+                CustomAuthV2FlowScenario.Recovery
             );
         });
     });

@@ -4,7 +4,11 @@
  */
 
 import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
-import { MethodNotImplementedError } from "../../../error/MethodNotImplementedError.js";
+import { CustomAuthV2Result } from "../../CustomAuthV2Result.js";
+import { SignInAfterResetPasswordError } from "../error/SignInAfterResetPasswordError.js";
+import { toV2ApiError } from "./V2StateErrorHelper.js";
+import { CompletedState } from "./CompletedState.js";
+import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import type { SignInAfterResetPasswordStateParameters } from "./CustomAuthV2StateParameters.js";
 import type { SignInAfterResetPasswordResult } from "../result/SignInAfterResetPasswordResult.js";
 import type { SignInAfterResetPasswordInputs } from "../../../../CustomAuthV2ActionInputs.js";
@@ -31,9 +35,47 @@ export class SignInAfterResetPasswordState extends AuthFlowActionRequiredStateBa
     async signIn(
         inputs?: SignInAfterResetPasswordInputs
     ): Promise<SignInAfterResetPasswordResult> {
-        void inputs;
-        throw new MethodNotImplementedError(
-            "SignInAfterResetPasswordState.signIn"
-        );
+        const { correlationId, logger, continuationState, flowClient } =
+            this.stateParameters;
+
+        try {
+            logger.verbose(
+                "Signing in after V2 password reset.",
+                correlationId
+            );
+
+            const result = await flowClient.signInAfterReset({
+                correlationId,
+                continuationState,
+                scopes: inputs?.scopes,
+                claims: inputs?.claims,
+            });
+
+            const account = new CustomAuthAccountData(
+                result.authenticationResult.account,
+                this.stateParameters.config,
+                this.stateParameters.cacheClient,
+                logger,
+                correlationId
+            );
+
+            return new CustomAuthV2Result(
+                new CompletedState(),
+                account,
+                continuationState.scenario
+            );
+        } catch (error) {
+            logger.errorPii(
+                `Failed to sign in after V2 password reset. Error: '${error}'.`,
+                correlationId
+            );
+
+            return CustomAuthV2Result.createWithError(
+                new SignInAfterResetPasswordError(
+                    toV2ApiError(error, correlationId),
+                    continuationState.scenario
+                )
+            );
+        }
     }
 }

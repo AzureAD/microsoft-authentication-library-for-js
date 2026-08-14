@@ -20,6 +20,12 @@ export interface V2FlowStartParams extends V2FlowParamsBase {
     username: string;
 }
 
+// Request the challenge for the selected method, sending the one-time code to it.
+export interface V2FlowRequestChallengeParams extends V2FlowParamsBase {
+    continuationState: V2FlowContinuationState;
+    challengeHref: string;
+}
+
 // Submit the one-time code the user received.
 export interface V2FlowSubmitCodeParams extends V2FlowParamsBase {
     continuationState: V2FlowContinuationState;

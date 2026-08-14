@@ -57,6 +57,7 @@ export const RESET_PASSWORD_V2_START = 100201;
 export const RESET_PASSWORD_V2_SUBMIT_CODE = 100202;
 export const RESET_PASSWORD_V2_RESEND_CODE = 100203;
 export const RESET_PASSWORD_V2_SUBMIT = 100204;
+export const RESET_PASSWORD_V2_CHALLENGE = 100205;
 
 /*
  * The generic (flow-agnostic) V2 interaction-client steps. Every server-driven flow reuses the same
@@ -67,6 +68,7 @@ export const RESET_PASSWORD_V2_SUBMIT = 100204;
  * with the ids above so the mapping and its targets stay in one place.
  */
 export type V2FlowStep =
+    | "requestChallenge"
     | "submitCode"
     | "resendCode"
     | "submitPassword"
@@ -75,7 +77,8 @@ export type V2FlowStep =
 export const V2_FLOW_STEP_API_IDS: Partial<
     Record<CustomAuthV2FlowScenario, Record<V2FlowStep, number>>
 > = {
-    [CustomAuthV2FlowScenario.ResetPassword]: {
+    [CustomAuthV2FlowScenario.Recovery]: {
+        requestChallenge: RESET_PASSWORD_V2_CHALLENGE,
         submitCode: RESET_PASSWORD_V2_SUBMIT_CODE,
         resendCode: RESET_PASSWORD_V2_RESEND_CODE,
         submitPassword: RESET_PASSWORD_V2_SUBMIT,

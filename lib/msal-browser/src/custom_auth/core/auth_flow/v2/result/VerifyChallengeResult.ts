@@ -7,18 +7,16 @@ import { CustomAuthV2Result } from "../../CustomAuthV2Result.js";
 import type { VerifyChallengeError } from "../error/VerifyChallengeError.js";
 import type { NewPasswordRequiredState } from "../state/NewPasswordRequiredState.js";
 import type { FailedState } from "../state/FailedState.js";
-import type { WebFallbackRequiredState } from "../state/WebFallbackRequiredState.js";
 
 /**
  * The states a verify-challenge action can resolve to. Verifying the one-time
  * code advances the flow to `NewPasswordRequiredState` and does not complete
  * here, so no `CompletedState` or account data is carried. Failures resolve to
- * `FailedState`, and a browser hand-off resolves to `WebFallbackRequiredState`.
+ * `FailedState`.
  */
 export type VerifyChallengeResultState =
     | NewPasswordRequiredState
-    | FailedState
-    | WebFallbackRequiredState;
+    | FailedState;
 
 /**
  * Result of verifying a challenge. It wraps one of

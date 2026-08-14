@@ -15,6 +15,7 @@ import {
     INVALID_RESPONSE_BODY,
     CONTINUATION_TOKEN_MISSING,
     INVALID_HAL_RESPONSE,
+    NO_AUTHENTICATION_METHODS,
     V2ResponseState,
 } from "./V2ApiClientConstants.js";
 
@@ -145,6 +146,29 @@ export class V2ResponseHandler {
         return (
             Array.isArray(methods) ? methods : [methods]
         ) as V2EmbeddedMethod[];
+    }
+
+    // Required embedded auth methods; throws when `_embedded.methods` is absent or empty.
+    requireMethods(
+        response: HalResource,
+        correlationId: string
+    ): V2EmbeddedMethod[] {
+        const methods = this.getMethods(response);
+
+        if (methods.length === 0) {
+            this.logger?.error(
+                "V2 HAL response is missing the required embedded authentication methods",
+                correlationId
+            );
+
+            throw new CustomAuthV2ApiError(
+                NO_AUTHENTICATION_METHODS,
+                "Invalid HAL response: no embedded authentication methods",
+                { correlationId }
+            );
+        }
+
+        return methods;
     }
 
     private async parseBody(

@@ -7,7 +7,6 @@ import { CustomAuthError } from "../../src/custom_auth/core/error/CustomAuthErro
 import { ResetPasswordStartResult } from "../../src/custom_auth/reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { GetAccountResult } from "../../src/custom_auth/get_account/auth_flow/result/GetAccountResult.js";
 import { CustomAuthStandardController } from "../../src/custom_auth/controller/CustomAuthStandardController.js";
-import { MethodNotImplementedError } from "../../src/custom_auth/core/error/MethodNotImplementedError.js";
 
 describe("CustomAuthPublicClientApplication", () => {
     let mockController: jest.Mocked<ICustomAuthStandardController>;
@@ -250,24 +249,6 @@ describe("CustomAuthPublicClientApplication", () => {
                 mockResetPasswordV2Inputs
             );
             expect(result).toEqual(mockResetPasswordV2Result);
-        });
-
-        it("should throw MethodNotImplementedError from the real controller stub", async () => {
-            const app = await CustomAuthPublicClientApplication.create(
-                customAuthConfig
-            );
-
-            const controller = (app as CustomAuthPublicClientApplication)[
-                "customAuthController"
-            ] as CustomAuthStandardController;
-
-            try {
-                await expect(
-                    app.resetPasswordV2({ username: "testuser" })
-                ).rejects.toThrow(MethodNotImplementedError);
-            } finally {
-                controller["eventHandler"]["broadcastChannel"]?.close();
-            }
         });
     });
 

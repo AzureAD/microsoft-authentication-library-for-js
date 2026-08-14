@@ -11,19 +11,26 @@ import {
 import { V2InteractionClientBase } from "./V2InteractionClientBase.js";
 import {
     V2FlowStartParams,
+    V2FlowRequestChallengeParams,
     V2FlowSubmitCodeParams,
     V2FlowResendCodeParams,
     V2FlowSubmitPasswordParams,
     V2FlowSignInAfterResetParams,
 } from "./parameter/V2FlowParams.js";
 import {
-    V2FlowActionResult,
+    createV2FlowMethodSelectionRequiredResult,
     createV2FlowCodeRequiredResult,
     createV2FlowPasswordRequiredResult,
     createV2FlowSignInAfterResetRequiredResult,
     createV2FlowCompletedResult,
 } from "./result/V2FlowActionResult.js";
-import { V2FlowContinuationState } from "./V2FlowContinuationState.js";
+import type {
+    V2FlowMethodSelectionRequiredResult,
+    V2FlowCodeRequiredResult,
+    V2FlowPasswordRequiredResult,
+    V2FlowSignInAfterResetRequiredResult,
+    V2FlowCompletedResult,
+} from "./result/V2FlowActionResult.js";
 import { BrowserConfiguration } from "../../../../config/Configuration.js";
 import { BrowserCacheManager } from "../../../../cache/BrowserCacheManager.js";
 import { EventHandler } from "../../../../event/EventHandler.js";
@@ -37,7 +44,10 @@ import {
     RESET_PASSWORD_TIMEOUT,
     UNSUPPORTED_FLOW_STEP,
 } from "../../network_client/custom_auth_api/v2/V2ApiClientConstants.js";
-import { CustomAuthV2FlowScenario } from "../../auth_flow/CustomAuthV2FlowScenario.js";
+import {
+    CustomAuthV2FlowScenario,
+    toCustomAuthV2FlowScenario,
+} from "../../auth_flow/CustomAuthV2FlowScenario.js";
 import * as PublicApiId from "../../telemetry/PublicApiId.js";
 
 /*
@@ -88,16 +98,17 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
     }
 
     /*
-     * Reset-password entry (steps 1-3): run the authorize-challenge entry + resetpassword-start,
-     * then request the challenge so the one-time code is sent. This is the flow-specific entry
-     * point (mirrors iOS `MSALNativeAuthFlowController.resetPassword`): it stamps the SSPR scenario
-     * and telemetry id, which the generic continuation steps then read back from the continuation.
-     * Returns a `codeRequired` outcome carrying the continuation (with the `verify`/`resend` hrefs)
-     * plus the OTP display metadata.
+     * Reset-password entry (steps 1-2): run the authorize-challenge entry + resetpassword-start,
+     * then stop so the app can pick an authentication method. This is the flow-specific entry point
+     * (mirrors iOS `MSALNativeAuthFlowController.resetPassword` up to the method list): it stamps
+     * the SSPR scenario and telemetry id, which the generic continuation steps then read back from
+     * the continuation. Unlike iOS (which auto-picks the first method), JS exposes the choice, so
+     * this returns a `methodSelectionRequired` outcome carrying the selectable methods (each with
+     * its own challenge href) plus the continuation; the challenge is sent by `requestChallenge`.
      */
     async resetPassword(
         parameters: V2FlowStartParams
-    ): Promise<V2FlowActionResult> {
+    ): Promise<V2FlowMethodSelectionRequiredResult> {
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             PublicApiId.RESET_PASSWORD_V2_START,
@@ -114,23 +125,56 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
             context
         );
 
-        const challengeResult = await this.apiClient.requestChallenge(
-            startResult.challengeHref,
-            { continuationToken: startResult.continuationToken },
-            context
+        this.logger.verbose(
+            "V2 self-service password reset method selection required.",
+            correlationId
         );
 
-        this.logger.verbose(
-            "V2 self-service password reset challenge sent.",
+        return createV2FlowMethodSelectionRequiredResult({
+            correlationId,
+            continuationState: {
+                continuationToken: startResult.continuationToken,
+                scenario: toCustomAuthV2FlowScenario(startResult.scenario),
+                links: {},
+            },
+            methods: startResult.methods,
+        });
+    }
+
+    /*
+     * Request the challenge for the selected method (step 3). Generic across flows: POSTs the chosen
+     * method's `challenge` href (resolved by the caller from the method the user picked) so the
+     * one-time code is sent, then returns a `codeRequired` outcome carrying the continuation (with
+     * the `verify`/`resend` hrefs) plus the OTP display metadata - the same envelope `resendCode`
+     * produces. Scenario is threaded forward from the continuation.
+     */
+    async requestChallenge(
+        parameters: V2FlowRequestChallengeParams
+    ): Promise<V2FlowCodeRequiredResult> {
+        const continuationState = parameters.continuationState;
+        const correlationId = parameters.correlationId;
+        const context = this.createRequestContext(
+            this.resolveStepApiId(
+                continuationState.scenario,
+                "requestChallenge",
+                correlationId
+            ),
             correlationId
+        );
+
+        this.logger.verbose("Requesting V2 challenge.", correlationId);
+
+        const challengeResult = await this.apiClient.requestChallenge(
+            parameters.challengeHref,
+            { continuationToken: continuationState.continuationToken },
+            context
         );
 
         return createV2FlowCodeRequiredResult({
             correlationId,
             continuationState: {
-                correlationId,
                 continuationToken: challengeResult.continuationToken,
-                scenario: CustomAuthV2FlowScenario.ResetPassword,
+                scenario: continuationState.scenario,
                 links: {
                     verify: challengeResult.verifyHref,
                     resend: challengeResult.resendHref,
@@ -151,10 +195,9 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
      */
     async submitCode(
         parameters: V2FlowSubmitCodeParams
-    ): Promise<V2FlowActionResult> {
+    ): Promise<V2FlowPasswordRequiredResult> {
         const continuationState = parameters.continuationState;
-        const correlationId =
-            parameters.correlationId || continuationState.correlationId;
+        const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             this.resolveStepApiId(
                 continuationState.scenario,
@@ -167,7 +210,7 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
         this.logger.verbose("Submitting V2 one-time code.", correlationId);
 
         const verifyResult = await this.apiClient.verifyCode(
-            this.requireLink(continuationState, continuationState.links.verify),
+            this.requireLink(correlationId, continuationState.links.verify),
             {
                 continuationToken: continuationState.continuationToken,
                 otp: parameters.code,
@@ -180,7 +223,6 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
                 return createV2FlowPasswordRequiredResult({
                     correlationId,
                     continuationState: {
-                        correlationId,
                         continuationToken: verifyResult.continuationToken,
                         scenario: continuationState.scenario,
                         links: { update: verifyResult.updateHref },
@@ -208,10 +250,9 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
      */
     async resendCode(
         parameters: V2FlowResendCodeParams
-    ): Promise<V2FlowActionResult> {
+    ): Promise<V2FlowCodeRequiredResult> {
         const continuationState = parameters.continuationState;
-        const correlationId =
-            parameters.correlationId || continuationState.correlationId;
+        const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             this.resolveStepApiId(
                 continuationState.scenario,
@@ -224,7 +265,7 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
         this.logger.verbose("Resending V2 one-time code.", correlationId);
 
         const challengeResult = await this.apiClient.requestChallenge(
-            this.requireLink(continuationState, continuationState.links.resend),
+            this.requireLink(correlationId, continuationState.links.resend),
             { continuationToken: continuationState.continuationToken },
             context
         );
@@ -232,7 +273,6 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
         return createV2FlowCodeRequiredResult({
             correlationId,
             continuationState: {
-                correlationId,
                 continuationToken: challengeResult.continuationToken,
                 scenario: continuationState.scenario,
                 links: {
@@ -258,10 +298,9 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
      */
     async submitPassword(
         parameters: V2FlowSubmitPasswordParams
-    ): Promise<V2FlowActionResult> {
+    ): Promise<V2FlowSignInAfterResetRequiredResult> {
         const continuationState = parameters.continuationState;
-        const correlationId =
-            parameters.correlationId || continuationState.correlationId;
+        const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             this.resolveStepApiId(
                 continuationState.scenario,
@@ -274,7 +313,7 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
         this.logger.verbose("Submitting V2 new password.", correlationId);
 
         const updateResult = await this.apiClient.submitNewPassword(
-            this.requireLink(continuationState, continuationState.links.update),
+            this.requireLink(correlationId, continuationState.links.update),
             {
                 continuationToken: continuationState.continuationToken,
                 newPassword: parameters.newPassword,
@@ -322,7 +361,6 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
         return createV2FlowSignInAfterResetRequiredResult({
             correlationId,
             continuationState: {
-                correlationId,
                 continuationToken: completionToken,
                 scenario: continuationState.scenario,
                 links: { continue: continueHref },
@@ -343,10 +381,9 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
      */
     async signInAfterReset(
         parameters: V2FlowSignInAfterResetParams
-    ): Promise<V2FlowActionResult> {
+    ): Promise<V2FlowCompletedResult> {
         const continuationState = parameters.continuationState;
-        const correlationId =
-            parameters.correlationId || continuationState.correlationId;
+        const correlationId = parameters.correlationId;
         const apiId = this.resolveStepApiId(
             continuationState.scenario,
             "signInAfterReset",
@@ -418,14 +455,14 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
      * `generalError` when a continuation link is absent) so it is never confused with a wire error.
      */
     private requireLink(
-        continuationState: V2FlowContinuationState,
+        correlationId: string,
         href: string | undefined
     ): string {
         if (!href) {
             throw new CustomAuthV2ApiError(
                 CONTINUATION_LINK_MISSING,
                 "The continuation state is missing a link required to advance the flow.",
-                { correlationId: continuationState.correlationId }
+                { correlationId }
             );
         }
 

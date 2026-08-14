@@ -271,7 +271,6 @@ export { SignInAfterResetPasswordError } from "./core/auth_flow/v2/error/SignInA
 // Native Auth V2 States
 export { CompletedState } from "./core/auth_flow/v2/state/CompletedState.js";
 export { FailedState } from "./core/auth_flow/v2/state/FailedState.js";
-export { WebFallbackRequiredState } from "./core/auth_flow/v2/state/WebFallbackRequiredState.js";
 export { NewPasswordRequiredState } from "./core/auth_flow/v2/state/NewPasswordRequiredState.js";
 export { ChallengeVerificationRequiredState } from "./core/auth_flow/v2/state/ChallengeVerificationRequiredState.js";
 export { AuthenticationMethodSelectionRequiredState } from "./core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
