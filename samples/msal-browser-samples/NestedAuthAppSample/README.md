@@ -5,7 +5,7 @@ This sample demonstrates a 3P **Nested Authentication App (NAA)** brokered throu
 ## Architecture
 
 ```text
- hostApp (top frame, port 30668)              nestedApp (iframe, port 30667)
+ hostApp (top frame, port 30663)              nestedApp (iframe, port 30667)
  ┌──────────────────────────────────┐         ┌──────────────────────────────┐
  │ @azure/msal-browser              │         │ @azure/msal-browser          │
  │ PublicClientApplication          │  NAA    │ createNestablePublicClient   │
@@ -24,6 +24,25 @@ This sample demonstrates a 3P **Nested Authentication App (NAA)** brokered throu
 -   **nestedApp** — the embedded child. It creates its client with
     `createNestablePublicClientApplication()` and acquires tokens **through the
     host bridge**, never contacting the identity provider directly.
+
+## The NAA bridge
+
+The nested app talks to the host through `window.nestedAppAuthBridge`. In a
+production NAA host (Teams, Outlook) that bridge is injected by the platform;
+in this sample the host app supplies its own implementation
+(`hostApp/src/nestedAppAuthBridge.js`).
+
+-   **Injection** — the host installs the bridge on `window` by calling
+    `installHostNestedAppAuthBridge(hostPca, nestedOrigin, brokerExtraParams)`
+    from `hostApp/src/index.jsx` after MSAL initializes. The bridge only accepts
+    `postMessage` requests from the nested app's origin.
+-   **Usage** — the nested app creates its client with
+    `createNestablePublicClientApplication()`, which detects the bridge and
+    routes `acquireTokenSilent` / `acquireToken` calls through it. The host
+    receives those requests and brokers the token via its **own** MSAL instance,
+    passing the nested app's client id as MSAL's `embeddedClientId` request
+    parameter so the host acts as the broker.
+
 
 ## Structure
 
@@ -88,14 +107,14 @@ npm install
 # Then from this directory
 npm install
 npm run build:package   # build the in-repo @azure/msal-browser package
-npm start               # hostApp -> http://localhost:30668
+npm start               # hostApp -> http://localhost:30663
 ```
 
 To serve both apps over HTTPS with locally generated development certificates:
 
 ```bash
 npm run start:https     
-# hostApp -> https://localhost:30668
+# hostApp -> https://localhost:30663
 # nestedApp -> https://localhost:30667
 ```
 

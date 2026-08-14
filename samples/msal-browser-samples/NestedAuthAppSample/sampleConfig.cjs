@@ -14,7 +14,7 @@
  */
 
 // Host (top frame) app: enables the platform broker and hosts the NAA bridge.
-const HOST_APP_PORT = 30668;
+const HOST_APP_PORT = 30663;
 // Nested (child) app: embedded by the host in an iframe.
 const NESTED_APP_PORT = 30667;
 
