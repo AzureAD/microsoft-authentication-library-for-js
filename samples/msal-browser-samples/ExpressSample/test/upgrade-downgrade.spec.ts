@@ -204,8 +204,10 @@ describe("Upgrade/Downgrade Tests", () => {
             await signIn(page, screenshot, username, accountPwd);
 
             await switchToVersion("latest-v3", page, screenshot);
-            // v3 can't read the v4 cache so we need to sign back in via SSO
-            await signIn(page, screenshot, username, accountPwd, true);
+            // v3 shares the cache written by the local build, so it should be
+            // able to read the account and pull tokens from the cache directly
+            // without re-authenticating.
+            await verifyCacheWasUsed(page, screenshot);
 
             await switchToVersion("local", page, screenshot);
 
