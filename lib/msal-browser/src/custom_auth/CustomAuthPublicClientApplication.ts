@@ -8,7 +8,16 @@ import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
 import { ICustomAuthStandardController } from "./controller/ICustomAuthStandardController.js";
 import { CustomAuthStandardController } from "./controller/CustomAuthStandardController.js";
-import { ICustomAuthPublicClientApplication } from "./ICustomAuthPublicClientApplication.js";
+import { ICustomAuthPublicClientApplicationV2 } from "./ICustomAuthPublicClientApplicationV2.js";
+import {
+    ResetPasswordV2Inputs,
+    SignInV2Inputs,
+    SignUpV2Inputs,
+} from "./CustomAuthV2ActionInputs.js";
+import { ResetPasswordStartV2Result } from "./core/auth_flow/v2/result/ResetPasswordStartV2Result.js";
+import { SignInStartV2Result } from "./core/auth_flow/v2/result/SignInStartV2Result.js";
+import { SignUpStartV2Result } from "./core/auth_flow/v2/result/SignUpStartV2Result.js";
+import { MethodNotImplementedError } from "./core/error/MethodNotImplementedError.js";
 import {
     AccountRetrievalInputs,
     SignInInputs,
@@ -29,18 +38,18 @@ import {
 
 export class CustomAuthPublicClientApplication
     extends PublicClientApplication
-    implements ICustomAuthPublicClientApplication
+    implements ICustomAuthPublicClientApplicationV2
 {
     private readonly customAuthController: ICustomAuthStandardController;
 
     /**
      * Creates a new instance of a PublicClientApplication with the given configuration and controller to start Native authentication flows
      * @param {CustomAuthConfiguration} config - A configuration object for the PublicClientApplication instance
-     * @returns {Promise<ICustomAuthPublicClientApplication>} - A promise that resolves to a CustomAuthPublicClientApplication instance
+     * @returns {Promise<ICustomAuthPublicClientApplicationV2>} - A promise that resolves to a CustomAuthPublicClientApplication instance
      */
     static async create(
         config: CustomAuthConfiguration
-    ): Promise<ICustomAuthPublicClientApplication> {
+    ): Promise<ICustomAuthPublicClientApplicationV2> {
         CustomAuthPublicClientApplication.validateConfig(config);
 
         const customAuthController = new CustomAuthStandardController(
@@ -112,6 +121,38 @@ export class CustomAuthPublicClientApplication
         resetPasswordInputs: ResetPasswordInputs
     ): Promise<ResetPasswordStartResult> {
         return this.customAuthController.resetPassword(resetPasswordInputs);
+    }
+
+    /**
+     * Initiates the native auth V2 sign-in flow.
+     * @param {SignInV2Inputs} inputs - Inputs for the sign-in V2 flow
+     * @returns {Promise<SignInStartV2Result>} - A promise that resolves to SignInStartV2Result
+     */
+    signInV2(inputs: SignInV2Inputs): Promise<SignInStartV2Result> {
+        void inputs;
+        throw new MethodNotImplementedError("signInV2");
+    }
+
+    /**
+     * Initiates the native auth V2 sign-up flow.
+     * @param {SignUpV2Inputs} inputs - Inputs for the sign-up V2 flow
+     * @returns {Promise<SignUpStartV2Result>} - A promise that resolves to SignUpStartV2Result
+     */
+    signUpV2(inputs: SignUpV2Inputs): Promise<SignUpStartV2Result> {
+        void inputs;
+        throw new MethodNotImplementedError("signUpV2");
+    }
+
+    /**
+     * Initiates the native auth V2 reset-password flow.
+     * @param {ResetPasswordV2Inputs} inputs - Inputs for the reset-password V2 flow
+     * @returns {Promise<ResetPasswordStartV2Result>} - A promise that resolves to ResetPasswordStartV2Result
+     */
+    resetPasswordV2(
+        inputs: ResetPasswordV2Inputs
+    ): Promise<ResetPasswordStartV2Result> {
+        void inputs;
+        throw new MethodNotImplementedError("resetPasswordV2");
     }
 
     /**
