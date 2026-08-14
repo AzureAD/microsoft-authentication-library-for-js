@@ -293,7 +293,7 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
         const decryptCountBefore = await getEarDecryptCount(page);
 
         await page.locator("button#ssoSilentButton").click();
-        await page.waitForSelector('div#silentStatus[data-status="ssoSilent:success"]', {
+        await page.waitForSelector("div#silentStatus[data-status=\"ssoSilent:success\"]", {
             timeout: 30000,
         });
         await screenshot.takeScreenshot(page, "ssoSilent completed");
