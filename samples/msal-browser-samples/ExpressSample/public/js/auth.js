@@ -160,6 +160,58 @@ export async function getAccessToken() {
         });
 }
 
+// Write the outcome of a silent call to #silentStatus. The e2e tests wait on the
+// data-status attribute to synchronize on completion.
+function setSilentStatus(status) {
+    const el = document.getElementById('silentStatus');
+    if (el) {
+        el.dataset.status = status;
+        el.textContent = status;
+    }
+}
+
+// ssoSilent on the main instance (hidden-iframe silent auth). With EAR config
+// this exercises the silent EAR authorize path.
+export async function ssoSilent() {
+    setSilentStatus('ssoSilent:pending');
+    try {
+        const account = msalInstance.getActiveAccount();
+        const response = await msalInstance.ssoSilent({
+            ...loginRequest,
+            account,
+            loginHint: account && account.username
+        });
+        msalInstance.setActiveAccount(response.account);
+        setSilentStatus('ssoSilent:success');
+        showSuccess('ssoSilent succeeded');
+    } catch (error) {
+        console.error('ssoSilent failed:', error);
+        setSilentStatus('ssoSilent:error');
+        showError('ssoSilent failed: ' + error.message);
+    }
+}
+
+// acquireTokenSilent on the main instance. forceRefresh guarantees a network
+// RT->AT exchange (/token) so the EAR-issued refresh token is actually used
+// rather than returning a cached access token.
+export async function acquireTokenSilent() {
+    setSilentStatus('acquireTokenSilent:pending');
+    try {
+        const response = await msalInstance.acquireTokenSilent({
+            ...loginRequest,
+            account: msalInstance.getActiveAccount(),
+            forceRefresh: true
+        });
+        msalInstance.setActiveAccount(response.account);
+        setSilentStatus('acquireTokenSilent:success');
+        showSuccess('acquireTokenSilent succeeded');
+    } catch (error) {
+        console.error('acquireTokenSilent failed:', error);
+        setSilentStatus('acquireTokenSilent:error');
+        showError('acquireTokenSilent failed: ' + error.message);
+    }
+}
+
 /**
  * Show warning message during popup authentication
  */

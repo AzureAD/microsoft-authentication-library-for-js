@@ -7,6 +7,7 @@ import {
 import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
 import {
     msalConfig,
+    brokerExtraParams,
     nestedAppPort,
     nestedAppProtocol,
 } from "./authConfig";
@@ -56,7 +57,7 @@ if (isAuthResponseInUrl) {
         // Act as the Nested App Authentication bridge provider for the embedded
         // nested app served from this origin.
         const nestedOrigin = `${nestedAppProtocol}://localhost:${nestedAppPort}`;
-        installHostNestedAppAuthBridge(pca, nestedOrigin);
+        installHostNestedAppAuthBridge(pca, nestedOrigin, brokerExtraParams);
 
         const container = document.getElementById("root");
         const root = ReactDOM.createRoot(container);
