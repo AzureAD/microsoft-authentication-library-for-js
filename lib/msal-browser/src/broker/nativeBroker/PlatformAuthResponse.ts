@@ -25,6 +25,10 @@ export type PlatformAuthResponse = {
     scope: string;
     state: string;
     shr?: string;
+    token_type?: string;
+    DpoP?: string;
+    token_binding_key_id?: string;
+    attested_chosen?: boolean;
     extendedLifetimeToken?: boolean;
 };
 

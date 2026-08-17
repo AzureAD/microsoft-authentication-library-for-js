@@ -8,6 +8,7 @@ import {
     AuthError,
     AuthErrorCodes,
     IPerformanceClient,
+    Constants,
 } from "@azure/msal-common";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { NativeExtensionMethod } from "../../src/utils/BrowserConstants.js";
@@ -277,6 +278,10 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 },
                 scope: "read openid",
                 expires_in: "3600",
+                token_type: "DPoP",
+                DpoP: "test-dpop-proof",
+                token_binding_key_id: "test-token-binding-key-id",
+                attested_chosen: true,
             };
             const testResponse = {
                 status: "Success",
@@ -303,6 +308,17 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                     expect(event.data.body.method).toBe(
                         NativeExtensionMethod.GetToken
                     );
+                    expect(event.data.body.request).toEqual({
+                        ...TEST_REQUEST,
+                        preferBinding: "test-prefer-binding",
+                        reqCnf: "test-req-cnf",
+                        tokenType: Constants.AuthenticationScheme.DPOP,
+                        extraParametersNoCache: {
+                            pop_method: "POST",
+                            pop_uri: "https://graph.microsoft.com/v1.0/me",
+                            pop_nonce: "test-dpop-nonce",
+                        },
+                    });
                     mcPort.postMessage({
                         channelId: "53ee284d-920a-4b59-9d30-a60315b26836",
                         extensionId: "test-ext-id",
@@ -329,7 +345,17 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 PlatformAuthExtensionHandler
             );
 
-            const response = await wamMessageHandler.sendMessage(TEST_REQUEST);
+            const response = await wamMessageHandler.sendMessage({
+                ...TEST_REQUEST,
+                preferBinding: "test-prefer-binding",
+                reqCnf: "test-req-cnf",
+                tokenType: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                extraParametersNoCache: {
+                    pop_nonce: "test-dpop-nonce",
+                },
+            });
             expect(response).toEqual(testResponse.result);
 
             window.removeEventListener("message", eventHandler, true);
