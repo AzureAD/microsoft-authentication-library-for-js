@@ -19,6 +19,8 @@ export const unableToReadSecretFile = "unable_to_read_secret_file";
 export const urlParseError = "url_parse_error";
 export const userAssignedNotAvailableAtRuntime =
     "user_assigned_not_available_at_runtime";
+export const userAssignedManagedIdentityNotConfirmed =
+    "user_assigned_managed_identity_not_confirmed";
 export const wwwAuthenticateHeaderMissing = "www_authenticate_header_missing";
 export const wwwAuthenticateHeaderUnsupportedFormat =
     "www_authenticate_header_unsupported_format";

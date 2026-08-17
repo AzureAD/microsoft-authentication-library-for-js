@@ -117,3 +117,7 @@ For failed requests the error response contains a correlation ID that can be use
 #### `ManagedIdentityError` Error Code: `invalid_resource` Error Message: The supplied resource is an invalid URL.
 
 This exception might mean that the resource you are trying to acquire a token for is either not supported or is provided using the wrong resource ID format. Examples of correct resource ID formats include `https://management.azure.com/.default`, `https://management.azure.com`, and `https://graph.microsoft.com`.
+
+#### `ManagedIdentityError` Error Code: `user_assigned_managed_identity_not_confirmed` Error Message: Azure Arc did not confirm the requested user-assigned managed identity in the token response. The agent likely does not support user-assigned managed identity and returned the system-assigned identity.
+
+This exception is thrown when a user-assigned managed identity is requested on Azure Arc but the returned token does not confirm it. Older Azure Connected Machine agents ignore the requested `client_id`/`object_id`/`msi_res_id` selector and silently return the machine's system-assigned identity; MSAL fails closed rather than return a token for a different identity than the one requested. Ensure user-assigned managed identity is enabled for your subscription and upgrade the Azure Connected Machine agent to a version that supports user-assigned managed identities.
