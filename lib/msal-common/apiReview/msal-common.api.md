@@ -1179,7 +1179,6 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     responseMode: ResponseMode;
     account?: AccountInfo;
     earJwk?: string;
-    reqCnf?: string;
     codeChallenge?: string;
     codeChallengeMethod?: string;
     domainHint?: string;
@@ -1190,6 +1189,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     sid?: string;
     state: string;
     platformBroker?: boolean;
+    reqCnf?: string;
 };
 
 // @internal (undocumented)
