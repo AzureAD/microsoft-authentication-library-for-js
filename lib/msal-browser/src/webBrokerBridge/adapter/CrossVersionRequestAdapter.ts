@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-type StringDict = Record<string, string>;
+import { StringDict } from "@azure/msal-common/browser";
 
 /**
  * Current request fields used by cross-version transformations.
