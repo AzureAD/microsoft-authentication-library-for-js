@@ -23,3 +23,14 @@ export { WebBrokerBridgeErrorCode } from "./WebBrokerBridgeError.js";
 export { toAuthError } from "./WebBrokerBridgeErrorMap.js";
 export { PendingRequestRegistry } from "./PendingRequestRegistry.js";
 export type { WebBrokerBridgeSendFn } from "./PendingRequestRegistry.js";
+export {
+    addLegacyRequestFields,
+    addResourceField,
+    normalizeIncomingRequest,
+    normalizeResourceField,
+} from "./adapter/CrossVersionRequestAdapter.js";
+export type {
+    CrossVersionRequest,
+    CrossVersionRequestFields,
+    LegacyRequestFields,
+} from "./adapter/CrossVersionRequestAdapter.js";
