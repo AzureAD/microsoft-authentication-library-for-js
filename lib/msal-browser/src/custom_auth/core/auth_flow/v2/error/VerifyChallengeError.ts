@@ -8,8 +8,9 @@ import { AuthFlowErrorV2Base } from "./AuthFlowErrorV2Base.js";
 /**
  * Error raised when verifying a challenge (submitting a one-time code). It
  * exposes the detectors relevant to code verification so the app can respond to
- * a rejected code specifically. Unrecognised failures fall back to the inherited
- * `isGeneralError()`.
+ * a rejected code specifically. Unrecognised failures carry no specific
+ * detector; inspect the error code (`unexpected_error` when the server gives
+ * none) and `errorDescription`.
  */
 export class VerifyChallengeError extends AuthFlowErrorV2Base {
     /**

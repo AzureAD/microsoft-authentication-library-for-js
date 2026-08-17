@@ -210,8 +210,8 @@ describe("Reset password V2 (SSPR)", () => {
                 buildResponse(
                     {
                         error: {
-                            code: "invalid_grant",
-                            message: "The one-time code is incorrect.",
+                            code: "invalidGrant",
+                            message: "AADSTS50181: Unable to validate the otp.",
                             innerError: { code: "invalidOneTimeCode" },
                         },
                     },
@@ -243,10 +243,10 @@ describe("Reset password V2 (SSPR)", () => {
                 buildResponse(
                     {
                         error: {
-                            code: "invalid_grant",
+                            code: "invalidRequest",
                             message:
-                                "Password does not meet complexity requirements.",
-                            innerError: { code: "passwordInvalid" },
+                                "AADSTS120002: New password doesn't meet complexity requirements.",
+                            innerError: { code: "passwordTooWeak" },
                         },
                     },
                     400

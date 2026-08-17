@@ -48,10 +48,9 @@ export const MFA_SUBMIT_CHALLENGE = 100102;
 
 /*
  * Native Auth V2 (server-driven HAL flows). Dedicated ids so V2 telemetry is distinguishable from
- * the V1 flows above, mirroring iOS which added a separate V2 range (telemetryApiIdV2ResetPassword*
- * = 76010/76013/76015/76020). Values are placeholders in the JS 100xxx space pending central
- * telemetry claiming (INV-apiid). Sign-in-after-reset intentionally has no dedicated id - like iOS
- * it reuses SIGN_IN_AFTER_PASSWORD_RESET above.
+ * the V1 flows above. Values are placeholders in the JS 100xxx space pending central
+ * telemetry claiming (INV-apiid). Sign-in-after-reset intentionally has no dedicated id - it
+ * reuses SIGN_IN_AFTER_PASSWORD_RESET above.
  */
 export const RESET_PASSWORD_V2_START = 100201;
 export const RESET_PASSWORD_V2_SUBMIT_CODE = 100202;
@@ -77,12 +76,12 @@ export type V2FlowStep =
 export const V2_FLOW_STEP_API_IDS: Partial<
     Record<CustomAuthV2FlowScenario, Record<V2FlowStep, number>>
 > = {
-    [CustomAuthV2FlowScenario.Recovery]: {
+    [CustomAuthV2FlowScenario.PasswordReset]: {
         requestChallenge: RESET_PASSWORD_V2_CHALLENGE,
         submitCode: RESET_PASSWORD_V2_SUBMIT_CODE,
         resendCode: RESET_PASSWORD_V2_RESEND_CODE,
         submitPassword: RESET_PASSWORD_V2_SUBMIT,
-        // Sign-in-after-reset has no dedicated V2 id; it reuses the V1 id (mirrors iOS).
+        // Sign-in-after-reset has no dedicated V2 id; it reuses the V1 id.
         signInAfterReset: SIGN_IN_AFTER_PASSWORD_RESET,
     },
 };

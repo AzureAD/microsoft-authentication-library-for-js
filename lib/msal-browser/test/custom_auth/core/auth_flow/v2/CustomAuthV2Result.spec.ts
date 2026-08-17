@@ -34,7 +34,7 @@ describe("CustomAuthV2Result", () => {
             cacheClient: {} as unknown as CustomAuthSilentCacheClient,
             continuationState: {
                 continuationToken: "ct",
-                scenario: CustomAuthV2FlowScenario.Recovery,
+                scenario: CustomAuthV2FlowScenario.PasswordReset,
                 links: {},
             },
             methods: [{ id: "email", type: "email", challengeHref: "/c" }],
@@ -110,7 +110,7 @@ describe("CustomAuthV2Result", () => {
                 new CustomAuthV2ApiError("user_not_found", "User not found", {
                     correlationId,
                 }),
-                CustomAuthV2FlowScenario.Recovery
+                CustomAuthV2FlowScenario.PasswordReset
             );
 
             const result = CustomAuthV2Result.createWithError<
@@ -119,7 +119,7 @@ describe("CustomAuthV2Result", () => {
             >(error);
 
             expect(result.scenario).toBe(
-                CustomAuthV2FlowScenario.Recovery
+                CustomAuthV2FlowScenario.PasswordReset
             );
         });
     });
@@ -137,11 +137,11 @@ describe("CustomAuthV2Result", () => {
             const result: ResetPasswordStartV2Result = new CustomAuthV2Result(
                 buildSelectionState(),
                 undefined,
-                CustomAuthV2FlowScenario.Recovery
+                CustomAuthV2FlowScenario.PasswordReset
             );
 
             expect(result.scenario).toBe(
-                CustomAuthV2FlowScenario.Recovery
+                CustomAuthV2FlowScenario.PasswordReset
             );
         });
     });

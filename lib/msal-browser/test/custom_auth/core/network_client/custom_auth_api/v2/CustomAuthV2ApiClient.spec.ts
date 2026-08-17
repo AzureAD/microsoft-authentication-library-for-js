@@ -326,9 +326,14 @@ describe("CustomAuthV2ApiClient", () => {
             });
         });
 
-        it("keeps the prior continuation token and reports not completed while in progress", async () => {
+        it("returns the refreshed poll href and reports not completed while in progress", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
-                buildResponse({ state: "interactionRequired" })
+                buildResponse({
+                    state: "interactionRequired",
+                    _links: {
+                        poll: { href: "/tenant/api/v0.1/poll-next" },
+                    },
+                })
             );
 
             const result = await apiClient.poll(
@@ -340,6 +345,7 @@ describe("CustomAuthV2ApiClient", () => {
             expect(result.isCompleted).toBe(false);
             expect(result.continuationToken).toBe("ct-update");
             expect(result.continueHref).toBeUndefined();
+            expect(result.pollHref).toBe("/tenant/api/v0.1/poll-next");
         });
     });
 

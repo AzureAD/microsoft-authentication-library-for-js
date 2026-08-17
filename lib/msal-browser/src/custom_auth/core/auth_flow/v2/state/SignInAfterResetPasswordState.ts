@@ -6,7 +6,7 @@
 import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
 import { CustomAuthV2Result } from "../CustomAuthV2Result.js";
 import { SignInAfterResetPasswordError } from "../error/SignInAfterResetPasswordError.js";
-import { toV2ApiError } from "./V2StateErrorHelper.js";
+import { toV2Error } from "./V2StateErrorHelper.js";
 import { CompletedState } from "./CompletedState.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import type { SignInAfterResetPasswordStateParameters } from "./CustomAuthV2StateParameters.js";
@@ -17,8 +17,8 @@ import type { SignInAfterResetPasswordInputs } from "../../../../CustomAuthV2Act
  * State returned once a password reset has completed, allowing the app to sign
  * the just-reset user in without re-entering credentials. The reset flow does
  * not end at `CompletedState` directly; instead it surfaces this state carrying
- * the reset-flow continuation, mirroring V1's `ResetPasswordCompletedState` and
- * iOS's `SignInAfterResetPasswordState`. Calling {@link signIn} redeems that
+ * the reset-flow continuation, mirroring V1's `ResetPasswordCompletedState`.
+ * Calling {@link signIn} redeems that
  * continuation for tokens and reaches the completed state with account data.
  */
 export class SignInAfterResetPasswordState extends AuthFlowActionRequiredStateBase<SignInAfterResetPasswordStateParameters> {
@@ -72,7 +72,7 @@ export class SignInAfterResetPasswordState extends AuthFlowActionRequiredStateBa
 
             return CustomAuthV2Result.createWithError(
                 new SignInAfterResetPasswordError(
-                    toV2ApiError(error, correlationId),
+                    toV2Error(error, correlationId),
                     continuationState.scenario
                 )
             );

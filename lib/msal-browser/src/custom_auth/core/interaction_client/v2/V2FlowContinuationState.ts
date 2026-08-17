@@ -20,13 +20,12 @@ export interface V2FlowLinks {
 }
 
 /*
- * Opaque continuation handed between interaction-client steps. It is the JS analogue of the iOS
- * `MSALNativeAuthFlowContinuationState`: everything needed to resume a server-driven flow at the
- * next step - the continuation token to present, the scenario being driven, and the next-step
- * hrefs. The scenario is injected by the flow-specific controller (it is the generic client's flow
- * identity) and re-emitted so downstream results/errors can be tagged with the originating flow.
- * Public L1 states carry this back into the client on the next action; it is never exposed to the
- * application.
+ * Opaque continuation handed between interaction-client steps: everything needed to resume a
+ * server-driven flow at the next step - the continuation token to present, the scenario being
+ * driven, and the next-step hrefs. The scenario is injected by the flow-specific controller (it is
+ * the generic client's flow identity) and re-emitted so downstream results/errors can be tagged
+ * with the originating flow. Public L1 states carry this back into the client on the next action;
+ * it is never exposed to the application.
  */
 export interface V2FlowContinuationState {
     continuationToken: string;

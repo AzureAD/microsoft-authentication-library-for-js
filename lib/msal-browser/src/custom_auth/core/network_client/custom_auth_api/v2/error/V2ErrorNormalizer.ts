@@ -8,6 +8,7 @@ import {
     V2OAuthErrorResponse,
     V2ServerError,
 } from "./V2ErrorResponses.js";
+import { UNEXPECTED_ERROR } from "../V2ApiClientConstants.js";
 
 /*
  * Folds a V2 error body into a single normalized V2ServerError. Two on-the-wire shapes exist,
@@ -41,7 +42,7 @@ function normalizeNestedError(response: V2HalErrorResponse): V2ServerError {
     const error = response.error ?? {};
 
     return {
-        code: readString(error.code) ?? "unknown_error",
+        code: readString(error.code) ?? UNEXPECTED_ERROR,
         message: readString(error.message),
         innerErrorCode: readString(error.innerError?.code),
         correlationId: readString(error.correlationId),
@@ -53,7 +54,7 @@ function normalizeNestedError(response: V2HalErrorResponse): V2ServerError {
 // Flat OAuth error (token endpoint): fields are snake_case at the top level.
 function normalizeFlatError(response: V2OAuthErrorResponse): V2ServerError {
     return {
-        code: readString(response.error) ?? "unknown_error",
+        code: readString(response.error) ?? UNEXPECTED_ERROR,
         message: readString(response.error_description),
         errorCodes: readNumberArray(response.error_codes),
         correlationId: readString(response.correlation_id),

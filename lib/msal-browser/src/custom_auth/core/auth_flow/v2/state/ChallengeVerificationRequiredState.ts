@@ -8,7 +8,7 @@ import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
 import { CustomAuthV2Result } from "../CustomAuthV2Result.js";
 import { VerifyChallengeError } from "../error/VerifyChallengeError.js";
 import { RequestChallengeError } from "../error/RequestChallengeError.js";
-import { toV2ApiError } from "./V2StateErrorHelper.js";
+import { toV2Error } from "./V2StateErrorHelper.js";
 import { NewPasswordRequiredState } from "./NewPasswordRequiredState.js";
 import type { ChallengeVerificationRequiredStateParameters } from "./CustomAuthV2StateParameters.js";
 import type { VerifyChallengeResult } from "../result/VerifyChallengeResult.js";
@@ -85,7 +85,7 @@ export class ChallengeVerificationRequiredState extends AuthFlowActionRequiredSt
 
             return CustomAuthV2Result.createWithError(
                 new VerifyChallengeError(
-                    toV2ApiError(error, correlationId),
+                    toV2Error(error, correlationId),
                     continuationState.scenario
                 )
             );
@@ -134,7 +134,7 @@ export class ChallengeVerificationRequiredState extends AuthFlowActionRequiredSt
 
             return CustomAuthV2Result.createWithError(
                 new RequestChallengeError(
-                    toV2ApiError(error, correlationId),
+                    toV2Error(error, correlationId),
                     continuationState.scenario
                 )
             );

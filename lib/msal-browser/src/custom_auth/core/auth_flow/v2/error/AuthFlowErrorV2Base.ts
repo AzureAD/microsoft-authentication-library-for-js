@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import type { CustomAuthV2ApiError } from "../../../network_client/custom_auth_api/v2/error/CustomAuthV2ApiError.js";
+import type { CustomAuthV2Error } from "../../../network_client/custom_auth_api/v2/error/CustomAuthV2Error.js";
+import { INVALID_INPUT } from "../../../network_client/custom_auth_api/v2/V2ApiClientConstants.js";
 import { CustomAuthV2FlowScenario } from "../CustomAuthV2FlowScenario.js";
 
 /*
@@ -15,7 +16,7 @@ export abstract class AuthFlowErrorV2Base {
     readonly scenario: CustomAuthV2FlowScenario;
 
     constructor(
-        public errorData: CustomAuthV2ApiError,
+        public errorData: CustomAuthV2Error,
         scenario: CustomAuthV2FlowScenario = CustomAuthV2FlowScenario.Unknown
     ) {
         this.scenario = scenario;
@@ -40,57 +41,42 @@ export abstract class AuthFlowErrorV2Base {
      * @returns True if the browser is required, false otherwise.
      */
     isBrowserRequired(): boolean {
-        return this.isBrowserRequiredError();
-    }
-
-    /**
-     * Checks if the error is a general, uncategorized failure. Use it as a
-     * fallback branch after the action-specific detectors so the app can show a
-     * generic error message for failures it does not handle explicitly.
-     * @returns True if the error is a general error, false otherwise.
-     */
-    isGeneralError(): boolean {
-        return this.isGeneralErrorType();
-    }
-
-    /*
-     * TODO: finalize the exact server-code mapping with the V2 network error handler.
-     * Browser-required keys off `redirect_to_web` (per iOS `isWebFallbackRequired`), NOT
-     * the entry `insufficient_authorization` 401, which is the expected start-of-flow response.
-     */
-    protected isBrowserRequiredError(): boolean {
         return this.errorData.code === "redirect_to_web";
     }
 
-    protected isGeneralErrorType(): boolean {
-        return this.errorData.code === "generalError";
+    /**
+     * Checks if the error is due to a caller-supplied argument failing
+     * client-side validation before the request was issued (for example an empty
+     * username, code, or password, or an unknown method id). Use it to prompt the
+     * user to correct the input rather than treating it as a server failure.
+     * @returns True if the input was invalid, false otherwise.
+     */
+    isInvalidInput(): boolean {
+        return this.errorData.code === INVALID_INPUT;
     }
 
+    /*
+     * User-not-found arrives as AADSTS50034. The nested `/api` error carries no
+     * innerError and no error_codes array, so the AADSTS marker in the message is
+     * the only signal.
+     */
     protected isUserNotFoundError(): boolean {
-        return this.errorData.code === "user_not_found";
+        return this.errorData.message?.includes("AADSTS50034") === true;
     }
 
-    protected isInvalidUsernameError(): boolean {
-        return this.errorData.code === "invalid_username";
-    }
-
+    /*
+     * Bad one-time code: inner `invalidOneTimeCode` together with the outer
+     * `invalidGrant` (AADSTS50181) — the exact signature of a rejected code.
+     */
     protected isInvalidCodeError(): boolean {
-        return this.errorData.innerErrorCode === "invalidOneTimeCode";
+        return (
+            this.errorData.innerErrorCode === "invalidOneTimeCode" &&
+            this.errorData.code === "invalidGrant"
+        );
     }
 
+    // New password rejected by policy: inner `passwordTooWeak` (AADSTS120002).
     protected isInvalidPasswordError(): boolean {
-        return this.errorData.innerErrorCode === "passwordInvalid";
-    }
-
-    protected isInvalidCredentialsError(): boolean {
-        return this.errorData.code === "invalid_credentials";
-    }
-
-    protected isUserDoesNotHavePasswordError(): boolean {
-        return this.errorData.innerErrorCode === "userDoesNotHavePassword";
-    }
-
-    protected isUserAlreadyExistsError(): boolean {
-        return this.errorData.code === "user_already_exists";
+        return this.errorData.innerErrorCode === "passwordTooWeak";
     }
 }

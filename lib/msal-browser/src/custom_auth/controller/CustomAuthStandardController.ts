@@ -32,7 +32,7 @@ import { V2FlowInteractionClient } from "../core/interaction_client/v2/V2FlowInt
 import { AuthenticationMethodSelectionRequiredState } from "../core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
 import { ResetPasswordStartError } from "../core/auth_flow/v2/error/ResetPasswordStartError.js";
 import { CustomAuthV2Result } from "../core/auth_flow/v2/CustomAuthV2Result.js";
-import { toV2ApiError } from "../core/auth_flow/v2/state/V2StateErrorHelper.js";
+import { toV2Error } from "../core/auth_flow/v2/state/V2StateErrorHelper.js";
 import { CustomAuthV2FlowScenario } from "../core/auth_flow/v2/CustomAuthV2FlowScenario.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
@@ -666,8 +666,8 @@ export class CustomAuthStandardController
 
             return CustomAuthV2Result.createWithError(
                 new ResetPasswordStartError(
-                    toV2ApiError(error, correlationId),
-                    CustomAuthV2FlowScenario.Recovery
+                    toV2Error(error, correlationId),
+                    CustomAuthV2FlowScenario.PasswordReset
                 )
             );
         }

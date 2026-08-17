@@ -155,7 +155,7 @@ describe("V2FlowInteractionClient", () => {
             ]);
             expect(methodSelection.continuationState).toEqual({
                 continuationToken: "ct-start",
-                scenario: "recovery",
+                scenario: "passwordReset",
                 links: {},
             });
         });
@@ -164,7 +164,7 @@ describe("V2FlowInteractionClient", () => {
     describe("requestChallenge", () => {
         const continuationState: V2FlowContinuationState = {
             continuationToken: "ct-start",
-            scenario: "recovery",
+            scenario: "passwordReset",
             links: {},
         };
 
@@ -198,7 +198,7 @@ describe("V2FlowInteractionClient", () => {
             expect(codeRequired.channel).toBe("email");
             expect(codeRequired.continuationState).toEqual({
                 continuationToken: "ct-challenge",
-                scenario: "recovery",
+                scenario: "passwordReset",
                 links: {
                     verify: "https://endpoint/verify",
                     resend: "https://endpoint/resend",
@@ -210,7 +210,7 @@ describe("V2FlowInteractionClient", () => {
     describe("submitCode", () => {
         const continuationState: V2FlowContinuationState = {
             continuationToken: "ct-challenge",
-            scenario: "recovery",
+            scenario: "passwordReset",
             links: {
                 verify: "https://endpoint/verify",
                 resend: "https://endpoint/resend",
@@ -242,7 +242,7 @@ describe("V2FlowInteractionClient", () => {
             expect(passwordRequired.correlationId).toBe(correlationId);
             expect(passwordRequired.continuationState).toEqual({
                 continuationToken: "ct-verify",
-                scenario: "recovery",
+                scenario: "passwordReset",
                 links: { update: "https://endpoint/update" },
             });
         });
@@ -266,7 +266,7 @@ describe("V2FlowInteractionClient", () => {
     describe("resendCode", () => {
         const continuationState: V2FlowContinuationState = {
             continuationToken: "ct-challenge",
-            scenario: "recovery",
+            scenario: "passwordReset",
             links: {
                 verify: "https://endpoint/verify",
                 resend: "https://endpoint/resend",
@@ -303,7 +303,7 @@ describe("V2FlowInteractionClient", () => {
             expect(codeRequired.channel).toBe("email");
             expect(codeRequired.continuationState).toEqual({
                 continuationToken: "ct-challenge-2",
-                scenario: "recovery",
+                scenario: "passwordReset",
                 links: {
                     verify: "https://endpoint/verify-2",
                     resend: "https://endpoint/resend-2",
@@ -329,7 +329,7 @@ describe("V2FlowInteractionClient", () => {
     describe("submitPassword", () => {
         const continuationState: V2FlowContinuationState = {
             continuationToken: "ct-verify",
-            scenario: "recovery",
+            scenario: "passwordReset",
             links: { update: "https://endpoint/update" },
         };
 
@@ -372,7 +372,7 @@ describe("V2FlowInteractionClient", () => {
             expect(signInRequired.correlationId).toBe(correlationId);
             expect(signInRequired.continuationState).toEqual({
                 continuationToken: "ct-complete",
-                scenario: "recovery",
+                scenario: "passwordReset",
                 links: { continue: "https://endpoint/continue" },
             });
         });
@@ -414,6 +414,50 @@ describe("V2FlowInteractionClient", () => {
             expect(result.type).toBe(V2_FLOW_SIGN_IN_AFTER_RESET_REQUIRED);
         });
 
+        it("follows a relocated poll href returned by an in-progress response", async () => {
+            jest.useFakeTimers();
+            apiClient.submitNewPassword.mockResolvedValue({
+                continuationToken: "ct-update",
+                pollHref: "https://endpoint/poll",
+            });
+            apiClient.poll
+                .mockResolvedValueOnce({
+                    continuationToken: "ct-poll-1",
+                    isCompleted: false,
+                    pollHref: "https://endpoint/poll-relocated",
+                })
+                .mockResolvedValueOnce({
+                    continuationToken: "ct-complete",
+                    isCompleted: true,
+                    continueHref: "https://endpoint/continue",
+                });
+
+            const promise = client.submitPassword({
+                correlationId,
+                continuationState,
+                newPassword: "P@ssw0rd!",
+            });
+
+            await jest.advanceTimersByTimeAsync(1500);
+            const result = await promise;
+
+            expect(apiClient.poll).toHaveBeenCalledTimes(2);
+            // First poll targets the update-supplied href.
+            expect(apiClient.poll).toHaveBeenNthCalledWith(
+                1,
+                "https://endpoint/poll",
+                { continuationToken: "ct-update" },
+                expect.objectContaining({ correlationId })
+            );
+            // Second poll targets the relocated href with the refreshed token.
+            expect(apiClient.poll).toHaveBeenNthCalledWith(
+                2,
+                "https://endpoint/poll-relocated",
+                { continuationToken: "ct-poll-1" },
+                expect.objectContaining({ correlationId })
+            );
+            expect(result.type).toBe(V2_FLOW_SIGN_IN_AFTER_RESET_REQUIRED);
+        });
         it("throws a timeout error when polling never completes", async () => {
             jest.useFakeTimers();
             apiClient.submitNewPassword.mockResolvedValue({
@@ -460,7 +504,7 @@ describe("V2FlowInteractionClient", () => {
     describe("signInAfterReset", () => {
         const continuationState: V2FlowContinuationState = {
             continuationToken: "ct-complete",
-            scenario: "recovery",
+            scenario: "passwordReset",
             links: { continue: "https://endpoint/continue" },
         };
 
@@ -513,7 +557,7 @@ describe("V2FlowInteractionClient", () => {
             expect(completed.authenticationResult).toBe(fakeAuthResult);
         });
 
-        it("forwards caller-supplied scopes and claims", async () => {
+        it("unions caller-supplied scopes with the default OIDC scopes and forwards claims", async () => {
             apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
             jest.spyOn(
                 client as unknown as {
@@ -531,9 +575,32 @@ describe("V2FlowInteractionClient", () => {
 
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
                 "ct-complete",
-                ["User.Read"],
+                ["User.Read", "openid", "profile", "offline_access"],
                 expect.objectContaining({ correlationId }),
                 '{"id_token":{}}'
+            );
+        });
+
+        it("does not duplicate default OIDC scopes the caller already supplied", async () => {
+            apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
+            jest.spyOn(
+                client as unknown as {
+                    handleTokenResponse: (...args: unknown[]) => Promise<unknown>;
+                },
+                "handleTokenResponse"
+            ).mockResolvedValue(fakeAuthResult);
+
+            await client.signInAfterReset({
+                correlationId,
+                continuationState,
+                scopes: ["User.Read", "OpenID", "offline_access"],
+            });
+
+            expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
+                "ct-complete",
+                ["User.Read", "OpenID", "offline_access", "profile"],
+                expect.objectContaining({ correlationId }),
+                undefined
             );
         });
     });

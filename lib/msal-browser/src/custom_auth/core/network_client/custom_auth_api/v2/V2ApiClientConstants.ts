@@ -28,6 +28,8 @@ export const TOKEN = "/oauth2/v2.0/token";
  */
 export const HTTP_REQUEST_FAILED = "http_request_failed";
 export const REDIRECT_TO_WEB = "redirect_to_web";
+export const UNEXPECTED_ERROR = "unexpected_error";
+export const INVALID_INPUT = "invalid_input";
 export const AUTH_CODE_MISSING = "authorization_code_missing";
 export const INVALID_TOKEN_RESPONSE = "invalid_token_response";
 export const INVALID_RESPONSE_BODY = "invalid_response_body";

@@ -51,8 +51,7 @@ import {
 import * as PublicApiId from "../../telemetry/PublicApiId.js";
 
 /*
- * Poll retry policy for the password-update completion check (SSPR step 6), mirroring iOS
- * `MSALNativeAuthFlowController` (`kNumberOfTimesToRetryPollCompletionCall` / `pollIntervalSeconds`):
+ * Poll retry policy for the password-update completion check (SSPR step 6):
  * poll up to 5 times, waiting 1.5s between attempts (the first poll runs immediately). The loop
  * lives here in the interaction client because the L2 `poll` is a single-shot call by design.
  */
@@ -99,11 +98,10 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
 
     /*
      * Reset-password entry (steps 1-2): run the authorize-challenge entry + resetpassword-start,
-     * then stop so the app can pick an authentication method. This is the flow-specific entry point
-     * (mirrors iOS `MSALNativeAuthFlowController.resetPassword` up to the method list): it stamps
-     * the SSPR scenario and telemetry id, which the generic continuation steps then read back from
-     * the continuation. Unlike iOS (which auto-picks the first method), JS exposes the choice, so
-     * this returns a `methodSelectionRequired` outcome carrying the selectable methods (each with
+     * then stop so the app can pick an authentication method. This is the flow-specific entry point:
+     * it stamps the SSPR scenario and telemetry id, which the generic continuation steps then read
+     * back from the continuation. JS exposes the method choice to the app, so this returns a
+     * `methodSelectionRequired` outcome carrying the selectable methods (each with
      * its own challenge href) plus the continuation; the challenge is sent by `requestChallenge`.
      */
     async resetPassword(
@@ -188,9 +186,9 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
 
     /*
      * Submit the one-time code (step 4 verify). Generic across flows: POSTs the OTP to the
-     * continuation's `verify` href and, on success, advances to the password step. Mirrors iOS
-     * `submitCode` - it reads the href/scenario from the continuation (never from a flow-specific
-     * field) and branches on the server response, not the scenario. The scenario is threaded
+     * continuation's `verify` href and, on success, advances to the password step. It reads the
+     * href/scenario from the continuation (never from a flow-specific field) and branches on the
+     * server response, not the scenario. The scenario is threaded
      * forward so a later failure is still tagged with the originating flow.
      */
     async submitCode(
@@ -290,9 +288,9 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
      * Submit the new password (step 5 update + step 6 poll). SSPR-specific in shape but reached
      * through the generic client: PUT the password to the continuation's `update` href, then poll
      * the returned `poll` href until the server reports the reset applied (`state: continue`).
-     * Mirrors iOS `submitNewPassword` - the update-then-poll cycle plus the bounded retry loop live
-     * here (the L2 `poll` is single-shot). On completion the account is NOT auto-signed-in (matching
-     * V1/iOS); a `signInAfterResetRequired` outcome carries the completion token forward so the app
+     * The update-then-poll cycle plus the bounded retry loop live here (the L2 `poll` is
+     * single-shot). On completion the account is NOT auto-signed-in (matching V1); a
+     * `signInAfterResetRequired` outcome carries the completion token forward so the app
      * can explicitly sign in. A reset that never completes within the retry budget is surfaced as a
      * synthetic timeout error.
      */
@@ -322,12 +320,13 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
         );
 
         let pollToken = updateResult.continuationToken;
+        let pollHref = updateResult.pollHref;
         let completionToken: string | undefined;
         let continueHref: string | undefined;
 
         for (let attempt = 1; attempt <= POLL_MAX_ATTEMPTS; attempt++) {
             const pollResult = await this.apiClient.poll(
-                updateResult.pollHref,
+                pollHref,
                 { continuationToken: pollToken },
                 context
             );
@@ -339,6 +338,7 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
             }
 
             pollToken = pollResult.continuationToken;
+            pollHref = pollResult.pollHref ?? pollHref;
 
             if (attempt < POLL_MAX_ATTEMPTS) {
                 await delay(POLL_INTERVAL_MS);
@@ -373,8 +373,7 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
      * redeem the continuation for an authorization code at the fixed authorize-challenge endpoint,
      * exchange the code for tokens at the token endpoint (L2 `completeWithTokens`), then run the
      * shared msal-common response handler to validate + cache the tokens and build the account.
-     * Mirrors iOS `completeWithToken` (authorize-challenge continue -> /token -> account from the
-     * id_token). The scopes default to the standard OIDC set when the caller omits them; the
+     * The scopes default to the standard OIDC set when the caller omits them; the
      * telemetry id is resolved per scenario so the same step serves every flow. Returns a
      * `completed` outcome carrying the `AuthenticationResult`; the controller wraps it into the
      * public account data.
@@ -451,8 +450,8 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
     /*
      * Guard a step's required continuation href. The links are populated by the network layer from
      * validated server responses, so a missing one is an internal invariant violation rather than a
-     * server failure; it is surfaced as a synthetic client error (mirrors iOS returning a
-     * `generalError` when a continuation link is absent) so it is never confused with a wire error.
+     * server failure; it is surfaced as a synthetic client error so it is never confused with a
+     * wire error.
      */
     private requireLink(
         correlationId: string,

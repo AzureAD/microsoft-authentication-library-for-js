@@ -312,10 +312,19 @@ export class CustomAuthV2ApiClient extends V2BaseApiClient {
             continuationToken:
                 parsedResponse.continuationToken ?? request.continuationToken,
             isCompleted,
-            continueHref: this.handler.getRelationHref(
-                parsedResponse.body._links,
-                CONTINUE_RELATION
-            ),
+            continueHref: isCompleted
+                ? this.handler.getRelationHref(
+                      parsedResponse.body._links,
+                      CONTINUE_RELATION
+                  )
+                : undefined,
+            pollHref: isCompleted
+                ? undefined
+                : this.handler.requireRelationHref(
+                      parsedResponse.body._links,
+                      POLL_RELATION,
+                      parsedResponse.correlationId
+                  ),
         };
     }
 

@@ -8,8 +8,9 @@ import { AuthFlowErrorV2Base } from "./AuthFlowErrorV2Base.js";
 /**
  * Error raised when submitting a new password. It exposes the detectors relevant
  * to password submission so the app can react to a rejected password
- * specifically. Unrecognised failures fall back to the inherited
- * `isGeneralError()`.
+ * specifically. Unrecognised failures carry no specific detector; inspect the
+ * error code (`unexpected_error` when the server gives none) and
+ * `errorDescription`.
  */
 export class SubmitNewPasswordError extends AuthFlowErrorV2Base {
     /**

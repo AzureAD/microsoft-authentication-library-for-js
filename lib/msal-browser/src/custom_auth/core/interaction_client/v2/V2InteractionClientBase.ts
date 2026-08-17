@@ -36,14 +36,6 @@ import { V2TokenResponse } from "../../network_client/custom_auth_api/v2/respons
  * client, and holds the V2 network client plus the custom-auth authority that the flow steps use.
  */
 export abstract class V2InteractionClientBase extends StandardInteractionClient {
-    /*
-     * Shared msal-common token-response handler. V2 constructs its own instance (rather than
-     * extending V1's `CustomAuthInteractionClientBase`, which is coupled to the V1 token shape) and
-     * reuses the library primitive `handleServerTokenResponse` to validate the token response, save
-     * the tokens to the browser cache, and build the `AuthenticationResult` (account identity from
-     * the id_token, home id from `client_info`). This mirrors iOS reusing its shared token-request
-     * handling across V1 and V2.
-     */
     private readonly tokenResponseHandler: ResponseHandler;
 
     constructor(
@@ -79,20 +71,32 @@ export abstract class V2InteractionClientBase extends StandardInteractionClient 
     }
 
     /*
-     * Default the requested scopes the same way V1 does: honour the caller's scopes when provided,
-     * otherwise fall back to the standard OIDC set. The array is the internal representation - the
-     * network layer joins it into the space-delimited `scope` form for the token request, while the
-     * response handler consumes the same array to build the result's scope set.
+     * Union the caller's scopes with the standard OIDC set: honour the
+     * caller's scopes (and their order) when provided, then append any of `openid`, `profile`, and
+     * `offline_access` that are missing so the terminal sign-in always returns the ID/refresh-token
+     * material required for account creation and subsequent silent authentication. Deduplication is
+     * case-insensitive to match the shared `ScopeSet` semantics. The array is the internal
+     * representation - the network layer joins it into the space-delimited `scope` form for the
+     * token request, while the response handler consumes the same array to build the result's scope
+     * set.
      */
     protected getScopes(scopes: string[] | undefined): string[] {
-        if (!!scopes && scopes.length > 0) {
-            return scopes;
-        }
+        const requestedScopes = scopes?.filter((scope) => !!scope) ?? [];
+        const seenScopes = new Set(
+            requestedScopes.map((scope) => scope.toLowerCase())
+        );
 
-        return [
+        const defaultScopes = [
             Constants.OPENID_SCOPE,
             Constants.PROFILE_SCOPE,
             Constants.OFFLINE_ACCESS_SCOPE,
+        ];
+
+        return [
+            ...requestedScopes,
+            ...defaultScopes.filter(
+                (scope) => !seenScopes.has(scope.toLowerCase())
+            ),
         ];
     }
 

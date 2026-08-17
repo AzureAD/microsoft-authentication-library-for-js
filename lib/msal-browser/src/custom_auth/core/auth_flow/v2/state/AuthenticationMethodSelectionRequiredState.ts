@@ -8,7 +8,7 @@ import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
 import { InvalidArgumentError } from "../../../error/InvalidArgumentError.js";
 import { CustomAuthV2Result } from "../CustomAuthV2Result.js";
 import { RequestChallengeError } from "../error/RequestChallengeError.js";
-import { toV2ApiError } from "./V2StateErrorHelper.js";
+import { toV2Error } from "./V2StateErrorHelper.js";
 import { ChallengeVerificationRequiredState } from "./ChallengeVerificationRequiredState.js";
 import type { V2FlowMethod } from "../../../interaction_client/v2/result/V2FlowActionResult.js";
 import type { AuthenticationMethodSelectionRequiredStateParameters } from "./CustomAuthV2StateParameters.js";
@@ -90,7 +90,7 @@ export class AuthenticationMethodSelectionRequiredState extends AuthFlowActionRe
 
             return CustomAuthV2Result.createWithError(
                 new RequestChallengeError(
-                    toV2ApiError(error, correlationId),
+                    toV2Error(error, correlationId),
                     continuationState.scenario
                 )
             );

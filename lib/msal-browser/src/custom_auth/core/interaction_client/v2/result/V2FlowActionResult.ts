@@ -7,10 +7,10 @@ import { AuthenticationResult } from "../../../../../response/AuthenticationResu
 import { V2FlowContinuationState } from "../V2FlowContinuationState.js";
 
 /*
- * Unified outcome envelope returned by every V2 interaction-client step - the JS analogue of the
- * iOS `MSALNativeAuthFlowControllerResponse`. Rather than each per-action client returning a
- * bespoke shape (V1's model), one discriminated union describes every step transition so the L1
- * state layer can map an outcome to the next public state uniformly.
+ * Unified outcome envelope returned by every V2 interaction-client step. Rather than each
+ * per-action client returning a bespoke shape (V1's model), one discriminated union describes
+ * every step transition so the L1 state layer can map an outcome to the next public state
+ * uniformly.
  *
  * Only forward-progress and terminal outcomes are modelled here. Failures are thrown as
  * `CustomAuthV2ApiError` and mapped to the public failed state by the caller, matching the V1
@@ -66,7 +66,7 @@ export interface V2FlowPasswordRequiredResult extends V2FlowActionResultBase {
 
 /*
  * The reset was applied; the account must be explicitly signed in next. `continuationState`
- * carries the token to redeem for tokens (V2 does not auto-sign-in, matching V1 and iOS).
+ * carries the token to redeem for tokens (V2 does not auto-sign-in, matching V1).
  */
 export interface V2FlowSignInAfterResetRequiredResult
     extends V2FlowActionResultBase {
