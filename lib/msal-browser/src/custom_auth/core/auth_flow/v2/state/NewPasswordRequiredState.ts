@@ -7,14 +7,14 @@ import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
 import { CustomAuthV2Result } from "../CustomAuthV2Result.js";
 import { SubmitNewPasswordError } from "../error/SubmitNewPasswordError.js";
 import { toV2Error } from "./V2StateErrorHelper.js";
-import { SignInAfterResetPasswordState } from "./SignInAfterResetPasswordState.js";
+import { V2SignInContinuationState } from "./V2SignInContinuationState.js";
 import type { NewPasswordRequiredStateParameters } from "./CustomAuthV2StateParameters.js";
 import type { SubmitNewPasswordResult } from "../result/SubmitNewPasswordResult.js";
 
 /**
  * State returned when the user must supply a new password to complete the flow.
  * This is the final password-entry step: once a valid new password is submitted
- * the reset completes and the flow surfaces `SignInAfterResetPasswordState` so
+ * the reset completes and the flow surfaces `V2SignInContinuationState` so
  * the app can sign the user in.
  */
 export class NewPasswordRequiredState extends AuthFlowActionRequiredStateBase<NewPasswordRequiredStateParameters> {
@@ -22,7 +22,7 @@ export class NewPasswordRequiredState extends AuthFlowActionRequiredStateBase<Ne
 
     /**
      * Submits the new password to complete the reset. On success the returned
-     * result reaches `SignInAfterResetPasswordState`, from which the app signs
+     * result reaches `V2SignInContinuationState`, from which the app signs
      * the user in; on failure the result's error reports whether the password
      * was rejected (for example too weak) so the app can prompt for a different
      * one.
@@ -45,14 +45,13 @@ export class NewPasswordRequiredState extends AuthFlowActionRequiredStateBase<Ne
             });
 
             return new CustomAuthV2Result(
-                new SignInAfterResetPasswordState({
+                new V2SignInContinuationState({
                     correlationId: result.correlationId,
                     logger,
                     config: this.stateParameters.config,
                     flowClient,
                     continuationState: result.continuationState,
                     cacheClient: this.stateParameters.cacheClient,
-                    username: result.username,
                 }),
                 undefined,
                 result.continuationState.scenario

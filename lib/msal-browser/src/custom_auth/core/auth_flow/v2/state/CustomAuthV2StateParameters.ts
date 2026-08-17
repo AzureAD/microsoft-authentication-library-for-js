@@ -7,7 +7,6 @@ import { AuthFlowActionRequiredStateParameters } from "../../AuthFlowState.js";
 import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
 import { V2FlowContinuationState } from "../../../interaction_client/v2/V2FlowContinuationState.js";
 import { V2FlowInteractionClient } from "../../../interaction_client/v2/V2FlowInteractionClient.js";
-import { V2FlowMethod } from "../../../interaction_client/v2/result/V2FlowActionResult.js";
 import { CustomAuthSilentCacheClient } from "../../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 export interface CustomAuthV2ActionRequiredStateParameters
@@ -19,7 +18,7 @@ export interface CustomAuthV2ActionRequiredStateParameters
 
 export interface AuthenticationMethodSelectionRequiredStateParameters
     extends CustomAuthV2ActionRequiredStateParameters {
-    methods: readonly V2FlowMethod[];
+    methods: readonly AuthenticationMethodV2[];
 }
 
 export interface ChallengeVerificationRequiredStateParameters
@@ -33,7 +32,5 @@ export interface ChallengeVerificationRequiredStateParameters
 export type NewPasswordRequiredStateParameters =
     CustomAuthV2ActionRequiredStateParameters;
 
-export interface SignInAfterResetPasswordStateParameters
-    extends CustomAuthV2ActionRequiredStateParameters {
-    username?: string;
-}
+export type V2SignInContinuationStateParameters =
+    CustomAuthV2ActionRequiredStateParameters;

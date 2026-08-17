@@ -23,7 +23,6 @@ export interface V2FlowStartParams extends V2FlowParamsBase {
 // Request the challenge for the selected method, sending the one-time code to it.
 export interface V2FlowRequestChallengeParams extends V2FlowParamsBase {
     continuationState: V2FlowContinuationState;
-    challengeHref: string;
 }
 
 // Submit the one-time code the user received.
@@ -43,8 +42,8 @@ export interface V2FlowSubmitPasswordParams extends V2FlowParamsBase {
     newPassword: string;
 }
 
-// Sign the account in after the reset completed, redeeming the continuation for tokens.
-export interface V2FlowSignInAfterResetParams extends V2FlowParamsBase {
+// Sign the account in by redeeming a completed flow's continuation for tokens.
+export interface V2FlowSignInWithContinuationParams extends V2FlowParamsBase {
     continuationState: V2FlowContinuationState;
     scopes?: string[];
     claims?: string;

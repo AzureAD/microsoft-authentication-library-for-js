@@ -11,13 +11,15 @@ import { V2SerializedResponse } from "./response/V2SerializedResponse.js";
 import { HalLinks, HalResource } from "./response/HalResource.js";
 import { V2EmbeddedMethod } from "./response/V2Responses.js";
 import {
-    REDIRECT_TO_WEB,
-    INVALID_RESPONSE_BODY,
-    CONTINUATION_TOKEN_MISSING,
-    INVALID_HAL_RESPONSE,
-    NO_AUTHENTICATION_METHODS,
     V2ResponseState,
 } from "./V2ApiClientConstants.js";
+import {
+    CONTINUATION_TOKEN_MISSING,
+    INVALID_HAL_RESPONSE,
+    INVALID_RESPONSE_BODY,
+    NO_AUTHENTICATION_METHODS,
+    REDIRECT_TO_WEB,
+} from "./error/V2ErrorCodes.js";
 
 /*
  * Turns a raw HTTP response from a V2 endpoint into a typed, checked envelope, and validates HAL

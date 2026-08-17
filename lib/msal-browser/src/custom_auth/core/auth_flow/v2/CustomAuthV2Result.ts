@@ -20,8 +20,8 @@ export class CustomAuthV2Result<
     TData = void
 > {
     constructor(
-        public state: TState,
-        public data?: TData,
+        public readonly state: TState,
+        public readonly data?: TData,
         public readonly scenario: CustomAuthV2FlowScenario = CustomAuthV2FlowScenario.Unknown
     ) {}
 

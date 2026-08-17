@@ -43,11 +43,13 @@ import {
     UPDATE_RELATION,
     POLL_RELATION,
     CONTINUE_RELATION,
-    RESET_PASSWORD_UNSUPPORTED,
-    INVALID_HAL_RESPONSE,
-    NO_AUTHENTICATION_METHODS,
     V2ResponseState,
 } from "./V2ApiClientConstants.js";
+import {
+    INVALID_HAL_RESPONSE,
+    NO_AUTHENTICATION_METHODS,
+    RESET_PASSWORD_UNSUPPORTED,
+} from "./error/V2ErrorCodes.js";
 
 /*
  * Native Auth V2 network client. Implements the HAL `/api` steps on top of the shared

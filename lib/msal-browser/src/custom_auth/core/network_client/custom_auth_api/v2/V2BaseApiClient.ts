@@ -30,14 +30,16 @@ import {
     FORM_CONTENT_TYPE,
     JSON_CONTENT_TYPE,
     AUTHORIZATION_CODE_GRANT,
-    HTTP_REQUEST_FAILED,
-    REDIRECT_TO_WEB,
-    AUTH_CODE_MISSING,
-    INVALID_TOKEN_RESPONSE,
-    CONTINUATION_TOKEN_MISSING,
     AUTHORIZE_CHALLENGE,
     TOKEN,
 } from "./V2ApiClientConstants.js";
+import {
+    AUTH_CODE_MISSING,
+    CONTINUATION_TOKEN_MISSING,
+    HTTP_REQUEST_FAILED,
+    INVALID_TOKEN_RESPONSE,
+    REDIRECT_TO_WEB,
+} from "./error/V2ErrorCodes.js";
 import {
     V2RequestContext,
     V2OAuthFormRequest,
@@ -430,4 +432,3 @@ export abstract class V2BaseApiClient {
         }
     }
 }
-

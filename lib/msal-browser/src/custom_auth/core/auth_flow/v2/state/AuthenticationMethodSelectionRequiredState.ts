@@ -10,7 +10,6 @@ import { CustomAuthV2Result } from "../CustomAuthV2Result.js";
 import { RequestChallengeError } from "../error/RequestChallengeError.js";
 import { toV2Error } from "./V2StateErrorHelper.js";
 import { ChallengeVerificationRequiredState } from "./ChallengeVerificationRequiredState.js";
-import type { V2FlowMethod } from "../../../interaction_client/v2/result/V2FlowActionResult.js";
 import type { AuthenticationMethodSelectionRequiredStateParameters } from "./CustomAuthV2StateParameters.js";
 import type { RequestChallengeResult } from "../result/RequestChallengeResult.js";
 
@@ -29,9 +28,7 @@ export class AuthenticationMethodSelectionRequiredState extends AuthFlowActionRe
         stateParameters: AuthenticationMethodSelectionRequiredStateParameters
     ) {
         super(stateParameters);
-        this.methods = stateParameters.methods.map((method) =>
-            this.toPublicMethod(method)
-        );
+        this.methods = stateParameters.methods;
     }
 
     /**
@@ -39,20 +36,23 @@ export class AuthenticationMethodSelectionRequiredState extends AuthFlowActionRe
      * server to deliver a one-time code to that method's destination (for example
      * by email). On success the flow advances to a challenge-verification state
      * where the code can be submitted.
-     * @param methodId - The id of the method to challenge, from {@link methods}.
+     * @param method - The method to challenge, from {@link methods}.
      * @returns The result of requesting the challenge.
      */
-    async requestChallenge(methodId: string): Promise<RequestChallengeResult> {
+    async requestChallenge(
+        method: AuthenticationMethodV2
+    ): Promise<RequestChallengeResult> {
         const { correlationId, logger, continuationState, flowClient } =
             this.stateParameters;
 
         try {
-            const method = this.stateParameters.methods.find(
-                (candidate) => candidate.id === methodId
+            // Resolve against server-provided methods to avoid sending the continuation token to a caller-supplied URL.
+            const selectedMethod = this.stateParameters.methods.find(
+                (candidate) => candidate.id === method.id
             );
 
-            if (!method) {
-                throw new InvalidArgumentError("methodId", correlationId);
+            if (!selectedMethod) {
+                throw new InvalidArgumentError("method", correlationId);
             }
 
             logger.verbose(
@@ -62,8 +62,13 @@ export class AuthenticationMethodSelectionRequiredState extends AuthFlowActionRe
 
             const result = await flowClient.requestChallenge({
                 correlationId,
-                continuationState,
-                challengeHref: method.challengeHref,
+                continuationState: {
+                    ...continuationState,
+                    links: {
+                        ...continuationState.links,
+                        challenge: selectedMethod.challengeHref,
+                    },
+                },
             });
 
             return new CustomAuthV2Result(
@@ -74,7 +79,7 @@ export class AuthenticationMethodSelectionRequiredState extends AuthFlowActionRe
                     flowClient,
                     continuationState: result.continuationState,
                     cacheClient: this.stateParameters.cacheClient,
-                    method: this.toPublicMethod(method),
+                    method: selectedMethod,
                     sentTo: result.sentTo,
                     channel: result.channel,
                     codeLength: result.codeLength,
@@ -95,13 +100,5 @@ export class AuthenticationMethodSelectionRequiredState extends AuthFlowActionRe
                 )
             );
         }
-    }
-
-    private toPublicMethod(method: V2FlowMethod): AuthenticationMethodV2 {
-        return {
-            id: method.id,
-            type: method.type ?? "",
-            hint: method.hint,
-        };
     }
 }

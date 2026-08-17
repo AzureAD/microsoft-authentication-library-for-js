@@ -5,46 +5,43 @@
 
 import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
 import { CustomAuthV2Result } from "../CustomAuthV2Result.js";
-import { SignInAfterResetPasswordError } from "../error/SignInAfterResetPasswordError.js";
+import { V2SignInContinuationError } from "../error/V2SignInContinuationError.js";
 import { toV2Error } from "./V2StateErrorHelper.js";
 import { CompletedState } from "./CompletedState.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
-import type { SignInAfterResetPasswordStateParameters } from "./CustomAuthV2StateParameters.js";
-import type { SignInAfterResetPasswordResult } from "../result/SignInAfterResetPasswordResult.js";
-import type { SignInAfterResetPasswordInputs } from "../../../../CustomAuthV2ActionInputs.js";
+import type { V2SignInContinuationStateParameters } from "./CustomAuthV2StateParameters.js";
+import type { V2SignInContinuationResult } from "../result/V2SignInContinuationResult.js";
+import type { V2SignInContinuationInputs } from "../../../../CustomAuthV2ActionInputs.js";
 
 /**
- * State returned once a password reset has completed, allowing the app to sign
- * the just-reset user in without re-entering credentials. The reset flow does
- * not end at `CompletedState` directly; instead it surfaces this state carrying
- * the reset-flow continuation, mirroring V1's `ResetPasswordCompletedState`.
- * Calling {@link signIn} redeems that
- * continuation for tokens and reaches the completed state with account data.
+ * Shared state returned when a completed V2 flow can sign the user in by
+ * redeeming its continuation. Password reset and sign-up can both surface this
+ * state without duplicating the token-acquisition behavior.
  */
-export class SignInAfterResetPasswordState extends AuthFlowActionRequiredStateBase<SignInAfterResetPasswordStateParameters> {
-    readonly stateType = "signInAfterResetPassword";
+export class V2SignInContinuationState extends AuthFlowActionRequiredStateBase<V2SignInContinuationStateParameters> {
+    readonly stateType = "signInContinuation";
 
     /**
-     * Signs the user in using the continuation established by the completed
-     * password reset. On success the returned result reaches the completed state
+     * Signs the user in using the continuation established by the completed V2
+     * flow. On success the returned result reaches the completed state
      * carrying the signed-in account data; on failure the result's error reports
      * why the follow-up sign-in could not complete.
      * @param inputs - Optional scopes and claims requested for the issued token.
      * @returns The result of signing in after the password reset.
      */
     async signIn(
-        inputs?: SignInAfterResetPasswordInputs
-    ): Promise<SignInAfterResetPasswordResult> {
+        inputs?: V2SignInContinuationInputs
+    ): Promise<V2SignInContinuationResult> {
         const { correlationId, logger, continuationState, flowClient } =
             this.stateParameters;
 
         try {
             logger.verbose(
-                "Signing in after V2 password reset.",
+                "Signing in with a V2 continuation.",
                 correlationId
             );
 
-            const result = await flowClient.signInAfterReset({
+            const result = await flowClient.signInWithContinuation({
                 correlationId,
                 continuationState,
                 scopes: inputs?.scopes,
@@ -66,12 +63,12 @@ export class SignInAfterResetPasswordState extends AuthFlowActionRequiredStateBa
             );
         } catch (error) {
             logger.errorPii(
-                `Failed to sign in after V2 password reset. Error: '${error}'.`,
+                `Failed to sign in with a V2 continuation. Error: '${error}'.`,
                 correlationId
             );
 
             return CustomAuthV2Result.createWithError(
-                new SignInAfterResetPasswordError(
+                new V2SignInContinuationError(
                     toV2Error(error, correlationId),
                     continuationState.scenario
                 )

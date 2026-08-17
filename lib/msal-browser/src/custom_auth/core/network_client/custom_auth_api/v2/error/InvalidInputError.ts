@@ -4,7 +4,7 @@
  */
 
 import { CustomAuthV2Error } from "./CustomAuthV2Error.js";
-import { INVALID_INPUT } from "../V2ApiClientConstants.js";
+import { INVALID_INPUT } from "./V2ErrorCodes.js";
 
 /**
  * Error raised when a caller-supplied argument fails client-side validation

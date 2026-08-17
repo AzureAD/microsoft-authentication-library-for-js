@@ -9,18 +9,18 @@ import {
     V2_FLOW_METHOD_SELECTION_REQUIRED,
     V2_FLOW_CODE_REQUIRED,
     V2_FLOW_PASSWORD_REQUIRED,
-    V2_FLOW_SIGN_IN_AFTER_RESET_REQUIRED,
+    V2_FLOW_SIGN_IN_CONTINUATION_REQUIRED,
     V2_FLOW_COMPLETED,
     V2FlowMethodSelectionRequiredResult,
     V2FlowCodeRequiredResult,
     V2FlowPasswordRequiredResult,
-    V2FlowSignInAfterResetRequiredResult,
+    V2FlowSignInContinuationRequiredResult,
     V2FlowCompletedResult,
 } from "../../../../../src/custom_auth/core/interaction_client/v2/result/V2FlowActionResult.js";
 import { V2FlowContinuationState } from "../../../../../src/custom_auth/core/interaction_client/v2/V2FlowContinuationState.js";
 import { CustomAuthAuthority } from "../../../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { CustomAuthV2ApiClient } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthV2ApiClient.js";
-import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/V2ApiClientConstants.js";
+import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/error/V2ErrorCodes.js";
 import { buildConfiguration } from "../../../../../src/config/Configuration.js";
 import { customAuthConfig } from "../../../test_resources/CustomAuthConfig.js";
 import {
@@ -165,7 +165,7 @@ describe("V2FlowInteractionClient", () => {
         const continuationState: V2FlowContinuationState = {
             continuationToken: "ct-start",
             scenario: "passwordReset",
-            links: {},
+            links: { challenge: "https://endpoint/challenge" },
         };
 
         it("posts the selected method's challenge href and returns a code-required result", async () => {
@@ -181,7 +181,6 @@ describe("V2FlowInteractionClient", () => {
             const result = await client.requestChallenge({
                 correlationId,
                 continuationState,
-                challengeHref: "https://endpoint/challenge",
             });
 
             expect(apiClient.requestChallenge).toHaveBeenCalledWith(
@@ -204,6 +203,20 @@ describe("V2FlowInteractionClient", () => {
                     resend: "https://endpoint/resend",
                 },
             });
+        });
+
+        it("throws when the continuation is missing the challenge link", async () => {
+            await expect(
+                client.requestChallenge({
+                    correlationId,
+                    continuationState: {
+                        ...continuationState,
+                        links: {},
+                    },
+                })
+            ).rejects.toThrow();
+
+            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
         });
     });
 
@@ -365,10 +378,10 @@ describe("V2FlowInteractionClient", () => {
                 expect.objectContaining({ correlationId })
             );
 
-            expect(result.type).toBe(V2_FLOW_SIGN_IN_AFTER_RESET_REQUIRED);
+            expect(result.type).toBe(V2_FLOW_SIGN_IN_CONTINUATION_REQUIRED);
 
             const signInRequired =
-                result as V2FlowSignInAfterResetRequiredResult;
+                result as V2FlowSignInContinuationRequiredResult;
             expect(signInRequired.correlationId).toBe(correlationId);
             expect(signInRequired.continuationState).toEqual({
                 continuationToken: "ct-complete",
@@ -411,7 +424,7 @@ describe("V2FlowInteractionClient", () => {
                 { continuationToken: "ct-poll-1" },
                 expect.objectContaining({ correlationId })
             );
-            expect(result.type).toBe(V2_FLOW_SIGN_IN_AFTER_RESET_REQUIRED);
+            expect(result.type).toBe(V2_FLOW_SIGN_IN_CONTINUATION_REQUIRED);
         });
 
         it("follows a relocated poll href returned by an in-progress response", async () => {
@@ -456,7 +469,7 @@ describe("V2FlowInteractionClient", () => {
                 { continuationToken: "ct-poll-1" },
                 expect.objectContaining({ correlationId })
             );
-            expect(result.type).toBe(V2_FLOW_SIGN_IN_AFTER_RESET_REQUIRED);
+            expect(result.type).toBe(V2_FLOW_SIGN_IN_CONTINUATION_REQUIRED);
         });
         it("throws a timeout error when polling never completes", async () => {
             jest.useFakeTimers();
@@ -501,7 +514,7 @@ describe("V2FlowInteractionClient", () => {
         });
     });
 
-    describe("signInAfterReset", () => {
+    describe("signInWithContinuation", () => {
         const continuationState: V2FlowContinuationState = {
             continuationToken: "ct-complete",
             scenario: "passwordReset",
@@ -533,7 +546,7 @@ describe("V2FlowInteractionClient", () => {
                 )
                 .mockResolvedValue(fakeAuthResult);
 
-            const result = await client.signInAfterReset({
+            const result = await client.signInWithContinuation({
                 correlationId,
                 continuationState,
             });
@@ -566,7 +579,7 @@ describe("V2FlowInteractionClient", () => {
                 "handleTokenResponse"
             ).mockResolvedValue(fakeAuthResult);
 
-            await client.signInAfterReset({
+            await client.signInWithContinuation({
                 correlationId,
                 continuationState,
                 scopes: ["User.Read"],
@@ -590,7 +603,7 @@ describe("V2FlowInteractionClient", () => {
                 "handleTokenResponse"
             ).mockResolvedValue(fakeAuthResult);
 
-            await client.signInAfterReset({
+            await client.signInWithContinuation({
                 correlationId,
                 continuationState,
                 scopes: ["User.Read", "OpenID", "offline_access"],
@@ -605,4 +618,3 @@ describe("V2FlowInteractionClient", () => {
         });
     });
 });
-

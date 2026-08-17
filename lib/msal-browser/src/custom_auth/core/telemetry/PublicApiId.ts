@@ -71,7 +71,7 @@ export type V2FlowStep =
     | "submitCode"
     | "resendCode"
     | "submitPassword"
-    | "signInAfterReset";
+    | "signInWithContinuation";
 
 export const V2_FLOW_STEP_API_IDS: Partial<
     Record<CustomAuthV2FlowScenario, Record<V2FlowStep, number>>
@@ -82,6 +82,6 @@ export const V2_FLOW_STEP_API_IDS: Partial<
         resendCode: RESET_PASSWORD_V2_RESEND_CODE,
         submitPassword: RESET_PASSWORD_V2_SUBMIT,
         // Sign-in-after-reset has no dedicated V2 id; it reuses the V1 id.
-        signInAfterReset: SIGN_IN_AFTER_PASSWORD_RESET,
+        signInWithContinuation: SIGN_IN_AFTER_PASSWORD_RESET,
     },
 };

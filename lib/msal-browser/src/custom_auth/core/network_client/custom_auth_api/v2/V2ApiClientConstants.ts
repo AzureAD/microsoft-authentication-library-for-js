@@ -23,25 +23,6 @@ export const AUTHORIZE_CHALLENGE = "/oauth2/v2.0/authorize-challenge";
 export const TOKEN = "/oauth2/v2.0/token";
 
 /*
- * Synthetic error codes raised by the V2 client itself (never returned by the server). Centralized
- * here so the api-client and the response handlers agree on the exact string values.
- */
-export const HTTP_REQUEST_FAILED = "http_request_failed";
-export const REDIRECT_TO_WEB = "redirect_to_web";
-export const UNEXPECTED_ERROR = "unexpected_error";
-export const INVALID_INPUT = "invalid_input";
-export const AUTH_CODE_MISSING = "authorization_code_missing";
-export const INVALID_TOKEN_RESPONSE = "invalid_token_response";
-export const INVALID_RESPONSE_BODY = "invalid_response_body";
-export const CONTINUATION_TOKEN_MISSING = "continuation_token_missing";
-export const INVALID_HAL_RESPONSE = "invalid_hal_response";
-export const RESET_PASSWORD_UNSUPPORTED = "reset_password_unsupported";
-export const CONTINUATION_LINK_MISSING = "continuation_link_missing";
-export const RESET_PASSWORD_TIMEOUT = "reset_password_timeout";
-export const UNSUPPORTED_FLOW_STEP = "unsupported_flow_step";
-export const NO_AUTHENTICATION_METHODS = "no_authentication_methods";
-
-/*
  * HAL `_links` relation keys the flows follow to advance a server-driven V2 flow. These are the
  * object keys under `_links` (or an embedded method's `_links`), not the link `name` metadata.
  */

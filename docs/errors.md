@@ -1146,6 +1146,46 @@ const msalConfig = {
 
 -   The HTTP request to the authentication server failed.
 
+#### `redirect_to_web`
+
+-   The native authentication flow must continue in a web browser.
+
+#### `invalid_input`
+
+-   The native authentication request contains invalid input.
+
+#### `authorization_code_missing`
+
+-   The authorization code is missing from the native authentication response.
+
+#### `invalid_token_response`
+
+-   The token response returned by the native authentication server is invalid.
+
+#### `invalid_hal_response`
+
+-   The HAL response returned by the native authentication server is invalid.
+
+#### `reset_password_unsupported`
+
+-   Password reset is not supported by the native authentication server.
+
+#### `continuation_link_missing`
+
+-   A server-provided link required to continue the native authentication flow is missing.
+
+#### `reset_password_timeout`
+
+-   The native authentication password-reset operation timed out.
+
+#### `unsupported_flow_step`
+
+-   The requested native authentication flow step is not supported.
+
+#### `no_authentication_methods`
+
+-   The native authentication server did not return any available authentication methods.
+
 #### `invalid_request`
 
 -   The authentication request is malformed or contains invalid parameters.

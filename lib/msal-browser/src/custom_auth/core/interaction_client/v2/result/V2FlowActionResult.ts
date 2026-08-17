@@ -4,6 +4,7 @@
  */
 
 import { AuthenticationResult } from "../../../../../response/AuthenticationResult.js";
+import { AuthenticationMethodV2 } from "../../../auth_flow/v2/AuthenticationMethodV2.js";
 import { V2FlowContinuationState } from "../V2FlowContinuationState.js";
 
 /*
@@ -23,18 +24,6 @@ interface V2FlowActionResultBase {
 }
 
 /*
- * A selectable authentication method carried by a method-selection outcome. `challengeHref` is the
- * internal per-method link the `requestChallenge` step posts to; the public state exposes only the
- * `id`/`type`/`hint` and passes the chosen `id` back to resolve the href.
- */
-export interface V2FlowMethod {
-    id: string;
-    type?: string;
-    hint?: string;
-    challengeHref: string;
-}
-
-/*
  * The flow-start step resolved to a set of authentication methods and the user must select one
  * before a challenge is sent. `continuationState` carries the token to present when requesting the
  * chosen method's challenge; `methods` are the selectable methods (each with its challenge href).
@@ -43,7 +32,7 @@ export interface V2FlowMethodSelectionRequiredResult
     extends V2FlowActionResultBase {
     type: typeof V2_FLOW_METHOD_SELECTION_REQUIRED;
     continuationState: V2FlowContinuationState;
-    methods: V2FlowMethod[];
+    methods: AuthenticationMethodV2[];
 }
 
 /*
@@ -65,14 +54,13 @@ export interface V2FlowPasswordRequiredResult extends V2FlowActionResultBase {
 }
 
 /*
- * The reset was applied; the account must be explicitly signed in next. `continuationState`
- * carries the token to redeem for tokens (V2 does not auto-sign-in, matching V1).
+ * A flow completed without automatically signing the account in. `continuationState`
+ * carries the token to redeem for tokens.
  */
-export interface V2FlowSignInAfterResetRequiredResult
+export interface V2FlowSignInContinuationRequiredResult
     extends V2FlowActionResultBase {
-    type: typeof V2_FLOW_SIGN_IN_AFTER_RESET_REQUIRED;
+    type: typeof V2_FLOW_SIGN_IN_CONTINUATION_REQUIRED;
     continuationState: V2FlowContinuationState;
-    username?: string;
 }
 
 // The flow reached a token-issuing terminal step; the account is signed in.
@@ -85,7 +73,7 @@ export type V2FlowActionResult =
     | V2FlowMethodSelectionRequiredResult
     | V2FlowCodeRequiredResult
     | V2FlowPasswordRequiredResult
-    | V2FlowSignInAfterResetRequiredResult
+    | V2FlowSignInContinuationRequiredResult
     | V2FlowCompletedResult;
 
 // Result type discriminators.
@@ -93,8 +81,8 @@ export const V2_FLOW_METHOD_SELECTION_REQUIRED =
     "V2FlowMethodSelectionRequiredResult";
 export const V2_FLOW_CODE_REQUIRED = "V2FlowCodeRequiredResult";
 export const V2_FLOW_PASSWORD_REQUIRED = "V2FlowPasswordRequiredResult";
-export const V2_FLOW_SIGN_IN_AFTER_RESET_REQUIRED =
-    "V2FlowSignInAfterResetRequiredResult";
+export const V2_FLOW_SIGN_IN_CONTINUATION_REQUIRED =
+    "V2FlowSignInContinuationRequiredResult";
 export const V2_FLOW_COMPLETED = "V2FlowCompletedResult";
 
 export function createV2FlowMethodSelectionRequiredResult(
@@ -115,10 +103,10 @@ export function createV2FlowPasswordRequiredResult(
     return { type: V2_FLOW_PASSWORD_REQUIRED, ...input };
 }
 
-export function createV2FlowSignInAfterResetRequiredResult(
-    input: Omit<V2FlowSignInAfterResetRequiredResult, "type">
-): V2FlowSignInAfterResetRequiredResult {
-    return { type: V2_FLOW_SIGN_IN_AFTER_RESET_REQUIRED, ...input };
+export function createV2FlowSignInContinuationRequiredResult(
+    input: Omit<V2FlowSignInContinuationRequiredResult, "type">
+): V2FlowSignInContinuationRequiredResult {
+    return { type: V2_FLOW_SIGN_IN_CONTINUATION_REQUIRED, ...input };
 }
 
 export function createV2FlowCompletedResult(

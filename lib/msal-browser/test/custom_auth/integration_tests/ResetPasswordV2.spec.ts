@@ -9,7 +9,7 @@ import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth
 import { AuthenticationMethodSelectionRequiredState } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
 import { ChallengeVerificationRequiredState } from "../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredState.js";
 import { NewPasswordRequiredState } from "../../../src/custom_auth/core/auth_flow/v2/state/NewPasswordRequiredState.js";
-import { SignInAfterResetPasswordState } from "../../../src/custom_auth/core/auth_flow/v2/state/SignInAfterResetPasswordState.js";
+import { V2SignInContinuationState } from "../../../src/custom_auth/core/auth_flow/v2/state/V2SignInContinuationState.js";
 import { CompletedState } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedState.js";
 import { RequestChallengeError } from "../../../src/custom_auth/core/auth_flow/v2/error/RequestChallengeError.js";
 import { VerifyChallengeError } from "../../../src/custom_auth/core/auth_flow/v2/error/VerifyChallengeError.js";
@@ -163,7 +163,7 @@ describe("Reset password V2 (SSPR)", () => {
         expect(methodState.methods[0].type).toBe("email");
 
         const challengeResult = await methodState.requestChallenge(
-            methodState.methods[0].id
+            methodState.methods[0]
         );
         expect(challengeResult.isFailed()).toBe(false);
         expect(challengeResult.state).toBeInstanceOf(
@@ -183,11 +183,11 @@ describe("Reset password V2 (SSPR)", () => {
         );
         expect(submitResult.isFailed()).toBe(false);
         expect(submitResult.state).toBeInstanceOf(
-            SignInAfterResetPasswordState
+            V2SignInContinuationState
         );
 
         const signInState =
-            submitResult.state as SignInAfterResetPasswordState;
+            submitResult.state as V2SignInContinuationState;
         const signInResult = await signInState.signIn();
         expect(signInResult.isFailed()).toBe(false);
         expect(signInResult.isState("completed")).toBe(true);
@@ -221,7 +221,7 @@ describe("Reset password V2 (SSPR)", () => {
 
         const methodState = await startToMethodSelection();
         const challengeResult = await methodState.requestChallenge(
-            methodState.methods[0].id
+            methodState.methods[0]
         );
         const codeState =
             challengeResult.state as ChallengeVerificationRequiredState;
@@ -255,7 +255,7 @@ describe("Reset password V2 (SSPR)", () => {
 
         const methodState = await startToMethodSelection();
         const challengeResult = await methodState.requestChallenge(
-            methodState.methods[0].id
+            methodState.methods[0]
         );
         const codeState =
             challengeResult.state as ChallengeVerificationRequiredState;
@@ -281,7 +281,7 @@ describe("Reset password V2 (SSPR)", () => {
         const methodState = await startToMethodSelection();
 
         const challengeResult = await methodState.requestChallenge(
-            methodState.methods[0].id
+            methodState.methods[0]
         );
 
         expect(challengeResult.isFailed()).toBe(true);

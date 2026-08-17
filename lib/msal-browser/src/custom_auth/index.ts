@@ -248,7 +248,7 @@ export {
     ResetPasswordV2Inputs,
     SignInV2Inputs,
     SignUpV2Inputs,
-    SignInAfterResetPasswordInputs,
+    V2SignInContinuationInputs,
 } from "./CustomAuthV2ActionInputs.js";
 
 // Native Auth V2 Result
@@ -267,7 +267,7 @@ export { ResetPasswordStartError } from "./core/auth_flow/v2/error/ResetPassword
 export { RequestChallengeError } from "./core/auth_flow/v2/error/RequestChallengeError.js";
 export { VerifyChallengeError } from "./core/auth_flow/v2/error/VerifyChallengeError.js";
 export { SubmitNewPasswordError } from "./core/auth_flow/v2/error/SubmitNewPasswordError.js";
-export { SignInAfterResetPasswordError } from "./core/auth_flow/v2/error/SignInAfterResetPasswordError.js";
+export { V2SignInContinuationError } from "./core/auth_flow/v2/error/V2SignInContinuationError.js";
 
 // Native Auth V2 States
 export { CompletedState } from "./core/auth_flow/v2/state/CompletedState.js";
@@ -275,7 +275,7 @@ export { FailedState } from "./core/auth_flow/v2/state/FailedState.js";
 export { NewPasswordRequiredState } from "./core/auth_flow/v2/state/NewPasswordRequiredState.js";
 export { ChallengeVerificationRequiredState } from "./core/auth_flow/v2/state/ChallengeVerificationRequiredState.js";
 export { AuthenticationMethodSelectionRequiredState } from "./core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
-export { SignInAfterResetPasswordState } from "./core/auth_flow/v2/state/SignInAfterResetPasswordState.js";
+export { V2SignInContinuationState } from "./core/auth_flow/v2/state/V2SignInContinuationState.js";
 
 // Native Auth V2 Results
 export {
@@ -295,9 +295,9 @@ export {
     SubmitNewPasswordResultState,
 } from "./core/auth_flow/v2/result/SubmitNewPasswordResult.js";
 export {
-    SignInAfterResetPasswordResult,
-    SignInAfterResetPasswordResultState,
-} from "./core/auth_flow/v2/result/SignInAfterResetPasswordResult.js";
+    V2SignInContinuationResult,
+    V2SignInContinuationResultState,
+} from "./core/auth_flow/v2/result/V2SignInContinuationResult.js";
 
 // Components from msal_browser
 export { LogLevel } from "@azure/msal-common/browser";

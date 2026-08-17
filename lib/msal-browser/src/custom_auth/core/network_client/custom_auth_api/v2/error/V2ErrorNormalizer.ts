@@ -8,7 +8,7 @@ import {
     V2OAuthErrorResponse,
     V2ServerError,
 } from "./V2ErrorResponses.js";
-import { UNEXPECTED_ERROR } from "../V2ApiClientConstants.js";
+import { UNEXPECTED_ERROR } from "./V2ErrorCodes.js";
 
 /*
  * Folds a V2 error body into a single normalized V2ServerError. Two on-the-wire shapes exist,

@@ -4,7 +4,7 @@
  */
 
 import { CustomAuthV2Error } from "./CustomAuthV2Error.js";
-import { UNEXPECTED_ERROR } from "../V2ApiClientConstants.js";
+import { UNEXPECTED_ERROR } from "./V2ErrorCodes.js";
 
 /**
  * Error raised for an unanticipated failure thrown while driving a native auth

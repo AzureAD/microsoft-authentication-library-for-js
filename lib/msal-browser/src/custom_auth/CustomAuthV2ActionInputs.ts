@@ -43,12 +43,11 @@ export type SignUpV2Inputs = CustomAuthActionInputs & {
 };
 
 /**
- * Inputs for signing the user in after a V2 password reset completes. The
- * continuation that identifies the just-reset user is held by the
- * `SignInAfterResetPasswordState`, so only the optional `scopes` and `claims`
- * requested for the issued token are supplied here.
+ * Inputs for signing the user in from a V2 continuation state. The continuation
+ * identifies the account, so only the optional `scopes` and `claims` requested
+ * for the issued token are supplied here.
  */
-export type SignInAfterResetPasswordInputs = CustomAuthActionInputs & {
+export type V2SignInContinuationInputs = {
     scopes?: Array<string>;
     claims?: string;
 };

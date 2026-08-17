@@ -23,7 +23,11 @@ describe("CustomAuthV2Result", () => {
         customAuth: { challengeTypes: ["password"] },
     } as unknown as jest.Mocked<CustomAuthBrowserConfiguration>;
 
-    const method: AuthenticationMethodV2 = { id: "email", type: "email" };
+    const method: AuthenticationMethodV2 = {
+        id: "email",
+        type: "email",
+        challengeHref: "/c",
+    };
 
     const buildSelectionState = (): AuthenticationMethodSelectionRequiredState =>
         new AuthenticationMethodSelectionRequiredState({

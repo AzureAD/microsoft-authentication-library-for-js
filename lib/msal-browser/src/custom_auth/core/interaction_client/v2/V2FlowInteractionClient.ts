@@ -15,20 +15,20 @@ import {
     V2FlowSubmitCodeParams,
     V2FlowResendCodeParams,
     V2FlowSubmitPasswordParams,
-    V2FlowSignInAfterResetParams,
+    V2FlowSignInWithContinuationParams,
 } from "./parameter/V2FlowParams.js";
 import {
     createV2FlowMethodSelectionRequiredResult,
     createV2FlowCodeRequiredResult,
     createV2FlowPasswordRequiredResult,
-    createV2FlowSignInAfterResetRequiredResult,
+    createV2FlowSignInContinuationRequiredResult,
     createV2FlowCompletedResult,
 } from "./result/V2FlowActionResult.js";
 import type {
     V2FlowMethodSelectionRequiredResult,
     V2FlowCodeRequiredResult,
     V2FlowPasswordRequiredResult,
-    V2FlowSignInAfterResetRequiredResult,
+    V2FlowSignInContinuationRequiredResult,
     V2FlowCompletedResult,
 } from "./result/V2FlowActionResult.js";
 import { BrowserConfiguration } from "../../../../config/Configuration.js";
@@ -43,7 +43,7 @@ import {
     INVALID_HAL_RESPONSE,
     RESET_PASSWORD_TIMEOUT,
     UNSUPPORTED_FLOW_STEP,
-} from "../../network_client/custom_auth_api/v2/V2ApiClientConstants.js";
+} from "../../network_client/custom_auth_api/v2/error/V2ErrorCodes.js";
 import {
     CustomAuthV2FlowScenario,
     toCustomAuthV2FlowScenario,
@@ -56,6 +56,7 @@ import * as PublicApiId from "../../telemetry/PublicApiId.js";
  * lives here in the interaction client because the L2 `poll` is a single-shot call by design.
  */
 const POLL_MAX_ATTEMPTS = 5;
+// TODO: Replace this fallback with the server-provided polling interval once available.
 const POLL_INTERVAL_MS = 1500;
 
 const delay = (ms: number): Promise<void> =>
@@ -135,7 +136,12 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
                 scenario: toCustomAuthV2FlowScenario(startResult.scenario),
                 links: {},
             },
-            methods: startResult.methods,
+            methods: startResult.methods.map((method) => ({
+                id: method.id,
+                type: method.type ?? "",
+                hint: method.hint,
+                challengeHref: method.challengeHref,
+            })),
         });
     }
 
@@ -163,7 +169,10 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
         this.logger.verbose("Requesting V2 challenge.", correlationId);
 
         const challengeResult = await this.apiClient.requestChallenge(
-            parameters.challengeHref,
+            this.requireLink(
+                correlationId,
+                continuationState.links.challenge
+            ),
             { continuationToken: continuationState.continuationToken },
             context
         );
@@ -290,13 +299,13 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
      * the returned `poll` href until the server reports the reset applied (`state: continue`).
      * The update-then-poll cycle plus the bounded retry loop live here (the L2 `poll` is
      * single-shot). On completion the account is NOT auto-signed-in (matching V1); a
-     * `signInAfterResetRequired` outcome carries the completion token forward so the app
+     * `signInContinuationRequired` outcome carries the completion token forward so the app
      * can explicitly sign in. A reset that never completes within the retry budget is surfaced as a
      * synthetic timeout error.
      */
     async submitPassword(
         parameters: V2FlowSubmitPasswordParams
-    ): Promise<V2FlowSignInAfterResetRequiredResult> {
+    ): Promise<V2FlowSignInContinuationRequiredResult> {
         const continuationState = parameters.continuationState;
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
@@ -358,7 +367,7 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
             correlationId
         );
 
-        return createV2FlowSignInAfterResetRequiredResult({
+        return createV2FlowSignInContinuationRequiredResult({
             correlationId,
             continuationState: {
                 continuationToken: completionToken,
@@ -369,29 +378,24 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
     }
 
     /*
-     * Sign the just-reset account in (steps 7-8), the flow's terminal step. Generic across flows:
-     * redeem the continuation for an authorization code at the fixed authorize-challenge endpoint,
-     * exchange the code for tokens at the token endpoint (L2 `completeWithTokens`), then run the
-     * shared msal-common response handler to validate + cache the tokens and build the account.
-     * The scopes default to the standard OIDC set when the caller omits them; the
-     * telemetry id is resolved per scenario so the same step serves every flow. Returns a
-     * `completed` outcome carrying the `AuthenticationResult`; the controller wraps it into the
-     * public account data.
+     * Signs the account in by redeeming the flow continuation for tokens.
+     * Returns the completed authentication result after validating and caching
+     * the token response.
      */
-    async signInAfterReset(
-        parameters: V2FlowSignInAfterResetParams
+    async signInWithContinuation(
+        parameters: V2FlowSignInWithContinuationParams
     ): Promise<V2FlowCompletedResult> {
         const continuationState = parameters.continuationState;
         const correlationId = parameters.correlationId;
         const apiId = this.resolveStepApiId(
             continuationState.scenario,
-            "signInAfterReset",
+            "signInWithContinuation",
             correlationId
         );
         const context = this.createRequestContext(apiId, correlationId);
 
         this.logger.verbose(
-            "Signing in after V2 password reset.",
+            "Signing in with a V2 continuation.",
             correlationId
         );
 
@@ -412,7 +416,7 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
         );
 
         this.logger.verbose(
-            "V2 sign-in after password reset completed.",
+            "V2 continuation sign-in completed.",
             correlationId
         );
 

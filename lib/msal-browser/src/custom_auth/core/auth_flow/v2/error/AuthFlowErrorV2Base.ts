@@ -4,7 +4,14 @@
  */
 
 import type { CustomAuthV2Error } from "../../../network_client/custom_auth_api/v2/error/CustomAuthV2Error.js";
-import { INVALID_INPUT } from "../../../network_client/custom_auth_api/v2/V2ApiClientConstants.js";
+import {
+    INVALID_INPUT,
+    REDIRECT_TO_WEB,
+} from "../../../network_client/custom_auth_api/v2/error/V2ErrorCodes.js";
+import {
+    INVALID_ONE_TIME_CODE,
+    PASSWORD_TOO_WEAK,
+} from "./AuthFlowErrorV2Subcodes.js";
 import { CustomAuthV2FlowScenario } from "../CustomAuthV2FlowScenario.js";
 
 /*
@@ -41,7 +48,7 @@ export abstract class AuthFlowErrorV2Base {
      * @returns True if the browser is required, false otherwise.
      */
     isBrowserRequired(): boolean {
-        return this.errorData.code === "redirect_to_web";
+        return this.errorData.code === REDIRECT_TO_WEB;
     }
 
     /**
@@ -60,6 +67,7 @@ export abstract class AuthFlowErrorV2Base {
      * innerError and no error_codes array, so the AADSTS marker in the message is
      * the only signal.
      */
+    // TODO: Use the service-provided suberror when it becomes available.
     protected isUserNotFoundError(): boolean {
         return this.errorData.message?.includes("AADSTS50034") === true;
     }
@@ -70,13 +78,13 @@ export abstract class AuthFlowErrorV2Base {
      */
     protected isInvalidCodeError(): boolean {
         return (
-            this.errorData.innerErrorCode === "invalidOneTimeCode" &&
+            this.errorData.innerErrorCode === INVALID_ONE_TIME_CODE &&
             this.errorData.code === "invalidGrant"
         );
     }
 
     // New password rejected by policy: inner `passwordTooWeak` (AADSTS120002).
     protected isInvalidPasswordError(): boolean {
-        return this.errorData.innerErrorCode === "passwordTooWeak";
+        return this.errorData.innerErrorCode === PASSWORD_TOO_WEAK;
     }
 }
