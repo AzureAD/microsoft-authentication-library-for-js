@@ -1993,9 +1993,8 @@ export abstract class CacheManager implements ICacheManager {
 
         switch (normalizedFilterTokenType) {
             case "dpop":
-                return this.matchKeyBoundAccessToken(entity, filter, false);
             case Constants.AuthenticationScheme.SSH:
-                return this.matchKeyBoundAccessToken(entity, filter, false);
+                return this.matchKeyBoundAccessToken(entity, filter);
             default:
                 return true;
         }
@@ -2003,11 +2002,10 @@ export abstract class CacheManager implements ICacheManager {
 
     private matchKeyBoundAccessToken(
         entity: CredentialEntity,
-        filter: CredentialFilter,
-        requireKeyId: boolean
+        filter: CredentialFilter
     ): boolean {
         if (!filter.keyId) {
-            return !requireKeyId;
+            return true;
         }
 
         return this.matchKeyId(entity, filter.keyId);

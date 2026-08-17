@@ -287,7 +287,7 @@ describe("CacheManager.ts test cases", () => {
             );
         });
 
-        it("requires request-context keyId metadata for accessToken with Auth Scheme (dpop)", () => {
+        it("requires cached keyId metadata for accessToken with Auth Scheme (dpop)", () => {
             expect(() =>
                 CacheHelpers.createAccessTokenEntity(
                     "someUid.someUtid",
@@ -2834,7 +2834,7 @@ describe("CacheManager.ts test cases", () => {
         ).toEqual(mockedSshAtEntity);
     });
 
-    it("getAccessToken ignores sshKid as request key context for DPoP", async () => {
+    it("getAccessToken does not use sshKid to match DPoP access tokens", async () => {
         const mockedAtEntity = CacheHelpers.createAccessTokenEntity(
             "uid.utid",
             "login.microsoftonline.com",
