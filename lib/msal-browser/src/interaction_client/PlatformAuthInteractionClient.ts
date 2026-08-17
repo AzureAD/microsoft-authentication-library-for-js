@@ -1120,6 +1120,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             },
             this.correlationId
         );
+        const isProofOfPossessionRequest =
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.POP ||
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP;
 
         const validatedRequest: PlatformAuthRequest = {
             claims: mergedClaims,
@@ -1147,8 +1152,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             },
             extendedExpiryToken: false, // Make this configurable?
             keyId: request.popKid,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
+            ...(isProofOfPossessionRequest && {
+                resourceRequestMethod: request.resourceRequestMethod,
+                resourceRequestUri: request.resourceRequestUri,
+            }),
             shrClaims: request.shrClaims,
             shrNonce: request.shrNonce,
         };

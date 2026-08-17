@@ -14,6 +14,7 @@ import {
     AuthErrorCodes,
     InProgressPerformanceEvent,
     IPerformanceClient,
+    Constants,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
 import {
@@ -88,7 +89,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         // fall back to native calls
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
-            request: request,
+            request: this.initializeNativeExtensionRequest(request),
         };
 
         const req: NativeExtensionRequest = {
@@ -120,6 +121,41 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             this.validatePlatformBrokerResponse(response);
 
         return validatedResponse;
+    }
+
+    private initializeNativeExtensionRequest(
+        request: PlatformAuthRequest
+    ): PlatformAuthRequest {
+        const {
+            resourceRequestMethod,
+            resourceRequestUri,
+            extraParametersNoCache,
+            ...extensionRequest
+        } = request;
+
+        const isProofOfPossessionRequest =
+            request.tokenType === Constants.AuthenticationScheme.POP ||
+            request.tokenType === Constants.AuthenticationScheme.DPOP;
+
+        const nativeExtraParametersNoCache = isProofOfPossessionRequest
+            ? {
+                  ...extraParametersNoCache,
+                  ...(resourceRequestMethod && {
+                      pop_method: resourceRequestMethod,
+                  }),
+                  ...(resourceRequestUri && {
+                      pop_uri: resourceRequestUri,
+                  }),
+              }
+            : undefined;
+
+        return {
+            ...extensionRequest,
+            ...(nativeExtraParametersNoCache &&
+                Object.keys(nativeExtraParametersNoCache).length > 0 && {
+                    extraParametersNoCache: nativeExtraParametersNoCache,
+                }),
+        };
     }
 
     /**

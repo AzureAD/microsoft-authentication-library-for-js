@@ -7,6 +7,15 @@ import { NativeExtensionMethod } from "../../utils/BrowserConstants.js";
 import { StringDict } from "@azure/msal-common/browser";
 
 /**
+ * No-cache parameters MSAL.js sends to the native broker for proof-of-possession requests.
+ */
+export type PlatformAuthRequestExtraParametersNoCache = {
+    pop_method?: string;
+    pop_uri?: string;
+    pop_nonce?: string;
+};
+
+/**
  * Token request which native broker will use to acquire tokens
  */
 export type PlatformAuthRequest = {
@@ -23,6 +32,7 @@ export type PlatformAuthRequest = {
     claims?: string;
     state?: string;
     loginHint?: string; // UPN of the user
+    preferBinding?: string;
     reqCnf?: string;
     keyId?: string;
     tokenType?: string;
@@ -32,6 +42,7 @@ export type PlatformAuthRequest = {
     resourceRequestUri?: string;
     extendedExpiryToken?: boolean;
     extraParameters?: StringDict;
+    extraParametersNoCache?: PlatformAuthRequestExtraParametersNoCache;
     signPopToken?: boolean; // Set to true only if token request does not contain a PoP keyId
     attributeTokens?: string; // Pre-serialized attribute tokens (sorted, space-separated)
 };
