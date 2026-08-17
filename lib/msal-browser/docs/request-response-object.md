@@ -52,7 +52,7 @@ const response = await msalInstance.acquireTokenSilent(request);
 
 ## DPoP request and response fields
 
-To request browser-native DPoP tokens, set `authenticationScheme` to `AuthenticationScheme.DPOP` on popup, redirect, silent, or `ssoSilent` requests and provide both `resourceRequestMethod` and `resourceRequestUri`.
+To request sender-constrained access tokens using the DPoP standard, set `authenticationScheme` to `AuthenticationScheme.DPOP` on popup, redirect, silent, or `ssoSilent` requests and provide both `resourceRequestMethod` and `resourceRequestUri`.
 
 ```javascript
 const request = {
