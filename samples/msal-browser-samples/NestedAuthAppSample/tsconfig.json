@@ -1,0 +1,20 @@
+{
+    "compileOnSave": false,
+    "buildOnSave": false,
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "module": "commonjs",
+        "target": "es2021",
+        "lib": ["es2021", "dom", "es2021.promise"],
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "sourceMap": true,
+        "declaration": true,
+        "experimentalDecorators": true,
+        "importHelpers": true,
+        "strict": true,
+        "types": ["node", "jest"]
+    },
+    "include": ["test"],
+    "exclude": ["node_modules"]
+}

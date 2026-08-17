@@ -88,6 +88,7 @@ extends:
                               testFilter: "browserB2C|browserMCP"
                             - name: "ExpressSample"
                             - name: "NativeAuthSample"
+                            # - name: "NestedAuthAppSample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}
