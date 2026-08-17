@@ -12,7 +12,7 @@ import {
     CONTINUATION_TOKEN_MISSING,
     INVALID_HAL_RESPONSE,
     NO_AUTHENTICATION_METHODS,
-} from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/V2ApiClientConstants.js";
+} from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/error/V2ErrorCodes.js";
 import { HttpMethod } from "../../../../../../src/custom_auth/core/network_client/http_client/IHttpClient.js";
 
 const mockTelemetryManager = {
@@ -72,7 +72,6 @@ describe("CustomAuthV2ApiClient", () => {
                 .mockResolvedValueOnce(
                     buildResponse({
                         continuationToken: "ct-start",
-                        challengeContext: { some: "ctx" },
                         _links: {
                             challenge: { href: "/tenant/api/v0.1/challenge" },
                         },
@@ -113,7 +112,10 @@ describe("CustomAuthV2ApiClient", () => {
                     })
                 );
 
-            const result = await apiClient.resetPasswordStart("user@test.com", context);
+            const result = await apiClient.resetPasswordStart(
+                "user@test.com",
+                context
+            );
 
             expect(result.continuationToken).toBe("ct-start");
             expect(result.scenario).toBe("recovery");
@@ -420,9 +422,7 @@ describe("CustomAuthV2ApiClient", () => {
     describe("completeWithTokens", () => {
         it("redeems the continuation token for an authorization code then exchanges it for tokens", async () => {
             mockHttpClient.sendAsync
-                .mockResolvedValueOnce(
-                    buildResponse({ code: "auth-code-1" })
-                )
+                .mockResolvedValueOnce(buildResponse({ code: "auth-code-1" }))
                 .mockResolvedValueOnce(
                     buildResponse({
                         access_token: "access-1",

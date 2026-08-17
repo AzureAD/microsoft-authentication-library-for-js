@@ -20,6 +20,9 @@ const API_MARKERS = ["/api/", "/oauth2/"];
  *   base = https://login.microsoftonline.com/common
  *   href = /1eb974cd-.../api/v0.1/auth/methods/email/3f7/verify?dc=ESTS-PUB
  *    ->    https://login.microsoftonline.com/common/api/v0.1/auth/methods/email/3f7/verify?dc=ESTS-PUB
+ *
+ * TODO: Remove tenant-path rewriting once the service consistently returns links that can be
+ * resolved directly against the configured authority.
  */
 export function resolveHref(base: URL, href: string): URL {
     const trimmed = href.trim();

@@ -4,23 +4,14 @@
  */
 
 /*
- * Content types for the two V2 body encodings. The three OAuth endpoints (authorize-challenge
- * start/continue and token) are form-encoded; the entry `start` and every HAL `/api` step are
- * raw JSON.
+ * Content types used by V2 requests. OAuth requests are form-encoded, while flow-start and HAL
+ * `/api` requests use JSON.
  */
 export const FORM_CONTENT_TYPE = "application/x-www-form-urlencoded";
 export const JSON_CONTENT_TYPE = "application/json";
 
 // Redemption grant used at the token endpoint (redeeming the authorization code).
 export const AUTHORIZATION_CODE_GRANT = "authorization_code";
-
-/*
- * The only two fixed V2 endpoints. Step 1 (entry) and step 7 (resume) POST to
- * AUTHORIZE_CHALLENGE; step 8 redeems the auth code at TOKEN. Every other step
- * follows a server-provided `_links` href, so no `/api/...` paths are enumerated.
- */
-export const AUTHORIZE_CHALLENGE = "/oauth2/v2.0/authorize-challenge";
-export const TOKEN = "/oauth2/v2.0/token";
 
 /*
  * HAL `_links` relation keys the flows follow to advance a server-driven V2 flow. These are the

@@ -10,9 +10,7 @@ import { VerifyChallengeError } from "../../../../../../src/custom_auth/core/aut
 import { SubmitNewPasswordError } from "../../../../../../src/custom_auth/core/auth_flow/v2/error/SubmitNewPasswordError.js";
 
 /*
- * Locks the V2 server-error -> detector mapping against real V2 traffic and the
- * iOS V2 parser (MSALNativeAuthV2ResponseParser.flowError). The codes below are
- * taken verbatim from live tenant responses.
+ * Locks the V2 server-error -> detector mapping against real V2 traffic.
  */
 describe("AuthFlowErrorV2Base error mapping", () => {
     const apiError = (
@@ -68,7 +66,9 @@ describe("AuthFlowErrorV2Base error mapping", () => {
 
         it("is false for the legacy synthetic passwordInvalid code", () => {
             const error = new SubmitNewPasswordError(
-                apiError("invalidRequest", { innerErrorCode: "passwordInvalid" })
+                apiError("invalidRequest", {
+                    innerErrorCode: "passwordInvalid",
+                })
             );
 
             expect(error.isInvalidPassword()).toBe(false);
@@ -152,7 +152,8 @@ describe("AuthFlowErrorV2Base error mapping", () => {
             const error = new SubmitNewPasswordError(
                 apiError("expiredToken", {
                     innerErrorCode: "expiredContinuationToken",
-                    message: "AADSTS552001: The continuation_token has expired.",
+                    message:
+                        "AADSTS552001: The continuation_token has expired.",
                 })
             );
 

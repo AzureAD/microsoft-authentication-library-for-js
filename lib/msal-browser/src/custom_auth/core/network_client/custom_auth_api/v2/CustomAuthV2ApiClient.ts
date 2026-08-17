@@ -52,13 +52,8 @@ import {
 } from "./error/V2ErrorCodes.js";
 
 /*
- * Native Auth V2 network client. Implements the HAL `/api` steps on top of the shared
- * V2BaseApiClient plumbing, following the server-provided `_links` hrefs step to step. It is
- * flow-agnostic: per-flow entry methods (`resetPasswordStart` today; `signUpStart`/`signInStart`
- * when those flows are ported) seed the flow, while the code/challenge/token steps are generic
- * href-followers reused by every flow. Per-step navigation fallbacks live here: the challenge link
- * is taken from the embedded method first and falls back to the top-level `_links`; the update
- * link falls back to `self`.
+ * Native Auth V2 network client that follows server-provided HAL links.
+ * Flow-specific entry methods reuse shared challenge, verification, and token operations.
  */
 export class CustomAuthV2ApiClient extends V2BaseApiClient {
     constructor(
@@ -80,10 +75,7 @@ export class CustomAuthV2ApiClient extends V2BaseApiClient {
     }
 
     /*
-     * Reset-password entry (steps 1-2): run the authorize-challenge entry to obtain the seed
-     * continuation token and the `reset_password` href, then POST resetpassword-start to that href
-     * via the shared `startFlow` tail. The flow-specific entry for SSPR (sign-up/sign-in get their
-     * own `*Start` methods that select their own href + unsupported error and reuse `startFlow`).
+     * Starts the reset-password flow using the link returned by authorize-challenge.
      */
     async resetPasswordStart(
         username: string,
@@ -100,21 +92,14 @@ export class CustomAuthV2ApiClient extends V2BaseApiClient {
             entryResult.resetPasswordHref,
             {
                 code: RESET_PASSWORD_UNSUPPORTED,
-                message: "The authorize-challenge entry response did not include a reset-password link, so self-service password reset is not available for this application or tenant configuration",
+                message:
+                    "The authorize-challenge entry response did not include a reset-password link, so self-service password reset is not available for this application or tenant configuration",
             },
             request,
             context
         );
     }
 
-    /*
-     * Shared entry tail reused by every per-flow `*Start` method. The caller has already run
-     * authorize-challenge and picked its own flow href; this guards that href (throwing the caller's
-     * flow-specific unsupported error when absent), POSTs the start request, and returns the token to
-     * carry forward plus the challenge href (from the embedded method, else the top-level `_links`).
-     * Flow-agnostic by construction: the one genuinely per-flow bit (which href to POST to) is chosen
-     * by the caller and passed in, so this method never switches on flow.
-     */
     private async startFlow<TRequest extends V2HalRequestBase>(
         startHref: string | undefined,
         unsupported: { code: string; message: string },
@@ -151,13 +136,11 @@ export class CustomAuthV2ApiClient extends V2BaseApiClient {
                 parsedResponse.correlationId
             ),
             scenario: parsedResponse.body.scenario,
-            challengeContext: parsedResponse.body.challengeContext,
         };
     }
 
     /*
-     * Step 3: POST the `challenge` href to have the OTP sent. Returns the `verify` href to submit
-     * the code and, when present, the `resend` href plus the OTP display metadata.
+     * Requests an OTP and returns the links and metadata needed for verification.
      */
     async requestChallenge(
         challengeHref: string,
@@ -196,10 +179,7 @@ export class CustomAuthV2ApiClient extends V2BaseApiClient {
     }
 
     /*
-     * Step 4: POST the credential (OTP) to the `verify` href. Flow-agnostic: the server drives the
-     * next step, so this returns a `V2VerifyResult` discriminated on the server's next action rather
-     * than a reset-specific shape. `state: continue` means the credential completed the interactive
-     * part (redeem next); otherwise the HAL `action` names the next step (SSPR -> `update`).
+     * Verifies the OTP and returns the server-directed next action.
      */
     async verifyCode(
         verifyHref: string,
@@ -216,13 +196,6 @@ export class CustomAuthV2ApiClient extends V2BaseApiClient {
         return this.toVerifyResult(parsedResponse);
     }
 
-    /*
-     * Map a verify response onto the flow-agnostic `V2VerifyResult`, mirroring the server's own
-     * precedence: a `state: continue` response carries no `action` and means "nothing more to do
-     * interactively" (redeem via authorize-challenge -> token); otherwise the HAL `action` names
-     * the next interactive step. Today verify only yields `update` (SSPR) or `continue` (sign-in);
-     * anything else is an unexpected/unsupported verify outcome.
-     */
     private toVerifyResult(
         parsedResponse: V2SerializedResponse<VerifyV2Response>
     ): V2VerifyResult {
@@ -259,8 +232,7 @@ export class CustomAuthV2ApiClient extends V2BaseApiClient {
     }
 
     /*
-     * Step 5: PUT the new password to the `update` href. Returns the `poll` href to check for
-     * completion.
+     * Submits the new password and returns the link used to poll for completion.
      */
     async submitNewPassword(
         updateHref: string,
@@ -291,9 +263,7 @@ export class CustomAuthV2ApiClient extends V2BaseApiClient {
     }
 
     /*
-     * Step 6 (single poll): POST the `poll` href once. When the reset has been applied the server
-     * returns `state: continue` with the `continue` href (the authorize-challenge resume endpoint);
-     * until then the caller re-polls. The retry loop is owned by the controller layer.
+     * Polls once for reset completion and returns the next server-provided link.
      */
     async poll(
         pollHref: string,
@@ -331,9 +301,7 @@ export class CustomAuthV2ApiClient extends V2BaseApiClient {
     }
 
     /*
-     * Steps 7-8: redeem the continuation token for an authorization code, then exchange the code
-     * for tokens. Called once polling reports completion, to finish the reset by signing the user
-     * in.
+     * Redeems the continuation token for an authorization code and then tokens.
      */
     async completeWithTokens(
         continuationToken: string,
@@ -349,14 +317,6 @@ export class CustomAuthV2ApiClient extends V2BaseApiClient {
         return this.token(code, scopes, context, claims);
     }
 
-    /*
-     * Resolve the selectable authentication methods from a flow-start response. Each embedded
-     * method under `_embedded.methods[]` that advertises a `challenge` link becomes a selectable
-     * method (its id/type/hint are display metadata; an id is synthesized from the type or position
-     * when the server omits one). The start response must advertise at least one embedded method
-     * with a challenge link - the challenge link lives only under `_embedded.methods[]._links`, never
-     * at the top level - so a response with no such method is malformed and raises an api error.
-     */
     private resolveMethods(
         body: ResetPasswordStartV2Response,
         correlationId: string

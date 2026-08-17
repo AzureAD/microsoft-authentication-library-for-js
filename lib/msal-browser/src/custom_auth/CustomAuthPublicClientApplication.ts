@@ -63,7 +63,8 @@ export class CustomAuthPublicClientApplication
 
     private constructor(
         config: CustomAuthConfiguration,
-        controller: ICustomAuthStandardController & ICustomAuthStandardControllerV2
+        controller: ICustomAuthStandardController &
+            ICustomAuthStandardControllerV2
     ) {
         super(config, controller);
 
@@ -119,9 +120,7 @@ export class CustomAuthPublicClientApplication
     }
 
     /**
-     * Initiates the native auth V2 self-service password reset flow. It delegates
-     * to the controller, which drives the flow and resolves to a continuable
-     * result whose state advances the next step.
+     * Initiates the native auth V2 self-service password reset flow.
      * @param {ResetPasswordV2Inputs} inputs - Inputs for the reset-password V2 flow
      * @returns {Promise<ResetPasswordStartV2Result>} - A promise that resolves to ResetPasswordStartV2Result
      */

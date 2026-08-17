@@ -3,8 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { V2ChallengeContext } from "../response/V2Responses.js";
-
 /*
  * Return contracts of the shared V2 base client (V2BaseApiClient), flow-agnostic and reused by
  * every V2 flow. Distinct from the per-flow result DTOs (e.g. ResetPasswordV2Results).
@@ -41,7 +39,6 @@ export interface V2StartResult {
     continuationToken: string;
     methods: V2StartMethod[];
     scenario?: string;
-    challengeContext?: V2ChallengeContext;
 }
 
 /*
@@ -82,4 +79,3 @@ export type V2VerifyResult =
           nextAction: "continue";
           continuationToken: string;
       };
-

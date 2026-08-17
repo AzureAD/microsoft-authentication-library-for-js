@@ -7,11 +7,7 @@ import { CustomAuthActionInputs } from "./CustomAuthActionInputs.js";
 import { UserAccountAttributes } from "./UserAccountAttributes.js";
 
 /**
- * Inputs for the native auth V2 reset-password flow, carrying the `username`
- * whose password is being reset alongside shared inputs such as `correlationId`.
- * It is consumed once on the initial `resetPasswordV2` call; later steps are
- * driven by the continuation token. Scopes are supplied at the terminal sign-in,
- * not here.
+ * Inputs for the native auth V2 reset-password flow.
  */
 export type ResetPasswordV2Inputs = CustomAuthActionInputs & {
     username: string;
@@ -19,9 +15,6 @@ export type ResetPasswordV2Inputs = CustomAuthActionInputs & {
 
 /**
  * Inputs for the native auth V2 sign-in flow.
- *
- * Reserved for the not-yet-implemented signInV2 flow; declared now so the V2
- * interface is stable and sign-in can be added without breaking changes.
  */
 export type SignInV2Inputs = CustomAuthActionInputs & {
     username: string;
@@ -32,9 +25,6 @@ export type SignInV2Inputs = CustomAuthActionInputs & {
 
 /**
  * Inputs for the native auth V2 sign-up flow.
- *
- * Reserved for the not-yet-implemented signUpV2 flow; declared now so the V2
- * interface is stable and sign-up can be added without breaking changes.
  */
 export type SignUpV2Inputs = CustomAuthActionInputs & {
     username: string;
@@ -43,9 +33,7 @@ export type SignUpV2Inputs = CustomAuthActionInputs & {
 };
 
 /**
- * Inputs for signing the user in from a V2 continuation state. The continuation
- * identifies the account, so only the optional `scopes` and `claims` requested
- * for the issued token are supplied here.
+ * Inputs for signing the user in after a V2 password reset completes.
  */
 export type V2SignInContinuationInputs = {
     scopes?: Array<string>;

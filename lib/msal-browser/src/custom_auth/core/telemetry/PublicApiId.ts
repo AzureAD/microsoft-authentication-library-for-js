@@ -46,26 +46,14 @@ export const JIT_SUBMIT_CHALLENGE = 100082;
 export const MFA_REQUEST_CHALLENGE = 100101;
 export const MFA_SUBMIT_CHALLENGE = 100102;
 
-/*
- * Native Auth V2 (server-driven HAL flows). Dedicated ids so V2 telemetry is distinguishable from
- * the V1 flows above. Values are placeholders in the JS 100xxx space pending central
- * telemetry claiming (INV-apiid). Sign-in-after-reset intentionally has no dedicated id - it
- * reuses SIGN_IN_AFTER_PASSWORD_RESET above.
- */
+// Native Auth V2 (server-driven HAL flows) API Ids
 export const RESET_PASSWORD_V2_START = 100201;
 export const RESET_PASSWORD_V2_SUBMIT_CODE = 100202;
 export const RESET_PASSWORD_V2_RESEND_CODE = 100203;
 export const RESET_PASSWORD_V2_SUBMIT = 100204;
 export const RESET_PASSWORD_V2_CHALLENGE = 100205;
 
-/*
- * The generic (flow-agnostic) V2 interaction-client steps. Every server-driven flow reuses the same
- * step methods, so the telemetry api id for a step cannot be hardcoded in the step itself - it
- * varies by the originating flow. `V2_FLOW_STEP_API_IDS` maps the flow scenario (carried on the
- * continuation) plus the step to the public api id to report, letting one shared step serve every
- * flow. New flows (sign-in, sign-up) register their own row here when they are wired up. Colocated
- * with the ids above so the mapping and its targets stay in one place.
- */
+// The generic (flow-agnostic) V2 interaction-client steps.
 export type V2FlowStep =
     | "requestChallenge"
     | "submitCode"

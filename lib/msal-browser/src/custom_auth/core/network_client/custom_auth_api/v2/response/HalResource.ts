@@ -13,12 +13,7 @@
 export interface HalLink {
     href: string;
     templated?: boolean;
-    type?: string;
-    deprecation?: string;
     name?: string;
-    profile?: string;
-    title?: string;
-    hreflang?: string;
 }
 
 // A relation may map to a single link or an array of links (the parser takes the first).

@@ -30,9 +30,8 @@ import {
     FORM_CONTENT_TYPE,
     JSON_CONTENT_TYPE,
     AUTHORIZATION_CODE_GRANT,
-    AUTHORIZE_CHALLENGE,
-    TOKEN,
 } from "./V2ApiClientConstants.js";
+import { AUTHORIZE_CHALLENGE, SIGNIN_TOKEN } from "../CustomAuthApiEndpoint.js";
 import {
     AUTH_CODE_MISSING,
     CONTINUATION_TOKEN_MISSING,
@@ -198,7 +197,7 @@ export abstract class V2BaseApiClient {
         }
 
         const parsedResponse = await this.postOAuthForm<V2TokenResponse>(
-            TOKEN,
+            SIGNIN_TOKEN,
             request,
             context
         );
@@ -330,7 +329,9 @@ export abstract class V2BaseApiClient {
     }
 
     // Throws the normalized server error carried by the response, if any.
-    protected throwOnApiError(parsedResponse: V2SerializedResponse<unknown>): void {
+    protected throwOnApiError(
+        parsedResponse: V2SerializedResponse<unknown>
+    ): void {
         if (parsedResponse.error) {
             const apiError = this.toApiError(
                 parsedResponse.error,

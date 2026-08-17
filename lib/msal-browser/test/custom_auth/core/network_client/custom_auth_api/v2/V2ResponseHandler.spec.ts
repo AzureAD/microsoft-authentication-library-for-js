@@ -3,15 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import {
-    V2ResponseHandler,
-} from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/V2ResponseHandler.js";
+import { V2ResponseHandler } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/V2ResponseHandler.js";
 import { CustomAuthV2ApiError } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/error/CustomAuthV2ApiError.js";
 import {
     INVALID_RESPONSE_BODY,
     INVALID_HAL_RESPONSE,
     CONTINUATION_TOKEN_MISSING,
-} from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/V2ApiClientConstants.js";
+} from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/error/V2ErrorCodes.js";
 
 const REQUEST_CORRELATION_ID = "req-corr-id";
 const HEADER_CORRELATION_ID = "header-corr-id";
@@ -46,11 +44,9 @@ describe("V2ResponseHandler", () => {
     describe("serialize", () => {
         it("reads the correlation id from the response header", async () => {
             const result = await handler.serialize(
-                buildResponse(
-                    { state: "interactionRequired" },
-                    200,
-                    { "x-ms-request-id": HEADER_CORRELATION_ID }
-                ),
+                buildResponse({ state: "interactionRequired" }, 200, {
+                    "x-ms-request-id": HEADER_CORRELATION_ID,
+                }),
                 REQUEST_CORRELATION_ID
             );
 
@@ -222,9 +218,7 @@ describe("V2ResponseHandler", () => {
                     "verify",
                     REQUEST_CORRELATION_ID
                 )
-            ).toThrow(
-                expect.objectContaining({ code: INVALID_HAL_RESPONSE })
-            );
+            ).toThrow(expect.objectContaining({ code: INVALID_HAL_RESPONSE }));
         });
     });
 
@@ -257,7 +251,10 @@ describe("getRelationHref", () => {
 
     it("returns the href of a single link", () => {
         expect(
-            handler.getRelationHref({ challenge: { href: "/api/challenge" } }, "challenge")
+            handler.getRelationHref(
+                { challenge: { href: "/api/challenge" } },
+                "challenge"
+            )
         ).toBe("/api/challenge");
     });
 
@@ -276,7 +273,12 @@ describe("getRelationHref", () => {
     });
 
     it("returns undefined when the relation is absent", () => {
-        expect(handler.getRelationHref({ self: { href: "/api/self" } }, "challenge")).toBeUndefined();
+        expect(
+            handler.getRelationHref(
+                { self: { href: "/api/self" } },
+                "challenge"
+            )
+        ).toBeUndefined();
     });
 
     it("returns undefined when links are undefined", () => {
@@ -298,7 +300,9 @@ describe("getMethods", () => {
     it("wraps a single embedded method in an array", () => {
         const method = { _links: { challenge: { href: "/api/challenge" } } };
 
-        expect(handler.getMethods({ _embedded: { methods: method } })).toEqual([method]);
+        expect(handler.getMethods({ _embedded: { methods: method } })).toEqual([
+            method,
+        ]);
     });
 
     it("returns an embedded methods array as-is", () => {
