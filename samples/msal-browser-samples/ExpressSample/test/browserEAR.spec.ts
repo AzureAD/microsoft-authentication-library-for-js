@@ -418,7 +418,9 @@ describe.skip("EAR + Platform Broker Tests", () => {
     });
 
     afterAll(async () => {
-        await browser.close();
+        if (browser) {
+            await browser.close();
+        }
         await serverUtils.killServer(EAR_PORT);
         await new Promise<void>((resolve) => {
             if (!earServerProcess || earServerProcess.exitCode !== null) {

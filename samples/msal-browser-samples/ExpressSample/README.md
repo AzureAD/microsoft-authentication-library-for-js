@@ -74,7 +74,7 @@ npm run build:package
 
 The Puppeteer e2e tests live in [`./test`](./test). The EAR (Encrypted Authorize Response) suite is in [`./test/browserEAR.spec.ts`](./test/browserEAR.spec.ts).
 
-That file also contains an `EAR + Platform Broker (WAM) Tests` suite that exercises EAR combined with the native platform broker (WAM). It is `describe.skip` by default because WAM is only available locally (not in CI). To run it locally, change `describe.skip` to `describe` and first set `SSO_EXTENSION_PATH` to the unpacked "Microsoft Single Sign On" extension directory (the folder containing its `manifest.json`):
+That file also contains an `EAR + Platform Broker (WAM) Tests` suite that exercises EAR combined with the platform broker. It is `describe.skip` by default for now because platform broker is only available locally (not in CI). To run it locally, change `describe.skip` to `describe` and first set `SSO_EXTENSION_PATH` to the unpacked "Microsoft Single Sign On" extension directory (the folder containing its `manifest.json`):
 
 ```powershell
 # PowerShell — set before running the EAR tests
