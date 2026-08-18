@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 04 Aug 2026 20:17:38 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 18 Aug 2026 20:10:56 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.6.0
+
+Tue, 18 Aug 2026 20:10:56 GMT
+
+### Minor changes
+
+- Add Azure Arc user-assigned managed identity support: forward the client_id/object_id/msi_res_id selector and fail closed when the token response does not confirm the requested identity [#8761](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8761) (90415114+gladjohn@users.noreply.github.com)
+- Align node token-binding stubs with the keyId-only DPoP key contract [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708) (hectormmg@microsoft.com)
+- Bump @azure/msal-common to v16.13.0
+
+### Patches
+
+- Validate the ID Token nonce against the nonce supplied on authorization code requests [#8763](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8763) (joarroyo@microsoft.com)
 
 ## 5.5.0
 
