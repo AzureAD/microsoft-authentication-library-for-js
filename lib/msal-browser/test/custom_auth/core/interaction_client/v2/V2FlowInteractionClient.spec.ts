@@ -118,7 +118,6 @@ describe("V2FlowInteractionClient", () => {
         it("runs the entry and returns a method-selection result without sending a challenge", async () => {
             apiClient.resetPasswordStart.mockResolvedValue({
                 continuationToken: "ct-start",
-                scenario: "recovery",
                 methods: [
                     {
                         id: "email",

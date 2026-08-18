@@ -44,10 +44,7 @@ import {
     RESET_PASSWORD_TIMEOUT,
     UNSUPPORTED_FLOW_STEP,
 } from "../../network_client/custom_auth_api/v2/error/V2ErrorCodes.js";
-import {
-    CustomAuthV2FlowScenario,
-    toCustomAuthV2FlowScenario,
-} from "../../auth_flow/v2/CustomAuthV2FlowScenario.js";
+import { CustomAuthV2FlowScenario } from "../../auth_flow/v2/CustomAuthV2FlowScenario.js";
 import * as PublicApiId from "../../telemetry/PublicApiId.js";
 
 /*
@@ -133,7 +130,7 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
             correlationId,
             continuationState: {
                 continuationToken: startResult.continuationToken,
-                scenario: toCustomAuthV2FlowScenario(startResult.scenario),
+                scenario: CustomAuthV2FlowScenario.PasswordReset,
                 links: {},
             },
             methods: startResult.methods.map((method) => ({
