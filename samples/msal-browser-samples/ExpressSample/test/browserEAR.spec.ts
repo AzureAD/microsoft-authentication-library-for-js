@@ -115,8 +115,7 @@ async function getHasMatsTelemetryProfileId(
     target: puppeteer.Page
 ): Promise<boolean> {
     return target.evaluate(
-        (key) =>
-            Object.keys(window.sessionStorage).some((k) => k.includes(key)),
+        (key) => window.sessionStorage.getItem(key) !== null,
         MATS_TELEMETRY_KEY
     );
 }
