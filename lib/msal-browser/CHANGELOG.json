@@ -2,6 +2,35 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 18 Aug 2026 20:10:56 GMT",
+      "version": "5.19.0",
+      "tag": "@azure/msal-browser_v5.19.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4f0241d6e3fcafeb3aac0a041b867aeae71fe749",
+            "comment": "Add browser token-binding key lifecycle support for keyId-bound ES256 DPoP keys [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.13.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4f0241d6e3fcafeb3aac0a041b867aeae71fe749",
+            "comment": "Route NAA BridgeProxy through the shared webBrokerBridge PendingRequestRegistry and consolidate NestedAppAuthAdapter.fromBridgeError through the shared WebBrokerBridgeErrorMap — internal-only, no NAA public API or on-wire changes [#8748](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8748)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 04 Aug 2026 20:17:38 GMT",
       "version": "5.18.0",
       "tag": "@azure/msal-browser_v5.18.0",
