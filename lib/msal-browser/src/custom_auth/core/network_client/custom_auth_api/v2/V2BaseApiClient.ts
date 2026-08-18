@@ -50,12 +50,8 @@ import {
 import { AuthorizeChallengeEntryResult } from "./result/V2BaseResults.js";
 
 /*
- * Shared V2 network client. Owns the plumbing and the three OAuth endpoints common to every V2
- * flow (authorize-challenge start/continue and token); the concrete HAL steps live in the
- * `CustomAuthV2ApiClient` subclass (per-flow `*Start` methods plus generic href-based steps) so
- * signup/sign-in can reuse this base later. It does not extend
- * the V1 BaseApiClient - the header logic is duplicated here to keep V1 untouched - because V2 uses
- * two body encodings and navigates server-provided `_links` hrefs instead of enumerated paths.
+ * Shared Native Auth V2 network client for OAuth and HAL requests.
+ * Handles serialization, headers, error normalization, and server-provided links.
  */
 export abstract class V2BaseApiClient {
     private readonly baseRequestUrl: URL;
@@ -77,10 +73,7 @@ export abstract class V2BaseApiClient {
     }
 
     /*
-     * Step 1 (entry): POST authorize-challenge with only `client_id`. The response is a non-200
-     * carrying a flat OAuth `error` string that is NOT a failure on the expected start-of-flow
-     * response - success is signalled by a continuation token, so the flat error is only surfaced
-     * (as the real rejection code) when the token is absent.
+     * Starts authorization and returns the initial continuation token and flow links.
      */
     protected async authorizeChallengeStart(
         context: V2RequestContext
@@ -130,9 +123,7 @@ export abstract class V2BaseApiClient {
     }
 
     /*
-     * Step 7 (resume): POST the authorize-challenge endpoint with the continuation token to redeem
-     * the authorization code. Unlike the entry step, a flat OAuth error here IS a failure, so
-     * throwOnApiError runs and throws before the missing-code guard.
+     * Redeems a continuation token for an authorization code.
      */
     protected async authorizeChallengeContinue(
         continuationToken: string,
@@ -170,9 +161,7 @@ export abstract class V2BaseApiClient {
     }
 
     /*
-     * Step 8 (token): POST the token endpoint to redeem the authorization `code` for tokens. Uses
-     * the `authorization_code` grant. The response is a plain OAuth token body (not HAL); a flat
-     * OAuth error is a failure and is thrown.
+     * Exchanges an authorization code for tokens.
      */
     protected async token(
         code: string,
@@ -211,13 +200,6 @@ export abstract class V2BaseApiClient {
         return parsedResponse.body;
     }
 
-    /*
-     * POST a form-encoded OAuth request to a fixed endpoint under the base URL. `client_id` is NOT
-     * added here - only the entry and token requests carry it, so each caller includes it in `data`
-     * where required (the resume request sends only `continuation_token`). Web-fallback is enforced
-     * here because it can arrive on any OAuth response; the caller decides whether a flat OAuth
-     * error is a failure (it is for resume/token, not for entry).
-     */
     private async postOAuthForm<T>(
         endpoint: string,
         data: V2OAuthFormRequest | AuthorizeChallengeContinueRequest,
@@ -251,10 +233,7 @@ export abstract class V2BaseApiClient {
     }
 
     /*
-     * Send a raw-JSON HAL request (POST or PUT) to a server-provided `_links` href. The href may be
-     * absolute or host-relative, so it is resolved against the base authority first. The HAL `/api`
-     * endpoints do NOT carry `client_id`. Web-fallback and nested `/api` errors are enforced here
-     * so a failing HAL response never reaches the flow-specific navigation logic.
+     * Sends a JSON request to a server-provided HAL link.
      */
     protected async sendHalRequest<T>(
         href: string,
@@ -296,7 +275,6 @@ export abstract class V2BaseApiClient {
         return parsedResponse;
     }
 
-    // Attach headers, dispatch via the http client (any verb), and wrap transport failures.
     private async sendRequest(
         url: URL,
         method: (typeof HttpMethod)[keyof typeof HttpMethod],
@@ -328,7 +306,6 @@ export abstract class V2BaseApiClient {
         }
     }
 
-    // Throws the normalized server error carried by the response, if any.
     protected throwOnApiError(
         parsedResponse: V2SerializedResponse<unknown>
     ): void {
@@ -347,7 +324,6 @@ export abstract class V2BaseApiClient {
         }
     }
 
-    // Builds a CustomAuthV2ApiError from the normalized server error.
     private toApiError(
         serverError: V2ServerError,
         correlationId: string
@@ -361,7 +337,6 @@ export abstract class V2BaseApiClient {
         });
     }
 
-    // The server asked the app to finish the flow in a browser; surface it as an error to the flow.
     private throwOnWebFallback(
         parsedResponse: V2SerializedResponse<unknown>
     ): void {
@@ -374,7 +349,6 @@ export abstract class V2BaseApiClient {
         }
     }
 
-    // Minimal token-response sanity check.
     private ensureTokenResponseIsValid(
         tokenResponse: V2TokenResponse,
         correlationId: string
@@ -388,7 +362,6 @@ export abstract class V2BaseApiClient {
         }
     }
 
-    // Duplicated V2 header set (kept separate from V1 BaseApiClient so V1 stays untouched).
     private getCommonHeaders(
         correlationId: string,
         telemetryManager: ServerTelemetryManager,
@@ -408,7 +381,6 @@ export abstract class V2BaseApiClient {
         };
     }
 
-    // Optional app-supplied headers from the request interceptor (best-effort; never fails a send).
     private async getAdditionalHeaders(
         url: URL,
         correlationId: string

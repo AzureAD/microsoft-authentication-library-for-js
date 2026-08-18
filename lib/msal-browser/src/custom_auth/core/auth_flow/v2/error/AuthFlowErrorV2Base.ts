@@ -8,10 +8,7 @@ import {
     INVALID_INPUT,
     REDIRECT_TO_WEB,
 } from "../../../network_client/custom_auth_api/v2/error/V2ErrorCodes.js";
-import {
-    INVALID_ONE_TIME_CODE,
-    PASSWORD_TOO_WEAK,
-} from "./AuthFlowErrorV2Subcodes.js";
+import { PASSWORD_TOO_WEAK } from "./AuthFlowErrorV2Subcodes.js";
 import { CustomAuthV2FlowScenario } from "../CustomAuthV2FlowScenario.js";
 
 /*
@@ -62,6 +59,20 @@ export abstract class AuthFlowErrorV2Base {
         return this.errorData.code === INVALID_INPUT;
     }
 
+    /**
+     * Checks if the error has no more specific V2 classification.
+     * @returns True if the error is general, false otherwise.
+     */
+    isGeneralError(): boolean {
+        return (
+            !this.isBrowserRequired() &&
+            !this.isInvalidInput() &&
+            !this.isUserNotFoundError() &&
+            !this.isInvalidCodeError() &&
+            !this.isInvalidPasswordError()
+        );
+    }
+
     /*
      * User-not-found arrives as AADSTS50034. The nested `/api` error carries no
      * innerError and no error_codes array, so the AADSTS marker in the message is
@@ -72,15 +83,9 @@ export abstract class AuthFlowErrorV2Base {
         return this.errorData.message?.includes("AADSTS50034") === true;
     }
 
-    /*
-     * Bad one-time code: inner `invalidOneTimeCode` together with the outer
-     * `invalidGrant` (AADSTS50181) — the exact signature of a rejected code.
-     */
+    // The verification endpoint uses `invalidGrant` for an invalid or expired one-time code.
     protected isInvalidCodeError(): boolean {
-        return (
-            this.errorData.innerErrorCode === INVALID_ONE_TIME_CODE &&
-            this.errorData.code === "invalidGrant"
-        );
+        return this.errorData.code === "invalidGrant";
     }
 
     // New password rejected by policy: inner `passwordTooWeak` (AADSTS120002).

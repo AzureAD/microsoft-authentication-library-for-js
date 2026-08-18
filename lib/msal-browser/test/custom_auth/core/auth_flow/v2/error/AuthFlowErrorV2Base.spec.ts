@@ -27,7 +27,7 @@ describe("AuthFlowErrorV2Base error mapping", () => {
         });
 
     describe("isInvalidCode (VerifyChallengeError)", () => {
-        it("is true only for inner invalidOneTimeCode AND outer invalidGrant (AADSTS50181)", () => {
+        it("is true for invalidGrant with inner invalidOneTimeCode", () => {
             const error = new VerifyChallengeError(
                 apiError("invalidGrant", {
                     innerErrorCode: "invalidOneTimeCode",
@@ -38,10 +38,20 @@ describe("AuthFlowErrorV2Base error mapping", () => {
             expect(error.isInvalidCode()).toBe(true);
         });
 
-        it("is false for a bare outer invalidGrant with no inner code", () => {
+        it("is true for invalidGrant with inner invalidContinuationToken", () => {
+            const error = new VerifyChallengeError(
+                apiError("invalidGrant", {
+                    innerErrorCode: "invalidContinuationToken",
+                })
+            );
+
+            expect(error.isInvalidCode()).toBe(true);
+        });
+
+        it("is true for a bare outer invalidGrant with no inner code", () => {
             const error = new VerifyChallengeError(apiError("invalidGrant"));
 
-            expect(error.isInvalidCode()).toBe(false);
+            expect(error.isInvalidCode()).toBe(true);
         });
 
         it("is false for an unrelated failure", () => {
@@ -129,13 +139,66 @@ describe("AuthFlowErrorV2Base error mapping", () => {
         });
     });
 
+    describe("isGeneralError", () => {
+        it("is true for an unmatched API error", () => {
+            const error = new VerifyChallengeError(
+                apiError("invalidRequest", {
+                    message:
+                        "The requested credential is not available for this user.",
+                })
+            );
+
+            expect(error.isGeneralError()).toBe(true);
+        });
+
+        it("is false for an invalid code", () => {
+            const error = new VerifyChallengeError(apiError("invalidGrant"));
+
+            expect(error.isGeneralError()).toBe(false);
+        });
+
+        it("is false when the browser is required", () => {
+            const error = new RequestChallengeError(
+                apiError("redirect_to_web")
+            );
+
+            expect(error.isGeneralError()).toBe(false);
+        });
+
+        it("is false for invalid input", () => {
+            const error = new VerifyChallengeError(apiError("invalid_input"));
+
+            expect(error.isGeneralError()).toBe(false);
+        });
+
+        it("is false when the user is not found", () => {
+            const error = new ResetPasswordStartError(
+                apiError("invalidRequest", {
+                    message:
+                        "AADSTS50034: The user account does not exist in the tenant.",
+                })
+            );
+
+            expect(error.isGeneralError()).toBe(false);
+        });
+
+        it("is false for an invalid password", () => {
+            const error = new SubmitNewPasswordError(
+                apiError("invalidRequest", {
+                    innerErrorCode: "passwordTooWeak",
+                })
+            );
+
+            expect(error.isGeneralError()).toBe(false);
+        });
+    });
+
     /*
      * Errors with no specific detector (invalid/expired continuation token,
-     * malformed entry request) match none of the detectors. Apps handle them
-     * generically; a body with no code at all is normalized to `unexpected_error`.
+     * malformed entry request) are classified as general errors.
      */
-    describe("unrecognised failures match no detector", () => {
-        it("invalid continuation token (AADSTS10040144) matches nothing", () => {
+    describe("unrecognised failures are general errors", () => {
+        it("classifies non-invalidGrant with invalidContinuationToken as general", () => {
             const error = new VerifyChallengeError(
                 apiError("invalidRequest", {
                     innerErrorCode: "invalidContinuationToken",
@@ -146,9 +209,10 @@ describe("AuthFlowErrorV2Base error mapping", () => {
 
             expect(error.isInvalidCode()).toBe(false);
             expect(error.isBrowserRequired()).toBe(false);
+            expect(error.isGeneralError()).toBe(true);
         });
 
-        it("expired continuation token (AADSTS552001) matches nothing", () => {
+        it("classifies an expired continuation token as general", () => {
             const error = new SubmitNewPasswordError(
                 apiError("expiredToken", {
                     innerErrorCode: "expiredContinuationToken",
@@ -159,9 +223,10 @@ describe("AuthFlowErrorV2Base error mapping", () => {
 
             expect(error.isInvalidPassword()).toBe(false);
             expect(error.isBrowserRequired()).toBe(false);
+            expect(error.isGeneralError()).toBe(true);
         });
 
-        it("malformed entry request (AADSTS901001) matches nothing", () => {
+        it("classifies a malformed entry request as general", () => {
             const error = new ResetPasswordStartError(
                 apiError("invalid_request", {
                     message: "AADSTS901001: Invalid request.",
@@ -171,6 +236,7 @@ describe("AuthFlowErrorV2Base error mapping", () => {
 
             expect(error.isUserNotFound()).toBe(false);
             expect(error.isBrowserRequired()).toBe(false);
+            expect(error.isGeneralError()).toBe(true);
         });
     });
 });
