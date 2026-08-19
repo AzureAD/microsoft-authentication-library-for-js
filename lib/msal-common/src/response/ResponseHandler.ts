@@ -631,6 +631,19 @@ export class ResponseHandler {
         const uid = idTokenClaims?.oid || idTokenClaims?.sub || "";
         const tid = idTokenClaims?.tid || "";
 
+        /*
+         * Surface the sovereign enclave for telemetry. This runs for both freshly acquired
+         * and cache-served tokens because SilentFlowClient shares this method, so the field
+         * is present on silent requests that never hit the network.
+         */
+        const regionSubScope = idTokenClaims?.tenant_region_sub_scope;
+        if (typeof regionSubScope === "string") {
+            performanceClient?.addFields(
+                { regionSubScope },
+                request.correlationId
+            );
+        }
+
         // for hybrid + native bridge enablement, send back the native account Id
         if (serverTokenResponse?.spa_accountid && !!cacheRecord.account) {
             // Set on deprecated top-level for downgrade compat

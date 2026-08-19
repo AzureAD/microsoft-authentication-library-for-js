@@ -29,7 +29,7 @@ import {
 import * as RequestParameterBuilder from "../../src/request/RequestParameterBuilder.js";
 
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
-    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
 
 describe("Authorize Protocol Tests", () => {
     let authOptions: AuthOptions;
