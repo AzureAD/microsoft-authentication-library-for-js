@@ -118,17 +118,18 @@ export abstract class V2InteractionClientBase extends StandardInteractionClient 
 
         const requestTimestamp = Math.round(new Date().getTime() / 1000.0);
 
-        const result = await this.tokenResponseHandler.handleServerTokenResponse(
-            tokenResponse as ServerAuthorizationTokenResponse,
-            this.customAuthAuthority,
-            requestTimestamp,
-            {
-                authority: this.customAuthAuthority.canonicalAuthority,
-                correlationId,
-                scopes: requestScopes,
-            },
-            apiId
-        );
+        const result =
+            await this.tokenResponseHandler.handleServerTokenResponse(
+                tokenResponse as ServerAuthorizationTokenResponse,
+                this.customAuthAuthority,
+                requestTimestamp,
+                {
+                    authority: this.customAuthAuthority.canonicalAuthority,
+                    correlationId,
+                    scopes: requestScopes,
+                },
+                apiId
+            );
 
         return result as AuthenticationResult;
     }
@@ -154,7 +155,7 @@ export abstract class V2InteractionClientBase extends StandardInteractionClient 
         };
     }
 
-    // Not applicable to the V2 native-auth flows; required by the base contract.
+    // Required by the base contract. After sign-in, use CustomAuthAccountData.getAccessToken().
     acquireToken(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         request: RedirectRequest | PopupRequest | SsoSilentRequest
@@ -164,7 +165,7 @@ export abstract class V2InteractionClientBase extends StandardInteractionClient 
         );
     }
 
-    // Not applicable to the V2 native-auth flows; required by the base contract.
+    // Required by the base contract. After sign-in, use CustomAuthAccountData.signOut().
     logout(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         request: EndSessionRequest | ClearCacheRequest | undefined

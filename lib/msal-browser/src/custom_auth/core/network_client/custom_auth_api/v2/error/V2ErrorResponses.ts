@@ -3,10 +3,7 @@
  * Licensed under the MIT License.
  */
 
-/*
- * Nested error shape returned by the HAL `/api` resource endpoints (steps 2-6). `innerError.code`
- * disambiguates the user-facing cause (e.g. invalidOneTimeCode).
- */
+// Nested error shape returned by the HAL `/api` resource endpoints.
 export interface V2HalErrorResponse {
     error?: {
         code?: string;

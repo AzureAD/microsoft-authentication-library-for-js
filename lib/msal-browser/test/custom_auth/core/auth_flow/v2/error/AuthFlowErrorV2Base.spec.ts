@@ -38,20 +38,22 @@ describe("AuthFlowErrorV2Base error mapping", () => {
             expect(error.isInvalidCode()).toBe(true);
         });
 
-        it("is true for invalidGrant with inner invalidContinuationToken", () => {
+        it("is false for invalidGrant with inner invalidContinuationToken", () => {
             const error = new VerifyChallengeError(
                 apiError("invalidGrant", {
                     innerErrorCode: "invalidContinuationToken",
                 })
             );
 
-            expect(error.isInvalidCode()).toBe(true);
+            expect(error.isInvalidCode()).toBe(false);
+            expect(error.isGeneralError()).toBe(true);
         });
 
-        it("is true for a bare outer invalidGrant with no inner code", () => {
+        it("is false for a bare outer invalidGrant with no inner code", () => {
             const error = new VerifyChallengeError(apiError("invalidGrant"));
 
-            expect(error.isInvalidCode()).toBe(true);
+            expect(error.isInvalidCode()).toBe(false);
+            expect(error.isGeneralError()).toBe(true);
         });
 
         it("is false for an unrelated failure", () => {
@@ -83,6 +85,17 @@ describe("AuthFlowErrorV2Base error mapping", () => {
 
             expect(error.isInvalidPassword()).toBe(false);
         });
+
+        it("is false when passwordTooWeak has a different outer code", () => {
+            const error = new SubmitNewPasswordError(
+                apiError("invalidGrant", {
+                    innerErrorCode: "passwordTooWeak",
+                })
+            );
+
+            expect(error.isInvalidPassword()).toBe(false);
+            expect(error.isGeneralError()).toBe(true);
+        });
     });
 
     describe("isUserNotFound (ResetPasswordStartError)", () => {
@@ -105,6 +118,18 @@ describe("AuthFlowErrorV2Base error mapping", () => {
             );
 
             expect(error.isUserNotFound()).toBe(false);
+        });
+
+        it("is false when AADSTS50034 has a different outer code", () => {
+            const error = new ResetPasswordStartError(
+                apiError("invalidGrant", {
+                    message:
+                        "AADSTS50034: The user account does not exist in the tenant.",
+                })
+            );
+
+            expect(error.isUserNotFound()).toBe(false);
+            expect(error.isGeneralError()).toBe(true);
         });
     });
 
@@ -152,7 +177,11 @@ describe("AuthFlowErrorV2Base error mapping", () => {
         });
 
         it("is false for an invalid code", () => {
-            const error = new VerifyChallengeError(apiError("invalidGrant"));
+            const error = new VerifyChallengeError(
+                apiError("invalidGrant", {
+                    innerErrorCode: "invalidOneTimeCode",
+                })
+            );
 
             expect(error.isGeneralError()).toBe(false);
         });

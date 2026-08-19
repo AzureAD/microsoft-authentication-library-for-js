@@ -8,7 +8,10 @@ import {
     INVALID_INPUT,
     REDIRECT_TO_WEB,
 } from "../../../network_client/custom_auth_api/v2/error/V2ErrorCodes.js";
-import { PASSWORD_TOO_WEAK } from "./AuthFlowErrorV2Subcodes.js";
+import {
+    INVALID_ONE_TIME_CODE,
+    PASSWORD_TOO_WEAK,
+} from "./AuthFlowErrorV2Subcodes.js";
 import { CustomAuthV2FlowScenario } from "../CustomAuthV2FlowScenario.js";
 
 /*
@@ -80,16 +83,25 @@ export abstract class AuthFlowErrorV2Base {
      */
     // TODO: Use the service-provided suberror when it becomes available.
     protected isUserNotFoundError(): boolean {
-        return this.errorData.message?.includes("AADSTS50034") === true;
+        return (
+            this.errorData.code === "invalidRequest" &&
+            this.errorData.message?.includes("AADSTS50034") === true
+        );
     }
 
-    // The verification endpoint uses `invalidGrant` for an invalid or expired one-time code.
+    // The verification endpoint uses this outer/inner code pair for an invalid one-time code.
     protected isInvalidCodeError(): boolean {
-        return this.errorData.code === "invalidGrant";
+        return (
+            this.errorData.code === "invalidGrant" &&
+            this.errorData.innerErrorCode === INVALID_ONE_TIME_CODE
+        );
     }
 
     // New password rejected by policy: inner `passwordTooWeak` (AADSTS120002).
     protected isInvalidPasswordError(): boolean {
-        return this.errorData.innerErrorCode === PASSWORD_TOO_WEAK;
+        return (
+            this.errorData.code === "invalidRequest" &&
+            this.errorData.innerErrorCode === PASSWORD_TOO_WEAK
+        );
     }
 }
