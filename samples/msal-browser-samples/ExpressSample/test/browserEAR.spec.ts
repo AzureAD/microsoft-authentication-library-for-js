@@ -110,7 +110,7 @@ async function installEarDecryptSpy(target: puppeteer.Page): Promise<void> {
     );
 }
 
-/** True when the platform-broker (WAM) path wrote its telemetry profile id. */
+/** True when the platform-broker path wrote its telemetry profile id. */
 async function getHasMatsTelemetryProfileId(
     target: puppeteer.Page
 ): Promise<boolean> {
@@ -118,6 +118,21 @@ async function getHasMatsTelemetryProfileId(
         (key) => window.sessionStorage.getItem(key) !== null,
         MATS_TELEMETRY_KEY
     );
+}
+
+/**
+ * Platform-broker cache shape: the broker keeps the access token in native
+ * in-memory storage and no refresh token is browser-cached, so only the id
+ * token and account land in browser storage.
+ */
+async function verifyPlatformBrokerTokenStore(
+    browserCache: BrowserCacheUtils
+): Promise<void> {
+    const tokenStore = await browserCache.getTokens();
+    expect(tokenStore.idTokens.length).toBe(1);
+    expect(tokenStore.accessTokens.length).toBe(0);
+    expect(tokenStore.refreshTokens.length).toBe(0);
+    expect(await browserCache.getAccountFromCache()).not.toBeNull();
 }
 
 /** Interactive EAR redirect login; seeds session + cache for the silent tests. */
@@ -374,7 +389,6 @@ describe("EAR Tests", () => {
 // once eSTS returns an accountId for this app.
 describe.skip("EAR + Platform Broker Tests", () => {
     let browser: puppeteer.Browser;
-    let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
     let earServerProcess: ChildProcess;
@@ -436,8 +450,9 @@ describe.skip("EAR + Platform Broker Tests", () => {
     });
 
     beforeEach(async () => {
-        context = await browser.createBrowserContext();
-        page = await context.newPage();
+        // Use the default context: an extension loaded via --load-extension is
+        // not enabled in additional (incognito) contexts.
+        page = await browser.newPage();
         BrowserCache = new BrowserCacheUtils(page, EAR_CACHE_LOCATION);
         await installEarDecryptSpy(page);
         await page.goto(`https://localhost:${EAR_PORT}/${EAR_QUERY_STRING}`, {
@@ -449,7 +464,6 @@ describe.skip("EAR + Platform Broker Tests", () => {
         await page.evaluate(() => window.sessionStorage.clear());
         await page.evaluate(() => window.localStorage.clear());
         await page.close();
-        await context.close();
     });
 
     it("Performs EAR + platform broker loginRedirect", async () => {
@@ -476,9 +490,9 @@ describe.skip("EAR + Platform Broker Tests", () => {
         // EAR still POSTs /authorize; ear_jwe is decrypted to extract accountId.
         expect(authorizeWasPost).toBe(true);
         expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
-        // Only the platform-broker (WAM) path sets this; the web flow does not.
+        // Only the platform-broker path sets this; the web flow does not.
         expect(await getHasMatsTelemetryProfileId(page)).toBe(true);
-        await BrowserCache.verifyTokenStore({ scopes: EAR_SCOPES });
+        await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 
     it("Performs EAR + platform broker loginPopup", async () => {
@@ -514,7 +528,7 @@ describe.skip("EAR + Platform Broker Tests", () => {
         expect(authorizeWasPost).toBe(true);
         expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
         expect(await getHasMatsTelemetryProfileId(page)).toBe(true);
-        await BrowserCache.verifyTokenStore({ scopes: EAR_SCOPES });
+        await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 
     it("Performs EAR + platform broker ssoSilent", async () => {
@@ -539,12 +553,12 @@ describe.skip("EAR + Platform Broker Tests", () => {
         );
         await screenshot.takeScreenshot(page, "ssoSilent completed");
 
-        // Silent EAR authorize re-runs; the platform path calls WAM again.
+        // Silent EAR authorize re-runs; the platform broker services it again.
         expect(await getEarDecryptCount(page)).toBeGreaterThan(
             decryptCountBefore
         );
         expect(await getHasMatsTelemetryProfileId(page)).toBe(true);
-        await BrowserCache.verifyTokenStore({ scopes: EAR_SCOPES });
+        await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 
     it("Performs EAR + platform broker acquireTokenSilent", async () => {
@@ -567,8 +581,8 @@ describe.skip("EAR + Platform Broker Tests", () => {
         );
         await screenshot.takeScreenshot(page, "acquireTokenSilent completed");
 
-        // Platform accounts renew through WAM rather than the EAR RT grant.
+        // Platform accounts renew through the broker, not the EAR RT grant.
         expect(await getHasMatsTelemetryProfileId(page)).toBe(true);
-        await BrowserCache.verifyTokenStore({ scopes: EAR_SCOPES });
+        await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 });
