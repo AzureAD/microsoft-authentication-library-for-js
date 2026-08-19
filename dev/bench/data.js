@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787092564209,
+  "lastUpdate": 1787160790626,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22935,6 +22935,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.51%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "eecf7ccac469335dd9d56dcacb38d74d4aab49fa",
+          "message": "Enable support for tenant_region_subscope optional claim (#8765)\n\nThis pull request introduces support for the `tenant_region_sub_scope`\nclaim as a default, non-essential claim in ID tokens throughout the MSAL\ncodebase. This claim helps identify the sovereign enclave (such as GCC,\nDODCON, or DOD) to which a tenant belongs. The changes ensure this claim\nis requested by default, surfaced in telemetry, and properly handled in\ntests and documentation.\n\n**ID Token Claims and Request Handling:**\n* Added `tenant_region_sub_scope` as a default, non-essential claim in\nthe `DEFAULT_ID_TOKEN_CLAIMS` object and ensured it is included in all\nrelevant claims merging logic in `RequestParameterBuilder.ts`.\n[[1]](diffhunk://#diff-0a421bb74f6f3e2e36aae9beb17a7aabdd90e84f51b98953f49cf7f0d9cc8c77L494-R502)\n[[2]](diffhunk://#diff-0a421bb74f6f3e2e36aae9beb17a7aabdd90e84f51b98953f49cf7f0d9cc8c77L573-R578)\n* Updated constants and types to include `TENANT_REGION_SUB_SCOPE` in\n`ClaimsRequestKeys` in both source and API review files.\n[[1]](diffhunk://#diff-97ac604f9bbac21dc44ff809beb409036772b7d8cc44d37ebf139cb97dfcb6d7R127)\n[[2]](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117R955)\n\n**Telemetry and Response Handling:**\n* Modified `ResponseHandler` to emit the `regionSubScope` telemetry\nfield when the `tenant_region_sub_scope` claim is present in the ID\ntoken, and updated the `PerformanceEvent` type accordingly.\n[[1]](diffhunk://#diff-e7645604421092f76d09943662ec9f80a9c22dc2b3a0ff05189f985bb0e5c444R634-R645)\n[[2]](diffhunk://#diff-2f63a38227d7a354d8c67987de2d283da038557a987db95576a08fe16cc60354R452-R458)\n[[3]](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117R2516)\n\n**Testing and Validation:**\n* Updated and expanded unit tests across multiple files to check for the\npresence and correct merging of the `tenant_region_sub_scope` claim, and\nto validate telemetry emission. New tests ensure that the claim is not\noverwritten if specified by the caller and that telemetry is only\nemitted when the claim is present.\n[[1]](diffhunk://#diff-487fd093427294009e88334d1384fbc6c84e560de569161ce0d5c8877c0eed4eR2189)\n[[2]](diffhunk://#diff-487fd093427294009e88334d1384fbc6c84e560de569161ce0d5c8877c0eed4eR2205)\n[[3]](diffhunk://#diff-487fd093427294009e88334d1384fbc6c84e560de569161ce0d5c8877c0eed4eR2267)\n[[4]](diffhunk://#diff-487fd093427294009e88334d1384fbc6c84e560de569161ce0d5c8877c0eed4eR2337)\n[[5]](diffhunk://#diff-bb31e5189aec3c7683914e9e604c860ed97469eea75fa6370452bbe668a4f564R130)\n[[6]](diffhunk://#diff-a152dbee4d0db81e6dc637062d6c686202f636368790bc9f6b8bbb06eb865d5fL611-R611)\n[[7]](diffhunk://#diff-a152dbee4d0db81e6dc637062d6c686202f636368790bc9f6b8bbb06eb865d5fL620-R620)\n[[8]](diffhunk://#diff-a152dbee4d0db81e6dc637062d6c686202f636368790bc9f6b8bbb06eb865d5fL634-R634)\n[[9]](diffhunk://#diff-a152dbee4d0db81e6dc637062d6c686202f636368790bc9f6b8bbb06eb865d5fL648-R648)\n[[10]](diffhunk://#diff-a152dbee4d0db81e6dc637062d6c686202f636368790bc9f6b8bbb06eb865d5fL661-R686)\n[[11]](diffhunk://#diff-a152dbee4d0db81e6dc637062d6c686202f636368790bc9f6b8bbb06eb865d5fL661-R686)\n[[12]](diffhunk://#diff-1f39f8f05f2db37ea3010dff4cbbbe19d594ebfd82f61814f26c044df720d047R669-R746)\n[[13]](diffhunk://#diff-583045c64518f75778026fedd35b1b6fbc399bd201ec8db243b255457a23d478L42-R42)\n[[14]](diffhunk://#diff-990aa777e0bbf234e09a8c471a3eaf1bb0ae0f6f5e409918b49ca30c0741cb8fL70-R70)\n[[15]](diffhunk://#diff-fd81ecee18e146091030889c24cb383efdf298f5adf77d041de0aeb827851585L32-R32)\n[[16]](diffhunk://#diff-9e659a5bcc197cb46aae4c1b8e4b7a08e4ebb22aa3ef09b5ec76490c6d2f92c9L561-R561)\n\n**Documentation:**\n* Updated comments and documentation to explain the purpose of the\n`tenant_region_sub_scope` claim and its handling in the codebase.\n[[1]](diffhunk://#diff-0a421bb74f6f3e2e36aae9beb17a7aabdd90e84f51b98953f49cf7f0d9cc8c77L494-R502)\n[[2]](diffhunk://#diff-2f63a38227d7a354d8c67987de2d283da038557a987db95576a08fe16cc60354R452-R458)\n\nThese changes ensure consistent handling of the\n`tenant_region_sub_scope` claim for all authentication flows, improve\nobservability via telemetry, and maintain robust test coverage.\n\n---------\n\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-08-19T13:22:39-04:00",
+          "tree_id": "d1251dedeb5ffe27495a13f5d4c80451001a41a4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/eecf7ccac469335dd9d56dcacb38d74d4aab49fa"
+        },
+        "date": 1787160787246,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 559368,
+            "range": "±1.53%",
+            "unit": "ops/sec",
+            "extra": "216 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 578797,
+            "range": "±1.13%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
