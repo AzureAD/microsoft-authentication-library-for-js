@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Validate the ID Token nonce against the nonce supplied on authorization code requests [#8763](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8763)",
-    "packageName": "@azure/msal-node",
-    "email": "joarroyo@microsoft.com",
-    "dependentChangeType": "patch"
-}
