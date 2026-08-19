@@ -9,12 +9,9 @@ import { InvalidInputError } from "../../../network_client/custom_auth_api/v2/er
 import { InvalidArgumentError } from "../../../error/InvalidArgumentError.js";
 
 /*
- * Coerce an unknown value thrown while driving a V2 state action into a `CustomAuthV2Error` so it
- * can back a flow-specific `AuthFlowErrorV2Base`. Any `CustomAuthV2Error` (a wire
- * `CustomAuthV2ApiError`, or an already-mapped error) passes through unchanged; a client-side
- * `InvalidArgumentError` becomes an `InvalidInputError` (detected via `isInvalidInput()`);
- * anything else becomes an `UnexpectedError` so it is handled as an uncategorized failure rather
- * than silently matching a specific detector.
+ * Converts an unknown state-action failure into a `CustomAuthV2Error`. Known V2
+ * errors pass through, invalid arguments become invalid input, and other values
+ * become unexpected errors.
  */
 export function toV2Error(
     error: unknown,

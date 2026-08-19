@@ -8,14 +8,8 @@ import { AuthenticationMethodV2 } from "../../../auth_flow/v2/AuthenticationMeth
 import { V2FlowContinuationState } from "../V2FlowContinuationState.js";
 
 /*
- * Unified outcome envelope returned by every V2 interaction-client step. Rather than each
- * per-action client returning a bespoke shape (V1's model), one discriminated union describes
- * every step transition so the L1 state layer can map an outcome to the next public state
- * uniformly.
- *
- * Only forward-progress and terminal outcomes are modelled here. Failures are thrown as
- * `CustomAuthV2ApiError` and mapped to the public failed state by the caller, matching the V1
- * convention of throwing rather than returning errors in the envelope.
+ * Unified outcome envelope returned by V2 interaction-client actions. The L1
+ * state layer maps each outcome to its corresponding public state.
  */
 
 interface V2FlowActionResultBase {
@@ -24,9 +18,8 @@ interface V2FlowActionResultBase {
 }
 
 /*
- * The flow-start step resolved to a set of authentication methods and the user must select one
- * before a challenge is sent. `continuationState` carries the token to present when requesting the
- * chosen method's challenge; `methods` are the selectable methods (each with its challenge href).
+ * Authentication methods available for user selection. The continuation state
+ * is used when requesting a challenge for the selected method.
  */
 export interface V2FlowMethodSelectionRequiredResult
     extends V2FlowActionResultBase {
@@ -63,7 +56,7 @@ export interface V2FlowSignInContinuationRequiredResult
     continuationState: V2FlowContinuationState;
 }
 
-// The flow reached a token-issuing terminal step; the account is signed in.
+// The flow completed and the account is signed in.
 export interface V2FlowCompletedResult extends V2FlowActionResultBase {
     type: typeof V2_FLOW_COMPLETED;
     authenticationResult: AuthenticationResult;

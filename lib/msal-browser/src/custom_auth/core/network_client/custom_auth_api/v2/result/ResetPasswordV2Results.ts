@@ -4,11 +4,8 @@
  */
 
 /*
- * Digested return contracts of the reset-password steps on CustomAuthV2ApiClient - the per-step
- * values the controller layer needs to advance the SSPR flow (the carried continuation token plus
- * the next href). These are network-client DTOs, distinct from the public auth-flow results
- * exposed to the app. Only the reset-specific steps live here; the flow-agnostic
- * start/challenge/verify results live on V2BaseResults.
+ * Reset-password response contracts used by the controller. Shared response
+ * contracts are defined in `V2BaseResults`.
  */
 
 // Result of submitting the new password: where to poll for completion.

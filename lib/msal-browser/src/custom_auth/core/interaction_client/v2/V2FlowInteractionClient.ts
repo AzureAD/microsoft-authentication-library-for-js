@@ -48,9 +48,8 @@ import { CustomAuthV2FlowScenario } from "../../auth_flow/v2/CustomAuthV2FlowSce
 import * as PublicApiId from "../../telemetry/PublicApiId.js";
 
 /*
- * Poll retry policy for the password-update completion check (SSPR step 6):
- * poll up to 5 times, waiting 1.5s between attempts (the first poll runs immediately). The loop
- * lives here in the interaction client because the L2 `poll` is a single-shot call by design.
+ * Polls up to five times for password-update completion, waiting 1.5 seconds
+ * between attempts. The first request runs immediately.
  */
 const POLL_MAX_ATTEMPTS = 5;
 // TODO: Replace this fallback with the server-provided polling interval once available.
@@ -60,15 +59,8 @@ const delay = (ms: number): Promise<void> =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
 /*
- * Single, flow-agnostic interaction client that drives a server-driven Native Auth V2 flow. Rather
- * than one client per action (the original V2 plan) or per flow, one implementation walks every
- * flow step by step, translating an opaque continuation plus the user's input into the unified
- * `V2FlowActionResult` envelope by calling the V2 network client and following its HAL links.
- *
- * SSPR is the first flow wired up: the `resetPassword` entry plus the `submitCode`/`resendCode`
- * code steps are implemented; the password-submit and sign-in-after-reset steps are filled in by
- * the remaining Layer 3 task. The backing `CustomAuthV2ApiClient` is the one generic V2 network
- * client (per-flow `*Start` methods + generic href-based steps).
+ * Drives server-directed Native Auth V2 flows using opaque continuation state
+ * and HAL links. Results use the shared `V2FlowActionResult` envelope.
  */
 export class V2FlowInteractionClient extends V2InteractionClientBase {
     constructor(
@@ -95,12 +87,8 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
     }
 
     /*
-     * Reset-password entry (steps 1-2): run the authorize-challenge entry + resetpassword-start,
-     * then stop so the app can pick an authentication method. This is the flow-specific entry point:
-     * it stamps the SSPR scenario and telemetry id, which the generic continuation steps then read
-     * back from the continuation. JS exposes the method choice to the app, so this returns a
-     * `methodSelectionRequired` outcome carrying the selectable methods (each with
-     * its own challenge href) plus the continuation; the challenge is sent by `requestChallenge`.
+     * Starts password reset and returns the available authentication methods.
+     * The selected method can then be challenged through `requestChallenge`.
      */
     async resetPassword(
         parameters: V2FlowStartParams
@@ -143,11 +131,8 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
     }
 
     /*
-     * Request the challenge for the selected method (step 3). Generic across flows: POSTs the chosen
-     * method's `challenge` href (resolved by the caller from the method the user picked) so the
-     * one-time code is sent, then returns a `codeRequired` outcome carrying the continuation (with
-     * the `verify`/`resend` hrefs) plus the OTP display metadata - the same envelope `resendCode`
-     * produces. Scenario is threaded forward from the continuation.
+     * Requests a one-time code for the selected authentication method. Returns
+     * the continuation state and code metadata needed for verification.
      */
     async requestChallenge(
         parameters: V2FlowRequestChallengeParams
@@ -166,10 +151,7 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
         this.logger.verbose("Requesting V2 challenge.", correlationId);
 
         const challengeResult = await this.apiClient.requestChallenge(
-            this.requireLink(
-                correlationId,
-                continuationState.links.challenge
-            ),
+            this.requireLink(correlationId, continuationState.links.challenge),
             { continuationToken: continuationState.continuationToken },
             context
         );
@@ -191,11 +173,8 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
     }
 
     /*
-     * Submit the one-time code (step 4 verify). Generic across flows: POSTs the OTP to the
-     * continuation's `verify` href and, on success, advances to the password step. It reads the
-     * href/scenario from the continuation (never from a flow-specific field) and branches on the
-     * server response, not the scenario. The scenario is threaded
-     * forward so a later failure is still tagged with the originating flow.
+     * Verifies the submitted one-time code using the server-provided link. The
+     * response determines the next required action.
      */
     async submitCode(
         parameters: V2FlowSubmitCodeParams
@@ -247,10 +226,8 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
     }
 
     /*
-     * Resend the one-time code (step 3 challenge, re-run). Generic across flows: POSTs the
-     * continuation's `resend` href to have a fresh code sent, then returns a `codeRequired` outcome
-     * with a refreshed continuation (new `verify`/`resend` hrefs) and OTP display metadata - the
-     * same envelope `resetPassword` produced. Scenario is threaded forward from the continuation.
+     * Requests a new one-time code using the server-provided resend link.
+     * Returns refreshed continuation state and code metadata.
      */
     async resendCode(
         parameters: V2FlowResendCodeParams
@@ -291,14 +268,8 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
     }
 
     /*
-     * Submit the new password (step 5 update + step 6 poll). SSPR-specific in shape but reached
-     * through the generic client: PUT the password to the continuation's `update` href, then poll
-     * the returned `poll` href until the server reports the reset applied (`state: continue`).
-     * The update-then-poll cycle plus the bounded retry loop live here (the L2 `poll` is
-     * single-shot). On completion the account is NOT auto-signed-in (matching V1); a
-     * `signInContinuationRequired` outcome carries the completion token forward so the app
-     * can explicitly sign in. A reset that never completes within the retry budget is surfaced as a
-     * synthetic timeout error.
+     * Submits the new password and polls until the reset completes. The result
+     * contains the continuation state required for explicit sign-in.
      */
     async submitPassword(
         parameters: V2FlowSubmitPasswordParams
@@ -375,9 +346,8 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
     }
 
     /*
-     * Signs the account in by redeeming the flow continuation for tokens.
-     * Returns the completed authentication result after validating and caching
-     * the token response.
+     * Redeems the completed flow continuation for tokens. Returns the
+     * authentication result after validating and caching the response.
      */
     async signInWithContinuation(
         parameters: V2FlowSignInWithContinuationParams
@@ -423,13 +393,6 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
         });
     }
 
-    /*
-     * Resolve the telemetry api id to report for a generic step, from the flow the continuation was
-     * seeded with. The shared step methods must not hardcode a flow-specific api id (that would tie
-     * them to one flow); the id is looked up per scenario so one step serves every flow. A scenario
-     * with no registered id for the step is an internal wiring gap (a flow reached a step it never
-     * registered) and is surfaced as a synthetic client error.
-     */
     private resolveStepApiId(
         scenario: CustomAuthV2FlowScenario,
         step: PublicApiId.V2FlowStep,
@@ -448,12 +411,6 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
         return apiId;
     }
 
-    /*
-     * Guard a step's required continuation href. The links are populated by the network layer from
-     * validated server responses, so a missing one is an internal invariant violation rather than a
-     * server failure; it is surfaced as a synthetic client error so it is never confused with a
-     * wire error.
-     */
     private requireLink(
         correlationId: string,
         href: string | undefined

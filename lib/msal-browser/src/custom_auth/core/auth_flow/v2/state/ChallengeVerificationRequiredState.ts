@@ -17,9 +17,7 @@ import type { RequestChallengeResult } from "../result/RequestChallengeResult.js
 /**
  * State returned when the user must verify a challenge, for example by
  * submitting a one-time code sent to their email. It carries metadata about the
- * challenge (where it was sent and the expected code length) and lets the app
- * submit the code or request a fresh one. Verifying the code advances the flow
- * to its next required step.
+ * challenge and lets the app submit the code or request a fresh one.
  */
 export class ChallengeVerificationRequiredState extends AuthFlowActionRequiredStateBase<ChallengeVerificationRequiredStateParameters> {
     readonly stateType = "challengeVerificationRequired";
@@ -42,9 +40,7 @@ export class ChallengeVerificationRequiredState extends AuthFlowActionRequiredSt
 
     /**
      * Verifies the challenge with the code the user received. On success the
-     * returned result advances the flow to its next required step; on failure the
-     * result's error reports whether the code was invalid so the app can prompt
-     * for re-entry.
+     * result requests the next required action; failures identify invalid codes.
      * @param code - The code to verify.
      * @returns The result of verifying the challenge.
      */
@@ -93,9 +89,8 @@ export class ChallengeVerificationRequiredState extends AuthFlowActionRequiredSt
     }
 
     /**
-     * Requests a new challenge, for example to resend the code when the user did
-     * not receive it or it expired. The returned result keeps the flow on a
-     * challenge-verification state with a freshly issued code.
+     * Requests a new challenge when the previous code was not received or expired.
+     * The returned result contains the newly issued challenge details.
      * @returns The result of requesting a new challenge.
      */
     async requestNewChallenge(): Promise<RequestChallengeResult> {

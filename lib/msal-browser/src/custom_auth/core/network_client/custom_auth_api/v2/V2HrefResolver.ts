@@ -9,17 +9,9 @@ import { InvalidUrl } from "../../../error/ParsedUrlErrorCodes.js";
 const API_MARKERS = ["/api/", "/oauth2/"];
 
 /*
- * Resolves a server-provided HAL `_links` href into an absolute URL against the configured base
- * authority. V2 is server-driven, so most steps follow hrefs returned by the server; those may be
- * absolute or host-relative. Absolute http(s) hrefs pass through unchanged. A relative href carries
- * its own tenant segment, which is dropped and replaced by the base authority's tenant path so the
- * request stays anchored on the configured authority; only the API tail (from `/api/` or `/oauth2/`
- * onward) is taken from the href, and the href's own query string (e.g. `?dc=...`) is preserved.
- *
- * Example:
- *   base = https://login.microsoftonline.com/common
- *   href = /1eb974cd-.../api/v0.1/auth/methods/email/3f7/verify?dc=ESTS-PUB
- *    ->    https://login.microsoftonline.com/common/api/v0.1/auth/methods/email/3f7/verify?dc=ESTS-PUB
+ * Resolves a HAL href against the configured authority. Absolute HTTP(S) URLs
+ * pass through; relative URLs retain their API path and query while using the
+ * configured tenant path.
  *
  * TODO: Remove tenant-path rewriting once the service consistently returns links that can be
  * resolved directly against the configured authority.
@@ -33,10 +25,6 @@ export function resolveHref(base: URL, href: string): URL {
         return absolute;
     }
 
-    /*
-     * Parse the relative href's path + query against the authority host, then rewrite the path to
-     * the authority's tenant path plus the href's API tail.
-     */
     let resolved: URL;
 
     try {
@@ -57,7 +45,6 @@ export function resolveHref(base: URL, href: string): URL {
     return resolved;
 }
 
-// Absolute http(s) href: use as-is. Returns undefined when the value is not absolute.
 function tryParseAbsolute(href: string): URL | undefined {
     try {
         const url = new URL(href);
@@ -70,10 +57,6 @@ function tryParseAbsolute(href: string): URL | undefined {
     }
 }
 
-/*
- * The API portion of a server href path, dropping any leading tenant segment. Everything from the
- * `/api/` (or `/oauth2/`) marker onward is kept; a path without a marker is returned as-is.
- */
 function apiPath(path: string): string {
     for (const marker of API_MARKERS) {
         const index = path.indexOf(marker);

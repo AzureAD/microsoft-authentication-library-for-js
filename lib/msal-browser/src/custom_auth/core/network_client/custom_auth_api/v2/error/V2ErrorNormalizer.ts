@@ -11,15 +11,8 @@ import {
 import { UNEXPECTED_ERROR } from "./V2ErrorCodes.js";
 
 /*
- * Folds a V2 error body into a single normalized V2ServerError. Two on-the-wire shapes exist,
- * modelled by V2HalErrorResponse and V2OAuthErrorResponse:
- *
- *   - Nested `/api` HAL error: `{ error: { code, message, innerError: { code }, ... } }`.
- *   - Flat OAuth error (token endpoint): `{ error, error_description, error_codes, ... }`.
- *
- * Returns `undefined` when the body carries no error, so the caller can treat that as success;
- * deciding WHEN a normalized error is a failure is left to the api-client. Values are still read
- * through the runtime guards below because the body originates from untyped JSON.
+ * Normalizes nested HAL and flat OAuth error bodies into a `V2ServerError`.
+ * Returns `undefined` when the response contains no recognized error.
  */
 export function normalizeError(
     body: Record<string, unknown>
@@ -37,7 +30,6 @@ export function normalizeError(
     return undefined;
 }
 
-// Nested `/api` HAL error: code/message/innerError.code live under the `error` object.
 function normalizeNestedError(response: V2HalErrorResponse): V2ServerError {
     const error = response.error ?? {};
 
@@ -51,7 +43,6 @@ function normalizeNestedError(response: V2HalErrorResponse): V2ServerError {
     };
 }
 
-// Flat OAuth error (token endpoint): fields are snake_case at the top level.
 function normalizeFlatError(response: V2OAuthErrorResponse): V2ServerError {
     return {
         code: readString(response.error) ?? UNEXPECTED_ERROR,

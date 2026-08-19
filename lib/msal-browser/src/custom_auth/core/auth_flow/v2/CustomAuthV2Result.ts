@@ -9,10 +9,8 @@ import { AuthFlowErrorV2Base } from "./error/AuthFlowErrorV2Base.js";
 import { CustomAuthV2FlowScenario } from "./CustomAuthV2FlowScenario.js";
 
 /**
- * Result of a native auth V2 operation, shared by every V2 flow. Each flow
- * supplies its own state union, error type, and optional data payload via a
- * result alias. Use {@link CustomAuthV2Result.isState} to narrow to a specific
- * state before accessing its members.
+ * Result of a native auth V2 operation. Use {@link CustomAuthV2Result.isState}
+ * to narrow the state before accessing its members.
  */
 export class CustomAuthV2Result<
     TState extends AuthFlowStateBase,
@@ -29,9 +27,7 @@ export class CustomAuthV2Result<
 
     /**
      * Narrows the result to a specific state by its `stateType` discriminator.
-     * When it returns true it also type-guards `state` to the matching member of
-     * the union, so the state's own properties and action methods become
-     * accessible without a cast.
+     * A successful match makes the state's properties available without a cast.
      * @param stateType - The state type to test for.
      * @returns True (and narrows `state`) when the current state matches `stateType`.
      */
@@ -42,9 +38,8 @@ export class CustomAuthV2Result<
     }
 
     /**
-     * Checks whether the result is in the terminal failed state. When it returns
-     * true the `error` payload carries the flow-specific failure detail, and the
-     * flow cannot be continued. Use it as the first branch when handling a result.
+     * Checks whether the result is in the terminal failed state. A failed result
+     * contains the flow-specific error.
      * @returns True (and narrows `state`) when the operation failed.
      */
     isFailed(): this is this & {
@@ -54,11 +49,8 @@ export class CustomAuthV2Result<
     }
 
     /**
-     * Builds a failed result carrying the given flow-specific error. The result's
-     * state is set to the shared {@link FailedState} terminal marker and the error
-     * detail is exposed via the result's `error` payload. Callers construct the
-     * concrete {@link AuthFlowErrorV2Base} subclass so the result surfaces only
-     * that action's detectors.
+     * Creates a failed result for the supplied error. The result uses the shared
+     * {@link FailedState} terminal state.
      * @param error - The flow-specific error that occurred.
      * @returns A failed result carrying the given error.
      */

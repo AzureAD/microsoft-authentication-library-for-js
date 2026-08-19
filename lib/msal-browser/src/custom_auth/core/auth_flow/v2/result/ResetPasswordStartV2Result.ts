@@ -20,8 +20,7 @@ export type ResetPasswordStartV2ResultState =
 /**
  * Result of starting a native auth V2 reset-password operation. It is returned
  * by `resetPasswordV2` and wraps one of {@link ResetPasswordStartV2ResultState}
- * plus, on failure, a {@link ResetPasswordStartError}. Inspect its state to
- * decide the next step in the flow.
+ * plus, on failure, a {@link ResetPasswordStartError}.
  */
 export type ResetPasswordStartV2Result = CustomAuthV2Result<
     ResetPasswordStartV2ResultState,

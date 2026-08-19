@@ -10,9 +10,7 @@ import { normalizeError } from "./error/V2ErrorNormalizer.js";
 import { V2SerializedResponse } from "./response/V2SerializedResponse.js";
 import { HalLinks, HalResource } from "./response/HalResource.js";
 import { V2EmbeddedMethod } from "./response/V2Responses.js";
-import {
-    V2ResponseState,
-} from "./V2ApiClientConstants.js";
+import { V2ResponseState } from "./V2ApiClientConstants.js";
 import {
     CONTINUATION_TOKEN_MISSING,
     INVALID_HAL_RESPONSE,
@@ -43,8 +41,7 @@ export class V2ResponseHandler {
 
         const json = await this.parseBody(response, correlationId);
 
-        const state =
-            typeof json.state === "string" ? json.state : undefined;
+        const state = typeof json.state === "string" ? json.state : undefined;
 
         const continuationToken =
             (typeof json.continuationToken === "string"
@@ -76,7 +73,7 @@ export class V2ResponseHandler {
         };
     }
 
-    // Required next-step href; throws when the relation or its href is absent.
+    // Required relation href; throws when the relation or its href is absent.
     requireRelationHref(
         links: HalLinks | undefined,
         relation: string,
@@ -137,7 +134,7 @@ export class V2ResponseHandler {
         return first?.href;
     }
 
-    // The embedded auth methods (entry/challenge step); [] when absent. Handles single or array.
+    // Embedded authentication methods; returns an empty array when absent.
     getMethods(response: HalResource): V2EmbeddedMethod[] {
         const methods = response._embedded?.methods;
 

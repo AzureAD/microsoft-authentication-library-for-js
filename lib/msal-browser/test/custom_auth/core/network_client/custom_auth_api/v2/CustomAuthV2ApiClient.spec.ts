@@ -351,8 +351,8 @@ describe("CustomAuthV2ApiClient", () => {
         });
     });
 
-    describe("web fallback and errors on HAL steps", () => {
-        it("throws redirect_to_web when a HAL step requires web fallback", async () => {
+    describe("web fallback and errors on HAL requests", () => {
+        it("throws redirect_to_web when a HAL request requires web fallback", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({ state: "webFallbackRequired" })
             );
@@ -366,7 +366,7 @@ describe("CustomAuthV2ApiClient", () => {
             ).rejects.toMatchObject({ code: REDIRECT_TO_WEB });
         });
 
-        it("throws the normalized nested error on a failing HAL step", async () => {
+        it("throws the normalized nested error on a failing HAL request", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse(
                     {

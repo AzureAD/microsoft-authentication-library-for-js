@@ -6,16 +6,15 @@
 import { V2FlowContinuationState } from "../V2FlowContinuationState.js";
 
 /*
- * Input parameters for the generic V2 flow interaction-client steps. Every step after the entry
- * carries the opaque `continuationState` produced by the previous step; the entry step
- * (`resetPassword`) instead takes the flow's seed input (the username).
+ * Input parameters for V2 interaction-client actions. Continuing actions carry
+ * the opaque state returned by the previous response.
  */
 
 interface V2FlowParamsBase {
     correlationId: string;
 }
 
-// Entry step: begin a reset for the given account.
+// Begin a reset for the given account.
 export interface V2FlowStartParams extends V2FlowParamsBase {
     username: string;
 }

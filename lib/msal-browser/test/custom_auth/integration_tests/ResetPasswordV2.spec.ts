@@ -40,7 +40,7 @@ const buildResponse = (
         json: async () => body,
     } as unknown as Response);
 
-// Happy-path wire responses for each step of the flow, in call order.
+// Happy-path wire responses in call order.
 const ENTRY_RESPONSE = {
     continuation_token: "ct-entry",
     reset_password: "/tenant/api/v0.1/auth/resetpassword?dc=X",
@@ -176,18 +176,14 @@ describe("Reset password V2 (SSPR)", () => {
         expect(verifyResult.isFailed()).toBe(false);
         expect(verifyResult.state).toBeInstanceOf(NewPasswordRequiredState);
 
-        const passwordState =
-            verifyResult.state as NewPasswordRequiredState;
+        const passwordState = verifyResult.state as NewPasswordRequiredState;
         const submitResult = await passwordState.submitNewPassword(
             "N3wP@ssw0rd!"
         );
         expect(submitResult.isFailed()).toBe(false);
-        expect(submitResult.state).toBeInstanceOf(
-            V2SignInContinuationState
-        );
+        expect(submitResult.state).toBeInstanceOf(V2SignInContinuationState);
 
-        const signInState =
-            submitResult.state as V2SignInContinuationState;
+        const signInState = submitResult.state as V2SignInContinuationState;
         const signInResult = await signInState.signIn();
         expect(signInResult.isFailed()).toBe(false);
         expect(signInResult.isState("completed")).toBe(true);
@@ -201,7 +197,7 @@ describe("Reset password V2 (SSPR)", () => {
         expect(fetch as jest.Mock).toHaveBeenCalledTimes(8);
     });
 
-    it("surfaces an invalid-code failure without leaving the code step", async () => {
+    it("surfaces an invalid-code failure while awaiting a valid code", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
             .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -233,7 +229,7 @@ describe("Reset password V2 (SSPR)", () => {
         expect(verifyResult.error?.isInvalidCode()).toBe(true);
     });
 
-    it("surfaces an invalid-password failure without leaving the new-password step", async () => {
+    it("surfaces an invalid-password failure while awaiting a valid password", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
             .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -260,8 +256,7 @@ describe("Reset password V2 (SSPR)", () => {
         const codeState =
             challengeResult.state as ChallengeVerificationRequiredState;
         const verifyResult = await codeState.verifyChallenge("123456");
-        const passwordState =
-            verifyResult.state as NewPasswordRequiredState;
+        const passwordState = verifyResult.state as NewPasswordRequiredState;
 
         const submitResult = await passwordState.submitNewPassword("weak");
 

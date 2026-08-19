@@ -29,11 +29,9 @@ import { V2RequestContext } from "../../network_client/custom_auth_api/v2/reques
 import { V2TokenResponse } from "../../network_client/custom_auth_api/v2/response/V2Responses.js";
 
 /*
- * Shared base for the Native Auth V2 interaction clients. It deliberately does NOT extend the V1
- * `CustomAuthInteractionClientBase`, which is coupled to the V1 token/response shape; V2 owns its
- * own base so the two stacks evolve independently. It extends `StandardInteractionClient` only to
- * inherit the browser plumbing (config, storage, crypto, telemetry) shared by every interaction
- * client, and holds the V2 network client plus the custom-auth authority that the flow steps use.
+ * Shared base for Native Auth V2 interaction clients. It extends
+ * `StandardInteractionClient` for common browser infrastructure while keeping
+ * V1 and V2 token handling independent.
  */
 export abstract class V2InteractionClientBase extends StandardInteractionClient {
     private readonly tokenResponseHandler: ResponseHandler;
@@ -70,16 +68,6 @@ export abstract class V2InteractionClientBase extends StandardInteractionClient 
         );
     }
 
-    /*
-     * Union the caller's scopes with the standard OIDC set: honour the
-     * caller's scopes (and their order) when provided, then append any of `openid`, `profile`, and
-     * `offline_access` that are missing so the terminal sign-in always returns the ID/refresh-token
-     * material required for account creation and subsequent silent authentication. Deduplication is
-     * case-insensitive to match the shared `ScopeSet` semantics. The array is the internal
-     * representation - the network layer joins it into the space-delimited `scope` form for the
-     * token request, while the response handler consumes the same array to build the result's scope
-     * set.
-     */
     protected getScopes(scopes: string[] | undefined): string[] {
         const requestedScopes = scopes?.filter((scope) => !!scope) ?? [];
         const seenScopes = new Set(
@@ -100,14 +88,6 @@ export abstract class V2InteractionClientBase extends StandardInteractionClient 
         ];
     }
 
-    /*
-     * Turn a V2 `/token` response into an `AuthenticationResult` by delegating to the shared
-     * msal-common `handleServerTokenResponse`: it validates the response, decodes `client_info` (or
-     * falls back to the id_token claims) to derive the home account id, saves the access/id/refresh
-     * tokens to the browser cache, and returns the result carrying the account. The cast is needed
-     * because `V2TokenResponse.token_type` is a plain string whereas the shared type narrows it to
-     * the `AuthenticationScheme` union; the fields are otherwise structurally identical.
-     */
     protected async handleTokenResponse(
         tokenResponse: V2TokenResponse,
         requestScopes: string[],
@@ -134,11 +114,6 @@ export abstract class V2InteractionClientBase extends StandardInteractionClient 
         return result as AuthenticationResult;
     }
 
-    /*
-     * Build the per-request context threaded through every V2 network call: the correlation id and
-     * a server-telemetry manager seeded with the given public API id. Every flow step goes through
-     * here so telemetry and correlation are attached uniformly.
-     */
     protected createRequestContext(
         apiId: number,
         correlationId: string
