@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 04 Aug 2026 20:17:38 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 18 Aug 2026 20:10:56 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.13.0
+
+Tue, 18 Aug 2026 20:10:56 GMT
+
+### Minor changes
+
+- Add internal keyId-bound contracts for DPoP proof generation [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708) (hectormmg@microsoft.com)
+
+### Patches
+
+- Fix hardcoded China authority metadata to use the preferred partner host [#8762](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8762) (hemoral@microsoft.com)
 
 ## 16.12.0
 
