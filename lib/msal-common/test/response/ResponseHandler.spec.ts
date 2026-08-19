@@ -666,6 +666,84 @@ describe("ResponseHandler.ts", () => {
             expect(result.familyId).toBe("");
         });
 
+        it("emits regionSubScope telemetry when tenant_region_sub_scope is present", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+            claimsStub.mockReturnValue({
+                ...ID_TOKEN_CLAIMS,
+                tenant_region_sub_scope: "DODCON",
+            } as TokenClaims);
+
+            const perfClient = new StubPerformanceClient();
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                perfClient,
+                null,
+                null
+            );
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                TimeUtils.nowSeconds(),
+                testRequest,
+                0
+            );
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { regionSubScope: "DODCON" },
+                testRequest.correlationId
+            );
+        });
+
+        it("does not emit regionSubScope telemetry when the claim is absent", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+
+            const perfClient = new StubPerformanceClient();
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                perfClient,
+                null,
+                null
+            );
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                TimeUtils.nowSeconds(),
+                testRequest,
+                0
+            );
+
+            expect(addFieldsSpy).not.toHaveBeenCalledWith(
+                expect.objectContaining({
+                    regionSubScope: expect.anything(),
+                }),
+                expect.anything()
+            );
+        });
+
         it("sets default values for access token using PoP scheme", async () => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,

@@ -491,11 +491,15 @@ export function addExtraParameters(
 
 /**
  * Default optional idToken claims requested on all auth requests.
- * signin_state enables KMSI detection; login_hint enables login hint propagation.
+ * signin_state enables KMSI detection; login_hint enables login hint propagation;
+ * tenant_region_sub_scope identifies the sovereign enclave a tenant belongs to.
  */
 const DEFAULT_ID_TOKEN_CLAIMS: Record<string, { essential: false }> = {
     [Constants.ClaimsRequestKeys.SIGNIN_STATE]: { essential: false },
     [Constants.ClaimsRequestKeys.LOGIN_HINT]: { essential: false },
+    [Constants.ClaimsRequestKeys.TENANT_REGION_SUB_SCOPE]: {
+        essential: false,
+    },
 };
 
 /**
@@ -570,8 +574,8 @@ function deepMergeClaims(
 /**
  * Parses claims JSON, optionally deep-merges a second client-originated claims string
  * (`claimsToMerge`, e.g. `claimsFromClient`) with precedence on conflicting keys, merges
- * default optional idToken claims (signin_state, login_hint), and appends client
- * capabilities (xms_cc) to the access_token section.
+ * default optional idToken claims (signin_state, login_hint, tenant_region_sub_scope), and appends client
+ * capabilities (xms_cc) to the access_token section
  * Does not overwrite idToken claims already specified by the caller.
  * @param claims - Existing claims JSON string from the request (may be undefined)
  * @param clientCapabilities - Client capabilities array from configuration

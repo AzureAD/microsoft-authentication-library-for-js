@@ -127,6 +127,7 @@ describe("JS Runtime Nested App Auth", () => {
             expect(parsedBridgeClaims.id_token).toEqual({
                 signin_state: { essential: false },
                 login_hint: { essential: false },
+                tenant_region_sub_scope: { essential: false },
             });
         }
 
