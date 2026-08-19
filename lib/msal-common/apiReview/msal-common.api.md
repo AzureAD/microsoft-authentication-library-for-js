@@ -952,6 +952,7 @@ const ClaimsRequestKeys: {
     readonly ID_TOKEN: "id_token";
     readonly SIGNIN_STATE: "signin_state";
     readonly LOGIN_HINT: "login_hint";
+    readonly TENANT_REGION_SUB_SCOPE: "tenant_region_sub_scope";
 };
 
 // @public (undocumented)
@@ -2512,6 +2513,7 @@ export type PerformanceEvent = {
     deduped?: boolean;
     hasAttributeTokens?: boolean;
     kmsi?: boolean;
+    regionSubScope?: string;
     ssoCapable?: boolean;
     isBackground?: boolean;
     preMigrateAcntCount?: number;

@@ -39,7 +39,7 @@ import * as AuthorityFactory from "../../src/authority/AuthorityFactory.js";
 import { ResponseHandler } from "../../src/response/ResponseHandler.js";
 
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
-    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
 
 describe("AuthorizationCodeClient unit tests", () => {
     let stubPerformanceClient: StubPerformanceClient;

@@ -450,6 +450,13 @@ export type PerformanceEvent = {
     kmsi?: boolean;
 
     /**
+     * Sovereign enclave the authenticating tenant belongs to, taken verbatim from the
+     * `tenant_region_sub_scope` id token claim. Known values include "GCC", "DODCON"
+     * (GCC High) and "DOD".
+     */
+    regionSubScope?: string;
+
+    /**
      * Cached SSO capability status from the most recent SSO verification
      */
     ssoCapable?: boolean;
