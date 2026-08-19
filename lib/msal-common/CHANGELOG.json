@@ -2,6 +2,29 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 18 Aug 2026 20:10:56 GMT",
+      "version": "16.13.0",
+      "tag": "@azure/msal-common_v16.13.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4f0241d6e3fcafeb3aac0a041b867aeae71fe749",
+            "comment": "Add internal keyId-bound contracts for DPoP proof generation [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4f0241d6e3fcafeb3aac0a041b867aeae71fe749",
+            "comment": "Fix hardcoded China authority metadata to use the preferred partner host [#8762](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8762)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 04 Aug 2026 20:17:38 GMT",
       "version": "16.12.0",
       "tag": "@azure/msal-common_v16.12.0",

@@ -125,6 +125,7 @@ export const ClaimsRequestKeys = {
     ID_TOKEN: "id_token",
     SIGNIN_STATE: "signin_state",
     LOGIN_HINT: "login_hint",
+    TENANT_REGION_SUB_SCOPE: "tenant_region_sub_scope",
 } as const;
 export type ClaimsRequestKeys =
     (typeof ClaimsRequestKeys)[keyof typeof ClaimsRequestKeys];

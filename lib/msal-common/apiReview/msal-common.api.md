@@ -961,6 +961,7 @@ const ClaimsRequestKeys: {
     readonly ID_TOKEN: "id_token";
     readonly SIGNIN_STATE: "signin_state";
     readonly LOGIN_HINT: "login_hint";
+    readonly TENANT_REGION_SUB_SCOPE: "tenant_region_sub_scope";
 };
 
 // @public (undocumented)
@@ -2539,6 +2540,7 @@ export type PerformanceEvent = {
     hasAttributeTokens?: boolean;
     dpopTokenTypeMismatch?: string;
     kmsi?: boolean;
+    regionSubScope?: string;
     ssoCapable?: boolean;
     isBackground?: boolean;
     preMigrateAcntCount?: number;
@@ -3478,7 +3480,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.12.0";
+export const version = "16.13.0";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;
