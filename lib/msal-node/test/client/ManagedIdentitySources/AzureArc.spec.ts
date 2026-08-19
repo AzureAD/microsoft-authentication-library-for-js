@@ -11,14 +11,18 @@ import {
     MANAGED_IDENTITY_CONTENT_TYPE_HEADER,
     MANAGED_IDENTITY_RESOURCE,
     MANAGED_IDENTITY_RESOURCE_BASE,
+    MANAGED_IDENTITY_RESOURCE_ID,
     TEST_TOKENS,
 } from "../../test_kit/StringConstants.js";
 
 import {
+    ManagedIdentityNetworkClient,
     ManagedIdentityNetworkErrorClient,
     systemAssignedConfig,
     managedIdentityRequestParams,
     userAssignedClientIdConfig,
+    userAssignedResourceIdConfig,
+    userAssignedObjectIdConfig,
     networkClient,
 } from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
@@ -262,9 +266,74 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             );
         });
 
-        test("throws an error if a user assigned managed identity is used", async () => {
+        test("acquires a token for a user-assigned client id when Azure Arc confirms it in the response echo", async () => {
             const userAssignedManagedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
+            expect(
+                userAssignedManagedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.AZURE_ARC);
+
+            // The default network client echoes client_id = MANAGED_IDENTITY_RESOURCE_ID, which
+            // matches the requested user-assigned client id, so the fail-closed check passes.
+            const networkManagedIdentityResult: AuthenticationResult =
+                await userAssignedManagedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                );
+            expect(networkManagedIdentityResult.fromCache).toBe(false);
+            expect(networkManagedIdentityResult.accessToken).toEqual(
+                DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+            );
+        });
+
+        test("forwards the resource-id selector as msi_res_id (the spelling Azure Arc honors) and returns the token when it is echoed", async () => {
+            const userAssignedManagedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(userAssignedResourceIdConfig);
+
+            let requestUrl = "";
+            jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            ).mockImplementationOnce(async (...args: unknown[]) => {
+                requestUrl = args[0] as string;
+                return {
+                    status: Constants.HTTP_SUCCESS,
+                    body: {
+                        access_token: TEST_TOKENS.ACCESS_TOKEN,
+                        // Azure Arc echoes the resource id under "msi_res_id".
+                        msi_res_id: MANAGED_IDENTITY_RESOURCE_ID,
+                        expires_on: Math.floor(Date.now() / 1000) + 3 * 3600,
+                        resource: MANAGED_IDENTITY_RESOURCE_BASE,
+                        token_type: Constants.AuthenticationScheme.BEARER,
+                    },
+                    headers: {},
+                };
+            });
+
+            const networkManagedIdentityResult: AuthenticationResult =
+                await userAssignedManagedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                );
+
+            expect(networkManagedIdentityResult.accessToken).toBeTruthy();
+            // The request must carry msi_res_id, not the mi_res_id spelling Azure Arc ignores.
+            expect(requestUrl).toContain("msi_res_id=");
+            expect(requestUrl).not.toContain("mi_res_id=");
+        });
+
+        test("fails closed when Azure Arc does not confirm the requested user-assigned identity", async () => {
+            // Simulate a legacy agent that ignores the selector and returns the system-assigned
+            // identity: the response echoes a different client_id than the one requested.
+            const nonConfirmingNetworkClient: ManagedIdentityNetworkClient =
+                new ManagedIdentityNetworkClient(
+                    "00000000-0000-0000-0000-000000000000"
+                );
+            const userAssignedManagedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    system: { networkClient: nonConfirmingNetworkClient },
+                    managedIdentityIdParams: {
+                        userAssignedClientId: MANAGED_IDENTITY_RESOURCE_ID,
+                    },
+                });
             expect(
                 userAssignedManagedIdentityApplication.getManagedIdentitySource()
             ).toBe(ManagedIdentitySourceNames.AZURE_ARC);
@@ -275,10 +344,144 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 )
             ).rejects.toMatchObject(
                 createManagedIdentityError(
-                    ManagedIdentityErrorCodes.unableToCreateAzureArc,
+                    ManagedIdentityErrorCodes.userAssignedManagedIdentityNotConfirmed,
                     ""
                 )
             );
+        });
+
+        test("acquires a token for a user-assigned object id when Azure Arc confirms it in the response echo", async () => {
+            const userAssignedManagedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(userAssignedObjectIdConfig);
+            expect(
+                userAssignedManagedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.AZURE_ARC);
+
+            let requestUrl = "";
+            jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            ).mockImplementationOnce(async (...args: unknown[]) => {
+                requestUrl = args[0] as string;
+                return {
+                    status: Constants.HTTP_SUCCESS,
+                    body: {
+                        access_token: TEST_TOKENS.ACCESS_TOKEN,
+                        // Azure Arc echoes the object id under "object_id".
+                        object_id: MANAGED_IDENTITY_RESOURCE_ID,
+                        expires_on: Math.floor(Date.now() / 1000) + 3 * 3600,
+                        resource: MANAGED_IDENTITY_RESOURCE_BASE,
+                        token_type: Constants.AuthenticationScheme.BEARER,
+                    },
+                    headers: {},
+                };
+            });
+
+            const networkManagedIdentityResult: AuthenticationResult =
+                await userAssignedManagedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                );
+
+            expect(networkManagedIdentityResult.accessToken).toBeTruthy();
+            // The object id must be forwarded on the request.
+            expect(requestUrl).toContain("object_id=");
+        });
+
+        test("fails closed when Azure Arc returns a token with no identity echo at all", async () => {
+            const userAssignedManagedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(userAssignedClientIdConfig);
+
+            // A legacy agent may ignore the selector and return a token with no
+            // client_id / object_id / msi_res_id / mi_res_id echo. MSAL must fail closed.
+            jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            ).mockImplementationOnce(async () => ({
+                status: Constants.HTTP_SUCCESS,
+                body: {
+                    access_token: TEST_TOKENS.ACCESS_TOKEN,
+                    expires_on: Math.floor(Date.now() / 1000) + 3 * 3600,
+                    resource: MANAGED_IDENTITY_RESOURCE_BASE,
+                    token_type: Constants.AuthenticationScheme.BEARER,
+                },
+                headers: {},
+            }));
+
+            await expect(
+                userAssignedManagedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                )
+            ).rejects.toMatchObject(
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.userAssignedManagedIdentityNotConfirmed,
+                    ""
+                )
+            );
+        });
+
+        test("accepts the alternate mi_res_id spelling in the response echo for a resource-id request", async () => {
+            const userAssignedManagedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(userAssignedResourceIdConfig);
+
+            // Some agents echo the resource id under the alternate "mi_res_id" spelling; accept it.
+            jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            ).mockImplementationOnce(async () => ({
+                status: Constants.HTTP_SUCCESS,
+                body: {
+                    access_token: TEST_TOKENS.ACCESS_TOKEN,
+                    mi_res_id: MANAGED_IDENTITY_RESOURCE_ID,
+                    expires_on: Math.floor(Date.now() / 1000) + 3 * 3600,
+                    resource: MANAGED_IDENTITY_RESOURCE_BASE,
+                    token_type: Constants.AuthenticationScheme.BEARER,
+                },
+                headers: {},
+            }));
+
+            const networkManagedIdentityResult: AuthenticationResult =
+                await userAssignedManagedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                );
+
+            expect(networkManagedIdentityResult.accessToken).toBeTruthy();
+        });
+
+        test("surfaces a 404 without a token as a normal service error for a user-assigned request (not the fail-closed error)", async () => {
+            const managedIdentityNetworkErrorClient404 =
+                new ManagedIdentityNetworkErrorClient(
+                    MANAGED_IDENTITY_AZURE_ARC_NETWORK_REQUEST_400_ERROR,
+                    undefined,
+                    404
+                );
+
+            const userAssignedManagedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(userAssignedClientIdConfig);
+
+            jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            ).mockReturnValue(
+                managedIdentityNetworkErrorClient404.sendGetRequestAsync()
+            );
+
+            let error: unknown;
+            try {
+                await userAssignedManagedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                );
+            } catch (e) {
+                error = e;
+            }
+
+            // No access_token in the response, so the fail-closed check is skipped and the
+            // standard handler surfaces a normal service error, not the fail-closed error.
+            expect(error).toBeInstanceOf(ServerError);
+            expect(
+                (error as ServerError).errorMessage.includes(
+                    ManagedIdentityErrorCodes.userAssignedManagedIdentityNotConfirmed
+                )
+            ).toBe(false);
         });
 
         test("throws an error if the www-authenticate header has been returned from the azure arc managed identity, but the file in the file path is not a .key file", async () => {

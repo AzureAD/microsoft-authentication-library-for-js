@@ -407,7 +407,43 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`Express server listening on port ${PORT}`);
-    console.log(`Navigate to http://localhost:${PORT}`);
-});
+// HTTPS when HTTPS=true (e2e); plain http otherwise.
+if (process.env.HTTPS === 'true') {
+    const https = require('https');
+    // In-memory self-signed cert.
+    const selfsigned = require('selfsigned');
+    // generate() may be sync or async.
+    Promise.resolve(
+        selfsigned.generate(
+            [{ name: 'commonName', value: 'localhost' }],
+            {
+                days: 1,
+                keySize: 2048,
+                algorithm: 'sha256',
+                extensions: [
+                    {
+                        name: 'subjectAltName',
+                        altNames: [
+                            { type: 2, value: 'localhost' },
+                            { type: 7, ip: '127.0.0.1' },
+                        ],
+                    },
+                ],
+            }
+        )
+    ).then((pems) => {
+        https
+            .createServer({ key: pems.private, cert: pems.cert }, app)
+            .listen(PORT, () => {
+                console.log(
+                    `Express server listening on port ${PORT} (HTTPS)`
+                );
+                console.log(`Navigate to https://localhost:${PORT}`);
+            });
+    });
+} else {
+    app.listen(PORT, () => {
+        console.log(`Express server listening on port ${PORT}`);
+        console.log(`Navigate to http://localhost:${PORT}`);
+    });
+}

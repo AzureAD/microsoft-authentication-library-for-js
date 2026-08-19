@@ -2,6 +2,41 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 18 Aug 2026 20:10:56 GMT",
+      "version": "5.6.0",
+      "tag": "@azure/msal-node_v5.6.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4f0241d6e3fcafeb3aac0a041b867aeae71fe749",
+            "comment": "Validate the ID Token nonce against the nonce supplied on authorization code requests [#8763](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8763)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "90415114+gladjohn@users.noreply.github.com",
+            "package": "@azure/msal-node",
+            "commit": "4f0241d6e3fcafeb3aac0a041b867aeae71fe749",
+            "comment": "Add Azure Arc user-assigned managed identity support: forward the client_id/object_id/msi_res_id selector and fail closed when the token response does not confirm the requested identity [#8761](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8761)"
+          },
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4f0241d6e3fcafeb3aac0a041b867aeae71fe749",
+            "comment": "Align node token-binding stubs with the keyId-only DPoP key contract [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.13.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 04 Aug 2026 20:17:38 GMT",
       "version": "5.5.0",
       "tag": "@azure/msal-node_v5.5.0",

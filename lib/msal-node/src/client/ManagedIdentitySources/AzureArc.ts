@@ -15,7 +15,10 @@ import {
     Constants,
 } from "@azure/msal-common/node";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
-import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
+import {
+    BaseManagedIdentitySource,
+    ManagedIdentityUserAssignedIdQueryParameterNames,
+} from "./BaseManagedIdentitySource.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import {
     ManagedIdentityErrorCodes,
@@ -153,20 +156,20 @@ export class AzureArc extends BaseManagedIdentitySource {
      * Attempts to create an AzureArc managed identity source instance.
      *
      * Validates the Azure Arc environment by checking environment variables
-     * and performing file-based detection. It ensures that only system-assigned managed identities
-     * are supported for Azure Arc scenarios. The method performs comprehensive validation of
-     * endpoint URLs and logs detailed information about the detection process.
+     * and performing file-based detection. Azure Arc supports both system-assigned and user-assigned
+     * managed identities; when a user-assigned identity is requested, its selector is forwarded on the
+     * request and validated against the token response echo (fail closed). The method performs
+     * comprehensive validation of endpoint URLs and logs detailed information about the detection process.
      *
      * @param logger - Logger instance for capturing creation and validation steps
      * @param nodeStorage - Storage implementation for the managed identity source
      * @param networkClient - Network client for HTTP communication
      * @param cryptoProvider - Cryptographic operations provider
      * @param disableInternalRetries - Whether to disable automatic retry mechanisms
-     * @param managedIdentityId - The managed identity configuration, must be system-assigned
+     * @param _managedIdentityId - Unused; Azure Arc now supports user-assigned identities, which are
+     *          forwarded on the request and validated against the token response echo (fail closed).
      *
      * @returns AzureArc instance if the environment supports Azure Arc managed identity, null otherwise
-     *
-     * @throws {ManagedIdentityError} When a user-assigned managed identity is specified (not supported for Azure Arc)
      */
     public static tryCreate(
         logger: Logger,
@@ -174,7 +177,8 @@ export class AzureArc extends BaseManagedIdentitySource {
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
         disableInternalRetries: boolean,
-        managedIdentityId: ManagedIdentityId
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _managedIdentityId: ManagedIdentityId
     ): AzureArc | null {
         const [identityEndpoint, imdsEndpoint] =
             AzureArc.getEnvironmentVariables();
@@ -223,15 +227,6 @@ export class AzureArc extends BaseManagedIdentitySource {
             );
         }
 
-        if (
-            managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
-        ) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.unableToCreateAzureArc,
-                ""
-            );
-        }
-
         return new AzureArc(
             logger,
             nodeStorage,
@@ -253,7 +248,10 @@ export class AzureArc extends BaseManagedIdentitySource {
      *
      * @returns A configured ManagedIdentityRequestParameters object ready for network execution
      */
-    public createRequest(resource: string): ManagedIdentityRequestParameters {
+    public createRequest(
+        resource: string,
+        managedIdentityId: ManagedIdentityId
+    ): ManagedIdentityRequestParameters {
         const request: ManagedIdentityRequestParameters =
             new ManagedIdentityRequestParameters(
                 HttpMethod.GET,
@@ -267,9 +265,116 @@ export class AzureArc extends BaseManagedIdentitySource {
         request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
+        if (
+            managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
+        ) {
+            /*
+             * Forward the user-assigned selector. Azure Arc honors the IMDS "msi_res_id" spelling for
+             * the resource-id selector (isImds = true); "mi_res_id" is silently ignored and returns
+             * the system-assigned identity.
+             */
+            request.queryParameters[
+                this.getManagedIdentityUserAssignedIdQueryParameterKey(
+                    managedIdentityId.idType,
+                    true // isImds -> msi_res_id for the resource-id selector
+                )
+            ] = managedIdentityId.id;
+        }
+
         // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
 
         return request;
+    }
+
+    /**
+     * Fails closed when a user-assigned identity was requested but the Azure Arc token response does
+     * not confirm it. A legacy Azure Arc agent ignores the client_id / object_id / msi_res_id selector
+     * and silently returns the machine's system-assigned identity; an agent that supports user-assigned
+     * managed identity echoes the identity it used. When the echoed identity is missing or does not
+     * match the requested selector, MSAL must not return a token for a different identity than requested.
+     *
+     * @param networkRequest - The request that produced this response; its query parameters carry the
+     *                          requested user-assigned selector (client_id / object_id / msi_res_id)
+     * @param responseBody - The deserialized Azure Arc token response
+     *
+     * @throws {ManagedIdentityError} When a user-assigned identity was requested but not confirmed
+     */
+    private validateUserAssignedIdentityWasHonored(
+        networkRequest: ManagedIdentityRequestParameters,
+        responseBody: ManagedIdentityTokenResponse
+    ): void {
+        /*
+         * Derive the requested selector from the request that produced this response rather than from
+         * instance state. The managed identity source instance is cached and reused across acquireToken
+         * calls, so relying on a stored field could compare against a different identity than the one
+         * this request actually asked for. The network request is scoped to this call and carries exactly
+         * one user-assigned selector (client_id, object_id, or msi_res_id) when a UAMI was requested.
+         */
+        const queryParameters: Record<string, string> =
+            networkRequest.queryParameters;
+
+        let requestedIdentity: string | undefined;
+        let echoedIdentity: string | undefined;
+
+        if (
+            queryParameters[
+                ManagedIdentityUserAssignedIdQueryParameterNames
+                    .MANAGED_IDENTITY_CLIENT_ID
+            ]
+        ) {
+            requestedIdentity =
+                queryParameters[
+                    ManagedIdentityUserAssignedIdQueryParameterNames
+                        .MANAGED_IDENTITY_CLIENT_ID
+                ];
+            echoedIdentity = responseBody.client_id;
+        } else if (
+            queryParameters[
+                ManagedIdentityUserAssignedIdQueryParameterNames
+                    .MANAGED_IDENTITY_OBJECT_ID
+            ]
+        ) {
+            requestedIdentity =
+                queryParameters[
+                    ManagedIdentityUserAssignedIdQueryParameterNames
+                        .MANAGED_IDENTITY_OBJECT_ID
+                ];
+            echoedIdentity = responseBody.object_id;
+        } else if (
+            queryParameters[
+                ManagedIdentityUserAssignedIdQueryParameterNames
+                    .MANAGED_IDENTITY_RESOURCE_ID_IMDS
+            ]
+        ) {
+            requestedIdentity =
+                queryParameters[
+                    ManagedIdentityUserAssignedIdQueryParameterNames
+                        .MANAGED_IDENTITY_RESOURCE_ID_IMDS
+                ];
+            // Accept either spelling on the echo as a safety net; Azure Arc returns msi_res_id.
+            echoedIdentity = responseBody.msi_res_id || responseBody.mi_res_id;
+        } else {
+            // System-assigned (no user-assigned selector forwarded): nothing to confirm.
+            return;
+        }
+
+        /*
+         * Compare case-insensitively: client_id / object_id are GUIDs, and an ARM resource id can
+         * legitimately differ in segment casing.
+         */
+        if (
+            !echoedIdentity ||
+            echoedIdentity.toLowerCase() !== requestedIdentity.toLowerCase()
+        ) {
+            this.logger.error(
+                "[Managed Identity] Azure Arc did not confirm the requested user-assigned identity in the token response. The agent likely does not support user-assigned managed identity and returned the system-assigned identity.",
+                ""
+            );
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.userAssignedManagedIdentityNotConfirmed,
+                ""
+            );
+        }
     }
 
     /**
@@ -420,6 +525,21 @@ export class AzureArc extends BaseManagedIdentitySource {
             }
         }
 
-        return this.getServerTokenResponse(retryResponse || originalResponse);
+        const finalResponse: NetworkResponse<ManagedIdentityTokenResponse> =
+            retryResponse || originalResponse;
+
+        /*
+         * Fail closed: when a user-assigned identity was requested and the agent returned a token,
+         * ensure the echoed identity matches. A genuine service error (no access_token, e.g. a 404
+         * for a non-existent identity) is surfaced normally by the response handler.
+         */
+        if (finalResponse.body.access_token) {
+            this.validateUserAssignedIdentityWasHonored(
+                networkRequest,
+                finalResponse.body
+            );
+        }
+
+        return this.getServerTokenResponse(finalResponse);
     }
 }

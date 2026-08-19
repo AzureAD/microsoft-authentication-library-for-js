@@ -92,6 +92,7 @@ export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeReque
     scopes: Array<string>;
     redirectUri: string;
     code: string;
+    nonce?: string;
     state?: string;
 };
 
@@ -574,6 +575,6 @@ export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest
 export { ValidCacheType }
 
 // @public (undocumented)
-export const version = "5.5.0";
+export const version = "5.6.0";
 
 ```

@@ -1,0 +1,21 @@
+{
+    "name": "nested-auth-app-sample-host",
+    "version": "1.0.0",
+    "license": "MIT",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "start": "vite",
+        "start:https": "vite --mode https",
+        "build": "vite build"
+    },
+    "dependencies": {
+        "@azure/msal-browser": "file:../../../../lib/msal-browser",
+        "react": "^19.2.1",
+        "react-dom": "^19.2.1"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-react": "^4.3.3",
+        "vite": "^5.4.11"
+    }
+}
