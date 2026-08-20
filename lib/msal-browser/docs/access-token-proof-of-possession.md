@@ -184,7 +184,7 @@ headers.append("Authorization", `${result.tokenType} ${result.accessToken}`);
 headers.append("DPoP", result.dpopProof);
 ```
 
-DPoP requests must include both `resourceRequestMethod` and `resourceRequestUri`. If either value is missing MSAL fails fast with `dpop_missing_resource_context`. 
+> Note: DPoP requests must include both `resourceRequestMethod` and `resourceRequestUri`. If either value is missing MSAL fails fast with `dpop_missing_resource_context`. 
 
 For DPoP results, `accessToken` is the raw sender-constrained access token and `dpopProof` is a separate fresh proof for the requested resource. Proof JWTs are never cached. Cache hits generate a new proof, and if the local DPoP key is missing MSAL treats the cached sender-constrained access token as a cache miss.
 
