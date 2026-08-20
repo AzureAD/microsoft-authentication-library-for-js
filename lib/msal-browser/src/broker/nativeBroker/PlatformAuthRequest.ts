@@ -75,11 +75,13 @@ export type PlatformDOMTokenRequest = {
     correlationId: string;
     isSecurityTokenService: boolean;
     state?: string;
+    preferBinding?: string;
+    extraParametersNoCache?: PlatformAuthRequestExtraParametersNoCache;
     /*
      * Known optional parameters will go into extraQueryParameters.
      * List of known parameters is:
      * "prompt", "nonce", "claims", "loginHint", "instanceAware", "windowTitleSubstring", "extendedExpiryToken",
-     * ProofOfPossessionParams: "reqCnf", "keyId", "tokenType", "shrClaims", "shrNonce", "resourceRequestMethod", "resourceRequestUri", "signPopToken"
+     * ProofOfPossessionParams: "reqCnf", "keyId", "tokenType", "shrClaims", "shrNonce", "signPopToken"
      */
     extraParameters?: DOMExtraParameters;
 };

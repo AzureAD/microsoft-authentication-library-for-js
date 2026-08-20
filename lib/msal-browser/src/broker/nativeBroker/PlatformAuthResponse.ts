@@ -69,6 +69,10 @@ export type PlatformDOMTokenResponse = {
     idToken: string;
     scopes: string;
     proofOfPossessionPayload?: string;
+    tokenType?: string;
+    dpopProof?: string;
+    tokenBindingKeyId?: string;
+    attestedChosen?: boolean;
     extendedLifetimeToken?: boolean;
     error: ErrorResult;
     properties?: Record<string, string>;
