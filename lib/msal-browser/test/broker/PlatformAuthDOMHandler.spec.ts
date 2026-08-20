@@ -461,6 +461,69 @@ describe("PlatformAuthDOMHandler tests", () => {
                 state: undefined,
             });
         });
+
+        it("maps proof binding fields to top-level DOM request properties", async () => {
+            getSupportedContractsMock.mockResolvedValue([
+                PlatformAuthConstants.PLATFORM_DOM_APIS,
+            ]);
+            const platformAuthDOMHandler =
+                await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                );
+            const testRequest: PlatformAuthRequest = {
+                accountId: "test-id",
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scope: "read openid",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                windowTitleSubstring: "test-window-substring",
+                isSts: false,
+                preferBinding: "test-prefer-binding",
+                reqCnf: "test-req-cnf",
+                tokenType: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                extraParametersNoCache: {
+                    pop_nonce: "test-dpop-nonce",
+                },
+                extraParameters: {
+                    customUserInput: "test-user-input",
+                },
+            };
+
+            const platformDOMRequest =
+                //@ts-ignore
+                platformAuthDOMHandler.initializePlatformDOMRequest(
+                    testRequest
+                );
+
+            expect(platformDOMRequest).toEqual({
+                accountId: testRequest.accountId,
+                brokerId: PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID,
+                authority: testRequest.authority,
+                clientId: testRequest.clientId,
+                correlationId: testRequest.correlationId,
+                isSecurityTokenService: false,
+                extraParameters: {
+                    customUserInput: "test-user-input",
+                    windowTitleSubstring: "test-window-substring",
+                    reqCnf: "test-req-cnf",
+                    tokenType: Constants.AuthenticationScheme.DPOP,
+                },
+                extraParametersNoCache: {
+                    pop_method: "POST",
+                    pop_uri: "https://graph.microsoft.com/v1.0/me",
+                    pop_nonce: "test-dpop-nonce",
+                },
+                preferBinding: "test-prefer-binding",
+                redirectUri: testRequest.redirectUri,
+                scope: testRequest.scope,
+                state: undefined,
+            });
+        });
     });
 
     describe("validatePlatformBrokerResponse tests", () => {
@@ -515,6 +578,53 @@ describe("PlatformAuthDOMHandler tests", () => {
                 state: "",
                 extendedLifetimeToken: true,
             });
+        });
+
+        it("should map DOM DPoP response fields to PlatformBrokerResponse fields", async () => {
+            getSupportedContractsMock.mockResolvedValue([
+                PlatformAuthConstants.PLATFORM_DOM_APIS,
+            ]);
+            const platformAuthDOMHandler =
+                await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                );
+            const testResponse: object = {
+                isSuccess: true,
+                state: "",
+                accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                expiresIn: 6000,
+                account: {
+                    id: "test-id",
+                    userName: "test-user",
+                    properties: {},
+                },
+                clientInfo: "test-client-info",
+                idToken: TEST_TOKENS.IDTOKEN_V1,
+                scopes: "read openid",
+                error: {},
+                properties: {},
+                tokenType: Constants.AuthenticationScheme.DPOP,
+                dpopProof: "test-dpop-proof",
+                tokenBindingKeyId: "test-token-binding-key-id",
+                attestedChosen: true,
+            };
+
+            const validatedResponse =
+                //@ts-ignore
+                platformAuthDOMHandler.validatePlatformBrokerResponse(
+                    testResponse
+                );
+
+            expect(validatedResponse).toEqual(
+                expect.objectContaining({
+                    token_type: Constants.AuthenticationScheme.DPOP,
+                    DpoP: "test-dpop-proof",
+                    token_binding_key_id: "test-token-binding-key-id",
+                    attested_chosen: true,
+                })
+            );
         });
     });
 
