@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787249308090,
+  "lastUpdate": 1787265214128,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23011,6 +23011,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.03%",
             "unit": "ops/sec",
             "extra": "217 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "dff979ba2aa2a7d11dce9f576362849ec901ba60",
+          "message": "AB#3677517 Enable public L1 PCA DPoP acquisition (#8735)\n\n## Summary\n\n- Enables public L1 PCA DPoP acquisition for WI-3 / AB#3677517.\n- Builds on the WI-2 DPoP key lifecycle work already merged into this\nbranch.\n- Keeps follow-up scopes out of this PR: PairwiseBroker DPoP, PWB nonce\nforwarding/retry, WAM/L3 or NAA externally brokered DPoP, EAR\nauthorize-time proof, hardware-bound keys, DPoP-bound refresh tokens,\ncross-tab key sharing, and eager orphan-key cleanup.\n- No active 1P companion PR is required for the current code changes;\nthe 1P root only needs a later submodule pointer update after the 3P PR\nlands.\n\n## Rollout / rollback plan\n\n- **Owner:** MSAL.js maintainers for AB#3677517.\n- **Rollout stages:** Merge through the package release train, publish\nprerelease/nightly packages for validation, then include in the next\nminor `@azure/msal-common` and `@azure/msal-browser` releases.\n- **Success criteria:** DPoP authorization-code, refresh-token, and\nsilent-cache paths return DPoP-bound access tokens with matching\nresource proofs; existing Bearer, PoP, and SSH token acquisition flows\nremain unchanged.\n- **Rollback path:** Revert this PR before release or ship a patch that\ndisables the public DPoP request path and removes the DPoP-specific\nauthorize/token/cache wiring while leaving existing PoP behavior intact.\n\n## Validation\n\n- `npm run build:all` in `lib/msal-common`\n- `npm run apiExtractor` in `lib/msal-common`\n- `npm run build:all` in `lib/msal-browser`\n- Manual ESTS slice check returned a DPoP-bound access token with\nmatching `cnf.jkt` and resource proof `ath`.\n\n## Notes\n\nLocal Express playground defaults and Forge context files are\nintentionally uncommitted for continued local testing.\n\n## Related\n\n- Fixes AB#3677517\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: feature\nagent-tool: copilot-cli\nagent-model: gpt-5.5\nwork-item: AB#3677517\n<!-- END pr-telemetry -->\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCo-authored-by: Forge <forge-bot@entra.github.io>",
+          "timestamp": "2026-08-20T15:24:27-07:00",
+          "tree_id": "efd1f7adadea423a9e6de0309013e916f496c436",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/dff979ba2aa2a7d11dce9f576362849ec901ba60"
+        },
+        "date": 1787265209655,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 455650,
+            "range": "±1.30%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 457618,
+            "range": "±1.05%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
           }
         ]
       }
