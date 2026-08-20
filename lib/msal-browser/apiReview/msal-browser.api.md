@@ -105,6 +105,7 @@ export type AuthenticationResult = AuthenticationResult_2 & {
 export const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
+    readonly DPOP: "DPoP";
     readonly SSH: "ssh-cert";
 };
 

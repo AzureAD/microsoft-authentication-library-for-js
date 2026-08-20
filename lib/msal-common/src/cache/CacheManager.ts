@@ -13,6 +13,7 @@ import { TokenClaims } from "../account/TokenClaims.js";
 import { getAliasesFromStaticSources } from "../authority/AuthorityMetadata.js";
 import { StaticAuthorityOptions } from "../authority/AuthorityOptions.js";
 import { ICrypto } from "../crypto/ICrypto.js";
+import { ITokenBindingKeyManager } from "../crypto/ITokenBindingKeyManager.js";
 import { AuthError } from "../error/AuthError.js";
 import { createCacheError } from "../error/CacheError.js";
 import {
@@ -56,6 +57,7 @@ import {
 export abstract class CacheManager implements ICacheManager {
     protected clientId: string;
     protected cryptoImpl: ICrypto;
+    protected tokenBindingKeyManager: ITokenBindingKeyManager;
     // Instance of logger for functions defined in the msal-common layer
     private commonLogger: Logger;
     private staticAuthorityOptions?: StaticAuthorityOptions;
@@ -66,10 +68,12 @@ export abstract class CacheManager implements ICacheManager {
         cryptoImpl: ICrypto,
         logger: Logger,
         performanceClient: IPerformanceClient,
-        staticAuthorityOptions?: StaticAuthorityOptions
+        staticAuthorityOptions: StaticAuthorityOptions | undefined,
+        tokenBindingKeyManager: ITokenBindingKeyManager
     ) {
         this.clientId = clientId;
         this.cryptoImpl = cryptoImpl;
+        this.tokenBindingKeyManager = tokenBindingKeyManager;
         this.commonLogger = logger.clone(name, version);
         this.staticAuthorityOptions = staticAuthorityOptions;
         this.performanceClient = performanceClient;
@@ -1107,29 +1111,34 @@ export abstract class CacheManager implements ICacheManager {
             correlationId
         );
 
-        // Remove Token Binding Key from key store for PoP Tokens Credentials
+        // Remove Token Binding Key from key store for token-bound access token credentials
         if (
             credential.credentialType.toLowerCase() ===
             Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
         ) {
-            if (credential.tokenType === Constants.AuthenticationScheme.POP) {
-                const accessTokenWithAuthSchemeEntity =
-                    credential as AccessTokenEntity;
-                const kid = accessTokenWithAuthSchemeEntity.keyId;
+            const tokenType = credential.tokenType?.toLowerCase();
+            switch (tokenType) {
+                case Constants.AuthenticationScheme.POP:
+                case Constants.AuthenticationScheme.DPOP.toLowerCase(): {
+                    const accessTokenWithAuthSchemeEntity =
+                        credential as AccessTokenEntity;
+                    const kid = accessTokenWithAuthSchemeEntity.keyId;
 
-                if (kid) {
-                    void this.cryptoImpl
-                        .removeTokenBindingKey(kid, correlationId)
-                        .catch(() => {
-                            this.commonLogger.error(
-                                `Failed to remove token binding key '${kid}'`,
-                                correlationId
-                            );
-                            this.performanceClient?.incrementFields(
-                                { removeTokenBindingKeyFailure: 1 },
-                                correlationId
-                            );
-                        });
+                    if (kid) {
+                        void this.tokenBindingKeyManager
+                            .removeTokenBindingKey(kid, correlationId)
+                            .catch(() => {
+                                this.commonLogger.error(
+                                    "Failed to remove token binding key",
+                                    correlationId
+                                );
+                                this.performanceClient?.incrementFields(
+                                    { removeTokenBindingKeyFailure: 1 },
+                                    correlationId
+                                );
+                            });
+                    }
+                    break;
                 }
             }
         }
@@ -1368,7 +1377,6 @@ export abstract class CacheManager implements ICacheManager {
                   attribute_tokens: attributeTokenPartition,
               }
             : undefined;
-
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
@@ -1383,7 +1391,6 @@ export abstract class CacheManager implements ICacheManager {
                     : undefined,
             additionalCacheKeyComponents: additionalCacheKeyComponents,
         };
-
         const accessTokenKeys =
             (tokenKeys && tokenKeys.accessToken) ||
             this.getTokenKeys().accessToken;
@@ -1986,9 +1993,8 @@ export abstract class CacheManager implements ICacheManager {
 
         switch (normalizedFilterTokenType) {
             case "dpop":
-                return this.matchKeyBoundAccessToken(entity, filter, true);
             case Constants.AuthenticationScheme.SSH:
-                return this.matchKeyBoundAccessToken(entity, filter, false);
+                return this.matchKeyBoundAccessToken(entity, filter);
             default:
                 return true;
         }
@@ -1996,11 +2002,10 @@ export abstract class CacheManager implements ICacheManager {
 
     private matchKeyBoundAccessToken(
         entity: CredentialEntity,
-        filter: CredentialFilter,
-        requireKeyId: boolean
+        filter: CredentialFilter
     ): boolean {
         if (!filter.keyId) {
-            return !requireKeyId;
+            return true;
         }
 
         return this.matchKeyId(entity, filter.keyId);

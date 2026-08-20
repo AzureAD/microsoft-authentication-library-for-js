@@ -12,6 +12,7 @@ import {
     TEST_SSH_VALUES,
     AUTHENTICATION_RESULT_WITH_HEADERS,
     CORS_RESPONSE_HEADERS,
+    TEST_DPOP_VALUES,
 } from "../test_kit/StringConstants.js";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration.js";
 import * as Constants from "../../src/utils/Constants.js";
@@ -379,6 +380,121 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
 
             expect(executePostToTokenEndpointSpy).toHaveBeenCalled();
+        });
+
+        it("sends DPoP proof header and omits POP body params for authorization code requests", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue({
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            });
+            jest.spyOn(
+                config.cryptoInterface!,
+                "signTokenBindingJwt"
+            ).mockResolvedValue(TEST_DPOP_VALUES.DPOP_PROOF);
+            const executePostToTokenEndpointSpy = jest
+                .spyOn(TokenProtocol, "executePostToTokenEndpoint")
+                .mockImplementation(
+                    (
+                        tokenEndpoint: string,
+                        queryString: string,
+                        headers: Record<string, string>
+                    ) => {
+                        expect(headers[Constants.HeaderNames.DPOP]).toBe(
+                            TEST_DPOP_VALUES.DPOP_PROOF
+                        );
+                        const params = new URLSearchParams(queryString);
+                        expect(params.has(AADServerParamKeys.REQ_CNF)).toBe(
+                            false
+                        );
+                        expect(params.has(AADServerParamKeys.TOKEN_TYPE)).toBe(
+                            false
+                        );
+
+                        return Promise.resolve({
+                            ...AUTHENTICATION_RESULT_WITH_HEADERS,
+                            body: {
+                                ...AUTHENTICATION_RESULT_WITH_HEADERS.body,
+                                token_type: Constants.AuthenticationScheme.DPOP,
+                            },
+                        });
+                    }
+                );
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+
+            await client.acquireToken(authCodeRequest, 0, {
+                code: authCodeRequest.code,
+                nonce: "123523",
+            });
+
+            expect(executePostToTokenEndpointSpy).toHaveBeenCalled();
+        });
+
+        it("throws before token request when DPoP key id is missing", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const executePostToTokenEndpointSpy = jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            );
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+
+            await expect(
+                client.acquireToken(authCodeRequest, 0, {
+                    code: authCodeRequest.code,
+                    nonce: "123523",
+                })
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.keyIdMissing,
+            });
+            expect(executePostToTokenEndpointSpy).not.toHaveBeenCalled();
         });
 
         it("Does not add headers that do not qualify for a simple request", async () => {

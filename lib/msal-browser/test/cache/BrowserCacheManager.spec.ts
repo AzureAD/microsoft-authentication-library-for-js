@@ -4972,6 +4972,40 @@ describe("BrowserCacheManager tests", () => {
             expect(codeVerifier).toEqual(TEST_CONFIG.TEST_VERIFIER);
         });
 
+        it("Preserves DPoP key id when retrieving request from cache", async () => {
+            const browserStorage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            const tokenRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
+                scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: `${RANDOM_TEST_GUID}`,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                state: TEST_CONFIG.STATE,
+                nonce: RANDOM_TEST_GUID,
+                dpopJkt: "test-dpop-jkt",
+            };
+
+            browserStorage.cacheAuthorizeRequest(
+                tokenRequest,
+                TEST_CONFIG.CORRELATION_ID,
+                TEST_CONFIG.TEST_VERIFIER
+            );
+
+            const [cachedRequest, codeVerifier] =
+                browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID);
+            expect(cachedRequest).toEqual(tokenRequest);
+            expect(cachedRequest.dpopJkt).toBe("test-dpop-jkt");
+            expect(codeVerifier).toEqual(TEST_CONFIG.TEST_VERIFIER);
+        });
+
         it("Throws error if request cannot be retrieved from cache", async () => {
             const browserStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,

@@ -44,6 +44,7 @@ import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
 import { getRequestThumbprint } from "../network/RequestThumbprint.js";
 import {
+    addDpopTokenProofHeader,
     createTokenQueryParameters,
     createTokenRequestHeaders,
     executePostToTokenEndpoint,
@@ -271,6 +272,13 @@ export class AuthorizationCodeClient {
             this.logger,
             this.config.systemOptions.preventCorsPreflight,
             ccsCredential || request.ccsCredential
+        );
+        await addDpopTokenProofHeader(
+            headers,
+            request,
+            endpoint,
+            this.cryptoUtils,
+            this.config.tokenBindingKeyManager
         );
 
         const thumbprint = getRequestThumbprint(

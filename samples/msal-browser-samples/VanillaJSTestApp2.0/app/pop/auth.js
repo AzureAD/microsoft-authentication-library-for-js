@@ -82,6 +82,20 @@ async function getPopToken() {
     }
 }
 
+async function getDpopToken() {
+    const currentAcc = myMSALObj.getAccount({username});
+    if (currentAcc) {
+        return getTokenPopup(dpopTokenRequest, currentAcc).then(response => {
+            if (response && response.accessToken && response.dpopProof) {
+                showDpopTokenAcquired(response.dpopProof);
+                return response;
+            }
+        }).catch(error => {
+            console.log(error);
+        });
+    }
+}
+
 async function getTokenPopup(request, account) {
     request.account = account;
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {

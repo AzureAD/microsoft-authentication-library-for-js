@@ -11,6 +11,7 @@ import {
     ICrypto,
     IPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     AccountFilter,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -31,6 +32,7 @@ import { WrapperSKU } from "../utils/BrowserConstants.js";
 import { IController } from "./IController.js";
 import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
+import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 import {
     blockAPICallsBeforeInitialize,
     blockNonBrowserEnvironment,
@@ -100,6 +102,9 @@ export class UnknownOperatingContextController implements IController {
         this.browserCrypto = this.isBrowserEnvironment
             ? new CryptoOps(this.logger, this.performanceClient)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
+        const tokenBindingKeyManager = this.isBrowserEnvironment
+            ? new TokenBindingKeyManager(this.logger, this.performanceClient)
+            : DEFAULT_TOKEN_BINDING_KEY_MANAGER;
 
         this.eventHandler = new EventHandler(this.logger);
 
@@ -111,13 +116,17 @@ export class UnknownOperatingContextController implements IController {
                   this.browserCrypto,
                   this.logger,
                   this.performanceClient,
-                  this.eventHandler
+                  this.eventHandler,
+                  undefined,
+                  tokenBindingKeyManager
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
                   this.logger,
                   this.performanceClient,
-                  this.eventHandler
+                  this.eventHandler,
+                  undefined,
+                  tokenBindingKeyManager
               );
     }
 

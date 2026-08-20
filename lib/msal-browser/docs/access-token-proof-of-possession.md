@@ -164,3 +164,28 @@ Please also note to make sure the remaining [pop parameters](#at-pop-request-par
 Most MSAL credentials and cache items, like `ID Tokens` for example, can be stored and removed synchronously. This is because these cache items are stored in either `localStorage` or `sessionStorage` (which can be manipulated synchronously), and they have no dependencies on other stored items that have asynchronous access restrictions.
 
 Unlike other cache items, `Access Tokens` are saved to the cache asynchronously. The reason for this is that in the case of an access token being bound to a cryptographic keypair, which is stored in `IndexedDB`, replacing the access token also involves replacing the cryptographic keypair. Given that removing and writing keys to `IndexedDB` are asynchronous operations, the process for saving an access token inevitably becomes asyncrhonous by extension.
+
+## DPoP for PublicClientApplication
+
+MSAL Browser supports standard DPoP cryptographic access token binding for PublicClientApplication (`acquireTokenPopup`, `acquireTokenRedirect`, `acquireTokenSilent`, and `ssoSilent`). Sender-constrained access tokens using the DPoP standard and their corresponding proofs can be requested by setting `authenticationScheme: msal.AuthenticationScheme.DPOP`.
+
+```typescript
+const dpopRequest = {
+    scopes: ["User.Read"],
+    authenticationScheme: msal.AuthenticationScheme.DPOP,
+    resourceRequestMethod: "GET",
+    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+};
+
+const result = await myMSALObj.acquireTokenPopup(dpopRequest);
+
+const headers = new Headers();
+headers.append("Authorization", `${result.tokenType} ${result.accessToken}`);
+headers.append("DPoP", result.dpopProof);
+```
+
+> Note: DPoP requests must include both `resourceRequestMethod` and `resourceRequestUri`. If either value is missing MSAL fails fast with `dpop_missing_resource_context`. 
+
+For DPoP results, `accessToken` is the raw sender-constrained access token and `dpopProof` is a separate fresh proof for the requested resource. Proof JWTs are never cached. Cache hits generate a new proof, and if the local DPoP key is missing MSAL treats the cached sender-constrained access token as a cache miss.
+
+DPoP resource proofs are generated from the request method, normalized resource URI, and raw access token (`ath` is computed internally). MSAL does not accept caller-supplied `ath` hashes.

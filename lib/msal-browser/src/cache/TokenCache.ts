@@ -44,6 +44,7 @@ import { ApiId } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { BrowserCacheManager } from "./BrowserCacheManager.js";
 import { name, version } from "../packageMetadata.js";
+import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -109,7 +110,8 @@ export async function loadExternalTokens(
             logger,
             browserConfig.telemetry.client,
             new EventHandler(logger),
-            buildStaticAuthorityOptions(browserConfig.auth)
+            buildStaticAuthorityOptions(browserConfig.auth),
+            new TokenBindingKeyManager(logger, browserConfig.telemetry.client)
         );
         await storage.initialize(correlationId);
 

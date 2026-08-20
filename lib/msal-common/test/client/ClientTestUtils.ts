@@ -44,6 +44,8 @@ import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerfo
 import { CredentialEntity } from "../../src/cache/entities/CredentialEntity.js";
 import { AccountInfo } from "../../src/account/AccountInfo.js";
 import { ITokenBindingKeyManager } from "../../src/crypto/ITokenBindingKeyManager.js";
+import { ICrypto } from "../../src/crypto/ICrypto.js";
+import { StaticAuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { createHash } from "crypto";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
@@ -102,8 +104,41 @@ export function generateAccountKey(account: AccountInfo): string {
     return accountKey.join(CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
+export const mockTokenBindingKeyManager: ITokenBindingKeyManager = {
+    async provisionTokenBindingKey(): Promise<string> {
+        return TEST_POP_VALUES.KID;
+    },
+    async getTokenBindingPublicKeyJwk(): Promise<JsonWebKey> {
+        return {
+            kty: "RSA",
+            alg: "RS256",
+        };
+    },
+    async removeTokenBindingKey(): Promise<void> {
+        return Promise.resolve();
+    },
+};
+
 export class MockStorageClass extends CacheManager {
     store = {};
+
+    constructor(
+        clientId: string,
+        cryptoImpl: ICrypto,
+        logger: Logger,
+        performanceClient: StubPerformanceClient,
+        staticAuthorityOptions?: StaticAuthorityOptions,
+        tokenBindingKeyManager: ITokenBindingKeyManager = mockTokenBindingKeyManager
+    ) {
+        super(
+            clientId,
+            cryptoImpl,
+            logger,
+            performanceClient,
+            staticAuthorityOptions,
+            tokenBindingKeyManager
+        );
+    }
 
     generateCredentialKey(credential: CredentialEntity, hash?: string): string {
         return generateCredentialKey(credential, hash);
@@ -315,21 +350,6 @@ export const mockCrypto = {
     },
 };
 
-export const mockShrTokenBindingKeyManager: ITokenBindingKeyManager = {
-    async provisionTokenBindingKey(): Promise<string> {
-        return TEST_POP_VALUES.KID;
-    },
-    async getTokenBindingPublicKeyJwk(): Promise<JsonWebKey> {
-        return {
-            kty: "RSA",
-            alg: "RS256",
-        };
-    },
-    async removeTokenBindingKey(): Promise<void> {
-        return Promise.resolve();
-    },
-};
-
 export const mockNetworkClient = {
     sendGetRequestAsync<T>(): T {
         return {} as T;
@@ -385,7 +405,7 @@ export class ClientTestUtils {
             storageInterface: mockStorage,
             networkInterface: mockNetworkClient,
             cryptoInterface: mockCrypto,
-            tokenBindingKeyManager: mockShrTokenBindingKeyManager,
+            tokenBindingKeyManager: mockTokenBindingKeyManager,
             loggerOptions: {
                 loggerCallback: testLoggerCallback,
             },

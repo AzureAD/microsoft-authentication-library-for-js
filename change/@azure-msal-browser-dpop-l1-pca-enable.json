@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Enable browser-native PublicClientApplication DPoP acquisition flows [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735)",
+    "packageName": "@azure/msal-browser",
+    "email": "hectormmg@microsoft.com",
+    "dependentChangeType": "minor"
+}

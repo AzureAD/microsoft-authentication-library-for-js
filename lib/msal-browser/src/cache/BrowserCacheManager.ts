@@ -24,6 +24,8 @@ import {
     IdTokenEntity,
     invokeAsync,
     IPerformanceClient,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+    ITokenBindingKeyManager,
     Logger,
     PerformanceEvents,
     RefreshTokenEntity,
@@ -120,14 +122,16 @@ export class BrowserCacheManager extends CacheManager {
         logger: Logger,
         performanceClient: IPerformanceClient,
         eventHandler: EventHandler,
-        staticAuthorityOptions?: StaticAuthorityOptions
+        staticAuthorityOptions?: StaticAuthorityOptions,
+        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER
     ) {
         super(
             clientId,
             cryptoImpl,
             logger,
             performanceClient,
-            staticAuthorityOptions
+            staticAuthorityOptions,
+            tokenBindingKeyManager
         );
         this.cacheConfig = cacheConfig;
         this.logger = logger;
@@ -2555,7 +2559,9 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
     clientId: string,
     logger: Logger,
     performanceClient: IPerformanceClient,
-    eventHandler: EventHandler
+    eventHandler: EventHandler,
+    staticAuthorityOptions?: StaticAuthorityOptions,
+    tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER
 ): BrowserCacheManager => {
     const cacheOptions: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
@@ -2567,6 +2573,8 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
         DEFAULT_CRYPTO_IMPLEMENTATION,
         logger,
         performanceClient,
-        eventHandler
+        eventHandler,
+        staticAuthorityOptions,
+        tokenBindingKeyManager
     );
 };

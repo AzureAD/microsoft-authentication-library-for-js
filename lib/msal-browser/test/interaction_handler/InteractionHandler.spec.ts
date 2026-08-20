@@ -24,6 +24,7 @@ import {
     CcsCredentialType,
     StubPerformanceClient,
     AuthorityFactory,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
 } from "@azure/msal-common/browser";
 import {
     Configuration,
@@ -218,7 +219,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cryptoInterface,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                undefined,
+                DEFAULT_TOKEN_BINDING_KEY_MANAGER
             ),
             networkInterface: {
                 sendGetRequestAsync: async (

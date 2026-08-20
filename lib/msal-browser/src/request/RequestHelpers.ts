@@ -8,10 +8,15 @@ import {
     Constants,
     BaseAuthRequest,
     ClientConfigurationErrorCodes,
+    CommonAuthorizationUrlRequest,
     CommonSilentFlowRequest,
     IPerformanceClient,
+    ITokenBindingKeyManager,
     Logger,
     ProtocolMode,
+    JsonWebTokenAlgorithms,
+    PerformanceEvents,
+    PopTokenGenerator,
     createClientConfigurationError,
     invokeAsync,
 } from "@azure/msal-common/browser";
@@ -20,12 +25,109 @@ import { BrowserConfiguration } from "../config/Configuration.js";
 import { SilentRequest } from "./SilentRequest.js";
 import { PopupRequest } from "./PopupRequest.js";
 import { RedirectRequest } from "./RedirectRequest.js";
+import { CryptoOps } from "../crypto/CryptoOps.js";
 
 const SUPPORTED_AUTHENTICATION_SCHEMES = new Set<string>([
     Constants.AuthenticationScheme.BEARER,
     Constants.AuthenticationScheme.POP,
+    Constants.AuthenticationScheme.DPOP,
     Constants.AuthenticationScheme.SSH,
 ]);
+
+function validateSshRequest(
+    request: Partial<BaseAuthRequest>,
+    correlationId: string
+): void {
+    if (!request.sshJwk) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.missingSshJwk,
+            correlationId
+        );
+    }
+    if (!request.sshKid) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.missingSshKid,
+            correlationId
+        );
+    }
+}
+
+function validateDpopRequest(
+    request: Partial<BaseAuthRequest>,
+    correlationId: string
+): void {
+    if (
+        !request.resourceRequestMethod?.trim() ||
+        !request.resourceRequestUri?.trim()
+    ) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.dpopMissingResourceContext,
+            correlationId
+        );
+    }
+}
+
+/**
+ * Resolves the token-binding parameters needed before building authorize or token requests.
+ * Public PCA DPoP requests use a dpopJkt thumbprint, while platform broker PoP requests use
+ * a reqCnf confirmation claim. Requests that do not require request-time token binding return
+ * no additional parameters.
+ */
+export async function getTokenBindingRequestParams(
+    request: Partial<BaseAuthRequest> & {
+        correlationId: string;
+        platformBroker?: boolean;
+    },
+    tokenBindingKeyManager: ITokenBindingKeyManager,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<Pick<CommonAuthorizationUrlRequest, "dpopJkt" | "reqCnf">> {
+    switch (request.authenticationScheme) {
+        case Constants.AuthenticationScheme.DPOP:
+            if (request.platformBroker) {
+                return {};
+            }
+
+            if (request.dpopJkt) {
+                return { dpopJkt: request.dpopJkt };
+            }
+
+            return {
+                dpopJkt: await tokenBindingKeyManager.provisionTokenBindingKey({
+                    tokenBindingKeyType:
+                        Constants.AuthenticationScheme.DPOP.toLowerCase(),
+                    tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
+                    correlationId: request.correlationId,
+                }),
+            };
+        case Constants.AuthenticationScheme.POP:
+            if (!request.platformBroker) {
+                return {};
+            }
+
+            const cryptoOps = new CryptoOps(logger, performanceClient);
+            if (request.popKid) {
+                return { reqCnf: cryptoOps.encodeKid(request.popKid) };
+            }
+
+            const popTokenGenerator = new PopTokenGenerator(
+                cryptoOps,
+                tokenBindingKeyManager,
+                performanceClient
+            );
+            const generatedReqCnfData = await invokeAsync(
+                popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                PerformanceEvents.PopTokenGenerateCnf,
+                logger,
+                performanceClient,
+                request.correlationId
+            )(request, logger);
+
+            return { reqCnf: generatedReqCnfData.reqCnfString };
+        default:
+            return {};
+    }
+}
 
 /**
  * Initializer function for all request APIs
@@ -73,21 +175,13 @@ export async function initializeBaseRequest(
             );
         }
 
-        if (
-            validatedRequest.authenticationScheme ===
-            Constants.AuthenticationScheme.SSH
-        ) {
-            if (!request.sshJwk) {
-                throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk,
-                    correlationId
-                );
-            }
-            if (!request.sshKid) {
-                throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshKid,
-                    correlationId
-                );
+        switch (validatedRequest.authenticationScheme) {
+            case Constants.AuthenticationScheme.SSH:
+                validateSshRequest(request, correlationId);
+                break;
+            case Constants.AuthenticationScheme.DPOP: {
+                validateDpopRequest(request, correlationId);
+                break;
             }
         }
         logger.verbose(
