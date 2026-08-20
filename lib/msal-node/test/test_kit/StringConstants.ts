@@ -195,7 +195,7 @@ const NBF_CLAIM = '"nbf":{"essential":true,"value":"1701477303"}';
 const NEW_CLAIM = '"new_claim":{"new_key":"new_value"}';
 const XMS_CC_CLAIM = '"xms_cc":{"values":["cp1","cp2"]}';
 const DEFAULT_ID_TOKEN_CLAIMS =
-    '"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}';
+    '"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}';
 export const CAE_CONSTANTS = {
     CLIENT_CAPABILITIES: ["cp1", "cp2"],
     EMPTY_CLAIMS: "{}",
