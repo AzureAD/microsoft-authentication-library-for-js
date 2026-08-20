@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787160790626,
+  "lastUpdate": 1787249308090,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -22973,6 +22973,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.13%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "478ef61c022d0722c10d8a68929f73d26f2a7a47",
+          "message": "[NAA/PWB One Bridge] PR 3/6: Relocate cross-version request adapter to webBrokerBridge (#8771)\n\n## Summary\n\nRelocates the existing cross-version request adapter implementation into\nthe shared `webBrokerBridge` module without changing its transformation\nbehavior, and carries over the complete compatibility test suite.\n\n## Implements\n\n- AB#3668028 — Unify NAA and PWB embedded bridge\n\n## How to validate\n\n- Run `npm test --workspace=@azure/msal-browser -- --runInBand\nCrossVersionRequestAdapter.spec.ts`.\n- Confirm all 30 cross-version compatibility cases pass.\n- Confirm the adapter remains outside the main `msal-browser` public\nAPI.\n\n## Notes\n\nCreated as a test PR for CI validation. No reviewers requested.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: refactor\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#3668028\n<!-- END pr-telemetry -->\n\n---------\n\nCopilot-Session: 36635931-0f15-4919-85b4-450162347f20",
+          "timestamp": "2026-08-20T17:57:00Z",
+          "tree_id": "7ee6f3f040ec360d6de37b2659f66399c005f477",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/478ef61c022d0722c10d8a68929f73d26f2a7a47"
+        },
+        "date": 1787249303957,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 372278,
+            "range": "±0.62%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 359961,
+            "range": "±1.03%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
           }
         ]
       }
