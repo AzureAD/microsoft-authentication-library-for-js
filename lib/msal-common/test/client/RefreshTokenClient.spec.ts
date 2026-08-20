@@ -195,6 +195,10 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("sends DPoP proof header and omits POP body params for refresh token requests", (done) => {
             jest.spyOn(
+                config.cryptoInterface!,
+                "signTokenBindingJwt"
+            ).mockResolvedValue(TEST_DPOP_VALUES.DPOP_PROOF);
+            jest.spyOn(
                 TokenProtocol,
                 "executePostToTokenEndpoint"
             ).mockImplementation(
@@ -205,7 +209,7 @@ describe("RefreshTokenClient unit tests", () => {
                 ) => {
                     try {
                         expect(headers[Constants.HeaderNames.DPOP]).toBe(
-                            TEST_TOKENS.POP_TOKEN
+                            TEST_DPOP_VALUES.DPOP_PROOF
                         );
                         const params = new URLSearchParams(body);
                         expect(params.has(AADServerParamKeys.REQ_CNF)).toBe(

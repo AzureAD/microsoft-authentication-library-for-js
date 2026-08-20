@@ -67,6 +67,12 @@ function validateDpopRequest(
     }
 }
 
+/**
+ * Resolves the token-binding parameters needed before building authorize or token requests.
+ * Public PCA DPoP requests use a dpopJkt thumbprint, while platform broker PoP requests use
+ * a reqCnf confirmation claim. Requests that do not require request-time token binding return
+ * no additional parameters.
+ */
 export async function getTokenBindingRequestParams(
     request: Partial<BaseAuthRequest> & {
         correlationId: string;

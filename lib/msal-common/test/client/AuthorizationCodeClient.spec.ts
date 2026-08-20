@@ -398,6 +398,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             });
+            jest.spyOn(
+                config.cryptoInterface!,
+                "signTokenBindingJwt"
+            ).mockResolvedValue(TEST_DPOP_VALUES.DPOP_PROOF);
             const executePostToTokenEndpointSpy = jest
                 .spyOn(TokenProtocol, "executePostToTokenEndpoint")
                 .mockImplementation(
@@ -407,7 +411,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         headers: Record<string, string>
                     ) => {
                         expect(headers[Constants.HeaderNames.DPOP]).toBe(
-                            TEST_TOKENS.POP_TOKEN
+                            TEST_DPOP_VALUES.DPOP_PROOF
                         );
                         const params = new URLSearchParams(queryString);
                         expect(params.has(AADServerParamKeys.REQ_CNF)).toBe(
