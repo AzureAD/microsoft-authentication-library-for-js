@@ -245,6 +245,8 @@ export function buildClientConfiguration({
         ...DEFAULT_LOGGER_IMPLEMENTATION,
         ...userLoggerOption,
     };
+    const resolvedTokenBindingKeyManager =
+        tokenBindingKeyManager || DEFAULT_TOKEN_BINDING_KEY_MANAGER;
 
     return {
         authOptions: buildAuthOptions(userAuthOptions),
@@ -256,13 +258,14 @@ export function buildClientConfiguration({
                 userAuthOptions.clientId,
                 DEFAULT_CRYPTO_IMPLEMENTATION,
                 new Logger(loggerOptions, name, version),
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                undefined,
+                resolvedTokenBindingKeyManager
             ),
         networkInterface:
             networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
-        tokenBindingKeyManager:
-            tokenBindingKeyManager || DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+        tokenBindingKeyManager: resolvedTokenBindingKeyManager,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },

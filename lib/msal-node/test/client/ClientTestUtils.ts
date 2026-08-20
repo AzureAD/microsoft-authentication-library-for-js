@@ -33,6 +33,10 @@ import {
     StubPerformanceClient,
     AccountInfo,
     CredentialEntity,
+    ICrypto,
+    IPerformanceClient,
+    StaticAuthorityOptions,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -57,6 +61,23 @@ const TOKEN_KEYS = "TOKEN_KEYS";
 
 export class MockStorageClass extends CacheManager {
     store = {};
+
+    constructor(
+        clientId: string,
+        cryptoImpl: ICrypto,
+        logger: Logger,
+        performanceClient: IPerformanceClient,
+        staticAuthorityOptions?: StaticAuthorityOptions
+    ) {
+        super(
+            clientId,
+            cryptoImpl,
+            logger,
+            performanceClient,
+            staticAuthorityOptions,
+            DEFAULT_TOKEN_BINDING_KEY_MANAGER
+        );
+    }
 
     generateCredentialKey(credential: CredentialEntity, hash?: string): string {
         return generateCredentialKey(credential, hash);

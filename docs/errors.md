@@ -124,6 +124,10 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Unexpected credential type.
 
+### `dpop_token_type_mismatch`
+
+-   DPoP token requests must receive a DPoP token response.
+
 ### `token_refresh_required`
 
 -   Cannot return token from cache because it must be refreshed. This may be due to one of the following reasons: forceRefresh parameter is set to true, claims have been requested, there is no cached access token or it is expired.
@@ -221,6 +225,14 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ### `invalid_dpop_htu`
 
 -   DPoP HTTP target URI (`htu`) must be an HTTPS URL without userinfo.
+
+### `invalid_dpop_nonce`
+
+-   DPoP nonce values must be non-empty when supplied.
+
+### `dpop_missing_resource_context`
+
+-   DPoP token requests must include both `resourceRequestMethod` and `resourceRequestUri`.
 
 ### `token_request_empty`
 

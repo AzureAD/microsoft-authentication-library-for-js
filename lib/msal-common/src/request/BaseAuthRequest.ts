@@ -88,6 +88,11 @@ export type BaseAuthRequest = {
      */
     popKid?: string;
     /**
+     * JWK thumbprint for the browser-managed DPoP key bound to this request.
+     * @internal
+     */
+    dpopJkt?: string;
+    /**
      * Embedded client id. When specified, broker client id (brk_client_id) and redirect uri (brk_redirect_uri) params are set with values from the config, overriding the corresponding extra parameters, if present.
      */
     embeddedClientId?: string;

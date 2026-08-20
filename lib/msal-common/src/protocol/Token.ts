@@ -5,9 +5,14 @@
 
 import { CcsCredential, CcsCredentialType } from "../account/CcsCredential.js";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo.js";
+import { DpopProofGenerator } from "../crypto/DpopProofGenerator.js";
 import { Logger } from "../logger/Logger.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
-import { HeaderNames, URL_FORM_CONTENT_TYPE } from "../utils/Constants.js";
+import {
+    AuthenticationScheme,
+    HeaderNames,
+    URL_FORM_CONTENT_TYPE,
+} from "../utils/Constants.js";
 import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
 import * as UrlUtils from "../utils/UrlUtils.js";
 import { IPerformanceClient } from "../exports-browser-only.js";
@@ -29,6 +34,8 @@ import { invokeAsync } from "../utils/FunctionWrappers.js";
 import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { CacheManager } from "../cache/CacheManager.js";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
+import { ICrypto } from "../crypto/ICrypto.js";
+import { ITokenBindingKeyManager } from "../crypto/ITokenBindingKeyManager.js";
 
 /**
  * Creates default headers for requests to token endpoint
@@ -63,6 +70,42 @@ export function createTokenRequestHeaders(
         }
     }
     return headers;
+}
+
+/**
+ * Adds the DPoP proof header for token endpoint requests when DPoP is requested.
+ * @internal
+ */
+export async function addDpopTokenProofHeader(
+    headers: Record<string, string>,
+    request: BaseAuthRequest,
+    tokenEndpoint: string,
+    cryptoUtils: ICrypto,
+    tokenBindingKeyManager: ITokenBindingKeyManager
+): Promise<void> {
+    if (request.authenticationScheme !== AuthenticationScheme.DPOP) {
+        return;
+    }
+
+    const dpopProofGenerator = new DpopProofGenerator(
+        cryptoUtils,
+        tokenBindingKeyManager
+    );
+    const keyId = request.dpopJkt;
+    if (!keyId?.trim()) {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.keyIdMissing,
+            request.correlationId
+        );
+    }
+
+    headers[HeaderNames.DPOP] = await dpopProofGenerator.generateTokenProof(
+        {
+            tokenEndpoint,
+        },
+        keyId,
+        request.correlationId
+    );
 }
 
 /**
