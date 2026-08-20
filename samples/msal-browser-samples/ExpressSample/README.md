@@ -72,16 +72,16 @@ npm run build:package
 
 ## Running the e2e tests
 
-The Puppeteer e2e tests live in [`./test`](./test). The EAR (Encrypted Authorize Response) suite is in [`./test/ear-flows.spec.ts`](./test/ear-flows.spec.ts).
+The Puppeteer e2e tests live in [`./test`](./test). The EAR (Encrypted Authorize Response) web-flow suite is in [`./test/ear-basic.spec.ts`](./test/ear-basic.spec.ts).
 
-That file also contains an `EAR + Platform Broker Tests` suite that exercises EAR combined with the platform broker. It is `describe.skip` by default for now because platform broker is only available locally (not in CI). To run it locally, change `describe.skip` to `describe` and first set `SSO_EXTENSION_PATH` to the unpacked "Microsoft Single Sign On" extension directory (the folder containing its `manifest.json`):
+A separate [`./test/ear-platform-broker.spec.ts`](./test/ear-platform-broker.spec.ts) suite exercises EAR combined with the platform broker. It is excluded from CI (the pipeline `testFilter` runs only `ear-basic`) because the platform broker is only available locally. To run it locally, set `SSO_EXTENSION_PATH` to the unpacked "Microsoft Single Sign On" extension directory (the folder containing its `manifest.json`):
 
 ```powershell
 # PowerShell — set before running the EAR tests
 $env:SSO_EXTENSION_PATH = "C:\Users\<you>\AppData\Local\Microsoft\Edge\User Data\Default\Extensions\ppnbnpeolgkicgegkbkbjmhlideopiji\<version>"
 ```
 
-The path is machine-specific (Edge version subfolder and user profile vary). If the suite is enabled without this variable set, it fails fast with a clear error.
+The path is machine-specific (Edge version subfolder and user profile vary). If the platform-broker suite is run without this variable set, it fails fast with a clear error.
 
 ## Learn more
 
