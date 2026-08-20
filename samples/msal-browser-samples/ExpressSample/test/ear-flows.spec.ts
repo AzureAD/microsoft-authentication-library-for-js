@@ -18,7 +18,7 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serverUtils = require("../../../e2eTestUtils/jest-puppeteer-utils/serverUtils");
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/browserEAR`;
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/earFlows`;
 
 // EAR runs on its own HTTPS server + cert-tolerant browser; shared http
 // harness (port 3000) untouched.
