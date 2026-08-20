@@ -14,8 +14,8 @@ const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/earPlatformBroker`
 // EAR runs on its own HTTPS server + cert-tolerant browser; shared http
 // harness (port 3000) untouched.
 const EAR_PORT = 3443;
-// env-cmd loads .env.ear.e2e (HTTPS, port 3443, EAR config).
-const EAR_START_CMD = "env-cmd -f .env.ear.e2e npm start";
+// npm resolves the sample's env-cmd dependency and loads .env.ear.e2e.
+const EAR_START_CMD = "npm run start:ear:e2e";
 const EXPRESS_SAMPLE_ROOT = path.join(__dirname, "..");
 
 // ?ear=true forces EAR protocol (see earConfig.js).
