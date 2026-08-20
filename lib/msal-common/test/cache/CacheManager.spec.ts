@@ -31,7 +31,9 @@ import {
     generateAccountKey,
     generateCredentialKey,
     mockCrypto,
+    mockTokenBindingKeyManager,
 } from "../client/ClientTestUtils.js";
+import { Logger } from "../../src/logger/Logger.js";
 import {
     CACHE_MOCKS,
     GUEST_ID_TOKEN_CLAIMS,
@@ -52,12 +54,18 @@ import { MockCache } from "./MockCache.js";
 
 describe("CacheManager.ts test cases", () => {
     const DPOP_AUTHENTICATION_SCHEME = "dpop" as AuthenticationScheme;
-    const mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockCrypto, {
-        canonicalAuthority: TEST_CONFIG.validAuthority,
-        cloudDiscoveryMetadata: JSON.parse(TEST_CONFIG.CLOUD_DISCOVERY_METADATA)
-            .metadata,
-        knownAuthorities: [TEST_CONFIG.validAuthorityHost],
-    });
+    const mockCache = new MockCache(
+        CACHE_MOCKS.MOCK_CLIENT_ID,
+        mockCrypto,
+        {
+            canonicalAuthority: TEST_CONFIG.validAuthority,
+            cloudDiscoveryMetadata: JSON.parse(
+                TEST_CONFIG.CLOUD_DISCOVERY_METADATA
+            ).metadata,
+            knownAuthorities: [TEST_CONFIG.validAuthorityHost],
+        },
+        mockTokenBindingKeyManager
+    );
     let authorityMetadataStub: jest.SpyInstance;
     beforeEach(async () => {
         await mockCache.initializeCache();
@@ -279,7 +287,7 @@ describe("CacheManager.ts test cases", () => {
             );
         });
 
-        it("requires request-context keyId metadata for accessToken with Auth Scheme (dpop)", () => {
+        it("requires cached keyId metadata for accessToken with Auth Scheme (dpop)", () => {
             expect(() =>
                 CacheHelpers.createAccessTokenEntity(
                     "someUid.someUtid",
@@ -2198,7 +2206,48 @@ describe("CacheManager.ts test cases", () => {
         };
 
         const removeTokenBindingKeySpy = jest.spyOn(
-            mockCrypto,
+            mockTokenBindingKeyManager,
+            "removeTokenBindingKey"
+        );
+
+        const atKey = generateCredentialKey(atWithAuthScheme);
+        expect(mockCache.cacheManager.getAccessTokenCredential(atKey)).toEqual(
+            atWithAuthScheme
+        );
+        mockCache.cacheManager.removeAccessToken(atKey, RANDOM_TEST_GUID);
+        expect(
+            mockCache.cacheManager.getAccessTokenCredential(atKey)
+        ).toBeNull();
+        expect(removeTokenBindingKeySpy.mock.calls[0][0]).toEqual(
+            atWithAuthScheme.keyId
+        );
+    });
+
+    it("removes token binding key when removeAccessToken is called for a DPoP AccessToken_With_AuthScheme credential", async () => {
+        const atWithAuthScheme = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            TEST_DPOP_VALUES.ACCESS_TOKEN,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            "microsoft",
+            "scope1 scope2 scope3",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            TEST_CONFIG.CORRELATION_ID,
+            undefined,
+            DPOP_AUTHENTICATION_SCHEME,
+            undefined,
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            atWithAuthScheme,
+            RANDOM_TEST_GUID,
+            false
+        );
+
+        const removeTokenBindingKeySpy = jest.spyOn(
+            mockTokenBindingKeyManager,
             "removeTokenBindingKey"
         );
 
@@ -2210,6 +2259,51 @@ describe("CacheManager.ts test cases", () => {
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
         expect(removeTokenBindingKeySpy.mock.calls[0][0]).toEqual(
             atWithAuthScheme.keyId
+        );
+    });
+
+    it("does not log token binding key ID when DPoP key removal fails", async () => {
+        const atWithAuthScheme = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            TEST_DPOP_VALUES.ACCESS_TOKEN,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            "microsoft",
+            "scope1 scope2 scope3",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            TEST_CONFIG.CORRELATION_ID,
+            undefined,
+            DPOP_AUTHENTICATION_SCHEME,
+            undefined,
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            atWithAuthScheme,
+            RANDOM_TEST_GUID,
+            false
+        );
+
+        jest.spyOn(
+            mockTokenBindingKeyManager,
+            "removeTokenBindingKey"
+        ).mockRejectedValueOnce(new Error("remove failed"));
+        const loggerErrorSpy = jest.spyOn(Logger.prototype, "error");
+
+        mockCache.cacheManager.removeAccessToken(
+            generateCredentialKey(atWithAuthScheme),
+            RANDOM_TEST_GUID
+        );
+        await Promise.resolve();
+
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
+            "Failed to remove token binding key",
+            RANDOM_TEST_GUID
+        );
+        expect(loggerErrorSpy).not.toHaveBeenCalledWith(
+            expect.stringContaining(TEST_DPOP_VALUES.ACCESS_TOKEN_JKT),
+            expect.anything()
         );
     });
 
@@ -2231,7 +2325,7 @@ describe("CacheManager.ts test cases", () => {
         };
 
         const removeTokenBindingKeySpy = jest.spyOn(
-            mockCrypto,
+            mockTokenBindingKeyManager,
             "removeTokenBindingKey"
         );
 
@@ -2740,7 +2834,7 @@ describe("CacheManager.ts test cases", () => {
         ).toEqual(mockedSshAtEntity);
     });
 
-    it("getAccessToken only uses sshKid as request key context for SSH", async () => {
+    it("getAccessToken does not use sshKid to match DPoP access tokens", async () => {
         const mockedAtEntity = CacheHelpers.createAccessTokenEntity(
             "uid.utid",
             "login.microsoftonline.com",
@@ -2873,7 +2967,7 @@ describe("CacheManager.ts test cases", () => {
                 mockedAccountInfo,
                 dpopSilentFlowRequest
             )
-        ).toBeNull();
+        ).toBe(mockedDpopAtEntity);
     });
 
     it("schema-compat upgrade: legacy and partitioned access tokens can coexist and resolve correctly", async () => {
@@ -3048,6 +3142,81 @@ describe("CacheManager.ts test cases", () => {
         ).toBeNull();
     });
 
+    it("getAccessToken uses the cached access token key id for DPoP", async () => {
+        const dpopAtEntity = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            TEST_DPOP_VALUES.ACCESS_TOKEN,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            TEST_CONFIG.TENANT,
+            "user.read",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            TEST_CONFIG.CORRELATION_ID,
+            500,
+            DPOP_AUTHENTICATION_SCHEME,
+            undefined,
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+        );
+        const mockedAccount: AccountEntity = CacheManager.toObject(
+            {} as AccountEntity,
+            {
+                username: "John Doe",
+                localAccountId: "uid",
+                realm: "common",
+                environment: "login.microsoftonline.com",
+                homeAccountId: "uid.utid",
+                authorityType: "MSSTS",
+                clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+            }
+        );
+        const mockedAccountInfo: AccountInfo = {
+            homeAccountId: "uid.utid",
+            localAccountId: "uid",
+            environment: "login.microsoftonline.com",
+            tenantId: TEST_CONFIG.TENANT,
+            username: "John Doe",
+            loginHint: "testLoginHint",
+        };
+        const dpopRequest: CommonSilentFlowRequest = {
+            scopes: ["user.read"],
+            account: mockedAccountInfo,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false,
+            authenticationScheme: DPOP_AUTHENTICATION_SCHEME,
+            resourceRequestMethod: "GET",
+            resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+        };
+
+        await mockCache.cacheManager.setAccessTokenCredential(
+            dpopAtEntity,
+            "",
+            false
+        );
+        await mockCache.cacheManager.setAccount(mockedAccount);
+
+        expect(
+            mockCache.cacheManager.getAccessToken(mockedAccountInfo, {
+                ...dpopRequest,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+            })
+        ).toEqual(dpopAtEntity);
+        expect(
+            mockCache.cacheManager.getAccessToken(mockedAccountInfo, {
+                ...dpopRequest,
+                dpopJkt: "different-jkt",
+            })
+        ).toEqual(dpopAtEntity);
+        expect(
+            mockCache.cacheManager.getAccessToken(
+                mockedAccountInfo,
+                dpopRequest
+            )
+        ).toEqual(dpopAtEntity);
+    });
+
     it("getAccessTokensByFilter matches DPoP access tokens by tokenType and jkt", async () => {
         const SPEC_DPOP_AUTHENTICATION_SCHEME = "DPoP" as AuthenticationScheme;
         const mockedDpopAtEntity = CacheHelpers.createAccessTokenEntity(
@@ -3136,7 +3305,7 @@ describe("CacheManager.ts test cases", () => {
                 },
                 TEST_CONFIG.CORRELATION_ID
             )
-        ).toEqual([]);
+        ).toEqual([mockedDpopAtEntity, specCasedDpopAtEntity]);
         expect(
             mockCache.cacheManager.getAccessTokensByFilter(
                 {
@@ -3146,7 +3315,7 @@ describe("CacheManager.ts test cases", () => {
                 },
                 TEST_CONFIG.CORRELATION_ID
             )
-        ).toEqual([]);
+        ).toEqual([mockedDpopAtEntity, specCasedDpopAtEntity]);
     });
 
     it("getAccountsFilteredBy nativeAccountId", () => {

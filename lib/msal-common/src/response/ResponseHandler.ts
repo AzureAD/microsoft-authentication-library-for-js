@@ -28,6 +28,7 @@ import * as AccountEntityUtils from "../cache/utils/AccountEntityUtils.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import { ICrypto } from "../crypto/ICrypto.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
+import { DpopProofGenerator } from "../crypto/DpopProofGenerator.js";
 import {
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     ITokenBindingKeyManager,
@@ -252,7 +253,31 @@ export class ResponseHandler {
 
         // Add keyId from request to serverTokenResponse if defined
         serverTokenResponse.key_id =
-            serverTokenResponse.key_id || request.sshKid || undefined;
+            serverTokenResponse.key_id ||
+            request.dpopJkt ||
+            request.sshKid ||
+            undefined;
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            if (
+                serverTokenResponse.token_type?.toLowerCase() !==
+                Constants.AuthenticationScheme.DPOP.toLowerCase()
+            ) {
+                this.performanceClient?.addFields(
+                    {
+                        dpopTokenTypeMismatch: serverTokenResponse.token_type,
+                    },
+                    request.correlationId
+                );
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.dpopTokenTypeMismatch,
+                    request.correlationId
+                );
+            }
+            serverTokenResponse.token_type =
+                Constants.AuthenticationScheme.DPOP;
+        }
 
         // Compute components once for entity storage (fallback if hash not provided by client)
         const attributeTokenPartition = CacheHelpers.serializeAttributeTokens(
@@ -570,8 +595,11 @@ export class ResponseHandler {
         let extExpiresOn: Date | undefined;
         let refreshOn: Date | undefined;
         let familyId: string = "";
+        let dpopProof: string | undefined;
 
         if (cacheRecord.accessToken) {
+            const accessTokenType =
+                cacheRecord.accessToken.tokenType?.toLowerCase();
             /*
              * if the request object has `popKid` property, `signPopToken` will be set to false and
              * the token will be returned unsigned
@@ -603,6 +631,30 @@ export class ResponseHandler {
                 );
             } else {
                 accessToken = cacheRecord.accessToken.secret;
+            }
+            if (
+                accessTokenType ===
+                Constants.AuthenticationScheme.DPOP.toLowerCase()
+            ) {
+                if (!cacheRecord.accessToken.keyId) {
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.keyIdMissing,
+                        request.correlationId
+                    );
+                }
+                const dpopProofGenerator = new DpopProofGenerator(
+                    cryptoObj,
+                    tokenBindingKeyManager
+                );
+                dpopProof = await dpopProofGenerator.generateResourceProof(
+                    {
+                        htu: request.resourceRequestUri,
+                        htm: request.resourceRequestMethod,
+                        accessToken: cacheRecord.accessToken.secret,
+                    },
+                    cacheRecord.accessToken.keyId,
+                    request.correlationId
+                );
             }
             responseScopes = ScopeSet.fromString(
                 cacheRecord.accessToken.target,
@@ -680,6 +732,7 @@ export class ResponseHandler {
             idToken: cacheRecord?.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,
+            dpopProof,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
             extExpiresOn: extExpiresOn,
@@ -687,7 +740,11 @@ export class ResponseHandler {
             correlationId: request.correlationId,
             requestId: requestId || "",
             familyId: familyId,
-            tokenType: cacheRecord.accessToken?.tokenType || "",
+            tokenType:
+                cacheRecord.accessToken?.tokenType?.toLowerCase() ===
+                Constants.AuthenticationScheme.DPOP.toLowerCase()
+                    ? Constants.AuthenticationScheme.DPOP
+                    : cacheRecord.accessToken?.tokenType || "",
             state: requestState ? requestState.userRequestState : "",
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || "",
             msGraphHost: cacheRecord.account?.msGraphHost || "",

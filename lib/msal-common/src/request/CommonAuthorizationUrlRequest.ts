@@ -73,4 +73,9 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
      * Indicates whether this authorization request is being initiated by a platform authentication broker instead of a standard web flow.
      */
     platformBroker?: boolean;
+    /**
+     * Precomputed req_cnf value for platform-broker PoP authorization requests.
+     * @internal
+     */
+    reqCnf?: string;
 };

@@ -6,3 +6,5 @@ MSAL will return an `AuthenticationResult.ts` object as a response to all acquir
 `loginPopup`, `acquireTokenPopup`, `acquireTokenSilent` or `handleRedirectPromise`
 
 Reference docs for `AuthenticationResult` expanding on each parameter can be found [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/classes/_src_response_authenticationresult_.authenticationresult.html).
+
+When a request uses `AuthenticationScheme.DPOP`, `AuthenticationResult.accessToken` contains the raw sender-constrained access token and `AuthenticationResult.dpopProof` contains a separate proof JWT for the requested resource. MSAL generates a fresh `dpopProof` for each successful acquisition, including cache hits, and does not cache proof JWTs.
