@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "[Breaking] Default acquireTokenInteractive responseMode to form_post and remove the deprecated loopbackClient option and ILoopbackClient interface (v6)",
+  "packageName": "@azure/msal-node",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "major"
+}
