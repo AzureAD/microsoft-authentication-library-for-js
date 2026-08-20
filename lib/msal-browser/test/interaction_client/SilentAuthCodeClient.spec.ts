@@ -13,6 +13,7 @@ import {
     RANDOM_TEST_GUID,
     testNavUrl,
     TEST_TOKEN_RESPONSE,
+    getTestAuthenticationResult,
 } from "../utils/StringConstants.js";
 import {
     AccountInfo,
@@ -177,6 +178,41 @@ describe("SilentAuthCodeClient", () => {
                 false
             );
             expect(tokenResp).toEqual(testTokenResponse);
+        });
+
+        it("passes generated DPoP key id to auth code token request", async () => {
+            const testTokenResponse = getTestAuthenticationResult();
+            let capturedAuthCodeRequest: unknown;
+            jest.spyOn(
+                (silentAuthCodeClient as any).tokenBindingKeyManager,
+                "provisionTokenBindingKey"
+            ).mockResolvedValue("test-dpop-jkt");
+            jest.spyOn(
+                InteractionHandler.prototype,
+                "handleCodeResponseFromServer"
+            ).mockImplementation(function (this: InteractionHandler) {
+                capturedAuthCodeRequest = (this as any).authCodeRequest;
+                return Promise.resolve(testTokenResponse);
+            });
+            jest.spyOn(CryptoOps.prototype, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            await silentAuthCodeClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                code: "test-code",
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            });
+
+            expect(capturedAuthCodeRequest).toEqual(
+                expect.objectContaining({
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    dpopJkt: "test-dpop-jkt",
+                    code: "test-code",
+                })
+            );
         });
 
         describe("storeInCache tests", () => {

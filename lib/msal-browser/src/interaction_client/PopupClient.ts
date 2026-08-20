@@ -26,6 +26,10 @@ import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
+import {
+    getTokenBindingRequestParams,
+    validateRequestMethod,
+} from "../request/RequestHelpers.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { EventType } from "../event/EventType.js";
 import {
@@ -61,7 +65,6 @@ import {
     getDiscoveredAuthority,
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
-import { validateRequestMethod } from "../request/RequestHelpers.js";
 
 /**
  * Signature of the popup-response handler supplied by
@@ -337,9 +340,16 @@ export class PopupClient extends StandardInteractionClient {
                 correlationId
             )(this.performanceClient, this.logger, correlationId));
 
+        const tokenBindingParams = await getTokenBindingRequestParams(
+            request,
+            this.tokenBindingKeyManager,
+            this.logger,
+            this.performanceClient
+        );
         const popupRequest = {
             ...request,
             codeChallenge: pkce.challenge,
+            ...tokenBindingParams,
         };
 
         try {
@@ -438,7 +448,7 @@ export class PopupClient extends StandardInteractionClient {
                     this.performanceClient,
                     correlationId
                 )(
-                    request,
+                    popupRequest,
                     serverParams,
                     pkce.verifier,
                     ApiId.acquireTokenPopup,
@@ -515,10 +525,17 @@ export class PopupClient extends StandardInteractionClient {
                 this.performanceClient,
                 correlationId
             )(this.performanceClient, this.logger, correlationId));
+        const tokenBindingParams = await getTokenBindingRequestParams(
+            request,
+            this.tokenBindingKeyManager,
+            this.logger,
+            this.performanceClient
+        );
         const popupRequest = {
             ...request,
             earJwk: earJwk,
             codeChallenge: pkce.challenge,
+            ...tokenBindingParams,
         };
         const popupWindow = await this.openPostFormPopup(
             popupRequest,

@@ -87,6 +87,7 @@ export const OIDC_SCOPES = [...OIDC_DEFAULT_SCOPES, EMAIL_SCOPE];
 export const HeaderNames = {
     CONTENT_TYPE: "Content-Type",
     CONTENT_LENGTH: "Content-Length",
+    DPOP: "DPoP",
     RETRY_AFTER: "Retry-After",
     CCS_HEADER: "X-AnchorMailbox",
     WWWAuthenticate: "WWW-Authenticate",
@@ -265,6 +266,7 @@ export const SERVER_TELEM_UNKNOWN_ERROR: string = "unknown_error";
 export const AuthenticationScheme = {
     BEARER: "Bearer",
     POP: "pop",
+    DPOP: "DPoP",
     SSH: "ssh-cert",
 } as const;
 export type AuthenticationScheme =
