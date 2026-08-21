@@ -92,6 +92,9 @@ extends:
                             - name: "DPoP"
                               dir: "ExpressSample"
                               testFilter: "dpop\\.spec"
+                            - name: "ExpressSample-EAR"
+                              dir: "ExpressSample"
+                              testFilter: "ear-basic"
                             - name: "NativeAuthSample"
                             # - name: "NestedAuthAppSample"
                         debug: ${{ parameters.debug }}
