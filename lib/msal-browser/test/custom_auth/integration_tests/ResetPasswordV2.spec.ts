@@ -73,7 +73,6 @@ const CHALLENGE_RESPONSE = {
     type: "email",
     _links: {
         verify: { href: "/tenant/api/v0.1/verify" },
-        resend: { href: "/tenant/api/v0.1/resend" },
     },
 };
 
@@ -145,7 +144,7 @@ describe("Reset password V2 (SSPR)", () => {
             return startResult.state as AuthenticationMethodSelectionRequiredState;
         };
 
-    it("resets the password and signs the user in on the happy path", async () => {
+    it("appends OIDC scopes and caches the ID token when the app requests only an API scope", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE)) // 1. authorize-challenge entry
             .mockResolvedValueOnce(buildResponse(START_RESPONSE)) // 2. resetpassword start
@@ -184,7 +183,9 @@ describe("Reset password V2 (SSPR)", () => {
         expect(submitResult.state).toBeInstanceOf(V2SignInContinuationState);
 
         const signInState = submitResult.state as V2SignInContinuationState;
-        const signInResult = await signInState.signIn();
+        const signInResult = await signInState.signIn({
+            scopes: ["User.Read"],
+        });
         expect(signInResult.isFailed()).toBe(false);
         expect(signInResult.isState("completed")).toBe(true);
         expect(signInResult.state).toBeInstanceOf(CompletedState);
@@ -195,6 +196,11 @@ describe("Reset password V2 (SSPR)", () => {
 
         // Entry + start + challenge + verify + update + poll + continue + token.
         expect(fetch as jest.Mock).toHaveBeenCalledTimes(8);
+        const tokenRequest = (fetch as jest.Mock).mock.calls[7][1];
+        expect(tokenRequest.body).toBeInstanceOf(URLSearchParams);
+        expect((tokenRequest.body as URLSearchParams).get("scope")).toBe(
+            "User.Read openid profile offline_access"
+        );
     });
 
     it("surfaces an invalid-code failure while awaiting a valid code", async () => {

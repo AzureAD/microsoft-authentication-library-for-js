@@ -67,21 +67,15 @@ export class CustomAuthV2ApiClient extends V2BaseApiClient {
     }
 
     /*
-     * Starts the reset-password flow using the link returned by authorize-challenge.
+     * Starts the reset-password flow using a server-provided link.
      */
     async resetPasswordStart(
-        username: string,
+        resetPasswordHref: string | undefined,
+        request: ResetPasswordStartV2Request,
         context: V2RequestContext
     ): Promise<V2StartResult> {
-        const entryResult = await this.authorizeChallengeStart(context);
-
-        const request: ResetPasswordStartV2Request = {
-            username,
-            continuationToken: entryResult.continuationToken,
-        };
-
         const startHref = this.handler.requireHref(
-            entryResult.resetPasswordHref,
+            resetPasswordHref,
             "reset-password",
             context.correlationId,
             {
@@ -154,7 +148,6 @@ export class CustomAuthV2ApiClient extends V2BaseApiClient {
                 "verify",
                 parsedResponse.correlationId
             ),
-            resendHref: parsedResponse.body._links?.resend?.href,
             codeLength:
                 parsedResponse.body.codeLength ??
                 parsedResponse.body.payload?.codeLength,

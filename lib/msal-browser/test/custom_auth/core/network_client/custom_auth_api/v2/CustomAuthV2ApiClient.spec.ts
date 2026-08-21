@@ -60,85 +60,21 @@ describe("CustomAuthV2ApiClient", () => {
         jest.resetAllMocks();
     });
 
-    describe("resetPasswordStart", () => {
-        it("throws NO_AUTHENTICATION_METHODS when the start response advertises no embedded methods", async () => {
-            mockHttpClient.sendAsync
-                .mockResolvedValueOnce(
-                    buildResponse({
-                        continuation_token: "ct-entry",
-                        reset_password: RESET_PASSWORD_HREF,
-                    })
-                )
-                .mockResolvedValueOnce(
-                    buildResponse({
-                        continuationToken: "ct-start",
-                        _links: {
-                            challenge: { href: "/tenant/api/v0.1/challenge" },
-                        },
-                    })
-                );
-
-            await expect(
-                apiClient.resetPasswordStart("user@test.com", context)
-            ).rejects.toMatchObject({ error: NO_AUTHENTICATION_METHODS });
-        });
-
-        it("prefers the challenge href on an embedded method", async () => {
-            mockHttpClient.sendAsync
-                .mockResolvedValueOnce(
-                    buildResponse({
-                        continuation_token: "ct-entry",
-                        reset_password: RESET_PASSWORD_HREF,
-                    })
-                )
-                .mockResolvedValueOnce(
-                    buildResponse({
-                        continuationToken: "ct-start",
-                        scenario: "recovery",
-                        _embedded: {
-                            methods: [
-                                {
-                                    _links: {
-                                        challenge: {
-                                            href: "/tenant/api/v0.1/methods/email/challenge",
-                                        },
-                                    },
-                                },
-                            ],
-                        },
-                        _links: {
-                            challenge: { href: "/tenant/api/v0.1/top-level" },
-                        },
-                    })
-                );
-
-            const result = await apiClient.resetPasswordStart(
-                "user@test.com",
-                context
-            );
-
-            expect(result.continuationToken).toBe("ct-start");
-            expect(result.scenario).toBe("recovery");
-            expect(result.methods[0].challengeHref).toBe(
-                "/tenant/api/v0.1/methods/email/challenge"
-            );
-
-            // First call = entry (form), second call = HAL start posted to the resolved href.
-            expect(mockHttpClient.sendAsync).toHaveBeenCalledTimes(2);
-            const [startUrl] = mockHttpClient.sendAsync.mock.calls[1];
-            expect(startUrl.href).toBe(
-                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/auth/resetpassword?dc=X"
-            );
-        });
-
-        it("throws RESET_PASSWORD_UNSUPPORTED when the entry lacks a reset-password href", async () => {
+    describe("authorizeChallengeStart", () => {
+        it("returns the continuation token and flow links", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
-                buildResponse({ continuation_token: "ct-entry" })
+                buildResponse({
+                    continuation_token: "ct-entry",
+                    reset_password: RESET_PASSWORD_HREF,
+                })
             );
 
             await expect(
-                apiClient.resetPasswordStart("user@test.com", context)
-            ).rejects.toMatchObject({ error: RESET_PASSWORD_UNSUPPORTED });
+                apiClient.authorizeChallengeStart(context)
+            ).resolves.toEqual({
+                continuationToken: "ct-entry",
+                resetPasswordHref: RESET_PASSWORD_HREF,
+            });
         });
 
         it("throws the normalized server error when the entry has no continuation token", async () => {
@@ -153,7 +89,7 @@ describe("CustomAuthV2ApiClient", () => {
             );
 
             await expect(
-                apiClient.resetPasswordStart("user@test.com", context)
+                apiClient.authorizeChallengeStart(context)
             ).rejects.toMatchObject({ error: "invalid_request" });
         });
 
@@ -163,15 +99,90 @@ describe("CustomAuthV2ApiClient", () => {
             );
 
             await expect(
-                apiClient.resetPasswordStart("user@test.com", context)
+                apiClient.authorizeChallengeStart(context)
             ).rejects.toMatchObject({
                 error: CONTINUATION_TOKEN_MISSING,
             });
         });
     });
 
+    describe("resetPasswordStart", () => {
+        const request = {
+            username: "user@test.com",
+            continuationToken: "ct-entry",
+        };
+
+        it("throws NO_AUTHENTICATION_METHODS when the start response advertises no embedded methods", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-start",
+                    _links: {
+                        challenge: { href: "/tenant/api/v0.1/challenge" },
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.resetPasswordStart(
+                    RESET_PASSWORD_HREF,
+                    request,
+                    context
+                )
+            ).rejects.toMatchObject({ error: NO_AUTHENTICATION_METHODS });
+        });
+
+        it("prefers the challenge href on an embedded method", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-start",
+                    scenario: "recovery",
+                    _embedded: {
+                        methods: [
+                            {
+                                _links: {
+                                    challenge: {
+                                        href: "/tenant/api/v0.1/methods/email/challenge",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                    _links: {
+                        challenge: { href: "/tenant/api/v0.1/top-level" },
+                    },
+                })
+            );
+
+            const result = await apiClient.resetPasswordStart(
+                RESET_PASSWORD_HREF,
+                request,
+                context
+            );
+
+            expect(result.continuationToken).toBe("ct-start");
+            expect(result.scenario).toBe("recovery");
+            expect(result.methods[0].challengeHref).toBe(
+                "/tenant/api/v0.1/methods/email/challenge"
+            );
+
+            expect(mockHttpClient.sendAsync).toHaveBeenCalledTimes(1);
+            const [startUrl] = mockHttpClient.sendAsync.mock.calls[0];
+            expect(startUrl.href).toBe(
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/auth/resetpassword?dc=X"
+            );
+        });
+
+        it("throws RESET_PASSWORD_UNSUPPORTED when the href is missing", async () => {
+            await expect(
+                apiClient.resetPasswordStart(undefined, request, context)
+            ).rejects.toMatchObject({ error: RESET_PASSWORD_UNSUPPORTED });
+
+            expect(mockHttpClient.sendAsync).not.toHaveBeenCalled();
+        });
+    });
+
     describe("requestChallenge", () => {
-        it("returns the verify href, resend href and OTP metadata", async () => {
+        it("returns the verify href and challenge metadata", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     continuationToken: "ct-challenge",
@@ -179,7 +190,6 @@ describe("CustomAuthV2ApiClient", () => {
                     hint: "u***@test.com",
                     _links: {
                         verify: { href: "/tenant/api/v0.1/verify" },
-                        resend: { href: "/tenant/api/v0.1/resend" },
                     },
                 })
             );
@@ -193,7 +203,6 @@ describe("CustomAuthV2ApiClient", () => {
             expect(result).toEqual({
                 continuationToken: "ct-challenge",
                 verifyHref: "/tenant/api/v0.1/verify",
-                resendHref: "/tenant/api/v0.1/resend",
                 codeLength: 6,
                 hint: "u***@test.com",
             });
@@ -213,9 +222,8 @@ describe("CustomAuthV2ApiClient", () => {
                 { continuationToken: "ct-start" },
                 context
             );
-
             expect(result.codeLength).toBe(8);
-            expect(result.resendHref).toBeUndefined();
+            expect(result.codeLength).toBe(8);
         });
     });
 

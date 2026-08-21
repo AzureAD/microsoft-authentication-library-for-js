@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { StubbedNetworkModule } from "@azure/msal-common/browser";
+import { Logger, StubbedNetworkModule } from "@azure/msal-common/browser";
 import { V2FlowInteractionClient } from "../../../../../src/custom_auth/core/interaction_client/v2/V2FlowInteractionClient.js";
 import {
     V2_FLOW_METHOD_SELECTION_REQUIRED,
@@ -34,9 +34,11 @@ import {
 
 describe("V2FlowInteractionClient", () => {
     let client: V2FlowInteractionClient;
+    let logger: Logger;
     let apiClient: jest.Mocked<
         Pick<
             CustomAuthV2ApiClient,
+            | "authorizeChallengeStart"
             | "resetPasswordStart"
             | "requestChallenge"
             | "verifyChallenge"
@@ -54,7 +56,7 @@ describe("V2FlowInteractionClient", () => {
             { auth: { clientId: clientId } },
             false
         );
-        const logger = getDefaultLogger();
+        logger = getDefaultLogger();
         const performanceClient = getDefaultPerformanceClient(clientId);
         const eventHandler = getDefaultEventHandler();
         const crypto = getDefaultCrypto(clientId, logger, performanceClient);
@@ -78,6 +80,7 @@ describe("V2FlowInteractionClient", () => {
         );
 
         apiClient = {
+            authorizeChallengeStart: jest.fn(),
             resetPasswordStart: jest.fn(),
             requestChallenge: jest.fn(),
             verifyChallenge: jest.fn(),
@@ -87,6 +90,7 @@ describe("V2FlowInteractionClient", () => {
         } as unknown as jest.Mocked<
             Pick<
                 CustomAuthV2ApiClient,
+                | "authorizeChallengeStart"
                 | "resetPasswordStart"
                 | "requestChallenge"
                 | "verifyChallenge"
@@ -116,6 +120,10 @@ describe("V2FlowInteractionClient", () => {
 
     describe("resetPassword", () => {
         it("runs the entry and returns a method-selection result without sending a challenge", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                resetPasswordHref: "https://endpoint/reset-password",
+            });
             apiClient.resetPasswordStart.mockResolvedValue({
                 continuationToken: "ct-start",
                 methods: [
@@ -133,8 +141,15 @@ describe("V2FlowInteractionClient", () => {
                 username: "user@contoso.com",
             });
 
+            expect(apiClient.authorizeChallengeStart).toHaveBeenCalledWith(
+                expect.objectContaining({ correlationId })
+            );
             expect(apiClient.resetPasswordStart).toHaveBeenCalledWith(
-                "user@contoso.com",
+                "https://endpoint/reset-password",
+                {
+                    username: "user@contoso.com",
+                    continuationToken: "ct-entry",
+                },
                 expect.objectContaining({ correlationId })
             );
             expect(apiClient.requestChallenge).not.toHaveBeenCalled();
@@ -171,7 +186,6 @@ describe("V2FlowInteractionClient", () => {
             apiClient.requestChallenge.mockResolvedValue({
                 continuationToken: "ct-challenge",
                 verifyHref: "https://endpoint/verify",
-                resendHref: "https://endpoint/resend",
                 codeLength: 6,
                 hint: "u***@contoso.com",
                 channel: "email",
@@ -198,8 +212,8 @@ describe("V2FlowInteractionClient", () => {
                 continuationToken: "ct-challenge",
                 scenario: "passwordReset",
                 links: {
+                    challenge: "https://endpoint/challenge",
                     verify: "https://endpoint/verify",
-                    resend: "https://endpoint/resend",
                 },
             });
         });
@@ -224,8 +238,8 @@ describe("V2FlowInteractionClient", () => {
             continuationToken: "ct-challenge",
             scenario: "passwordReset",
             links: {
+                challenge: "https://endpoint/challenge",
                 verify: "https://endpoint/verify",
-                resend: "https://endpoint/resend",
             },
         };
 
@@ -273,6 +287,30 @@ describe("V2FlowInteractionClient", () => {
 
             expect(apiClient.verifyChallenge).not.toHaveBeenCalled();
         });
+
+        it("logs an error when verification returns an unexpected next action", async () => {
+            const errorSpy = jest.spyOn(
+                Reflect.get(client, "logger") as Logger,
+                "error"
+            );
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "continue",
+                continuationToken: "ct-verify",
+            });
+
+            await expect(
+                client.submitCode({
+                    correlationId,
+                    continuationState,
+                    code: "123456",
+                })
+            ).rejects.toThrow();
+
+            expect(errorSpy).toHaveBeenCalledWith(
+                "Unexpected verify outcome 'continue' for the current flow.",
+                correlationId
+            );
+        });
     });
 
     describe("resendCode", () => {
@@ -280,8 +318,8 @@ describe("V2FlowInteractionClient", () => {
             continuationToken: "ct-challenge",
             scenario: "passwordReset",
             links: {
+                challenge: "https://endpoint/challenge",
                 verify: "https://endpoint/verify",
-                resend: "https://endpoint/resend",
             },
         };
 
@@ -289,7 +327,6 @@ describe("V2FlowInteractionClient", () => {
             apiClient.requestChallenge.mockResolvedValue({
                 continuationToken: "ct-challenge-2",
                 verifyHref: "https://endpoint/verify-2",
-                resendHref: "https://endpoint/resend-2",
                 codeLength: 8,
                 hint: "u***@contoso.com",
                 channel: "email",
@@ -301,7 +338,7 @@ describe("V2FlowInteractionClient", () => {
             });
 
             expect(apiClient.requestChallenge).toHaveBeenCalledWith(
-                "https://endpoint/resend",
+                "https://endpoint/challenge",
                 { continuationToken: "ct-challenge" },
                 expect.objectContaining({ correlationId })
             );
@@ -317,13 +354,13 @@ describe("V2FlowInteractionClient", () => {
                 continuationToken: "ct-challenge-2",
                 scenario: "passwordReset",
                 links: {
+                    challenge: "https://endpoint/challenge",
                     verify: "https://endpoint/verify-2",
-                    resend: "https://endpoint/resend-2",
                 },
             });
         });
 
-        it("throws when the continuation is missing the resend link", async () => {
+        it("throws when the continuation is missing the challenge link", async () => {
             await expect(
                 client.resendCode({
                     correlationId,
@@ -472,6 +509,10 @@ describe("V2FlowInteractionClient", () => {
         });
         it("throws a timeout error when polling never completes", async () => {
             jest.useFakeTimers();
+            const errorSpy = jest.spyOn(
+                Reflect.get(client, "logger") as Logger,
+                "error"
+            );
             apiClient.submitNewPassword.mockResolvedValue({
                 continuationToken: "ct-update",
                 pollHref: "https://endpoint/poll",
@@ -495,6 +536,10 @@ describe("V2FlowInteractionClient", () => {
             await assertion;
 
             expect(apiClient.poll).toHaveBeenCalledTimes(5);
+            expect(errorSpy).toHaveBeenCalledWith(
+                "The password reset did not complete within the allotted number of polling attempts.",
+                correlationId
+            );
         });
 
         it("throws when the continuation is missing the update link", async () => {

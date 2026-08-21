@@ -52,8 +52,8 @@ export interface AuthorizeChallengeEntryResponse extends V2OAuthErrorResponse {
 
 /*
  * Challenge response for a selected authentication method. OTP responses add
- * delivery metadata and an optional resend link to the common verify relation.
- * Additional method types can extend the response union in the future.
+ * delivery metadata to the common verify relation. Additional method types can
+ * extend the response union in the future.
  */
 interface ChallengeV2ResponseBase extends V2HalResponseBase {
     id?: string;
@@ -67,10 +67,6 @@ interface OtpChallengeV2Response extends ChallengeV2ResponseBase {
     hint?: string;
     codeLength?: number;
     payload?: { codeLength?: number };
-    _links?: HalLinks & {
-        verify?: HalLink;
-        resend?: HalLink;
-    };
 }
 
 export type ChallengeV2Response = OtpChallengeV2Response;

@@ -108,8 +108,15 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
             correlationId
         );
 
+        const entryResult = await this.apiClient.authorizeChallengeStart(
+            context
+        );
         const startResult = await this.apiClient.resetPasswordStart(
-            parameters.username,
+            entryResult.resetPasswordHref,
+            {
+                username: parameters.username,
+                continuationToken: entryResult.continuationToken,
+            },
             context
         );
 
@@ -141,39 +148,12 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
     async requestChallenge(
         parameters: V2FlowRequestChallengeParams
     ): Promise<V2FlowCodeRequiredResult> {
-        const continuationState = parameters.continuationState;
-        const correlationId = parameters.correlationId;
-        const context = this.createRequestContext(
-            this.resolveStepApiId(
-                continuationState.scenario,
-                "requestChallenge",
-                correlationId
-            ),
-            correlationId
+        return this.requestMethodChallenge(
+            parameters,
+            parameters.continuationState.links.challenge,
+            "requestChallenge",
+            "Requesting V2 challenge."
         );
-
-        this.logger.verbose("Requesting V2 challenge.", correlationId);
-
-        const challengeResult = await this.apiClient.requestChallenge(
-            this.requireLink(correlationId, continuationState.links.challenge),
-            { continuationToken: continuationState.continuationToken },
-            context
-        );
-
-        return createV2FlowCodeRequiredResult({
-            correlationId,
-            continuationState: {
-                continuationToken: challengeResult.continuationToken,
-                scenario: continuationState.scenario,
-                links: {
-                    verify: challengeResult.verifyHref,
-                    resend: challengeResult.resendHref,
-                },
-            },
-            channel: challengeResult.channel,
-            sentTo: challengeResult.hint,
-            codeLength: challengeResult.codeLength,
-        });
     }
 
     /*
@@ -221,9 +201,12 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
                  * wired yet; SSPR's verify always yields `update`. Guard so an unexpected outcome is
                  * a clear failure rather than a silent wrong state.
                  */
+                const message = `Unexpected verify outcome '${verifyResult.nextAction}' for the current flow.`;
+                this.logger.error(message, correlationId);
+
                 throw new CustomAuthError(
                     INVALID_HAL_RESPONSE,
-                    `Unexpected verify outcome '${verifyResult.nextAction}' for the current flow.`,
+                    message,
                     correlationId
                 );
         }
@@ -236,21 +219,35 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
     async resendCode(
         parameters: V2FlowResendCodeParams
     ): Promise<V2FlowCodeRequiredResult> {
+        return this.requestMethodChallenge(
+            parameters,
+            parameters.continuationState.links.challenge,
+            "resendCode",
+            "Resending V2 one-time code."
+        );
+    }
+
+    private async requestMethodChallenge(
+        parameters: V2FlowRequestChallengeParams | V2FlowResendCodeParams,
+        challengeHref: string | undefined,
+        step: "requestChallenge" | "resendCode",
+        logMessage: string
+    ): Promise<V2FlowCodeRequiredResult> {
         const continuationState = parameters.continuationState;
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             this.resolveStepApiId(
                 continuationState.scenario,
-                "resendCode",
+                step,
                 correlationId
             ),
             correlationId
         );
 
-        this.logger.verbose("Resending V2 one-time code.", correlationId);
+        this.logger.verbose(logMessage, correlationId);
 
         const challengeResult = await this.apiClient.requestChallenge(
-            this.requireLink(correlationId, continuationState.links.resend),
+            this.requireLink(correlationId, challengeHref),
             { continuationToken: continuationState.continuationToken },
             context
         );
@@ -261,8 +258,8 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
                 continuationToken: challengeResult.continuationToken,
                 scenario: continuationState.scenario,
                 links: {
+                    challenge: challengeHref,
                     verify: challengeResult.verifyHref,
-                    resend: challengeResult.resendHref,
                 },
             },
             channel: challengeResult.channel,
@@ -327,9 +324,13 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
         }
 
         if (!completionToken) {
+            const message =
+                "The password reset did not complete within the allotted number of polling attempts.";
+            this.logger.error(message, correlationId);
+
             throw new CustomAuthError(
                 RESET_PASSWORD_TIMEOUT,
-                "The password reset did not complete within the allotted number of polling attempts.",
+                message,
                 correlationId
             );
         }

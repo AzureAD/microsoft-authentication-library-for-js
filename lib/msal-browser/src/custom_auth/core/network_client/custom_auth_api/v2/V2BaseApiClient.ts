@@ -73,7 +73,7 @@ export abstract class V2BaseApiClient {
     /*
      * Starts authorization and returns the initial continuation token and flow links.
      */
-    protected async authorizeChallengeStart(
+    async authorizeChallengeStart(
         context: V2RequestContext
     ): Promise<AuthorizeChallengeEntryResult> {
         const request: AuthorizeChallengeEntryRequest = {

@@ -39,13 +39,12 @@ export interface V2StartResult {
 }
 
 /*
- * Result of requesting a one-time code. It contains verification links and
- * display metadata shared by code-based flows.
+ * Result of requesting a challenge. It contains the verification link and
+ * optional display metadata for the selected authentication method.
  */
 export interface V2ChallengeResult {
     continuationToken: string;
     verifyHref: string;
-    resendHref?: string;
     codeLength?: number;
     hint?: string;
     channel?: string;
