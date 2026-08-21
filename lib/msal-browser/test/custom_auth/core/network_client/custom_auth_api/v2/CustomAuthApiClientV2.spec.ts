@@ -190,6 +190,7 @@ describe("CustomAuthApiClientV2", () => {
                     hint: "u***@test.com",
                     _links: {
                         verify: { href: "/tenant/api/v0.1/verify" },
+                        resend: { href: "/tenant/api/v0.1/resend" },
                     },
                 })
             );
@@ -203,6 +204,7 @@ describe("CustomAuthApiClientV2", () => {
             expect(result).toEqual({
                 continuationToken: "ct-challenge",
                 verifyHref: "/tenant/api/v0.1/verify",
+                resendHref: "/tenant/api/v0.1/resend",
                 codeLength: 6,
                 hint: "u***@test.com",
             });
@@ -443,8 +445,10 @@ describe("CustomAuthApiClientV2", () => {
                 );
 
             const result = await apiClient.completeWithTokens(
-                "ct-poll",
-                ["openid"],
+                {
+                    continuationToken: "ct-poll",
+                    scopes: ["openid"],
+                },
                 context
             );
 

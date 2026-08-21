@@ -11,9 +11,8 @@ import {
 import { InteractionClientBaseV2 } from "./InteractionClientBaseV2.js";
 import {
     FlowStartParamsV2,
-    FlowRequestChallengeParamsV2,
+    FlowChallengeParamsV2,
     FlowSubmitCodeParamsV2,
-    FlowResendCodeParamsV2,
     FlowSubmitPasswordParamsV2,
     FlowSignInWithContinuationParamsV2,
 } from "./parameter/FlowParamsV2.js";
@@ -146,14 +145,9 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      * the continuation state and code metadata needed for verification.
      */
     async requestChallenge(
-        parameters: FlowRequestChallengeParamsV2
+        parameters: FlowChallengeParamsV2
     ): Promise<FlowCodeRequiredResultV2> {
-        return this.requestMethodChallenge(
-            parameters,
-            parameters.continuationState.links.challenge,
-            "requestChallenge",
-            "Requesting V2 challenge."
-        );
+        return this.requestMethodChallenge(parameters, "requestChallenge");
     }
 
     /*
@@ -217,24 +211,21 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      * Returns refreshed continuation state and code metadata.
      */
     async resendCode(
-        parameters: FlowResendCodeParamsV2
+        parameters: FlowChallengeParamsV2
     ): Promise<FlowCodeRequiredResultV2> {
-        return this.requestMethodChallenge(
-            parameters,
-            parameters.continuationState.links.challenge,
-            "resendCode",
-            "Resending V2 one-time code."
-        );
+        return this.requestMethodChallenge(parameters, "resendCode");
     }
 
     private async requestMethodChallenge(
-        parameters: FlowRequestChallengeParamsV2 | FlowResendCodeParamsV2,
-        challengeHref: string | undefined,
-        step: "requestChallenge" | "resendCode",
-        logMessage: string
+        parameters: FlowChallengeParamsV2,
+        step: "requestChallenge" | "resendCode"
     ): Promise<FlowCodeRequiredResultV2> {
         const continuationState = parameters.continuationState;
         const correlationId = parameters.correlationId;
+        const challengeHref =
+            step === "resendCode"
+                ? continuationState.links.resend
+                : continuationState.links.challenge;
         const context = this.createRequestContext(
             this.resolveStepApiId(
                 continuationState.scenario,
@@ -244,7 +235,12 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             correlationId
         );
 
-        this.logger.verbose(logMessage, correlationId);
+        this.logger.verbose(
+            step === "resendCode"
+                ? "Resending V2 one-time code."
+                : "Requesting V2 challenge.",
+            correlationId
+        );
 
         const challengeResult = await this.apiClient.requestChallenge(
             this.requireLink(correlationId, challengeHref),
@@ -258,8 +254,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationToken: challengeResult.continuationToken,
                 scenario: continuationState.scenario,
                 links: {
-                    challenge: challengeHref,
+                    challenge: continuationState.links.challenge,
                     verify: challengeResult.verifyHref,
+                    resend:
+                        challengeResult.resendHref ??
+                        continuationState.links.resend,
                 },
             },
             channel: challengeResult.channel,
@@ -374,10 +373,12 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         const scopes = this.getScopes(parameters.scopes);
 
         const tokenResponse = await this.apiClient.completeWithTokens(
-            continuationState.continuationToken,
-            scopes,
-            context,
-            parameters.claims
+            {
+                continuationToken: continuationState.continuationToken,
+                scopes,
+                claims: parameters.claims,
+            },
+            context
         );
 
         const authenticationResult = await this.handleTokenResponse(

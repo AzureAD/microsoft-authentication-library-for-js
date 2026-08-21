@@ -4,7 +4,7 @@
  */
 
 import { OAuthErrorResponseV2, ServerErrorV2 } from "./ErrorResponsesV2.js";
-import { HalEmbedded, HalLink, HalLinks, HalResource } from "./HalResource.js";
+import { HalEmbedded, HalLink, HalResource } from "./HalResource.js";
 
 /*
  * Envelope shared by every JSON HAL response. `correlationId` is not on the HAL body -
@@ -21,13 +21,12 @@ export interface HalResponseBaseV2 extends HalResource {
 /*
  * A method embedded under `_embedded.methods[]`.
  */
-export interface EmbeddedMethodV2 extends HalResource {
+export interface EmbeddedMethodV2 extends Omit<HalResource, "_links"> {
     id?: string;
     type?: string;
     hint?: string;
-    _links?: HalLinks & {
+    _links?: {
         challenge?: HalLink;
-        verify?: HalLink;
     };
 }
 
@@ -53,14 +52,16 @@ export interface AuthorizeChallengeEntryResponseV2
 
 /*
  * Challenge response for a selected authentication method. OTP responses add
- * delivery metadata to the common verify relation. Additional method types can
- * extend the response union in the future.
+ * delivery metadata and an optional resend relation to the common verify
+ * relation. Additional method types can extend the response union in the
+ * future.
  */
-interface ChallengeResponseBaseV2 extends HalResponseBaseV2 {
+interface ChallengeResponseBaseV2 extends Omit<HalResponseBaseV2, "_links"> {
     id?: string;
     type?: string;
-    _links?: HalLinks & {
+    _links?: {
         verify?: HalLink;
+        resend?: HalLink;
     };
 }
 
@@ -86,11 +87,11 @@ export interface ResetPasswordStartResponseV2 extends HalResponseBaseV2 {
  * Credential-verification response. For password reset, the `update` relation
  * identifies where the new password is submitted.
  */
-export interface VerifyResponseV2 extends HalResponseBaseV2 {
+export interface VerifyResponseV2 extends Omit<HalResponseBaseV2, "_links"> {
     id?: string;
     type?: string;
     payload?: Record<string, unknown>;
-    _links?: HalLinks & {
+    _links?: {
         update?: HalLink;
     };
 }
@@ -99,11 +100,12 @@ export interface VerifyResponseV2 extends HalResponseBaseV2 {
  * Password-update response for the reset-password flow. The `poll` relation
  * identifies where the client checks for completion.
  */
-export interface UpdatePasswordResponseV2 extends HalResponseBaseV2 {
+export interface UpdatePasswordResponseV2
+    extends Omit<HalResponseBaseV2, "_links"> {
     id?: string;
     type?: string;
     payload?: Record<string, unknown>;
-    _links?: HalLinks & {
+    _links?: {
         poll?: HalLink;
     };
 }
@@ -112,8 +114,8 @@ export interface UpdatePasswordResponseV2 extends HalResponseBaseV2 {
  * Password-reset polling response. When the state becomes `continue`, the
  * `continue` relation returns the flow to authorize-challenge for token issuance.
  */
-export interface PollResponseV2 extends HalResponseBaseV2 {
-    _links?: HalLinks & {
+export interface PollResponseV2 extends Omit<HalResponseBaseV2, "_links"> {
+    _links?: {
         continue?: HalLink;
         poll?: HalLink;
     };

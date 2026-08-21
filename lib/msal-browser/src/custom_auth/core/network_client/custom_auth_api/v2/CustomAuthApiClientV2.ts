@@ -3,9 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Logger } from "@azure/msal-common/browser";
-import { IHttpClient, HttpMethod } from "../../http_client/IHttpClient.js";
-import { CustomAuthRequestInterceptor } from "../../../../configuration/CustomAuthRequestInterceptor.js";
+import { HttpMethod } from "../../http_client/IHttpClient.js";
 import { BaseApiClientV2 } from "./BaseApiClientV2.js";
 import {
     ResetPasswordUpdateResultV2,
@@ -24,7 +22,6 @@ import {
     UpdatePasswordResponseV2,
     PollResponseV2,
     ParsedResponseV2,
-    TokenResponseV2,
 } from "./response/ResponsesV2.js";
 import {
     RequestContextV2,
@@ -48,24 +45,6 @@ import { CustomAuthError } from "../../../error/CustomAuthError.js";
  * Flow-specific entry methods reuse shared challenge, verification, and token operations.
  */
 export class CustomAuthApiClientV2 extends BaseApiClientV2 {
-    constructor(
-        baseUrl: string,
-        clientId: string,
-        httpClient: IHttpClient,
-        customAuthApiQueryParams?: Record<string, string>,
-        requestInterceptor?: CustomAuthRequestInterceptor,
-        logger?: Logger
-    ) {
-        super(
-            baseUrl,
-            clientId,
-            httpClient,
-            customAuthApiQueryParams,
-            requestInterceptor,
-            logger
-        );
-    }
-
     /*
      * Starts the reset-password flow using a server-provided link.
      */
@@ -148,6 +127,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 "verify",
                 parsedResponse.correlationId
             ),
+            resendHref: parsedResponse.body._links?.resend?.href,
             codeLength:
                 parsedResponse.body.codeLength ??
                 parsedResponse.body.payload?.codeLength,
@@ -273,23 +253,6 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                       parsedResponse.correlationId
                   ),
         };
-    }
-
-    /*
-     * Redeems the continuation token for an authorization code and then tokens.
-     */
-    async completeWithTokens(
-        continuationToken: string,
-        scopes: string[],
-        context: RequestContextV2,
-        claims?: string
-    ): Promise<TokenResponseV2> {
-        const code = await this.authorizeChallengeContinue(
-            continuationToken,
-            context
-        );
-
-        return this.token(code, scopes, context, claims);
     }
 
     private resolveMethods(

@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import type { SubmitNewPasswordErrorV2 } from "../error/SubmitNewPasswordErrorV2.js";
-import type { SignInContinuationStateV2 } from "../state/SignInContinuationStateV2.js";
-import type { FailedStateV2 } from "../state/FailedStateV2.js";
+import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
+import type { FailedStateV2 } from "../../../../core/auth_flow/v2/state/FailedStateV2.js";
+import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
+import type { SubmitNewPasswordErrorV2 } from "../error_type/SubmitNewPasswordErrorV2.js";
 
 /**
  * The states a submit-new-password action can resolve to. Submitting the new

@@ -8,7 +8,7 @@ import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import { VerifyChallengeErrorV2 } from "../error/VerifyChallengeErrorV2.js";
 import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
-import { NewPasswordRequiredStateV2 } from "./NewPasswordRequiredStateV2.js";
+import { NewPasswordRequiredStateV2 } from "../../../../reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import type { ChallengeVerificationRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { VerifyChallengeResultV2 } from "../result/VerifyChallengeResultV2.js";
 import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";

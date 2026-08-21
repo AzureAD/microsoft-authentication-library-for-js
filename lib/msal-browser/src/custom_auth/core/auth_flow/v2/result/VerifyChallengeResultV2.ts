@@ -5,7 +5,7 @@
 
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import type { VerifyChallengeErrorV2 } from "../error/VerifyChallengeErrorV2.js";
-import type { NewPasswordRequiredStateV2 } from "../state/NewPasswordRequiredStateV2.js";
+import type { NewPasswordRequiredStateV2 } from "../../../../reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import type { FailedStateV2 } from "../state/FailedStateV2.js";
 
 /**

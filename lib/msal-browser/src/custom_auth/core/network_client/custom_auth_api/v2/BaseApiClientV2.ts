@@ -44,6 +44,7 @@ import {
     AuthorizeChallengeEntryRequestV2,
     AuthorizeChallengeContinueRequestV2,
     TokenRequestV2,
+    CompleteWithTokensRequestV2,
 } from "./request/RequestsV2.js";
 import { AuthorizeChallengeEntryResultV2 } from "./result/BaseResultsV2.js";
 
@@ -196,6 +197,21 @@ export abstract class BaseApiClientV2 {
         );
 
         return parsedResponse.body;
+    }
+
+    /*
+     * Redeems a continuation token for an authorization code and then tokens.
+     */
+    async completeWithTokens(
+        request: CompleteWithTokensRequestV2,
+        context: RequestContextV2
+    ): Promise<TokenResponseV2> {
+        const code = await this.authorizeChallengeContinue(
+            request.continuationToken,
+            context
+        );
+
+        return this.token(code, request.scopes, context, request.claims);
     }
 
     private async postOAuthForm<T>(

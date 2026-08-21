@@ -28,9 +28,3 @@ export interface ChallengeVerificationRequiredStateParametersV2
     channel?: string;
     codeLength?: number;
 }
-
-export type NewPasswordRequiredStateParametersV2 =
-    CustomAuthActionRequiredStateParametersV2;
-
-export type SignInContinuationStateParametersV2 =
-    CustomAuthActionRequiredStateParametersV2;

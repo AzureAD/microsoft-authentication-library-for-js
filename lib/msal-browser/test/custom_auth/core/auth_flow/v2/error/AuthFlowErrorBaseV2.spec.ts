@@ -7,7 +7,7 @@ import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error
 import { ResetPasswordStartErrorV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/error/ResetPasswordStartErrorV2.js";
 import { RequestChallengeErrorV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/error/RequestChallengeErrorV2.js";
 import { VerifyChallengeErrorV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/error/VerifyChallengeErrorV2.js";
-import { SubmitNewPasswordErrorV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/error/SubmitNewPasswordErrorV2.js";
+import { SubmitNewPasswordErrorV2 } from "../../../../../../src/custom_auth/reset_password/auth_flow/v2/error_type/SubmitNewPasswordErrorV2.js";
 import { InvalidArgumentError } from "../../../../../../src/custom_auth/core/error/InvalidArgumentError.js";
 
 /*

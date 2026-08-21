@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
-import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import { SubmitNewPasswordErrorV2 } from "../error/SubmitNewPasswordErrorV2.js";
-import { SignInContinuationStateV2 } from "./SignInContinuationStateV2.js";
-import type { NewPasswordRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
+import { AuthFlowActionRequiredStateBase } from "../../../../core/auth_flow/AuthFlowState.js";
+import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
+import { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
+import { SubmitNewPasswordErrorV2 } from "../error_type/SubmitNewPasswordErrorV2.js";
+import type { NewPasswordRequiredStateParametersV2 } from "./ResetPasswordStateParametersV2.js";
 import type { SubmitNewPasswordResultV2 } from "../result/SubmitNewPasswordResultV2.js";
 
 /**

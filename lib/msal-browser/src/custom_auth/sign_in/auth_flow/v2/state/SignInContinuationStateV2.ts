@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
-import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import { SignInContinuationErrorV2 } from "../error/SignInContinuationErrorV2.js";
-import { CompletedStateV2 } from "./CompletedStateV2.js";
+import { AuthFlowActionRequiredStateBase } from "../../../../core/auth_flow/AuthFlowState.js";
+import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
+import { CompletedStateV2 } from "../../../../core/auth_flow/v2/state/CompletedStateV2.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
-import type { SignInContinuationStateParametersV2 } from "./CustomAuthStateParametersV2.js";
+import { SignInContinuationErrorV2 } from "../error_type/SignInContinuationErrorV2.js";
+import type { SignInContinuationStateParametersV2 } from "./SignInStateParametersV2.js";
 import type { SignInContinuationResultV2 } from "../result/SignInContinuationResultV2.js";
 import type { SignInContinuationInputsV2 } from "../../../../CustomAuthActionInputsV2.js";
 

@@ -45,6 +45,7 @@ export interface StartResultV2 {
 export interface ChallengeResultV2 {
     continuationToken: string;
     verifyHref: string;
+    resendHref?: string;
     codeLength?: number;
     hint?: string;
     channel?: string;

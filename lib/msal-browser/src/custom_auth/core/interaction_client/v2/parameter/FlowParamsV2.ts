@@ -20,7 +20,7 @@ export interface FlowStartParamsV2 extends FlowParamsBaseV2 {
 }
 
 // Request the challenge for the selected method, sending the one-time code to it.
-export interface FlowRequestChallengeParamsV2 extends FlowParamsBaseV2 {
+export interface FlowChallengeParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
 }
 
@@ -28,11 +28,6 @@ export interface FlowRequestChallengeParamsV2 extends FlowParamsBaseV2 {
 export interface FlowSubmitCodeParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
     code: string;
-}
-
-// Ask the server to re-send the one-time code.
-export interface FlowResendCodeParamsV2 extends FlowParamsBaseV2 {
-    continuationState: FlowContinuationStateV2;
 }
 
 // Submit the new password once the code has been verified.

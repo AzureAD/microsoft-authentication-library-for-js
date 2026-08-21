@@ -54,6 +54,17 @@ export interface TokenRequestV2 extends OAuthFormRequestV2 {
 }
 
 /*
+ * Compound token-completion operation. The continuation is first redeemed for
+ * an authorization code, which is then exchanged using the requested scopes
+ * and optional claims.
+ */
+export interface CompleteWithTokensRequestV2 {
+    continuationToken: string;
+    scopes: string[];
+    claims?: string;
+}
+
+/*
  * Base for raw-JSON action request bodies. Every server-driven request carries the
  * `continuationToken` that threads the flow forward; operation-specific fields (`username`, `otp`,
  * `newPassword`) are added by the concrete request types. `sendActionRequest` accepts this

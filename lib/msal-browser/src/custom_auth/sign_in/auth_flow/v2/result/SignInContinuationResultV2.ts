@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import type { SignInContinuationErrorV2 } from "../error/SignInContinuationErrorV2.js";
+import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
+import type { CompletedStateV2 } from "../../../../core/auth_flow/v2/state/CompletedStateV2.js";
+import type { FailedStateV2 } from "../../../../core/auth_flow/v2/state/FailedStateV2.js";
 import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
-import type { CompletedStateV2 } from "../state/CompletedStateV2.js";
-import type { FailedStateV2 } from "../state/FailedStateV2.js";
+import type { SignInContinuationErrorV2 } from "../error_type/SignInContinuationErrorV2.js";
 
 /**
  * The states a V2 continuation sign-in can resolve to. Signing in redeems the

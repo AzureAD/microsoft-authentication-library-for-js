@@ -12,6 +12,7 @@ import { CustomAuthFlowScenarioV2 } from "../../auth_flow/v2/CustomAuthFlowScena
 export interface FlowLinksV2 {
     challenge?: string;
     verify?: string;
+    resend?: string;
     update?: string;
     poll?: string;
     continue?: string;

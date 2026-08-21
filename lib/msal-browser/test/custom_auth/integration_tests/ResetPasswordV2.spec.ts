@@ -8,12 +8,12 @@ import { CustomAuthStandardController } from "../../../src/custom_auth/controlle
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import { AuthenticationMethodSelectionRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredStateV2.js";
 import { ChallengeVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
-import { NewPasswordRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
-import { SignInContinuationStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/SignInContinuationStateV2.js";
+import { NewPasswordRequiredStateV2 } from "../../../src/custom_auth/reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
+import { SignInContinuationStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { RequestChallengeErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/RequestChallengeErrorV2.js";
 import { VerifyChallengeErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/VerifyChallengeErrorV2.js";
-import { SubmitNewPasswordErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/SubmitNewPasswordErrorV2.js";
+import { SubmitNewPasswordErrorV2 } from "../../../src/custom_auth/reset_password/auth_flow/v2/error_type/SubmitNewPasswordErrorV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 

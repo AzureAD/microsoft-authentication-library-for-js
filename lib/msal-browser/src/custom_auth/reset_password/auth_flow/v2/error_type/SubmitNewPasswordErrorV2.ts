@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowErrorBaseV2 } from "./AuthFlowErrorBaseV2.js";
+import { AuthFlowErrorBaseV2 } from "../../../../core/auth_flow/v2/error/AuthFlowErrorBaseV2.js";
 
 /**
  * Error raised when submitting a new password. It exposes the detectors relevant

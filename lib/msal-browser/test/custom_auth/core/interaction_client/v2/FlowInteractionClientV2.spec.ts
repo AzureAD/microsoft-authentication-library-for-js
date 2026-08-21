@@ -186,6 +186,7 @@ describe("FlowInteractionClientV2", () => {
             apiClient.requestChallenge.mockResolvedValue({
                 continuationToken: "ct-challenge",
                 verifyHref: "https://endpoint/verify",
+                resendHref: "https://endpoint/resend",
                 codeLength: 6,
                 hint: "u***@contoso.com",
                 channel: "email",
@@ -214,6 +215,7 @@ describe("FlowInteractionClientV2", () => {
                 links: {
                     challenge: "https://endpoint/challenge",
                     verify: "https://endpoint/verify",
+                    resend: "https://endpoint/resend",
                 },
             });
         });
@@ -240,6 +242,7 @@ describe("FlowInteractionClientV2", () => {
             links: {
                 challenge: "https://endpoint/challenge",
                 verify: "https://endpoint/verify",
+                resend: "https://endpoint/resend",
             },
         };
 
@@ -320,6 +323,7 @@ describe("FlowInteractionClientV2", () => {
             links: {
                 challenge: "https://endpoint/challenge",
                 verify: "https://endpoint/verify",
+                resend: "https://endpoint/resend",
             },
         };
 
@@ -327,6 +331,7 @@ describe("FlowInteractionClientV2", () => {
             apiClient.requestChallenge.mockResolvedValue({
                 continuationToken: "ct-challenge-2",
                 verifyHref: "https://endpoint/verify-2",
+                resendHref: "https://endpoint/resend-2",
                 codeLength: 8,
                 hint: "u***@contoso.com",
                 channel: "email",
@@ -338,7 +343,7 @@ describe("FlowInteractionClientV2", () => {
             });
 
             expect(apiClient.requestChallenge).toHaveBeenCalledWith(
-                "https://endpoint/challenge",
+                "https://endpoint/resend",
                 { continuationToken: "ct-challenge" },
                 expect.objectContaining({ correlationId })
             );
@@ -356,11 +361,12 @@ describe("FlowInteractionClientV2", () => {
                 links: {
                     challenge: "https://endpoint/challenge",
                     verify: "https://endpoint/verify-2",
+                    resend: "https://endpoint/resend-2",
                 },
             });
         });
 
-        it("throws when the continuation is missing the challenge link", async () => {
+        it("throws when the continuation is missing the resend link", async () => {
             await expect(
                 client.resendCode({
                     correlationId,
@@ -598,10 +604,12 @@ describe("FlowInteractionClientV2", () => {
             });
 
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
-                "ct-complete",
-                ["openid", "profile", "offline_access"],
-                expect.objectContaining({ correlationId }),
-                undefined
+                {
+                    continuationToken: "ct-complete",
+                    scopes: ["openid", "profile", "offline_access"],
+                    claims: undefined,
+                },
+                expect.objectContaining({ correlationId })
             );
             expect(handleSpy).toHaveBeenCalledWith(
                 tokenResponse,
@@ -635,10 +643,17 @@ describe("FlowInteractionClientV2", () => {
             });
 
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
-                "ct-complete",
-                ["User.Read", "openid", "profile", "offline_access"],
-                expect.objectContaining({ correlationId }),
-                '{"id_token":{}}'
+                {
+                    continuationToken: "ct-complete",
+                    scopes: [
+                        "User.Read",
+                        "openid",
+                        "profile",
+                        "offline_access",
+                    ],
+                    claims: '{"id_token":{}}',
+                },
+                expect.objectContaining({ correlationId })
             );
         });
 
@@ -660,10 +675,17 @@ describe("FlowInteractionClientV2", () => {
             });
 
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
-                "ct-complete",
-                ["User.Read", "OpenID", "offline_access", "profile"],
-                expect.objectContaining({ correlationId }),
-                undefined
+                {
+                    continuationToken: "ct-complete",
+                    scopes: [
+                        "User.Read",
+                        "OpenID",
+                        "offline_access",
+                        "profile",
+                    ],
+                    claims: undefined,
+                },
+                expect.objectContaining({ correlationId })
             );
         });
     });
