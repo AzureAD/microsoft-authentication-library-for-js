@@ -60,11 +60,6 @@
     "format:fix": "prettier --ignore-path .gitignore --write src test",
     "apiExtractor": "api-extractor run"
   },
-  "beachball": {
-    "disallowedChangeTypes": [
-      "major"
-    ]
-  },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.58.7",
     "@rollup/plugin-node-resolve": "^15.0.1",
