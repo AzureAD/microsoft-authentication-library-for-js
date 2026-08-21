@@ -6,14 +6,14 @@
 import { CustomAuthPublicClientApplication } from "../../../src/custom_auth/CustomAuthPublicClientApplication.js";
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
-import { AuthenticationMethodSelectionRequiredState } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
-import { ChallengeVerificationRequiredState } from "../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredState.js";
-import { NewPasswordRequiredState } from "../../../src/custom_auth/core/auth_flow/v2/state/NewPasswordRequiredState.js";
-import { V2SignInContinuationState } from "../../../src/custom_auth/core/auth_flow/v2/state/V2SignInContinuationState.js";
-import { CompletedState } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedState.js";
-import { RequestChallengeError } from "../../../src/custom_auth/core/auth_flow/v2/error/RequestChallengeError.js";
-import { VerifyChallengeError } from "../../../src/custom_auth/core/auth_flow/v2/error/VerifyChallengeError.js";
-import { SubmitNewPasswordError } from "../../../src/custom_auth/core/auth_flow/v2/error/SubmitNewPasswordError.js";
+import { AuthenticationMethodSelectionRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredStateV2.js";
+import { ChallengeVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+import { NewPasswordRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
+import { SignInContinuationStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/SignInContinuationStateV2.js";
+import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
+import { RequestChallengeErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/RequestChallengeErrorV2.js";
+import { VerifyChallengeErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/VerifyChallengeErrorV2.js";
+import { SubmitNewPasswordErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/SubmitNewPasswordErrorV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 
@@ -22,7 +22,7 @@ import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
  * `resetPasswordV2` surface exactly as an app would (start -> method selection ->
  * challenge/code -> new password -> sign-in after reset -> completed) while
  * mocking `global.fetch`, so the whole real stack runs: FetchHttpClient ->
- * CustomAuthV2ApiClient -> V2FlowInteractionClient -> the public states. This
+ * CustomAuthApiClientV2 -> FlowInteractionClientV2 -> the public states. This
  * mirrors the V1 `ResetPassword.spec.ts` integration test.
  */
 
@@ -128,7 +128,7 @@ describe("Reset password V2 (SSPR)", () => {
 
     // Drive start -> method selection and return the method-selection state.
     const startToMethodSelection =
-        async (): Promise<AuthenticationMethodSelectionRequiredState> => {
+        async (): Promise<AuthenticationMethodSelectionRequiredStateV2> => {
             const startResult = await app.resetPasswordV2({
                 username: "user@contoso.com",
             });
@@ -138,10 +138,10 @@ describe("Reset password V2 (SSPR)", () => {
                 startResult.isState("authenticationMethodSelectionRequired")
             ).toBe(true);
             expect(startResult.state).toBeInstanceOf(
-                AuthenticationMethodSelectionRequiredState
+                AuthenticationMethodSelectionRequiredStateV2
             );
 
-            return startResult.state as AuthenticationMethodSelectionRequiredState;
+            return startResult.state as AuthenticationMethodSelectionRequiredStateV2;
         };
 
     it("appends OIDC scopes and caches the ID token when the app requests only an API scope", async () => {
@@ -166,29 +166,29 @@ describe("Reset password V2 (SSPR)", () => {
         );
         expect(challengeResult.isFailed()).toBe(false);
         expect(challengeResult.state).toBeInstanceOf(
-            ChallengeVerificationRequiredState
+            ChallengeVerificationRequiredStateV2
         );
 
         const codeState =
-            challengeResult.state as ChallengeVerificationRequiredState;
+            challengeResult.state as ChallengeVerificationRequiredStateV2;
         const verifyResult = await codeState.verifyChallenge("123456");
         expect(verifyResult.isFailed()).toBe(false);
-        expect(verifyResult.state).toBeInstanceOf(NewPasswordRequiredState);
+        expect(verifyResult.state).toBeInstanceOf(NewPasswordRequiredStateV2);
 
-        const passwordState = verifyResult.state as NewPasswordRequiredState;
+        const passwordState = verifyResult.state as NewPasswordRequiredStateV2;
         const submitResult = await passwordState.submitNewPassword(
             "N3wP@ssw0rd!"
         );
         expect(submitResult.isFailed()).toBe(false);
-        expect(submitResult.state).toBeInstanceOf(V2SignInContinuationState);
+        expect(submitResult.state).toBeInstanceOf(SignInContinuationStateV2);
 
-        const signInState = submitResult.state as V2SignInContinuationState;
+        const signInState = submitResult.state as SignInContinuationStateV2;
         const signInResult = await signInState.signIn({
             scopes: ["User.Read"],
         });
         expect(signInResult.isFailed()).toBe(false);
         expect(signInResult.isState("completed")).toBe(true);
-        expect(signInResult.state).toBeInstanceOf(CompletedState);
+        expect(signInResult.state).toBeInstanceOf(CompletedStateV2);
         expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(signInResult.data?.getAccount()?.idToken).toStrictEqual(
             TestServerTokenResponse.id_token
@@ -226,12 +226,12 @@ describe("Reset password V2 (SSPR)", () => {
             methodState.methods[0]
         );
         const codeState =
-            challengeResult.state as ChallengeVerificationRequiredState;
+            challengeResult.state as ChallengeVerificationRequiredStateV2;
 
         const verifyResult = await codeState.verifyChallenge("000000");
 
         expect(verifyResult.isFailed()).toBe(true);
-        expect(verifyResult.error).toBeInstanceOf(VerifyChallengeError);
+        expect(verifyResult.error).toBeInstanceOf(VerifyChallengeErrorV2);
         expect(verifyResult.error?.isInvalidCode()).toBe(true);
     });
 
@@ -260,14 +260,14 @@ describe("Reset password V2 (SSPR)", () => {
             methodState.methods[0]
         );
         const codeState =
-            challengeResult.state as ChallengeVerificationRequiredState;
+            challengeResult.state as ChallengeVerificationRequiredStateV2;
         const verifyResult = await codeState.verifyChallenge("123456");
-        const passwordState = verifyResult.state as NewPasswordRequiredState;
+        const passwordState = verifyResult.state as NewPasswordRequiredStateV2;
 
         const submitResult = await passwordState.submitNewPassword("weak");
 
         expect(submitResult.isFailed()).toBe(true);
-        expect(submitResult.error).toBeInstanceOf(SubmitNewPasswordError);
+        expect(submitResult.error).toBeInstanceOf(SubmitNewPasswordErrorV2);
         expect(submitResult.error?.isInvalidPassword()).toBe(true);
     });
 
@@ -286,7 +286,7 @@ describe("Reset password V2 (SSPR)", () => {
         );
 
         expect(challengeResult.isFailed()).toBe(true);
-        expect(challengeResult.error).toBeInstanceOf(RequestChallengeError);
+        expect(challengeResult.error).toBeInstanceOf(RequestChallengeErrorV2);
         expect(challengeResult.error?.isBrowserRequired()).toBe(true);
     });
 });

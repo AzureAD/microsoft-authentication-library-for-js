@@ -15,8 +15,8 @@ import {
     SignUpInputs,
     ResetPasswordInputs,
 } from "./CustomAuthActionInputs.js";
-import { ResetPasswordV2Inputs } from "./CustomAuthV2ActionInputs.js";
-import { ResetPasswordStartV2Result } from "./core/auth_flow/v2/result/ResetPasswordStartV2Result.js";
+import { ResetPasswordInputsV2 } from "./CustomAuthActionInputsV2.js";
+import { ResetPasswordStartResultV2 } from "./core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
 import { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration.js";
 import { CustomAuthOperatingContext } from "./operating_context/CustomAuthOperatingContext.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
@@ -118,12 +118,12 @@ export class CustomAuthPublicClientApplication
 
     /**
      * Initiates the native auth V2 self-service password reset flow.
-     * @param {ResetPasswordV2Inputs} inputs - Inputs for the reset-password V2 flow
-     * @returns {Promise<ResetPasswordStartV2Result>} - A promise that resolves to ResetPasswordStartV2Result
+     * @param {ResetPasswordInputsV2} inputs - Inputs for the reset-password V2 flow
+     * @returns {Promise<ResetPasswordStartResultV2>} - A promise that resolves to ResetPasswordStartResultV2
      */
     resetPasswordV2(
-        inputs: ResetPasswordV2Inputs
-    ): Promise<ResetPasswordStartV2Result> {
+        inputs: ResetPasswordInputsV2
+    ): Promise<ResetPasswordStartResultV2> {
         return this.customAuthController.resetPasswordV2(inputs);
     }
 

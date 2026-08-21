@@ -245,57 +245,57 @@ export { ICustomAuthPublicClientApplicationV2 } from "./ICustomAuthPublicClientA
 
 // Native Auth V2 Operation Inputs
 export {
-    ResetPasswordV2Inputs,
-    SignInV2Inputs,
-    SignUpV2Inputs,
-    V2SignInContinuationInputs,
-} from "./CustomAuthV2ActionInputs.js";
+    ResetPasswordInputsV2,
+    SignInInputsV2,
+    SignUpInputsV2,
+    SignInContinuationInputsV2,
+} from "./CustomAuthActionInputsV2.js";
 
 // Native Auth V2 Result
-export { CustomAuthV2Result } from "./core/auth_flow/v2/CustomAuthV2Result.js";
+export { CustomAuthResultV2 } from "./core/auth_flow/v2/CustomAuthResultV2.js";
 
 // Native Auth V2 Flow Scenario
-export { CustomAuthV2FlowScenario } from "./core/auth_flow/v2/CustomAuthV2FlowScenario.js";
+export { CustomAuthFlowScenarioV2 } from "./core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 
 // Native Auth V2 Authentication Method
 export { AuthenticationMethodV2 } from "./core/auth_flow/v2/AuthenticationMethodV2.js";
 
 // Native Auth V2 Errors
-export { ResetPasswordStartError } from "./core/auth_flow/v2/error/ResetPasswordStartError.js";
-export { RequestChallengeError } from "./core/auth_flow/v2/error/RequestChallengeError.js";
-export { VerifyChallengeError } from "./core/auth_flow/v2/error/VerifyChallengeError.js";
-export { SubmitNewPasswordError } from "./core/auth_flow/v2/error/SubmitNewPasswordError.js";
-export { V2SignInContinuationError } from "./core/auth_flow/v2/error/V2SignInContinuationError.js";
+export { ResetPasswordStartErrorV2 } from "./core/auth_flow/v2/error/ResetPasswordStartErrorV2.js";
+export { RequestChallengeErrorV2 } from "./core/auth_flow/v2/error/RequestChallengeErrorV2.js";
+export { VerifyChallengeErrorV2 } from "./core/auth_flow/v2/error/VerifyChallengeErrorV2.js";
+export { SubmitNewPasswordErrorV2 } from "./core/auth_flow/v2/error/SubmitNewPasswordErrorV2.js";
+export { SignInContinuationErrorV2 } from "./core/auth_flow/v2/error/SignInContinuationErrorV2.js";
 
 // Native Auth V2 States
-export { CompletedState } from "./core/auth_flow/v2/state/CompletedState.js";
-export { FailedState } from "./core/auth_flow/v2/state/FailedState.js";
-export { NewPasswordRequiredState } from "./core/auth_flow/v2/state/NewPasswordRequiredState.js";
-export { ChallengeVerificationRequiredState } from "./core/auth_flow/v2/state/ChallengeVerificationRequiredState.js";
-export { AuthenticationMethodSelectionRequiredState } from "./core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
-export { V2SignInContinuationState } from "./core/auth_flow/v2/state/V2SignInContinuationState.js";
+export { CompletedStateV2 } from "./core/auth_flow/v2/state/CompletedStateV2.js";
+export { FailedStateV2 } from "./core/auth_flow/v2/state/FailedStateV2.js";
+export { NewPasswordRequiredStateV2 } from "./core/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
+export { ChallengeVerificationRequiredStateV2 } from "./core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+export { AuthenticationMethodSelectionRequiredStateV2 } from "./core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredStateV2.js";
+export { SignInContinuationStateV2 } from "./core/auth_flow/v2/state/SignInContinuationStateV2.js";
 
 // Native Auth V2 Results
 export {
-    ResetPasswordStartV2Result,
-    ResetPasswordStartV2ResultState,
-} from "./core/auth_flow/v2/result/ResetPasswordStartV2Result.js";
+    ResetPasswordStartResultV2,
+    ResetPasswordStartResultStateV2,
+} from "./core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
 export {
-    RequestChallengeResult,
-    RequestChallengeResultState,
-} from "./core/auth_flow/v2/result/RequestChallengeResult.js";
+    RequestChallengeResultV2,
+    RequestChallengeResultStateV2,
+} from "./core/auth_flow/v2/result/RequestChallengeResultV2.js";
 export {
-    VerifyChallengeResult,
-    VerifyChallengeResultState,
-} from "./core/auth_flow/v2/result/VerifyChallengeResult.js";
+    VerifyChallengeResultV2,
+    VerifyChallengeResultStateV2,
+} from "./core/auth_flow/v2/result/VerifyChallengeResultV2.js";
 export {
-    SubmitNewPasswordResult,
-    SubmitNewPasswordResultState,
-} from "./core/auth_flow/v2/result/SubmitNewPasswordResult.js";
+    SubmitNewPasswordResultV2,
+    SubmitNewPasswordResultStateV2,
+} from "./core/auth_flow/v2/result/SubmitNewPasswordResultV2.js";
 export {
-    V2SignInContinuationResult,
-    V2SignInContinuationResultState,
-} from "./core/auth_flow/v2/result/V2SignInContinuationResult.js";
+    SignInContinuationResultV2,
+    SignInContinuationResultStateV2,
+} from "./core/auth_flow/v2/result/SignInContinuationResultV2.js";
 
 // Components from msal_browser
 export { LogLevel } from "@azure/msal-common/browser";

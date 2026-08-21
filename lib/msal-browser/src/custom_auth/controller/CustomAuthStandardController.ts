@@ -24,14 +24,14 @@ import { ICustomAuthStandardController } from "./ICustomAuthStandardController.j
 import { CustomAuthAccountData } from "../get_account/auth_flow/CustomAuthAccountData.js";
 import { UnexpectedError } from "../core/error/UnexpectedError.js";
 import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/ResetPasswordStartResult.js";
-import { ResetPasswordStartV2Result } from "../core/auth_flow/v2/result/ResetPasswordStartV2Result.js";
-import { ResetPasswordV2Inputs } from "../CustomAuthV2ActionInputs.js";
-import { CustomAuthV2ApiClient } from "../core/network_client/custom_auth_api/v2/CustomAuthV2ApiClient.js";
-import { V2FlowInteractionClient } from "../core/interaction_client/v2/V2FlowInteractionClient.js";
-import { AuthenticationMethodSelectionRequiredState } from "../core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
-import { ResetPasswordStartError } from "../core/auth_flow/v2/error/ResetPasswordStartError.js";
-import { CustomAuthV2Result } from "../core/auth_flow/v2/CustomAuthV2Result.js";
-import { CustomAuthV2FlowScenario } from "../core/auth_flow/v2/CustomAuthV2FlowScenario.js";
+import { ResetPasswordStartResultV2 } from "../core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
+import { ResetPasswordInputsV2 } from "../CustomAuthActionInputsV2.js";
+import { CustomAuthApiClientV2 } from "../core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
+import { FlowInteractionClientV2 } from "../core/interaction_client/v2/FlowInteractionClientV2.js";
+import { AuthenticationMethodSelectionRequiredStateV2 } from "../core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredStateV2.js";
+import { ResetPasswordStartErrorV2 } from "../core/auth_flow/v2/error/ResetPasswordStartErrorV2.js";
+import { CustomAuthResultV2 } from "../core/auth_flow/v2/CustomAuthResultV2.js";
+import { CustomAuthFlowScenarioV2 } from "../core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
@@ -84,18 +84,18 @@ export class CustomAuthStandardController
     private readonly cacheClient: CustomAuthSilentCacheClient;
     private readonly customAuthConfig: CustomAuthBrowserConfiguration;
     private readonly authority: CustomAuthAuthority;
-    private readonly v2FlowClient: V2FlowInteractionClient;
+    private readonly flowClientV2: FlowInteractionClientV2;
 
     /*
      * Constructor for CustomAuthStandardController.
      * @param operatingContext - The operating context for the controller.
      * @param customAuthApiClient - The client to use for custom auth API operations.
-     * @param customAuthV2ApiClient - The client to use for V2 custom auth API operations.
+     * @param customAuthApiClientV2 - The client to use for V2 custom auth API operations.
      */
     constructor(
         operatingContext: CustomAuthOperatingContext,
         customAuthApiClient?: ICustomAuthApiClient,
-        customAuthV2ApiClient?: CustomAuthV2ApiClient
+        customAuthApiClientV2?: CustomAuthApiClientV2
     ) {
         super(operatingContext);
 
@@ -152,7 +152,7 @@ export class CustomAuthStandardController
             CustomAuthSilentCacheClient
         );
 
-        this.v2FlowClient = new V2FlowInteractionClient(
+        this.flowClientV2 = new FlowInteractionClientV2(
             this.customAuthConfig,
             this.browserStorage,
             this.browserCrypto,
@@ -161,8 +161,8 @@ export class CustomAuthStandardController
             this.navigationClient,
             this.performanceClient,
             this.authority,
-            customAuthV2ApiClient ??
-                new CustomAuthV2ApiClient(
+            customAuthApiClientV2 ??
+                new CustomAuthApiClientV2(
                     this.authority.getCustomAuthApiDomain(),
                     this.customAuthConfig.auth.clientId,
                     new FetchHttpClient(this.logger),
@@ -613,8 +613,8 @@ export class CustomAuthStandardController
     }
 
     async resetPasswordV2(
-        inputs: ResetPasswordV2Inputs
-    ): Promise<ResetPasswordStartV2Result> {
+        inputs: ResetPasswordInputsV2
+    ): Promise<ResetPasswordStartResultV2> {
         const correlationId = this.getCorrelationId(inputs);
 
         try {
@@ -636,7 +636,7 @@ export class CustomAuthStandardController
                 correlationId
             );
 
-            const result = await this.v2FlowClient.resetPassword({
+            const result = await this.flowClientV2.resetPassword({
                 correlationId,
                 username: inputs.username,
             });
@@ -646,12 +646,12 @@ export class CustomAuthStandardController
                 correlationId
             );
 
-            return new CustomAuthV2Result(
-                new AuthenticationMethodSelectionRequiredState({
+            return new CustomAuthResultV2(
+                new AuthenticationMethodSelectionRequiredStateV2({
                     correlationId: result.correlationId,
                     logger: this.logger,
                     config: this.customAuthConfig,
-                    flowClient: this.v2FlowClient,
+                    flowClient: this.flowClientV2,
                     continuationState: result.continuationState,
                     cacheClient: this.cacheClient,
                     methods: result.methods,
@@ -665,9 +665,9 @@ export class CustomAuthStandardController
                 correlationId
             );
 
-            return CustomAuthV2Result.createWithError(error, {
-                errorType: ResetPasswordStartError,
-                scenario: CustomAuthV2FlowScenario.PasswordReset,
+            return CustomAuthResultV2.createWithError(error, {
+                errorType: ResetPasswordStartErrorV2,
+                scenario: CustomAuthFlowScenarioV2.PasswordReset,
                 correlationId,
             });
         }

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthV2FlowScenario } from "../auth_flow/v2/CustomAuthV2FlowScenario.js";
+import { CustomAuthFlowScenarioV2 } from "../auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import {
     RESET_PASSWORD_V2_CHALLENGE,
     RESET_PASSWORD_V2_RESEND_CODE,
@@ -12,17 +12,17 @@ import {
     SIGN_IN_AFTER_PASSWORD_RESET,
 } from "./PublicApiId.js";
 
-export type V2FlowStep =
+export type FlowStepV2 =
     | "requestChallenge"
     | "submitCode"
     | "resendCode"
     | "submitPassword"
     | "signInWithContinuation";
 
-const V2_FLOW_STEP_API_IDS: Partial<
-    Record<CustomAuthV2FlowScenario, Record<V2FlowStep, number>>
+const FLOW_STEP_API_IDS_V2: Partial<
+    Record<CustomAuthFlowScenarioV2, Record<FlowStepV2, number>>
 > = {
-    [CustomAuthV2FlowScenario.PasswordReset]: {
+    [CustomAuthFlowScenarioV2.PasswordReset]: {
         requestChallenge: RESET_PASSWORD_V2_CHALLENGE,
         submitCode: RESET_PASSWORD_V2_SUBMIT_CODE,
         resendCode: RESET_PASSWORD_V2_RESEND_CODE,
@@ -32,8 +32,8 @@ const V2_FLOW_STEP_API_IDS: Partial<
 };
 
 export function getPublicApiIdV2(
-    scenario: CustomAuthV2FlowScenario,
-    step: V2FlowStep
+    scenario: CustomAuthFlowScenarioV2,
+    step: FlowStepV2
 ): number | undefined {
-    return V2_FLOW_STEP_API_IDS[scenario]?.[step];
+    return FLOW_STEP_API_IDS_V2[scenario]?.[step];
 }
