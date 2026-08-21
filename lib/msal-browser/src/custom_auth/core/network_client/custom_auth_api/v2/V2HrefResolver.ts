@@ -19,6 +19,10 @@ const API_MARKERS = ["/api/", "/oauth2/"];
 export function resolveHref(base: URL, href: string): URL {
     const trimmed = href.trim();
 
+    if (!trimmed) {
+        throw new ParsedUrlError(InvalidUrl, "The HAL href cannot be empty");
+    }
+
     const absolute = tryParseAbsolute(trimmed);
 
     if (absolute) {
@@ -33,6 +37,13 @@ export function resolveHref(base: URL, href: string): URL {
         throw new ParsedUrlError(
             InvalidUrl,
             `The HAL href "${href}" could not be resolved: ${e}`
+        );
+    }
+
+    if (resolved.protocol !== "http:" && resolved.protocol !== "https:") {
+        throw new ParsedUrlError(
+            InvalidUrl,
+            `The HAL href "${href}" must use the HTTP or HTTPS protocol`
         );
     }
 

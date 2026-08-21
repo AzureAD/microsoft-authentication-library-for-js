@@ -6,7 +6,6 @@
 import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
 import { CustomAuthV2Result } from "../CustomAuthV2Result.js";
 import { V2SignInContinuationError } from "../error/V2SignInContinuationError.js";
-import { toV2Error } from "./V2StateErrorHelper.js";
 import { CompletedState } from "./CompletedState.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import type { V2SignInContinuationStateParameters } from "./CustomAuthV2StateParameters.js";
@@ -36,10 +35,7 @@ export class V2SignInContinuationState extends AuthFlowActionRequiredStateBase<V
             this.stateParameters;
 
         try {
-            logger.verbose(
-                "Signing in with a V2 continuation.",
-                correlationId
-            );
+            logger.verbose("Signing in with a V2 continuation.", correlationId);
 
             const result = await flowClient.signInWithContinuation({
                 correlationId,
@@ -67,12 +63,11 @@ export class V2SignInContinuationState extends AuthFlowActionRequiredStateBase<V
                 correlationId
             );
 
-            return CustomAuthV2Result.createWithError(
-                new V2SignInContinuationError(
-                    toV2Error(error, correlationId),
-                    continuationState.scenario
-                )
-            );
+            return CustomAuthV2Result.createWithError(error, {
+                errorType: V2SignInContinuationError,
+                scenario: continuationState.scenario,
+                correlationId,
+            });
         }
     }
 }

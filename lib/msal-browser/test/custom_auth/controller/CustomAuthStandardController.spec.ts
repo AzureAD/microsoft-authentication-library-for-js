@@ -22,6 +22,7 @@ import { ResetPasswordError } from "../../../src/custom_auth/reset_password/auth
 import { ResetPasswordCodeRequiredState } from "../../../src/custom_auth/reset_password/auth_flow/state/ResetPasswordCodeRequiredState.js";
 import { ResetPasswordStartResult } from "../../../src/custom_auth/reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
+import { CustomAuthV2ApiClient } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthV2ApiClient.js";
 
 jest.mock(
     "../../../src/custom_auth/core/network_client/custom_auth_api/CustomAuthApiClient.js",
@@ -100,6 +101,21 @@ describe("CustomAuthStandardController", () => {
         ) {
             controller["eventHandler"]["broadcastChannel"].close();
         }
+    });
+
+    it("uses an injected V2 API client", () => {
+        const context = new CustomAuthOperatingContext(customAuthConfig);
+        const customAuthV2ApiClient = {} as CustomAuthV2ApiClient;
+
+        controller = new CustomAuthStandardController(
+            context,
+            undefined,
+            customAuthV2ApiClient
+        );
+
+        expect(Reflect.get(controller["v2FlowClient"], "apiClient")).toBe(
+            customAuthV2ApiClient
+        );
     });
 
     describe("signIn", () => {

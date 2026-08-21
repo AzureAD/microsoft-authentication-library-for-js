@@ -8,7 +8,6 @@ import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
 import { CustomAuthV2Result } from "../CustomAuthV2Result.js";
 import { VerifyChallengeError } from "../error/VerifyChallengeError.js";
 import { RequestChallengeError } from "../error/RequestChallengeError.js";
-import { toV2Error } from "./V2StateErrorHelper.js";
 import { NewPasswordRequiredState } from "./NewPasswordRequiredState.js";
 import type { ChallengeVerificationRequiredStateParameters } from "./CustomAuthV2StateParameters.js";
 import type { VerifyChallengeResult } from "../result/VerifyChallengeResult.js";
@@ -79,12 +78,11 @@ export class ChallengeVerificationRequiredState extends AuthFlowActionRequiredSt
                 correlationId
             );
 
-            return CustomAuthV2Result.createWithError(
-                new VerifyChallengeError(
-                    toV2Error(error, correlationId),
-                    continuationState.scenario
-                )
-            );
+            return CustomAuthV2Result.createWithError(error, {
+                errorType: VerifyChallengeError,
+                scenario: continuationState.scenario,
+                correlationId,
+            });
         }
     }
 
@@ -127,12 +125,11 @@ export class ChallengeVerificationRequiredState extends AuthFlowActionRequiredSt
                 correlationId
             );
 
-            return CustomAuthV2Result.createWithError(
-                new RequestChallengeError(
-                    toV2Error(error, correlationId),
-                    continuationState.scenario
-                )
-            );
+            return CustomAuthV2Result.createWithError(error, {
+                errorType: RequestChallengeError,
+                scenario: continuationState.scenario,
+                correlationId,
+            });
         }
     }
 }

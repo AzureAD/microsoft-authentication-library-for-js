@@ -111,4 +111,16 @@ describe("V2HrefResolver.resolveHref", () => {
         // A bare protocol-relative marker that new URL cannot parse against the origin.
         expect(() => resolveHref(base, "http://")).toThrow(ParsedUrlError);
     });
+
+    it("throws a ParsedUrlError for an empty href", () => {
+        expect(() => resolveHref(base, "   ")).toThrow(ParsedUrlError);
+    });
+
+    it.each([
+        "javascript:alert(1)",
+        "data:text/plain,test",
+        "ftp://example.com",
+    ])("throws a ParsedUrlError for the unsupported protocol in %s", (href) => {
+        expect(() => resolveHref(base, href)).toThrow(ParsedUrlError);
+    });
 });

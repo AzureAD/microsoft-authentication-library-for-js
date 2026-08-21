@@ -5,14 +5,14 @@
 
 import { ServerTelemetryManager } from "@azure/msal-common/browser";
 import { CustomAuthV2ApiClient } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthV2ApiClient.js";
-import { CustomAuthV2ApiError } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/error/CustomAuthV2ApiError.js";
+import { CustomAuthError } from "../../../../../../src/custom_auth/core/error/CustomAuthError.js";
 import {
     RESET_PASSWORD_UNSUPPORTED,
     REDIRECT_TO_WEB,
     CONTINUATION_TOKEN_MISSING,
     INVALID_HAL_RESPONSE,
     NO_AUTHENTICATION_METHODS,
-} from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/error/V2ErrorCodes.js";
+} from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/V2ErrorCodes.js";
 import { HttpMethod } from "../../../../../../src/custom_auth/core/network_client/http_client/IHttpClient.js";
 
 const mockTelemetryManager = {
@@ -80,7 +80,7 @@ describe("CustomAuthV2ApiClient", () => {
 
             await expect(
                 apiClient.resetPasswordStart("user@test.com", context)
-            ).rejects.toMatchObject({ code: NO_AUTHENTICATION_METHODS });
+            ).rejects.toMatchObject({ error: NO_AUTHENTICATION_METHODS });
         });
 
         it("prefers the challenge href on an embedded method", async () => {
@@ -138,7 +138,7 @@ describe("CustomAuthV2ApiClient", () => {
 
             await expect(
                 apiClient.resetPasswordStart("user@test.com", context)
-            ).rejects.toMatchObject({ code: RESET_PASSWORD_UNSUPPORTED });
+            ).rejects.toMatchObject({ error: RESET_PASSWORD_UNSUPPORTED });
         });
 
         it("throws the normalized server error when the entry has no continuation token", async () => {
@@ -154,7 +154,7 @@ describe("CustomAuthV2ApiClient", () => {
 
             await expect(
                 apiClient.resetPasswordStart("user@test.com", context)
-            ).rejects.toMatchObject({ code: "invalid_request" });
+            ).rejects.toMatchObject({ error: "invalid_request" });
         });
 
         it("throws CONTINUATION_TOKEN_MISSING when the entry has neither token nor error", async () => {
@@ -164,7 +164,9 @@ describe("CustomAuthV2ApiClient", () => {
 
             await expect(
                 apiClient.resetPasswordStart("user@test.com", context)
-            ).rejects.toMatchObject({ code: CONTINUATION_TOKEN_MISSING });
+            ).rejects.toMatchObject({
+                error: CONTINUATION_TOKEN_MISSING,
+            });
         });
     });
 
@@ -217,7 +219,7 @@ describe("CustomAuthV2ApiClient", () => {
         });
     });
 
-    describe("verifyCode", () => {
+    describe("verifyChallenge", () => {
         it("maps action:update to an update next-action", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
@@ -227,7 +229,7 @@ describe("CustomAuthV2ApiClient", () => {
                 })
             );
 
-            const result = await apiClient.verifyCode(
+            const result = await apiClient.verifyChallenge(
                 "/tenant/api/v0.1/verify",
                 { continuationToken: "ct-challenge", otp: "123456" },
                 context
@@ -248,7 +250,7 @@ describe("CustomAuthV2ApiClient", () => {
                 })
             );
 
-            const result = await apiClient.verifyCode(
+            const result = await apiClient.verifyChallenge(
                 "/tenant/api/v0.1/verify",
                 { continuationToken: "ct-challenge", otp: "123456" },
                 context
@@ -269,12 +271,12 @@ describe("CustomAuthV2ApiClient", () => {
             );
 
             await expect(
-                apiClient.verifyCode(
+                apiClient.verifyChallenge(
                     "/tenant/api/v0.1/verify",
                     { continuationToken: "ct-challenge", otp: "123456" },
                     context
                 )
-            ).rejects.toMatchObject({ code: INVALID_HAL_RESPONSE });
+            ).rejects.toMatchObject({ error: INVALID_HAL_RESPONSE });
         });
     });
 
@@ -363,7 +365,7 @@ describe("CustomAuthV2ApiClient", () => {
                     { continuationToken: "ct-start" },
                     context
                 )
-            ).rejects.toMatchObject({ code: REDIRECT_TO_WEB });
+            ).rejects.toMatchObject({ error: REDIRECT_TO_WEB });
         });
 
         it("throws the normalized nested error on a failing HAL request", async () => {
@@ -381,14 +383,14 @@ describe("CustomAuthV2ApiClient", () => {
             );
 
             await expect(
-                apiClient.verifyCode(
+                apiClient.verifyChallenge(
                     "/tenant/api/v0.1/verify",
                     { continuationToken: "ct-challenge", otp: "000000" },
                     context
                 )
             ).rejects.toMatchObject({
-                code: "invalid_grant",
-                innerErrorCode: "otp_expired",
+                error: "invalid_grant",
+                subError: "otp_expired",
             });
         });
 
@@ -403,7 +405,7 @@ describe("CustomAuthV2ApiClient", () => {
                     { continuationToken: "ct-start" },
                     context
                 )
-            ).rejects.toBeInstanceOf(CustomAuthV2ApiError);
+            ).rejects.toBeInstanceOf(CustomAuthError);
         });
 
         it("throws continuation_token_missing before dispatching when the HAL request has no continuation token", async () => {
@@ -413,7 +415,9 @@ describe("CustomAuthV2ApiClient", () => {
                     { continuationToken: "" },
                     context
                 )
-            ).rejects.toMatchObject({ code: CONTINUATION_TOKEN_MISSING });
+            ).rejects.toMatchObject({
+                error: CONTINUATION_TOKEN_MISSING,
+            });
 
             expect(mockHttpClient.sendAsync).not.toHaveBeenCalled();
         });

@@ -29,7 +29,7 @@ export interface V2OAuthErrorResponse {
 
 /*
  * Normalized server error folded from either wire shape (flat OAuth or nested HAL) into one
- * struct. The serializer produces it on the envelope so the api-client stays shape-agnostic.
+ * struct. Response parsing adds it to the envelope so the api-client stays shape-agnostic.
  */
 export interface V2ServerError {
     code: string;

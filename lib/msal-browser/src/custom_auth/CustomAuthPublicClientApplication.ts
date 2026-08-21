@@ -8,7 +8,6 @@ import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
 import { ICustomAuthStandardController } from "./controller/ICustomAuthStandardController.js";
 import { CustomAuthStandardController } from "./controller/CustomAuthStandardController.js";
-import { ICustomAuthStandardControllerV2 } from "./controller/ICustomAuthStandardControllerV2.js";
 import { ICustomAuthPublicClientApplicationV2 } from "./ICustomAuthPublicClientApplicationV2.js";
 import {
     AccountRetrievalInputs,
@@ -34,8 +33,7 @@ export class CustomAuthPublicClientApplication
     extends PublicClientApplication
     implements ICustomAuthPublicClientApplicationV2
 {
-    private readonly customAuthController: ICustomAuthStandardController &
-        ICustomAuthStandardControllerV2;
+    private readonly customAuthController: ICustomAuthStandardController;
 
     /**
      * Creates a new instance of a PublicClientApplication with the given configuration and controller to start Native authentication flows
@@ -63,8 +61,7 @@ export class CustomAuthPublicClientApplication
 
     private constructor(
         config: CustomAuthConfiguration,
-        controller: ICustomAuthStandardController &
-            ICustomAuthStandardControllerV2
+        controller: ICustomAuthStandardController
     ) {
         super(config, controller);
 

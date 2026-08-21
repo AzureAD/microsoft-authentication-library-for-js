@@ -26,13 +26,11 @@ import { UnexpectedError } from "../core/error/UnexpectedError.js";
 import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { ResetPasswordStartV2Result } from "../core/auth_flow/v2/result/ResetPasswordStartV2Result.js";
 import { ResetPasswordV2Inputs } from "../CustomAuthV2ActionInputs.js";
-import { ICustomAuthStandardControllerV2 } from "./ICustomAuthStandardControllerV2.js";
 import { CustomAuthV2ApiClient } from "../core/network_client/custom_auth_api/v2/CustomAuthV2ApiClient.js";
 import { V2FlowInteractionClient } from "../core/interaction_client/v2/V2FlowInteractionClient.js";
 import { AuthenticationMethodSelectionRequiredState } from "../core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredState.js";
 import { ResetPasswordStartError } from "../core/auth_flow/v2/error/ResetPasswordStartError.js";
 import { CustomAuthV2Result } from "../core/auth_flow/v2/CustomAuthV2Result.js";
-import { toV2Error } from "../core/auth_flow/v2/state/V2StateErrorHelper.js";
 import { CustomAuthV2FlowScenario } from "../core/auth_flow/v2/CustomAuthV2FlowScenario.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
@@ -76,7 +74,7 @@ import { name } from "../../packageMetadata.js";
  */
 export class CustomAuthStandardController
     extends StandardController
-    implements ICustomAuthStandardController, ICustomAuthStandardControllerV2
+    implements ICustomAuthStandardController
 {
     private readonly signInClient: SignInClient;
     private readonly signUpClient: SignUpClient;
@@ -92,10 +90,12 @@ export class CustomAuthStandardController
      * Constructor for CustomAuthStandardController.
      * @param operatingContext - The operating context for the controller.
      * @param customAuthApiClient - The client to use for custom auth API operations.
+     * @param customAuthV2ApiClient - The client to use for V2 custom auth API operations.
      */
     constructor(
         operatingContext: CustomAuthOperatingContext,
-        customAuthApiClient?: ICustomAuthApiClient
+        customAuthApiClient?: ICustomAuthApiClient,
+        customAuthV2ApiClient?: CustomAuthV2ApiClient
     ) {
         super(operatingContext);
 
@@ -161,14 +161,15 @@ export class CustomAuthStandardController
             this.navigationClient,
             this.performanceClient,
             this.authority,
-            new CustomAuthV2ApiClient(
-                this.authority.getCustomAuthApiDomain(),
-                this.customAuthConfig.auth.clientId,
-                new FetchHttpClient(this.logger),
-                this.customAuthConfig.customAuth?.customAuthApiQueryParams,
-                this.customAuthConfig.customAuth?.requestInterceptor,
-                this.logger
-            )
+            customAuthV2ApiClient ??
+                new CustomAuthV2ApiClient(
+                    this.authority.getCustomAuthApiDomain(),
+                    this.customAuthConfig.auth.clientId,
+                    new FetchHttpClient(this.logger),
+                    this.customAuthConfig.customAuth?.customAuthApiQueryParams,
+                    this.customAuthConfig.customAuth?.requestInterceptor,
+                    this.logger
+                )
         );
     }
 
@@ -664,12 +665,11 @@ export class CustomAuthStandardController
                 correlationId
             );
 
-            return CustomAuthV2Result.createWithError(
-                new ResetPasswordStartError(
-                    toV2Error(error, correlationId),
-                    CustomAuthV2FlowScenario.PasswordReset
-                )
-            );
+            return CustomAuthV2Result.createWithError(error, {
+                errorType: ResetPasswordStartError,
+                scenario: CustomAuthV2FlowScenario.PasswordReset,
+                correlationId,
+            });
         }
     }
 

@@ -5,6 +5,7 @@
 
 import {
     AADServerParamKeys,
+    Constants,
     Logger,
     ServerTelemetryManager,
 } from "@azure/msal-common/browser";
@@ -17,20 +18,17 @@ import { buildUrl, parseUrl } from "../../../utils/UrlUtils.js";
 import { filterCustomHeaders } from "../../../utils/CustomHeaderUtils.js";
 import { CustomAuthRequestInterceptor } from "../../../../configuration/CustomAuthRequestInterceptor.js";
 import { V2ResponseHandler } from "./V2ResponseHandler.js";
-import { CustomAuthV2ApiError } from "./error/CustomAuthV2ApiError.js";
-import { V2ServerError } from "./error/V2ErrorResponses.js";
+import { CustomAuthError } from "../../../error/CustomAuthError.js";
+import { CustomAuthApiError } from "../../../error/CustomAuthApiError.js";
+import { V2ServerError } from "./response/V2ErrorResponses.js";
 import { resolveHref } from "./V2HrefResolver.js";
-import { V2SerializedResponse } from "./response/V2SerializedResponse.js";
 import {
     AuthorizeChallengeEntryResponse,
     AuthorizeChallengeContinueResponse,
+    V2ParsedResponse,
     V2TokenResponse,
 } from "./response/V2Responses.js";
-import {
-    FORM_CONTENT_TYPE,
-    JSON_CONTENT_TYPE,
-    AUTHORIZATION_CODE_GRANT,
-} from "./V2ApiClientConstants.js";
+import { JSON_CONTENT_TYPE } from "./V2ApiClientConstants.js";
 import { AUTHORIZE_CHALLENGE, SIGNIN_TOKEN } from "../CustomAuthApiEndpoint.js";
 import {
     AUTH_CODE_MISSING,
@@ -38,11 +36,11 @@ import {
     HTTP_REQUEST_FAILED,
     INVALID_TOKEN_RESPONSE,
     REDIRECT_TO_WEB,
-} from "./error/V2ErrorCodes.js";
+} from "./V2ErrorCodes.js";
 import {
     V2RequestContext,
     V2OAuthFormRequest,
-    V2HalRequestBase,
+    V2ActionRequestBase,
     AuthorizeChallengeEntryRequest,
     AuthorizeChallengeContinueRequest,
     V2TokenRequest,
@@ -100,14 +98,14 @@ export abstract class V2BaseApiClient {
         if (!continuationToken) {
             const apiError = error
                 ? this.toApiError(error, correlationId)
-                : new CustomAuthV2ApiError(
+                : new CustomAuthError(
                       CONTINUATION_TOKEN_MISSING,
                       "Continuation token is missing in the response",
-                      { correlationId }
+                      correlationId
                   );
 
             this.logger?.error(
-                `V2 authorize-challenge entry failed: '${apiError.code}'`,
+                `V2 authorize-challenge entry failed: '${apiError.error}'`,
                 correlationId
             );
 
@@ -150,10 +148,10 @@ export abstract class V2BaseApiClient {
                 parsedResponse.correlationId
             );
 
-            throw new CustomAuthV2ApiError(
+            throw new CustomAuthError(
                 AUTH_CODE_MISSING,
                 "Authorization code is missing in the response body",
-                { correlationId: parsedResponse.correlationId }
+                parsedResponse.correlationId
             );
         }
 
@@ -171,7 +169,7 @@ export abstract class V2BaseApiClient {
     ): Promise<V2TokenResponse> {
         const request: V2TokenRequest = {
             client_id: this.clientId,
-            grant_type: AUTHORIZATION_CODE_GRANT,
+            grant_type: Constants.GrantType.AUTHORIZATION_CODE_GRANT,
             code,
             // Required so the server returns the client_info blob MSAL uses to build the home account id.
             client_info: "1",
@@ -204,7 +202,7 @@ export abstract class V2BaseApiClient {
         endpoint: string,
         data: V2OAuthFormRequest | AuthorizeChallengeContinueRequest,
         context: V2RequestContext
-    ): Promise<V2SerializedResponse<T>> {
+    ): Promise<V2ParsedResponse<T>> {
         const formData = new URLSearchParams(
             Object.entries(data) as [string, string][]
         );
@@ -218,11 +216,11 @@ export abstract class V2BaseApiClient {
             url,
             HttpMethod.POST,
             formData,
-            FORM_CONTENT_TYPE,
+            Constants.URL_FORM_CONTENT_TYPE,
             context
         );
 
-        const parsedResponse = await this.handler.serialize<T>(
+        const parsedResponse = await this.handler.parseResponse<T>(
             response,
             context.correlationId
         );
@@ -233,24 +231,24 @@ export abstract class V2BaseApiClient {
     }
 
     /*
-     * Sends a JSON request to a server-provided HAL link.
+     * Sends a JSON action request to a server-provided link.
      */
-    protected async sendHalRequest<T>(
+    protected async sendActionRequest<T>(
         href: string,
         method: (typeof HttpMethod)[keyof typeof HttpMethod],
-        body: V2HalRequestBase,
+        body: V2ActionRequestBase,
         context: V2RequestContext
-    ): Promise<V2SerializedResponse<T>> {
+    ): Promise<V2ParsedResponse<T>> {
         if (!body.continuationToken) {
             this.logger?.error(
                 "V2 HAL request is missing the continuation token that threads the flow forward",
                 context.correlationId
             );
 
-            throw new CustomAuthV2ApiError(
+            throw new CustomAuthError(
                 CONTINUATION_TOKEN_MISSING,
                 "The HAL request body did not include a continuation token, so the server-driven reset flow cannot advance",
-                { correlationId: context.correlationId }
+                context.correlationId
             );
         }
 
@@ -264,7 +262,7 @@ export abstract class V2BaseApiClient {
             context
         );
 
-        const parsedResponse = await this.handler.serialize<T>(
+        const parsedResponse = await this.handler.parseResponse<T>(
             response,
             context.correlationId
         );
@@ -298,17 +296,15 @@ export abstract class V2BaseApiClient {
                 headers,
             });
         } catch (e) {
-            throw new CustomAuthV2ApiError(
+            throw new CustomAuthError(
                 HTTP_REQUEST_FAILED,
                 `Failed to send request to '${url}': '${e}'`,
-                { correlationId: context.correlationId }
+                context.correlationId
             );
         }
     }
 
-    protected throwOnApiError(
-        parsedResponse: V2SerializedResponse<unknown>
-    ): void {
+    protected throwOnApiError(parsedResponse: V2ParsedResponse<unknown>): void {
         if (parsedResponse.error) {
             const apiError = this.toApiError(
                 parsedResponse.error,
@@ -316,7 +312,7 @@ export abstract class V2BaseApiClient {
             );
 
             this.logger?.error(
-                `V2 API returned an error: '${apiError.code}'`,
+                `V2 API returned an error: '${apiError.error}'`,
                 parsedResponse.correlationId
             );
 
@@ -327,24 +323,28 @@ export abstract class V2BaseApiClient {
     private toApiError(
         serverError: V2ServerError,
         correlationId: string
-    ): CustomAuthV2ApiError {
-        return new CustomAuthV2ApiError(serverError.code, serverError.message, {
-            innerErrorCode: serverError.innerErrorCode,
-            errorCodes: serverError.errorCodes,
-            correlationId: serverError.correlationId ?? correlationId,
-            traceId: serverError.traceId,
-            timestamp: serverError.timestamp,
-        });
+    ): CustomAuthApiError {
+        return new CustomAuthApiError(
+            serverError.code,
+            serverError.message ?? "",
+            serverError.correlationId ?? correlationId,
+            serverError.errorCodes,
+            serverError.innerErrorCode,
+            undefined,
+            undefined,
+            serverError.traceId,
+            serverError.timestamp
+        );
     }
 
     private throwOnWebFallback(
-        parsedResponse: V2SerializedResponse<unknown>
+        parsedResponse: V2ParsedResponse<unknown>
     ): void {
         if (parsedResponse.isWebFallbackRequired) {
-            throw new CustomAuthV2ApiError(
+            throw new CustomAuthApiError(
                 REDIRECT_TO_WEB,
                 "The server requires the flow to continue in a web browser",
-                { correlationId: parsedResponse.correlationId }
+                parsedResponse.correlationId
             );
         }
     }
@@ -354,10 +354,10 @@ export abstract class V2BaseApiClient {
         correlationId: string
     ): void {
         if (!tokenResponse.access_token) {
-            throw new CustomAuthV2ApiError(
+            throw new CustomAuthError(
                 INVALID_TOKEN_RESPONSE,
                 "Access token is missing in the response body",
-                { correlationId }
+                correlationId
             );
         }
     }

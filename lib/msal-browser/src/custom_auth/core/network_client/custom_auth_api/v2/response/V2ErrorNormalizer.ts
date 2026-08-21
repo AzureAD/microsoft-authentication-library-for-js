@@ -8,29 +8,29 @@ import {
     V2OAuthErrorResponse,
     V2ServerError,
 } from "./V2ErrorResponses.js";
-import { UNEXPECTED_ERROR } from "./V2ErrorCodes.js";
+import { UNEXPECTED_ERROR } from "../V2ErrorCodes.js";
 
 /*
  * Normalizes nested HAL and flat OAuth error bodies into a `V2ServerError`.
  * Returns `undefined` when the response contains no recognized error.
  */
-export function normalizeError(
+export function normalizeServerError(
     body: Record<string, unknown>
 ): V2ServerError | undefined {
     const error = body.error;
 
     if (error && typeof error === "object") {
-        return normalizeNestedError(body as V2HalErrorResponse);
+        return normalizeHalError(body as V2HalErrorResponse);
     }
 
     if (typeof error === "string") {
-        return normalizeFlatError(body as V2OAuthErrorResponse);
+        return normalizeOAuthError(body as V2OAuthErrorResponse);
     }
 
     return undefined;
 }
 
-function normalizeNestedError(response: V2HalErrorResponse): V2ServerError {
+function normalizeHalError(response: V2HalErrorResponse): V2ServerError {
     const error = response.error ?? {};
 
     return {
@@ -43,7 +43,7 @@ function normalizeNestedError(response: V2HalErrorResponse): V2ServerError {
     };
 }
 
-function normalizeFlatError(response: V2OAuthErrorResponse): V2ServerError {
+function normalizeOAuthError(response: V2OAuthErrorResponse): V2ServerError {
     return {
         code: readString(response.error) ?? UNEXPECTED_ERROR,
         message: readString(response.error_description),

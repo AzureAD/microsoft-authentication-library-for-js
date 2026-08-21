@@ -14,6 +14,8 @@ import {
 } from "../CustomAuthActionInputs.js";
 import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { IController } from "../../controllers/IController.js";
+import { ResetPasswordV2Inputs } from "../CustomAuthV2ActionInputs.js";
+import { ResetPasswordStartV2Result } from "../core/auth_flow/v2/result/ResetPasswordStartV2Result.js";
 
 /*
  * Controller interface for standard authentication operations.
@@ -50,4 +52,8 @@ export interface ICustomAuthStandardController extends IController {
     resetPassword(
         resetPasswordInputs: ResetPasswordInputs
     ): Promise<ResetPasswordStartResult>;
+
+    resetPasswordV2(
+        inputs: ResetPasswordV2Inputs
+    ): Promise<ResetPasswordStartV2Result>;
 }

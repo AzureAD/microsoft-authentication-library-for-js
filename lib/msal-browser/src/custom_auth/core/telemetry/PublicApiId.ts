@@ -3,8 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthV2FlowScenario } from "../auth_flow/v2/CustomAuthV2FlowScenario.js";
-
 /*
  * The public API ids should be claim in the MSAL telemtry tracker.
  * All the following ids are hardcoded; so we need to find a way to claim them in the future and update them here.
@@ -52,24 +50,3 @@ export const RESET_PASSWORD_V2_SUBMIT_CODE = 100202;
 export const RESET_PASSWORD_V2_RESEND_CODE = 100203;
 export const RESET_PASSWORD_V2_SUBMIT = 100204;
 export const RESET_PASSWORD_V2_CHALLENGE = 100205;
-
-// The generic (flow-agnostic) V2 interaction-client steps.
-export type V2FlowStep =
-    | "requestChallenge"
-    | "submitCode"
-    | "resendCode"
-    | "submitPassword"
-    | "signInWithContinuation";
-
-export const V2_FLOW_STEP_API_IDS: Partial<
-    Record<CustomAuthV2FlowScenario, Record<V2FlowStep, number>>
-> = {
-    [CustomAuthV2FlowScenario.PasswordReset]: {
-        requestChallenge: RESET_PASSWORD_V2_CHALLENGE,
-        submitCode: RESET_PASSWORD_V2_SUBMIT_CODE,
-        resendCode: RESET_PASSWORD_V2_RESEND_CODE,
-        submitPassword: RESET_PASSWORD_V2_SUBMIT,
-        // Sign-in-after-reset has no dedicated V2 id; it reuses the V1 id.
-        signInWithContinuation: SIGN_IN_AFTER_PASSWORD_RESET,
-    },
-};

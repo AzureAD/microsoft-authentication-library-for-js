@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { V2OAuthErrorResponse } from "../error/V2ErrorResponses.js";
-import { HalLink, HalLinks, HalEmbedded, HalResource } from "./HalResource.js";
+import { V2OAuthErrorResponse, V2ServerError } from "./V2ErrorResponses.js";
+import { HalEmbedded, HalLink, HalLinks, HalResource } from "./HalResource.js";
 
 /*
  * Envelope shared by every JSON HAL response. `correlationId` is not on the HAL body -
@@ -19,8 +19,7 @@ export interface V2HalResponseBase extends HalResource {
 }
 
 /*
- * A method embedded under `_embedded.methods[]`. Its links are narrowed to the
- * relations used by the client while preserving unknown HAL relations.
+ * A method embedded under `_embedded.methods[]`.
  */
 export interface V2EmbeddedMethod extends HalResource {
     id?: string;
@@ -119,6 +118,7 @@ export interface UpdatePasswordV2Response extends V2HalResponseBase {
 export interface PollV2Response extends V2HalResponseBase {
     _links?: HalLinks & {
         continue?: HalLink;
+        poll?: HalLink;
     };
 }
 
@@ -135,4 +135,17 @@ export interface V2TokenResponse {
     id_token?: string;
     client_info?: string;
     ext_expires_in?: number;
+}
+
+/*
+ * Parsed envelope produced by the response handler. It carries the typed body
+ * together with normalized HTTP metadata and error information.
+ */
+export interface V2ParsedResponse<T> {
+    statusCode: number;
+    correlationId: string;
+    continuationToken?: string;
+    isWebFallbackRequired: boolean;
+    error?: V2ServerError;
+    body: T;
 }

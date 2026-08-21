@@ -3,11 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import type { CustomAuthV2Error } from "../../../network_client/custom_auth_api/v2/error/CustomAuthV2Error.js";
-import {
-    INVALID_INPUT,
-    REDIRECT_TO_WEB,
-} from "../../../network_client/custom_auth_api/v2/error/V2ErrorCodes.js";
+import type { CustomAuthError } from "../../../error/CustomAuthError.js";
+import { InvalidArgumentError } from "../../../error/InvalidArgumentError.js";
+import { REDIRECT_TO_WEB } from "../../../network_client/custom_auth_api/v2/V2ErrorCodes.js";
 import {
     INVALID_ONE_TIME_CODE,
     PASSWORD_TOO_WEAK,
@@ -23,7 +21,7 @@ export abstract class AuthFlowErrorV2Base {
     readonly scenario: CustomAuthV2FlowScenario;
 
     constructor(
-        public errorData: CustomAuthV2Error,
+        public errorData: CustomAuthError,
         scenario: CustomAuthV2FlowScenario = CustomAuthV2FlowScenario.Unknown
     ) {
         this.scenario = scenario;
@@ -38,7 +36,7 @@ export abstract class AuthFlowErrorV2Base {
     }
 
     get errorDescription(): string | undefined {
-        return this.errorData.message;
+        return this.errorData.errorDescription;
     }
 
     /**
@@ -48,7 +46,7 @@ export abstract class AuthFlowErrorV2Base {
      * @returns True if the browser is required, false otherwise.
      */
     isBrowserRequired(): boolean {
-        return this.errorData.code === REDIRECT_TO_WEB;
+        return this.errorData.error === REDIRECT_TO_WEB;
     }
 
     /**
@@ -59,21 +57,7 @@ export abstract class AuthFlowErrorV2Base {
      * @returns True if the input was invalid, false otherwise.
      */
     isInvalidInput(): boolean {
-        return this.errorData.code === INVALID_INPUT;
-    }
-
-    /**
-     * Checks if the error has no more specific V2 classification.
-     * @returns True if the error is general, false otherwise.
-     */
-    isGeneralError(): boolean {
-        return (
-            !this.isBrowserRequired() &&
-            !this.isInvalidInput() &&
-            !this.isUserNotFoundError() &&
-            !this.isInvalidCodeError() &&
-            !this.isInvalidPasswordError()
-        );
+        return this.errorData instanceof InvalidArgumentError;
     }
 
     /*
@@ -84,24 +68,24 @@ export abstract class AuthFlowErrorV2Base {
     // TODO: Use the service-provided suberror when it becomes available.
     protected isUserNotFoundError(): boolean {
         return (
-            this.errorData.code === "invalidRequest" &&
-            this.errorData.message?.includes("AADSTS50034") === true
+            this.errorData.error === "invalidRequest" &&
+            this.errorData.errorDescription?.includes("AADSTS50034") === true
         );
     }
 
     // The verification endpoint uses this outer/inner code pair for an invalid one-time code.
     protected isInvalidCodeError(): boolean {
         return (
-            this.errorData.code === "invalidGrant" &&
-            this.errorData.innerErrorCode === INVALID_ONE_TIME_CODE
+            this.errorData.error === "invalidGrant" &&
+            this.errorData.subError === INVALID_ONE_TIME_CODE
         );
     }
 
     // New password rejected by policy: inner `passwordTooWeak` (AADSTS120002).
     protected isInvalidPasswordError(): boolean {
         return (
-            this.errorData.code === "invalidRequest" &&
-            this.errorData.innerErrorCode === PASSWORD_TOO_WEAK
+            this.errorData.error === "invalidRequest" &&
+            this.errorData.subError === PASSWORD_TOO_WEAK
         );
     }
 }

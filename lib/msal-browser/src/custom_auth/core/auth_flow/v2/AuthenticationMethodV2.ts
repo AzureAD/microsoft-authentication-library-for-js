@@ -12,10 +12,7 @@
  */
 export interface AuthenticationMethodV2 {
     id: string;
-
     type: string;
-
     hint?: string;
-
     challengeHref: string;
 }

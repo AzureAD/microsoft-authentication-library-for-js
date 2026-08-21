@@ -22,17 +22,6 @@ export interface V2OAuthFormRequest {
 }
 
 /*
- * Base for the raw-JSON HAL `/api` request bodies. Every server-driven request carries the
- * `continuationToken` that threads the flow forward; operation-specific fields (`username`, `otp`,
- * `newPassword`) are added by the concrete request types. `sendHalRequest` accepts this
- * base so callers must pass a real HAL request DTO, without the shared base client depending on
- * any one flow's request types.
- */
-export interface V2HalRequestBase {
-    continuationToken: string;
-}
-
-/*
  * Entry (POST /oauth2/v2.0/authorize-challenge): the flow's front door. OAuth form-encoded
  * and carries only `client_id` (via V2OAuthFormRequest). The response
  * (`AuthorizeChallengeEntryResponse`) returns the seed `continuation_token` and the flat
@@ -64,13 +53,24 @@ export interface V2TokenRequest extends V2OAuthFormRequest {
     claims?: string;
 }
 
+/*
+ * Base for raw-JSON action request bodies. Every server-driven request carries the
+ * `continuationToken` that threads the flow forward; operation-specific fields (`username`, `otp`,
+ * `newPassword`) are added by the concrete request types. `sendActionRequest` accepts this
+ * base so callers must pass a real action request DTO, without the shared base client depending on
+ * any one flow's request types.
+ */
+export interface V2ActionRequestBase {
+    continuationToken: string;
+}
+
 // Start reset-password.
-export interface ResetPasswordStartV2Request extends V2HalRequestBase {
+export interface ResetPasswordStartV2Request extends V2ActionRequestBase {
     username: string;
 }
 
 // Request or resend a challenge.
-export type ChallengeV2Request = V2HalRequestBase;
+export type ChallengeV2Request = V2ActionRequestBase;
 
 // Submit a single credential to `/methods/{type}/{id}/verify`.
 /*
@@ -80,7 +80,7 @@ export type ChallengeV2Request = V2HalRequestBase;
  * add a `VerifyPasswordV2Request` member (`password: string`) and include it in the union
  * without touching the OTP member.
  */
-type VerifyV2RequestBase = V2HalRequestBase;
+type VerifyV2RequestBase = V2ActionRequestBase;
 
 interface VerifyOtpV2Request extends VerifyV2RequestBase {
     otp: string;
@@ -93,7 +93,7 @@ export type VerifyV2Request = VerifyOtpV2Request;
  * update-then-poll cycle is part of the password-reset flow, not sign-in. `newPassword`
  * matches the server's HAL body key.
  */
-export interface UpdatePasswordV2Request extends V2HalRequestBase {
+export interface UpdatePasswordV2Request extends V2ActionRequestBase {
     newPassword: string;
 }
 
@@ -101,4 +101,4 @@ export interface UpdatePasswordV2Request extends V2HalRequestBase {
  * Poll for completion (`/methods/password/{id}/pollUpdate`). SSPR (recovery) only.
  * Repeated until the reset finishes.
  */
-export type PollV2Request = V2HalRequestBase;
+export type PollV2Request = V2ActionRequestBase;

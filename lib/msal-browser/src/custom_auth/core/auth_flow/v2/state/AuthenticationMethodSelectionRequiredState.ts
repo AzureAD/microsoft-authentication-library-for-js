@@ -8,7 +8,6 @@ import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
 import { InvalidArgumentError } from "../../../error/InvalidArgumentError.js";
 import { CustomAuthV2Result } from "../CustomAuthV2Result.js";
 import { RequestChallengeError } from "../error/RequestChallengeError.js";
-import { toV2Error } from "./V2StateErrorHelper.js";
 import { ChallengeVerificationRequiredState } from "./ChallengeVerificationRequiredState.js";
 import type { AuthenticationMethodSelectionRequiredStateParameters } from "./CustomAuthV2StateParameters.js";
 import type { RequestChallengeResult } from "../result/RequestChallengeResult.js";
@@ -93,12 +92,11 @@ export class AuthenticationMethodSelectionRequiredState extends AuthFlowActionRe
                 correlationId
             );
 
-            return CustomAuthV2Result.createWithError(
-                new RequestChallengeError(
-                    toV2Error(error, correlationId),
-                    continuationState.scenario
-                )
-            );
+            return CustomAuthV2Result.createWithError(error, {
+                errorType: RequestChallengeError,
+                scenario: continuationState.scenario,
+                correlationId,
+            });
         }
     }
 }

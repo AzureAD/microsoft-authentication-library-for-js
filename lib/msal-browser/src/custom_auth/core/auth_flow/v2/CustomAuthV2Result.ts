@@ -3,10 +3,23 @@
  * Licensed under the MIT License.
  */
 
+import { AuthError } from "@azure/msal-common/browser";
 import { AuthFlowStateBase } from "../AuthFlowState.js";
+import { CustomAuthError } from "../../error/CustomAuthError.js";
+import { MsalCustomAuthError } from "../../error/MsalCustomAuthError.js";
+import { UnexpectedError } from "../../error/UnexpectedError.js";
 import { FailedState } from "./state/FailedState.js";
 import { AuthFlowErrorV2Base } from "./error/AuthFlowErrorV2Base.js";
 import { CustomAuthV2FlowScenario } from "./CustomAuthV2FlowScenario.js";
+
+type CreateWithErrorOptions<TError extends AuthFlowErrorV2Base> = {
+    errorType: new (
+        errorData: CustomAuthError,
+        scenario?: CustomAuthV2FlowScenario
+    ) => TError;
+    scenario?: CustomAuthV2FlowScenario;
+    correlationId?: string;
+};
 
 /**
  * Result of a native auth V2 operation. Use {@link CustomAuthV2Result.isState}
@@ -49,22 +62,72 @@ export class CustomAuthV2Result<
     }
 
     /**
-     * Creates a failed result for the supplied error. The result uses the shared
-     * {@link FailedState} terminal state.
-     * @param error - The flow-specific error that occurred.
-     * @returns A failed result carrying the given error.
+     * Creates a failed result from the supplied error. The result uses the
+     * shared {@link FailedState} terminal state.
+     * @param error - The error that occurred.
+     * @param options - The flow-error type and error context.
+     * @returns A failed result carrying the flow-specific error.
      */
     static createWithError<
         TState extends AuthFlowStateBase,
         TError extends AuthFlowErrorV2Base,
         TData = void
-    >(error: TError): CustomAuthV2Result<TState | FailedState, TError, TData> {
+    >(
+        error: unknown,
+        options: CreateWithErrorOptions<TError>
+    ): CustomAuthV2Result<TState | FailedState, TError, TData> {
+        const {
+            errorType: ErrorType,
+            scenario = CustomAuthV2FlowScenario.Unknown,
+            correlationId,
+        } = options;
+        const errorData = CustomAuthV2Result.createErrorData(
+            error,
+            correlationId
+        );
+        const flowError = new ErrorType(errorData, scenario);
+
         const result = new CustomAuthV2Result<
             TState | FailedState,
             TError,
             TData
-        >(new FailedState(), undefined, error.scenario);
-        result.error = error;
+        >(new FailedState(), undefined, scenario);
+        result.error = flowError;
+
         return result;
+    }
+
+    private static createErrorData(
+        error: unknown,
+        correlationId?: string
+    ): CustomAuthError {
+        if (error instanceof CustomAuthError) {
+            return error;
+        }
+
+        if (error instanceof AuthError) {
+            const errorCodes: number[] = [];
+
+            if ("errorNo" in error) {
+                if (typeof error.errorNo === "string") {
+                    const code = Number(error.errorNo);
+                    if (!isNaN(code)) {
+                        errorCodes.push(code);
+                    }
+                } else if (typeof error.errorNo === "number") {
+                    errorCodes.push(error.errorNo);
+                }
+            }
+
+            return new MsalCustomAuthError(
+                error.errorCode,
+                error.errorMessage,
+                error.subError,
+                errorCodes,
+                error.correlationId
+            );
+        }
+
+        return new UnexpectedError(error, correlationId);
     }
 }

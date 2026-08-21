@@ -4,12 +4,11 @@
  */
 
 import { V2ResponseHandler } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/V2ResponseHandler.js";
-import { CustomAuthV2ApiError } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/error/CustomAuthV2ApiError.js";
 import {
     INVALID_RESPONSE_BODY,
     INVALID_HAL_RESPONSE,
     CONTINUATION_TOKEN_MISSING,
-} from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/error/V2ErrorCodes.js";
+} from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/V2ErrorCodes.js";
 
 const REQUEST_CORRELATION_ID = "req-corr-id";
 const HEADER_CORRELATION_ID = "header-corr-id";
@@ -41,9 +40,9 @@ describe("V2ResponseHandler", () => {
         handler = new V2ResponseHandler();
     });
 
-    describe("serialize", () => {
+    describe("parseResponse", () => {
         it("reads the correlation id from the response header", async () => {
-            const result = await handler.serialize(
+            const result = await handler.parseResponse(
                 buildResponse({ state: "interactionRequired" }, 200, {
                     "x-ms-request-id": HEADER_CORRELATION_ID,
                 }),
@@ -55,7 +54,7 @@ describe("V2ResponseHandler", () => {
         });
 
         it("falls back to the request correlation id when the header is absent", async () => {
-            const result = await handler.serialize(
+            const result = await handler.parseResponse(
                 buildResponse({}),
                 REQUEST_CORRELATION_ID
             );
@@ -64,7 +63,7 @@ describe("V2ResponseHandler", () => {
         });
 
         it("reads the continuation token from camelCase", async () => {
-            const result = await handler.serialize(
+            const result = await handler.parseResponse(
                 buildResponse({ continuationToken: "ct-camel" }),
                 REQUEST_CORRELATION_ID
             );
@@ -73,7 +72,7 @@ describe("V2ResponseHandler", () => {
         });
 
         it("reads the continuation token from snake_case", async () => {
-            const result = await handler.serialize(
+            const result = await handler.parseResponse(
                 buildResponse({ continuation_token: "ct-snake" }),
                 REQUEST_CORRELATION_ID
             );
@@ -82,7 +81,7 @@ describe("V2ResponseHandler", () => {
         });
 
         it("flags web fallback when the flat error is redirect_to_web", async () => {
-            const result = await handler.serialize(
+            const result = await handler.parseResponse(
                 buildResponse({
                     error: "redirect_to_web",
                     continuation_token: "ct",
@@ -94,7 +93,7 @@ describe("V2ResponseHandler", () => {
         });
 
         it("flags web fallback when the state is webFallbackRequired", async () => {
-            const result = await handler.serialize(
+            const result = await handler.parseResponse(
                 buildResponse({ state: "webFallbackRequired" }),
                 REQUEST_CORRELATION_ID
             );
@@ -103,7 +102,7 @@ describe("V2ResponseHandler", () => {
         });
 
         it("does not flag web fallback on a normal response", async () => {
-            const result = await handler.serialize(
+            const result = await handler.parseResponse(
                 buildResponse({ state: "interactionRequired" }),
                 REQUEST_CORRELATION_ID
             );
@@ -112,7 +111,7 @@ describe("V2ResponseHandler", () => {
         });
 
         it("normalizes a nested HAL error", async () => {
-            const result = await handler.serialize(
+            const result = await handler.parseResponse(
                 buildResponse({
                     error: {
                         code: "invalid_grant",
@@ -137,7 +136,7 @@ describe("V2ResponseHandler", () => {
         });
 
         it("normalizes a flat OAuth error with error_codes", async () => {
-            const result = await handler.serialize(
+            const result = await handler.parseResponse(
                 buildResponse({
                     error: "invalid_request",
                     error_description: "AADSTS900023: bad tenant",
@@ -160,7 +159,7 @@ describe("V2ResponseHandler", () => {
         });
 
         it("leaves error undefined when the body carries no error", async () => {
-            const result = await handler.serialize(
+            const result = await handler.parseResponse(
                 buildResponse({ continuationToken: "ct" }),
                 REQUEST_CORRELATION_ID
             );
@@ -169,7 +168,9 @@ describe("V2ResponseHandler", () => {
         });
 
         it("surfaces the header correlation id on the body", async () => {
-            const result = await handler.serialize<{ correlationId?: string }>(
+            const result = await handler.parseResponse<{
+                correlationId?: string;
+            }>(
                 buildResponse({}, 200, {
                     "x-ms-request-id": HEADER_CORRELATION_ID,
                 }),
@@ -186,24 +187,27 @@ describe("V2ResponseHandler", () => {
             ["a null body", null],
         ])("throws INVALID_RESPONSE_BODY for %s", async (_label, body) => {
             await expect(
-                handler.serialize(buildResponse(body), REQUEST_CORRELATION_ID)
-            ).rejects.toMatchObject({ code: INVALID_RESPONSE_BODY });
+                handler.parseResponse(
+                    buildResponse(body),
+                    REQUEST_CORRELATION_ID
+                )
+            ).rejects.toMatchObject({ error: INVALID_RESPONSE_BODY });
         });
 
         it("throws INVALID_RESPONSE_BODY when json() fails to parse", async () => {
             await expect(
-                handler.serialize(
+                handler.parseResponse(
                     buildResponse(undefined, 200, {}, true),
                     REQUEST_CORRELATION_ID
                 )
-            ).rejects.toMatchObject({ code: INVALID_RESPONSE_BODY });
+            ).rejects.toMatchObject({ error: INVALID_RESPONSE_BODY });
         });
     });
 
-    describe("requireRelationHref", () => {
-        it("returns the href when the relation is present", () => {
-            const href = handler.requireRelationHref(
-                { verify: { href: "/api/verify" } },
+    describe("requireHref", () => {
+        it("returns the href when it is present", () => {
+            const href = handler.requireHref(
+                "/api/verify",
                 "verify",
                 REQUEST_CORRELATION_ID
             );
@@ -213,12 +217,27 @@ describe("V2ResponseHandler", () => {
 
         it("throws INVALID_HAL_RESPONSE when the relation is missing", () => {
             expect(() =>
-                handler.requireRelationHref(
-                    { self: { href: "/api/self" } },
-                    "verify",
-                    REQUEST_CORRELATION_ID
+                handler.requireHref(undefined, "verify", REQUEST_CORRELATION_ID)
+            ).toThrow(expect.objectContaining({ error: INVALID_HAL_RESPONSE }));
+        });
+
+        it("throws the supplied flow-specific error when the action is missing", () => {
+            expect(() =>
+                handler.requireHref(
+                    undefined,
+                    "reset-password",
+                    REQUEST_CORRELATION_ID,
+                    {
+                        code: "reset_password_unsupported",
+                        message: "Reset password is unavailable",
+                    }
                 )
-            ).toThrow(expect.objectContaining({ code: INVALID_HAL_RESPONSE }));
+            ).toThrow(
+                expect.objectContaining({
+                    error: "reset_password_unsupported",
+                    errorDescription: "Reset password is unavailable",
+                })
+            );
         });
     });
 
@@ -236,81 +255,32 @@ describe("V2ResponseHandler", () => {
                     REQUEST_CORRELATION_ID
                 )
             ).toThrow(
-                expect.objectContaining({ code: CONTINUATION_TOKEN_MISSING })
+                expect.objectContaining({
+                    error: CONTINUATION_TOKEN_MISSING,
+                })
             );
         });
     });
-});
 
-describe("getRelationHref", () => {
-    let handler: V2ResponseHandler;
+    describe("requireMethods", () => {
+        it("returns embedded methods when present", () => {
+            const methods = [
+                { _links: { challenge: { href: "/api/challenge" } } },
+            ];
 
-    beforeEach(() => {
-        handler = new V2ResponseHandler();
-    });
+            expect(
+                handler.requireMethods(methods, REQUEST_CORRELATION_ID)
+            ).toBe(methods);
+        });
 
-    it("returns the href of a single link", () => {
-        expect(
-            handler.getRelationHref(
-                { challenge: { href: "/api/challenge" } },
-                "challenge"
-            )
-        ).toBe("/api/challenge");
-    });
-
-    it("returns the first href of a link array", () => {
-        expect(
-            handler.getRelationHref(
-                {
-                    challenge: [
-                        { href: "/api/challenge-1" },
-                        { href: "/api/challenge-2" },
-                    ],
-                },
-                "challenge"
-            )
-        ).toBe("/api/challenge-1");
-    });
-
-    it("returns undefined when the relation is absent", () => {
-        expect(
-            handler.getRelationHref(
-                { self: { href: "/api/self" } },
-                "challenge"
-            )
-        ).toBeUndefined();
-    });
-
-    it("returns undefined when links are undefined", () => {
-        expect(handler.getRelationHref(undefined, "challenge")).toBeUndefined();
-    });
-});
-
-describe("getMethods", () => {
-    let handler: V2ResponseHandler;
-
-    beforeEach(() => {
-        handler = new V2ResponseHandler();
-    });
-
-    it("returns an empty array when there are no embedded methods", () => {
-        expect(handler.getMethods({})).toEqual([]);
-    });
-
-    it("wraps a single embedded method in an array", () => {
-        const method = { _links: { challenge: { href: "/api/challenge" } } };
-
-        expect(handler.getMethods({ _embedded: { methods: method } })).toEqual([
-            method,
-        ]);
-    });
-
-    it("returns an embedded methods array as-is", () => {
-        const methods = [
-            { _links: { challenge: { href: "/api/challenge-1" } } },
-            { _links: { challenge: { href: "/api/challenge-2" } } },
-        ];
-
-        expect(handler.getMethods({ _embedded: { methods } })).toEqual(methods);
+        it("throws when embedded methods are absent", () => {
+            expect(() =>
+                handler.requireMethods(undefined, REQUEST_CORRELATION_ID)
+            ).toThrow(
+                expect.objectContaining({
+                    error: "no_authentication_methods",
+                })
+            );
+        });
     });
 });

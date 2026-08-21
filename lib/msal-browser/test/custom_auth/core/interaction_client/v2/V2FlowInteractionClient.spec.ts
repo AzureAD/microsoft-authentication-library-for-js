@@ -20,7 +20,7 @@ import {
 import { V2FlowContinuationState } from "../../../../../src/custom_auth/core/interaction_client/v2/V2FlowContinuationState.js";
 import { CustomAuthAuthority } from "../../../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { CustomAuthV2ApiClient } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthV2ApiClient.js";
-import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/error/V2ErrorCodes.js";
+import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/V2ErrorCodes.js";
 import { buildConfiguration } from "../../../../../src/config/Configuration.js";
 import { customAuthConfig } from "../../../test_resources/CustomAuthConfig.js";
 import {
@@ -39,7 +39,7 @@ describe("V2FlowInteractionClient", () => {
             CustomAuthV2ApiClient,
             | "resetPasswordStart"
             | "requestChallenge"
-            | "verifyCode"
+            | "verifyChallenge"
             | "submitNewPassword"
             | "poll"
             | "completeWithTokens"
@@ -80,7 +80,7 @@ describe("V2FlowInteractionClient", () => {
         apiClient = {
             resetPasswordStart: jest.fn(),
             requestChallenge: jest.fn(),
-            verifyCode: jest.fn(),
+            verifyChallenge: jest.fn(),
             submitNewPassword: jest.fn(),
             poll: jest.fn(),
             completeWithTokens: jest.fn(),
@@ -89,7 +89,7 @@ describe("V2FlowInteractionClient", () => {
                 CustomAuthV2ApiClient,
                 | "resetPasswordStart"
                 | "requestChallenge"
-                | "verifyCode"
+                | "verifyChallenge"
                 | "submitNewPassword"
                 | "poll"
                 | "completeWithTokens"
@@ -230,7 +230,7 @@ describe("V2FlowInteractionClient", () => {
         };
 
         it("verifies the code and returns a password-required result", async () => {
-            apiClient.verifyCode.mockResolvedValue({
+            apiClient.verifyChallenge.mockResolvedValue({
                 nextAction: "update",
                 continuationToken: "ct-verify",
                 updateHref: "https://endpoint/update",
@@ -242,7 +242,7 @@ describe("V2FlowInteractionClient", () => {
                 code: "123456",
             });
 
-            expect(apiClient.verifyCode).toHaveBeenCalledWith(
+            expect(apiClient.verifyChallenge).toHaveBeenCalledWith(
                 "https://endpoint/verify",
                 { continuationToken: "ct-challenge", otp: "123456" },
                 expect.objectContaining({ correlationId })
@@ -271,7 +271,7 @@ describe("V2FlowInteractionClient", () => {
                 })
             ).rejects.toThrow();
 
-            expect(apiClient.verifyCode).not.toHaveBeenCalled();
+            expect(apiClient.verifyChallenge).not.toHaveBeenCalled();
         });
     });
 
@@ -487,7 +487,7 @@ describe("V2FlowInteractionClient", () => {
                 newPassword: "P@ssw0rd!",
             });
             const assertion = expect(promise).rejects.toMatchObject({
-                code: RESET_PASSWORD_TIMEOUT,
+                error: RESET_PASSWORD_TIMEOUT,
             });
 
             // Drive all inter-attempt delays (4 gaps across 5 attempts).
@@ -539,7 +539,9 @@ describe("V2FlowInteractionClient", () => {
             const handleSpy = jest
                 .spyOn(
                     client as unknown as {
-                        handleTokenResponse: (...args: unknown[]) => Promise<unknown>;
+                        handleTokenResponse: (
+                            ...args: unknown[]
+                        ) => Promise<unknown>;
                     },
                     "handleTokenResponse"
                 )
@@ -573,7 +575,9 @@ describe("V2FlowInteractionClient", () => {
             apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
             jest.spyOn(
                 client as unknown as {
-                    handleTokenResponse: (...args: unknown[]) => Promise<unknown>;
+                    handleTokenResponse: (
+                        ...args: unknown[]
+                    ) => Promise<unknown>;
                 },
                 "handleTokenResponse"
             ).mockResolvedValue(fakeAuthResult);
@@ -597,7 +601,9 @@ describe("V2FlowInteractionClient", () => {
             apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
             jest.spyOn(
                 client as unknown as {
-                    handleTokenResponse: (...args: unknown[]) => Promise<unknown>;
+                    handleTokenResponse: (
+                        ...args: unknown[]
+                    ) => Promise<unknown>;
                 },
                 "handleTokenResponse"
             ).mockResolvedValue(fakeAuthResult);

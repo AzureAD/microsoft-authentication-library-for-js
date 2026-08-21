@@ -37,15 +37,19 @@ import { EventHandler } from "../../../../event/EventHandler.js";
 import { INavigationClient } from "../../../../navigation/INavigationClient.js";
 import { CustomAuthAuthority } from "../../CustomAuthAuthority.js";
 import { CustomAuthV2ApiClient } from "../../network_client/custom_auth_api/v2/CustomAuthV2ApiClient.js";
-import { CustomAuthV2ApiError } from "../../network_client/custom_auth_api/v2/error/CustomAuthV2ApiError.js";
+import { CustomAuthError } from "../../error/CustomAuthError.js";
 import {
     CONTINUATION_LINK_MISSING,
     INVALID_HAL_RESPONSE,
     RESET_PASSWORD_TIMEOUT,
     UNSUPPORTED_FLOW_STEP,
-} from "../../network_client/custom_auth_api/v2/error/V2ErrorCodes.js";
+} from "../../network_client/custom_auth_api/v2/V2ErrorCodes.js";
 import { CustomAuthV2FlowScenario } from "../../auth_flow/v2/CustomAuthV2FlowScenario.js";
 import * as PublicApiId from "../../telemetry/PublicApiId.js";
+import {
+    getPublicApiIdV2,
+    V2FlowStep,
+} from "../../telemetry/FlowApiIdHelperV2.js";
 
 /*
  * Polls up to five times for password-update completion, waiting 1.5 seconds
@@ -192,7 +196,7 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
 
         this.logger.verbose("Submitting V2 one-time code.", correlationId);
 
-        const verifyResult = await this.apiClient.verifyCode(
+        const verifyResult = await this.apiClient.verifyChallenge(
             this.requireLink(correlationId, continuationState.links.verify),
             {
                 continuationToken: continuationState.continuationToken,
@@ -217,10 +221,10 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
                  * wired yet; SSPR's verify always yields `update`. Guard so an unexpected outcome is
                  * a clear failure rather than a silent wrong state.
                  */
-                throw new CustomAuthV2ApiError(
+                throw new CustomAuthError(
                     INVALID_HAL_RESPONSE,
                     `Unexpected verify outcome '${verifyResult.nextAction}' for the current flow.`,
-                    { correlationId }
+                    correlationId
                 );
         }
     }
@@ -323,10 +327,10 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
         }
 
         if (!completionToken) {
-            throw new CustomAuthV2ApiError(
+            throw new CustomAuthError(
                 RESET_PASSWORD_TIMEOUT,
                 "The password reset did not complete within the allotted number of polling attempts.",
-                { correlationId }
+                correlationId
             );
         }
 
@@ -395,16 +399,16 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
 
     private resolveStepApiId(
         scenario: CustomAuthV2FlowScenario,
-        step: PublicApiId.V2FlowStep,
+        step: V2FlowStep,
         correlationId: string
     ): number {
-        const apiId = PublicApiId.V2_FLOW_STEP_API_IDS[scenario]?.[step];
+        const apiId = getPublicApiIdV2(scenario, step);
 
         if (apiId === undefined) {
-            throw new CustomAuthV2ApiError(
+            throw new CustomAuthError(
                 UNSUPPORTED_FLOW_STEP,
                 `No telemetry API id is registered for step '${step}' of the '${scenario}' flow.`,
-                { correlationId }
+                correlationId
             );
         }
 
@@ -416,10 +420,10 @@ export class V2FlowInteractionClient extends V2InteractionClientBase {
         href: string | undefined
     ): string {
         if (!href) {
-            throw new CustomAuthV2ApiError(
+            throw new CustomAuthError(
                 CONTINUATION_LINK_MISSING,
                 "The continuation state is missing a link required to advance the flow.",
-                { correlationId }
+                correlationId
             );
         }
 

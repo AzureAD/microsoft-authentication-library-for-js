@@ -14,9 +14,7 @@ import type { FailedState } from "../state/FailedState.js";
  * here, so no `CompletedState` or account data is carried. Failures resolve to
  * `FailedState`.
  */
-export type VerifyChallengeResultState =
-    | NewPasswordRequiredState
-    | FailedState;
+export type VerifyChallengeResultState = NewPasswordRequiredState | FailedState;
 
 /**
  * Result of verifying a challenge. It wraps one of
