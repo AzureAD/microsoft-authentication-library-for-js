@@ -721,6 +721,12 @@ function isInPopup(): boolean;
 // @public
 export function isPlatformBrokerAvailable(domConfig: boolean, loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
 
+// @public
+export interface IWebBrokerBridgeMessage {
+    readonly requestId: string;
+    readonly type: string;
+}
+
 // @public (undocumented)
 export interface IWindowStorage<T> {
     containsKey(key: string): boolean;
