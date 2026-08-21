@@ -11,6 +11,7 @@ import {
     ICrypto,
     IPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     TimeUtils,
     buildStaticAuthorityOptions,
     Constants,
@@ -42,6 +43,7 @@ import { IController } from "./IController.js";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
 import { IBridgeProxy } from "../naa/IBridgeProxy.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
+import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 import { NestedAppAuthAdapter } from "../naa/mapping/NestedAppAuthAdapter.js";
 import { NestedAppAuthError } from "../error/NestedAppAuthError.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -112,6 +114,9 @@ export class NestedAppAuthController implements IController {
         this.browserCrypto = operatingContext.isBrowserEnvironment()
             ? new CryptoOps(this.logger, this.performanceClient, true)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
+        const tokenBindingKeyManager = operatingContext.isBrowserEnvironment()
+            ? new TokenBindingKeyManager(this.logger, this.performanceClient)
+            : DEFAULT_TOKEN_BINDING_KEY_MANAGER;
 
         this.eventHandler = new EventHandler(this.logger);
         // Initialize the browser storage class.
@@ -123,13 +128,16 @@ export class NestedAppAuthController implements IController {
                   this.logger,
                   this.performanceClient,
                   this.eventHandler,
-                  buildStaticAuthorityOptions(this.config.auth)
+                  buildStaticAuthorityOptions(this.config.auth),
+                  tokenBindingKeyManager
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
                   this.logger,
                   this.performanceClient,
-                  this.eventHandler
+                  this.eventHandler,
+                  undefined,
+                  tokenBindingKeyManager
               );
 
         this.nestedAppAuthAdapter = new NestedAppAuthAdapter(

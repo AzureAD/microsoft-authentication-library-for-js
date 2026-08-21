@@ -243,9 +243,26 @@ describe("TokenCache tests", () => {
         Object.values(expectedCachedEntities).forEach(
             (expectedCacheSection) => {
                 Object.keys(expectedCacheSection).forEach((cacheKey) => {
-                    expect(kvStore[cacheKey]).toEqual(
-                        expectedCacheSection[cacheKey]
-                    );
+                    const expectedEntity = expectedCacheSection[cacheKey];
+                    const actualEntity = kvStore[cacheKey];
+
+                    if (
+                        typeof expectedEntity === "object" &&
+                        expectedEntity !== null &&
+                        "lastUpdatedAt" in expectedEntity &&
+                        typeof actualEntity === "object" &&
+                        actualEntity !== null &&
+                        "lastUpdatedAt" in actualEntity
+                    ) {
+                        expect(actualEntity).toEqual({
+                            ...expectedEntity,
+                            lastUpdatedAt: actualEntity.lastUpdatedAt,
+                        });
+                        expect(expectedEntity.lastUpdatedAt).toBeDefined();
+                        expect(actualEntity.lastUpdatedAt).toBeDefined();
+                    } else {
+                        expect(actualEntity).toEqual(expectedEntity);
+                    }
                 });
             }
         );

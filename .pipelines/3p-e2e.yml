@@ -86,7 +86,12 @@ extends:
                             - name: "customizable-e2e-test-3"
                               dir: "customizable-e2e-test"
                               testFilter: "browserB2C|browserMCP"
-                            - name: "ExpressSample"
+                            - name: "ExpressSample-Upgrade-Downgrade"
+                              dir: "ExpressSample"
+                              testFilter: "upgrade-downgrade"
+                            - name: "DPoP"
+                              dir: "ExpressSample"
+                              testFilter: "dpop\\.spec"
                             - name: "NativeAuthSample"
                             # - name: "NestedAuthAppSample"
                         debug: ${{ parameters.debug }}

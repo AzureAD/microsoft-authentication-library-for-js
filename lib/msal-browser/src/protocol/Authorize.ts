@@ -13,7 +13,6 @@ import {
     IPerformanceClient,
     Logger,
     PerformanceEvents,
-    PopTokenGenerator,
     ProtocolMode,
     RequestParameterBuilder,
     CommonAuthorizationCodeRequest,
@@ -26,6 +25,7 @@ import {
     AuthorizationCodePayload,
     ServerAuthorizationTokenResponse,
     Constants,
+    AADServerParamKeys,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -187,35 +187,19 @@ async function getStandardParameters(
 
         // pass the req_cnf for POP
         if (
-            request.authenticationScheme === Constants.AuthenticationScheme.POP
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.POP &&
+            request.reqCnf
         ) {
-            const cryptoOps = new CryptoOps(logger, performanceClient);
-            const tokenBindingKeyManager = new TokenBindingKeyManager(
-                logger,
-                performanceClient
-            );
-            const popTokenGenerator = new PopTokenGenerator(
-                cryptoOps,
-                tokenBindingKeyManager,
-                performanceClient
-            );
-
-            // req_cnf is always sent as a string for SPAs
-            let reqCnfData;
-            if (!request.popKid) {
-                const generatedReqCnfData = await invokeAsync(
-                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
-                    PerformanceEvents.PopTokenGenerateCnf,
-                    logger,
-                    performanceClient,
-                    request.correlationId
-                )(request, logger);
-                reqCnfData = generatedReqCnfData.reqCnfString;
-            } else {
-                reqCnfData = cryptoOps.encodeKid(request.popKid);
-            }
-            RequestParameterBuilder.addPopToken(parameters, reqCnfData);
+            RequestParameterBuilder.addPopToken(parameters, request.reqCnf);
         }
+    }
+
+    if (
+        request.authenticationScheme === Constants.AuthenticationScheme.DPOP &&
+        request.dpopJkt
+    ) {
+        parameters.set(AADServerParamKeys.DPOP_JKT, request.dpopJkt);
     }
 
     RequestParameterBuilder.instrumentBrokerParams(

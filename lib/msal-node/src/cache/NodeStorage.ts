@@ -24,6 +24,7 @@ import {
     CredentialEntity,
     AccountInfo,
     StubPerformanceClient,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
 } from "@azure/msal-common/node";
 
 import { Deserializer } from "./serializer/Deserializer.js";
@@ -56,7 +57,8 @@ export class NodeStorage extends CacheManager {
             cryptoImpl,
             logger,
             new StubPerformanceClient(),
-            staticAuthorityOptions
+            staticAuthorityOptions,
+            DEFAULT_TOKEN_BINDING_KEY_MANAGER
         );
         this.logger = logger;
     }

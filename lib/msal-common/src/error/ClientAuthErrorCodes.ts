@@ -27,6 +27,7 @@ export const invalidCacheEnvironment = "invalid_cache_environment";
 export const noAccountFound = "no_account_found";
 export const noCryptoObject = "no_crypto_object";
 export const unexpectedCredentialType = "unexpected_credential_type";
+export const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
 export const tokenRefreshRequired = "token_refresh_required";
 export const tokenClaimsCnfRequiredForSignedJwt =
     "token_claims_cnf_required_for_signedjwt";

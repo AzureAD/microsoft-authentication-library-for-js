@@ -445,6 +445,11 @@ export type PerformanceEvent = {
     hasAttributeTokens?: boolean;
 
     /**
+     * Mismatched token_type returned for a DPoP request.
+     */
+    dpopTokenTypeMismatch?: string;
+
+    /**
      * Whether the user has "Keep Me Signed In" enabled
      */
     kmsi?: boolean;

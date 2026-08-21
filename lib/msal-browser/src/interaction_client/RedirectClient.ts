@@ -26,6 +26,7 @@ import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
+import { getTokenBindingRequestParams } from "../request/RequestHelpers.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     ApiId,
@@ -213,9 +214,16 @@ export class RedirectClient extends StandardInteractionClient {
             correlationId
         )(this.performanceClient, this.logger, correlationId);
 
+        const tokenBindingParams = await getTokenBindingRequestParams(
+            request,
+            this.tokenBindingKeyManager,
+            this.logger,
+            this.performanceClient
+        );
         const redirectRequest = {
             ...request,
             codeChallenge: pkceCodes.challenge,
+            ...tokenBindingParams,
         };
 
         this.browserStorage.cacheAuthorizeRequest(
@@ -318,10 +326,17 @@ export class RedirectClient extends StandardInteractionClient {
             correlationId
         )(this.performanceClient, this.logger, correlationId);
 
+        const tokenBindingParams = await getTokenBindingRequestParams(
+            request,
+            this.tokenBindingKeyManager,
+            this.logger,
+            this.performanceClient
+        );
         const redirectRequest = {
             ...request,
             earJwk: earJwk,
             codeChallenge: pkceCodes.challenge,
+            ...tokenBindingParams,
         };
 
         this.browserStorage.cacheAuthorizeRequest(
