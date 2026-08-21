@@ -14,7 +14,7 @@ MSAL Node v6 is a breaking release focused on the interactive authentication flo
 
 In v5, `acquireTokenInteractive` defaulted to `query`, delivering the authorization code as a URL query parameter (`GET /?code=...`). In v6, the default is `form_post`, delivering the code in a URL-encoded POST body (`POST /` with `code=...`).
 
-The built-in loopback server already handles both `query` and `form_post` callbacks, so **applications that use the built-in loopback server require no code changes** to adopt the new default. `form_post` keeps the authorization code out of the URL entirely — it never appears in the URL bar, browser history, or the HTTP `Referer` header.
+The built-in loopback server already handles both `query` and `form_post` callbacks, so **applications that use the built-in loopback server require no code changes** to adopt the new default. `form_post` keeps the authorization code out of the URL by returning it in the POST body.
 
 ```ts
 // BEFORE (v5): responseMode defaulted to "query"

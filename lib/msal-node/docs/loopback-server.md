@@ -25,7 +25,7 @@ Content-Type: application/x-www-form-urlencoded
 code=AUTH_CODE&state=STATE
 ```
 
-With `form_post`, the authorization code is kept out of the URL entirely — it never appears in the URL bar, is not stored in browser history, and cannot leak through the HTTP `Referer` header. As of v6 this is the default mode, so no `responseMode` is required:
+With `form_post`, the authorization code is kept out of the URL and returned in the POST body. As of v6 this is the default mode, so no `responseMode` is required:
 
 ```typescript
 const result = await pca.acquireTokenInteractive({
@@ -43,7 +43,7 @@ The authorization code is delivered as a query parameter in a GET request:
 GET /?code=AUTH_CODE&state=STATE HTTP/1.1
 ```
 
-The server performs a 302 redirect to remove the authorization code from the browser's URL bar and history. As of v6 `query` is no longer the default; opt in explicitly if you need it:
+The server performs a 302 redirect once it has received the authorization code. As of v6 `query` is no longer the default; opt in explicitly if you need it:
 
 ```typescript
 const result = await pca.acquireTokenInteractive({
