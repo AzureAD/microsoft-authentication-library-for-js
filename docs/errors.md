@@ -1170,6 +1170,10 @@ const msalConfig = {
 
 -   Password reset is not supported by the native authentication server.
 
+#### `sign_in_unsupported`
+
+-   Sign-in is not supported by the native authentication server.
+
 #### `continuation_link_missing`
 
 -   A server-provided link required to continue the native authentication flow is missing.
@@ -1185,6 +1189,10 @@ const msalConfig = {
 #### `no_authentication_methods`
 
 -   The native authentication server did not return any available authentication methods.
+
+#### `password_method_unavailable`
+
+-   The native authentication server did not return a password authentication method.
 
 #### `invalid_request`
 

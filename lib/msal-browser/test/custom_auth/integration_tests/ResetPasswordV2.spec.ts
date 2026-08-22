@@ -48,6 +48,9 @@ const ENTRY_RESPONSE = {
 
 const START_RESPONSE = {
     continuationToken: "ct-start",
+    challengeContext: {
+        authenticationFactor: "singleFactor",
+    },
     scenario: "recovery",
     _embedded: {
         methods: [

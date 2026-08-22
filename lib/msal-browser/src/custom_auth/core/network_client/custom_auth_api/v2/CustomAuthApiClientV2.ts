@@ -10,13 +10,16 @@ import {
     ResetPasswordPollResultV2,
 } from "./result/ResetPasswordResultsV2.js";
 import {
+    ResetPasswordStartApiResultV2,
+    SignInStartApiResultV2,
     StartResultV2,
     StartMethodV2,
     ChallengeResultV2,
     VerifyResultV2,
 } from "./result/BaseResultsV2.js";
 import {
-    ResetPasswordStartResponseV2,
+    PasswordResetStartResponseV2,
+    SignInStartResponseV2,
     ChallengeResponseV2,
     VerifyResponseV2,
     UpdatePasswordResponseV2,
@@ -25,8 +28,8 @@ import {
 } from "./response/ResponsesV2.js";
 import {
     RequestContextV2,
-    ActionRequestBaseV2,
-    ResetPasswordStartRequestV2,
+    PasswordResetStartRequestV2,
+    SignInStartRequestV2,
     ChallengeRequestV2,
     VerifyRequestV2,
     UpdatePasswordRequestV2,
@@ -36,7 +39,6 @@ import { UPDATE_RELATION, ResponseStateV2 } from "./ApiClientConstantsV2.js";
 import {
     INVALID_HAL_RESPONSE,
     NO_AUTHENTICATION_METHODS,
-    RESET_PASSWORD_UNSUPPORTED,
 } from "./ErrorCodesV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
 
@@ -49,40 +51,33 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
      * Starts the reset-password flow using a server-provided link.
      */
     async resetPasswordStart(
-        resetPasswordHref: string | undefined,
-        request: ResetPasswordStartRequestV2,
+        resetPasswordHref: string,
+        request: PasswordResetStartRequestV2,
         context: RequestContextV2
-    ): Promise<StartResultV2> {
-        const startHref = this.handler.requireHref(
-            resetPasswordHref,
-            "reset-password",
-            context.correlationId,
-            {
-                code: RESET_PASSWORD_UNSUPPORTED,
-                message:
-                    "The authorize-challenge entry response did not include a reset-password link, so self-service password reset is not available for this application or tenant configuration",
-            }
-        );
-
-        return this.startFlow<ResetPasswordStartRequestV2>(
-            startHref,
-            request,
-            context
-        );
+    ): Promise<ResetPasswordStartApiResultV2> {
+        return this.sendStartRequest(resetPasswordHref, request, context);
     }
 
-    private async startFlow<TRequest extends ActionRequestBaseV2>(
+    /*
+     * Starts sign-in using a server-provided link.
+     */
+    async signInStart(
+        signInHref: string,
+        request: SignInStartRequestV2,
+        context: RequestContextV2
+    ): Promise<SignInStartApiResultV2> {
+        return this.sendStartRequest(signInHref, request, context);
+    }
+
+    private async sendStartRequest(
         startHref: string,
-        request: TRequest,
+        request: PasswordResetStartRequestV2 | SignInStartRequestV2,
         context: RequestContextV2
     ): Promise<StartResultV2> {
         const parsedResponse =
-            await this.sendActionRequest<ResetPasswordStartResponseV2>(
-                startHref,
-                HttpMethod.POST,
-                request,
-                context
-            );
+            await this.sendActionRequest<
+                PasswordResetStartResponseV2 | SignInStartResponseV2
+            >(startHref, HttpMethod.POST, request, context);
 
         const continuationToken = this.handler.requireContinuationToken(
             parsedResponse.continuationToken,
@@ -96,6 +91,10 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 parsedResponse.correlationId
             ),
             scenario: parsedResponse.body.scenario,
+            authenticationFactor: this.handler.requireAuthenticationFactor(
+                parsedResponse.body.challengeContext?.authenticationFactor,
+                parsedResponse.correlationId
+            ),
         };
     }
 
@@ -256,7 +255,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
     }
 
     private resolveMethods(
-        body: ResetPasswordStartResponseV2,
+        body: PasswordResetStartResponseV2 | SignInStartResponseV2,
         correlationId: string
     ): StartMethodV2[] {
         const methods = this.handler.requireMethods(

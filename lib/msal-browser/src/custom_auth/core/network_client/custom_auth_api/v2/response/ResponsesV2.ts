@@ -11,6 +11,9 @@ import { HalLink, HalResource } from "./HalResource.js";
  * it is injected by the api-client from the response header; the rest are server body fields.
  */
 export interface HalResponseBaseV2 extends HalResource {
+    challengeContext?: {
+        authenticationFactor?: string;
+    };
     continuationToken?: string;
     state?: string;
     action?: string;
@@ -77,12 +80,14 @@ export type ChallengeResponseV2 = OtpChallengeResponseV2;
  * Reset-password start response containing the available authentication
  * methods. Each method provides the challenge link used after selection.
  */
-export interface ResetPasswordStartResponseV2
-    extends Omit<HalResponseBaseV2, "_embedded"> {
+interface StartResponseV2 extends Omit<HalResponseBaseV2, "_embedded"> {
     _embedded?: {
         methods?: EmbeddedMethodV2[];
     };
 }
+
+export type PasswordResetStartResponseV2 = StartResponseV2;
+export type SignInStartResponseV2 = StartResponseV2;
 
 /*
  * Credential-verification response. For password reset, the `update` relation

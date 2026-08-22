@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import type { AuthenticationFactorV2 } from "../ApiClientConstantsV2.js";
+
 /*
  * Return contracts of the shared V2 base client (BaseApiClientV2), flow-agnostic and reused by
  * every V2 flow. Distinct from the per-flow result DTOs (e.g. ResetPasswordResultsV2).
@@ -36,7 +38,11 @@ export interface StartResultV2 {
     continuationToken: string;
     methods: StartMethodV2[];
     scenario?: string;
+    authenticationFactor: AuthenticationFactorV2;
 }
+
+export type ResetPasswordStartApiResultV2 = StartResultV2;
+export type SignInStartApiResultV2 = StartResultV2;
 
 /*
  * Result of requesting a challenge. It contains the verification link and

@@ -75,10 +75,12 @@ export interface ActionRequestBaseV2 {
     continuationToken: string;
 }
 
-// Start reset-password.
-export interface ResetPasswordStartRequestV2 extends ActionRequestBaseV2 {
+interface StartRequestV2 extends ActionRequestBaseV2 {
     username: string;
 }
+export type PasswordResetStartRequestV2 = StartRequestV2;
+
+export type SignInStartRequestV2 = StartRequestV2;
 
 // Request or resend a challenge.
 export type ChallengeRequestV2 = ActionRequestBaseV2;

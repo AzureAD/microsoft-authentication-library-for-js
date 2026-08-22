@@ -7,7 +7,6 @@ import { ServerTelemetryManager } from "@azure/msal-common/browser";
 import { CustomAuthApiClientV2 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { CustomAuthError } from "../../../../../../src/custom_auth/core/error/CustomAuthError.js";
 import {
-    RESET_PASSWORD_UNSUPPORTED,
     REDIRECT_TO_WEB,
     CONTINUATION_TOKEN_MISSING,
     INVALID_HAL_RESPONSE,
@@ -135,6 +134,9 @@ describe("CustomAuthApiClientV2", () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     continuationToken: "ct-start",
+                    challengeContext: {
+                        authenticationFactor: "singleFactor",
+                    },
                     scenario: "recovery",
                     _embedded: {
                         methods: [
@@ -161,6 +163,7 @@ describe("CustomAuthApiClientV2", () => {
 
             expect(result.continuationToken).toBe("ct-start");
             expect(result.scenario).toBe("recovery");
+            expect(result.authenticationFactor).toBe("singleFactor");
             expect(result.methods[0].challengeHref).toBe(
                 "/tenant/api/v0.1/methods/email/challenge"
             );
@@ -172,13 +175,162 @@ describe("CustomAuthApiClientV2", () => {
             );
         });
 
-        it("throws RESET_PASSWORD_UNSUPPORTED when the href is missing", async () => {
-            await expect(
-                apiClient.resetPasswordStart(undefined, request, context)
-            ).rejects.toMatchObject({ error: RESET_PASSWORD_UNSUPPORTED });
+    });
 
-            expect(mockHttpClient.sendAsync).not.toHaveBeenCalled();
+    describe("signInStart", () => {
+        const request = {
+            continuationToken: "ct-entry",
+            username: "user@test.com",
+        };
+
+        it("returns the embedded authentication methods", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-start",
+                    challengeContext: {
+                        authenticationFactor: "singleFactor",
+                    },
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "password-1",
+                                type: "password",
+                                _links: {
+                                    challenge: {
+                                        href: "/tenant/api/v0.1/password/challenge",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            const result = await apiClient.signInStart(
+                "/tenant/api/v0.1/signin/start",
+                request,
+                context
+            );
+
+            expect(result).toEqual({
+                continuationToken: "ct-start",
+                methods: [
+                    {
+                        id: "password-1",
+                        type: "password",
+                        hint: undefined,
+                        challengeHref:
+                            "/tenant/api/v0.1/password/challenge",
+                    },
+                ],
+                scenario: undefined,
+                authenticationFactor: "singleFactor",
+            });
+            expect(mockHttpClient.sendAsync).toHaveBeenCalledTimes(1);
+
+            const [startUrl, options] = mockHttpClient.sendAsync.mock.calls[0];
+            expect(startUrl.href).toBe(
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/signin/start"
+            );
+            expect(options.method).toBe(HttpMethod.POST);
+            expect(JSON.parse(options.body)).toEqual({
+                ...request,
+            });
         });
+
+        it("throws INVALID_HAL_RESPONSE when the response omits the authentication factor", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-start",
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "password-1",
+                                type: "password",
+                                _links: {
+                                    challenge: {
+                                        href: "/tenant/api/v0.1/password/challenge",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.signInStart(
+                    "/tenant/api/v0.1/signin/start",
+                    request,
+                    context
+                )
+            ).rejects.toMatchObject({ error: INVALID_HAL_RESPONSE });
+        });
+
+        it("returns the authentication factor without interpreting it", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-start",
+                    challengeContext: {
+                        authenticationFactor: "multiFactor",
+                    },
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "password-1",
+                                type: "password",
+                                _links: {
+                                    challenge: {
+                                        href: "/tenant/api/v0.1/password/challenge",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            const result = await apiClient.signInStart(
+                "/tenant/api/v0.1/signin/start",
+                request,
+                context
+            );
+
+            expect(result.authenticationFactor).toBe("multiFactor");
+        });
+
+        it("throws INVALID_HAL_RESPONSE for an unsupported authentication factor", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-start",
+                    challengeContext: {
+                        authenticationFactor: "unknownFactor",
+                    },
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "password-1",
+                                type: "password",
+                                _links: {
+                                    challenge: {
+                                        href: "/tenant/api/v0.1/password/challenge",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.signInStart(
+                    "/tenant/api/v0.1/signin/start",
+                    request,
+                    context
+                )
+            ).rejects.toMatchObject({ error: INVALID_HAL_RESPONSE });
+        });
+
     });
 
     describe("requestChallenge", () => {

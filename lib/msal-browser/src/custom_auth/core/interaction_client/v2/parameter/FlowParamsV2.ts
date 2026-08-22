@@ -19,6 +19,12 @@ export interface FlowStartParamsV2 extends FlowParamsBaseV2 {
     username: string;
 }
 
+export interface FlowSignInStartParamsV2 extends FlowStartParamsV2 {
+    password?: string;
+    scopes?: string[];
+    claims?: string;
+}
+
 // Request the challenge for the selected method, sending the one-time code to it.
 export interface FlowChallengeParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;

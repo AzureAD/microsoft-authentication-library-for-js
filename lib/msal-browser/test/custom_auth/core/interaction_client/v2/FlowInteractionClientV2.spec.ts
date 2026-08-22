@@ -21,6 +21,10 @@ import { FlowContinuationStateV2 } from "../../../../../src/custom_auth/core/int
 import { CustomAuthAuthority } from "../../../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { CustomAuthApiClientV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
+import {
+    RESET_PASSWORD_UNSUPPORTED,
+    SIGN_IN_UNSUPPORTED,
+} from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { buildConfiguration } from "../../../../../src/config/Configuration.js";
 import { customAuthConfig } from "../../../test_resources/CustomAuthConfig.js";
 import {
@@ -40,6 +44,7 @@ describe("FlowInteractionClientV2", () => {
             CustomAuthApiClientV2,
             | "authorizeChallengeStart"
             | "resetPasswordStart"
+            | "signInStart"
             | "requestChallenge"
             | "verifyChallenge"
             | "submitNewPassword"
@@ -82,6 +87,7 @@ describe("FlowInteractionClientV2", () => {
         apiClient = {
             authorizeChallengeStart: jest.fn(),
             resetPasswordStart: jest.fn(),
+            signInStart: jest.fn(),
             requestChallenge: jest.fn(),
             verifyChallenge: jest.fn(),
             submitNewPassword: jest.fn(),
@@ -92,6 +98,7 @@ describe("FlowInteractionClientV2", () => {
                 CustomAuthApiClientV2,
                 | "authorizeChallengeStart"
                 | "resetPasswordStart"
+                | "signInStart"
                 | "requestChallenge"
                 | "verifyChallenge"
                 | "submitNewPassword"
@@ -118,6 +125,83 @@ describe("FlowInteractionClientV2", () => {
         jest.useRealTimers();
     });
 
+    describe("signIn", () => {
+        it("returns first-factor method selection with token inputs", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                signInHref: "https://endpoint/sign-in",
+            });
+            apiClient.signInStart.mockResolvedValue({
+                continuationToken: "ct-sign-in",
+                authenticationFactor: "singleFactor",
+                methods: [
+                    {
+                        id: "password-1",
+                        type: "password",
+                        challengeHref:
+                            "https://endpoint/password/challenge",
+                    },
+                ],
+            });
+
+            const result = await client.signIn({
+                correlationId,
+                username: "user@contoso.com",
+                password: "password",
+                scopes: ["User.Read"],
+                claims: '{"id_token":{}}',
+            });
+
+            expect(apiClient.authorizeChallengeStart).toHaveBeenCalledWith(
+                expect.objectContaining({ correlationId })
+            );
+            expect(apiClient.signInStart).toHaveBeenCalledWith(
+                "https://endpoint/sign-in",
+                {
+                    continuationToken: "ct-entry",
+                    username: "user@contoso.com",
+                },
+                expect.objectContaining({ correlationId })
+            );
+            expect(result.type).toBe(FLOW_METHOD_SELECTION_REQUIRED_V2);
+
+            const methodSelection =
+                result as FlowMethodSelectionRequiredResultV2;
+            expect(methodSelection.methods).toEqual([
+                {
+                    id: "password-1",
+                    type: "password",
+                    hint: undefined,
+                    challengeHref: "https://endpoint/password/challenge",
+                },
+            ]);
+            expect(methodSelection.continuationState).toEqual({
+                continuationToken: "ct-sign-in",
+                scenario: "signIn",
+                links: {},
+                tokenRequest: {
+                    scopes: ["User.Read"],
+                    claims: '{"id_token":{}}',
+                },
+            });
+        });
+
+        it("rejects a missing sign-in link before calling sign-in start", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+            });
+
+            await expect(
+                client.signIn({
+                    correlationId,
+                    username: "user@contoso.com",
+                })
+            ).rejects.toMatchObject({ error: SIGN_IN_UNSUPPORTED });
+
+            expect(apiClient.signInStart).not.toHaveBeenCalled();
+        });
+    });
+
     describe("resetPassword", () => {
         it("runs the entry and returns a method-selection result without sending a challenge", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
@@ -126,6 +210,7 @@ describe("FlowInteractionClientV2", () => {
             });
             apiClient.resetPasswordStart.mockResolvedValue({
                 continuationToken: "ct-start",
+                authenticationFactor: "singleFactor",
                 methods: [
                     {
                         id: "email",
@@ -172,6 +257,23 @@ describe("FlowInteractionClientV2", () => {
                 scenario: "passwordReset",
                 links: {},
             });
+        });
+
+        it("rejects a missing reset-password link before calling reset-password start", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+            });
+
+            await expect(
+                client.resetPassword({
+                    correlationId,
+                    username: "user@contoso.com",
+                })
+            ).rejects.toMatchObject({
+                error: RESET_PASSWORD_UNSUPPORTED,
+            });
+
+            expect(apiClient.resetPasswordStart).not.toHaveBeenCalled();
         });
     });
 

@@ -31,10 +31,8 @@ export class AuthenticationMethodSelectionRequiredStateV2 extends AuthFlowAction
     }
 
     /**
-     * Requests a challenge for the selected authentication method, causing the
-     * server to deliver a one-time code to that method's destination (for example
-     * by email). On success the flow advances to a challenge-verification state
-     * where the code can be submitted.
+     * Requests a challenge for the selected authentication method. The returned
+     * state identifies the credential the application must collect.
      * @param method - The method to challenge, from {@link methods}.
      * @returns The result of requesting the challenge.
      */

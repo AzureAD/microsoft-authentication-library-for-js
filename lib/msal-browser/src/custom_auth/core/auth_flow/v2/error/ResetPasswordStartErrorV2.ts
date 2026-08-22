@@ -14,6 +14,14 @@ import { AuthFlowErrorBaseV2 } from "./AuthFlowErrorBaseV2.js";
  */
 export class ResetPasswordStartErrorV2 extends AuthFlowErrorBaseV2 {
     /**
+     * Checks if the supplied username is empty or invalid.
+     * @returns True if the username is invalid, false otherwise.
+     */
+    isInvalidUsername(): boolean {
+        return this.isUserInvalidError();
+    }
+
+    /**
      * Checks if the error is due to the user not being found. Use it to tell the
      * user no account matches the supplied username, rather than exposing a
      * generic failure that hides the real cause.

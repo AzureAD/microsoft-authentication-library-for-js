@@ -11,6 +11,7 @@ import {
 import { InteractionClientBaseV2 } from "./InteractionClientBaseV2.js";
 import {
     FlowStartParamsV2,
+    FlowSignInStartParamsV2,
     FlowChallengeParamsV2,
     FlowSubmitCodeParamsV2,
     FlowSubmitPasswordParamsV2,
@@ -40,7 +41,9 @@ import { CustomAuthError } from "../../error/CustomAuthError.js";
 import {
     CONTINUATION_LINK_MISSING,
     INVALID_HAL_RESPONSE,
+    RESET_PASSWORD_UNSUPPORTED,
     RESET_PASSWORD_TIMEOUT,
+    SIGN_IN_UNSUPPORTED,
     UNSUPPORTED_FLOW_STEP,
 } from "../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { CustomAuthFlowScenarioV2 } from "../../auth_flow/v2/CustomAuthFlowScenarioV2.js";
@@ -90,6 +93,55 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
+     * Starts sign-in and returns the first-factor authentication methods.
+     */
+    async signIn(
+        parameters: FlowSignInStartParamsV2
+    ): Promise<FlowMethodSelectionRequiredResultV2> {
+        const correlationId = parameters.correlationId;
+        const context = this.createRequestContext(
+            PublicApiId.SIGN_IN_V2_START,
+            correlationId
+        );
+
+        this.logger.verbose("Starting V2 sign-in.", correlationId);
+
+        const entryResult = await this.apiClient.authorizeChallengeStart(
+            context
+        );
+        const startResult = await this.apiClient.signInStart(
+            this.requireLink(correlationId, entryResult.signInHref, {
+                code: SIGN_IN_UNSUPPORTED,
+                message:
+                    "The authorize-challenge entry response did not include a sign-in link.",
+            }),
+            {
+                continuationToken: entryResult.continuationToken,
+                username: parameters.username,
+            },
+            context
+        );
+        return createFlowMethodSelectionRequiredResultV2({
+            correlationId,
+            continuationState: {
+                continuationToken: startResult.continuationToken,
+                scenario: CustomAuthFlowScenarioV2.SignIn,
+                links: {},
+                tokenRequest: {
+                    scopes: parameters.scopes,
+                    claims: parameters.claims,
+                },
+            },
+            methods: startResult.methods.map((method) => ({
+                id: method.id,
+                type: method.type ?? "",
+                hint: method.hint,
+                challengeHref: method.challengeHref,
+            })),
+        });
+    }
+
+    /*
      * Starts password reset and returns the available authentication methods.
      * The selected method can then be challenged through `requestChallenge`.
      */
@@ -111,14 +163,17 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             context
         );
         const startResult = await this.apiClient.resetPasswordStart(
-            entryResult.resetPasswordHref,
+            this.requireLink(correlationId, entryResult.resetPasswordHref, {
+                code: RESET_PASSWORD_UNSUPPORTED,
+                message:
+                    "The authorize-challenge entry response did not include a reset-password link.",
+            }),
             {
                 username: parameters.username,
                 continuationToken: entryResult.continuationToken,
             },
             context
         );
-
         this.logger.verbose(
             "V2 self-service password reset method selection required.",
             correlationId
@@ -419,16 +474,19 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
     private requireLink(
         correlationId: string,
-        href: string | undefined
+        href: string | undefined,
+        missingLinkError?: { code: string; message: string }
     ): string {
         if (!href) {
             throw new CustomAuthError(
-                CONTINUATION_LINK_MISSING,
-                "The continuation state is missing a link required to advance the flow.",
+                missingLinkError?.code ?? CONTINUATION_LINK_MISSING,
+                missingLinkError?.message ??
+                    "The continuation state is missing a link required to advance the flow.",
                 correlationId
             );
         }
 
         return href;
     }
+
 }

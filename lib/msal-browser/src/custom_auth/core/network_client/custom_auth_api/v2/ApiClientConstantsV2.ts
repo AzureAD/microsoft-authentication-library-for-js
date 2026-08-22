@@ -18,3 +18,11 @@ export const ResponseStateV2 = {
     CONTINUE: "continue",
     WEB_FALLBACK_REQUIRED: "webFallbackRequired",
 } as const;
+
+export const AuthenticationFactorV2 = {
+    SINGLE_FACTOR: "singleFactor",
+    MULTI_FACTOR: "multiFactor",
+} as const;
+
+export type AuthenticationFactorV2 =
+    (typeof AuthenticationFactorV2)[keyof typeof AuthenticationFactorV2];

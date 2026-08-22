@@ -73,6 +73,17 @@ export abstract class AuthFlowErrorBaseV2 {
         );
     }
 
+    protected isUserInvalidError(): boolean {
+        return (
+            this.errorData.error === "invalidRequest" &&
+            this.errorData.errorDescription?.includes("AADSTS90100") ===
+                true &&
+            this.errorData.errorDescription
+                .toLowerCase()
+                .includes("username parameter")
+        );
+    }
+
     // The verification endpoint uses this outer/inner code pair for an invalid one-time code.
     protected isInvalidCodeError(): boolean {
         return (
