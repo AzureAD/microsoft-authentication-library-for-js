@@ -4,7 +4,7 @@
  */
 
 import { OAuthErrorResponseV2, ServerErrorV2 } from "./ErrorResponsesV2.js";
-import { HalEmbedded, HalLink, HalResource } from "./HalResource.js";
+import { HalLink, HalResource } from "./HalResource.js";
 
 /*
  * Envelope shared by every JSON HAL response. `correlationId` is not on the HAL body -
@@ -77,8 +77,9 @@ export type ChallengeResponseV2 = OtpChallengeResponseV2;
  * Reset-password start response containing the available authentication
  * methods. Each method provides the challenge link used after selection.
  */
-export interface ResetPasswordStartResponseV2 extends HalResponseBaseV2 {
-    _embedded?: HalEmbedded & {
+export interface ResetPasswordStartResponseV2
+    extends Omit<HalResponseBaseV2, "_embedded"> {
+    _embedded?: {
         methods?: EmbeddedMethodV2[];
     };
 }
