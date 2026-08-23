@@ -107,6 +107,9 @@ export interface VerifyResponseV2
     _links?: {
         update?: HalLink;
     };
+    _embedded?: {
+        methods?: EmbeddedMethodV2[];
+    };
 }
 
 /*

@@ -9,12 +9,14 @@ import {
     FLOW_METHOD_SELECTION_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
+    FLOW_MFA_REQUIRED_V2,
     FLOW_NEW_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
     FLOW_COMPLETED_V2,
     FlowMethodSelectionRequiredResultV2,
     FlowCodeRequiredResultV2,
     FlowPasswordRequiredResultV2,
+    FlowMFARequiredResultV2,
     FlowNewPasswordRequiredResultV2,
     FlowSignInContinuationRequiredResultV2,
     FlowCompletedResultV2,
@@ -26,6 +28,7 @@ import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/netw
 import {
     RESET_PASSWORD_UNSUPPORTED,
     SIGN_IN_UNSUPPORTED,
+    UNEXPECTED_AUTHENTICATION_FACTOR,
 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { buildConfiguration } from "../../../../../src/config/Configuration.js";
 import { customAuthConfig } from "../../../test_resources/CustomAuthConfig.js";
@@ -221,6 +224,117 @@ describe("FlowInteractionClientV2", () => {
             ).rejects.toMatchObject({ error: SIGN_IN_UNSUPPORTED });
 
             expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+        });
+
+        it("returns MFA-required after automatically submitting a password", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                signInHref: "https://endpoint/sign-in",
+            });
+            apiClient.signInStart.mockResolvedValue({
+                continuationToken: "ct-sign-in",
+                authenticationFactor: "singleFactor",
+                methods: [
+                    {
+                        id: "password-1",
+                        type: "password",
+                        challengeHref: "https://endpoint/password/challenge",
+                    },
+                ],
+            });
+            apiClient.requestChallenge.mockResolvedValue({
+                continuationToken: "ct-password",
+                verifyHref: "https://endpoint/password/verify",
+                type: "password",
+            });
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "challenge",
+                continuationToken: "ct-mfa",
+                authenticationFactor: "multiFactor",
+                methods: [
+                    {
+                        id: "email-mfa",
+                        type: "email",
+                        hint: "u***@contoso.com",
+                        challengeHref: "https://endpoint/mfa/challenge",
+                    },
+                ],
+            });
+
+            const result = await client.signIn({
+                correlationId,
+                username: "user@contoso.com",
+                password: "P@ssword1!",
+                scopes: ["User.Read"],
+                claims: '{"access_token":{}}',
+            });
+
+            expect(result.type).toBe(FLOW_MFA_REQUIRED_V2);
+            expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
+
+            const mfaRequired = result as FlowMFARequiredResultV2;
+            expect(mfaRequired.methods).toEqual([
+                {
+                    id: "email-mfa",
+                    type: "email",
+                    hint: "u***@contoso.com",
+                    challengeHref: "https://endpoint/mfa/challenge",
+                },
+            ]);
+            expect(mfaRequired.continuationState).toEqual({
+                continuationToken: "ct-mfa",
+                scenario: "signIn",
+                links: {},
+                tokenRequest: {
+                    scopes: ["User.Read"],
+                    claims: '{"access_token":{}}',
+                },
+            });
+        });
+
+        it("rejects an MFA challenge with a non-MFA authentication factor", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                signInHref: "https://endpoint/sign-in",
+            });
+            apiClient.signInStart.mockResolvedValue({
+                continuationToken: "ct-sign-in",
+                authenticationFactor: "singleFactor",
+                methods: [
+                    {
+                        id: "password-1",
+                        type: "password",
+                        challengeHref: "https://endpoint/password/challenge",
+                    },
+                ],
+            });
+            apiClient.requestChallenge.mockResolvedValue({
+                continuationToken: "ct-password",
+                verifyHref: "https://endpoint/password/verify",
+                type: "password",
+            });
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "challenge",
+                continuationToken: "ct-mfa",
+                authenticationFactor: "singleFactor",
+                methods: [
+                    {
+                        id: "email-mfa",
+                        type: "email",
+                        challengeHref: "https://endpoint/mfa/challenge",
+                    },
+                ],
+            });
+
+            await expect(
+                client.signIn({
+                    correlationId,
+                    username: "user@contoso.com",
+                    password: "P@ssword1!",
+                })
+            ).rejects.toMatchObject({
+                error: UNEXPECTED_AUTHENTICATION_FACTOR,
+            });
         });
 
         it("rejects a missing sign-in link before calling sign-in start", async () => {
@@ -476,7 +590,7 @@ describe("FlowInteractionClientV2", () => {
             ).rejects.toThrow();
 
             expect(errorSpy).toHaveBeenCalledWith(
-                "Unexpected verify outcome 'continue' for the current flow.",
+                "Verification next action 'continue' is not supported for the current flow.",
                 correlationId
             );
         });

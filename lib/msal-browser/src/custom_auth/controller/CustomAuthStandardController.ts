@@ -40,9 +40,11 @@ import { SignInStartResultV2 } from "../sign_in/auth_flow/v2/result/SignInStartR
 import { CompletedStateV2 } from "../core/auth_flow/v2/state/CompletedStateV2.js";
 import {
     FLOW_COMPLETED_V2,
+    FLOW_MFA_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
 } from "../core/interaction_client/v2/result/FlowActionResultV2.js";
 import { PasswordRequiredStateV2 } from "../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import { MFARequiredStateV2 } from "../core/auth_flow/v2/state/MFARequiredStateV2.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
@@ -724,6 +726,22 @@ export class CustomAuthStandardController
                         correlationId
                     ),
                     CustomAuthFlowScenarioV2.SignIn
+                );
+            }
+
+            if (result.type === FLOW_MFA_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new MFARequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                        methods: result.methods,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
                 );
             }
 

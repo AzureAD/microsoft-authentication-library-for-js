@@ -22,6 +22,7 @@ import {
     createFlowMethodSelectionRequiredResultV2,
     createFlowCodeRequiredResultV2,
     createFlowPasswordRequiredResultV2,
+    createFlowMFARequiredResultV2,
     createFlowNewPasswordRequiredResultV2,
     createFlowSignInContinuationRequiredResultV2,
     createFlowCompletedResultV2,
@@ -31,6 +32,7 @@ import type {
     FlowMethodSelectionRequiredResultV2,
     FlowCodeRequiredResultV2,
     FlowPasswordRequiredResultV2,
+    FlowMFARequiredResultV2,
     FlowNewPasswordRequiredResultV2,
     FlowSignInContinuationRequiredResultV2,
     FlowCompletedResultV2,
@@ -44,11 +46,12 @@ import { CustomAuthApiClientV2 } from "../../network_client/custom_auth_api/v2/C
 import { CustomAuthError } from "../../error/CustomAuthError.js";
 import {
     CONTINUATION_LINK_MISSING,
-    INVALID_HAL_RESPONSE,
     RESET_PASSWORD_UNSUPPORTED,
     RESET_PASSWORD_TIMEOUT,
     SIGN_IN_UNSUPPORTED,
+    UNEXPECTED_AUTHENTICATION_FACTOR,
     UNSUPPORTED_FLOW_STEP,
+    UNSUPPORTED_FLOW_TRANSITION,
 } from "../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { CustomAuthFlowScenarioV2 } from "../../auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import * as PublicApiId from "../../telemetry/PublicApiId.js";
@@ -56,8 +59,12 @@ import {
     getPublicApiIdV2,
     FlowStepV2,
 } from "../../telemetry/FlowApiIdHelperV2.js";
-import type { ChallengeResultV2 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
+import type {
+    ChallengeResultV2,
+    VerifyResultV2,
+} from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import type { FlowContinuationStateV2 } from "./FlowContinuationStateV2.js";
+import { AuthenticationFactorV2 } from "../../network_client/custom_auth_api/v2/ApiClientConstantsV2.js";
 
 /*
  * Polls up to five times for password-update completion, waiting 1.5 seconds
@@ -103,7 +110,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      */
     async signIn(
         parameters: FlowSignInStartParamsV2
-    ): Promise<FlowPasswordRequiredResultV2 | FlowCompletedResultV2> {
+    ): Promise<
+        | FlowPasswordRequiredResultV2
+        | FlowMFARequiredResultV2
+        | FlowCompletedResultV2
+    > {
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             PublicApiId.SIGN_IN_V2_START,
@@ -127,6 +138,23 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             },
             context
         );
+
+        if (
+            startResult.authenticationFactor !==
+            AuthenticationFactorV2.SINGLE_FACTOR
+        ) {
+            const authenticationFactor =
+                startResult.authenticationFactor ?? "missing";
+            const message = `Sign-in start requires authentication factor '${AuthenticationFactorV2.SINGLE_FACTOR}'; received '${authenticationFactor}'.`;
+            this.logger.error(message, correlationId);
+
+            throw new CustomAuthError(
+                UNEXPECTED_AUTHENTICATION_FACTOR,
+                message,
+                correlationId
+            );
+        }
+
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: startResult.continuationToken,
             scenario: CustomAuthFlowScenarioV2.SignIn,
@@ -147,9 +175,13 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         );
 
         if (!passwordMethod) {
+            const message =
+                "The sign-in start response did not include a supported password method.";
+            this.logger.error(message, correlationId);
+
             throw new CustomAuthError(
                 SIGN_IN_UNSUPPORTED,
-                "The sign-in start response did not include a supported password method.",
+                message,
                 correlationId
             );
         }
@@ -166,16 +198,19 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         });
 
         if (challengeResult.type !== FLOW_PASSWORD_REQUIRED_V2) {
+            const message = `Challenge type '${challengeResult.type}' is not supported for password sign-in.`;
+            this.logger.error(message, correlationId);
+
             throw new CustomAuthError(
-                INVALID_HAL_RESPONSE,
-                "Invalid HAL response: the selected sign-in method did not return a password challenge.",
+                UNSUPPORTED_FLOW_TRANSITION,
+                message,
                 correlationId
             );
         }
 
         const password = parameters.password;
         if (password) {
-            return this.submitSignInPassword({
+            return this.submitAutomaticSignInPassword({
                 correlationId,
                 continuationState: challengeResult.continuationState,
                 password,
@@ -316,11 +351,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                  * wired yet; SSPR's verify always yields `update`. Guard so an unexpected outcome is
                  * a clear failure rather than a silent wrong state.
                  */
-                const message = `Unexpected verify outcome '${verifyResult.nextAction}' for the current flow.`;
+                const message = `Verification next action '${verifyResult.nextAction}' is not supported for the current flow.`;
                 this.logger.error(message, correlationId);
 
                 throw new CustomAuthError(
-                    INVALID_HAL_RESPONSE,
+                    UNSUPPORTED_FLOW_TRANSITION,
                     message,
                     correlationId
                 );
@@ -440,48 +475,23 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     async submitSignInPassword(
         parameters: FlowSubmitSignInPasswordParamsV2
     ): Promise<FlowCompletedResultV2> {
-        const { continuationState, correlationId } = parameters;
-        const context = this.createRequestContext(
-            this.resolveStepApiId(
-                continuationState.scenario,
-                "submitPassword",
-                correlationId
-            ),
-            correlationId
-        );
+        const verifyResult = await this.verifySignInPassword(parameters);
 
-        this.logger.verbose("Submitting V2 sign-in password.", correlationId);
-
-        const verifyResult = await this.apiClient.verifyChallenge(
-            this.requireLink(correlationId, continuationState.links.verify),
-            {
-                continuationToken: continuationState.continuationToken,
-                password: parameters.password,
-            },
-            context
-        );
-
-        if (verifyResult.nextAction !== "continue") {
-            const message = `Unexpected password verification outcome '${verifyResult.nextAction}' for sign-in.`;
-            this.logger.error(message, correlationId);
-            throw new CustomAuthError(
-                INVALID_HAL_RESPONSE,
-                message,
-                correlationId
+        if (verifyResult.nextAction === "continue") {
+            return this.completeSignInAfterPasswordVerification(
+                parameters.continuationState,
+                verifyResult.continuationToken,
+                parameters.correlationId
             );
         }
 
-        return this.signInWithContinuation({
-            correlationId,
-            continuationState: {
-                continuationToken: verifyResult.continuationToken,
-                scenario: continuationState.scenario,
-                links: {},
-                tokenRequest: continuationState.tokenRequest,
-            },
-            scopes: continuationState.tokenRequest?.scopes,
-            claims: continuationState.tokenRequest?.claims,
-        });
+        const message = `Password verification next action '${verifyResult.nextAction}' is not supported for the password-required flow.`;
+        this.logger.error(message, parameters.correlationId);
+        throw new CustomAuthError(
+            UNSUPPORTED_FLOW_TRANSITION,
+            message,
+            parameters.correlationId
+        );
     }
 
     /*
@@ -531,6 +541,106 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         return createFlowCompletedResultV2({
             correlationId,
             authenticationResult,
+        });
+    }
+
+    private async submitAutomaticSignInPassword(
+        parameters: FlowSubmitSignInPasswordParamsV2
+    ): Promise<FlowMFARequiredResultV2 | FlowCompletedResultV2> {
+        const { continuationState, correlationId } = parameters;
+        const verifyResult = await this.verifySignInPassword(parameters);
+
+        if (verifyResult.nextAction === "challenge") {
+            if (
+                verifyResult.authenticationFactor !==
+                AuthenticationFactorV2.MULTI_FACTOR
+            ) {
+                const authenticationFactor =
+                    verifyResult.authenticationFactor ?? "missing";
+                const message = `Password verification challenge requires authentication factor '${AuthenticationFactorV2.MULTI_FACTOR}'; received '${authenticationFactor}'.`;
+                this.logger.error(message, correlationId);
+
+                throw new CustomAuthError(
+                    UNEXPECTED_AUTHENTICATION_FACTOR,
+                    message,
+                    correlationId
+                );
+            }
+
+            return createFlowMFARequiredResultV2({
+                correlationId,
+                continuationState: {
+                    continuationToken: verifyResult.continuationToken,
+                    scenario: continuationState.scenario,
+                    links: {},
+                    tokenRequest: continuationState.tokenRequest,
+                },
+                methods: verifyResult.methods.map((method) => ({
+                    id: method.id,
+                    type: method.type ?? "",
+                    hint: method.hint,
+                    challengeHref: method.challengeHref,
+                })),
+            });
+        }
+
+        if (verifyResult.nextAction === "continue") {
+            return this.completeSignInAfterPasswordVerification(
+                continuationState,
+                verifyResult.continuationToken,
+                correlationId
+            );
+        }
+
+        const message = `Password verification next action '${verifyResult.nextAction}' is not supported for sign-in.`;
+        this.logger.error(message, correlationId);
+        throw new CustomAuthError(
+            UNSUPPORTED_FLOW_TRANSITION,
+            message,
+            correlationId
+        );
+    }
+
+    private async verifySignInPassword(
+        parameters: FlowSubmitSignInPasswordParamsV2
+    ): Promise<VerifyResultV2> {
+        const { continuationState, correlationId } = parameters;
+        const context = this.createRequestContext(
+            this.resolveStepApiId(
+                continuationState.scenario,
+                "submitPassword",
+                correlationId
+            ),
+            correlationId
+        );
+
+        this.logger.verbose("Submitting V2 sign-in password.", correlationId);
+
+        return this.apiClient.verifyChallenge(
+            this.requireLink(correlationId, continuationState.links.verify),
+            {
+                continuationToken: continuationState.continuationToken,
+                password: parameters.password,
+            },
+            context
+        );
+    }
+
+    private completeSignInAfterPasswordVerification(
+        continuationState: FlowContinuationStateV2,
+        continuationToken: string,
+        correlationId: string
+    ): Promise<FlowCompletedResultV2> {
+        return this.signInWithContinuation({
+            correlationId,
+            continuationState: {
+                continuationToken,
+                scenario: continuationState.scenario,
+                links: {},
+                tokenRequest: continuationState.tokenRequest,
+            },
+            scopes: continuationState.tokenRequest?.scopes,
+            claims: continuationState.tokenRequest?.claims,
         });
     }
 
@@ -593,9 +703,12 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         const apiId = getPublicApiIdV2(scenario, step);
 
         if (apiId === undefined) {
+            const message = `No telemetry API id is registered for step '${step}' of the '${scenario}' flow.`;
+            this.logger.error(message, correlationId);
+
             throw new CustomAuthError(
                 UNSUPPORTED_FLOW_STEP,
-                `No telemetry API id is registered for step '${step}' of the '${scenario}' flow.`,
+                message,
                 correlationId
             );
         }
@@ -609,12 +722,14 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         missingLinkError?: { code: string; message: string }
     ): string {
         if (!href) {
-            throw new CustomAuthError(
-                missingLinkError?.code ?? CONTINUATION_LINK_MISSING,
+            const errorCode =
+                missingLinkError?.code ?? CONTINUATION_LINK_MISSING;
+            const message =
                 missingLinkError?.message ??
-                    "The continuation state is missing a link required to advance the flow.",
-                correlationId
-            );
+                "The continuation state is missing a link required to advance the flow.";
+            this.logger.error(message, correlationId);
+
+            throw new CustomAuthError(errorCode, message, correlationId);
         }
 
         return href;

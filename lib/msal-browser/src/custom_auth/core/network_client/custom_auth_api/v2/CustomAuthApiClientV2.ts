@@ -25,6 +25,7 @@ import {
     UpdatePasswordResponseV2,
     PollResponseV2,
     ParsedResponseV2,
+    EmbeddedMethodV2,
 } from "./response/ResponsesV2.js";
 import {
     RequestContextV2,
@@ -36,7 +37,7 @@ import {
     PollRequestV2,
 } from "./request/RequestsV2.js";
 import {
-    AuthenticationFactorV2,
+    CHALLENGE_RELATION,
     UPDATE_RELATION,
     ResponseStateV2,
 } from "./ApiClientConstantsV2.js";
@@ -75,16 +76,6 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             request,
             context
         );
-
-        if (
-            result.authenticationFactor !== AuthenticationFactorV2.SINGLE_FACTOR
-        ) {
-            throw new CustomAuthError(
-                INVALID_HAL_RESPONSE,
-                "Invalid HAL response: sign-in start must return a single-factor challenge.",
-                context.correlationId
-            );
-        }
 
         return result;
     }
@@ -125,12 +116,9 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 parsedResponse.correlationId
             ),
             resendHref:
-                links && "resend" in links
-                    ? links.resend?.href
-                    : undefined,
+                links && "resend" in links ? links.resend?.href : undefined,
             codeLength:
-                codeMetadata?.codeLength ??
-                codeMetadata?.payload?.codeLength,
+                codeMetadata?.codeLength ?? codeMetadata?.payload?.codeLength,
             hint: codeMetadata?.hint,
             type: parsedResponse.body.type,
         };
@@ -241,10 +229,8 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 parsedResponse.correlationId
             ),
             scenario: parsedResponse.body.scenario,
-            authenticationFactor: this.handler.requireAuthenticationFactor(
+            authenticationFactor:
                 parsedResponse.body.challengeContext?.authenticationFactor,
-                parsedResponse.correlationId
-            ),
         };
     }
 
@@ -276,6 +262,19 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             };
         }
 
+        if (parsedResponse.body.action === CHALLENGE_RELATION) {
+            return {
+                nextAction: "challenge",
+                continuationToken,
+                authenticationFactor:
+                    parsedResponse.body.challengeContext?.authenticationFactor,
+                methods: this.resolveMethods(
+                    parsedResponse.body,
+                    correlationId
+                ),
+            };
+        }
+
         throw new CustomAuthError(
             INVALID_HAL_RESPONSE,
             "Invalid HAL response: verify returned no known next action",
@@ -284,7 +283,11 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
     }
 
     private resolveMethods(
-        body: PasswordResetStartResponseV2 | SignInStartResponseV2,
+        body: {
+            _embedded?: {
+                methods?: EmbeddedMethodV2[];
+            };
+        },
         correlationId: string
     ): StartMethodV2[] {
         const methods = this.handler.requireMethods(

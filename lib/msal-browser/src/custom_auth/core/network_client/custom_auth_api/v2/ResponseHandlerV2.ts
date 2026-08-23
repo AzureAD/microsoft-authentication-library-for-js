@@ -10,10 +10,6 @@ import { normalizeServerErrorV2 } from "./response/ErrorNormalizerV2.js";
 import { EmbeddedMethodV2, ParsedResponseV2 } from "./response/ResponsesV2.js";
 import { ResponseStateV2 } from "./ApiClientConstantsV2.js";
 import {
-    AuthenticationFactorV2,
-    type AuthenticationFactorV2 as AuthenticationFactorValueV2,
-} from "./ApiClientConstantsV2.js";
-import {
     CONTINUATION_TOKEN_MISSING,
     INVALID_HAL_RESPONSE,
     INVALID_RESPONSE_BODY,
@@ -135,30 +131,6 @@ export class ResponseHandlerV2 {
         }
 
         return methods;
-    }
-
-    requireAuthenticationFactor(
-        authenticationFactor: string | undefined,
-        correlationId: string
-    ): AuthenticationFactorValueV2 {
-        if (
-            authenticationFactor !== AuthenticationFactorV2.SINGLE_FACTOR &&
-            authenticationFactor !== AuthenticationFactorV2.MULTI_FACTOR
-        ) {
-            const errorMessage = authenticationFactor
-                ? `Invalid HAL response: unsupported authentication factor '${authenticationFactor}'`
-                : "Invalid HAL response: missing authentication factor";
-
-            this.logger?.error(errorMessage, correlationId);
-
-            throw new CustomAuthError(
-                INVALID_HAL_RESPONSE,
-                errorMessage,
-                correlationId
-            );
-        }
-
-        return authenticationFactor;
     }
 
     private async parseBody(

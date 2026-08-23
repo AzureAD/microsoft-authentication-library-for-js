@@ -7,11 +7,12 @@ import { CustomAuthPublicClientApplication } from "../../../src/custom_auth/Cust
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
 import { PasswordRequiredStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
+import { MFARequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/MFARequiredStateV2.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import {
-    INVALID_HAL_RESPONSE,
     NO_AUTHENTICATION_METHODS,
     SIGN_IN_UNSUPPORTED,
+    UNEXPECTED_AUTHENTICATION_FACTOR,
 } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
@@ -86,6 +87,29 @@ const PASSWORD_VERIFY_RESPONSE = {
     state: "continue",
     _links: {
         continue: { href: "/tenant/oauth2/v2.0/authorize-challenge" },
+    },
+};
+
+const MFA_REQUIRED_RESPONSE = {
+    continuationToken: "ct-mfa",
+    state: "interactionRequired",
+    action: "challenge",
+    challengeContext: {
+        authenticationFactor: "multiFactor",
+    },
+    _embedded: {
+        methods: [
+            {
+                id: "email-mfa",
+                type: "email",
+                hint: "u***@contoso.com",
+                _links: {
+                    challenge: {
+                        href: "/tenant/api/v0.1/mfa/challenge",
+                    },
+                },
+            },
+        ],
     },
 };
 
@@ -195,6 +219,38 @@ describe("Sign-in V2 entry", () => {
         expect(result.state).toBeInstanceOf(CompletedStateV2);
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
         expect(fetch).toHaveBeenCalledTimes(6);
+    });
+
+    it("returns MFA-required after automatically submitting a supplied password", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(MFA_REQUIRED_RESPONSE));
+
+        const result = await app.signInV2({
+            username: "user@contoso.com",
+            password: "P@ssword1!",
+            scopes: ["User.Read"],
+            claims: '{"access_token":{}}',
+        });
+
+        expect(result.isFailed()).toBe(false);
+        expect(result.isState("mfaRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(MFARequiredStateV2);
+
+        if (result.isState("mfaRequired")) {
+            expect(result.state.methods).toEqual([
+                {
+                    id: "email-mfa",
+                    type: "email",
+                    hint: "u***@contoso.com",
+                    challengeHref: "/tenant/api/v0.1/mfa/challenge",
+                },
+            ]);
+        }
+
+        expect(fetch).toHaveBeenCalledTimes(4);
     });
 
     it("returns an invalid-password error from automatic submission", async () => {
@@ -435,7 +491,9 @@ describe("Sign-in V2 entry", () => {
             });
 
             expect(result.isFailed()).toBe(true);
-            expect(result.error?.errorData.error).toBe(INVALID_HAL_RESPONSE);
+            expect(result.error?.errorData.error).toBe(
+                UNEXPECTED_AUTHENTICATION_FACTOR
+            );
         }
     );
 });

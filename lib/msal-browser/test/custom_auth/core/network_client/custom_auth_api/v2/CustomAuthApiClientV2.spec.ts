@@ -236,98 +236,40 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
-        it("throws INVALID_HAL_RESPONSE when the response omits the authentication factor", async () => {
-            mockHttpClient.sendAsync.mockResolvedValueOnce(
-                buildResponse({
-                    continuationToken: "ct-start",
-                    _embedded: {
-                        methods: [
-                            {
-                                id: "password-1",
-                                type: "password",
-                                _links: {
-                                    challenge: {
-                                        href: "/tenant/api/v0.1/password/challenge",
+        it.each([undefined, "multiFactor", "unknownFactor"])(
+            "returns the raw authentication factor %s",
+            async (authenticationFactor) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-start",
+                        challengeContext: {
+                            authenticationFactor,
+                        },
+                        _embedded: {
+                            methods: [
+                                {
+                                    id: "password-1",
+                                    type: "password",
+                                    _links: {
+                                        challenge: {
+                                            href: "/tenant/api/v0.1/password/challenge",
+                                        },
                                     },
                                 },
-                            },
-                        ],
-                    },
-                })
-            );
+                            ],
+                        },
+                    })
+                );
 
-            await expect(
-                apiClient.signInStart(
+                const result = await apiClient.signInStart(
                     "/tenant/api/v0.1/signin/start",
                     request,
                     context
-                )
-            ).rejects.toMatchObject({ error: INVALID_HAL_RESPONSE });
-        });
+                );
 
-        it("rejects multi-factor from the sign-in start response", async () => {
-            mockHttpClient.sendAsync.mockResolvedValueOnce(
-                buildResponse({
-                    continuationToken: "ct-start",
-                    challengeContext: {
-                        authenticationFactor: "multiFactor",
-                    },
-                    _embedded: {
-                        methods: [
-                            {
-                                id: "password-1",
-                                type: "password",
-                                _links: {
-                                    challenge: {
-                                        href: "/tenant/api/v0.1/password/challenge",
-                                    },
-                                },
-                            },
-                        ],
-                    },
-                })
-            );
-
-            await expect(
-                apiClient.signInStart(
-                    "/tenant/api/v0.1/signin/start",
-                    request,
-                    context
-                )
-            ).rejects.toMatchObject({ error: INVALID_HAL_RESPONSE });
-        });
-
-        it("throws INVALID_HAL_RESPONSE for an unsupported authentication factor", async () => {
-            mockHttpClient.sendAsync.mockResolvedValueOnce(
-                buildResponse({
-                    continuationToken: "ct-start",
-                    challengeContext: {
-                        authenticationFactor: "unknownFactor",
-                    },
-                    _embedded: {
-                        methods: [
-                            {
-                                id: "password-1",
-                                type: "password",
-                                _links: {
-                                    challenge: {
-                                        href: "/tenant/api/v0.1/password/challenge",
-                                    },
-                                },
-                            },
-                        ],
-                    },
-                })
-            );
-
-            await expect(
-                apiClient.signInStart(
-                    "/tenant/api/v0.1/signin/start",
-                    request,
-                    context
-                )
-            ).rejects.toMatchObject({ error: INVALID_HAL_RESPONSE });
-        });
+                expect(result.authenticationFactor).toBe(authenticationFactor);
+            }
+        );
     });
 
     describe("requestChallenge", () => {
@@ -452,6 +394,120 @@ describe("CustomAuthApiClientV2", () => {
             expect(result).toEqual({
                 nextAction: "continue",
                 continuationToken: "ct-verify",
+            });
+        });
+
+        it("maps a multi-factor challenge and its registered methods", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-mfa",
+                    state: "interactionRequired",
+                    action: "challenge",
+                    challengeContext: {
+                        authenticationFactor: "multiFactor",
+                    },
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "email-mfa",
+                                type: "email",
+                                hint: "u***@test.com",
+                                _links: {
+                                    challenge: {
+                                        href: "/tenant/api/v0.1/mfa/challenge",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            const result = await apiClient.verifyChallenge(
+                "/tenant/api/v0.1/password/verify",
+                {
+                    continuationToken: "ct-password",
+                    password: "P@ssword1!",
+                },
+                context
+            );
+
+            expect(result).toEqual({
+                nextAction: "challenge",
+                continuationToken: "ct-mfa",
+                authenticationFactor: "multiFactor",
+                methods: [
+                    {
+                        id: "email-mfa",
+                        type: "email",
+                        hint: "u***@test.com",
+                        challengeHref: "/tenant/api/v0.1/mfa/challenge",
+                    },
+                ],
+            });
+        });
+
+        it("returns the raw authentication factor for a challenge", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-verify",
+                    action: "challenge",
+                    challengeContext: {
+                        authenticationFactor: "singleFactor",
+                    },
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "email",
+                                type: "email",
+                                _links: {
+                                    challenge: {
+                                        href: "/tenant/api/v0.1/challenge",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            const result = await apiClient.verifyChallenge(
+                "/tenant/api/v0.1/password/verify",
+                {
+                    continuationToken: "ct-password",
+                    password: "P@ssword1!",
+                },
+                context
+            );
+
+            expect(result).toMatchObject({
+                nextAction: "challenge",
+                authenticationFactor: "singleFactor",
+            });
+        });
+
+        it("rejects a multi-factor challenge without registered methods", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-verify",
+                    action: "challenge",
+                    challengeContext: {
+                        authenticationFactor: "multiFactor",
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.verifyChallenge(
+                    "/tenant/api/v0.1/password/verify",
+                    {
+                        continuationToken: "ct-password",
+                        password: "P@ssword1!",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: NO_AUTHENTICATION_METHODS,
             });
         });
 

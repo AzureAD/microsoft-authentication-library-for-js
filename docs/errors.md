@@ -1186,6 +1186,14 @@ const msalConfig = {
 
 -   The requested native authentication flow step is not supported.
 
+#### `unsupported_flow_transition`
+
+-   The native authentication server returned an outcome that is not supported for the current flow step.
+
+#### `unexpected_authentication_factor`
+
+-   The native authentication server returned an authentication factor that is not expected for the current flow step.
+
 #### `no_authentication_methods`
 
 -   The native authentication server did not return any available authentication methods.
