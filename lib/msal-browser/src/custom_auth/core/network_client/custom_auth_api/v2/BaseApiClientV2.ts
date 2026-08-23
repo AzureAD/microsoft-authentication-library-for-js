@@ -122,6 +122,21 @@ export abstract class BaseApiClientV2 {
     }
 
     /*
+     * Redeems a continuation token for an authorization code and then tokens.
+     */
+    async completeWithTokens(
+        request: CompleteWithTokensRequestV2,
+        context: RequestContextV2
+    ): Promise<TokenResponseV2> {
+        const code = await this.authorizeChallengeContinue(
+            request.continuationToken,
+            context
+        );
+
+        return this.token(code, request.scopes, context, request.claims);
+    }
+
+    /*
      * Redeems a continuation token for an authorization code.
      */
     protected async authorizeChallengeContinue(
@@ -200,53 +215,6 @@ export abstract class BaseApiClientV2 {
     }
 
     /*
-     * Redeems a continuation token for an authorization code and then tokens.
-     */
-    async completeWithTokens(
-        request: CompleteWithTokensRequestV2,
-        context: RequestContextV2
-    ): Promise<TokenResponseV2> {
-        const code = await this.authorizeChallengeContinue(
-            request.continuationToken,
-            context
-        );
-
-        return this.token(code, request.scopes, context, request.claims);
-    }
-
-    private async postOAuthForm<T>(
-        endpoint: string,
-        data: OAuthFormRequestV2 | AuthorizeChallengeContinueRequestV2,
-        context: RequestContextV2
-    ): Promise<ParsedResponseV2<T>> {
-        const formData = new URLSearchParams(
-            Object.entries(data) as [string, string][]
-        );
-        const url = buildUrl(
-            this.baseRequestUrl.href,
-            endpoint,
-            this.customAuthApiQueryParams
-        );
-
-        const response = await this.sendRequest(
-            url,
-            HttpMethod.POST,
-            formData,
-            Constants.URL_FORM_CONTENT_TYPE,
-            context
-        );
-
-        const parsedResponse = await this.handler.parseResponse<T>(
-            response,
-            context.correlationId
-        );
-
-        this.throwOnWebFallback(parsedResponse);
-
-        return parsedResponse;
-    }
-
-    /*
      * Sends a JSON action request to a server-provided link.
      */
     protected async sendActionRequest<T>(
@@ -289,6 +257,54 @@ export abstract class BaseApiClientV2 {
         return parsedResponse;
     }
 
+    protected throwOnApiError(parsedResponse: ParsedResponseV2<unknown>): void {
+        if (parsedResponse.error) {
+            const apiError = this.toApiError(
+                parsedResponse.error,
+                parsedResponse.correlationId
+            );
+
+            this.logger?.error(
+                `V2 API returned an error: '${apiError.error}'`,
+                parsedResponse.correlationId
+            );
+
+            throw apiError;
+        }
+    }
+
+    private async postOAuthForm<T>(
+        endpoint: string,
+        data: OAuthFormRequestV2 | AuthorizeChallengeContinueRequestV2,
+        context: RequestContextV2
+    ): Promise<ParsedResponseV2<T>> {
+        const formData = new URLSearchParams(
+            Object.entries(data) as [string, string][]
+        );
+        const url = buildUrl(
+            this.baseRequestUrl.href,
+            endpoint,
+            this.customAuthApiQueryParams
+        );
+
+        const response = await this.sendRequest(
+            url,
+            HttpMethod.POST,
+            formData,
+            Constants.URL_FORM_CONTENT_TYPE,
+            context
+        );
+
+        const parsedResponse = await this.handler.parseResponse<T>(
+            response,
+            context.correlationId
+        );
+
+        this.throwOnWebFallback(parsedResponse);
+
+        return parsedResponse;
+    }
+
     private async sendRequest(
         url: URL,
         method: (typeof HttpMethod)[keyof typeof HttpMethod],
@@ -317,22 +333,6 @@ export abstract class BaseApiClientV2 {
                 `Failed to send request to '${url}': '${e}'`,
                 context.correlationId
             );
-        }
-    }
-
-    protected throwOnApiError(parsedResponse: ParsedResponseV2<unknown>): void {
-        if (parsedResponse.error) {
-            const apiError = this.toApiError(
-                parsedResponse.error,
-                parsedResponse.correlationId
-            );
-
-            this.logger?.error(
-                `V2 API returned an error: '${apiError.error}'`,
-                parsedResponse.correlationId
-            );
-
-            throw apiError;
         }
     }
 

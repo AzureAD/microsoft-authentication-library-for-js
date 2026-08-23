@@ -9,8 +9,10 @@ import { InvalidArgumentError } from "../../../error/InvalidArgumentError.js";
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
 import { ChallengeVerificationRequiredStateV2 } from "./ChallengeVerificationRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../../../../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import type { AuthenticationMethodSelectionRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
+import { FLOW_PASSWORD_REQUIRED_V2 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
 
 /**
  * State returned when the user must select one of several authentication
@@ -68,19 +70,27 @@ export class AuthenticationMethodSelectionRequiredStateV2 extends AuthFlowAction
                 },
             });
 
+            const commonStateParameters = {
+                correlationId: result.correlationId,
+                logger,
+                config: this.stateParameters.config,
+                flowClient,
+                continuationState: result.continuationState,
+                cacheClient: this.stateParameters.cacheClient,
+            };
+            const nextState =
+                result.type === FLOW_PASSWORD_REQUIRED_V2
+                    ? new PasswordRequiredStateV2(commonStateParameters)
+                    : new ChallengeVerificationRequiredStateV2({
+                          ...commonStateParameters,
+                          method: selectedMethod,
+                          sentTo: result.sentTo,
+                          channel: result.channel,
+                          codeLength: result.codeLength,
+                      });
+
             return new CustomAuthResultV2(
-                new ChallengeVerificationRequiredStateV2({
-                    correlationId: result.correlationId,
-                    logger,
-                    config: this.stateParameters.config,
-                    flowClient,
-                    continuationState: result.continuationState,
-                    cacheClient: this.stateParameters.cacheClient,
-                    method: selectedMethod,
-                    sentTo: result.sentTo,
-                    channel: result.channel,
-                    codeLength: result.codeLength,
-                }),
+                nextState,
                 undefined,
                 result.continuationState.scenario
             );

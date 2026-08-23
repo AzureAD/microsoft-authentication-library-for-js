@@ -267,6 +267,7 @@ export { VerifyChallengeErrorV2 } from "./core/auth_flow/v2/error/VerifyChalleng
 export { SubmitNewPasswordErrorV2 } from "./reset_password/auth_flow/v2/error_type/SubmitNewPasswordErrorV2.js";
 export { SignInStartErrorV2 } from "./sign_in/auth_flow/v2/error_type/SignInStartErrorV2.js";
 export { SignInContinuationErrorV2 } from "./sign_in/auth_flow/v2/error_type/SignInContinuationErrorV2.js";
+export { SubmitPasswordErrorV2 } from "./sign_in/auth_flow/v2/error_type/SubmitPasswordErrorV2.js";
 
 // Native Auth V2 States
 export { CompletedStateV2 } from "./core/auth_flow/v2/state/CompletedStateV2.js";
@@ -302,6 +303,10 @@ export {
     SignInContinuationResultV2,
     SignInContinuationResultStateV2,
 } from "./sign_in/auth_flow/v2/result/SignInContinuationResultV2.js";
+export {
+    SubmitPasswordResultV2,
+    SubmitPasswordResultStateV2,
+} from "./sign_in/auth_flow/v2/result/SubmitPasswordResultV2.js";
 
 // Components from msal_browser
 export { LogLevel } from "@azure/msal-common/browser";

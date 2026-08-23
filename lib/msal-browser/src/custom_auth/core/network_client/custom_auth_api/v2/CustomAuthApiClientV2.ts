@@ -35,7 +35,11 @@ import {
     UpdatePasswordRequestV2,
     PollRequestV2,
 } from "./request/RequestsV2.js";
-import { UPDATE_RELATION, ResponseStateV2 } from "./ApiClientConstantsV2.js";
+import {
+    AuthenticationFactorV2,
+    UPDATE_RELATION,
+    ResponseStateV2,
+} from "./ApiClientConstantsV2.js";
 import {
     INVALID_HAL_RESPONSE,
     NO_AUTHENTICATION_METHODS,
@@ -66,40 +70,27 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
         request: SignInStartRequestV2,
         context: RequestContextV2
     ): Promise<SignInStartApiResultV2> {
-        return this.sendStartRequest(signInHref, request, context);
-    }
-
-    private async sendStartRequest(
-        startHref: string,
-        request: PasswordResetStartRequestV2 | SignInStartRequestV2,
-        context: RequestContextV2
-    ): Promise<StartResultV2> {
-        const parsedResponse =
-            await this.sendActionRequest<
-                PasswordResetStartResponseV2 | SignInStartResponseV2
-            >(startHref, HttpMethod.POST, request, context);
-
-        const continuationToken = this.handler.requireContinuationToken(
-            parsedResponse.continuationToken,
-            parsedResponse.correlationId
+        const result = await this.sendStartRequest(
+            signInHref,
+            request,
+            context
         );
 
-        return {
-            continuationToken,
-            methods: this.resolveMethods(
-                parsedResponse.body,
-                parsedResponse.correlationId
-            ),
-            scenario: parsedResponse.body.scenario,
-            authenticationFactor: this.handler.requireAuthenticationFactor(
-                parsedResponse.body.challengeContext?.authenticationFactor,
-                parsedResponse.correlationId
-            ),
-        };
+        if (
+            result.authenticationFactor !== AuthenticationFactorV2.SINGLE_FACTOR
+        ) {
+            throw new CustomAuthError(
+                INVALID_HAL_RESPONSE,
+                "Invalid HAL response: sign-in start must return a single-factor challenge.",
+                context.correlationId
+            );
+        }
+
+        return result;
     }
 
     /*
-     * Requests an OTP and returns the links and metadata needed for verification.
+     * Requests the selected method's challenge and returns the data needed for verification.
      */
     async requestChallenge(
         challengeHref: string,
@@ -118,25 +109,35 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             parsedResponse.continuationToken,
             parsedResponse.correlationId
         );
+        const links = parsedResponse.body._links;
+        const codeMetadata =
+            "hint" in parsedResponse.body ||
+            "codeLength" in parsedResponse.body ||
+            "payload" in parsedResponse.body
+                ? parsedResponse.body
+                : undefined;
 
         return {
             continuationToken: nextContinuationToken,
             verifyHref: this.handler.requireHref(
-                parsedResponse.body._links?.verify?.href,
+                links?.verify?.href,
                 "verify",
                 parsedResponse.correlationId
             ),
-            resendHref: parsedResponse.body._links?.resend?.href,
+            resendHref:
+                links && "resend" in links
+                    ? links.resend?.href
+                    : undefined,
             codeLength:
-                parsedResponse.body.codeLength ??
-                parsedResponse.body.payload?.codeLength,
-            hint: parsedResponse.body.hint,
-            channel: parsedResponse.body.type,
+                codeMetadata?.codeLength ??
+                codeMetadata?.payload?.codeLength,
+            hint: codeMetadata?.hint,
+            type: parsedResponse.body.type,
         };
     }
 
     /*
-     * Verifies the OTP and returns the server-directed next action.
+     * Verifies the submitted credential and returns the server-directed next action.
      */
     async verifyChallenge(
         verifyHref: string,
@@ -151,41 +152,6 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
         );
 
         return this.toVerifyResult(parsedResponse);
-    }
-
-    private toVerifyResult(
-        parsedResponse: ParsedResponseV2<VerifyResponseV2>
-    ): VerifyResultV2 {
-        const correlationId = parsedResponse.correlationId;
-        const continuationToken = this.handler.requireContinuationToken(
-            parsedResponse.continuationToken,
-            correlationId
-        );
-
-        if (parsedResponse.body.state === ResponseStateV2.CONTINUE) {
-            return {
-                nextAction: "continue",
-                continuationToken,
-            };
-        }
-
-        if (parsedResponse.body.action === UPDATE_RELATION) {
-            return {
-                nextAction: "update",
-                continuationToken,
-                updateHref: this.handler.requireHref(
-                    parsedResponse.body._links?.update?.href,
-                    "update",
-                    correlationId
-                ),
-            };
-        }
-
-        throw new CustomAuthError(
-            INVALID_HAL_RESPONSE,
-            "Invalid HAL response: verify returned no known next action",
-            correlationId
-        );
     }
 
     /*
@@ -252,6 +218,69 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                       parsedResponse.correlationId
                   ),
         };
+    }
+
+    private async sendStartRequest(
+        startHref: string,
+        request: PasswordResetStartRequestV2 | SignInStartRequestV2,
+        context: RequestContextV2
+    ): Promise<StartResultV2> {
+        const parsedResponse = await this.sendActionRequest<
+            PasswordResetStartResponseV2 | SignInStartResponseV2
+        >(startHref, HttpMethod.POST, request, context);
+
+        const continuationToken = this.handler.requireContinuationToken(
+            parsedResponse.continuationToken,
+            parsedResponse.correlationId
+        );
+
+        return {
+            continuationToken,
+            methods: this.resolveMethods(
+                parsedResponse.body,
+                parsedResponse.correlationId
+            ),
+            scenario: parsedResponse.body.scenario,
+            authenticationFactor: this.handler.requireAuthenticationFactor(
+                parsedResponse.body.challengeContext?.authenticationFactor,
+                parsedResponse.correlationId
+            ),
+        };
+    }
+
+    private toVerifyResult(
+        parsedResponse: ParsedResponseV2<VerifyResponseV2>
+    ): VerifyResultV2 {
+        const correlationId = parsedResponse.correlationId;
+        const continuationToken = this.handler.requireContinuationToken(
+            parsedResponse.continuationToken,
+            correlationId
+        );
+
+        if (parsedResponse.body.state === ResponseStateV2.CONTINUE) {
+            return {
+                nextAction: "continue",
+                continuationToken,
+            };
+        }
+
+        if (parsedResponse.body.action === UPDATE_RELATION) {
+            return {
+                nextAction: "update",
+                continuationToken,
+                updateHref: this.handler.requireHref(
+                    parsedResponse.body._links?.update?.href,
+                    "update",
+                    correlationId
+                ),
+            };
+        }
+
+        throw new CustomAuthError(
+            INVALID_HAL_RESPONSE,
+            "Invalid HAL response: verify returned no known next action",
+            correlationId
+        );
     }
 
     private resolveMethods(

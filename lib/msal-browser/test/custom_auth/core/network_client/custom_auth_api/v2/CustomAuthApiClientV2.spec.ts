@@ -174,7 +174,6 @@ describe("CustomAuthApiClientV2", () => {
                 "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/auth/resetpassword?dc=X"
             );
         });
-
     });
 
     describe("signInStart", () => {
@@ -219,8 +218,7 @@ describe("CustomAuthApiClientV2", () => {
                         id: "password-1",
                         type: "password",
                         hint: undefined,
-                        challengeHref:
-                            "/tenant/api/v0.1/password/challenge",
+                        challengeHref: "/tenant/api/v0.1/password/challenge",
                     },
                 ],
                 scenario: undefined,
@@ -267,7 +265,7 @@ describe("CustomAuthApiClientV2", () => {
             ).rejects.toMatchObject({ error: INVALID_HAL_RESPONSE });
         });
 
-        it("returns the authentication factor without interpreting it", async () => {
+        it("rejects multi-factor from the sign-in start response", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     continuationToken: "ct-start",
@@ -290,13 +288,13 @@ describe("CustomAuthApiClientV2", () => {
                 })
             );
 
-            const result = await apiClient.signInStart(
-                "/tenant/api/v0.1/signin/start",
-                request,
-                context
-            );
-
-            expect(result.authenticationFactor).toBe("multiFactor");
+            await expect(
+                apiClient.signInStart(
+                    "/tenant/api/v0.1/signin/start",
+                    request,
+                    context
+                )
+            ).rejects.toMatchObject({ error: INVALID_HAL_RESPONSE });
         });
 
         it("throws INVALID_HAL_RESPONSE for an unsupported authentication factor", async () => {
@@ -330,7 +328,6 @@ describe("CustomAuthApiClientV2", () => {
                 )
             ).rejects.toMatchObject({ error: INVALID_HAL_RESPONSE });
         });
-
     });
 
     describe("requestChallenge", () => {
@@ -338,6 +335,7 @@ describe("CustomAuthApiClientV2", () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     continuationToken: "ct-challenge",
+                    type: "email",
                     codeLength: 6,
                     hint: "u***@test.com",
                     _links: {
@@ -355,6 +353,7 @@ describe("CustomAuthApiClientV2", () => {
 
             expect(result).toEqual({
                 continuationToken: "ct-challenge",
+                type: "email",
                 verifyHref: "/tenant/api/v0.1/verify",
                 resendHref: "/tenant/api/v0.1/resend",
                 codeLength: 6,
@@ -378,6 +377,38 @@ describe("CustomAuthApiClientV2", () => {
             );
             expect(result.codeLength).toBe(8);
             expect(result.codeLength).toBe(8);
+        });
+
+        it("maps a password challenge without OTP metadata", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-password",
+                    id: "password-1",
+                    type: "password",
+                    _links: {
+                        verify: { href: "/tenant/api/v0.1/password/verify" },
+                        recover: {
+                            href: "/tenant/api/v0.1/password/recover",
+                        },
+                        self: { href: "/tenant/api/v0.1/password/verify" },
+                    },
+                })
+            );
+
+            const result = await apiClient.requestChallenge(
+                "/tenant/api/v0.1/password/challenge",
+                { continuationToken: "ct-start" },
+                context
+            );
+
+            expect(result).toEqual({
+                continuationToken: "ct-password",
+                type: "password",
+                verifyHref: "/tenant/api/v0.1/password/verify",
+                resendHref: undefined,
+                codeLength: undefined,
+                hint: undefined,
+            });
         });
     });
 

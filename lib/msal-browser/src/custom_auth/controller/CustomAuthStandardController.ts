@@ -37,6 +37,12 @@ import { CustomAuthResultV2 } from "../core/auth_flow/v2/CustomAuthResultV2.js";
 import { CustomAuthFlowScenarioV2 } from "../core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { SignInStartErrorV2 } from "../sign_in/auth_flow/v2/error_type/SignInStartErrorV2.js";
 import { SignInStartResultV2 } from "../sign_in/auth_flow/v2/result/SignInStartResultV2.js";
+import { CompletedStateV2 } from "../core/auth_flow/v2/state/CompletedStateV2.js";
+import {
+    FLOW_COMPLETED_V2,
+    FLOW_PASSWORD_REQUIRED_V2,
+} from "../core/interaction_client/v2/result/FlowActionResultV2.js";
+import { PasswordRequiredStateV2 } from "../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
@@ -707,15 +713,35 @@ export class CustomAuthStandardController
                 claims: inputs.claims,
             });
 
+            if (result.type === FLOW_COMPLETED_V2) {
+                return new CustomAuthResultV2(
+                    new CompletedStateV2(),
+                    new CustomAuthAccountData(
+                        result.authenticationResult.account,
+                        this.customAuthConfig,
+                        this.cacheClient,
+                        this.logger,
+                        correlationId
+                    ),
+                    CustomAuthFlowScenarioV2.SignIn
+                );
+            }
+
+            if (result.type !== FLOW_PASSWORD_REQUIRED_V2) {
+                throw new UnexpectedError(
+                    "Unexpected native auth V2 sign-in result.",
+                    correlationId
+                );
+            }
+
             return new CustomAuthResultV2(
-                new AuthenticationMethodSelectionRequiredStateV2({
+                new PasswordRequiredStateV2({
                     correlationId: result.correlationId,
                     logger: this.logger,
                     config: this.customAuthConfig,
                     flowClient: this.flowClientV2,
                     continuationState: result.continuationState,
                     cacheClient: this.cacheClient,
-                    methods: result.methods,
                 }),
                 undefined,
                 result.continuationState.scenario

@@ -11,14 +11,17 @@ import { HalLink, HalResource } from "./HalResource.js";
  * it is injected by the api-client from the response header; the rest are server body fields.
  */
 export interface HalResponseBaseV2 extends HalResource {
-    challengeContext?: {
-        authenticationFactor?: string;
-    };
     continuationToken?: string;
     state?: string;
     action?: string;
     scenario?: string;
     correlationId?: string;
+}
+
+interface AuthenticationFactorResponseV2 extends HalResponseBaseV2 {
+    challengeContext?: {
+        authenticationFactor?: string;
+    };
 }
 
 /*
@@ -54,33 +57,11 @@ export interface AuthorizeChallengeEntryResponseV2
 }
 
 /*
- * Challenge response for a selected authentication method. OTP responses add
- * delivery metadata and an optional resend relation to the common verify
- * relation. Additional method types can extend the response union in the
- * future.
- */
-interface ChallengeResponseBaseV2 extends Omit<HalResponseBaseV2, "_links"> {
-    id?: string;
-    type?: string;
-    _links?: {
-        verify?: HalLink;
-        resend?: HalLink;
-    };
-}
-
-interface OtpChallengeResponseV2 extends ChallengeResponseBaseV2 {
-    hint?: string;
-    codeLength?: number;
-    payload?: { codeLength?: number };
-}
-
-export type ChallengeResponseV2 = OtpChallengeResponseV2;
-
-/*
- * Reset-password start response containing the available authentication
+ * Start response containing the available authentication
  * methods. Each method provides the challenge link used after selection.
  */
-interface StartResponseV2 extends Omit<HalResponseBaseV2, "_embedded"> {
+interface StartResponseV2
+    extends Omit<AuthenticationFactorResponseV2, "_embedded"> {
     _embedded?: {
         methods?: EmbeddedMethodV2[];
     };
@@ -89,11 +70,37 @@ interface StartResponseV2 extends Omit<HalResponseBaseV2, "_embedded"> {
 export type PasswordResetStartResponseV2 = StartResponseV2;
 export type SignInStartResponseV2 = StartResponseV2;
 
+interface ChallengeResponseBaseV2 extends Omit<HalResponseBaseV2, "_links"> {
+    id?: string;
+    type?: string;
+}
+
+export interface CodeChallengeResponseV2 extends ChallengeResponseBaseV2 {
+    hint?: string;
+    codeLength?: number;
+    payload?: { codeLength?: number };
+    _links?: {
+        verify?: HalLink;
+        resend?: HalLink;
+    };
+}
+
+export interface PasswordChallengeResponseV2 extends ChallengeResponseBaseV2 {
+    _links?: {
+        verify?: HalLink;
+    };
+}
+
+export type ChallengeResponseV2 =
+    | CodeChallengeResponseV2
+    | PasswordChallengeResponseV2;
+
 /*
  * Credential-verification response. For password reset, the `update` relation
  * identifies where the new password is submitted.
  */
-export interface VerifyResponseV2 extends Omit<HalResponseBaseV2, "_links"> {
+export interface VerifyResponseV2
+    extends Omit<AuthenticationFactorResponseV2, "_links"> {
     id?: string;
     type?: string;
     payload?: Record<string, unknown>;

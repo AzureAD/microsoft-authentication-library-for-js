@@ -68,6 +68,24 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
         );
     }
 
+    // Required by the base contract. After sign-in, use CustomAuthAccountData.getAccessToken().
+    acquireToken(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        request: RedirectRequest | PopupRequest | SsoSilentRequest
+    ): Promise<AuthenticationResult | void> {
+        throw new MethodNotImplementedError(
+            "InteractionClientBaseV2.acquireToken"
+        );
+    }
+
+    // Required by the base contract. After sign-in, use CustomAuthAccountData.signOut().
+    logout(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        request: EndSessionRequest | ClearCacheRequest | undefined
+    ): Promise<void> {
+        throw new MethodNotImplementedError("InteractionClientBaseV2.logout");
+    }
+
     protected getScopes(scopes: string[] | undefined): string[] {
         const requestedScopes = scopes?.filter((scope) => !!scope) ?? [];
         const seenScopes = new Set(
@@ -128,23 +146,5 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
                 this.logger
             ),
         };
-    }
-
-    // Required by the base contract. After sign-in, use CustomAuthAccountData.getAccessToken().
-    acquireToken(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request: RedirectRequest | PopupRequest | SsoSilentRequest
-    ): Promise<AuthenticationResult | void> {
-        throw new MethodNotImplementedError(
-            "InteractionClientBaseV2.acquireToken"
-        );
-    }
-
-    // Required by the base contract. After sign-in, use CustomAuthAccountData.signOut().
-    logout(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request: EndSessionRequest | ClearCacheRequest | undefined
-    ): Promise<void> {
-        throw new MethodNotImplementedError("InteractionClientBaseV2.logout");
     }
 }

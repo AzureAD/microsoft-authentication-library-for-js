@@ -176,6 +176,34 @@ describe("AuthFlowErrorBaseV2 error mapping", () => {
     });
 
     describe("sign-in start errors", () => {
+        it("identifies invalidGrant with inner invalidUserNameOrPassword", () => {
+            const error = new SignInStartErrorV2(
+                apiError("invalidGrant", {
+                    innerErrorCode: "invalidUserNameOrPassword",
+                    message:
+                        "AADSTS50126: Error validating credentials due to invalid username or password.",
+                })
+            );
+
+            expect(error.isInvalidPassword()).toBe(true);
+        });
+
+        it("does not identify a password error from the outer code alone", () => {
+            const error = new SignInStartErrorV2(apiError("invalidGrant"));
+
+            expect(error.isInvalidPassword()).toBe(false);
+        });
+
+        it("requires invalidGrant for invalidUserNameOrPassword", () => {
+            const error = new SignInStartErrorV2(
+                apiError("invalidRequest", {
+                    innerErrorCode: "invalidUserNameOrPassword",
+                })
+            );
+
+            expect(error.isInvalidPassword()).toBe(false);
+        });
+
         it("identifies an invalid username parameter", () => {
             const error = new SignInStartErrorV2(
                 new CustomAuthApiError(

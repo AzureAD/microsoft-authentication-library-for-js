@@ -5,13 +5,16 @@
 
 import { CustomAuthPublicClientApplication } from "../../../src/custom_auth/CustomAuthPublicClientApplication.js";
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
-import { AuthenticationMethodSelectionRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
+import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import {
     INVALID_HAL_RESPONSE,
     NO_AUTHENTICATION_METHODS,
     SIGN_IN_UNSUPPORTED,
 } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
+import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 
 const buildResponse = (
     body: unknown,
@@ -51,6 +54,43 @@ const START_RESPONSE = {
     },
 };
 
+const MULTI_METHOD_START_RESPONSE = {
+    ...START_RESPONSE,
+    _embedded: {
+        methods: [
+            ...START_RESPONSE._embedded.methods,
+            {
+                id: "other-1",
+                type: "other",
+                _links: {
+                    challenge: {
+                        href: "/tenant/api/v0.1/other/challenge",
+                    },
+                },
+            },
+        ],
+    },
+};
+
+const PASSWORD_CHALLENGE_RESPONSE = {
+    continuationToken: "ct-challenge",
+    id: "password-1",
+    type: "password",
+    _links: {
+        verify: { href: "/tenant/api/v0.1/password/verify" },
+    },
+};
+
+const PASSWORD_VERIFY_RESPONSE = {
+    continuationToken: "ct-verify",
+    state: "continue",
+    _links: {
+        continue: { href: "/tenant/oauth2/v2.0/authorize-challenge" },
+    },
+};
+
+const CONTINUE_RESPONSE = { code: "auth-code-1" };
+
 describe("Sign-in V2 entry", () => {
     let app: CustomAuthPublicClientApplication;
 
@@ -62,6 +102,9 @@ describe("Sign-in V2 entry", () => {
     });
 
     afterEach(() => {
+        if (app.getAllAccounts().length > 0) {
+            app.clearCache();
+        }
         const controller = app[
             "customAuthController"
         ] as CustomAuthStandardController;
@@ -69,10 +112,11 @@ describe("Sign-in V2 entry", () => {
         jest.clearAllMocks();
     });
 
-    it("returns first-factor method selection from signInV2", async () => {
+    it("selects the password method and returns password-required", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(START_RESPONSE));
+            .mockResolvedValueOnce(buildResponse(MULTI_METHOD_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE));
 
         const result = await app.signInV2({
             username: "user@contoso.com",
@@ -81,22 +125,158 @@ describe("Sign-in V2 entry", () => {
         });
 
         expect(result.isFailed()).toBe(false);
-        expect(
-            result.isState("authenticationMethodSelectionRequired")
-        ).toBe(true);
-        expect(result.state).toBeInstanceOf(
-            AuthenticationMethodSelectionRequiredStateV2
-        );
+        expect(result.isState("passwordRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(PasswordRequiredStateV2);
         expect(result.scenario).toBe("signIn");
-        if (result.isState("authenticationMethodSelectionRequired")) {
-            expect(result.state.methods).toEqual([
-                expect.objectContaining({
-                    id: "password-1",
-                    type: "password",
-                }),
-            ]);
-        }
-        expect(fetch).toHaveBeenCalledTimes(2);
+        expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it("submits a password from PasswordRequiredStateV2 and completes sign-in", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(MULTI_METHOD_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_VERIFY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+        const startResult = await app.signInV2({
+            username: "user@contoso.com",
+            scopes: ["User.Read"],
+        });
+        expect(startResult.isState("passwordRequired")).toBe(true);
+        expect(startResult.state).toBeInstanceOf(PasswordRequiredStateV2);
+
+        const submitResult = await (
+            startResult.state as PasswordRequiredStateV2
+        ).submitPassword("P@ssword1!");
+
+        expect(submitResult.isState("completed")).toBe(true);
+        expect(submitResult.state).toBeInstanceOf(CompletedStateV2);
+        expect(submitResult.data).toBeInstanceOf(CustomAuthAccountData);
+        expect(fetch).toHaveBeenCalledTimes(6);
+    });
+
+    it("automatically selects and submits password when multiple methods are returned", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(MULTI_METHOD_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_VERIFY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+        const result = await app.signInV2({
+            username: "user@contoso.com",
+            password: "P@ssword1!",
+        });
+
+        expect(result.isState("completed")).toBe(true);
+        expect(result.state).toBeInstanceOf(CompletedStateV2);
+        expect(fetch).toHaveBeenCalledTimes(6);
+    });
+
+    it("automatically submits a supplied password", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_VERIFY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+        const result = await app.signInV2({
+            username: "user@contoso.com",
+            password: "P@ssword1!",
+            scopes: ["User.Read"],
+        });
+
+        expect(result.isState("completed")).toBe(true);
+        expect(result.state).toBeInstanceOf(CompletedStateV2);
+        expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+        expect(fetch).toHaveBeenCalledTimes(6);
+    });
+
+    it("returns an invalid-password error from automatic submission", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse(
+                    {
+                        error: {
+                            code: "invalidGrant",
+                            message:
+                                "AADSTS50126: Invalid username or password.",
+                            innerError: {
+                                code: "invalidUserNameOrPassword",
+                            },
+                        },
+                    },
+                    400
+                )
+            );
+
+        const result = await app.signInV2({
+            username: "user@contoso.com",
+            password: "incorrect",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidPassword()).toBe(true);
+        expect(fetch).toHaveBeenCalledTimes(4);
+    });
+
+    it("returns an invalid-password error from PasswordRequiredStateV2", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse(
+                    {
+                        error: {
+                            code: "invalidGrant",
+                            message:
+                                "AADSTS50126: Invalid username or password.",
+                            innerError: {
+                                code: "invalidUserNameOrPassword",
+                            },
+                        },
+                    },
+                    400
+                )
+            );
+
+        const startResult = await app.signInV2({
+            username: "user@contoso.com",
+        });
+        const result = await (
+            startResult.state as PasswordRequiredStateV2
+        ).submitPassword("incorrect");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidPassword()).toBe(true);
+        expect(fetch).toHaveBeenCalledTimes(4);
+    });
+
+    it("rejects an empty password without verification", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE));
+
+        const startResult = await app.signInV2({
+            username: "user@contoso.com",
+        });
+        const result = await (
+            startResult.state as PasswordRequiredStateV2
+        ).submitPassword("");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidInput()).toBe(true);
+        expect(fetch).toHaveBeenCalledTimes(3);
     });
 
     it("returns invalid input without sending a request", async () => {
@@ -232,12 +412,10 @@ describe("Sign-in V2 entry", () => {
         });
 
         expect(result.isFailed()).toBe(true);
-        expect(result.error?.errorData.error).toBe(
-            NO_AUTHENTICATION_METHODS
-        );
+        expect(result.error?.errorData.error).toBe(NO_AUTHENTICATION_METHODS);
     });
 
-    it.each([undefined, "unknownFactor"])(
+    it.each([undefined, "unknownFactor", "multiFactor"])(
         "fails when the authentication factor is %s",
         async (authenticationFactor) => {
             (fetch as jest.Mock)
@@ -257,9 +435,7 @@ describe("Sign-in V2 entry", () => {
             });
 
             expect(result.isFailed()).toBe(true);
-            expect(result.error?.errorData.error).toBe(
-                INVALID_HAL_RESPONSE
-            );
+            expect(result.error?.errorData.error).toBe(INVALID_HAL_RESPONSE);
         }
     );
 });

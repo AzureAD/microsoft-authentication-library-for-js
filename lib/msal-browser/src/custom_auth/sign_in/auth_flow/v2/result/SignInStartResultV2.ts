@@ -5,14 +5,17 @@
 
 import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
 import type { FailedStateV2 } from "../../../../core/auth_flow/v2/state/FailedStateV2.js";
-import type { AuthenticationMethodSelectionRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredStateV2.js";
+import type { CompletedStateV2 } from "../../../../core/auth_flow/v2/state/CompletedStateV2.js";
+import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import type { SignInStartErrorV2 } from "../error_type/SignInStartErrorV2.js";
+import type { PasswordRequiredStateV2 } from "../state/PasswordRequiredStateV2.js";
 
 /**
  * States returned when native auth V2 sign-in starts.
  */
 export type SignInStartResultStateV2 =
-    | AuthenticationMethodSelectionRequiredStateV2
+    | PasswordRequiredStateV2
+    | CompletedStateV2
     | FailedStateV2;
 
 /**
@@ -20,5 +23,6 @@ export type SignInStartResultStateV2 =
  */
 export type SignInStartResultV2 = CustomAuthResultV2<
     SignInStartResultStateV2,
-    SignInStartErrorV2
+    SignInStartErrorV2,
+    CustomAuthAccountData | undefined
 >;

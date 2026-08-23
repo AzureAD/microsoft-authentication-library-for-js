@@ -14,7 +14,8 @@ import {
     FlowSignInStartParamsV2,
     FlowChallengeParamsV2,
     FlowSubmitCodeParamsV2,
-    FlowSubmitPasswordParamsV2,
+    FlowSubmitNewPasswordParamsV2,
+    FlowSubmitSignInPasswordParamsV2,
     FlowSignInWithContinuationParamsV2,
 } from "./parameter/FlowParamsV2.js";
 import {
@@ -23,6 +24,7 @@ import {
     createFlowPasswordRequiredResultV2,
     createFlowSignInContinuationRequiredResultV2,
     createFlowCompletedResultV2,
+    FLOW_PASSWORD_REQUIRED_V2,
 } from "./result/FlowActionResultV2.js";
 import type {
     FlowMethodSelectionRequiredResultV2,
@@ -52,6 +54,8 @@ import {
     getPublicApiIdV2,
     FlowStepV2,
 } from "../../telemetry/FlowApiIdHelperV2.js";
+import type { ChallengeResultV2 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
+import type { FlowContinuationStateV2 } from "./FlowContinuationStateV2.js";
 
 /*
  * Polls up to five times for password-update completion, waiting 1.5 seconds
@@ -93,11 +97,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Starts sign-in and returns the first-factor authentication methods.
+     * Starts password sign-in using the first password method offered by the server.
      */
     async signIn(
         parameters: FlowSignInStartParamsV2
-    ): Promise<FlowMethodSelectionRequiredResultV2> {
+    ): Promise<FlowPasswordRequiredResultV2 | FlowCompletedResultV2> {
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             PublicApiId.SIGN_IN_V2_START,
@@ -121,24 +125,62 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             },
             context
         );
-        return createFlowMethodSelectionRequiredResultV2({
+        const continuationState: FlowContinuationStateV2 = {
+            continuationToken: startResult.continuationToken,
+            scenario: CustomAuthFlowScenarioV2.SignIn,
+            links: {},
+            tokenRequest: {
+                scopes: parameters.scopes,
+                claims: parameters.claims,
+            },
+        };
+        const methods = startResult.methods.map((method) => ({
+            id: method.id,
+            type: method.type ?? "",
+            hint: method.hint,
+            challengeHref: method.challengeHref,
+        }));
+        const passwordMethod = methods.find(
+            (method) => method.type.toLowerCase() === "password"
+        );
+
+        if (!passwordMethod) {
+            throw new CustomAuthError(
+                SIGN_IN_UNSUPPORTED,
+                "The sign-in start response did not include a supported password method.",
+                correlationId
+            );
+        }
+
+        const challengeResult = await this.requestChallenge({
             correlationId,
             continuationState: {
-                continuationToken: startResult.continuationToken,
-                scenario: CustomAuthFlowScenarioV2.SignIn,
-                links: {},
-                tokenRequest: {
-                    scopes: parameters.scopes,
-                    claims: parameters.claims,
+                ...continuationState,
+                links: {
+                    ...continuationState.links,
+                    challenge: passwordMethod.challengeHref,
                 },
             },
-            methods: startResult.methods.map((method) => ({
-                id: method.id,
-                type: method.type ?? "",
-                hint: method.hint,
-                challengeHref: method.challengeHref,
-            })),
         });
+
+        if (challengeResult.type !== FLOW_PASSWORD_REQUIRED_V2) {
+            throw new CustomAuthError(
+                INVALID_HAL_RESPONSE,
+                "Invalid HAL response: the selected sign-in method did not return a password challenge.",
+                correlationId
+            );
+        }
+
+        const password = parameters.password;
+        if (password) {
+            return this.submitSignInPassword({
+                correlationId,
+                continuationState: challengeResult.continuationState,
+                password,
+            });
+        }
+
+        return challengeResult;
     }
 
     /*
@@ -201,8 +243,30 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      */
     async requestChallenge(
         parameters: FlowChallengeParamsV2
-    ): Promise<FlowCodeRequiredResultV2> {
-        return this.requestMethodChallenge(parameters, "requestChallenge");
+    ): Promise<FlowCodeRequiredResultV2 | FlowPasswordRequiredResultV2> {
+        const challengeResult = await this.sendMethodChallenge(
+            parameters,
+            "requestChallenge"
+        );
+        const continuationState = this.createChallengeContinuationState(
+            parameters.continuationState,
+            challengeResult
+        );
+
+        if (challengeResult.type?.toLowerCase() === "password") {
+            return createFlowPasswordRequiredResultV2({
+                correlationId: parameters.correlationId,
+                continuationState,
+            });
+        }
+
+        return createFlowCodeRequiredResultV2({
+            correlationId: parameters.correlationId,
+            continuationState,
+            channel: challengeResult.type,
+            sentTo: challengeResult.hint,
+            codeLength: challengeResult.codeLength,
+        });
     }
 
     /*
@@ -268,55 +332,18 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     async resendCode(
         parameters: FlowChallengeParamsV2
     ): Promise<FlowCodeRequiredResultV2> {
-        return this.requestMethodChallenge(parameters, "resendCode");
-    }
-
-    private async requestMethodChallenge(
-        parameters: FlowChallengeParamsV2,
-        step: "requestChallenge" | "resendCode"
-    ): Promise<FlowCodeRequiredResultV2> {
-        const continuationState = parameters.continuationState;
-        const correlationId = parameters.correlationId;
-        const challengeHref =
-            step === "resendCode"
-                ? continuationState.links.resend
-                : continuationState.links.challenge;
-        const context = this.createRequestContext(
-            this.resolveStepApiId(
-                continuationState.scenario,
-                step,
-                correlationId
-            ),
-            correlationId
-        );
-
-        this.logger.verbose(
-            step === "resendCode"
-                ? "Resending V2 one-time code."
-                : "Requesting V2 challenge.",
-            correlationId
-        );
-
-        const challengeResult = await this.apiClient.requestChallenge(
-            this.requireLink(correlationId, challengeHref),
-            { continuationToken: continuationState.continuationToken },
-            context
+        const challengeResult = await this.sendMethodChallenge(
+            parameters,
+            "resendCode"
         );
 
         return createFlowCodeRequiredResultV2({
-            correlationId,
-            continuationState: {
-                continuationToken: challengeResult.continuationToken,
-                scenario: continuationState.scenario,
-                links: {
-                    challenge: continuationState.links.challenge,
-                    verify: challengeResult.verifyHref,
-                    resend:
-                        challengeResult.resendHref ??
-                        continuationState.links.resend,
-                },
-            },
-            channel: challengeResult.channel,
+            correlationId: parameters.correlationId,
+            continuationState: this.createChallengeContinuationState(
+                parameters.continuationState,
+                challengeResult
+            ),
+            channel: challengeResult.type,
             sentTo: challengeResult.hint,
             codeLength: challengeResult.codeLength,
         });
@@ -326,15 +353,15 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      * Submits the new password and polls until the reset completes. The result
      * contains the continuation state required for explicit sign-in.
      */
-    async submitPassword(
-        parameters: FlowSubmitPasswordParamsV2
+    async submitNewPassword(
+        parameters: FlowSubmitNewPasswordParamsV2
     ): Promise<FlowSignInContinuationRequiredResultV2> {
         const continuationState = parameters.continuationState;
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             this.resolveStepApiId(
                 continuationState.scenario,
-                "submitPassword",
+                "submitNewPassword",
                 correlationId
             ),
             correlationId
@@ -405,6 +432,57 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
+     * Verifies a sign-in password and completes token acquisition for a
+     * single-factor response.
+     */
+    async submitSignInPassword(
+        parameters: FlowSubmitSignInPasswordParamsV2
+    ): Promise<FlowCompletedResultV2> {
+        const { continuationState, correlationId } = parameters;
+        const context = this.createRequestContext(
+            this.resolveStepApiId(
+                continuationState.scenario,
+                "submitPassword",
+                correlationId
+            ),
+            correlationId
+        );
+
+        this.logger.verbose("Submitting V2 sign-in password.", correlationId);
+
+        const verifyResult = await this.apiClient.verifyChallenge(
+            this.requireLink(correlationId, continuationState.links.verify),
+            {
+                continuationToken: continuationState.continuationToken,
+                password: parameters.password,
+            },
+            context
+        );
+
+        if (verifyResult.nextAction !== "continue") {
+            const message = `Unexpected password verification outcome '${verifyResult.nextAction}' for sign-in.`;
+            this.logger.error(message, correlationId);
+            throw new CustomAuthError(
+                INVALID_HAL_RESPONSE,
+                message,
+                correlationId
+            );
+        }
+
+        return this.signInWithContinuation({
+            correlationId,
+            continuationState: {
+                continuationToken: verifyResult.continuationToken,
+                scenario: continuationState.scenario,
+                links: {},
+                tokenRequest: continuationState.tokenRequest,
+            },
+            scopes: continuationState.tokenRequest?.scopes,
+            claims: continuationState.tokenRequest?.claims,
+        });
+    }
+
+    /*
      * Redeems the completed flow continuation for tokens. Returns the
      * authentication result after validating and caching the response.
      */
@@ -454,6 +532,57 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         });
     }
 
+    private async sendMethodChallenge(
+        parameters: FlowChallengeParamsV2,
+        step: "requestChallenge" | "resendCode"
+    ): Promise<ChallengeResultV2> {
+        const continuationState = parameters.continuationState;
+        const correlationId = parameters.correlationId;
+        const challengeHref =
+            step === "resendCode"
+                ? continuationState.links.resend
+                : continuationState.links.challenge;
+        const context = this.createRequestContext(
+            this.resolveStepApiId(
+                continuationState.scenario,
+                step,
+                correlationId
+            ),
+            correlationId
+        );
+
+        this.logger.verbose(
+            step === "resendCode"
+                ? "Resending V2 one-time code."
+                : "Requesting V2 challenge.",
+            correlationId
+        );
+
+        return this.apiClient.requestChallenge(
+            this.requireLink(correlationId, challengeHref),
+            { continuationToken: continuationState.continuationToken },
+            context
+        );
+    }
+
+    private createChallengeContinuationState(
+        continuationState: FlowContinuationStateV2,
+        challengeResult: ChallengeResultV2
+    ): FlowContinuationStateV2 {
+        return {
+            continuationToken: challengeResult.continuationToken,
+            scenario: continuationState.scenario,
+            links: {
+                challenge: continuationState.links.challenge,
+                verify: challengeResult.verifyHref,
+                resend:
+                    challengeResult.resendHref ??
+                    continuationState.links.resend,
+            },
+            tokenRequest: continuationState.tokenRequest,
+        };
+    }
+
     private resolveStepApiId(
         scenario: CustomAuthFlowScenarioV2,
         step: FlowStepV2,
@@ -488,5 +617,4 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         return href;
     }
-
 }

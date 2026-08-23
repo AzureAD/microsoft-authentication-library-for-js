@@ -40,7 +40,7 @@ export interface FlowCodeRequiredResultV2 extends FlowActionResultBaseV2 {
     codeLength?: number;
 }
 
-// The code was accepted; a new password must be submitted next (carries the `update` href).
+// A password must be submitted next.
 export interface FlowPasswordRequiredResultV2 extends FlowActionResultBaseV2 {
     type: typeof FLOW_PASSWORD_REQUIRED_V2;
     continuationState: FlowContinuationStateV2;

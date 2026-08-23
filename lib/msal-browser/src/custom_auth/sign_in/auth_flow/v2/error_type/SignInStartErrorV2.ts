@@ -24,4 +24,12 @@ export class SignInStartErrorV2 extends AuthFlowErrorBaseV2 {
     isUserNotFound(): boolean {
         return this.isUserNotFoundError();
     }
+
+    /**
+     * Checks whether an automatically submitted password was rejected.
+     * @returns True when the password is incorrect.
+     */
+    isInvalidPassword(): boolean {
+        return this.isPasswordIncorrectError();
+    }
 }

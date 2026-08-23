@@ -99,7 +99,13 @@ interface VerifyOtpRequestV2 extends VerifyRequestBaseV2 {
     otp: string;
 }
 
-export type VerifyRequestV2 = VerifyOtpRequestV2;
+interface VerifyPasswordRequestV2 extends VerifyRequestBaseV2 {
+    password: string;
+}
+
+export type VerifyRequestV2 =
+    | VerifyOtpRequestV2
+    | VerifyPasswordRequestV2;
 
 /*
  * Submit a new password (PUT `/methods/password/{id}`). SSPR (recovery) only — this

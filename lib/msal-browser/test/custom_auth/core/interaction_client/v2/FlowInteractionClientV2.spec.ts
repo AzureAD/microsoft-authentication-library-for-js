@@ -126,7 +126,7 @@ describe("FlowInteractionClientV2", () => {
     });
 
     describe("signIn", () => {
-        it("returns first-factor method selection with token inputs", async () => {
+        it("selects the first password method and returns password-required with token inputs", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
                 signInHref: "https://endpoint/sign-in",
@@ -138,16 +138,24 @@ describe("FlowInteractionClientV2", () => {
                     {
                         id: "password-1",
                         type: "password",
-                        challengeHref:
-                            "https://endpoint/password/challenge",
+                        challengeHref: "https://endpoint/password/challenge",
+                    },
+                    {
+                        id: "other-1",
+                        type: "other",
+                        challengeHref: "https://endpoint/other/challenge",
                     },
                 ],
+            });
+            apiClient.requestChallenge.mockResolvedValue({
+                continuationToken: "ct-challenge",
+                verifyHref: "https://endpoint/password/verify",
+                type: "password",
             });
 
             const result = await client.signIn({
                 correlationId,
                 username: "user@contoso.com",
-                password: "password",
                 scopes: ["User.Read"],
                 claims: '{"id_token":{}}',
             });
@@ -163,27 +171,54 @@ describe("FlowInteractionClientV2", () => {
                 },
                 expect.objectContaining({ correlationId })
             );
-            expect(result.type).toBe(FLOW_METHOD_SELECTION_REQUIRED_V2);
+            expect(apiClient.requestChallenge).toHaveBeenCalledWith(
+                "https://endpoint/password/challenge",
+                { continuationToken: "ct-sign-in" },
+                expect.objectContaining({ correlationId })
+            );
+            expect(result.type).toBe(FLOW_PASSWORD_REQUIRED_V2);
 
-            const methodSelection =
-                result as FlowMethodSelectionRequiredResultV2;
-            expect(methodSelection.methods).toEqual([
-                {
-                    id: "password-1",
-                    type: "password",
-                    hint: undefined,
-                    challengeHref: "https://endpoint/password/challenge",
-                },
-            ]);
-            expect(methodSelection.continuationState).toEqual({
-                continuationToken: "ct-sign-in",
+            const passwordRequired = result as FlowPasswordRequiredResultV2;
+            expect(passwordRequired.continuationState).toEqual({
+                continuationToken: "ct-challenge",
                 scenario: "signIn",
-                links: {},
+                links: {
+                    challenge: "https://endpoint/password/challenge",
+                    verify: "https://endpoint/password/verify",
+                    resend: undefined,
+                },
                 tokenRequest: {
                     scopes: ["User.Read"],
                     claims: '{"id_token":{}}',
                 },
             });
+        });
+
+        it("fails when sign-in start does not offer a password method", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                signInHref: "https://endpoint/sign-in",
+            });
+            apiClient.signInStart.mockResolvedValue({
+                continuationToken: "ct-sign-in",
+                authenticationFactor: "singleFactor",
+                methods: [
+                    {
+                        id: "other-1",
+                        type: "other",
+                        challengeHref: "https://endpoint/other/challenge",
+                    },
+                ],
+            });
+
+            await expect(
+                client.signIn({
+                    correlationId,
+                    username: "user@contoso.com",
+                })
+            ).rejects.toMatchObject({ error: SIGN_IN_UNSUPPORTED });
+
+            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
         });
 
         it("rejects a missing sign-in link before calling sign-in start", async () => {
@@ -291,7 +326,7 @@ describe("FlowInteractionClientV2", () => {
                 resendHref: "https://endpoint/resend",
                 codeLength: 6,
                 hint: "u***@contoso.com",
-                channel: "email",
+                type: "email",
             });
 
             const result = await client.requestChallenge({
@@ -318,6 +353,32 @@ describe("FlowInteractionClientV2", () => {
                     challenge: "https://endpoint/challenge",
                     verify: "https://endpoint/verify",
                     resend: "https://endpoint/resend",
+                },
+            });
+        });
+
+        it("returns a password-required result for a password challenge", async () => {
+            apiClient.requestChallenge.mockResolvedValue({
+                continuationToken: "ct-challenge",
+                verifyHref: "https://endpoint/verify",
+                type: "password",
+            });
+
+            const result = await client.requestChallenge({
+                correlationId,
+                continuationState,
+            });
+
+            expect(result.type).toBe(FLOW_PASSWORD_REQUIRED_V2);
+
+            const passwordRequired = result as FlowPasswordRequiredResultV2;
+            expect(passwordRequired.continuationState).toEqual({
+                continuationToken: "ct-challenge",
+                scenario: "passwordReset",
+                links: {
+                    challenge: "https://endpoint/challenge",
+                    verify: "https://endpoint/verify",
+                    resend: undefined,
                 },
             });
         });
@@ -436,7 +497,7 @@ describe("FlowInteractionClientV2", () => {
                 resendHref: "https://endpoint/resend-2",
                 codeLength: 8,
                 hint: "u***@contoso.com",
-                channel: "email",
+                type: "email",
             });
 
             const result = await client.resendCode({
@@ -483,7 +544,7 @@ describe("FlowInteractionClientV2", () => {
         });
     });
 
-    describe("submitPassword", () => {
+    describe("submitNewPassword", () => {
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: "ct-verify",
             scenario: "passwordReset",
@@ -501,7 +562,7 @@ describe("FlowInteractionClientV2", () => {
                 continueHref: "https://endpoint/continue",
             });
 
-            const result = await client.submitPassword({
+            const result = await client.submitNewPassword({
                 correlationId,
                 continuationState,
                 newPassword: "P@ssw0rd!",
@@ -551,7 +612,7 @@ describe("FlowInteractionClientV2", () => {
                     continueHref: "https://endpoint/continue",
                 });
 
-            const promise = client.submitPassword({
+            const promise = client.submitNewPassword({
                 correlationId,
                 continuationState,
                 newPassword: "P@ssw0rd!",
@@ -589,7 +650,7 @@ describe("FlowInteractionClientV2", () => {
                     continueHref: "https://endpoint/continue",
                 });
 
-            const promise = client.submitPassword({
+            const promise = client.submitNewPassword({
                 correlationId,
                 continuationState,
                 newPassword: "P@ssw0rd!",
@@ -630,7 +691,7 @@ describe("FlowInteractionClientV2", () => {
                 isCompleted: false,
             });
 
-            const promise = client.submitPassword({
+            const promise = client.submitNewPassword({
                 correlationId,
                 continuationState,
                 newPassword: "P@ssw0rd!",
@@ -652,7 +713,7 @@ describe("FlowInteractionClientV2", () => {
 
         it("throws when the continuation is missing the update link", async () => {
             await expect(
-                client.submitPassword({
+                client.submitNewPassword({
                     correlationId,
                     continuationState: {
                         ...continuationState,

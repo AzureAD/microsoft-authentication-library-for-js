@@ -37,9 +37,14 @@ export interface FlowSubmitCodeParamsV2 extends FlowParamsBaseV2 {
 }
 
 // Submit the new password once the code has been verified.
-export interface FlowSubmitPasswordParamsV2 extends FlowParamsBaseV2 {
+export interface FlowSubmitNewPasswordParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
     newPassword: string;
+}
+
+export interface FlowSubmitSignInPasswordParamsV2 extends FlowParamsBaseV2 {
+    continuationState: FlowContinuationStateV2;
+    password: string;
 }
 
 // Sign the account in by redeeming a completed flow's continuation for tokens.

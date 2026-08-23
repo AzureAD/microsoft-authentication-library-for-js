@@ -35,7 +35,7 @@ export class NewPasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<
 
             logger.verbose("Submitting V2 new password.", correlationId);
 
-            const result = await flowClient.submitPassword({
+            const result = await flowClient.submitNewPassword({
                 correlationId,
                 continuationState,
                 newPassword: password,

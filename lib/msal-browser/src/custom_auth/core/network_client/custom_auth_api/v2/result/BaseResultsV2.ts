@@ -54,7 +54,7 @@ export interface ChallengeResultV2 {
     resendHref?: string;
     codeLength?: number;
     hint?: string;
-    channel?: string;
+    type?: string;
 }
 
 /*
