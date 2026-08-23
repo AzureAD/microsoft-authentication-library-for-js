@@ -9,11 +9,13 @@ import {
     FLOW_METHOD_SELECTION_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
+    FLOW_NEW_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
     FLOW_COMPLETED_V2,
     FlowMethodSelectionRequiredResultV2,
     FlowCodeRequiredResultV2,
     FlowPasswordRequiredResultV2,
+    FlowNewPasswordRequiredResultV2,
     FlowSignInContinuationRequiredResultV2,
     FlowCompletedResultV2,
 } from "../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
@@ -409,7 +411,7 @@ describe("FlowInteractionClientV2", () => {
             },
         };
 
-        it("verifies the code and returns a password-required result", async () => {
+        it("verifies the code and returns a new-password-required result", async () => {
             apiClient.verifyChallenge.mockResolvedValue({
                 nextAction: "update",
                 continuationToken: "ct-verify",
@@ -428,11 +430,12 @@ describe("FlowInteractionClientV2", () => {
                 expect.objectContaining({ correlationId })
             );
 
-            expect(result.type).toBe(FLOW_PASSWORD_REQUIRED_V2);
+            expect(result.type).toBe(FLOW_NEW_PASSWORD_REQUIRED_V2);
 
-            const passwordRequired = result as FlowPasswordRequiredResultV2;
-            expect(passwordRequired.correlationId).toBe(correlationId);
-            expect(passwordRequired.continuationState).toEqual({
+            const newPasswordRequired =
+                result as FlowNewPasswordRequiredResultV2;
+            expect(newPasswordRequired.correlationId).toBe(correlationId);
+            expect(newPasswordRequired.continuationState).toEqual({
                 continuationToken: "ct-verify",
                 scenario: "passwordReset",
                 links: { update: "https://endpoint/update" },

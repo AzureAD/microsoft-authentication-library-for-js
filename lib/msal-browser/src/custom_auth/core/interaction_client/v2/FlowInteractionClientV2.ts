@@ -22,6 +22,7 @@ import {
     createFlowMethodSelectionRequiredResultV2,
     createFlowCodeRequiredResultV2,
     createFlowPasswordRequiredResultV2,
+    createFlowNewPasswordRequiredResultV2,
     createFlowSignInContinuationRequiredResultV2,
     createFlowCompletedResultV2,
     FLOW_PASSWORD_REQUIRED_V2,
@@ -30,6 +31,7 @@ import type {
     FlowMethodSelectionRequiredResultV2,
     FlowCodeRequiredResultV2,
     FlowPasswordRequiredResultV2,
+    FlowNewPasswordRequiredResultV2,
     FlowSignInContinuationRequiredResultV2,
     FlowCompletedResultV2,
 } from "./result/FlowActionResultV2.js";
@@ -275,7 +277,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      */
     async submitCode(
         parameters: FlowSubmitCodeParamsV2
-    ): Promise<FlowPasswordRequiredResultV2> {
+    ): Promise<FlowNewPasswordRequiredResultV2> {
         const continuationState = parameters.continuationState;
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
@@ -300,7 +302,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         switch (verifyResult.nextAction) {
             case "update":
-                return createFlowPasswordRequiredResultV2({
+                return createFlowNewPasswordRequiredResultV2({
                     correlationId,
                     continuationState: {
                         continuationToken: verifyResult.continuationToken,
