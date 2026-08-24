@@ -274,6 +274,22 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
         });
 
+        it("Extension: surfaces the broker DPoP proof in the authentication result", async () => {
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockResolvedValue({
+                ...MOCK_WAM_RESPONSE,
+                DPoP: "test-dpop-proof",
+            });
+
+            const response = await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+            });
+
+            expect(response.dpopProof).toBe("test-dpop-proof");
+        });
+
         it("Extension: token request contains user input extra params", async () => {
             const sendMessageSpy = jest
                 .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")

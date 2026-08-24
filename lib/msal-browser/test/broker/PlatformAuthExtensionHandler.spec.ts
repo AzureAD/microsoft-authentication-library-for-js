@@ -279,7 +279,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 scope: "read openid",
                 expires_in: "3600",
                 token_type: "DPoP",
-                DpoP: "test-dpop-proof",
+                DPoP: "test-dpop-proof",
                 token_binding_key_id: "test-token-binding-key-id",
                 attested_chosen: true,
             };
