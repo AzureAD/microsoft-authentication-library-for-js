@@ -47,6 +47,11 @@ const popConfig = {
     endpoint: "https://signedhttprequest.azurewebsites.net/api/validateSHR"
 };
 
+const dpopConfig = {
+    // Replace with a DPoP-enabled test resource that validates the access token and proof.
+    endpoint: "https://localhost:5001/api/validateDPoP"
+};
+
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
     scopes: ["User.Read"]
@@ -71,4 +76,11 @@ const popTokenWithKidRequest = {
     scopes: ["openid", "profile", "User.Read"],
     authenticationScheme: msal.AuthenticationScheme.POP,
     popKid: "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc",
+};
+
+const dpopTokenRequest = {
+    scopes: ["openid", "profile", "User.Read"],
+    authenticationScheme: msal.AuthenticationScheme.DPOP,
+    resourceRequestMethod: "GET",
+    resourceRequestUri: dpopConfig.endpoint
 };

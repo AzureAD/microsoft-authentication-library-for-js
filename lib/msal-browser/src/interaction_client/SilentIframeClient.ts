@@ -23,6 +23,7 @@ import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
+import { getTokenBindingRequestParams } from "../request/RequestHelpers.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
@@ -543,10 +544,8 @@ export class SilentIframeClient extends StandardInteractionClient {
         authClient: AuthorizationCodeClient,
         request: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
-        const { serverParams, pkceCodes } = await this.silentAuthorizeHelper(
-            authClient,
-            request
-        );
+        const { serverParams, pkceCodes, silentRequest } =
+            await this.silentAuthorizeHelper(authClient, request);
 
         return invokeAsync(
             Authorize.handleResponseCode,
@@ -555,7 +554,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient,
             request.correlationId
         )(
-            request,
+            silentRequest,
             serverParams,
             pkceCodes.verifier,
             this.apiId,
@@ -593,9 +592,16 @@ export class SilentIframeClient extends StandardInteractionClient {
             correlationId
         )(this.performanceClient, this.logger, correlationId);
 
+        const tokenBindingParams = await getTokenBindingRequestParams(
+            request,
+            this.tokenBindingKeyManager,
+            this.logger,
+            this.performanceClient
+        );
         const silentRequest = {
             ...request,
             codeChallenge: pkceCodes.challenge,
+            ...tokenBindingParams,
         };
 
         // Create the iframe, register the response listener, then navigate, so the listener is active before the iframe can respond.

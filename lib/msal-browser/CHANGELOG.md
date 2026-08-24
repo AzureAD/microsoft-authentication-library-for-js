@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 04 Aug 2026 20:17:38 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 18 Aug 2026 20:10:56 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.19.0
+
+Tue, 18 Aug 2026 20:10:56 GMT
+
+### Minor changes
+
+- Add browser token-binding key lifecycle support for keyId-bound ES256 DPoP keys [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708) (hectormmg@microsoft.com)
+- Bump @azure/msal-common to v16.13.0
+
+### Patches
+
+- Route NAA BridgeProxy through the shared webBrokerBridge PendingRequestRegistry and consolidate NestedAppAuthAdapter.fromBridgeError through the shared WebBrokerBridgeErrorMap — internal-only, no NAA public API or on-wire changes [#8748](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8748) (shylasummers@microsoft.com)
 
 ## 5.18.0
 

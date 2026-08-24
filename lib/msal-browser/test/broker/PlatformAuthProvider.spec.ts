@@ -230,6 +230,21 @@ describe("PlatformAuthProvider tests", () => {
             expect(result).toBe(false);
         });
 
+        it("returns false for browser-native DPoP because platform broker DPoP is unsupported", () => {
+            const result = PlatformAuthProvider.isPlatformAuthAllowed(
+                config,
+                logger,
+                TEST_CONFIG.CORRELATION_ID,
+                new PlatformAuthDOMHandler(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                ),
+                Constants.AuthenticationScheme.DPOP
+            );
+            expect(result).toBe(false);
+        });
+
         it("returns true when platform auth provider is initialized and authentication scheme is supported", () => {
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,

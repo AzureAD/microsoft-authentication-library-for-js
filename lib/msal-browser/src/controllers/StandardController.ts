@@ -254,13 +254,16 @@ export class StandardController implements IController {
                   this.logger,
                   this.performanceClient,
                   this.eventHandler,
-                  buildStaticAuthorityOptions(this.config.auth)
+                  buildStaticAuthorityOptions(this.config.auth),
+                  this.tokenBindingKeyManager
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
                   this.logger,
                   this.performanceClient,
-                  this.eventHandler
+                  this.eventHandler,
+                  undefined,
+                  this.tokenBindingKeyManager
               );
 
         // initialize in memory storage for native flows
@@ -274,7 +277,9 @@ export class StandardController implements IController {
             this.browserCrypto,
             this.logger,
             this.performanceClient,
-            this.eventHandler
+            this.eventHandler,
+            undefined,
+            this.tokenBindingKeyManager
         );
 
         this.activeSilentTokenRequests = new Map();

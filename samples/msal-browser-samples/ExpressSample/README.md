@@ -70,6 +70,19 @@ npm run build:package
 - The Profile page will automatically fetch and display your user information from MS Graph.
 - Navigating to the `http://localhost:3000/playground` route will take you to the MSAL.js playground where you can experiment with different configurations and requests
 
+## Running the e2e tests
+
+The Puppeteer e2e tests live in [`./test`](./test). The EAR (Encrypted Authorize Response) web-flow suite is in [`./test/ear-basic.spec.ts`](./test/ear-basic.spec.ts).
+
+A separate [`./test/ear-platform-broker.spec.ts`](./test/ear-platform-broker.spec.ts) suite exercises EAR combined with the platform broker. It is excluded from CI (the pipeline `testFilter` runs only `ear-basic`) because the platform broker is only available locally. To run it locally, set `SSO_EXTENSION_PATH` to the unpacked "Microsoft Single Sign On" extension directory (the folder containing its `manifest.json`):
+
+```powershell
+# PowerShell — set before running the EAR tests
+$env:SSO_EXTENSION_PATH = "C:\Users\<you>\AppData\Local\Microsoft\Edge\User Data\Default\Extensions\ppnbnpeolgkicgegkbkbjmhlideopiji\<version>"
+```
+
+The path is machine-specific (Edge version subfolder and user profile vary). If the platform-broker suite is run without this variable set, it fails fast with a clear error.
+
 ## Learn more
 
 - [MSAL.js documentation](../../../lib/msal-browser/README.md)

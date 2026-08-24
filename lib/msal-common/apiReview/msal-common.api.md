@@ -65,6 +65,7 @@ declare namespace AADServerParamKeys {
         CLIENT_ASSERTION_TYPE,
         TOKEN_TYPE,
         REQ_CNF,
+        DPOP_JKT,
         OBO_ASSERTION,
         REQUESTED_TOKEN_USE,
         ON_BEHALF_OF,
@@ -239,6 +240,9 @@ function addDeviceCode(parameters: Map<string, string>, code: string): void;
 // @public
 function addDomainHint(parameters: Map<string, string>, domainHint: string): void;
 
+// @internal
+function addDpopTokenProofHeader(headers: Record<string, string>, request: BaseAuthRequest, tokenEndpoint: string, cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager): Promise<void>;
+
 // @public
 function addEARParameters(parameters: Map<string, string>, jwk: string): void;
 
@@ -385,6 +389,7 @@ export type AuthenticationResult = {
     idToken: string;
     idTokenClaims: object;
     accessToken: string;
+    dpopProof?: string;
     fromCache: boolean;
     expiresOn: Date | null;
     extExpiresOn?: Date;
@@ -405,6 +410,7 @@ export type AuthenticationResult = {
 const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
+    readonly DPOP: "DPoP";
     readonly SSH: "ssh-cert";
 };
 
@@ -708,6 +714,7 @@ export type BaseAuthRequest = {
     storeInCache?: StoreInCache;
     scenarioId?: string;
     popKid?: string;
+    dpopJkt?: string;
     embeddedClientId?: string;
     httpMethod?: HttpMethod;
     resource?: string;
@@ -805,7 +812,7 @@ export { CacheHelpers }
 
 // @internal
 export abstract class CacheManager implements ICacheManager {
-    constructor(clientId: string, cryptoImpl: ICrypto, logger: Logger, performanceClient: IPerformanceClient, staticAuthorityOptions?: StaticAuthorityOptions);
+    constructor(clientId: string, cryptoImpl: ICrypto, logger: Logger, performanceClient: IPerformanceClient, staticAuthorityOptions: StaticAuthorityOptions | undefined, tokenBindingKeyManager: ITokenBindingKeyManager);
     accessTokenKeyMatchesFilter(inputKey: string, filter: CredentialFilter, keyMustContainAllScopes: boolean): boolean;
     // (undocumented)
     protected clientId: string;
@@ -863,6 +870,8 @@ export abstract class CacheManager implements ICacheManager {
     abstract setRefreshTokenCredential(refreshToken: RefreshTokenEntity, correlationId: string, kmsi: boolean): Promise<void>;
     abstract setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity, correlationId: string): void;
     abstract setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity, correlationId: string): void;
+    // (undocumented)
+    protected tokenBindingKeyManager: ITokenBindingKeyManager;
     static toObject<T>(obj: T, json: object): T;
 }
 
@@ -952,6 +961,7 @@ const ClaimsRequestKeys: {
     readonly ID_TOKEN: "id_token";
     readonly SIGNIN_STATE: "signin_state";
     readonly LOGIN_HINT: "login_hint";
+    readonly TENANT_REGION_SUB_SCOPE: "tenant_region_sub_scope";
 };
 
 // @public (undocumented)
@@ -1044,6 +1054,7 @@ declare namespace ClientAuthErrorCodes {
         noAccountFound,
         noCryptoObject,
         unexpectedCredentialType,
+        dpopTokenTypeMismatch,
         tokenRefreshRequired,
         tokenClaimsCnfRequiredForSignedJwt,
         authorizationCodeMissingFromServerResponse,
@@ -1112,7 +1123,9 @@ declare namespace ClientConfigurationErrorCodes {
         issuerValidationFailed,
         invalidResponseMode,
         invalidDpopHtm,
-        invalidDpopHtu
+        invalidDpopHtu,
+        invalidDpopNonce,
+        dpopMissingResourceContext
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1177,6 +1190,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     sid?: string;
     state: string;
     platformBroker?: boolean;
+    reqCnf?: string;
 };
 
 // @internal (undocumented)
@@ -1525,6 +1539,15 @@ export type DeviceCodeResponse = {
 const DOMAIN_HINT = "domain_hint";
 
 // @public (undocumented)
+const DPOP_JKT = "dpop_jkt";
+
+// @public (undocumented)
+const dpopMissingResourceContext = "dpop_missing_resource_context";
+
+// @public (undocumented)
+const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
+
+// @public (undocumented)
 const DSTS = "dstsv2";
 
 // @public (undocumented)
@@ -1679,6 +1702,7 @@ const hashNotDeserialized = "hash_not_deserialized";
 const HeaderNames: {
     readonly CONTENT_TYPE: "Content-Type";
     readonly CONTENT_LENGTH: "Content-Length";
+    readonly DPOP: "DPoP";
     readonly RETRY_AFTER: "Retry-After";
     readonly CCS_HEADER: "X-AnchorMailbox";
     readonly WWWAuthenticate: "WWW-Authenticate";
@@ -1929,6 +1953,9 @@ const invalidDpopHtm = "invalid_dpop_htm";
 
 // @public (undocumented)
 const invalidDpopHtu = "invalid_dpop_htu";
+
+// @public (undocumented)
+const invalidDpopNonce = "invalid_dpop_nonce";
 
 // @public (undocumented)
 const invalidPlatformBrokerConfiguration = "invalid_platform_broker_configuration";
@@ -2511,7 +2538,9 @@ export type PerformanceEvent = {
     silentRefreshReason?: string;
     deduped?: boolean;
     hasAttributeTokens?: boolean;
+    dpopTokenTypeMismatch?: string;
     kmsi?: boolean;
+    regionSubScope?: string;
     ssoCapable?: boolean;
     isBackground?: boolean;
     preMigrateAcntCount?: number;
@@ -3344,6 +3373,7 @@ const tokenParsingError = "token_parsing_error";
 declare namespace TokenProtocol {
     export {
         createTokenRequestHeaders,
+        addDpopTokenProofHeader,
         createTokenQueryParameters,
         executePostToTokenEndpoint,
         sendPostRequest
@@ -3450,7 +3480,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.12.0";
+export const version = "16.13.0";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;

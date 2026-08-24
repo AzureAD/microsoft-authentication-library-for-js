@@ -306,7 +306,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             const ath = TEST_DPOP_VALUES.ACCESS_TOKEN_ATH;
 
             const claims = generator.buildResourceProofClaims(
-                { resourceUrl, htm, ath },
+                { htu: resourceUrl, htm, ath },
                 ""
             );
 
@@ -331,7 +331,7 @@ describe("DpopProofGenerator Unit Tests", () => {
         it("includes optional resource nonce in resource proof when provided", () => {
             const claims = generator.buildResourceProofClaims(
                 {
-                    resourceUrl: "https://graph.microsoft.com/v1.0/me",
+                    htu: "https://graph.microsoft.com/v1.0/me",
                     htm: "GET",
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                     nonce: "resource-nonce-xyz",
@@ -345,7 +345,7 @@ describe("DpopProofGenerator Unit Tests", () => {
         it("omits nonce from resource proof when not provided", () => {
             const claims = generator.buildResourceProofClaims(
                 {
-                    resourceUrl: "https://graph.microsoft.com/v1.0/me",
+                    htu: "https://graph.microsoft.com/v1.0/me",
                     htm: "POST",
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 },
@@ -358,7 +358,7 @@ describe("DpopProofGenerator Unit Tests", () => {
         it("DPoP resource proof must not contain SHR fields (at, ts, m, u, p, q)", () => {
             const claims = generator.buildResourceProofClaims(
                 {
-                    resourceUrl: "https://graph.microsoft.com/v1.0/me",
+                    htu: "https://graph.microsoft.com/v1.0/me",
                     htm: "GET",
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 },
@@ -378,7 +378,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             for (const method of methods) {
                 const claims = generator.buildResourceProofClaims(
                     {
-                        resourceUrl: "https://graph.microsoft.com/v1.0/me",
+                        htu: "https://graph.microsoft.com/v1.0/me",
                         htm: method,
                         ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                     },
@@ -399,7 +399,7 @@ describe("DpopProofGenerator Unit Tests", () => {
 
             methods.forEach((method) => {
                 const claims = generator.buildResourceProofClaims({
-                    resourceUrl: "https://graph.microsoft.com/v1.0/me",
+                    htu: "https://graph.microsoft.com/v1.0/me",
                     htm: method,
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 });
@@ -422,7 +422,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             invalidMethods.forEach((htm) => {
                 expect(() =>
                     generator.buildResourceProofClaims({
-                        resourceUrl: "https://graph.microsoft.com/v1.0/me",
+                        htu: "https://graph.microsoft.com/v1.0/me",
                         htm: htm as string,
                         ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                     })
@@ -435,7 +435,7 @@ describe("DpopProofGenerator Unit Tests", () => {
                 "https://api.example.com/data?filter=active&page=2";
             const claims = generator.buildResourceProofClaims(
                 {
-                    resourceUrl,
+                    htu: resourceUrl,
                     htm: "GET",
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 },
@@ -449,8 +449,7 @@ describe("DpopProofGenerator Unit Tests", () => {
         it("strips both query and fragment from resource htu", () => {
             const claims = generator.buildResourceProofClaims(
                 {
-                    resourceUrl:
-                        "https://graph.microsoft.com/v1.0/me?$select=id#profile",
+                    htu: "https://graph.microsoft.com/v1.0/me?$select=id#profile",
                     htm: "GET",
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 },
@@ -465,8 +464,7 @@ describe("DpopProofGenerator Unit Tests", () => {
         it("preserves mixed-case resource path casing", () => {
             const claims = generator.buildResourceProofClaims(
                 {
-                    resourceUrl:
-                        "https://api.example.com/v1.0/MyResource/Items",
+                    htu: "https://api.example.com/v1.0/MyResource/Items",
                     htm: "GET",
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 },
@@ -481,7 +479,7 @@ describe("DpopProofGenerator Unit Tests", () => {
         it("does not append a trailing slash to queryless resource paths", () => {
             const claims = generator.buildResourceProofClaims(
                 {
-                    resourceUrl: "https://api.example.com/v1.0/me",
+                    htu: "https://api.example.com/v1.0/me",
                     htm: "GET",
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 },
@@ -493,7 +491,7 @@ describe("DpopProofGenerator Unit Tests", () => {
 
         it("elides explicit default ports in resource htu", () => {
             const claims = generator.buildResourceProofClaims({
-                resourceUrl: "https://api.example.com:443/v1.0/me?filter=all",
+                htu: "https://api.example.com:443/v1.0/me?filter=all",
                 htm: "GET",
                 ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
             });
@@ -503,7 +501,7 @@ describe("DpopProofGenerator Unit Tests", () => {
 
         it("preserves non-default ports in resource htu", () => {
             const claims = generator.buildResourceProofClaims({
-                resourceUrl: "https://api.example.com:8443/v1.0/me#profile",
+                htu: "https://api.example.com:8443/v1.0/me#profile",
                 htm: "GET",
                 ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
             });
@@ -513,7 +511,7 @@ describe("DpopProofGenerator Unit Tests", () => {
 
         it("normalizes scheme and host casing in resource htu", () => {
             const claims = generator.buildResourceProofClaims({
-                resourceUrl: "HTTPS://API.example.com/v1.0/me#profile",
+                htu: "HTTPS://API.example.com/v1.0/me#profile",
                 htm: "GET",
                 ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
             });
@@ -527,7 +525,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             invalidResourceUrls.forEach((resourceUrl) => {
                 expect(() =>
                     generator.buildResourceProofClaims({
-                        resourceUrl,
+                        htu: resourceUrl,
                         htm: "GET",
                         ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                     })
@@ -546,7 +544,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             invalidResourceUrls.forEach((resourceUrl) => {
                 expect(() =>
                     generator.buildResourceProofClaims({
-                        resourceUrl,
+                        htu: resourceUrl,
                         htm: "GET",
                         ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                     })
@@ -556,7 +554,7 @@ describe("DpopProofGenerator Unit Tests", () => {
 
         it("serializes resource htu values repaired by URL parsing", () => {
             const claims = generator.buildResourceProofClaims({
-                resourceUrl: "https://api.example.com/v1.0/my profile",
+                htu: "https://api.example.com/v1.0/my profile",
                 htm: "GET",
                 ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
             });
@@ -639,13 +637,15 @@ describe("DpopProofGenerator Unit Tests", () => {
         it("builds and signs a compact DPoP proof JWT for resource requests", async () => {
             const currTime = TimeUtils.nowSeconds();
             jest.spyOn(TimeUtils, "nowSeconds").mockReturnValue(currTime);
+            jest.spyOn(cryptoInterface, "hashString").mockResolvedValueOnce(
+                TEST_DPOP_VALUES.ACCESS_TOKEN_ATH
+            );
 
             const proof = await generator.generateResourceProof(
                 {
-                    resourceUrl:
-                        "https://graph.microsoft.com/v1.0/me?$select=id",
+                    htu: "https://graph.microsoft.com/v1.0/me?$select=id",
                     htm: "get",
-                    ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                    accessToken: TEST_DPOP_VALUES.ACCESS_TOKEN,
                     nonce: "resource-nonce",
                 },
                 dpopKeyId,
@@ -676,6 +676,36 @@ describe("DpopProofGenerator Unit Tests", () => {
                 TEST_CONFIG.CORRELATION_ID
             );
             expect(decodedProof.signature).toBe(dpopSignature);
+        });
+
+        it("rejects missing resource context before generating resource proof", async () => {
+            await expect(
+                generator.generateResourceProof(
+                    {
+                        htu: "",
+                        htm: "GET",
+                        accessToken: TEST_DPOP_VALUES.ACCESS_TOKEN,
+                    },
+                    dpopKeyId,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toThrow(
+                ClientConfigurationErrorCodes.dpopMissingResourceContext
+            );
+
+            await expect(
+                generator.generateResourceProof(
+                    {
+                        htu: "https://graph.microsoft.com/v1.0/me",
+                        htm: undefined,
+                        accessToken: TEST_DPOP_VALUES.ACCESS_TOKEN,
+                    },
+                    dpopKeyId,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toThrow(
+                ClientConfigurationErrorCodes.dpopMissingResourceContext
+            );
         });
     });
 
@@ -745,7 +775,7 @@ describe("DpopProofGenerator Unit Tests", () => {
 
             const proof1 = uniqueGenerator.buildResourceProofClaims(
                 {
-                    resourceUrl: "https://graph.microsoft.com/v1.0/me",
+                    htu: "https://graph.microsoft.com/v1.0/me",
                     htm: "GET",
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 },
@@ -753,7 +783,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             );
             const proof2 = uniqueGenerator.buildResourceProofClaims(
                 {
-                    resourceUrl: "https://graph.microsoft.com/v1.0/me",
+                    htu: "https://graph.microsoft.com/v1.0/me",
                     htm: "GET",
                     ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
                 },

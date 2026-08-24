@@ -2186,6 +2186,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(parsedClaims.id_token).toEqual({
                 signin_state: { essential: false },
                 login_hint: { essential: false },
+                tenant_region_sub_scope: { essential: false },
             });
             expect(parsedClaims.access_token).toBeUndefined();
         });
@@ -2201,6 +2202,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(parsedClaims.id_token).toEqual({
                 signin_state: { essential: false },
                 login_hint: { essential: false },
+                tenant_region_sub_scope: { essential: false },
             });
         });
 
@@ -2262,6 +2264,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(parsedClaims.id_token).toEqual({
                 signin_state: { essential: false },
                 login_hint: { essential: false },
+                tenant_region_sub_scope: { essential: false },
             });
             expect(parsedClaims.access_token).toBeUndefined();
         });
@@ -2331,6 +2334,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(parsedClaims.id_token).toEqual({
                 signin_state: { essential: false },
                 login_hint: { essential: false },
+                tenant_region_sub_scope: { essential: false },
             });
             // Verify broker's client capabilities are NOT added
             expect(parsedClaims.access_token).toBeUndefined();

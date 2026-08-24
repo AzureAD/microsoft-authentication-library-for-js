@@ -105,6 +105,7 @@ export type AuthenticationResult = AuthenticationResult_2 & {
 export const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
+    readonly DPOP: "DPoP";
     readonly SSH: "ssh-cert";
 };
 
@@ -720,6 +721,12 @@ function isInPopup(): boolean;
 // @public
 export function isPlatformBrokerAvailable(domConfig: boolean, loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
 
+// @public
+export interface IWebBrokerBridgeMessage {
+    readonly requestId: string;
+    readonly type: string;
+}
+
 // @public (undocumented)
 export interface IWindowStorage<T> {
     containsKey(key: string): boolean;
@@ -1122,7 +1129,7 @@ const unsupportedTokenBindingAlgorithm = "unsupported_token_binding_algorithm";
 const userCancelled = "user_cancelled";
 
 // @public (undocumented)
-export const version = "5.18.0";
+export const version = "5.19.0";
 
 // @public (undocumented)
 const WaitForBridgeLateResponse = "waitForBridgeLateResponse";

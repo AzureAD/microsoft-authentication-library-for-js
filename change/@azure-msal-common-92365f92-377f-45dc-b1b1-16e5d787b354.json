@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Enable support for tenant_region_subscope optional claim [#8765](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8765)",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -33,6 +33,10 @@ import {
     StubPerformanceClient,
     AccountInfo,
     CredentialEntity,
+    ICrypto,
+    IPerformanceClient,
+    StaticAuthorityOptions,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -57,6 +61,23 @@ const TOKEN_KEYS = "TOKEN_KEYS";
 
 export class MockStorageClass extends CacheManager {
     store = {};
+
+    constructor(
+        clientId: string,
+        cryptoImpl: ICrypto,
+        logger: Logger,
+        performanceClient: IPerformanceClient,
+        staticAuthorityOptions?: StaticAuthorityOptions
+    ) {
+        super(
+            clientId,
+            cryptoImpl,
+            logger,
+            performanceClient,
+            staticAuthorityOptions,
+            DEFAULT_TOKEN_BINDING_KEY_MANAGER
+        );
+    }
 
     generateCredentialKey(credential: CredentialEntity, hash?: string): string {
         return generateCredentialKey(credential, hash);
@@ -558,7 +579,7 @@ export const checkMockedNetworkRequest = (
 
     if (checks.claims !== undefined) {
         const mergedTestClaims =
-            '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+            '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
         expect(
             returnVal.includes(
                 `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(

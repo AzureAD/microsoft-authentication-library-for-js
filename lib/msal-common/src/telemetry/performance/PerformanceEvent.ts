@@ -445,9 +445,21 @@ export type PerformanceEvent = {
     hasAttributeTokens?: boolean;
 
     /**
+     * Mismatched token_type returned for a DPoP request.
+     */
+    dpopTokenTypeMismatch?: string;
+
+    /**
      * Whether the user has "Keep Me Signed In" enabled
      */
     kmsi?: boolean;
+
+    /**
+     * Sovereign enclave the authenticating tenant belongs to, taken verbatim from the
+     * `tenant_region_sub_scope` id token claim. Known values include "GCC", "DODCON"
+     * (GCC High) and "DOD".
+     */
+    regionSubScope?: string;
 
     /**
      * Cached SSO capability status from the most recent SSO verification
