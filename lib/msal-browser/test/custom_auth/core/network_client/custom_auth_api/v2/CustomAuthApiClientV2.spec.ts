@@ -163,7 +163,6 @@ describe("CustomAuthApiClientV2", () => {
 
             expect(result.continuationToken).toBe("ct-start");
             expect(result.scenario).toBe("recovery");
-            expect(result.authenticationFactor).toBe("singleFactor");
             expect(result.methods[0].challengeHref).toBe(
                 "/tenant/api/v0.1/methods/email/challenge"
             );
@@ -222,7 +221,6 @@ describe("CustomAuthApiClientV2", () => {
                     },
                 ],
                 scenario: undefined,
-                authenticationFactor: "singleFactor",
             });
             expect(mockHttpClient.sendAsync).toHaveBeenCalledTimes(1);
 
@@ -237,7 +235,7 @@ describe("CustomAuthApiClientV2", () => {
         });
 
         it.each([undefined, "multiFactor", "unknownFactor"])(
-            "returns the raw authentication factor %s",
+            "ignores the authentication factor %s",
             async (authenticationFactor) => {
                 mockHttpClient.sendAsync.mockResolvedValueOnce(
                     buildResponse({
@@ -267,7 +265,7 @@ describe("CustomAuthApiClientV2", () => {
                     context
                 );
 
-                expect(result.authenticationFactor).toBe(authenticationFactor);
+                expect(result).not.toHaveProperty("authenticationFactor");
             }
         );
     });
@@ -435,7 +433,6 @@ describe("CustomAuthApiClientV2", () => {
             expect(result).toEqual({
                 nextAction: "challenge",
                 continuationToken: "ct-mfa",
-                authenticationFactor: "multiFactor",
                 methods: [
                     {
                         id: "email-mfa",
@@ -447,7 +444,7 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
-        it("returns the raw authentication factor for a challenge", async () => {
+        it("ignores the authentication factor for a challenge", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     continuationToken: "ct-verify",
@@ -480,10 +477,8 @@ describe("CustomAuthApiClientV2", () => {
                 context
             );
 
-            expect(result).toMatchObject({
-                nextAction: "challenge",
-                authenticationFactor: "singleFactor",
-            });
+            expect(result).toMatchObject({ nextAction: "challenge" });
+            expect(result).not.toHaveProperty("authenticationFactor");
         });
 
         it("rejects a multi-factor challenge without registered methods", async () => {

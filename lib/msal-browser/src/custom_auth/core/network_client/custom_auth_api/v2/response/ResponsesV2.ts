@@ -18,12 +18,6 @@ export interface HalResponseBaseV2 extends HalResource {
     correlationId?: string;
 }
 
-interface AuthenticationFactorResponseV2 extends HalResponseBaseV2 {
-    challengeContext?: {
-        authenticationFactor?: string;
-    };
-}
-
 /*
  * A method embedded under `_embedded.methods[]`.
  */
@@ -60,8 +54,7 @@ export interface AuthorizeChallengeEntryResponseV2
  * Start response containing the available authentication
  * methods. Each method provides the challenge link used after selection.
  */
-interface StartResponseV2
-    extends Omit<AuthenticationFactorResponseV2, "_embedded"> {
+interface StartResponseV2 extends Omit<HalResponseBaseV2, "_embedded"> {
     _embedded?: {
         methods?: EmbeddedMethodV2[];
     };
@@ -99,8 +92,7 @@ export type ChallengeResponseV2 =
  * Credential-verification response. For password reset, the `update` relation
  * identifies where the new password is submitted.
  */
-export interface VerifyResponseV2
-    extends Omit<AuthenticationFactorResponseV2, "_links"> {
+export interface VerifyResponseV2 extends Omit<HalResponseBaseV2, "_links"> {
     id?: string;
     type?: string;
     payload?: Record<string, unknown>;

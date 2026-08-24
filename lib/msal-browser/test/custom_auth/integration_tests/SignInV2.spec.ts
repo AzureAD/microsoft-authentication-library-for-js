@@ -12,7 +12,6 @@ import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth
 import {
     NO_AUTHENTICATION_METHODS,
     SIGN_IN_UNSUPPORTED,
-    UNEXPECTED_AUTHENTICATION_FACTOR,
 } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
@@ -472,7 +471,7 @@ describe("Sign-in V2 entry", () => {
     });
 
     it.each([undefined, "unknownFactor", "multiFactor"])(
-        "fails when the authentication factor is %s",
+        "ignores the authentication factor %s and follows the returned methods",
         async (authenticationFactor) => {
             (fetch as jest.Mock)
                 .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
@@ -484,16 +483,16 @@ describe("Sign-in V2 entry", () => {
                             : undefined,
                         _embedded: START_RESPONSE._embedded,
                     })
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(PASSWORD_CHALLENGE_RESPONSE)
                 );
 
             const result = await app.signInV2({
                 username: "user@contoso.com",
             });
 
-            expect(result.isFailed()).toBe(true);
-            expect(result.error?.errorData.error).toBe(
-                UNEXPECTED_AUTHENTICATION_FACTOR
-            );
+            expect(result.isState("passwordRequired")).toBe(true);
         }
     );
 });

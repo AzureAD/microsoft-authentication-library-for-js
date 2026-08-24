@@ -16,6 +16,7 @@ import {
     StartMethodV2,
     ChallengeResultV2,
     VerifyResultV2,
+    VerifyNextActionV2,
 } from "./result/BaseResultsV2.js";
 import {
     PasswordResetStartResponseV2,
@@ -229,8 +230,6 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 parsedResponse.correlationId
             ),
             scenario: parsedResponse.body.scenario,
-            authenticationFactor:
-                parsedResponse.body.challengeContext?.authenticationFactor,
         };
     }
 
@@ -245,14 +244,14 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
 
         if (parsedResponse.body.state === ResponseStateV2.CONTINUE) {
             return {
-                nextAction: "continue",
+                nextAction: VerifyNextActionV2.CONTINUE,
                 continuationToken,
             };
         }
 
         if (parsedResponse.body.action === UPDATE_RELATION) {
             return {
-                nextAction: "update",
+                nextAction: VerifyNextActionV2.UPDATE,
                 continuationToken,
                 updateHref: this.handler.requireHref(
                     parsedResponse.body._links?.update?.href,
@@ -264,10 +263,8 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
 
         if (parsedResponse.body.action === CHALLENGE_RELATION) {
             return {
-                nextAction: "challenge",
+                nextAction: VerifyNextActionV2.CHALLENGE,
                 continuationToken,
-                authenticationFactor:
-                    parsedResponse.body.challengeContext?.authenticationFactor,
                 methods: this.resolveMethods(
                     parsedResponse.body,
                     correlationId

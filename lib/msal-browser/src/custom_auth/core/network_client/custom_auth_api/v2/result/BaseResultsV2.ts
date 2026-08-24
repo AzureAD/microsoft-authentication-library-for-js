@@ -36,7 +36,6 @@ export interface StartResultV2 {
     continuationToken: string;
     methods: StartMethodV2[];
     scenario?: string;
-    authenticationFactor?: string;
 }
 
 export type ResetPasswordStartApiResultV2 = StartResultV2;
@@ -55,23 +54,28 @@ export interface ChallengeResultV2 {
     type?: string;
 }
 
+export const VerifyNextActionV2 = {
+    UPDATE: "update",
+    CONTINUE: "continue",
+    CHALLENGE: "challenge",
+} as const;
+
 /*
  * Result of verifying a credential. The discriminated union identifies whether
  * another update is required or token redemption can continue.
  */
 export type VerifyResultV2 =
     | {
-          nextAction: "update";
+          nextAction: typeof VerifyNextActionV2.UPDATE;
           continuationToken: string;
           updateHref: string;
       }
     | {
-          nextAction: "continue";
+          nextAction: typeof VerifyNextActionV2.CONTINUE;
           continuationToken: string;
       }
     | {
-          nextAction: "challenge";
+          nextAction: typeof VerifyNextActionV2.CHALLENGE;
           continuationToken: string;
-          authenticationFactor?: string;
           methods: StartMethodV2[];
       };

@@ -28,7 +28,6 @@ import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/netw
 import {
     RESET_PASSWORD_UNSUPPORTED,
     SIGN_IN_UNSUPPORTED,
-    UNEXPECTED_AUTHENTICATION_FACTOR,
 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { buildConfiguration } from "../../../../../src/config/Configuration.js";
 import { customAuthConfig } from "../../../test_resources/CustomAuthConfig.js";
@@ -138,7 +137,6 @@ describe("FlowInteractionClientV2", () => {
             });
             apiClient.signInStart.mockResolvedValue({
                 continuationToken: "ct-sign-in",
-                authenticationFactor: "singleFactor",
                 methods: [
                     {
                         id: "password-1",
@@ -206,7 +204,6 @@ describe("FlowInteractionClientV2", () => {
             });
             apiClient.signInStart.mockResolvedValue({
                 continuationToken: "ct-sign-in",
-                authenticationFactor: "singleFactor",
                 methods: [
                     {
                         id: "other-1",
@@ -233,7 +230,6 @@ describe("FlowInteractionClientV2", () => {
             });
             apiClient.signInStart.mockResolvedValue({
                 continuationToken: "ct-sign-in",
-                authenticationFactor: "singleFactor",
                 methods: [
                     {
                         id: "password-1",
@@ -250,7 +246,6 @@ describe("FlowInteractionClientV2", () => {
             apiClient.verifyChallenge.mockResolvedValue({
                 nextAction: "challenge",
                 continuationToken: "ct-mfa",
-                authenticationFactor: "multiFactor",
                 methods: [
                     {
                         id: "email-mfa",
@@ -292,14 +287,13 @@ describe("FlowInteractionClientV2", () => {
             });
         });
 
-        it("rejects an MFA challenge with a non-MFA authentication factor", async () => {
+        it("returns MFA selection based on the challenge action and methods", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
                 signInHref: "https://endpoint/sign-in",
             });
             apiClient.signInStart.mockResolvedValue({
                 continuationToken: "ct-sign-in",
-                authenticationFactor: "singleFactor",
                 methods: [
                     {
                         id: "password-1",
@@ -316,7 +310,6 @@ describe("FlowInteractionClientV2", () => {
             apiClient.verifyChallenge.mockResolvedValue({
                 nextAction: "challenge",
                 continuationToken: "ct-mfa",
-                authenticationFactor: "singleFactor",
                 methods: [
                     {
                         id: "email-mfa",
@@ -326,15 +319,13 @@ describe("FlowInteractionClientV2", () => {
                 ],
             });
 
-            await expect(
-                client.signIn({
-                    correlationId,
-                    username: "user@contoso.com",
-                    password: "P@ssword1!",
-                })
-            ).rejects.toMatchObject({
-                error: UNEXPECTED_AUTHENTICATION_FACTOR,
+            const result = await client.signIn({
+                correlationId,
+                username: "user@contoso.com",
+                password: "P@ssword1!",
             });
+
+            expect(result.type).toBe(FLOW_MFA_REQUIRED_V2);
         });
 
         it("rejects a missing sign-in link before calling sign-in start", async () => {
@@ -361,7 +352,6 @@ describe("FlowInteractionClientV2", () => {
             });
             apiClient.resetPasswordStart.mockResolvedValue({
                 continuationToken: "ct-start",
-                authenticationFactor: "singleFactor",
                 methods: [
                     {
                         id: "email",

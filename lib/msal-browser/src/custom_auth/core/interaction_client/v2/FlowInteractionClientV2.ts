@@ -49,7 +49,6 @@ import {
     RESET_PASSWORD_UNSUPPORTED,
     RESET_PASSWORD_TIMEOUT,
     SIGN_IN_UNSUPPORTED,
-    UNEXPECTED_AUTHENTICATION_FACTOR,
     UNSUPPORTED_FLOW_STEP,
     UNSUPPORTED_FLOW_TRANSITION,
 } from "../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
@@ -63,8 +62,8 @@ import type {
     ChallengeResultV2,
     VerifyResultV2,
 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
+import { VerifyNextActionV2 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import type { FlowContinuationStateV2 } from "./FlowContinuationStateV2.js";
-import { AuthenticationFactorV2 } from "../../network_client/custom_auth_api/v2/ApiClientConstantsV2.js";
 
 /*
  * Polls up to five times for password-update completion, waiting 1.5 seconds
@@ -138,22 +137,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             },
             context
         );
-
-        if (
-            startResult.authenticationFactor !==
-            AuthenticationFactorV2.SINGLE_FACTOR
-        ) {
-            const authenticationFactor =
-                startResult.authenticationFactor ?? "missing";
-            const message = `Sign-in start requires authentication factor '${AuthenticationFactorV2.SINGLE_FACTOR}'; received '${authenticationFactor}'.`;
-            this.logger.error(message, correlationId);
-
-            throw new CustomAuthError(
-                UNEXPECTED_AUTHENTICATION_FACTOR,
-                message,
-                correlationId
-            );
-        }
 
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: startResult.continuationToken,
@@ -477,7 +460,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     ): Promise<FlowCompletedResultV2> {
         const verifyResult = await this.verifySignInPassword(parameters);
 
-        if (verifyResult.nextAction === "continue") {
+        if (verifyResult.nextAction === VerifyNextActionV2.CONTINUE) {
             return this.completeSignInAfterPasswordVerification(
                 parameters.continuationState,
                 verifyResult.continuationToken,
@@ -550,23 +533,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         const { continuationState, correlationId } = parameters;
         const verifyResult = await this.verifySignInPassword(parameters);
 
-        if (verifyResult.nextAction === "challenge") {
-            if (
-                verifyResult.authenticationFactor !==
-                AuthenticationFactorV2.MULTI_FACTOR
-            ) {
-                const authenticationFactor =
-                    verifyResult.authenticationFactor ?? "missing";
-                const message = `Password verification challenge requires authentication factor '${AuthenticationFactorV2.MULTI_FACTOR}'; received '${authenticationFactor}'.`;
-                this.logger.error(message, correlationId);
-
-                throw new CustomAuthError(
-                    UNEXPECTED_AUTHENTICATION_FACTOR,
-                    message,
-                    correlationId
-                );
-            }
-
+        if (verifyResult.nextAction === VerifyNextActionV2.CHALLENGE) {
             return createFlowMFARequiredResultV2({
                 correlationId,
                 continuationState: {
