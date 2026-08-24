@@ -181,7 +181,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         });
 
         if (challengeResult.type !== FLOW_PASSWORD_REQUIRED_V2) {
-            const message = `Challenge type '${challengeResult.type}' is not supported for password sign-in.`;
+            const message = `Challenge type '${challengeResult.type}' is not supported for sign-in.`;
             this.logger.error(message, correlationId);
 
             throw new CustomAuthError(
@@ -193,7 +193,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         const password = parameters.password;
         if (password) {
-            return this.submitAutomaticSignInPassword({
+            return this.submitSignInPassword({
                 correlationId,
                 continuationState: challengeResult.continuationState,
                 password,
@@ -452,27 +452,16 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Verifies a sign-in password and completes token acquisition for a
-     * single-factor response.
+     * Verifies a sign-in password and returns the next sign-in action.
      */
     async submitSignInPassword(
         parameters: FlowSubmitSignInPasswordParamsV2
-    ): Promise<FlowCompletedResultV2> {
+    ): Promise<FlowMFARequiredResultV2 | FlowCompletedResultV2> {
         const verifyResult = await this.verifySignInPassword(parameters);
 
-        if (verifyResult.nextAction === VerifyNextActionV2.CONTINUE) {
-            return this.completeSignInAfterPasswordVerification(
-                parameters.continuationState,
-                verifyResult.continuationToken,
-                parameters.correlationId
-            );
-        }
-
-        const message = `Password verification next action '${verifyResult.nextAction}' is not supported for the password-required flow.`;
-        this.logger.error(message, parameters.correlationId);
-        throw new CustomAuthError(
-            UNSUPPORTED_FLOW_TRANSITION,
-            message,
+        return this.handleSignInPasswordVerification(
+            parameters.continuationState,
+            verifyResult,
             parameters.correlationId
         );
     }
@@ -527,12 +516,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         });
     }
 
-    private async submitAutomaticSignInPassword(
-        parameters: FlowSubmitSignInPasswordParamsV2
+    private async handleSignInPasswordVerification(
+        continuationState: FlowContinuationStateV2,
+        verifyResult: VerifyResultV2,
+        correlationId: string
     ): Promise<FlowMFARequiredResultV2 | FlowCompletedResultV2> {
-        const { continuationState, correlationId } = parameters;
-        const verifyResult = await this.verifySignInPassword(parameters);
-
         if (verifyResult.nextAction === VerifyNextActionV2.CHALLENGE) {
             return createFlowMFARequiredResultV2({
                 correlationId,
@@ -551,7 +539,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             });
         }
 
-        if (verifyResult.nextAction === "continue") {
+        if (verifyResult.nextAction === VerifyNextActionV2.CONTINUE) {
             return this.completeSignInAfterPasswordVerification(
                 continuationState,
                 verifyResult.continuationToken,

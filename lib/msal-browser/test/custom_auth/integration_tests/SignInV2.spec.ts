@@ -180,6 +180,42 @@ describe("Sign-in V2 entry", () => {
         expect(fetch).toHaveBeenCalledTimes(6);
     });
 
+    it("returns MFA-required after submitting a password from PasswordRequiredStateV2", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(MFA_REQUIRED_RESPONSE));
+
+        const startResult = await app.signInV2({
+            username: "user@contoso.com",
+            scopes: ["User.Read"],
+            claims: '{"access_token":{}}',
+        });
+        expect(startResult.isState("passwordRequired")).toBe(true);
+
+        const submitResult = await (
+            startResult.state as PasswordRequiredStateV2
+        ).submitPassword("P@ssword1!");
+
+        expect(submitResult.isFailed()).toBe(false);
+        expect(submitResult.isState("mfaRequired")).toBe(true);
+        expect(submitResult.state).toBeInstanceOf(MFARequiredStateV2);
+
+        if (submitResult.isState("mfaRequired")) {
+            expect(submitResult.state.methods).toEqual([
+                {
+                    id: "email-mfa",
+                    type: "email",
+                    hint: "u***@contoso.com",
+                    challengeHref: "/tenant/api/v0.1/mfa/challenge",
+                },
+            ]);
+        }
+
+        expect(fetch).toHaveBeenCalledTimes(4);
+    });
+
     it("automatically selects and submits password when multiple methods are returned", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
