@@ -111,6 +111,7 @@ export {
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     TokenBindingKeyProvisioningParameters,
 } from "./crypto/ITokenBindingKeyManager.js";
+export { PublicJsonWebKey } from "./crypto/PublicJsonWebKey.js";
 
 export * as AuthorizeProtocol from "./protocol/Authorize.js";
 export * as TokenProtocol from "./protocol/Token.js";
