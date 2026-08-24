@@ -606,7 +606,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 error: {},
                 properties: {},
                 tokenType: Constants.AuthenticationScheme.DPOP,
-                dpopProof: "test-dpop-proof",
+                DPoP: "test-dpop-proof",
                 tokenBindingKeyId: "test-token-binding-key-id",
                 attestedChosen: true,
             };
@@ -620,7 +620,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(validatedResponse).toEqual(
                 expect.objectContaining({
                     token_type: Constants.AuthenticationScheme.DPOP,
-                    DpoP: "test-dpop-proof",
+                    DPoP: "test-dpop-proof",
                     token_binding_key_id: "test-token-binding-key-id",
                     attested_chosen: true,
                 })

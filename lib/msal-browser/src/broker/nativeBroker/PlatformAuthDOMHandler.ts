@@ -181,13 +181,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             redirectUri: redirectUri,
             scope: scope,
             state: state,
-            ...(preferBinding && {
-                preferBinding,
-            }),
-            ...(validExtraParametersNoCache &&
-                Object.keys(validExtraParametersNoCache).length > 0 && {
-                    extraParametersNoCache: validExtraParametersNoCache,
-                }),
+            preferBinding: preferBinding,
+            extraParametersNoCache: validExtraParametersNoCache,
         };
 
         return platformDOMRequest;
@@ -265,18 +260,10 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             properties: response.properties || {},
             extendedLifetimeToken: response.extendedLifetimeToken ?? false,
             shr: response.proofOfPossessionPayload,
-            ...(response.tokenType && {
-                token_type: response.tokenType,
-            }),
-            ...(response.dpopProof && {
-                DpoP: response.dpopProof,
-            }),
-            ...(response.tokenBindingKeyId && {
-                token_binding_key_id: response.tokenBindingKeyId,
-            }),
-            ...(typeof response.attestedChosen === "boolean" && {
-                attested_chosen: response.attestedChosen,
-            }),
+            token_type: response.tokenType,
+            DPoP: response.DPoP,
+            token_binding_key_id: response.tokenBindingKeyId,
+            attested_chosen: response.attestedChosen,
         };
 
         return nativeResponse;
