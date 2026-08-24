@@ -8,6 +8,7 @@ import { CustomAuthStandardController } from "../../../src/custom_auth/controlle
 import { PasswordRequiredStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { MFARequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/MFARequiredStateV2.js";
+import { ChallengeVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import {
     NO_AUTHENTICATION_METHODS,
@@ -109,6 +110,30 @@ const MFA_REQUIRED_RESPONSE = {
                 },
             },
         ],
+    },
+};
+
+const MFA_CHALLENGE_RESPONSE = {
+    continuationToken: "ct-mfa-challenge",
+    codeLength: 6,
+    hint: "u***@contoso.com",
+    type: "email",
+    _links: {
+        verify: { href: "/tenant/api/v0.1/mfa/verify" },
+        resend: { href: "/tenant/api/v0.1/mfa/resend" },
+    },
+};
+
+const MFA_RESEND_RESPONSE = {
+    ...MFA_CHALLENGE_RESPONSE,
+    continuationToken: "ct-mfa-resend",
+};
+
+const MFA_VERIFY_RESPONSE = {
+    continuationToken: "ct-mfa-verify",
+    state: "continue",
+    _links: {
+        continue: { href: "/tenant/oauth2/v2.0/authorize-challenge" },
     },
 };
 
@@ -214,6 +239,57 @@ describe("Sign-in V2 entry", () => {
         }
 
         expect(fetch).toHaveBeenCalledTimes(4);
+    });
+
+    it("resends and verifies an MFA code to complete sign-in", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(MFA_REQUIRED_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(MFA_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(MFA_RESEND_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(MFA_VERIFY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+        const startResult = await app.signInV2({
+            username: "user@contoso.com",
+            scopes: ["User.Read"],
+            claims: '{"access_token":{}}',
+        });
+        const passwordResult = await (
+            startResult.state as PasswordRequiredStateV2
+        ).submitPassword("P@ssword1!");
+        const mfaState = passwordResult.state as MFARequiredStateV2;
+
+        const challengeResult = await mfaState.requestChallenge(
+            mfaState.methods[0]
+        );
+
+        expect(challengeResult.isState("challengeVerificationRequired")).toBe(
+            true
+        );
+        expect(challengeResult.state).toBeInstanceOf(
+            ChallengeVerificationRequiredStateV2
+        );
+
+        const resendResult = await (
+            challengeResult.state as ChallengeVerificationRequiredStateV2
+        ).requestNewChallenge();
+
+        expect(resendResult.isState("challengeVerificationRequired")).toBe(
+            true
+        );
+
+        const completedResult = await (
+            resendResult.state as ChallengeVerificationRequiredStateV2
+        ).verifyChallenge("123456");
+
+        expect(completedResult.isState("completed")).toBe(true);
+        expect(completedResult.state).toBeInstanceOf(CompletedStateV2);
+        expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);
+        expect(fetch).toHaveBeenCalledTimes(9);
     });
 
     it("automatically selects and submits password when multiple methods are returned", async () => {

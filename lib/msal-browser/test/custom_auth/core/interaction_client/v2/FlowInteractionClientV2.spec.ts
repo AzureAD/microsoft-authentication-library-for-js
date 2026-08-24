@@ -546,6 +546,69 @@ describe("FlowInteractionClientV2", () => {
             });
         });
 
+        it("verifies an MFA code and completes sign-in", async () => {
+            const signInContinuationState: FlowContinuationStateV2 = {
+                continuationToken: "ct-mfa-challenge",
+                scenario: "signIn",
+                links: {
+                    verify: "https://endpoint/mfa/verify",
+                },
+                tokenRequest: {
+                    scopes: ["User.Read"],
+                    claims: '{"access_token":{}}',
+                },
+            };
+            const tokenResponse = {
+                token_type: "Bearer",
+                expires_in: 3600,
+                access_token: "at",
+                refresh_token: "rt",
+                scope: "openid profile offline_access User.Read",
+                id_token: "id",
+                client_info: "ci",
+            };
+            const fakeAuthResult = {
+                account: { homeAccountId: "uid.utid" },
+            };
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "continue",
+                continuationToken: "ct-mfa-verify",
+            });
+            apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
+            jest.spyOn(
+                client as unknown as {
+                    handleTokenResponse: (
+                        ...args: unknown[]
+                    ) => Promise<unknown>;
+                },
+                "handleTokenResponse"
+            ).mockResolvedValue(fakeAuthResult);
+
+            const result = await client.submitCode({
+                correlationId,
+                continuationState: signInContinuationState,
+                code: "123456",
+            });
+
+            expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
+                {
+                    continuationToken: "ct-mfa-verify",
+                    scopes: [
+                        "User.Read",
+                        "openid",
+                        "profile",
+                        "offline_access",
+                    ],
+                    claims: '{"access_token":{}}',
+                },
+                expect.objectContaining({ correlationId })
+            );
+            expect(result.type).toBe(FLOW_COMPLETED_V2);
+            expect((result as FlowCompletedResultV2).authenticationResult).toBe(
+                fakeAuthResult
+            );
+        });
+
         it("throws when the continuation is missing the verify link", async () => {
             await expect(
                 client.submitCode({
@@ -580,7 +643,7 @@ describe("FlowInteractionClientV2", () => {
             ).rejects.toThrow();
 
             expect(errorSpy).toHaveBeenCalledWith(
-                "Verification next action 'continue' is not supported for the current flow.",
+                "Verification next action 'continue' is not supported for the 'passwordReset' flow.",
                 correlationId
             );
         });

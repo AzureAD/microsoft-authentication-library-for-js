@@ -295,7 +295,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      */
     async submitCode(
         parameters: FlowSubmitCodeParamsV2
-    ): Promise<FlowNewPasswordRequiredResultV2> {
+    ): Promise<FlowNewPasswordRequiredResultV2 | FlowCompletedResultV2> {
         const continuationState = parameters.continuationState;
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
@@ -318,31 +318,40 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             context
         );
 
-        switch (verifyResult.nextAction) {
-            case "update":
-                return createFlowNewPasswordRequiredResultV2({
-                    correlationId,
-                    continuationState: {
-                        continuationToken: verifyResult.continuationToken,
-                        scenario: continuationState.scenario,
-                        links: { update: verifyResult.updateHref },
-                    },
-                });
-            default:
-                /*
-                 * `continue` (redeem-for-tokens) is only produced by sign-in's verify, which is not
-                 * wired yet; SSPR's verify always yields `update`. Guard so an unexpected outcome is
-                 * a clear failure rather than a silent wrong state.
-                 */
-                const message = `Verification next action '${verifyResult.nextAction}' is not supported for the current flow.`;
-                this.logger.error(message, correlationId);
-
-                throw new CustomAuthError(
-                    UNSUPPORTED_FLOW_TRANSITION,
-                    message,
-                    correlationId
-                );
+        if (
+            continuationState.scenario ===
+                CustomAuthFlowScenarioV2.PasswordReset &&
+            verifyResult.nextAction === VerifyNextActionV2.UPDATE
+        ) {
+            return createFlowNewPasswordRequiredResultV2({
+                correlationId,
+                continuationState: {
+                    continuationToken: verifyResult.continuationToken,
+                    scenario: continuationState.scenario,
+                    links: { update: verifyResult.updateHref },
+                },
+            });
         }
+
+        if (
+            continuationState.scenario === CustomAuthFlowScenarioV2.SignIn &&
+            verifyResult.nextAction === VerifyNextActionV2.CONTINUE
+        ) {
+            return this.completeSignInAfterVerification(
+                continuationState,
+                verifyResult.continuationToken,
+                correlationId
+            );
+        }
+
+        const message = `Verification next action '${verifyResult.nextAction}' is not supported for the '${continuationState.scenario}' flow.`;
+        this.logger.error(message, correlationId);
+
+        throw new CustomAuthError(
+            UNSUPPORTED_FLOW_TRANSITION,
+            message,
+            correlationId
+        );
     }
 
     /*
@@ -540,7 +549,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         }
 
         if (verifyResult.nextAction === VerifyNextActionV2.CONTINUE) {
-            return this.completeSignInAfterPasswordVerification(
+            return this.completeSignInAfterVerification(
                 continuationState,
                 verifyResult.continuationToken,
                 correlationId
@@ -581,7 +590,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         );
     }
 
-    private completeSignInAfterPasswordVerification(
+    private completeSignInAfterVerification(
         continuationState: FlowContinuationStateV2,
         continuationToken: string,
         correlationId: string
