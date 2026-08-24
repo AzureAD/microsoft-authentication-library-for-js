@@ -46,10 +46,11 @@
   ],
   "scripts": {
     "build": "npm run clean && rollup -c --strictDeprecations --bundleConfigAsCjs && npm run build:types",
-    "build:types": "tsc -p tsconfig.build.types.json",
+    "build:types": "tsc -p tsconfig.build.types.json && npm run test:types:no-dom",
     "build:watch": "rollup -c --watch --strictDeprecations --bundleConfigAsCjs",
     "clean": "shx rm -rf dist types lib",
     "test": "jest",
+    "test:types:no-dom": "tsc -p test/type-check/no-dom/tsconfig.json",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts",
