@@ -7,6 +7,7 @@ export const SIGNIN_INITIATE = "/oauth2/v2.0/initiate";
 export const SIGNIN_CHALLENGE = "/oauth2/v2.0/challenge";
 export const SIGNIN_TOKEN = "/oauth2/v2.0/token";
 export const SIGNIN_INTROSPECT = "/oauth2/v2.0/introspect";
+export const AUTHORIZE_CHALLENGE = "/oauth2/v2.0/authorize-challenge";
 
 export const SIGNUP_START = "/signup/v1.0/start";
 export const SIGNUP_CHALLENGE = "/signup/v1.0/challenge";
