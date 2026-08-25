@@ -38,7 +38,6 @@ import { LoopbackClient } from "../network/LoopbackClient.js";
 import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
 import { SignOutRequest } from "../request/SignOutRequest.js";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest.js";
-import { ILoopbackClient } from "../network/ILoopbackClient.js";
 import { DeviceCodeClient } from "./DeviceCodeClient.js";
 import { version } from "../packageMetadata.js";
 
@@ -159,17 +158,9 @@ export class PublicClientApplication
             successTemplate,
             errorTemplate,
             windowHandle,
-            loopbackClient: customLoopbackClient,
             preferredPort,
             ...remainingProperties
         } = request;
-
-        if (customLoopbackClient) {
-            this.logger.warning(
-                "The loopbackClient option is deprecated and will be removed in a future major version. Omit it to use the built-in loopback server, and set preferredPort when a fixed port is required.",
-                correlationId
-            );
-        }
 
         if (this.nativeBrokerPlugin) {
             const brokerRequest: NativeRequest = {
@@ -206,13 +197,12 @@ export class PublicClientApplication
         const { verifier, challenge } =
             await this.cryptoProvider.generatePkceCodes();
 
-        const loopbackClient: ILoopbackClient =
-            customLoopbackClient || new LoopbackClient(preferredPort);
+        const loopbackClient = new LoopbackClient(preferredPort);
 
         // Validate and resolve responseMode
         const responseMode =
             remainingProperties.responseMode ??
-            CommonConstants.ResponseMode.QUERY;
+            CommonConstants.ResponseMode.FORM_POST;
 
         if (
             responseMode !== CommonConstants.ResponseMode.QUERY &&
@@ -396,12 +386,12 @@ export class PublicClientApplication
 
     /**
      * Attempts to retrieve the redirectUri from the loopback server. If the loopback server does not start listening for requests within the timeout this will throw.
-     * @param loopbackClient - developer provided custom loopback server implementation
+     * @param loopbackClient - built-in loopback server implementation
      * @param correlationId - correlation id of the request
      * @returns
      */
     private async waitForRedirectUri(
-        loopbackClient: ILoopbackClient,
+        loopbackClient: LoopbackClient,
         correlationId: string
     ): Promise<string> {
         return new Promise<string>((resolve, reject) => {
