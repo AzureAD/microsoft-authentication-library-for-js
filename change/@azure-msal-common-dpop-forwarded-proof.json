@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Allow brokered DPoP requests to forward embedded-generated token proofs and export the shared DPoP token-endpoint (htu) normalizer for endpoint agreement [#0000](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/0000)",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}

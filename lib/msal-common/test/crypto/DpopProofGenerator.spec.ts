@@ -6,6 +6,7 @@
 import {
     DpopProofClaims,
     DpopProofGenerator,
+    normalizeDpopHtu,
 } from "../../src/crypto/DpopProofGenerator.js";
 import { ICrypto, JsonWebTokenAlgorithms } from "../../src/crypto/ICrypto.js";
 import { ITokenBindingKeyManager } from "../../src/crypto/ITokenBindingKeyManager.js";
@@ -86,6 +87,84 @@ describe("DpopProofGenerator Unit Tests", () => {
             signature,
         };
     }
+
+    describe("normalizeDpopHtu (exported canonical helper)", () => {
+        it("strips query and fragment components (FR5.5.8)", () => {
+            expect(
+                normalizeDpopHtu(
+                    "https://login.microsoftonline.com/common/oauth2/v2.0/token?client_id=abc#frag",
+                    ""
+                )
+            ).toBe(
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+            );
+        });
+
+        it("lowercases scheme and host while preserving path casing", () => {
+            expect(
+                normalizeDpopHtu(
+                    "HTTPS://LOGIN.MicrosoftOnline.com/TenantID/OAuth2/v2.0/Token",
+                    ""
+                )
+            ).toBe(
+                "https://login.microsoftonline.com/TenantID/OAuth2/v2.0/Token"
+            );
+        });
+
+        it("elides explicit default HTTPS port", () => {
+            expect(
+                normalizeDpopHtu(
+                    "https://login.microsoftonline.com:443/common/oauth2/v2.0/token",
+                    ""
+                )
+            ).toBe(
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+            );
+        });
+
+        it("preserves an explicit non-default port", () => {
+            expect(
+                normalizeDpopHtu(
+                    "https://login.microsoftonline.com:8443/common/oauth2/v2.0/token",
+                    ""
+                )
+            ).toBe(
+                "https://login.microsoftonline.com:8443/common/oauth2/v2.0/token"
+            );
+        });
+
+        it("rejects a non-HTTPS endpoint", () => {
+            expect(() =>
+                normalizeDpopHtu(
+                    "http://login.microsoftonline.com/common/oauth2/v2.0/token",
+                    ""
+                )
+            ).toThrowError();
+        });
+
+        it("rejects an endpoint carrying userinfo", () => {
+            expect(() =>
+                normalizeDpopHtu(
+                    "https://user:pass@login.microsoftonline.com/common/oauth2/v2.0/token",
+                    ""
+                )
+            ).toThrowError();
+        });
+
+        it("rejects a malformed URL", () => {
+            expect(() => normalizeDpopHtu("not-a-url", "")).toThrowError();
+        });
+
+        it("is the same normalization used to build proof htu claims", () => {
+            const tokenEndpoint =
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token?client_id=abc#frag";
+            const claims = generator.buildTokenProofClaims(
+                { tokenEndpoint },
+                ""
+            );
+            expect(claims.htu).toBe(normalizeDpopHtu(tokenEndpoint, ""));
+        });
+    });
 
     describe("generateJkt", () => {
         it("provisions a DPoP ES256 key and returns the generated JWK thumbprint", async () => {
