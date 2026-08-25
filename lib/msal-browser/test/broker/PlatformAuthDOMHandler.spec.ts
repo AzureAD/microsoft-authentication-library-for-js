@@ -483,7 +483,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 isSts: false,
                 preferBinding: "test-prefer-binding",
                 reqCnf: "test-req-cnf",
-                tokenType: Constants.AuthenticationScheme.DPOP,
+                tokenType: "dpop_proof",
                 resourceRequestMethod: "POST",
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 extraParametersNoCache: {
@@ -511,7 +511,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                     customUserInput: "test-user-input",
                     windowTitleSubstring: "test-window-substring",
                     reqCnf: "test-req-cnf",
-                    tokenType: Constants.AuthenticationScheme.DPOP,
+                    tokenType: "dpop_proof",
                 },
                 extraParametersNoCache: {
                     pop_method: "POST",
@@ -605,8 +605,8 @@ describe("PlatformAuthDOMHandler tests", () => {
                 scopes: "read openid",
                 error: {},
                 properties: {},
-                tokenType: Constants.AuthenticationScheme.DPOP,
-                DPoP: "test-dpop-proof",
+                tokenType: "dpop_proof",
+                dpopProof: "test-dpop-proof",
                 tokenBindingKeyId: "test-token-binding-key-id",
                 attestedChosen: true,
             };
@@ -619,8 +619,8 @@ describe("PlatformAuthDOMHandler tests", () => {
 
             expect(validatedResponse).toEqual(
                 expect.objectContaining({
-                    token_type: Constants.AuthenticationScheme.DPOP,
-                    DPoP: "test-dpop-proof",
+                    token_type: "dpop_proof",
+                    dpop_proof: "test-dpop-proof",
                     token_binding_key_id: "test-token-binding-key-id",
                     attested_chosen: true,
                 })
@@ -699,7 +699,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(domExtraParams).not.toHaveProperty("instanceAware");
         });
 
-        it("should catch JSON.stringify error and return empty object", async () => {
+        it("should catch JSON.stringify error without PII logging and return empty object", async () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
@@ -730,10 +730,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(loggerErrorSpy.mock.calls[0][0]).toContain(
                 "'PlatformAuthDOMHandler' - Error stringifying extra parameters"
             );
-            expect(loggerErrorPiiSpy).toHaveBeenCalled();
-            expect(loggerErrorPiiSpy.mock.calls[0][0]).toContain(
-                "'PlatformAuthDOMHandler' - Error stringifying extra parameters"
-            );
+            expect(loggerErrorPiiSpy).not.toHaveBeenCalled();
         });
     });
 });

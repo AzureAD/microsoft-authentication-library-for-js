@@ -103,14 +103,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             `'${this.platformAuthType}' - Sending request to browser extension`,
             request.correlationId
         );
-        this.logger.tracePii(
-            `'${
-                this.platformAuthType
-            }' - Sending request to browser extension: '${JSON.stringify(
-                req
-            )}'`,
-            request.correlationId
-        );
         this.messageChannel.port1.postMessage(req);
 
         const response: object = await new Promise((resolve, reject) => {
@@ -135,7 +127,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
 
         const isProofOfPossessionRequest =
             request.tokenType === Constants.AuthenticationScheme.POP ||
-            request.tokenType === Constants.AuthenticationScheme.DPOP;
+            request.tokenType === Constants.AuthenticationScheme.DPOP ||
+            request.tokenType === "dpop_proof";
 
         const nativeExtraParametersNoCache = isProofOfPossessionRequest
             ? {
@@ -353,14 +346,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                     `'${this.platformAuthType}' - Received response from browser extension`,
                     correlationId
                 );
-                this.logger.tracePii(
-                    `'${
-                        this.platformAuthType
-                    }' - Received response from browser extension: '${JSON.stringify(
-                        response
-                    )}'`,
-                    correlationId
-                );
                 if (response.status !== "Success") {
                     resolver.reject(
                         createNativeAuthError(
@@ -428,11 +413,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 "Error parsing response from WAM Extension",
                 correlationId
             );
-            this.logger.errorPii(
-                `Error parsing response from WAM Extension: '${err as string}'`,
-                correlationId
-            );
-            this.logger.errorPii(`Unable to parse '${event}'`, correlationId);
 
             if (resolver) {
                 resolver.reject(err as AuthError);

@@ -26,7 +26,7 @@ export type PlatformAuthResponse = {
     state: string;
     shr?: string;
     token_type?: string;
-    DPoP?: string;
+    dpop_proof?: string;
     token_binding_key_id?: string;
     attested_chosen?: boolean;
     extendedLifetimeToken?: boolean;
@@ -70,7 +70,7 @@ export type PlatformDOMTokenResponse = {
     scopes: string;
     proofOfPossessionPayload?: string;
     tokenType?: string;
-    DPoP?: string;
+    dpopProof?: string;
     tokenBindingKeyId?: string;
     attestedChosen?: boolean;
     extendedLifetimeToken?: boolean;

@@ -278,8 +278,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 },
                 scope: "read openid",
                 expires_in: "3600",
-                token_type: "DPoP",
-                DPoP: "test-dpop-proof",
+                token_type: "dpop_proof",
+                dpop_proof: "test-dpop-proof",
                 token_binding_key_id: "test-token-binding-key-id",
                 attested_chosen: true,
             };
@@ -312,7 +312,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                         ...TEST_REQUEST,
                         preferBinding: "test-prefer-binding",
                         reqCnf: "test-req-cnf",
-                        tokenType: Constants.AuthenticationScheme.DPOP,
+                        tokenType: "dpop_proof",
                         extraParametersNoCache: {
                             pop_method: "POST",
                             pop_uri: "https://graph.microsoft.com/v1.0/me",
@@ -349,7 +349,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 ...TEST_REQUEST,
                 preferBinding: "test-prefer-binding",
                 reqCnf: "test-req-cnf",
-                tokenType: Constants.AuthenticationScheme.DPOP,
+                tokenType: "dpop_proof",
                 resourceRequestMethod: "POST",
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 extraParametersNoCache: {

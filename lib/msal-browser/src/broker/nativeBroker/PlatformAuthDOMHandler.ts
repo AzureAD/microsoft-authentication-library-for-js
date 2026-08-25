@@ -158,7 +158,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         );
         const isProofOfPossessionRequest =
             request.tokenType === Constants.AuthenticationScheme.POP ||
-            request.tokenType === Constants.AuthenticationScheme.DPOP;
+            request.tokenType === Constants.AuthenticationScheme.DPOP ||
+            request.tokenType === "dpop_proof";
 
         const validExtraParametersNoCache = this.getDOMExtraParamsNoCache(
             isProofOfPossessionRequest,
@@ -261,7 +262,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             extendedLifetimeToken: response.extendedLifetimeToken ?? false,
             shr: response.proofOfPossessionPayload,
             token_type: response.tokenType,
-            DPoP: response.DPoP,
+            dpop_proof: response.dpopProof,
             token_binding_key_id: response.tokenBindingKeyId,
             attested_chosen: response.attestedChosen,
         };
@@ -310,10 +311,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         } catch (e) {
             this.logger.error(
                 `'${this.platformAuthType}' - Error stringifying extra parameters`,
-                correlationId
-            );
-            this.logger.errorPii(
-                `'${this.platformAuthType}' - Error stringifying extra parameters: '${e}'`,
                 correlationId
             );
             return {};
