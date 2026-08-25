@@ -11,9 +11,8 @@ import {
 import http from "http";
 import { NodeAuthError } from "../error/NodeAuthError.js";
 import { Constants } from "../utils/Constants.js";
-import { ILoopbackClient } from "./ILoopbackClient.js";
 
-export class LoopbackClient implements ILoopbackClient {
+export class LoopbackClient {
     private server: http.Server | undefined;
     private preferredPort: number | undefined;
 

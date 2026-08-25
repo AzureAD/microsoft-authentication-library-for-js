@@ -7,7 +7,6 @@ import {
     InteractiveRequest,
     SilentFlowRequest,
 } from "@azure/msal-node";
-import { CustomLoopbackClient } from "./CustomLoopbackClient";
 import { cachePlugin } from "./CachePlugin";
 import * as fs from "fs";
 
@@ -117,14 +116,6 @@ export default class AuthProvider {
         tokenRequest: SilentFlowRequest
     ): Promise<AuthenticationResult> {
         try {
-            /**
-             * A loopback server of your own implementation, which can have custom logic
-             * such as attempting to listen on a given port if it is available.
-             */
-            const customLoopbackClient = await CustomLoopbackClient.initialize(
-                3874
-            );
-
             // opens a browser instance via Electron shell API
             const openBrowser = async (url: any) => {
                 if (process.env.automation >= "1") {
@@ -143,7 +134,7 @@ export default class AuthProvider {
                 errorTemplate: fs
                     .readFileSync("./public/errorTemplate.html", "utf8")
                     .toString(),
-                loopbackClient: customLoopbackClient, // overrides default loopback client
+                preferredPort: 3874,
             };
 
             const authResponse =
