@@ -98,8 +98,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected skus: string;
     private msalOwnedDpopKeys = new Set<string>();
 
-    private static readonly DPOP_BROKER_REQUEST_TOKEN_TYPE = "dpop_proof";
-    private static readonly DPOP_L1_RESPONSE_TOKEN_TYPE = "dpop";
+    private static readonly DPOP_BROKER_REQUEST_TOKEN_TYPE =
+        Constants.AuthenticationScheme.DPOP;
 
     constructor(
         config: BrowserConfiguration,
@@ -718,7 +718,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // cache accounts and tokens in the appropriate storage
         const isL3DpopResponse =
             response.token_type?.toLowerCase() ===
-            PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE;
+                PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE.toLowerCase() &&
+            response.DPoP !== undefined;
         await this.cacheAccount(
             baseAccount,
             AuthToken.isKmsi(idTokenClaims),
@@ -1017,8 +1018,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         if (
             request.tokenType ===
                 PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE &&
-            response.token_type?.toLowerCase() ===
-                PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE
+            response.DPoP !== undefined
         ) {
             return;
         }
@@ -1382,12 +1382,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             request.tokenType ===
             PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE;
         const responseTokenType = response.token_type?.toLowerCase();
+        const isDpopResponseToken =
+            responseTokenType ===
+            PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE.toLowerCase();
         const hasDpopResponse =
-            responseTokenType ===
-                PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE ||
-            responseTokenType ===
-                PlatformAuthInteractionClient.DPOP_L1_RESPONSE_TOKEN_TYPE ||
-            response.dpop_proof !== undefined ||
+            isDpopResponseToken ||
+            response.DPoP !== undefined ||
             response.attested_chosen !== undefined ||
             response.token_binding_key_id !== undefined;
 
@@ -1402,12 +1402,17 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return;
         }
 
-        if (
-            responseTokenType ===
-            PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE
-        ) {
+        if (!isDpopResponseToken) {
+            throw createAuthError(
+                AuthErrorCodes.unexpectedError,
+                this.correlationId,
+                "Unknown DPoP broker response."
+            );
+        }
+
+        if (response.DPoP !== undefined) {
             if (
-                !response.dpop_proof?.trim() ||
+                !response.DPoP.trim() ||
                 response.attested_chosen !== true ||
                 (response.token_binding_key_id !== undefined &&
                     response.token_binding_key_id === request.keyId)
@@ -1429,51 +1434,33 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
 
         if (
-            responseTokenType ===
-            PlatformAuthInteractionClient.DPOP_L1_RESPONSE_TOKEN_TYPE
+            !request.reqCnf ||
+            !request.keyId ||
+            response.attested_chosen === true ||
+            (response.token_binding_key_id !== undefined &&
+                response.token_binding_key_id !== request.keyId)
         ) {
-            if (
-                response.dpop_proof !== undefined ||
-                !request.reqCnf ||
-                !request.keyId ||
-                response.attested_chosen === true ||
-                (response.token_binding_key_id !== undefined &&
-                    response.token_binding_key_id !== request.keyId)
-            ) {
-                throw createAuthError(
-                    AuthErrorCodes.unexpectedError,
-                    this.correlationId,
-                    "Malformed DPoP broker fallback response."
-                );
-            }
-            this.performanceClient.addFields(
-                {
-                    "ext.brokerDpopSupported": true,
-                    "ext.brokerDpopBindingLevel": "L1",
-                },
-                this.correlationId
-            );
-            return;
-        }
-
-        if (hasDpopResponse || isDpopRequest) {
             throw createAuthError(
                 AuthErrorCodes.unexpectedError,
                 this.correlationId,
-                "Unknown DPoP broker response."
+                "Malformed DPoP broker fallback response."
             );
         }
+        this.performanceClient.addFields(
+            {
+                "ext.brokerDpopSupported": true,
+                "ext.brokerDpopBindingLevel": "L1",
+            },
+            this.correlationId
+        );
     }
 
     private async generateDpopProof(
         response: PlatformAuthResponse,
         request: PlatformAuthRequest
     ): Promise<string> {
-        if (
-            response.token_type?.toLowerCase() ===
-            PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE
-        ) {
-            return response.dpop_proof as string;
+        if (response.DPoP !== undefined) {
+            return response.DPoP;
         }
 
         const dpopProofGenerator = new DpopProofGenerator(

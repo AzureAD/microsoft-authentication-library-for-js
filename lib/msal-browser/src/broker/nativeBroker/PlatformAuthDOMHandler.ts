@@ -158,8 +158,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         );
         const isProofOfPossessionRequest =
             request.tokenType === Constants.AuthenticationScheme.POP ||
-            request.tokenType === Constants.AuthenticationScheme.DPOP ||
-            request.tokenType === "dpop_proof";
+            request.tokenType === Constants.AuthenticationScheme.DPOP;
 
         const validExtraParametersNoCache = this.getDOMExtraParamsNoCache(
             isProofOfPossessionRequest,
@@ -262,7 +261,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             extendedLifetimeToken: response.extendedLifetimeToken ?? false,
             shr: response.proofOfPossessionPayload,
             token_type: response.tokenType,
-            dpop_proof: response.dpopProof,
+            DPoP: response.DPoP,
             token_binding_key_id: response.tokenBindingKeyId,
             attested_chosen: response.attestedChosen,
         };

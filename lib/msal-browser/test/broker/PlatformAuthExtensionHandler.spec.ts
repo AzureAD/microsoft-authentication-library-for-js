@@ -8,6 +8,7 @@ import {
     AuthError,
     AuthErrorCodes,
     IPerformanceClient,
+    Constants,
 } from "@azure/msal-common";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { NativeExtensionMethod } from "../../src/utils/BrowserConstants.js";
@@ -305,8 +306,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 },
                 scope: "read openid",
                 expires_in: "3600",
-                token_type: "dpop_proof",
-                dpop_proof: "test-dpop-proof",
+                token_type: "DPoP",
+                DPoP: "test-dpop-proof",
                 token_binding_key_id: "test-token-binding-key-id",
                 attested_chosen: true,
             };
@@ -339,7 +340,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                         ...TEST_REQUEST,
                         preferBinding: "test-prefer-binding",
                         reqCnf: "test-req-cnf",
-                        tokenType: "dpop_proof",
+                        tokenType: Constants.AuthenticationScheme.DPOP,
                         extraParametersNoCache: {
                             pop_method: "POST",
                             pop_uri: "https://graph.microsoft.com/v1.0/me",
@@ -376,7 +377,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 ...TEST_REQUEST,
                 preferBinding: "test-prefer-binding",
                 reqCnf: "test-req-cnf",
-                tokenType: "dpop_proof",
+                tokenType: Constants.AuthenticationScheme.DPOP,
                 resourceRequestMethod: "POST",
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 extraParametersNoCache: {

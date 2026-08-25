@@ -284,8 +284,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
                 .mockResolvedValue({
                     ...MOCK_WAM_RESPONSE,
-                    token_type: "dpop_proof",
-                    dpop_proof: "test-dpop-proof",
+                    token_type: Constants.AuthenticationScheme.DPOP,
+                    DPoP: "test-dpop-proof",
                     attested_chosen: true,
                 });
             const saveCacheRecordSpy = jest.spyOn(
@@ -312,7 +312,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             const brokerRequest = sendMessageSpy.mock.calls[0][0];
             expect(brokerRequest).toEqual(
                 expect.objectContaining({
-                    tokenType: "dpop_proof",
+                    tokenType: Constants.AuthenticationScheme.DPOP,
                     reqCnf: expect.any(String),
                     keyId: expect.any(String),
                     preferBinding: "attested",
@@ -364,7 +364,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "sendMessage"
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
-                token_type: "dpop",
+                token_type: Constants.AuthenticationScheme.DPOP,
                 attested_chosen: false,
             });
             const saveCacheRecordSpy = jest.spyOn(
@@ -458,7 +458,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "sendMessage"
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
-                token_type: "dpop",
+                token_type: Constants.AuthenticationScheme.DPOP,
                 attested_chosen: false,
             });
 
@@ -523,21 +523,26 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
         it.each([
             {
-                name: "L3 outcome without a proof",
-                response: { token_type: "dpop_proof" },
+                name: "L3 outcome with an empty proof",
+                response: {
+                    token_type: Constants.AuthenticationScheme.DPOP,
+                    DPoP: " ",
+                    attested_chosen: true,
+                },
             },
             {
                 name: "L3 outcome without affirmative attestation",
                 response: {
-                    token_type: "dpop_proof",
-                    dpop_proof: "test-dpop-proof",
+                    token_type: Constants.AuthenticationScheme.DPOP,
+                    DPoP: "test-dpop-proof",
                 },
             },
             {
-                name: "L1 fallback with a broker proof",
+                name: "L3 outcome with rejected attestation",
                 response: {
-                    token_type: "dpop",
-                    dpop_proof: "unexpected-proof",
+                    token_type: Constants.AuthenticationScheme.DPOP,
+                    DPoP: "unexpected-proof",
+                    attested_chosen: false,
                 },
             },
             {
@@ -547,7 +552,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             {
                 name: "attested L1 fallback",
                 response: {
-                    token_type: "dpop",
+                    token_type: Constants.AuthenticationScheme.DPOP,
                     attested_chosen: true,
                 },
             },
@@ -596,15 +601,13 @@ describe("PlatformAuthInteractionClient Tests", () => {
         it.each([
             {
                 name: "broker proof",
-                response: { dpop_proof: "unexpected-proof" },
+                response: { DPoP: "unexpected-proof" },
             },
             {
-                name: "L3 token type",
-                response: { token_type: "dpop_proof" },
-            },
-            {
-                name: "L1 token type",
-                response: { token_type: "dpop" },
+                name: "DPoP token type",
+                response: {
+                    token_type: Constants.AuthenticationScheme.DPOP,
+                },
             },
             {
                 name: "attested binding indicator",
@@ -712,8 +715,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "sendMessage"
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
-                token_type: "dpop_proof",
-                dpop_proof: "broker-dpop-proof",
+                token_type: Constants.AuthenticationScheme.DPOP,
+                DPoP: "broker-dpop-proof",
                 attested_chosen: true,
             });
 
@@ -753,7 +756,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     authority: TEST_CONFIG.validAuthority,
                     correlationId: RANDOM_TEST_GUID,
                     scope: "User.Read",
-                    tokenType: "dpop_proof",
+                    tokenType: Constants.AuthenticationScheme.DPOP,
                     keyId: "caller-dpop-key",
                     resourceRequestMethod: "POST",
                     resourceRequestUri:
@@ -832,6 +835,32 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 expect(sendMessageSpy).not.toHaveBeenCalled();
             }
         );
+
+        it("Extension: surfaces the broker DPoP proof in the authentication result", async () => {
+            jest.spyOn(
+                // @ts-ignore
+                platformAuthInteractionClient.tokenBindingKeyManager,
+                "provisionTokenBindingKey"
+            ).mockResolvedValue("local-dpop-key");
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockResolvedValue({
+                ...MOCK_WAM_RESPONSE,
+                token_type: Constants.AuthenticationScheme.DPOP,
+                DPoP: "test-dpop-proof",
+                attested_chosen: true,
+            });
+
+            const response = await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            });
+
+            expect(response.dpopProof).toBe("test-dpop-proof");
+        });
 
         it("Extension: token request contains user input extra params", async () => {
             const sendMessageSpy = jest
@@ -1943,8 +1972,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "sendMessage"
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
-                token_type: "dpop_proof",
-                dpop_proof: "broker-dpop-proof",
+                token_type: Constants.AuthenticationScheme.DPOP,
+                DPoP: "broker-dpop-proof",
                 attested_chosen: true,
             });
 
@@ -2004,8 +2033,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "sendMessage"
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
-                token_type: "dpop_proof",
-                dpop_proof: "broker-dpop-proof",
+                token_type: Constants.AuthenticationScheme.DPOP,
+                DPoP: "broker-dpop-proof",
                 attested_chosen: true,
             });
 
@@ -2572,10 +2601,12 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 });
 
-            expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
-            expect(nativeRequest.tokenType).toBe("dpop_proof");
-            expect(nativeRequest.preferBinding).toBe("attested");
-            expect(nativeRequest.resourceRequestMethod).toBe("POST");
+                expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
+                expect(nativeRequest.tokenType).toBe(
+                    Constants.AuthenticationScheme.DPOP
+                );
+                expect(nativeRequest.preferBinding).toBe("attested");
+                expect(nativeRequest.resourceRequestMethod).toBe("POST");
             expect(nativeRequest.resourceRequestUri).toBe(
                 "https://graph.microsoft.com/v1.0/me"
             );

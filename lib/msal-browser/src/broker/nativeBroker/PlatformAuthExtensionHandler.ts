@@ -137,8 +137,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
 
         const isProofOfPossessionRequest =
             request.tokenType === Constants.AuthenticationScheme.POP ||
-            request.tokenType === Constants.AuthenticationScheme.DPOP ||
-            request.tokenType === "dpop_proof";
+            request.tokenType === Constants.AuthenticationScheme.DPOP;
 
         const nativeExtraParametersNoCache = isProofOfPossessionRequest
             ? {

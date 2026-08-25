@@ -483,7 +483,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 isSts: false,
                 preferBinding: "test-prefer-binding",
                 reqCnf: "test-req-cnf",
-                tokenType: "dpop_proof",
+                tokenType: Constants.AuthenticationScheme.DPOP,
                 resourceRequestMethod: "POST",
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 extraParametersNoCache: {
@@ -511,7 +511,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                     customUserInput: "test-user-input",
                     windowTitleSubstring: "test-window-substring",
                     reqCnf: "test-req-cnf",
-                    tokenType: "dpop_proof",
+                    tokenType: Constants.AuthenticationScheme.DPOP,
                 },
                 extraParametersNoCache: {
                     pop_method: "POST",
@@ -605,8 +605,8 @@ describe("PlatformAuthDOMHandler tests", () => {
                 scopes: "read openid",
                 error: {},
                 properties: {},
-                tokenType: "dpop_proof",
-                dpopProof: "test-dpop-proof",
+                tokenType: Constants.AuthenticationScheme.DPOP,
+                DPoP: "test-dpop-proof",
                 tokenBindingKeyId: "test-token-binding-key-id",
                 attestedChosen: true,
             };
@@ -619,8 +619,8 @@ describe("PlatformAuthDOMHandler tests", () => {
 
             expect(validatedResponse).toEqual(
                 expect.objectContaining({
-                    token_type: "dpop_proof",
-                    dpop_proof: "test-dpop-proof",
+                    token_type: Constants.AuthenticationScheme.DPOP,
+                    DPoP: "test-dpop-proof",
                     token_binding_key_id: "test-token-binding-key-id",
                     attested_chosen: true,
                 })
