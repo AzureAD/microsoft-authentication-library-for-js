@@ -336,6 +336,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE
                     ? Constants.AuthenticationScheme.DPOP
                     : (request.tokenType as Constants.AuthenticationScheme),
+            popKid: request.keyId,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
         };
 
         // Preserve FMI partition semantics for silent cache filtering.
@@ -448,6 +451,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 nativeRequest
             );
             this.validateDpopBrokerOutcome(response, nativeRequest);
+            await this.resetGeneratedDpopRequestKey(nativeRequest);
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
             if (e instanceof NativeAuthError) {
@@ -712,7 +716,14 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         // cache accounts and tokens in the appropriate storage
-        await this.cacheAccount(baseAccount, AuthToken.isKmsi(idTokenClaims));
+        const isL3DpopResponse =
+            response.token_type?.toLowerCase() ===
+            PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE;
+        await this.cacheAccount(
+            baseAccount,
+            AuthToken.isKmsi(idTokenClaims),
+            !isL3DpopResponse
+        );
         await this.cacheNativeTokens(
             response,
             request,
@@ -724,11 +735,18 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             storeInCache
         );
 
-        if (
-            response.token_type?.toLowerCase() ===
-            PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE
-        ) {
+        if (isL3DpopResponse) {
             await this.removeDpopRequestKey(request);
+        } else if (
+            request.tokenType ===
+                PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE &&
+            request.keyId
+        ) {
+            if (storeInCache?.accessToken === false) {
+                await this.removeDpopRequestKey(request);
+            } else {
+                this.msalOwnedDpopKeys.delete(request.keyId);
+            }
         }
 
         return result;
@@ -939,7 +957,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      */
     async cacheAccount(
         accountEntity: AccountEntity,
-        kmsi: boolean
+        kmsi: boolean,
+        clearExistingTokens: boolean = true
     ): Promise<void> {
         // Store the account info and hence `nativeAccountId` in browser cache
         await this.browserStorage.setAccount(
@@ -949,10 +968,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.apiId
         );
         // Remove any existing cached tokens for this account in browser storage
-        this.browserStorage.removeAccountContext(
-            AccountEntityUtils.getAccountInfo(accountEntity),
-            this.correlationId
-        );
+        if (clearExistingTokens) {
+            this.browserStorage.removeAccountContext(
+                AccountEntityUtils.getAccountInfo(accountEntity),
+                this.correlationId
+            );
+        }
     }
 
     /**
@@ -1323,6 +1344,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     private async prepareDpopBrokerRequest(
         request: PlatformAuthRequest
     ): Promise<void> {
+        await this.retryDpopKeyCleanup();
+
         if (
             request.tokenType !==
             PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE
@@ -1338,13 +1361,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
                     correlationId: this.correlationId,
                 });
+            this.msalOwnedDpopKeys.add(request.keyId);
         } else {
             await this.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
                 request.keyId,
                 this.correlationId
             );
         }
-        this.msalOwnedDpopKeys.add(request.keyId);
 
         request.reqCnf = this.browserCrypto.base64UrlEncode(
             JSON.stringify({ jkt: request.keyId })
@@ -1385,7 +1408,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         ) {
             if (
                 !response.dpop_proof?.trim() ||
-                response.attested_chosen === false ||
+                response.attested_chosen !== true ||
                 (response.token_binding_key_id !== undefined &&
                     response.token_binding_key_id === request.keyId)
             ) {
@@ -1413,7 +1436,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 response.dpop_proof !== undefined ||
                 !request.reqCnf ||
                 !request.keyId ||
-                !this.msalOwnedDpopKeys.has(request.keyId) ||
                 response.attested_chosen === true ||
                 (response.token_binding_key_id !== undefined &&
                     response.token_binding_key_id !== request.keyId)
@@ -1469,11 +1491,30 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
     }
 
-    private async removeDpopRequestKey(
+    private async resetGeneratedDpopRequestKey(
         request: PlatformAuthRequest
     ): Promise<void> {
-        if (!request.keyId || !this.msalOwnedDpopKeys.delete(request.keyId)) {
+        if (!request.keyId || !this.msalOwnedDpopKeys.has(request.keyId)) {
             return;
+        }
+
+        const keyRemoved = await this.removeDpopRequestKey(request);
+        if (!keyRemoved) {
+            throw createAuthError(
+                AuthErrorCodes.unexpectedError,
+                this.correlationId,
+                "Failed to remove generated DPoP request key."
+            );
+        }
+        request.keyId = undefined;
+        request.reqCnf = undefined;
+    }
+
+    private async removeDpopRequestKey(
+        request: PlatformAuthRequest
+    ): Promise<boolean> {
+        if (!request.keyId || !this.msalOwnedDpopKeys.has(request.keyId)) {
+            return true;
         }
 
         try {
@@ -1481,11 +1522,22 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 request.keyId,
                 this.correlationId
             );
+            this.msalOwnedDpopKeys.delete(request.keyId);
+            return true;
         } catch {
             this.logger.error(
                 "Failed to remove unused DPoP request key",
                 this.correlationId
             );
+            return false;
+        }
+    }
+
+    private async retryDpopKeyCleanup(): Promise<void> {
+        for (const keyId of this.msalOwnedDpopKeys) {
+            await this.removeDpopRequestKey({
+                keyId,
+            } as PlatformAuthRequest);
         }
     }
 

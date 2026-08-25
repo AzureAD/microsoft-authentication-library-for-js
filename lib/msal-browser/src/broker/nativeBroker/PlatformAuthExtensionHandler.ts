@@ -40,6 +40,7 @@ type ResponseResolvers<T> = {
 };
 
 export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
+    private static readonly PROOF_CONTEXT_EXTENSION_VERSION = 3;
     private extensionId: string | undefined;
     private extensionVersion: string | undefined;
     private logger: Logger;
@@ -118,6 +119,15 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     private initializeNativeExtensionRequest(
         request: PlatformAuthRequest
     ): PlatformAuthRequest {
+        const extensionVersion = Number(this.extensionVersion);
+        if (
+            !Number.isFinite(extensionVersion) ||
+            extensionVersion <
+                PlatformAuthExtensionHandler.PROOF_CONTEXT_EXTENSION_VERSION
+        ) {
+            return request;
+        }
+
         const {
             resourceRequestMethod,
             resourceRequestUri,

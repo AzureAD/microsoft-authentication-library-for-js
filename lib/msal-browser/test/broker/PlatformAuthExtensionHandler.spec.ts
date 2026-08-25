@@ -8,7 +8,6 @@ import {
     AuthError,
     AuthErrorCodes,
     IPerformanceClient,
-    Constants,
 } from "@azure/msal-common";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { NativeExtensionMethod } from "../../src/utils/BrowserConstants.js";
@@ -266,6 +265,34 @@ describe("PlatformAuthExtensionHandler Tests", () => {
     });
 
     describe("sendMessage", () => {
+        it("Preserves the legacy proof context wire format for older extensions", () => {
+            const wamMessageHandler = new PlatformAuthExtensionHandler(
+                new Logger({}),
+                2000,
+                performanceClient
+            );
+            (
+                wamMessageHandler as unknown as {
+                    extensionVersion: string;
+                }
+            ).extensionVersion = "2";
+            const initializeNativeExtensionRequest = (
+                wamMessageHandler as unknown as {
+                    initializeNativeExtensionRequest(
+                        request: typeof TEST_REQUEST
+                    ): typeof TEST_REQUEST;
+                }
+            ).initializeNativeExtensionRequest.bind(wamMessageHandler);
+            const request = {
+                ...TEST_REQUEST,
+                tokenType: "pop",
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            expect(initializeNativeExtensionRequest(request)).toBe(request);
+        });
+
         it("Sends message to WAM extension", async () => {
             const testWAMResponse = {
                 access_token: "test-access-token",

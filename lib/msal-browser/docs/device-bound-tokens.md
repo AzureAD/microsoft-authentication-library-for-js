@@ -53,6 +53,14 @@ There are a few things that may behave a little differently when acquiring token
 -   If the platform broker needs to prompt the user for interaction a system prompt will be opened. This prompt looks a bit different from the browser popup windows you may be used to.
 -   Switching your account in the platform broker prompt is not supported and MSAL.js will throw an error (Error Code: user_switch) if this happens. It is your app's responsibility to catch this error and handle it in a way that makes sense for your scenarios (e.g. Show an error page, retry with the new account, retry with the original account, etc.)
 
+### DPoP outcomes and caching
+
+When `allowPlatformBroker` is enabled, requests using `authenticationScheme: AuthenticationScheme.DPOP` can complete with either broker-owned L3 binding or browser-managed L1 binding. For L3, the broker returns an affirmatively attested resource proof; MSAL returns that proof without locally signing or caching the access token or proof. For L1, MSAL signs the resource proof with the request's local DPoP key and can cache the access token in its internal in-memory broker cache, partitioned by that key. Proof JWTs are never cached.
+
+Generated L1 keys are retained only while their access token is cached. Setting `storeInCache.accessToken` to `false` removes a generated key after the response. Application-supplied `popKid` keys remain application-owned and are never removed by MSAL. Redirect requests do not persist generated key identifiers across navigation because the fallback keystore may be page-local; MSAL provisions a new key when redirect handling resumes. Application-supplied key identifiers are retained.
+
+DPoP requests must include the resource method and URI used to build the proof. For the complete request shape and proof usage, see [DPoP for PublicClientApplication](./access-token-proof-of-possession.md#dpop-for-publicclientapplication).
+
 ## Acquiring Device Bound Tokens using DOM API
 
 MSAL.js also supports acquiring tokens from the platform broker using DOM APIs in Edge. Instead of using a browser extension to communicate with the platform broker, MSAL.js can directly call a DOM API in the Edge browser, which in turn invokes the platform broker to acquire tokens.
