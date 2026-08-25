@@ -68,6 +68,8 @@ describe("CacheManager.ts test cases", () => {
     );
     let authorityMetadataStub: jest.SpyInstance;
     beforeEach(async () => {
+        // Keep cache setup and expected entities on the same timestamp.
+        jest.spyOn(Date, "now").mockReturnValue(Date.now());
         await mockCache.initializeCache();
         authorityMetadataStub = jest
             .spyOn(CacheManager.prototype, "getAuthorityMetadataByAlias")
