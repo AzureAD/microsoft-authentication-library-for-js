@@ -4,6 +4,7 @@
  */
 
 import { FlowContinuationStateV2 } from "../FlowContinuationStateV2.js";
+import { UserAccountAttributes } from "../../../../UserAccountAttributes.js";
 
 /*
  * Input parameters for V2 interaction-client actions. Continuing actions carry
@@ -22,6 +23,13 @@ export interface FlowStartParamsV2 extends FlowParamsBaseV2 {
 export interface FlowSignInStartParamsV2 extends FlowStartParamsV2 {
     password?: string;
     scopes?: string[];
+}
+
+export interface FlowSignUpStartParamsV2 extends FlowStartParamsV2 {
+    password?: string;
+    attributes?: UserAccountAttributes;
+    scopes?: string[];
+    claims?: string;
 }
 
 // Request the challenge for the selected method, sending the one-time code to it.

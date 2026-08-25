@@ -19,9 +19,11 @@ import {
     VerifyNextActionV2,
     AuthenticationFactorV2,
 } from "./result/BaseResultsV2.js";
+import { SignUpStartApiResultV2 } from "./result/SignUpResultsV2.js";
 import {
     PasswordResetStartResponseV2,
     SignInStartResponseV2,
+    SignUpStartResponseV2,
     ChallengeResponseV2,
     VerifyResponseV2,
     UpdatePasswordResponseV2,
@@ -33,6 +35,7 @@ import {
     RequestContextV2,
     PasswordResetStartRequestV2,
     SignInStartRequestV2,
+    SignUpStartRequestV2,
     ChallengeRequestV2,
     VerifyRequestV2,
     UpdatePasswordRequestV2,
@@ -81,6 +84,43 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
         );
 
         return result;
+    }
+
+    /*
+     * Starts sign-up using a server-provided link.
+     */
+    async signUpStart(
+        signUpHref: string,
+        request: SignUpStartRequestV2,
+        context: RequestContextV2
+    ): Promise<SignUpStartApiResultV2> {
+        const parsedResponse =
+            await this.sendActionRequest<SignUpStartResponseV2>(
+                signUpHref,
+                HttpMethod.POST,
+                request,
+                context
+            );
+
+        return {
+            continuationToken: this.handler.requireContinuationToken(
+                parsedResponse.continuationToken,
+                parsedResponse.correlationId
+            ),
+            submitAttributesHref: this.handler.requireHref(
+                parsedResponse.body._links?.submitAttributes?.href,
+                "submitAttributes",
+                parsedResponse.correlationId
+            ),
+            attributes: parsedResponse.body.attributes?.map((attribute) => ({
+                attributeId: attribute.attributeId,
+                inputType: attribute.inputType,
+                required: attribute.required,
+                canChange: attribute.canChange,
+                label: attribute.label,
+                regex: attribute.regex,
+            })),
+        };
     }
 
     /*

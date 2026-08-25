@@ -55,3 +55,5 @@ export const SIGN_IN_V2_CHALLENGE = 100207;
 export const SIGN_IN_V2_SUBMIT_PASSWORD = 100208;
 export const SIGN_IN_V2_COMPLETE = 100209;
 export const SIGN_IN_V2_SUBMIT_CODE = 100210;
+export const SIGN_UP_V2_START = 100211;
+export const SIGN_UP_V2_CHALLENGE = 100212;

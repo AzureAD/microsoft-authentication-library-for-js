@@ -12,6 +12,7 @@ import { InteractionClientBaseV2 } from "./InteractionClientBaseV2.js";
 import {
     FlowStartParamsV2,
     FlowSignInStartParamsV2,
+    FlowSignUpStartParamsV2,
     FlowChallengeParamsV2,
     FlowSubmitCodeParamsV2,
     FlowSubmitNewPasswordParamsV2,
@@ -52,6 +53,7 @@ import {
     RESET_PASSWORD_UNSUPPORTED,
     RESET_PASSWORD_TIMEOUT,
     SIGN_IN_UNSUPPORTED,
+    SIGN_UP_UNSUPPORTED,
     UNSUPPORTED_FLOW_STEP,
     UNSUPPORTED_FLOW_TRANSITION,
 } from "../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
@@ -197,6 +199,39 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         }
 
         return challengeResult;
+    }
+
+    /*
+     * Starts sign-up and resolves the server-provided attribute-submission transition.
+     */
+    async signUp(parameters: FlowSignUpStartParamsV2): Promise<never> {
+        const correlationId = parameters.correlationId;
+        const context = this.createRequestContext(
+            PublicApiId.SIGN_UP_V2_START,
+            correlationId
+        );
+
+        this.logger.verbose("Starting V2 sign-up.", correlationId);
+
+        const entryResult = await this.apiClient.authorizeChallengeStart(
+            context,
+            parameters.scopes
+        );
+        const startResult = await this.apiClient.signUpStart(
+            this.requireLink(correlationId, entryResult.signUpHref, {
+                code: SIGN_UP_UNSUPPORTED,
+                message:
+                    "The authorize-challenge entry response did not include a sign-up link.",
+            }),
+            {
+                continuationToken: entryResult.continuationToken,
+            },
+            context
+        );
+        const message = `Sign-up start returned the submit-attributes link '${startResult.submitAttributesHref}', which is not handled until the next sign-up phase.`;
+        this.logger.error(message, correlationId);
+
+        throw new CustomAuthError(SIGN_UP_UNSUPPORTED, message, correlationId);
     }
 
     /*

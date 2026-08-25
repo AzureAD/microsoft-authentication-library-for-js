@@ -66,6 +66,23 @@ interface StartResponseV2 extends Omit<HalResponseBaseV2, "_embedded"> {
 export type PasswordResetStartResponseV2 = StartResponseV2;
 export type SignInStartResponseV2 = StartResponseV2;
 
+export interface SignUpAttributeResponseV2 {
+    attributeId: string;
+    inputType?: string;
+    required?: boolean;
+    canChange?: boolean;
+    label?: string;
+    regex?: string;
+}
+
+export interface SignUpStartResponseV2
+    extends Omit<HalResponseBaseV2, "_links"> {
+    attributes?: SignUpAttributeResponseV2[];
+    _links?: {
+        submitAttributes?: HalLink;
+    };
+}
+
 interface ChallengeResponseBaseV2 extends Omit<HalResponseBaseV2, "_links"> {
     id?: string;
     type?: string;

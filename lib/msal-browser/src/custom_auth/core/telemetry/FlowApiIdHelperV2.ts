@@ -14,6 +14,7 @@ import {
     SIGN_IN_V2_COMPLETE,
     SIGN_IN_V2_SUBMIT_CODE,
     SIGN_IN_V2_SUBMIT_PASSWORD,
+    SIGN_UP_V2_CHALLENGE,
 } from "./PublicApiId.js";
 
 export type FlowStepV2 =
@@ -40,6 +41,10 @@ const FLOW_STEP_API_IDS_V2: Partial<
         resendCode: SIGN_IN_V2_CHALLENGE,
         submitPassword: SIGN_IN_V2_SUBMIT_PASSWORD,
         signInWithContinuation: SIGN_IN_V2_COMPLETE,
+    },
+    [CustomAuthFlowScenarioV2.SignUp]: {
+        requestChallenge: SIGN_UP_V2_CHALLENGE,
+        resendCode: SIGN_UP_V2_CHALLENGE,
     },
 };
 

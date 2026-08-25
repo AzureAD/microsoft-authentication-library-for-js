@@ -78,6 +78,25 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
+        it("sends optional scopes as a space-delimited form value", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuation_token: "ct-entry",
+                    sign_up: "/tenant/api/v0.1/signup/start",
+                })
+            );
+
+            await apiClient.authorizeChallengeStart(context, [
+                "openid",
+                "User.Read",
+            ]);
+
+            const [, options] = mockHttpClient.sendAsync.mock.calls[0];
+            expect(options.body.toString()).toBe(
+                "client_id=client-id-123&scope=openid+User.Read"
+            );
+        });
+
         it("throws the normalized server error when the entry has no continuation token", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse(
@@ -226,6 +245,7 @@ describe("CustomAuthApiClientV2", () => {
                 authenticationFactor: "singleFactor",
                 scenario: undefined,
             });
+
             expect(mockHttpClient.sendAsync).toHaveBeenCalledTimes(1);
 
             const [startUrl, options] = mockHttpClient.sendAsync.mock.calls[0];
@@ -311,6 +331,92 @@ describe("CustomAuthApiClientV2", () => {
                 );
             }
         );
+    });
+
+    describe("signUpStart", () => {
+        it("sends only the continuation token and returns the submit-attributes data", async () => {
+            const request = {
+                continuationToken: "ct-entry",
+            };
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-start",
+                    state: "interactionRequired",
+                    action: "collectAttributes",
+                    attributes: [
+                        {
+                            attributeId: "email",
+                            inputType: "text",
+                            required: true,
+                            canChange: true,
+                            label: "Email Address",
+                            regex: "^.*",
+                        },
+                    ],
+                    _links: {
+                        submitAttributes: {
+                            href: "/tenant/api/v0.1/signup/submitattributes",
+                            name: "submitAttributes",
+                        },
+                        self: {
+                            href: "/tenant/api/v0.1/signup/submitattributes",
+                            name: "self",
+                        },
+                    },
+                })
+            );
+
+            const result = await apiClient.signUpStart(
+                "/tenant/api/v0.1/signup/start",
+                request,
+                context
+            );
+
+            expect(result).toEqual({
+                continuationToken: "ct-start",
+                submitAttributesHref:
+                    "/tenant/api/v0.1/signup/submitattributes",
+                attributes: [
+                    {
+                        attributeId: "email",
+                        inputType: "text",
+                        required: true,
+                        canChange: true,
+                        label: "Email Address",
+                        regex: "^.*",
+                    },
+                ],
+            });
+
+            const [startUrl, options] = mockHttpClient.sendAsync.mock.calls[0];
+            expect(startUrl.href).toBe(
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/signup/start"
+            );
+            expect(JSON.parse(options.body)).toEqual(request);
+        });
+
+        it("allows the attributes metadata to be omitted", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-start",
+                    state: "interactionRequired",
+                    action: "collectAttributes",
+                    _links: {
+                        submitAttributes: {
+                            href: "/tenant/api/v0.1/signup/submitattributes",
+                        },
+                    },
+                })
+            );
+
+            const result = await apiClient.signUpStart(
+                "/tenant/api/v0.1/signup/start",
+                { continuationToken: "ct-entry" },
+                context
+            );
+
+            expect(result.attributes).toBeUndefined();
+        });
     });
 
     describe("requestChallenge", () => {

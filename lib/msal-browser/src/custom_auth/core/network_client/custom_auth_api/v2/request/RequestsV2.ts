@@ -27,7 +27,9 @@ export interface OAuthFormRequestV2 {
  * (`AuthorizeChallengeEntryResponseV2`) returns the seed `continuation_token` and the flat
  * `reset_password`/`sign_in`/`sign_up` hrefs.
  */
-export type AuthorizeChallengeEntryRequestV2 = OAuthFormRequestV2;
+export interface AuthorizeChallengeEntryRequestV2 extends OAuthFormRequestV2 {
+    scope?: string;
+}
 
 /*
  * Resume (POST /oauth2/v2.0/authorize-challenge): redeem the continuation token for an
@@ -77,6 +79,8 @@ interface StartRequestV2 extends ActionRequestBaseV2 {
 export type PasswordResetStartRequestV2 = StartRequestV2;
 
 export type SignInStartRequestV2 = StartRequestV2;
+
+export type SignUpStartRequestV2 = ActionRequestBaseV2;
 
 // Request or resend a challenge.
 export type ChallengeRequestV2 = ActionRequestBaseV2;

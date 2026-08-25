@@ -249,7 +249,7 @@ export {
     SignInInputsV2,
     SignUpInputsV2,
     SignInContinuationInputsV2,
-} from "./CustomAuthActionInputsV2.js";
+} from "./CustomAuthActionInputs.js";
 
 // Native Auth V2 Result
 export { CustomAuthResultV2 } from "./core/auth_flow/v2/CustomAuthResultV2.js";
@@ -266,6 +266,7 @@ export { RequestChallengeErrorV2 } from "./core/auth_flow/v2/error/RequestChalle
 export { VerifyChallengeErrorV2 } from "./core/auth_flow/v2/error/VerifyChallengeErrorV2.js";
 export { SubmitNewPasswordErrorV2 } from "./reset_password/auth_flow/v2/error_type/SubmitNewPasswordErrorV2.js";
 export { SignInStartErrorV2 } from "./sign_in/auth_flow/v2/error_type/SignInStartErrorV2.js";
+export { SignUpStartErrorV2 } from "./sign_up/auth_flow/v2/error_type/SignUpStartErrorV2.js";
 export { SignInContinuationErrorV2 } from "./sign_in/auth_flow/v2/error_type/SignInContinuationErrorV2.js";
 export { SubmitPasswordErrorV2 } from "./sign_in/auth_flow/v2/error_type/SubmitPasswordErrorV2.js";
 
@@ -288,6 +289,10 @@ export {
     SignInStartResultV2,
     SignInStartResultStateV2,
 } from "./sign_in/auth_flow/v2/result/SignInStartResultV2.js";
+export {
+    SignUpStartResultV2,
+    SignUpStartResultStateV2,
+} from "./sign_up/auth_flow/v2/result/SignUpStartResultV2.js";
 export {
     RequestChallengeResultV2,
     RequestChallengeResultStateV2,

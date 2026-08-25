@@ -74,11 +74,16 @@ export abstract class BaseApiClientV2 {
      * Starts authorization and returns the initial continuation token and flow links.
      */
     async authorizeChallengeStart(
-        context: RequestContextV2
+        context: RequestContextV2,
+        scopes?: string[]
     ): Promise<AuthorizeChallengeEntryResultV2> {
         const request: AuthorizeChallengeEntryRequestV2 = {
             client_id: this.clientId,
         };
+
+        if (scopes?.length) {
+            request.scope = scopes.join(" ");
+        }
 
         const parsedResponse =
             await this.postOAuthForm<AuthorizeChallengeEntryResponseV2>(
