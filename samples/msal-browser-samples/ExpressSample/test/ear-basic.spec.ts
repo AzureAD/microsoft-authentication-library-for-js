@@ -16,7 +16,7 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serverUtils = require("../../../e2eTestUtils/jest-puppeteer-utils/serverUtils");
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/browserEAR`;
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/earBasic`;
 
 // EAR runs on its own HTTPS server + cert-tolerant browser; shared http
 // harness (port 3000) untouched.
@@ -51,6 +51,56 @@ async function getEarDecryptCount(target: puppeteer.Page): Promise<number> {
     );
 }
 
+/** Installs the AES-GCM decrypt spy on every same-origin document. */
+async function installEarDecryptSpy(target: puppeteer.Page): Promise<void> {
+    await target.evaluateOnNewDocument(
+        (config: { origin: string; key: string }) => {
+            try {
+                if (window.location.origin !== config.origin) {
+                    return;
+                }
+                if (!window.crypto || !window.crypto.subtle) {
+                    return;
+                }
+                const realDecrypt = window.crypto.subtle.decrypt.bind(
+                    window.crypto.subtle
+                );
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (window.crypto.subtle as any).decrypt = function (
+                    algorithm: AlgorithmIdentifier,
+                    key: CryptoKey,
+                    data: BufferSource
+                ) {
+                    const algName =
+                        typeof algorithm === "string"
+                            ? algorithm
+                            : algorithm.name;
+                    if (algName === "AES-GCM") {
+                        try {
+                            const next =
+                                parseInt(
+                                    window.sessionStorage.getItem(config.key) ||
+                                        "0",
+                                    10
+                                ) + 1;
+                            window.sessionStorage.setItem(
+                                config.key,
+                                String(next)
+                            );
+                        } catch (e) {
+                            // ignore storage errors
+                        }
+                    }
+                    return realDecrypt(algorithm, key, data);
+                };
+            } catch (e) {
+                // best-effort spy: never break the auth flow
+            }
+        },
+        { origin: EAR_ORIGIN, key: EAR_DECRYPT_COUNT_KEY }
+    );
+}
+
 /** Interactive EAR redirect login; seeds session + cache for the silent tests. */
 async function performRedirectLogin(
     page: puppeteer.Page,
@@ -69,7 +119,7 @@ async function performRedirectLogin(
     await screenshot.takeScreenshot(page, "Logged In");
 }
 
-describe("EAR (Encrypted Authorize Response) Tests", () => {
+describe("EAR Tests", () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -137,54 +187,7 @@ describe("EAR (Encrypted Authorize Response) Tests", () => {
         page = await context.newPage();
         BrowserCache = new BrowserCacheUtils(page, EAR_CACHE_LOCATION);
         // WebCrypto decrypt spy, re-applied on every same-origin document.
-        // Origin guard keeps it off ESTS; count kept in sessionStorage.
-        await page.evaluateOnNewDocument(
-            (config: { origin: string; key: string }) => {
-                try {
-                    if (window.location.origin !== config.origin) {
-                        return;
-                    }
-                    if (!window.crypto || !window.crypto.subtle) {
-                        return;
-                    }
-                    const realDecrypt = window.crypto.subtle.decrypt.bind(
-                        window.crypto.subtle
-                    );
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    (window.crypto.subtle as any).decrypt = function (
-                        algorithm: AlgorithmIdentifier,
-                        key: CryptoKey,
-                        data: BufferSource
-                    ) {
-                        const algName =
-                            typeof algorithm === "string"
-                                ? algorithm
-                                : algorithm.name;
-                        if (algName === "AES-GCM") {
-                            try {
-                                const next =
-                                    parseInt(
-                                        window.sessionStorage.getItem(
-                                            config.key
-                                        ) || "0",
-                                        10
-                                    ) + 1;
-                                window.sessionStorage.setItem(
-                                    config.key,
-                                    String(next)
-                                );
-                            } catch (e) {
-                                // ignore storage errors
-                            }
-                        }
-                        return realDecrypt(algorithm, key, data);
-                    };
-                } catch (e) {
-                    // best-effort spy: never break the auth flow
-                }
-            },
-            { origin: EAR_ORIGIN, key: EAR_DECRYPT_COUNT_KEY }
-        );
+        await installEarDecryptSpy(page);
         await page.goto(`https://localhost:${EAR_PORT}/${EAR_QUERY_STRING}`, {
             timeout: 10000,
         });

@@ -12,9 +12,9 @@ The loopback server is a core component of `msal-node`'s interactive authenticat
 
 ## Response Modes
 
-The loopback server supports two response modes that control how the authorization code is delivered. `form_post` is the preferred mode and will become the default in a future major version; `query` remains the default in v5 for backward compatibility.
+The loopback server supports two response modes that control how the authorization code is delivered. `form_post` is the default as of v6; `query` remains available as an opt-in for backward compatibility.
 
-### `form_post` (preferred)
+### `form_post` (default)
 
 The authorization code is delivered in a POST body:
 
@@ -25,19 +25,17 @@ Content-Type: application/x-www-form-urlencoded
 code=AUTH_CODE&state=STATE
 ```
 
-With `form_post`, the authorization code is kept out of the URL entirely — it never appears in the URL bar, is not stored in browser history, and cannot leak through the HTTP `Referer` header. This is the recommended mode for new applications and will be mandated in a future major version.
-
-To opt in to `form_post`:
+With `form_post`, the authorization code is kept out of the URL and returned in the POST body. As of v6 this is the default mode, so no `responseMode` is required:
 
 ```typescript
 const result = await pca.acquireTokenInteractive({
     scopes: ["User.Read"],
     openBrowser: async (url) => { /* open url */ },
-    responseMode: "form_post",
+    // responseMode defaults to "form_post"
 });
 ```
 
-### `query` (default in v5)
+### `query` (opt-in)
 
 The authorization code is delivered as a query parameter in a GET request:
 
@@ -45,7 +43,15 @@ The authorization code is delivered as a query parameter in a GET request:
 GET /?code=AUTH_CODE&state=STATE HTTP/1.1
 ```
 
-The server performs a 302 redirect to remove the authorization code from the browser's URL bar and history. This remains the default in v5 for backward compatibility, but `form_post` is preferred going forward.
+The server performs a 302 redirect once it has received the authorization code. As of v6 `query` is no longer the default; opt in explicitly if you need it:
+
+```typescript
+const result = await pca.acquireTokenInteractive({
+    scopes: ["User.Read"],
+    openBrowser: async (url) => { /* open url */ },
+    responseMode: "query",
+});
+```
 
 ### Unsupported response modes
 
@@ -67,26 +73,9 @@ If the preferred port is unavailable, the server falls back to a random port aut
 
 > **Note:** When using a preferred port, register both `http://localhost:3874` and `http://localhost` as redirect URIs in your app registration to handle the fallback case.
 
-## Custom Loopback Client
+## Custom Loopback Client (removed in v6)
 
-> **⚠️ Deprecated:** The `loopbackClient` option is deprecated and will be removed in a future major version. Omit `loopbackClient` to use MSAL's built-in loopback server, and set `preferredPort` when you need a fixed port.
-
-For advanced scenarios, you can provide a custom implementation of the `ILoopbackClient` interface:
-
-```typescript
-import { ILoopbackClient } from "@azure/msal-node";
-
-const result = await pca.acquireTokenInteractive({
-    scopes: ["User.Read"],
-    openBrowser: async (url) => { /* open url */ },
-    loopbackClient: myCustomLoopbackClient,
-});
-```
-
-The `ILoopbackClient` interface requires three methods:
-- `listenForAuthCode(successTemplate?, errorTemplate?)`: Start the server and return a promise that resolves with the authorization response
-- `getRedirectUri()`: Return the redirect URI (e.g., `http://localhost:PORT`)
-- `closeServer()`: Shut down the server
+> **⚠️ Removed:** The `loopbackClient` request option and the `ILoopbackClient` interface were removed in msal-node v6. Applications must use MSAL's built-in loopback server. If you previously provided a custom `loopbackClient` to select a fixed port, use the [`preferredPort`](#preferred-port) option instead. See the [v6 migration guide](./v6-migration.md) for details.
 
 ## Security Considerations
 
