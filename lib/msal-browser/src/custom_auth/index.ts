@@ -238,5 +238,64 @@ export {
     MfaSubmitChallengeError,
 } from "./core/auth_flow/mfa/error_type/MfaError.js";
 
+// Native Auth V2
+
+// Native Auth V2 Application Interface
+export { ICustomAuthPublicClientApplicationV2 } from "./ICustomAuthPublicClientApplicationV2.js";
+
+// Native Auth V2 Operation Inputs
+export {
+    ResetPasswordInputsV2,
+    SignInInputsV2,
+    SignUpInputsV2,
+    SignInContinuationInputsV2,
+} from "./CustomAuthActionInputsV2.js";
+
+// Native Auth V2 Result
+export { CustomAuthResultV2 } from "./core/auth_flow/v2/CustomAuthResultV2.js";
+
+// Native Auth V2 Flow Scenario
+export { CustomAuthFlowScenarioV2 } from "./core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
+
+// Native Auth V2 Authentication Method
+export { AuthenticationMethodV2 } from "./core/auth_flow/v2/AuthenticationMethodV2.js";
+
+// Native Auth V2 Errors
+export { ResetPasswordStartErrorV2 } from "./core/auth_flow/v2/error/ResetPasswordStartErrorV2.js";
+export { RequestChallengeErrorV2 } from "./core/auth_flow/v2/error/RequestChallengeErrorV2.js";
+export { VerifyChallengeErrorV2 } from "./core/auth_flow/v2/error/VerifyChallengeErrorV2.js";
+export { SubmitNewPasswordErrorV2 } from "./reset_password/auth_flow/v2/error_type/SubmitNewPasswordErrorV2.js";
+export { SignInContinuationErrorV2 } from "./sign_in/auth_flow/v2/error_type/SignInContinuationErrorV2.js";
+
+// Native Auth V2 States
+export { CompletedStateV2 } from "./core/auth_flow/v2/state/CompletedStateV2.js";
+export { FailedStateV2 } from "./core/auth_flow/v2/state/FailedStateV2.js";
+export { NewPasswordRequiredStateV2 } from "./reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
+export { ChallengeVerificationRequiredStateV2 } from "./core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+export { AuthenticationMethodSelectionRequiredStateV2 } from "./core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredStateV2.js";
+export { SignInContinuationStateV2 } from "./sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
+
+// Native Auth V2 Results
+export {
+    ResetPasswordStartResultV2,
+    ResetPasswordStartResultStateV2,
+} from "./core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
+export {
+    RequestChallengeResultV2,
+    RequestChallengeResultStateV2,
+} from "./core/auth_flow/v2/result/RequestChallengeResultV2.js";
+export {
+    VerifyChallengeResultV2,
+    VerifyChallengeResultStateV2,
+} from "./core/auth_flow/v2/result/VerifyChallengeResultV2.js";
+export {
+    SubmitNewPasswordResultV2,
+    SubmitNewPasswordResultStateV2,
+} from "./reset_password/auth_flow/v2/result/SubmitNewPasswordResultV2.js";
+export {
+    SignInContinuationResultV2,
+    SignInContinuationResultStateV2,
+} from "./sign_in/auth_flow/v2/result/SignInContinuationResultV2.js";
+
 // Components from msal_browser
 export { LogLevel } from "@azure/msal-common/browser";
