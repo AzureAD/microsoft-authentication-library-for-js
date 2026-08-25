@@ -480,18 +480,19 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         it("Extension: retains generated-key ownership until key removal succeeds", async () => {
-            const clientInternals = platformAuthInteractionClient as unknown as {
-                msalOwnedDpopKeys: Set<string>;
-                resetGeneratedDpopRequestKey(
-                    request: PlatformAuthRequest
-                ): Promise<void>;
-                prepareDpopBrokerRequest(
-                    request: PlatformAuthRequest
-                ): Promise<void>;
-                tokenBindingKeyManager: {
-                    removeTokenBindingKey(): Promise<void>;
+            const clientInternals =
+                platformAuthInteractionClient as unknown as {
+                    msalOwnedDpopKeys: Set<string>;
+                    resetGeneratedDpopRequestKey(
+                        request: PlatformAuthRequest
+                    ): Promise<void>;
+                    prepareDpopBrokerRequest(
+                        request: PlatformAuthRequest
+                    ): Promise<void>;
+                    tokenBindingKeyManager: {
+                        removeTokenBindingKey(): Promise<void>;
+                    };
                 };
-            };
             const request = {
                 keyId: "retry-cleanup-dpop-key",
                 reqCnf: "retry-cleanup-req-cnf",
@@ -604,7 +605,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 response: { DPoP: "unexpected-proof" },
             },
             {
-                name: "DPoP token type",
+                name: "token type",
                 response: {
                     token_type: Constants.AuthenticationScheme.DPOP,
                 },
@@ -759,8 +760,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     tokenType: Constants.AuthenticationScheme.DPOP,
                     keyId: "caller-dpop-key",
                     resourceRequestMethod: "POST",
-                    resourceRequestUri:
-                        "https://graph.microsoft.com/v1.0/me",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 } as PlatformAuthRequest,
                 TEST_ACCOUNT_INFO
             );
@@ -769,8 +769,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 expect.objectContaining({
                     popKid: "caller-dpop-key",
                     resourceRequestMethod: "POST",
-                    resourceRequestUri:
-                        "https://graph.microsoft.com/v1.0/me",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 })
             );
         });
@@ -1951,15 +1950,14 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 NavigationClient.prototype,
                 "navigateExternal"
             ).mockResolvedValue(true);
-            const keyManager =
-                (
-                    platformAuthInteractionClient as unknown as {
-                        tokenBindingKeyManager: {
-                            provisionTokenBindingKey(): Promise<string>;
-                            removeTokenBindingKey(): Promise<void>;
-                        };
-                    }
-                ).tokenBindingKeyManager;
+            const keyManager = (
+                platformAuthInteractionClient as unknown as {
+                    tokenBindingKeyManager: {
+                        provisionTokenBindingKey(): Promise<string>;
+                        removeTokenBindingKey(): Promise<void>;
+                    };
+                }
+            ).tokenBindingKeyManager;
             jest.spyOn(
                 keyManager,
                 "provisionTokenBindingKey"
@@ -1982,14 +1980,12 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     scopes: ["User.Read"],
                     authenticationScheme: Constants.AuthenticationScheme.DPOP,
                     resourceRequestMethod: "POST",
-                    resourceRequestUri:
-                        "https://graph.microsoft.com/v1.0/me",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 },
                 perfMeasurement
             );
 
-            const cachedRequest =
-                browserCacheManager.getCachedNativeRequest();
+            const cachedRequest = browserCacheManager.getCachedNativeRequest();
             expect(cachedRequest?.keyId).toBeUndefined();
             expect(cachedRequest?.reqCnf).toBeUndefined();
             expect(cachedRequest?.resourceRequestMethod).toBe("POST");
@@ -2044,14 +2040,12 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     authenticationScheme: Constants.AuthenticationScheme.DPOP,
                     popKid: "caller-dpop-key",
                     resourceRequestMethod: "POST",
-                    resourceRequestUri:
-                        "https://graph.microsoft.com/v1.0/me",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 },
                 perfMeasurement
             );
 
-            const cachedRequest =
-                browserCacheManager.getCachedNativeRequest();
+            const cachedRequest = browserCacheManager.getCachedNativeRequest();
             expect(cachedRequest?.keyId).toBe("caller-dpop-key");
             expect(cachedRequest?.reqCnf).toEqual(expect.any(String));
             expect(removeKeySpy).not.toHaveBeenCalled();
@@ -2601,12 +2595,12 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 });
 
-                expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
-                expect(nativeRequest.tokenType).toBe(
-                    Constants.AuthenticationScheme.DPOP
-                );
-                expect(nativeRequest.preferBinding).toBe("attested");
-                expect(nativeRequest.resourceRequestMethod).toBe("POST");
+            expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
+            expect(nativeRequest.tokenType).toBe(
+                Constants.AuthenticationScheme.DPOP
+            );
+            expect(nativeRequest.preferBinding).toBe("attested");
+            expect(nativeRequest.resourceRequestMethod).toBe("POST");
             expect(nativeRequest.resourceRequestUri).toBe(
                 "https://graph.microsoft.com/v1.0/me"
             );
