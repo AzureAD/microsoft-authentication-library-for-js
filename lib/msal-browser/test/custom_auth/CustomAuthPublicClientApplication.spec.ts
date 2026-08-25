@@ -222,6 +222,36 @@ describe("CustomAuthPublicClientApplication", () => {
         });
     });
 
+    describe("resetPasswordV2", () => {
+        it("should delegate to the controller resetPasswordV2 with correct inputs", async () => {
+            const mockResetPasswordV2Inputs = {
+                username: "testuser",
+            };
+
+            const mockResetPasswordV2Result = { state: { stateType: "failed" } };
+
+            const app = await CustomAuthPublicClientApplication.create(
+                customAuthConfig
+            );
+
+            const controllerMock = {
+                resetPasswordV2: jest
+                    .fn()
+                    .mockResolvedValueOnce(mockResetPasswordV2Result),
+            };
+            (app as any)["customAuthController"] = controllerMock;
+
+            const result = await app.resetPasswordV2(
+                mockResetPasswordV2Inputs
+            );
+
+            expect(controllerMock.resetPasswordV2).toHaveBeenCalledWith(
+                mockResetPasswordV2Inputs
+            );
+            expect(result).toEqual(mockResetPasswordV2Result);
+        });
+    });
+
     describe("getCurrentAccount", () => {
         it("should call the customAuthController getCurrentAccount method with correct inputs", async () => {
             const mockGetCurrentAccountInputs = {
