@@ -40,8 +40,6 @@ The Native Authentication feature follows a strict layered architecture:
 -   Define constants as flat exports rather than nested objects
 -   Prefer standalone functions over classes for utility functions
 -   Use composition patterns over inheritance for flexibility
--   Order class members as fields, constructor, public methods, protected methods, then private helpers
--   Group methods by workflow within each visibility section; deviate only when colocating a helper materially improves readability
 
 ### Documentation Standards
 

@@ -747,7 +747,7 @@ export class CustomAuthStandardController
 
             if (result.type !== FLOW_PASSWORD_REQUIRED_V2) {
                 throw new UnexpectedError(
-                    "Unexpected native auth V2 sign-in result.",
+                    "Unsupported native auth V2 sign-in result type.",
                     correlationId
                 );
             }
