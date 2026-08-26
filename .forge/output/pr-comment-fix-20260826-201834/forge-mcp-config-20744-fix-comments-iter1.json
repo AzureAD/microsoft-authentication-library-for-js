@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "forge-tools": {
+      "type": "http",
+      "url": "http://127.0.0.1:58587/mcp/20744-fix-comments-iter1",
+      "tools": [
+        "*"
+      ]
+    }
+  }
+}

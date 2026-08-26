@@ -1,0 +1,9 @@
+I’m loading the actionable findings and exact branch diff, then I’ll patch only the reported failure.
+
+The only upstream item is informational, but the branch change itself installs the spy before evaluating `Date.now()`, so the mock can be configured with `undefined`. I’m correcting that timestamp setup and recording the informational item as non-actionable.
+
+The timestamp is now captured before `Date.now` is mocked. I’m running the focused cache-manager test plus formatting on the affected package.
+
+The first validation invocation ran from the repository root, where no root `test` script exists. I’m rerunning it through the `@azure/msal-common` workspace and checking the repository-relative file path.
+
+Fixed `CacheManager.spec.ts` so the real timestamp is captured **before** installing the `Date.now` spy, preventing the mock from returning `undefined`. The informational MCP limitation was recorded as non-actionable. Focused CacheManager tests pass (85/85), and formatting is clean.

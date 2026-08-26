@@ -1,0 +1,35 @@
+{
+  "iteration": 1,
+  "stepsTotal": 2,
+  "stepsCompleted": [
+    "run-tests",
+    "fix-tests"
+  ],
+  "stepsFailed": [],
+  "stepsSkipped": [],
+  "stepsRunning": [],
+  "stepsWaiting": [],
+  "findingsCount": 0,
+  "elapsedSeconds": 0.2537869,
+  "lastCompletedStep": "fix-tests",
+  "lastUpdate": "2026-08-26T20:22:27.7109569Z",
+  "iterations": [
+    {
+      "iteration": 1,
+      "findingCount": 0,
+      "blockingCount": 0,
+      "fixedCount": 0,
+      "stepsCompleted": [],
+      "stepsFailed": [],
+      "stepsSkipped": [],
+      "criteriaPassed": false
+    }
+  ],
+  "fileChanges": [
+    {
+      "path": "lib/msal-common/test/cache/CacheManager.spec.ts",
+      "added": 2,
+      "removed": 1
+    }
+  ]
+}
