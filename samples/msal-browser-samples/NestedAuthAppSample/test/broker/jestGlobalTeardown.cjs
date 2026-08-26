@@ -3,11 +3,7 @@
  * Licensed under the MIT License.
  */
 
-/*
- * Jest globalTeardown for the opt-in platform-broker spec. Kills whatever is
- * listening on the host/nested ports; `server.js` self-exits once its child
- * app servers close.
- */
+// Jest globalTeardown: stops the sample servers started in globalSetup.
 
 const serverUtils = require("../../../../e2eTestUtils/jest-puppeteer-utils/serverUtils");
 const { HOST_APP_PORT, NESTED_APP_PORT } = require("../../sampleConfig.cjs");

@@ -2,27 +2,16 @@ import React, { useState } from "react";
 import { loginRequest } from "./authConfig";
 
 /**
- * Nested (child) app UI. Every MSAL token API a nestable client supports is
+ * Nested (child) app UI. Each MSAL token API a nestable client supports is
  * exposed as its own button so the e2e harness can exercise each one through
- * the host's NAA bridge independently:
- *
- *   - `acquireTokenSilent` / `ssoSilent` -> bridge `GetToken`   (host brokers silently)
- *   - `acquireTokenPopup`  / `loginPopup` -> bridge `GetTokenPopup` (host brokers interactively)
- *
- * (`acquireTokenRedirect`, `loginRedirect` and `acquireTokenByCode` are not
- * supported by `NestedAppAuthController` — they throw — so they are not shown.)
- *
- * Each handler records which API produced the result (`data-testid="lastApi"`)
- * and renders the resulting account so the harness can assert per-API success
- * via the `homeAccountId` table header.
+ * the host's NAA bridge, and the result is tagged with the API that produced it.
  */
 function App({ pca }) {
     const [account, setAccount] = useState(pca.getActiveAccount());
     const [lastApi, setLastApi] = useState(null);
     const [error, setError] = useState(null);
 
-    // Each token API is invoked in isolation (no silent->popup fallback) so a
-    // test targeting one API exercises exactly that code path through the bridge.
+    // Each API is invoked in isolation (no silent->popup fallback).
     const run = (apiName, invoke) => async () => {
         setError(null);
         setAccount(null);
@@ -33,7 +22,11 @@ function App({ pca }) {
             setAccount(result.account);
             setLastApi(apiName);
         } catch (e) {
-            setError(`${apiName}: ${String(e)}`);
+            setError({
+                api: apiName,
+                code: e?.errorCode ?? "",
+                text: String(e),
+            });
         }
     };
 
@@ -42,6 +35,12 @@ function App({ pca }) {
         { name: "ssoSilent", invoke: (r) => pca.ssoSilent(r) },
         { name: "acquireTokenPopup", invoke: (r) => pca.acquireTokenPopup(r) },
         { name: "loginPopup", invoke: (r) => pca.loginPopup(r) },
+        // Redirect is unsupported for nested apps; kept so the harness can assert
+        // it throws the expected error.
+        {
+            name: "acquireTokenRedirect",
+            invoke: (r) => pca.acquireTokenRedirect(r),
+        },
     ];
 
     return (
@@ -56,7 +55,16 @@ function App({ pca }) {
                     {api.name}
                 </button>
             ))}
-            {error && <pre style={{ color: "red" }}>{error}</pre>}
+            {error && (
+                <pre
+                    data-testid="apiError"
+                    data-api={error.api}
+                    data-error-code={error.code}
+                    style={{ color: "red" }}
+                >
+                    {error.text}
+                </pre>
+            )}
             {account && (
                 <table data-testid="lastApi" data-api={lastApi ?? ""}>
                     <thead>

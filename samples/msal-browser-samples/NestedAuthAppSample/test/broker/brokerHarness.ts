@@ -3,48 +3,21 @@
  * Licensed under the MIT License.
  */
 
-/*
- * Platform-broker (JS-WAM) test harness for the Nested App Authentication
- * sample.
- *
- * The real platform broker only engages when the browser can reach the
- * Microsoft SSO extension, and that extension only keeps its canonical id — the
- * id the native messaging host (`C:\Windows\BrowserCore`) trusts — when it is
- * force-installed by machine policy into a *branded Chrome* profile. Puppeteer's
- * bundled Chromium plus its default `--disable-extensions` /
- * `--disable-background-networking` flags prevent that, so the broker path can
- * NOT use the shared jest-puppeteer harness. This module instead drives branded
- * Chrome through Playwright's `launchPersistentContext`, stripping the default
- * flags so the force-listed extension installs into a throwaway profile.
- *
- * Requirements for the extension to load (all satisfied only on a self-hosted,
- * AAD-joined, WAM-enabled Windows agent — never the hosted CI pool):
- *   - Windows, AzureAdJoined = YES, WamDefaultSet = YES.
- *   - `C:\Windows\BrowserCore\BrowserCore.exe` + its native-host manifest.
- *   - `ExtensionInstallForcelist` (HKLM) contains the SSO extension id.
- *   - Branded Google Chrome installed (policies apply to Chrome, not Chromium).
- *
- * This is why the broker spec is opt-in (`NAA_BROKER_E2E=1`) and never part of
- * CI. See the sample README ("Running the platform-broker e2e tests").
- */
+// Test harness for the platform-broker (JS-WAM) NAA spec. Drives branded Chrome
+// via Playwright so the force-installed Microsoft SSO extension loads, and reads
+// the MSAL cache to assert broker outcomes.
 
 import { chromium, BrowserContext, Page, Frame } from "playwright";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
-/**
- * Canonical Store id of the Microsoft SSO (Single Sign On) extension — the id
- * the WAM native messaging host allow-lists. Overridable for environments that
- * force-install a different build.
- */
+// Canonical id of the Microsoft SSO extension the WAM native host allow-lists.
 export const SSO_EXTENSION_ID =
     process.env.SSO_EXTENSION_ID || "ppnbnpeolgkicgegkbkbjmhlideopiji";
 
-/**
- * Chromium default args that must be stripped for a force-installed extension
- * to download and load into a fresh profile (see the spike comparison notes).
- */
+// Chromium default args that must be stripped for a force-installed extension
+// to load into a fresh profile.
 const IGNORED_DEFAULT_ARGS = [
     "--disable-extensions",
     "--disable-background-networking",
@@ -53,7 +26,6 @@ const IGNORED_DEFAULT_ARGS = [
     "--disable-sync",
 ];
 
-/** Milliseconds to wait for the force-installed extension to land on disk. */
 const EXTENSION_INSTALL_TIMEOUT_MS = 20000;
 
 export interface BrokerContext {
@@ -63,12 +35,8 @@ export interface BrokerContext {
     extensionPresent: boolean;
 }
 
-/**
- * Launches branded Chrome with a fresh persistent profile so machine policy
- * force-installs the Microsoft SSO extension (the platform broker). Resolves
- * once the extension is present on disk (or the timeout elapses, in which case
- * `extensionPresent` is false and the caller should skip the broker assertions).
- */
+// Launches branded Chrome with a fresh profile so the SSO extension force-installs.
+// `extensionPresent` is false if it does not appear before the timeout.
 export async function launchBrokerContext(): Promise<BrokerContext> {
     const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "naa-broker-"));
 
@@ -88,9 +56,7 @@ export async function launchBrokerContext(): Promise<BrokerContext> {
     return { context, userDataDir, extensionPresent };
 }
 
-/**
- * Closes the persistent context and removes the throwaway profile directory.
- */
+// Closes the context and removes the throwaway profile directory.
 export async function closeBrokerContext(
     broker: BrokerContext | undefined
 ): Promise<void> {
@@ -104,11 +70,8 @@ export async function closeBrokerContext(
     }
 }
 
-/**
- * Polls `<userDataDir>/Default/Extensions/<id>` until the SSO extension is
- * force-installed. The MV3 service worker is dormant, so on-disk presence — not
- * `context.serviceWorkers()` — is the reliable readiness signal.
- */
+// Polls the profile's extensions dir for the SSO extension. The MV3 service
+// worker is dormant, so on-disk presence is the reliable readiness signal.
 async function waitForExtension(userDataDir: string): Promise<boolean> {
     const extDir = path.join(userDataDir, "Default", "Extensions");
     const deadline = Date.now() + EXTENSION_INSTALL_TIMEOUT_MS;
@@ -135,13 +98,9 @@ export interface TokenStore {
     refreshTokens: string[];
 }
 
-/**
- * Reads the MSAL token store from the given page or frame's sessionStorage and
- * buckets the credential keys by type. Mirrors `BrowserCacheUtils.getTokens` but
- * against Playwright (the shared util is puppeteer-typed). Accepts a `Frame` so
- * the nested app's iframe-partitioned sessionStorage can be read directly — a
- * fresh top-level tab would not share it.
- */
+// Reads the MSAL cache from the page or frame's sessionStorage and buckets keys
+// by credential type. Accepts a Frame so the nested app's iframe-partitioned
+// storage can be read directly.
 export async function readSessionTokenStore(
     page: Page | Frame
 ): Promise<TokenStore> {
@@ -166,9 +125,7 @@ export async function readSessionTokenStore(
     return store;
 }
 
-/**
- * Reads the MSAL account-key list (`msal.3.account.keys`) from sessionStorage.
- */
+// Reads the MSAL account-key list from sessionStorage.
 export async function readAccountKeys(
     page: Page | Frame
 ): Promise<string[] | null> {
@@ -178,9 +135,7 @@ export async function readAccountKeys(
     return raw ? (JSON.parse(raw) as string[]) : null;
 }
 
-/**
- * True when exactly one non-PoP access-token key covers all requested scopes.
- */
+// True when exactly one non-PoP access-token key covers all requested scopes.
 export function accessTokenForScopesExists(
     accessTokenKeys: string[],
     scopes: string[]
@@ -197,12 +152,6 @@ export function accessTokenForScopesExists(
 
 // #region AAD credential entry (Playwright-native)
 
-/*
- * Minimal AAD sign-in selectors. `e2e-test-utils` only re-exports
- * `SubmitButtonSelectors`, and its `enterCredentials` helper relies on
- * puppeteer-only locator syntax (`::-p-text`), so the broker harness carries its
- * own small, Playwright-compatible selector set.
- */
 const USERNAME_INPUT =
     "#i0116, input[name='i0116'], #usernameEntry, input[type='email']";
 const PASSWORD_INPUT =
@@ -211,11 +160,8 @@ const PRIMARY_SUBMIT =
     "#idSIButton9, input[name='idSIButton9'], #next, button[type='submit'], input[type='submit']";
 const KMSI_TITLE = "#kmsiTitle";
 
-/**
- * Signs an account into AAD on the given (popup) page by filling the username,
- * password, and dismissing the "Stay signed in?" (KMSI) prompt. Tolerant of the
- * optional dialogs AAD chains after password entry.
- */
+// Signs an account into AAD on the given popup page: username, password, and
+// the optional "Stay signed in?" (KMSI) prompt.
 export async function enterAadCredentials(
     page: Page,
     username: string,
