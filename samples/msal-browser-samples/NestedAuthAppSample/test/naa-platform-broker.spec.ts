@@ -16,7 +16,7 @@
 // and lab credentials, so it is excluded from CI by the `naa-basic` testFilter
 // in the e2e pipeline. Run locally via `npm run test:e2e:broker`.
 
-import { BrowserContext, Page, Frame } from "playwright";
+import { BrowserContext, Page, Frame } from "playwright-core";
 import { spawn, ChildProcess } from "child_process";
 import * as path from "path";
 import {

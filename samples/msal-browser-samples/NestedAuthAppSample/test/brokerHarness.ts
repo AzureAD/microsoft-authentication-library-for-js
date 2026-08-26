@@ -7,7 +7,7 @@
 // via Playwright so the force-installed Microsoft SSO extension loads, and reads
 // the MSAL cache to assert broker outcomes.
 
-import { chromium, BrowserContext, Page, Frame } from "playwright";
+import { chromium, BrowserContext, Page, Frame } from "playwright-core";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
