@@ -10,7 +10,8 @@
         "start:build": "npm run build:package && npm start",
         "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-browser",
         "test:e2e": "jest",
-        "test:e2e:broker": "cross-env NAA_BROKER_E2E=1 jest --config jest.broker.config.cjs"
+        "test:e2e:basic": "jest naa-basic",
+        "test:e2e:broker": "jest naa-platform-broker"
     },
     "workspaces": [
         "hostApp",
@@ -19,7 +20,6 @@
     "devDependencies": {
         "@types/jest": "^29.5.0",
         "@vitejs/plugin-basic-ssl": "^2.3.0",
-        "cross-env": "^10.1.0",
         "dotenv": "^16.6.1",
         "e2e-test-utils": "file:../../e2eTestUtils",
         "env-cmd": "^10.1.0",
