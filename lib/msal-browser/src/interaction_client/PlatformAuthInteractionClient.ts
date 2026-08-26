@@ -10,7 +10,6 @@ import {
     AccountEntityUtils,
     AccountInfo,
     AuthError,
-    AuthErrorCodes,
     AuthToken,
     AuthorityType,
     CacheHelpers,
@@ -24,7 +23,6 @@ import {
     IdTokenEntity,
     InProgressPerformanceEvent,
     Logger,
-    JsonWebTokenAlgorithms,
     PerformanceEvents,
     PopTokenGenerator,
     RequestParameterBuilder,
@@ -37,25 +35,32 @@ import {
     ITokenBindingKeyManager,
     UrlString,
     buildAccountToCache,
-    createAuthError,
     createClientAuthError,
     createClientConfigurationError,
     invokeAsync,
     updateAccountTenantProfileData,
 } from "@azure/msal-common/browser";
+import { base64Decode } from "../encode/Base64Decode.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
     DPOP_BROKER_REQUEST_TOKEN_TYPE,
     PlatformAuthRequest,
 } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import {
+    DpopBrokerLifecycle,
+    createDpopBrokerLifecycle,
+    generateDpopProof,
+    prepareDpopBrokerRequest,
+    removeDpopRequestKey,
+    resetGeneratedDpopRequestKey,
+    validateDpopBrokerOutcome,
+} from "../broker/nativeBroker/DpopBrokerLifecycle.js";
+import {
     MATS,
     PlatformAuthResponse,
 } from "../broker/nativeBroker/PlatformAuthResponse.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
-import { computeJwkThumbprint } from "../crypto/BrowserCrypto.js";
-import { base64Decode } from "../encode/Base64Decode.js";
 import {
     BrowserAuthErrorCodes,
     createBrowserAuthError,
@@ -93,82 +98,6 @@ import {
 } from "./BaseInteractionClient.js";
 import { SilentCacheClient } from "./SilentCacheClient.js";
 
-const MAX_DPOP_KEY_CLEANUP_ATTEMPTS = 3;
-const DPOP_PROOF_IAT_TOLERANCE_SECONDS = 300;
-
-function isValidDpopPublicJwk(jwk: unknown): jwk is JsonWebKey {
-    if (typeof jwk !== "object" || jwk === null || Array.isArray(jwk)) {
-        return false;
-    }
-
-    const publicJwk = jwk as JsonWebKey;
-    return (
-        publicJwk.kty === "EC" &&
-        publicJwk.crv === "P-256" &&
-        typeof publicJwk.x === "string" &&
-        publicJwk.x.length > 0 &&
-        typeof publicJwk.y === "string" &&
-        publicJwk.y.length > 0 &&
-        publicJwk.d === undefined
-    );
-}
-
-/**
- * Claims required in a broker-supplied resource DPoP proof.
- */
-type BrokerDpopProofClaims = {
-    ath: string;
-    htm: string;
-    htu: string;
-    iat: number;
-    jti: string;
-    nonce?: string;
-};
-
-/**
- * Tracks active users and pending cleanup for an MSAL-generated DPoP key.
- */
-type DpopKeyCleanupState = {
-    activeRequestCount: number;
-    cleanupAttemptCount: number;
-    cleanupRequested: boolean;
-    keyThumbprint?: string;
-};
-
-/**
- * Redirect-safe cleanup state for an MSAL-generated DPoP key.
- */
-type PersistedDpopKeyCleanupState = {
-    keyId: string;
-    cleanupAttemptCount: number;
-    keyThumbprint: string;
-};
-
-function isPersistedDpopKeyCleanupState(
-    entry: unknown
-): entry is PersistedDpopKeyCleanupState {
-    if (typeof entry !== "object" || entry === null) {
-        return false;
-    }
-
-    const candidate = entry as Record<string, unknown>;
-    return (
-        typeof candidate.keyId === "string" &&
-        candidate.keyId.length > 0 &&
-        typeof candidate.keyThumbprint === "string" &&
-        candidate.keyThumbprint.length > 0 &&
-        typeof candidate.cleanupAttemptCount === "number" &&
-        Number.isInteger(candidate.cleanupAttemptCount) &&
-        candidate.cleanupAttemptCount >= 0 &&
-        candidate.cleanupAttemptCount < MAX_DPOP_KEY_CLEANUP_ATTEMPTS
-    );
-}
-
-const dpopKeyCleanupByManager = new WeakMap<
-    ITokenBindingKeyManager,
-    Map<string, DpopKeyCleanupState>
->();
-
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
     protected accountId: string;
@@ -176,9 +105,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected silentCacheClient: SilentCacheClient;
     protected nativeStorageManager: BrowserCacheManager;
     protected skus: string;
-    private msalOwnedDpopRequests = new WeakMap<PlatformAuthRequest, string>();
-    private unclaimedPersistedDpopKeyCleanup: PersistedDpopKeyCleanupState[] =
-        [];
+    private dpopBrokerLifecycle: DpopBrokerLifecycle;
 
     constructor(
         config: BrowserConfiguration,
@@ -223,6 +150,14 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             provider,
             this.tokenBindingKeyManager
         );
+        this.dpopBrokerLifecycle = createDpopBrokerLifecycle({
+            browserCrypto,
+            browserStorage,
+            correlationId,
+            logger,
+            performanceClient,
+            tokenBindingKeyManager: this.tokenBindingKeyManager,
+        });
 
         const extensionName = this.platformAuthProvider.getExtensionName();
 
@@ -444,6 +379,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     : undefined,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
+            shrNonce: request.extraParametersNoCache?.pop_nonce,
         };
 
         // Preserve FMI partition semantics for silent cache filtering.
@@ -845,7 +781,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         const isGeneratedDpopKey =
             !!request.keyId &&
-            this.msalOwnedDpopRequests.get(request) === request.keyId;
+            this.dpopBrokerLifecycle.msalOwnedRequests.get(request) ===
+                request.keyId;
         if (
             isL3DpopResponse ||
             isGeneratedDpopKey ||
@@ -1172,7 +1109,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             request.tokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE &&
             (response.DPoP !== undefined ||
                 (!!request.keyId &&
-                    this.msalOwnedDpopRequests.get(request) === request.keyId))
+                    this.dpopBrokerLifecycle.msalOwnedRequests.get(request) ===
+                        request.keyId))
         ) {
             return;
         }
@@ -1226,7 +1164,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             request.keyId
         ) {
             cachedAccessToken.tokenBindingKeyOwnedByMsal =
-                this.msalOwnedDpopRequests.get(request) === request.keyId;
+                this.dpopBrokerLifecycle.msalOwnedRequests.get(request) ===
+                request.keyId;
         }
 
         // save access token credential in memory storage
@@ -1522,41 +1461,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     private async prepareDpopBrokerRequest(
         request: PlatformAuthRequest
     ): Promise<void> {
-        await this.restorePersistedDpopKeyCleanup();
-        await this.retryDpopKeyCleanup();
-
-        if (request.tokenType !== DPOP_BROKER_REQUEST_TOKEN_TYPE) {
-            return;
-        }
-
-        if (!request.keyId) {
-            request.keyId =
-                await this.tokenBindingKeyManager.provisionTokenBindingKey({
-                    tokenBindingKeyType:
-                        Constants.AuthenticationScheme.DPOP.toLowerCase(),
-                    tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
-                    correlationId: this.correlationId,
-                });
-            this.trackDpopRequestKey(request, request.keyId);
-        }
-
-        const publicJwk =
-            await this.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
-                request.keyId,
-                this.correlationId
-            );
-        if (!isValidDpopPublicJwk(publicJwk)) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.invalidPublicJwk,
-                this.correlationId
-            );
-        }
-        const jkt = await computeJwkThumbprint(publicJwk, this.correlationId);
-        this.getDpopKeyCleanupState(request.keyId).keyThumbprint = jkt;
-
-        request.reqCnf = this.browserCrypto.base64UrlEncode(
-            JSON.stringify({ jkt })
-        );
+        return prepareDpopBrokerRequest(this.dpopBrokerLifecycle, request);
     }
 
     /**
@@ -1569,160 +1474,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         response: PlatformAuthResponse,
         request: PlatformAuthRequest
     ): Promise<void> {
-        const isDpopRequest =
-            request.tokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE;
-        if (
-            (response.token_type !== undefined &&
-                typeof response.token_type !== "string") ||
-            (response.DPoP !== undefined &&
-                typeof response.DPoP !== "string") ||
-            (response.attested_chosen !== undefined &&
-                typeof response.attested_chosen !== "boolean") ||
-            (response.token_binding_key_id !== undefined &&
-                typeof response.token_binding_key_id !== "string")
-        ) {
-            throw createAuthError(
-                AuthErrorCodes.unexpectedError,
-                this.correlationId,
-                "Malformed DPoP broker response."
-            );
-        }
-
-        const responseTokenType = response.token_type?.toLowerCase();
-        const isDpopResponseToken =
-            responseTokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE.toLowerCase();
-        const isStandardDpopResponseToken =
-            responseTokenType ===
-            Constants.AuthenticationScheme.DPOP.toLowerCase();
-        const hasDpopResponse =
-            isDpopResponseToken ||
-            isStandardDpopResponseToken ||
-            response.DPoP !== undefined ||
-            response.attested_chosen !== undefined ||
-            response.token_binding_key_id !== undefined;
-
-        if (!isDpopRequest) {
-            if (hasDpopResponse) {
-                throw createAuthError(
-                    AuthErrorCodes.unexpectedError,
-                    this.correlationId,
-                    "Unexpected DPoP broker response."
-                );
-            }
-            return;
-        }
-
-        if (!isDpopResponseToken && !isStandardDpopResponseToken) {
-            throw createAuthError(
-                AuthErrorCodes.unexpectedError,
-                this.correlationId,
-                "Unknown DPoP broker response."
-            );
-        }
-
-        if (response.DPoP !== undefined) {
-            if (
-                !(await this.isValidBrokerDpopProof(
-                    response.DPoP,
-                    response.access_token,
-                    request
-                )) ||
-                response.attested_chosen !== true ||
-                (response.token_binding_key_id !== undefined &&
-                    response.token_binding_key_id === request.keyId)
-            ) {
-                throw createAuthError(
-                    AuthErrorCodes.unexpectedError,
-                    this.correlationId,
-                    "Malformed DPoP broker response."
-                );
-            }
-            this.performanceClient.addFields(
-                {
-                    "ext.brokerDpopSupported": true,
-                    "ext.brokerDpopBindingLevel": "L3",
-                },
-                this.correlationId
-            );
-            return;
-        }
-
-        if (
-            !request.reqCnf ||
-            !request.keyId ||
-            response.attested_chosen !== false ||
-            (response.token_binding_key_id !== undefined &&
-                response.token_binding_key_id !== request.keyId)
-        ) {
-            throw createAuthError(
-                AuthErrorCodes.unexpectedError,
-                this.correlationId,
-                "Malformed DPoP broker fallback response."
-            );
-        }
-        this.performanceClient.addFields(
-            {
-                "ext.brokerDpopSupported": true,
-                "ext.brokerDpopBindingLevel": "L1",
-            },
-            this.correlationId
+        return validateDpopBrokerOutcome(
+            this.dpopBrokerLifecycle,
+            response,
+            request
         );
-    }
-
-    /**
-     * Validates the structure and resource binding of an L3 broker proof.
-     * The broker attestation establishes trust in the signature.
-     * @param proof - Compact DPoP proof JWT returned by the broker.
-     * @param accessToken - Access token the proof must bind with its ath claim.
-     * @param request - Broker request containing normalized resource context.
-     * @returns Whether the proof contains the required DPoP header and claims.
-     */
-    private async isValidBrokerDpopProof(
-        proof: string,
-        accessToken: string,
-        request: PlatformAuthRequest
-    ): Promise<boolean> {
-        const tokenParts = proof.split(".");
-        if (
-            tokenParts.length !== 3 ||
-            tokenParts.some((part) => part.length === 0)
-        ) {
-            return false;
-        }
-
-        try {
-            const header = JSON.parse(base64Decode(tokenParts[0])) as {
-                alg?: unknown;
-                jwk?: unknown;
-                typ?: unknown;
-            };
-            const claims = JSON.parse(
-                base64Decode(tokenParts[1])
-            ) as Partial<BrokerDpopProofClaims>;
-            const expectedAth = await this.browserCrypto.hashString(
-                accessToken
-            );
-            const currentTime = TimeUtils.nowSeconds();
-            const expectedNonce = request.extraParametersNoCache?.pop_nonce;
-            return (
-                header.alg === JsonWebTokenAlgorithms.ES256 &&
-                typeof header.typ === "string" &&
-                header.typ.toLowerCase() === "dpop+jwt" &&
-                isValidDpopPublicJwk(header.jwk) &&
-                claims.htm === request.resourceRequestMethod &&
-                claims.htu === request.resourceRequestUri &&
-                claims.ath === expectedAth &&
-                typeof claims.iat === "number" &&
-                Number.isFinite(claims.iat) &&
-                Math.abs(currentTime - claims.iat) <=
-                    DPOP_PROOF_IAT_TOLERANCE_SECONDS &&
-                typeof claims.jti === "string" &&
-                claims.jti.length > 0 &&
-                (expectedNonce === undefined || claims.nonce === expectedNonce)
-            );
-        } catch {
-            return false;
-        }
     }
 
     /**
@@ -1736,24 +1492,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         response: PlatformAuthResponse,
         request: PlatformAuthRequest
     ): Promise<string> {
-        if (response.DPoP !== undefined) {
-            return response.DPoP;
-        }
-
-        const dpopProofGenerator = new DpopProofGenerator(
-            this.browserCrypto,
-            this.tokenBindingKeyManager
-        );
-        return dpopProofGenerator.generateResourceProof(
-            {
-                htu: request.resourceRequestUri,
-                htm: request.resourceRequestMethod,
-                nonce: request.extraParametersNoCache?.pop_nonce,
-                accessToken: response.access_token,
-            },
-            request.keyId as string,
-            this.correlationId
-        );
+        return generateDpopProof(this.dpopBrokerLifecycle, response, request);
     }
 
     /**
@@ -1764,13 +1503,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     private async resetGeneratedDpopRequestKey(
         request: PlatformAuthRequest
     ): Promise<void> {
-        if (!request.keyId || !this.msalOwnedDpopRequests.has(request)) {
-            return;
-        }
-
-        await this.removeDpopRequestKey(request);
-        request.keyId = undefined;
-        request.reqCnf = undefined;
+        return resetGeneratedDpopRequestKey(this.dpopBrokerLifecycle, request);
     }
 
     /**
@@ -1782,249 +1515,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     private async removeDpopRequestKey(
         request: PlatformAuthRequest
     ): Promise<boolean> {
-        const ownedKeyId = this.msalOwnedDpopRequests.get(request);
-        if (!ownedKeyId) {
-            return true;
-        }
-
-        this.msalOwnedDpopRequests.delete(request);
-        const cleanupState = this.getDpopKeyCleanupState(ownedKeyId);
-        cleanupState.activeRequestCount = Math.max(
-            cleanupState.activeRequestCount - 1,
-            0
-        );
-        cleanupState.cleanupRequested = true;
-
-        return this.removeInactiveDpopKey(ownedKeyId, cleanupState);
-    }
-
-    /**
-     * Retries generated DPoP key removals owned by this client's key manager.
-     */
-    private async retryDpopKeyCleanup(): Promise<void> {
-        const cleanupStates = dpopKeyCleanupByManager.get(
-            this.tokenBindingKeyManager
-        );
-        if (!cleanupStates) {
-            return;
-        }
-
-        for (const [keyId, cleanupState] of cleanupStates) {
-            await this.removeInactiveDpopKey(keyId, cleanupState);
-        }
-    }
-
-    /**
-     * Restores cleanup state that survived redirect navigation.
-     */
-    private async restorePersistedDpopKeyCleanup(): Promise<void> {
-        const persistedCleanup = this.browserStorage.getTemporaryCache(
-            TemporaryCacheKeys.DPOP_KEY_CLEANUP,
-            this.correlationId,
-            true
-        );
-        if (!persistedCleanup) {
-            return;
-        }
-
-        let cleanupEntries: unknown;
-        try {
-            cleanupEntries = JSON.parse(persistedCleanup);
-        } catch {
-            this.logger.warning(
-                "Ignoring invalid persisted DPoP key cleanup state",
-                this.correlationId
-            );
-            this.removePersistedDpopKeyCleanup();
-            return;
-        }
-
-        if (!Array.isArray(cleanupEntries)) {
-            this.removePersistedDpopKeyCleanup();
-            return;
-        }
-
-        this.unclaimedPersistedDpopKeyCleanup = [];
-        for (const entry of cleanupEntries) {
-            if (!isPersistedDpopKeyCleanupState(entry)) {
-                continue;
-            }
-
-            try {
-                const publicJwk =
-                    await this.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
-                        entry.keyId,
-                        this.correlationId
-                    );
-                if (
-                    !isValidDpopPublicJwk(publicJwk) ||
-                    (await computeJwkThumbprint(
-                        publicJwk,
-                        this.correlationId
-                    )) !== entry.keyThumbprint
-                ) {
-                    this.unclaimedPersistedDpopKeyCleanup.push(entry);
-                    continue;
-                }
-            } catch {
-                this.unclaimedPersistedDpopKeyCleanup.push(entry);
-                continue;
-            }
-
-            const cleanupState = this.getDpopKeyCleanupState(entry.keyId);
-            cleanupState.cleanupAttemptCount = Math.max(
-                cleanupState.cleanupAttemptCount,
-                entry.cleanupAttemptCount
-            );
-            cleanupState.cleanupRequested = true;
-            cleanupState.keyThumbprint = entry.keyThumbprint;
-        }
-        this.persistDpopKeyCleanup();
-    }
-
-    /**
-     * Persists pending generated-key cleanup across redirect navigation.
-     */
-    private persistDpopKeyCleanup(): void {
-        const cleanupEntries = Array.from(
-            this.getDpopKeyCleanupStates(),
-            ([keyId, cleanupState]): PersistedDpopKeyCleanupState | null =>
-                cleanupState.cleanupRequested && cleanupState.keyThumbprint
-                    ? {
-                          keyId,
-                          cleanupAttemptCount: cleanupState.cleanupAttemptCount,
-                          keyThumbprint: cleanupState.keyThumbprint,
-                      }
-                    : null
-        )
-            .filter(
-                (entry): entry is PersistedDpopKeyCleanupState => entry !== null
-            )
-            .concat(this.unclaimedPersistedDpopKeyCleanup);
-
-        if (cleanupEntries.length === 0) {
-            this.removePersistedDpopKeyCleanup();
-            return;
-        }
-
-        this.browserStorage.setTemporaryCache(
-            TemporaryCacheKeys.DPOP_KEY_CLEANUP,
-            JSON.stringify(cleanupEntries),
-            true
-        );
-    }
-
-    /**
-     * Removes persisted generated-key cleanup state.
-     */
-    private removePersistedDpopKeyCleanup(): void {
-        this.browserStorage.removeTemporaryItem(
-            this.browserStorage.generateCacheKey(
-                TemporaryCacheKeys.DPOP_KEY_CLEANUP
-            )
-        );
-    }
-
-    /**
-     * Tracks a generated key as active for a specific broker request.
-     * @param request - Request using the generated key.
-     * @param keyId - Opaque key-manager identifier.
-     */
-    private trackDpopRequestKey(
-        request: PlatformAuthRequest,
-        keyId: string
-    ): void {
-        this.msalOwnedDpopRequests.set(request, keyId);
-        const cleanupState = this.getDpopKeyCleanupState(keyId);
-        cleanupState.activeRequestCount += 1;
-    }
-
-    /**
-     * Returns the cleanup state for a key owned by this client's key manager.
-     * @param keyId - Opaque key-manager identifier.
-     * @returns Mutable cleanup state for the key.
-     */
-    private getDpopKeyCleanupState(keyId: string): DpopKeyCleanupState {
-        const cleanupStates = this.getDpopKeyCleanupStates();
-        let cleanupState = cleanupStates.get(keyId);
-        if (!cleanupState) {
-            cleanupState = {
-                activeRequestCount: 0,
-                cleanupAttemptCount: 0,
-                cleanupRequested: false,
-                keyThumbprint: undefined,
-            };
-            cleanupStates.set(keyId, cleanupState);
-        }
-        return cleanupState;
-    }
-
-    /**
-     * Returns cleanup state isolated to this client's key-manager instance.
-     * @returns Cleanup states for the configured key manager.
-     */
-    private getDpopKeyCleanupStates(): Map<string, DpopKeyCleanupState> {
-        let cleanupStates = dpopKeyCleanupByManager.get(
-            this.tokenBindingKeyManager
-        );
-        if (!cleanupStates) {
-            cleanupStates = new Map<string, DpopKeyCleanupState>();
-            dpopKeyCleanupByManager.set(
-                this.tokenBindingKeyManager,
-                cleanupStates
-            );
-        }
-        return cleanupStates;
-    }
-
-    /**
-     * Removes a cleanup candidate only after all active requests release it.
-     * @param keyId - Opaque key-manager identifier.
-     * @param cleanupState - Current ownership and cleanup state.
-     * @returns Whether cleanup is complete or intentionally deferred.
-     */
-    private async removeInactiveDpopKey(
-        keyId: string,
-        cleanupState: DpopKeyCleanupState
-    ): Promise<boolean> {
-        if (cleanupState.activeRequestCount > 0) {
-            return true;
-        }
-        if (!cleanupState.cleanupRequested) {
-            return true;
-        }
-
-        try {
-            await this.tokenBindingKeyManager.removeTokenBindingKey(
-                keyId,
-                this.correlationId
-            );
-            this.getDpopKeyCleanupStates().delete(keyId);
-            this.persistDpopKeyCleanup();
-            return true;
-        } catch {
-            cleanupState.cleanupAttemptCount += 1;
-            this.performanceClient.incrementFields(
-                { removeTokenBindingKeyFailure: 1 },
-                this.correlationId
-            );
-            if (
-                cleanupState.cleanupAttemptCount >=
-                MAX_DPOP_KEY_CLEANUP_ATTEMPTS
-            ) {
-                this.getDpopKeyCleanupStates().delete(keyId);
-                this.performanceClient.incrementFields(
-                    { "ext.dpopKeyCleanupRetryExhausted": 1 },
-                    this.correlationId
-                );
-            }
-            this.persistDpopKeyCleanup();
-            this.logger.error(
-                "Failed to remove unused DPoP request key",
-                this.correlationId
-            );
-            return false;
-        }
+        return removeDpopRequestKey(this.dpopBrokerLifecycle, request);
     }
 
     private async getCanonicalAuthority(

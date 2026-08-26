@@ -175,6 +175,10 @@ describe("PlatformAuthInteractionClient Tests", () => {
     let perfMeasurement: InProgressPerformanceEvent;
 
     beforeEach(async () => {
+        jest.spyOn(BrowserCrypto, "importJwk").mockResolvedValue(
+            {} as CryptoKey
+        );
+        jest.spyOn(BrowserCrypto, "verify").mockResolvedValue(true);
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1037,6 +1041,55 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).toBeNull();
         });
 
+        it("Extension: expires persisted cleanup when its key cannot be resolved", async () => {
+            browserCacheManager.setTemporaryCache(
+                TemporaryCacheKeys.DPOP_KEY_CLEANUP,
+                JSON.stringify([
+                    {
+                        keyId: "unresolvable-cleanup-key",
+                        cleanupAttemptCount: 0,
+                        keyThumbprint: "unresolvable-thumbprint",
+                    },
+                ]),
+                true
+            );
+            const clientInternals =
+                platformAuthInteractionClient as unknown as {
+                    prepareDpopBrokerRequest(
+                        request: PlatformAuthRequest
+                    ): Promise<void>;
+                    tokenBindingKeyManager: {
+                        getTokenBindingPublicKeyJwk(): Promise<JsonWebKey>;
+                    };
+                };
+            jest.spyOn(
+                clientInternals.tokenBindingKeyManager,
+                "getTokenBindingPublicKeyJwk"
+            ).mockRejectedValue(new Error("key not found"));
+            const incrementFieldsSpy = jest.spyOn(
+                perfClient,
+                "incrementFields"
+            );
+
+            for (let attempt = 0; attempt < 3; attempt++) {
+                await clientInternals.prepareDpopBrokerRequest({
+                    tokenType: Constants.AuthenticationScheme.BEARER,
+                } as PlatformAuthRequest);
+            }
+
+            expect(
+                browserCacheManager.getTemporaryCache(
+                    TemporaryCacheKeys.DPOP_KEY_CLEANUP,
+                    RANDOM_TEST_GUID,
+                    true
+                )
+            ).toBeNull();
+            expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                { "ext.dpopKeyCleanupRetryExhausted": 1 },
+                RANDOM_TEST_GUID
+            );
+        });
+
         it("Extension: defers generated-key cleanup while another request uses the same key", async () => {
             const clientInternals =
                 platformAuthInteractionClient as unknown as {
@@ -1219,7 +1272,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         TEST_DPOP_RESOURCE_URI,
                         TEST_DPOP_ATH,
                         undefined,
-                        { iat: TimeUtils.nowSeconds() + 301 }
+                        { iat: TimeUtils.nowSeconds() + 302 }
                     ),
                     attested_chosen: true,
                 },
@@ -1407,6 +1460,35 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     } as PlatformAuthRequest
                 )
             ).resolves.toBeUndefined();
+        });
+
+        it("Extension: rejects an L3 DPoP proof with an invalid signature", async () => {
+            jest.spyOn(BrowserCrypto, "verify").mockResolvedValueOnce(false);
+
+            await expect(
+                (
+                    platformAuthInteractionClient as unknown as {
+                        validateDpopBrokerOutcome(
+                            response: PlatformAuthResponse,
+                            request: PlatformAuthRequest
+                        ): Promise<void>;
+                    }
+                ).validateDpopBrokerOutcome(
+                    {
+                        ...MOCK_WAM_RESPONSE,
+                        token_type: Constants.AuthenticationScheme.DPOP,
+                        DPoP: TEST_DPOP_PROOF,
+                        attested_chosen: true,
+                    },
+                    {
+                        tokenType: DPOP_BROKER_REQUEST_TOKEN_TYPE,
+                        resourceRequestMethod: TEST_DPOP_RESOURCE_METHOD,
+                        resourceRequestUri: TEST_DPOP_RESOURCE_URI,
+                    } as PlatformAuthRequest
+                )
+            ).rejects.toMatchObject({
+                errorCode: AuthErrorCodes.unexpectedError,
+            });
         });
 
         it("Extension: includes and validates the DPoP nonce", async () => {
@@ -1768,6 +1850,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         dpopJkt?: string;
                         resourceRequestMethod?: string;
                         resourceRequestUri?: string;
+                        shrNonce?: string;
                     };
                 }
             ).createSilentCacheRequest.bind(platformAuthInteractionClient);
@@ -1781,6 +1864,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     keyId: "caller-dpop-key",
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                    extraParametersNoCache: {
+                        pop_nonce: "resource-nonce",
+                    },
                 } as PlatformAuthRequest,
                 TEST_ACCOUNT_INFO
             );
@@ -1790,6 +1876,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     dpopJkt: "caller-dpop-key",
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                    shrNonce: "resource-nonce",
                 })
             );
         });

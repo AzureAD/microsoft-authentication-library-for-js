@@ -248,6 +248,22 @@ export async function sign(
 }
 
 /**
+ * Verifies a signature for the given data and key.
+ * @param key
+ * @param signature
+ * @param data
+ * @param algorithm
+ */
+export async function verify(
+    key: CryptoKey,
+    signature: BufferSource,
+    data: BufferSource,
+    algorithm: AlgorithmIdentifier
+): Promise<boolean> {
+    return window.crypto.subtle.verify(algorithm, key, signature, data);
+}
+
+/**
  * Generates Base64 encoded jwk used in the Encrypted Authorize Response (EAR) flow
  */
 export async function generateEarKey(): Promise<string> {
