@@ -158,6 +158,68 @@ describe("SilentRefreshClient", () => {
             expect(tokenResp).toEqual(testTokenResponse);
         });
 
+        it("passes generated DPoP key id to refresh token request", async () => {
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: ["scope1"],
+                idToken: TEST_TOKENS.IDTOKEN_V2,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
+                ),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.DPOP,
+            };
+            const silentATStub = jest
+                .spyOn(
+                    RefreshTokenClient.prototype,
+                    <any>"acquireTokenByRefreshToken"
+                )
+                .mockResolvedValue(testTokenResponse);
+            const provisionTokenBindingKeySpy = jest
+                .spyOn(
+                    (silentRefreshClient as any).tokenBindingKeyManager,
+                    "provisionTokenBindingKey"
+                )
+                .mockResolvedValue("test-dpop-jkt");
+
+            const tokenResp = await silentRefreshClient.acquireToken({
+                scopes: ["scope1"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            });
+
+            expect(silentATStub).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    dpopJkt: "test-dpop-jkt",
+                    resourceRequestMethod: "GET",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                }),
+                ApiId.acquireTokenSilent_silentFlow
+            );
+            expect(provisionTokenBindingKeySpy).toHaveBeenCalledWith({
+                tokenBindingKeyType:
+                    Constants.AuthenticationScheme.DPOP.toLowerCase(),
+                tokenBindingKeyAlgorithm: "ES256",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            });
+            const refreshRequest = silentATStub.mock
+                .calls[0][0] as CommonSilentFlowRequest;
+            expect(refreshRequest.dpopJkt).toBe("test-dpop-jkt");
+            expect(tokenResp).toEqual(testTokenResponse);
+        });
+
         it("Relative redirectUri is converted to absolute", async () => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,

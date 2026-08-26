@@ -227,6 +227,53 @@ describe("SilentIframeClient", () => {
             );
         });
 
+        it("passes generated DPoP key id to silent iframe auth code response handling", async () => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+            );
+            const handleResponseCodeSpy = jest
+                .spyOn(AuthorizeProtocol, "handleResponseCode")
+                .mockResolvedValue(getTestAuthenticationResult());
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(
+                (silentIframeClient as any).tokenBindingKeyManager,
+                "provisionTokenBindingKey"
+            ).mockResolvedValue("test-dpop-jkt");
+
+            await silentIframeClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint",
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            });
+
+            expect(handleResponseCodeSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    dpopJkt: "test-dpop-jkt",
+                }),
+                expect.anything(),
+                TEST_CONFIG.TEST_VERIFIER,
+                ApiId.acquireTokenSilent_authCode,
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                undefined
+            );
+        });
+
         it("Errors thrown during token acquisition are cached for telemetry and browserStorage is cleaned", (done) => {
             // Enable server telemetry so cacheFailedRequest writes to storage
             //@ts-ignore

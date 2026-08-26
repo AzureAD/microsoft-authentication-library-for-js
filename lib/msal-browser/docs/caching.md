@@ -97,7 +97,8 @@ await pca.initialize();
 ## Remarks
 
 - We do not recommend apps having business logic dependent on direct use of entities in the cache. Instead, use the appropriate MSAL API when you need to acquire tokens or retrieve accounts.
-- Keys used to encrypt proof of possession (PoP) tokens are stored using a combination of [IndexedDB API](https://developer.mozilla.org/docs/Web/API/IndexedDB_API) and memory storage. For more information, please refer to [access-token-proof-of-possession](./access-token-proof-of-possession.md#pop-key-management).
+- Keys used to encrypt proof of possession (PoP) tokens and DPoP token-binding keys are stored using a combination of [IndexedDB API](https://developer.mozilla.org/docs/Web/API/IndexedDB_API) and memory storage. For more information, please refer to [access-token-proof-of-possession](./access-token-proof-of-possession.md#pop-key-management).
+- DPoP access tokens are cached as authentication-scheme access tokens partitioned by `tokenType=dpop` and the request's DPoP key thumbprint. DPoP proof JWTs are not cached; MSAL signs a fresh proof on each successful acquisition and treats a cached DPoP access token as a cache miss if the matching local key is unavailable. When MSAL removes a cached PoP or DPoP access token, it also removes the associated token-binding key.
 
 ## More information
 

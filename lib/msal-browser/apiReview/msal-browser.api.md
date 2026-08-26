@@ -105,6 +105,7 @@ export type AuthenticationResult = AuthenticationResult_2 & {
 export const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
+    readonly DPOP: "DPoP";
     readonly SSH: "ssh-cert";
 };
 
@@ -719,6 +720,12 @@ function isInPopup(): boolean;
 
 // @public
 export function isPlatformBrokerAvailable(domConfig: boolean, loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
+
+// @public
+export interface IWebBrokerBridgeMessage {
+    readonly requestId: string;
+    readonly type: string;
+}
 
 // @public (undocumented)
 export interface IWindowStorage<T> {

@@ -7,6 +7,7 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
+import type { PublicJsonWebKey } from "./PublicJsonWebKey.js";
 
 /**
  * Parameters used by token-binding key managers to provision browser-managed
@@ -46,7 +47,7 @@ export interface ITokenBindingKeyManager {
     getTokenBindingPublicKeyJwk(
         kid: string,
         correlationId: string
-    ): Promise<JsonWebKey>;
+    ): Promise<PublicJsonWebKey>;
 }
 
 /**
@@ -75,7 +76,7 @@ export const DEFAULT_TOKEN_BINDING_KEY_MANAGER: ITokenBindingKeyManager = {
     async getTokenBindingPublicKeyJwk(
         _kid: string,
         correlationId: string
-    ): Promise<JsonWebKey> {
+    ): Promise<PublicJsonWebKey> {
         throw createClientAuthError(
             ClientAuthErrorCodes.methodNotImplemented,
             correlationId

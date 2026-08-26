@@ -11,6 +11,7 @@ import {
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError.js";
 import { JoseHeader } from "./JoseHeader.js";
+import type { PublicJsonWebKey } from "./PublicJsonWebKey.js";
 
 /**
  * RFC 9449 DPoP proof JWT payload claims.
@@ -40,10 +41,17 @@ export type DpopTokenProofParams = {
  * @internal
  */
 export type DpopResourceProofParams = {
-    resourceUrl: string;
+    htu: string;
     htm: string;
     ath: string;
     nonce?: string;
+};
+
+export type GenerateDpopResourceProofParams = {
+    htu?: string;
+    htm?: string;
+    nonce?: string;
+    accessToken: string;
 };
 
 const DPOP_HTM_REGEX = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
@@ -51,7 +59,7 @@ const DPOP_TOKEN_BINDING_KEY_TYPE = "dpop";
 const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
 
 function buildProofHeader(
-    publicJwk: JsonWebKey,
+    publicJwk: PublicJsonWebKey,
     correlationId: string
 ): JoseHeader {
     return JoseHeader.getDpopHeader(
@@ -108,6 +116,18 @@ function normalizeHtu(url: string, correlationId: string): string {
     return parsedUrl.href;
 }
 
+function validateDpopNonce(
+    nonce: string | undefined,
+    correlationId: string
+): void {
+    if (nonce !== undefined && nonce.trim().length === 0) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidDpopNonce,
+            correlationId
+        );
+    }
+}
+
 /**
  * Builds RFC 9449 DPoP proof JWT payloads for token-endpoint and
  * resource-endpoint proof bindings.
@@ -153,6 +173,7 @@ export class DpopProofGenerator {
         params: DpopTokenProofParams,
         correlationId: string = ""
     ): DpopProofClaims {
+        validateDpopNonce(params.nonce, correlationId);
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
             htm: "POST",
@@ -191,10 +212,11 @@ export class DpopProofGenerator {
         params: DpopResourceProofParams,
         correlationId: string = ""
     ): DpopProofClaims {
+        validateDpopNonce(params.nonce, correlationId);
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
             htm: normalizeHtm(params.htm, correlationId),
-            htu: normalizeHtu(params.resourceUrl, correlationId),
+            htu: normalizeHtu(params.htu, correlationId),
             ath: params.ath,
             iat: TimeUtils.nowSeconds(),
         };
@@ -208,12 +230,29 @@ export class DpopProofGenerator {
      * Builds and signs a compact DPoP proof JWT for a resource request.
      */
     async generateResourceProof(
-        params: DpopResourceProofParams,
+        params: GenerateDpopResourceProofParams,
         keyId: string,
         correlationId: string = ""
     ): Promise<string> {
+        const { htu, htm, nonce } = params;
+        if (!htu || !htm) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.dpopMissingResourceContext,
+                correlationId
+            );
+        }
+
+        const ath = await this.cryptoUtils.hashString(params.accessToken);
         return this.generateProof(
-            this.buildResourceProofClaims(params, correlationId),
+            this.buildResourceProofClaims(
+                {
+                    htu,
+                    htm,
+                    ath,
+                    nonce,
+                },
+                correlationId
+            ),
             keyId,
             correlationId
         );

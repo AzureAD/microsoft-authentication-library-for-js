@@ -232,16 +232,6 @@ export interface IConfidentialClientApplication {
 
 export { IdTokenClaims }
 
-// @public
-export interface ILoopbackClient {
-    // (undocumented)
-    closeServer(): void;
-    // (undocumented)
-    getRedirectUri(): string;
-    // (undocumented)
-    listenForAuthCode(successTemplate?: string, errorTemplate?: string): Promise<AuthorizeResponse>;
-}
-
 export { INativeBrokerPlugin }
 
 export { INetworkModule }
@@ -266,7 +256,6 @@ export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "sc
     successTemplate?: string;
     errorTemplate?: string;
     windowHandle?: Buffer;
-    loopbackClient?: ILoopbackClient;
     preferredPort?: number;
 };
 
