@@ -61,22 +61,6 @@ Generated L1 keys and their access tokens are not cached because a later request
 
 DPoP requests must include the resource method and URI used to build the proof. For the complete request shape and proof usage, see [DPoP for PublicClientApplication](./access-token-proof-of-possession.md#dpop-for-publicclientapplication).
 
-To use an application-managed key for broker DPoP, provision the ES256 DPoP key through the token-binding key manager configured for the `PublicClientApplication`, retain its opaque key identifier, and pass that identifier as `popKid` together with the required resource context:
-
-```typescript
-const dpopRequest = {
-    scopes: ["User.Read"],
-    authenticationScheme: msal.AuthenticationScheme.DPOP,
-    popKid: applicationManagedDpopKeyId,
-    resourceRequestMethod: "GET",
-    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-};
-
-const result = await myMSALObj.acquireTokenPopup(dpopRequest);
-```
-
-The configured key manager must be able to resolve `popKid` to the corresponding public and private key material. The application owns the key lifecycle and must retain the key while cached tokens in that partition may be reused, then remove it when it is no longer needed.
-
 ## Acquiring Device Bound Tokens using DOM API
 
 MSAL.js also supports acquiring tokens from the platform broker using DOM APIs in Edge. Instead of using a browser extension to communicate with the platform broker, MSAL.js can directly call a DOM API in the Edge browser, which in turn invokes the platform broker to acquire tokens.

@@ -94,6 +94,7 @@ import {
 import { SilentCacheClient } from "./SilentCacheClient.js";
 
 const MAX_DPOP_KEY_CLEANUP_ATTEMPTS = 3;
+const DPOP_PROOF_IAT_TOLERANCE_SECONDS = 300;
 
 function isValidDpopPublicJwk(jwk: unknown): jwk is JsonWebKey {
     if (typeof jwk !== "object" || jwk === null || Array.isArray(jwk)) {
@@ -121,6 +122,7 @@ type BrokerDpopProofClaims = {
     htu: string;
     iat: number;
     jti: string;
+    nonce?: string;
 };
 
 /**
@@ -130,6 +132,7 @@ type DpopKeyCleanupState = {
     activeRequestCount: number;
     cleanupAttemptCount: number;
     cleanupRequested: boolean;
+    keyThumbprint?: string;
 };
 
 /**
@@ -138,6 +141,7 @@ type DpopKeyCleanupState = {
 type PersistedDpopKeyCleanupState = {
     keyId: string;
     cleanupAttemptCount: number;
+    keyThumbprint: string;
 };
 
 function isPersistedDpopKeyCleanupState(
@@ -151,6 +155,8 @@ function isPersistedDpopKeyCleanupState(
     return (
         typeof candidate.keyId === "string" &&
         candidate.keyId.length > 0 &&
+        typeof candidate.keyThumbprint === "string" &&
+        candidate.keyThumbprint.length > 0 &&
         typeof candidate.cleanupAttemptCount === "number" &&
         Number.isInteger(candidate.cleanupAttemptCount) &&
         candidate.cleanupAttemptCount >= 0 &&
@@ -171,6 +177,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected nativeStorageManager: BrowserCacheManager;
     protected skus: string;
     private msalOwnedDpopRequests = new WeakMap<PlatformAuthRequest, string>();
+    private unclaimedPersistedDpopKeyCleanup: PersistedDpopKeyCleanupState[] =
+        [];
 
     constructor(
         config: BrowserConfiguration,
@@ -633,8 +641,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             );
             return null;
         }
-
-        this.restorePersistedDpopKeyCleanup();
 
         // remove prompt from the request to prevent WAM from prompting twice
         const cachedRequest = this.browserStorage.getCachedNativeRequest();
@@ -1421,6 +1427,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     htm: request.resourceRequestMethod,
                     htu: request.resourceRequestUri,
                     ath: "",
+                    nonce: request.shrNonce,
                 },
                 this.correlationId
             );
@@ -1429,6 +1436,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             validatedRequest.resourceRequestMethod = proofClaims.htm;
             validatedRequest.resourceRequestUri = proofClaims.htu;
             validatedRequest.preferBinding = "attested";
+            if (proofClaims.nonce !== undefined) {
+                validatedRequest.extraParametersNoCache = {
+                    pop_nonce: proofClaims.nonce,
+                };
+            }
         }
 
         if (hasAttributeTokens) {
@@ -1510,6 +1522,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     private async prepareDpopBrokerRequest(
         request: PlatformAuthRequest
     ): Promise<void> {
+        await this.restorePersistedDpopKeyCleanup();
         await this.retryDpopKeyCleanup();
 
         if (request.tokenType !== DPOP_BROKER_REQUEST_TOKEN_TYPE) {
@@ -1539,6 +1552,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             );
         }
         const jkt = await computeJwkThumbprint(publicJwk, this.correlationId);
+        this.getDpopKeyCleanupState(request.keyId).keyThumbprint = jkt;
 
         request.reqCnf = this.browserCrypto.base64UrlEncode(
             JSON.stringify({ jkt })
@@ -1598,7 +1612,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return;
         }
 
-        if (!isDpopResponseToken) {
+        if (!isDpopResponseToken && !isStandardDpopResponseToken) {
             throw createAuthError(
                 AuthErrorCodes.unexpectedError,
                 this.correlationId,
@@ -1688,6 +1702,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             const expectedAth = await this.browserCrypto.hashString(
                 accessToken
             );
+            const currentTime = TimeUtils.nowSeconds();
+            const expectedNonce = request.extraParametersNoCache?.pop_nonce;
             return (
                 header.alg === JsonWebTokenAlgorithms.ES256 &&
                 typeof header.typ === "string" &&
@@ -1698,8 +1714,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 claims.ath === expectedAth &&
                 typeof claims.iat === "number" &&
                 Number.isFinite(claims.iat) &&
+                Math.abs(currentTime - claims.iat) <=
+                    DPOP_PROOF_IAT_TOLERANCE_SECONDS &&
                 typeof claims.jti === "string" &&
-                claims.jti.length > 0
+                claims.jti.length > 0 &&
+                (expectedNonce === undefined || claims.nonce === expectedNonce)
             );
         } catch {
             return false;
@@ -1729,6 +1748,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             {
                 htu: request.resourceRequestUri,
                 htm: request.resourceRequestMethod,
+                nonce: request.extraParametersNoCache?.pop_nonce,
                 accessToken: response.access_token,
             },
             request.keyId as string,
@@ -1797,7 +1817,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     /**
      * Restores cleanup state that survived redirect navigation.
      */
-    private restorePersistedDpopKeyCleanup(): void {
+    private async restorePersistedDpopKeyCleanup(): Promise<void> {
         const persistedCleanup = this.browserStorage.getTemporaryCache(
             TemporaryCacheKeys.DPOP_KEY_CLEANUP,
             this.correlationId,
@@ -1824,9 +1844,31 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return;
         }
 
-        cleanupEntries.forEach((entry: unknown) => {
+        this.unclaimedPersistedDpopKeyCleanup = [];
+        for (const entry of cleanupEntries) {
             if (!isPersistedDpopKeyCleanupState(entry)) {
-                return;
+                continue;
+            }
+
+            try {
+                const publicJwk =
+                    await this.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                        entry.keyId,
+                        this.correlationId
+                    );
+                if (
+                    !isValidDpopPublicJwk(publicJwk) ||
+                    (await computeJwkThumbprint(
+                        publicJwk,
+                        this.correlationId
+                    )) !== entry.keyThumbprint
+                ) {
+                    this.unclaimedPersistedDpopKeyCleanup.push(entry);
+                    continue;
+                }
+            } catch {
+                this.unclaimedPersistedDpopKeyCleanup.push(entry);
+                continue;
             }
 
             const cleanupState = this.getDpopKeyCleanupState(entry.keyId);
@@ -1835,7 +1877,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 entry.cleanupAttemptCount
             );
             cleanupState.cleanupRequested = true;
-        });
+            cleanupState.keyThumbprint = entry.keyThumbprint;
+        }
+        this.persistDpopKeyCleanup();
     }
 
     /**
@@ -1845,15 +1889,18 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const cleanupEntries = Array.from(
             this.getDpopKeyCleanupStates(),
             ([keyId, cleanupState]): PersistedDpopKeyCleanupState | null =>
-                cleanupState.cleanupRequested
+                cleanupState.cleanupRequested && cleanupState.keyThumbprint
                     ? {
                           keyId,
                           cleanupAttemptCount: cleanupState.cleanupAttemptCount,
+                          keyThumbprint: cleanupState.keyThumbprint,
                       }
                     : null
-        ).filter(
-            (entry): entry is PersistedDpopKeyCleanupState => entry !== null
-        );
+        )
+            .filter(
+                (entry): entry is PersistedDpopKeyCleanupState => entry !== null
+            )
+            .concat(this.unclaimedPersistedDpopKeyCleanup);
 
         if (cleanupEntries.length === 0) {
             this.removePersistedDpopKeyCleanup();
@@ -1905,6 +1952,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 activeRequestCount: 0,
                 cleanupAttemptCount: 0,
                 cleanupRequested: false,
+                keyThumbprint: undefined,
             };
             cleanupStates.set(keyId, cleanupState);
         }
