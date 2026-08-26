@@ -42,6 +42,36 @@ type ResponseResolvers<T> = {
 
 const PROOF_CONTEXT_EXTENSION_VERSION = 3;
 
+/**
+ * Returns the major protocol version from a numeric or semantic version.
+ * @param version - Version reported by the extension handshake.
+ * @returns The major version, or undefined for an invalid version.
+ */
+function getExtensionMajorVersion(
+    version: string | undefined
+): number | undefined {
+    if (!version) {
+        return undefined;
+    }
+
+    const versionComponents = String(version).split(".");
+    if (
+        versionComponents.length > 3 ||
+        versionComponents.some(
+            (component) =>
+                !component ||
+                Array.from(component).some(
+                    (character) => character < "0" || character > "9"
+                )
+        )
+    ) {
+        return undefined;
+    }
+
+    const majorVersion = Number(versionComponents[0]);
+    return Number.isSafeInteger(majorVersion) ? majorVersion : undefined;
+}
+
 export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     private extensionId: string | undefined;
     private extensionVersion: string | undefined;
@@ -127,9 +157,11 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     private initializeNativeExtensionRequest(
         request: PlatformAuthRequest
     ): PlatformAuthRequest {
-        const extensionVersion = Number(this.extensionVersion);
+        const extensionVersion = getExtensionMajorVersion(
+            this.extensionVersion
+        );
         if (
-            !Number.isFinite(extensionVersion) ||
+            extensionVersion === undefined ||
             extensionVersion < PROOF_CONTEXT_EXTENSION_VERSION
         ) {
             return request;

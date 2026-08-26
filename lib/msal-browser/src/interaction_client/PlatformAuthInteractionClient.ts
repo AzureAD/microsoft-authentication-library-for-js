@@ -132,6 +132,14 @@ type DpopKeyCleanupState = {
     cleanupRequested: boolean;
 };
 
+/**
+ * Redirect-safe cleanup state for an MSAL-generated DPoP key.
+ */
+type PersistedDpopKeyCleanupState = {
+    keyId: string;
+    cleanupAttemptCount: number;
+};
+
 const dpopKeyCleanupByManager = new WeakMap<
     ITokenBindingKeyManager,
     Map<string, DpopKeyCleanupState>
@@ -607,6 +615,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             );
             return null;
         }
+
+        this.restorePersistedDpopKeyCleanup();
 
         // remove prompt from the request to prevent WAM from prompting twice
         const cachedRequest = this.browserStorage.getCachedNativeRequest();
@@ -1767,6 +1777,106 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     }
 
     /**
+     * Restores cleanup state that survived redirect navigation.
+     */
+    private restorePersistedDpopKeyCleanup(): void {
+        const persistedCleanup = this.browserStorage.getTemporaryCache(
+            TemporaryCacheKeys.DPOP_KEY_CLEANUP,
+            this.correlationId,
+            true
+        );
+        if (!persistedCleanup) {
+            return;
+        }
+
+        let cleanupEntries: unknown;
+        try {
+            cleanupEntries = JSON.parse(persistedCleanup);
+        } catch {
+            this.logger.warning(
+                "Ignoring invalid persisted DPoP key cleanup state",
+                this.correlationId
+            );
+            this.removePersistedDpopKeyCleanup();
+            return;
+        }
+
+        if (!Array.isArray(cleanupEntries)) {
+            this.removePersistedDpopKeyCleanup();
+            return;
+        }
+
+        cleanupEntries.forEach((entry: unknown) => {
+            if (
+                typeof entry !== "object" ||
+                entry === null ||
+                typeof (entry as PersistedDpopKeyCleanupState).keyId !==
+                    "string" ||
+                !(entry as PersistedDpopKeyCleanupState).keyId ||
+                !Number.isInteger(
+                    (entry as PersistedDpopKeyCleanupState).cleanupAttemptCount
+                ) ||
+                (entry as PersistedDpopKeyCleanupState).cleanupAttemptCount <
+                    0 ||
+                (entry as PersistedDpopKeyCleanupState).cleanupAttemptCount >=
+                    MAX_DPOP_KEY_CLEANUP_ATTEMPTS
+            ) {
+                return;
+            }
+
+            const persistedState = entry as PersistedDpopKeyCleanupState;
+            const cleanupState = this.getDpopKeyCleanupState(
+                persistedState.keyId
+            );
+            cleanupState.cleanupAttemptCount = Math.max(
+                cleanupState.cleanupAttemptCount,
+                persistedState.cleanupAttemptCount
+            );
+            cleanupState.cleanupRequested = true;
+        });
+    }
+
+    /**
+     * Persists pending generated-key cleanup across redirect navigation.
+     */
+    private persistDpopKeyCleanup(): void {
+        const cleanupEntries = Array.from(
+            this.getDpopKeyCleanupStates(),
+            ([keyId, cleanupState]): PersistedDpopKeyCleanupState | null =>
+                cleanupState.cleanupRequested
+                    ? {
+                          keyId,
+                          cleanupAttemptCount: cleanupState.cleanupAttemptCount,
+                      }
+                    : null
+        ).filter(
+            (entry): entry is PersistedDpopKeyCleanupState => entry !== null
+        );
+
+        if (cleanupEntries.length === 0) {
+            this.removePersistedDpopKeyCleanup();
+            return;
+        }
+
+        this.browserStorage.setTemporaryCache(
+            TemporaryCacheKeys.DPOP_KEY_CLEANUP,
+            JSON.stringify(cleanupEntries),
+            true
+        );
+    }
+
+    /**
+     * Removes persisted generated-key cleanup state.
+     */
+    private removePersistedDpopKeyCleanup(): void {
+        this.browserStorage.removeTemporaryItem(
+            this.browserStorage.generateCacheKey(
+                TemporaryCacheKeys.DPOP_KEY_CLEANUP
+            )
+        );
+    }
+
+    /**
      * Tracks a generated key as active for a specific broker request.
      * @param request - Request using the generated key.
      * @param keyId - Opaque key-manager identifier.
@@ -1840,6 +1950,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.correlationId
             );
             this.getDpopKeyCleanupStates().delete(keyId);
+            this.persistDpopKeyCleanup();
             return true;
         } catch {
             cleanupState.cleanupAttemptCount += 1;
@@ -1857,6 +1968,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     this.correlationId
                 );
             }
+            this.persistDpopKeyCleanup();
             this.logger.error(
                 "Failed to remove unused DPoP request key",
                 this.correlationId

@@ -92,6 +92,7 @@ export const TemporaryCacheKeys = {
     VERIFIER: "code.verifier",
     INTERACTION_STATUS_KEY: "interaction.status",
     NATIVE_REQUEST: "request.native",
+    DPOP_KEY_CLEANUP: "dpop.key.cleanup",
 } as const;
 export type TemporaryCacheKeys =
     (typeof TemporaryCacheKeys)[keyof typeof TemporaryCacheKeys];

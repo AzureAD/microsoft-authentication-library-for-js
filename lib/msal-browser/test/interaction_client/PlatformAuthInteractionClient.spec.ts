@@ -18,7 +18,11 @@ import {
     AuthError,
 } from "@azure/msal-common";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
-import { ApiId, CacheLookupPolicy } from "../../src/utils/BrowserConstants.js";
+import {
+    ApiId,
+    CacheLookupPolicy,
+    TemporaryCacheKeys,
+} from "../../src/utils/BrowserConstants.js";
 import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import {
@@ -754,6 +758,97 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 { removeTokenBindingKeyFailure: 1 },
                 RANDOM_TEST_GUID
             );
+        });
+
+        it("Extension: restores failed generated-key cleanup after redirect navigation", async () => {
+            const firstClient = platformAuthInteractionClient as unknown as {
+                resetGeneratedDpopRequestKey(
+                    request: PlatformAuthRequest
+                ): Promise<void>;
+                prepareDpopBrokerRequest(
+                    request: PlatformAuthRequest
+                ): Promise<void>;
+                tokenBindingKeyManager: {
+                    provisionTokenBindingKey(): Promise<string>;
+                    getTokenBindingPublicKeyJwk(): Promise<JsonWebKey>;
+                    removeTokenBindingKey(): Promise<void>;
+                };
+            };
+            const request = {
+                tokenType: DPOP_BROKER_REQUEST_TOKEN_TYPE,
+            } as PlatformAuthRequest;
+            jest.spyOn(
+                firstClient.tokenBindingKeyManager,
+                "provisionTokenBindingKey"
+            ).mockResolvedValue("redirect-cleanup-dpop-key");
+            jest.spyOn(
+                firstClient.tokenBindingKeyManager,
+                "getTokenBindingPublicKeyJwk"
+            ).mockResolvedValue({
+                kty: "EC",
+                crv: "P-256",
+                x: "test-x",
+                y: "test-y",
+            });
+            jest.spyOn(
+                firstClient.tokenBindingKeyManager,
+                "removeTokenBindingKey"
+            ).mockRejectedValue(new Error("temporary failure"));
+
+            await firstClient.prepareDpopBrokerRequest(request);
+            await firstClient.resetGeneratedDpopRequestKey(request);
+
+            const nextKeyManager = {
+                provisionTokenBindingKey: jest.fn(),
+                getTokenBindingPublicKeyJwk: jest.fn(),
+                removeTokenBindingKey: jest.fn().mockResolvedValue(undefined),
+            };
+            type PlatformAuthInteractionClientArgs = ConstructorParameters<
+                typeof PlatformAuthInteractionClient
+            >;
+            const pcaInternals = pca as unknown as {
+                config: PlatformAuthInteractionClientArgs[0];
+                browserCrypto: PlatformAuthInteractionClientArgs[2];
+                eventHandler: PlatformAuthInteractionClientArgs[4];
+                navigationClient: PlatformAuthInteractionClientArgs[5];
+            };
+            const nextClient = new PlatformAuthInteractionClient(
+                pcaInternals.config,
+                browserCacheManager,
+                pcaInternals.browserCrypto,
+                pca.getLogger(),
+                pcaInternals.eventHandler,
+                pcaInternals.navigationClient,
+                ApiId.handleRedirectPromise,
+                perfClient,
+                wamProvider,
+                "nativeAccountId",
+                internalStorage,
+                RANDOM_TEST_GUID,
+                nextKeyManager
+            ) as unknown as {
+                restorePersistedDpopKeyCleanup(): void;
+                prepareDpopBrokerRequest(
+                    request: PlatformAuthRequest
+                ): Promise<void>;
+            };
+
+            nextClient.restorePersistedDpopKeyCleanup();
+            await nextClient.prepareDpopBrokerRequest({
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            } as PlatformAuthRequest);
+
+            expect(nextKeyManager.removeTokenBindingKey).toHaveBeenCalledWith(
+                "redirect-cleanup-dpop-key",
+                RANDOM_TEST_GUID
+            );
+            expect(
+                browserCacheManager.getTemporaryCache(
+                    TemporaryCacheKeys.DPOP_KEY_CLEANUP,
+                    RANDOM_TEST_GUID,
+                    true
+                )
+            ).toBeNull();
         });
 
         it("Extension: stops retrying generated-key cleanup after the bounded attempt limit", async () => {
