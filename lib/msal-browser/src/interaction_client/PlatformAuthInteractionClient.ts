@@ -95,6 +95,23 @@ import { SilentCacheClient } from "./SilentCacheClient.js";
 
 const MAX_DPOP_KEY_CLEANUP_ATTEMPTS = 3;
 
+function isValidDpopPublicJwk(jwk: unknown): jwk is JsonWebKey {
+    if (typeof jwk !== "object" || jwk === null || Array.isArray(jwk)) {
+        return false;
+    }
+
+    const publicJwk = jwk as JsonWebKey;
+    return (
+        publicJwk.kty === "EC" &&
+        publicJwk.crv === "P-256" &&
+        typeof publicJwk.x === "string" &&
+        publicJwk.x.length > 0 &&
+        typeof publicJwk.y === "string" &&
+        publicJwk.y.length > 0 &&
+        publicJwk.d === undefined
+    );
+}
+
 /**
  * Claims required in a broker-supplied resource DPoP proof.
  */
@@ -1487,6 +1504,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 request.keyId,
                 this.correlationId
             );
+        if (!isValidDpopPublicJwk(publicJwk)) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.invalidPublicJwk,
+                this.correlationId
+            );
+        }
         const jkt = await computeJwkThumbprint(publicJwk, this.correlationId);
 
         request.reqCnf = this.browserCrypto.base64UrlEncode(
@@ -1526,8 +1549,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const responseTokenType = response.token_type?.toLowerCase();
         const isDpopResponseToken =
             responseTokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE.toLowerCase();
+        const isStandardDpopResponseToken =
+            responseTokenType ===
+            Constants.AuthenticationScheme.DPOP.toLowerCase();
         const hasDpopResponse =
             isDpopResponseToken ||
+            isStandardDpopResponseToken ||
             response.DPoP !== undefined ||
             response.attested_chosen !== undefined ||
             response.token_binding_key_id !== undefined;
@@ -1624,6 +1651,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         try {
             const header = JSON.parse(base64Decode(tokenParts[0])) as {
                 alg?: unknown;
+                jwk?: unknown;
                 typ?: unknown;
             };
             const claims = JSON.parse(
@@ -1633,10 +1661,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 accessToken
             );
             return (
-                typeof header.alg === "string" &&
-                header.alg.length > 0 &&
+                header.alg === JsonWebTokenAlgorithms.ES256 &&
                 typeof header.typ === "string" &&
                 header.typ.toLowerCase() === "dpop+jwt" &&
+                isValidDpopPublicJwk(header.jwk) &&
                 claims.htm === request.resourceRequestMethod &&
                 claims.htu === request.resourceRequestUri &&
                 claims.ath === expectedAth &&

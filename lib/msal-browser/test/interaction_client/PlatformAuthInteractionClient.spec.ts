@@ -55,11 +55,22 @@ const TEST_DPOP_RESOURCE_METHOD = "POST";
 const TEST_DPOP_RESOURCE_URI = "https://graph.microsoft.com/v1.0/me";
 const TEST_DPOP_ATH = "VA09zkzsfmBu0zotQAkj_5xPQr9hLU5mKeyOYwFQCRM";
 const DPOP_BROKER_REQUEST_TOKEN_TYPE = "dpop_proof";
+const TEST_DPOP_PUBLIC_JWK: JsonWebKey = {
+    kty: "EC",
+    crv: "P-256",
+    x: "test-x",
+    y: "test-y",
+};
 
 function createTestDpopProof(
     htm: string = TEST_DPOP_RESOURCE_METHOD,
     htu: string = TEST_DPOP_RESOURCE_URI,
-    ath: string | null = TEST_DPOP_ATH
+    ath: string | null = TEST_DPOP_ATH,
+    header: object = {
+        alg: "ES256",
+        typ: "dpop+jwt",
+        jwk: TEST_DPOP_PUBLIC_JWK,
+    }
 ): string {
     const encode = (value: object): string =>
         window
@@ -67,7 +78,7 @@ function createTestDpopProof(
             .replace(/\+/g, "-")
             .replace(/\//g, "_")
             .replace(/=+$/, "");
-    return `${encode({ alg: "ES256", typ: "dpop+jwt" })}.${encode({
+    return `${encode(header)}.${encode({
         htm,
         htu,
         ...(ath !== null && { ath }),
@@ -989,6 +1000,60 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 },
             },
             {
+                name: "L3 outcome with an unsupported proof algorithm",
+                response: {
+                    token_type: DPOP_BROKER_REQUEST_TOKEN_TYPE,
+                    DPoP: createTestDpopProof(
+                        TEST_DPOP_RESOURCE_METHOD,
+                        TEST_DPOP_RESOURCE_URI,
+                        TEST_DPOP_ATH,
+                        {
+                            alg: "none",
+                            typ: "dpop+jwt",
+                            jwk: TEST_DPOP_PUBLIC_JWK,
+                        }
+                    ),
+                    attested_chosen: true,
+                },
+            },
+            {
+                name: "L3 outcome without a public proof key",
+                response: {
+                    token_type: DPOP_BROKER_REQUEST_TOKEN_TYPE,
+                    DPoP: createTestDpopProof(
+                        TEST_DPOP_RESOURCE_METHOD,
+                        TEST_DPOP_RESOURCE_URI,
+                        TEST_DPOP_ATH,
+                        {
+                            alg: "ES256",
+                            typ: "dpop+jwt",
+                        }
+                    ),
+                    attested_chosen: true,
+                },
+            },
+            {
+                name: "L3 outcome with an incompatible proof key",
+                response: {
+                    token_type: DPOP_BROKER_REQUEST_TOKEN_TYPE,
+                    DPoP: createTestDpopProof(
+                        TEST_DPOP_RESOURCE_METHOD,
+                        TEST_DPOP_RESOURCE_URI,
+                        TEST_DPOP_ATH,
+                        {
+                            alg: "ES256",
+                            typ: "dpop+jwt",
+                            jwk: {
+                                kty: "RSA",
+                                e: "AQAB",
+                                n: "test-n",
+                            },
+                        }
+                    ),
+                    attested_chosen: true,
+                },
+            },
+            {
                 name: "L3 outcome without affirmative attestation",
                 response: {
                     token_type: DPOP_BROKER_REQUEST_TOKEN_TYPE,
@@ -1111,6 +1176,12 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 name: "token type",
                 response: {
                     token_type: DPOP_BROKER_REQUEST_TOKEN_TYPE,
+                },
+            },
+            {
+                name: "standard token type",
+                response: {
+                    token_type: Constants.AuthenticationScheme.DPOP,
                 },
             },
             {
@@ -1257,6 +1328,65 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.dpopProof).toBe(TEST_DPOP_PROOF);
             expect(removeKeySpy).not.toHaveBeenCalled();
         });
+
+        it.each([
+            {
+                name: "RSA",
+                publicJwk: {
+                    kty: "RSA",
+                    e: "AQAB",
+                    n: "test-n",
+                },
+            },
+            {
+                name: "P-384",
+                publicJwk: {
+                    kty: "EC",
+                    crv: "P-384",
+                    x: "test-x",
+                    y: "test-y",
+                },
+            },
+            {
+                name: "missing coordinate",
+                publicJwk: {
+                    kty: "EC",
+                    crv: "P-256",
+                    x: "test-x",
+                },
+            },
+        ])(
+            "Extension: rejects a caller-supplied $name DPoP key before broker IPC",
+            async ({ publicJwk }) => {
+                const keyManager =
+                    // @ts-ignore
+                    platformAuthInteractionClient.tokenBindingKeyManager;
+                jest.spyOn(
+                    keyManager,
+                    "getTokenBindingPublicKeyJwk"
+                ).mockResolvedValue(publicJwk);
+                const sendMessageSpy = jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                );
+
+                await expect(
+                    platformAuthInteractionClient.acquireToken({
+                        scopes: ["User.Read"],
+                        authenticationScheme:
+                            Constants.AuthenticationScheme.DPOP,
+                        popKid: "incompatible-key",
+                        resourceRequestMethod: "POST",
+                        resourceRequestUri:
+                            "https://graph.microsoft.com/v1.0/me",
+                    })
+                ).rejects.toMatchObject({
+                    errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+                });
+
+                expect(sendMessageSpy).not.toHaveBeenCalled();
+            }
+        );
 
         it("Extension: marks a cached caller-supplied DPoP key as caller-owned", async () => {
             const saveCacheRecordSpy = jest.spyOn(
