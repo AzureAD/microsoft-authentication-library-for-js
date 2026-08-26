@@ -9,12 +9,13 @@ import {
 } from "../error/JoseHeaderError.js";
 import { isPlainObject } from "../utils/ObjectUtils.js";
 import { JsonWebTokenTypes } from "../utils/Constants.js";
+import type { PublicJsonWebKey } from "./PublicJsonWebKey.js";
 
 export type JoseHeaderOptions = {
     typ?: JsonWebTokenTypes;
     alg?: string;
     kid?: string;
-    jwk?: JsonWebKey;
+    jwk?: PublicJsonWebKey;
 };
 
 /** @internal */
@@ -22,7 +23,7 @@ export class JoseHeader {
     public typ?: JsonWebTokenTypes;
     public alg: string;
     public kid?: string;
-    public jwk?: JsonWebKey;
+    public jwk?: PublicJsonWebKey;
 
     constructor(
         options: JoseHeaderOptions & { alg: string },

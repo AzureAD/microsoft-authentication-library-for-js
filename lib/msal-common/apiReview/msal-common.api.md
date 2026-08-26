@@ -2070,7 +2070,7 @@ function isTokenExpired(expiresOn: string, offset: number): boolean;
 
 // @internal
 export interface ITokenBindingKeyManager {
-    getTokenBindingPublicKeyJwk(kid: string, correlationId: string): Promise<JsonWebKey>;
+    getTokenBindingPublicKeyJwk(kid: string, correlationId: string): Promise<PublicJsonWebKey>;
     provisionTokenBindingKey(request: TokenBindingKeyProvisioningParameters): Promise<string>;
     removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
 }
@@ -2103,7 +2103,7 @@ export class JoseHeader {
     static getDpopHeader(dpopHeaderOptions: JoseHeaderOptions, correlationId: string): JoseHeader;
     static getShrHeader(shrHeaderOptions: JoseHeaderOptions, correlationId: string): JoseHeader;
     // (undocumented)
-    jwk?: JsonWebKey;
+    jwk?: PublicJsonWebKey;
     // (undocumented)
     kid?: string;
     // (undocumented)
@@ -2701,6 +2701,21 @@ declare namespace ProtocolUtils {
         parseRequestState
     }
 }
+
+// @internal
+export type PublicJsonWebKey = {
+    alg?: string;
+    crv?: string;
+    e?: string;
+    ext?: boolean;
+    key_ops?: string[];
+    kid?: string;
+    kty?: string;
+    n?: string;
+    use?: string;
+    x?: string;
+    y?: string;
+};
 
 // @public (undocumented)
 const REDIRECT_URI = "redirect_uri";
