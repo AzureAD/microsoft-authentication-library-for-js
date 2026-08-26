@@ -1,0 +1,40 @@
+I’m grounding the standards review in the repository’s security, Forge context, and component instructions before inspecting the PR diff.
+
+The mandated security files are restricted by the organization’s content-exclusion policy, so I will not attempt alternate access. I’m continuing the read-only review using accessible repository guidance and the authoritative PR diff.
+
+Repository guidance is resolved through the documented fallback (`CONTRIBUTING.md`) because no accessible `forge.json` was found. I’m now reviewing all changed-file diffs, including companion tests, docs, API review, and changefiles.
+
+The broad diff shows one likely companion-file inconsistency and a large interaction-client change requiring focused review. I’m tracing that implementation against its tests and current package patterns before registering any finding.
+
+The maintainability review found two concrete convention/completeness issues: a stale PR reference in a required changefile and a newly introduced undocumented type. I’m registering both for the fix loop.
+
+```json:findings
+[
+  {
+    "id": "changefile-links-wrong-pr",
+    "severity": "🟡",
+    "file": "change/@azure-msal-browser-platform-broker-dpop.json",
+    "line": 3,
+    "action": "fix",
+    "details": {
+      "problem": "The new changefile's comment points to PR #8772 instead of the current PR #8789.",
+      "reasoning": "The repository's changefile instructions require the change description to include the corresponding PR number and link. Beachball carries this text into release artifacts, so the stale link breaks traceability for this platform-broker contract change.",
+      "suggestion": "Change both the link text and URL to [#8789](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8789), matching the sibling changefiles added by this PR."
+    },
+    "confidence": "high"
+  },
+  {
+    "id": "undocumented-dpop-cleanup-state-type",
+    "severity": "🟡",
+    "file": "lib/msal-browser/src/interaction_client/PlatformAuthInteractionClient.ts",
+    "line": 95,
+    "action": "fix",
+    "details": {
+      "problem": "The newly added DpopKeyCleanupState type is missing the required JSDoc/TSDoc comment.",
+      "reasoning": "lib/AGENTS.md requires JSDoc/TSDoc for all types. This type controls the nontrivial ownership lifecycle for generated DPoP keys, so leaving its flags undocumented also makes the module-level cleanup protocol harder to maintain safely.",
+      "suggestion": "Add TSDoc above DpopKeyCleanupState describing its role and the meanings of activeRequestCount, cleanupRequested, and retainedByCache."
+    },
+    "confidence": "high"
+  }
+]
+```

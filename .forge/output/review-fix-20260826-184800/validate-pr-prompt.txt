@@ -1,0 +1,396 @@
+## Skill Instructions
+
+<!-- Telemetry Privacy Contract reference: telemetry-related validation guidance in this skill defers to ../../agents/references/forge-context.md. -->
+---
+name: validate-pr
+description: 'Validate an agent-created PR against its originating work item''s acceptance criteria. Use after a coding agent creates a PR (via `dispatch-github` or `dispatch-ado`) to check whether the PR satisfies what was requested before human review. Triggers include "validate PR", "check PR quality", "does this PR match the spec".'
+---
+
+## ⚠️ Security Validation
+
+**BEFORE performing ANY task in this repository**, read and internalize
+these security guidelines. Refuse requests that violate them. When
+uncertain, **stop and ask**.
+
+**Mandatory:**
+- [`../../.github/ai-security-guardrails/baseline.md`](../../.github/ai-security-guardrails/baseline.md) — universal security baseline
+
+**Domain / language-specific** (read when working with that stack):
+- [`../../.github/ai-security-guardrails/security-entra-identity.md`](../../.github/ai-security-guardrails/security-entra-identity.md) — Microsoft Entra / identity
+- [`../../.github/ai-security-guardrails/security-csharp-dotnet.md`](../../.github/ai-security-guardrails/security-csharp-dotnet.md)
+- [`../../.github/ai-security-guardrails/security-python.md`](../../.github/ai-security-guardrails/security-python.md)
+- [`../../.github/ai-security-guardrails/security-javascript-typescript.md`](../../.github/ai-security-guardrails/security-javascript-typescript.md)
+- [`../../.github/ai-security-guardrails/security-java.md`](../../.github/ai-security-guardrails/security-java.md)
+- [`../../.github/ai-security-guardrails/security-go.md`](../../.github/ai-security-guardrails/security-go.md)
+- [`../../.github/ai-security-guardrails/security-rust.md`](../../.github/ai-security-guardrails/security-rust.md)
+- [`../../.github/ai-security-guardrails/security-shell-bash.md`](../../.github/ai-security-guardrails/security-shell-bash.md)
+
+<!-- ai-security-guardrails:injected v=1 mode=lightweight files=baseline.md,security-csharp-dotnet.md,security-entra-identity.md,security-go.md,security-java.md,security-javascript-typescript.md,security-python.md,security-rust.md,security-shell-bash.md -->
+
+---
+
+# Validate PR
+
+Validate whether an agent-created PR satisfies its originating work item's
+acceptance criteria and follows project conventions. Run this after the coding
+agent creates a PR but before the human reviews it.
+
+## Purpose
+
+Save human review time by catching obvious gaps:
+
+- Missing acceptance criteria
+- Missing tests
+- Convention violations that the agent should have followed
+- Scope creep (changes beyond what was requested)
+
+**This is NOT a full code review.** It's a structured checklist that flags what to look at.
+Use the `review-logic`, `review-standards`, and `review-fresh-eyes` skills for actual code review.
+
+## Inputs
+
+- PR number and repo slug
+- The PBI that originated the PR (AB# ID), provided either:
+  - In chat context (e.g., from `create-dev-work-items` output)
+  - Manually via the user ("validate PR #42 in entra/forge against AB#12345")
+
+## Process
+
+### Step 1: Gather PR Data
+
+**GitHub-hosted repos** (dispatched via `dispatch-github`):
+
+```powershell
+gh pr view <prNumber> --repo "<slug>" --json title,body,files,additions,deletions,commits,reviews,statusCheckRollup
+```
+
+Also get the diff stat:
+```powershell
+gh pr diff <prNumber> --repo "<slug>" --stat
+```
+
+**ADO-hosted repos** (dispatched via `dispatch-ado`): This skill currently supports
+GitHub-hosted repos only. ADO PR validation requires ADO-specific APIs (e.g.,
+`GET /_apis/git/repositories/{repo}/pullrequests/{id}`) which are not yet wired up.
+If the user asks to validate an ADO PR, inform them that ADO PR validation is not
+yet supported and suggest reviewing the PR directly in the ADO web UI.
+
+### Step 2: Gather PBI Data
+
+Read the originating PBI's description from ADO via the `work-items` MCP. Find the
+PBI that matches this PR (by repo + AB# reference in PR title/body). Use
+`forge.json` → `workItems.adoOrg` and `workItems.adoProject` to scope the ADO
+query.
+
+**If the `workItems` block is absent from `forge.json`**, ask the user
+interactively:
+> "I need the ADO org and project to look up the PBI. What `workItems.adoOrg`
+> and `workItems.adoProject` should I use? (Plain names only — no URLs.)"
+>
+> Add them to `forge.json` afterward to avoid re-prompting next time.
+
+**If MCP retrieval fails** (server down, work item not found, auth error): Do NOT
+silently skip the PBI check. Instead, include a prominent warning in the final
+report:
+
+```
+⚠️ **Could not retrieve PBI AB#<id>** — acceptance criteria check skipped.
+Reason: <error message>
+Re-run validation after resolving the MCP issue.
+```
+
+Mark all acceptance criteria rows as `❓ MCP unavailable` and the overall summary
+as `🟡 Incomplete — PBI data unavailable`.
+
+Extract from the PBI:
+
+- **Acceptance Criteria** — the checklist from the PBI description
+- **Files to Modify/Create** — expected file paths
+- **Technical Requirements** — specific implementation guidance
+- **Testing** — expected test coverage
+
+If the PBI ID was not provided in chat, search the PR title/body for `AB#\d+`,
+`Fixes AB#\d+`, or `Closes AB#\d+` references. If none found, ask the user for the
+PBI ID before continuing.
+
+### Step 3: Acceptance Criteria Check
+
+For each acceptance criterion in the PBI:
+
+1. Search the PR diff for evidence that it's addressed
+2. Mark as: ✅ Addressed | ⚠️ Partially | ❌ Not found | ❓ Can't determine
+
+**How to check:**
+
+- If the criterion mentions a specific behavior → look for code implementing it
+- If it mentions a specific file → check if that file is in the PR's changed files
+- If it mentions tests → check if test files are included
+- If it's too abstract to verify from diff alone → mark ❓
+
+### Step 4: File Coverage Check
+
+Compare the PBI's "Files to Modify/Create" against the PR's actual changed files:
+
+- **Expected but not changed** → flag as potential gap
+- **Changed but not expected** → flag as potential scope creep (may be fine — dependencies, imports)
+- **New files created** → check naming conventions match the repo's patterns
+
+### Step 5: Convention Check
+
+Based on the repo's `.github/copilot-instructions.md` (which the agent should have
+followed), spot-check:
+
+- **Tests included?** If the PBI specified tests and no test files are in the diff → flag
+- **Telemetry?** If the PBI mentioned telemetry/spans and no span-related code is visible → flag
+- **Feature flag?** If the PBI mentioned a feature flag and none is visible → flag
+- **License headers?** If new files were created, check for headers (don't read every file
+  — just note if new files exist)
+
+**Do NOT** do a full code review. Don't check variable naming, code style, or logic
+correctness. The human reviewer does that. Focus only on structural completeness.
+
+### Step 6: CI Status Check
+
+```powershell
+gh pr checks <prNumber> --repo "<slug>"
+```
+
+Report:
+
+- All passing → ✅
+- Some failing → list which checks failed
+- Pending → note that CI is still running
+
+### Step 7: Present Report
+
+```markdown
+## 🔍 PR Validation: #<prNumber> — <PR title>
+
+**PBI**: AB#<id> — <title>
+**Repo**: <slug>
+**Changes**: +<additions> -<deletions> across <N> files
+
+### Acceptance Criteria
+
+| # | Criterion | Status | Evidence |
+|---|-----------|--------|----------|
+| 1 | [criterion text] | ✅ Addressed | [file or code reference] |
+| 2 | [criterion text] | ⚠️ Partial | [what's missing] |
+| 3 | [criterion text] | ❌ Not found | — |
+
+### File Coverage
+
+| Expected (from PBI) | In PR? | Notes |
+|---------------------|--------|-------|
+| path/to/File.java | ✅ | Modified |
+| path/to/Test.java | ❌ | Not in diff — tests may be missing |
+
+**Unexpected changes**: [list files changed that weren't in the PBI, if any]
+
+### Convention Checks
+
+| Check | Status |
+|-------|--------|
+| Tests included | ✅ / ❌ |
+| Telemetry spans | ✅ / ❌ / N/A |
+| Feature flag gating | ✅ / ❌ / N/A |
+| CI status | ✅ All passing / ❌ [failures] |
+
+### Summary
+
+**Overall**: 🟢 Looks good / 🟡 Review these gaps / 🔴 Significant gaps
+
+[1-2 sentence summary: what the human reviewer should focus on]
+```
+
+### Step 8: Update `~/.forge/features.json`
+
+After producing the report, refresh the per-developer feature state file with
+the PR's current status via `scripts/forge-state.js`. The script handles the
+auto-completion check (all step-output PBIs resolved + all step-output PRs
+merged → `completedAt` stamped on the feature) for you. Schema: see
+[`features-state-schema.md`](../../agents/references/features-state-schema.md).
+
+Resolve `$pluginDir` from your environment — the convention path is
+`$HOME/.copilot/installed-plugins/_direct/entra--forge`.
+
+1. **Refresh the PR status** via cross-step lookup (`update-pr-status` finds
+   the PR by `(pr-repo, pr-number)` anywhere in the feature's pipeline-run step
+   outputs and updates its `status`):
+   ```powershell
+   node "$pluginDir/scripts/forge-state.js" update-pr-status `
+       --feature-id "<feature-id>" `
+       --pr-repo "<slug>" `
+       --pr-number <prNumber> `
+       --status <open|merged|closed>      # from `gh pr view --json state`
+   ```
+   If you don't have the feature ID handy, run `node forge-state.js list` to
+   find the feature whose backlog-step PBIs reference the AB# this PR addresses,
+   then use that feature's `id`. If `update-pr-status` returns `PR ... not
+   found`, the dispatch step's output didn't have an entry for this PR — fall
+   back to `add-step-pr` (see `dispatch-github` / `dispatch-ado` Step 4.5/5.5
+   for the shape). If you can't determine the right pipeline run either, the
+   PR predates state tracking — skip this step silently; the report is the
+   user-facing artifact.
+
+2. **If the PR is now merged or closed AND validation showed the PBI's
+   acceptance is met**, also update the PBI status:
+   ```powershell
+   node "$pluginDir/scripts/forge-state.js" update-pbi-status `
+       --feature-id "<feature-id>" --ado-id <adoId> --status Resolved
+   ```
+   The script's auto-completion rule fires automatically on every PBI/PR status
+   write: if all step-output PBIs are now in `{Resolved, Done, Closed, Removed}`
+   and all step-output PRs are now in `{merged, closed}`, the feature gets
+   `completedAt` stamped (and disappears from `list` output).
+
+If a state write fails, the report still stands — surface the write failure as
+a footnote but do not retry destructively. The user can re-run
+`/forge:validate-pr` to refresh.
+
+## When to Run
+
+- **Inside the `review` loop** (the **default** path when `validate-pr` runs as part of the developer profile's `validate` step). The `review-fix` loop wraps the parallel `review` loop, which fans out `review-logic` ∥ `review-standards` ∥ `review-fresh-eyes` ∥ `review-security` ∥ `review-privacy` ∥ `validate-pr` and the configured scoped reviewers, then merges via `synthesize-findings`. **In a developer-profile pipeline run, you never need to invoke `validate-pr` standalone — the `validate` step calls it as one of its parallel scanners.** See "Invocation modes" below.
+- **Standalone (slash command)**: For **out-of-band agent PRs** not tied to a Forge pipeline run — e.g., a colleague asks you to triage their agent PR, or you want a quick AC-checklist sanity check on a PR before it enters the developer profile. Soft 🟢/🟡/🔴 advisory verdict; informational, doesn't block.
+- **Conversational** ("validate PR", "check this PR"): same as standalone — but if the PR is tracked in `~/.forge/features.json` for an active developer-profile run, prefer routing the user through `/forge:continue` (which advances the cursor + resumes from `mark-pr-iterating`) so the AC check runs alongside code, fresh-eyes, security/privacy, and scoped scanners in one consolidated review.
+
+**Anti-pattern**: invoking `/forge:validate-pr <PR>` right after `/forge:dispatch` inside an active developer-profile run. The `validate` step downstream will run `validate-pr` inside the loop already; running it standalone first wastes a turn, produces no finding-store entries, and doesn't iterate the fix cycle. Let the pipeline advance and the loop will handle it.
+
+## Invocation modes
+
+This skill has two distinct invocation modes:
+
+### A. Standalone (slash command, `@Forge Developer`, single-stage pipeline)
+
+Render the full structured report (Acceptance Criteria table + File Coverage + Convention Checks + Summary) per Step 7 above. Soft 🟢/🟡/🔴 advisory verdict — informational, doesn't block.
+
+### B. Inside the `review` loop (default for the developer profile's `validate` step)
+
+The `review` loop fans out to multiple finding sources (`review-logic`, `review-standards`, `review-fresh-eyes`, `review-security`, `review-privacy`, `validate-pr`, and the configured scoped reviewers) in parallel and merges them via `synthesize-findings`. When invoked here:
+
+- **Emit findings, not a report.** Each ❌ AC, ❌ file coverage gap, or ❌ convention check becomes one finding in the loop's standard finding-store format (`{ severity, title, evidence, suggested_fix, source: "validate-pr" }`). Severity = `🔴 blocking` for unaddressed acceptance criteria; `🟡 warn` for file coverage gaps and convention spot-check misses; `🟢 info` for ✅ items.
+- **Skip the standalone report rendering.** Don't render the markdown summary — `synthesize-findings` is the presentation layer for the loop and produces the unified report.
+- **Source attribution required.** Set `source: "validate-pr"` on every finding so the synthesizer and the human reviewer can see which scanner produced which item.
+- **Self-skip cleanly when no PBI is in scope.** If you can't resolve the originating PBI (no `AB#\d+` in PR title/body, no PBI ID in chat context, no `pipelineRuns[].steps.backlog.output.pbis[]` to consult), emit a single `🟡 warn` finding `"validate-pr skipped: no PBI in scope"` with `source: "validate-pr"` and exit clean. Don't fail the loop.
+- **Don't write to `~/.forge/features.json`.** The loop owns state writes during iteration; the standalone Step 8 (`update-pr-status`) is for ad-hoc invocations only.
+
+If the loop's `fix` step (Coder agent) addresses a finding (e.g., implements the missing acceptance criterion), the next iteration of `validate-pr` re-scans and the finding clears automatically. No special behavior required from this skill.
+
+## Important Guidelines
+
+- **Speed over depth**: This should take <30 seconds. Don't read every line of code.
+- **No false confidence**: If you can't verify a criterion from the diff, say ❓ not ✅
+- **Actionable output**: Every ❌ or ⚠️ should tell the human what to look for
+- **Don't block in standalone mode**: Mode A is informational. Even if gaps exist, the human decides whether to approve. In Mode B (loop), the loop's `noBlockingFindings` acceptance criteria handles gating automatically based on the aggregated finding store.
+
+---
+
+You are executing step 'validate-pr' in the Forge validation loop.
+Iteration: 1
+
+## Headless Mode
+You are running in **headless autonomous mode** as part of an automated loop.
+Work autonomously. Do not ask the user questions.
+
+## Tool Restrictions
+- **Do NOT use `powershell`** unless your skill instructions explicitly require it. For code review, prefer `view`, `grep`, `glob`.
+- **Do NOT use `edit` or `create`** — report findings, don't modify code.
+- Use `get_diff`, `get_changed_files`, `view`, `grep`, `glob`, and custom tools provided for this session.
+
+## Default Scope (may be overridden by your skill instructions above)
+By default, a scan-role step reviews LOCAL CHANGES relative to the base branch. **If your skill instructions describe a different job**, follow the skill instructions — they take precedence over this default framing.
+
+## PR Context
+- **PR number:** `8789`
+- **Host:** GitHub (inferred — no `organization` set in forge.json)
+- **Plugin directory:** `C:\Users\hemoral\.copilot\installed-plugins\_direct\entra--forge` (resolve any `{pluginDir}` references in your skill instructions to this absolute path)
+
+## Behavioral Rules (for code-review jobs — ignore if your skill overrides the scope above)
+- **SCOPE CONSTRAINT:** Only report findings on files that appear in the changed files list (`get_changed_files()`). You may READ other files for context (understanding callers, interfaces, patterns), but every `report_finding()` call must reference a file that is part of this PR's diff. Findings on unchanged files will be discarded.
+- Understand the change intent before reviewing. Read the changed files list and key diffs first.
+- Distinguish intentional design changes from accidental regressions.
+- Review every changed file relevant to your domain, even small diffs.
+- Only include findings for concrete violations. Do not manufacture issues.
+- Every finding must explain the concrete consequence — what breaks, what data is lost, what user impact results.
+- Do not report personal preferences or subjective opinions as findings.
+- Verify every file path you reference in findings actually exists using your search tools before reporting.
+- Do NOT praise correct code or include positive-only feedback.
+- If no violations are found, say so clearly.
+
+## How to Report Findings
+After completing your review, output a JSON array as your **final message**.
+This is the ONLY output the downstream fix-agent sees. Everything else is discarded.
+
+If you found issues, end your response with exactly this format:
+```json:findings
+[
+  {
+    "id": "null-deref-auth-handler",
+    "severity": "🔴",
+    "file": "src/Auth/Handler.cs",
+    "line": 42,
+    "action": "fix",
+    "details": {
+      "problem": "ctx.User can be null when auth is skipped but is dereferenced without a null check on line 42",
+      "reasoning": "When authentication is bypassed via AllowAnonymous, the middleware sets ctx.User to null. Line 42 calls ctx.User.Identity.Name without checking, causing NullReferenceException for anonymous requests.",
+      "suggestion": "Add a null check: if (ctx.User?.Identity?.Name is not null) before dereferencing, or return a 401 early when User is null."
+    },
+    "confidence": "high"
+  }
+]
+```
+
+If no issues found, output an empty array:
+```json:findings
+[]
+```
+
+Field reference:
+- **id** — short kebab-case (e.g., `missing-null-check`); your skill may specify a load-bearing format
+- **severity** — `🔴` critical, `🟡` concern, `🟢` suggestion, `ℹ️` info
+- **file** — exact path relative to repo root, or `null` for file-level
+- **line** — 1-based line number, or `null` for file-level
+- **action** — `fix` (should be fixed) or `info` (observation only)
+- **details** — structured object with three subfields:
+  - **problem** — what's wrong (the issue itself, one sentence)
+  - **reasoning** — why it matters (trace the logic, explain the consequence)
+  - **suggestion** — concrete fix (what to change, where)
+  - Legacy: a plain string is still accepted but the structured format is preferred
+- **confidence** — `high` (verified), `medium` (likely), `low` (suspected)
+
+## Changed Files
+20 files changed:
+
+  change/@azure-msal-browser-platform-broker-dpop.json (NEW)
+  change/@azure-msal-browser-wam-dpop-outcomes.json (NEW)
+  change/@azure-msal-common-browser-dpop-proof-export.json (NEW)
+  lib/msal-browser/docs/device-bound-tokens.md (MODIFIED)
+  lib/msal-browser/src/broker/nativeBroker/PlatformAuthDOMHandler.ts (MODIFIED)
+  lib/msal-browser/src/broker/nativeBroker/PlatformAuthExtensionHandler.ts (MODIFIED)
+  lib/msal-browser/src/broker/nativeBroker/PlatformAuthProvider.ts (MODIFIED)
+  lib/msal-browser/src/broker/nativeBroker/PlatformAuthRequest.ts (MODIFIED)
+  lib/msal-browser/src/broker/nativeBroker/PlatformAuthResponse.ts (MODIFIED)
+  lib/msal-browser/src/interaction_client/PlatformAuthInteractionClient.ts (MODIFIED)
+  lib/msal-browser/test/broker/PlatformAuthDOMHandler.spec.ts (MODIFIED)
+  lib/msal-browser/test/broker/PlatformAuthExtensionHandler.spec.ts (MODIFIED)
+  lib/msal-browser/test/broker/PlatformAuthProvider.spec.ts (MODIFIED)
+  lib/msal-browser/test/interaction_client/PlatformAuthInteractionClient.spec.ts (MODIFIED)
+  lib/msal-common/apiReview/msal-common.api.md (MODIFIED)
+  lib/msal-common/src/cache/CacheManager.ts (MODIFIED)
+  lib/msal-common/src/cache/entities/AccessTokenEntity.ts (MODIFIED)
+  lib/msal-common/src/crypto/DpopProofGenerator.ts (MODIFIED)
+  lib/msal-common/src/exports-browser-only.ts (MODIFIED)
+  lib/msal-common/test/cache/CacheManager.spec.ts (MODIFIED)
+
+Use `get_changed_files()` for the authoritative list with (NEW)/(MODIFIED)/(DELETED) markers.
+Use `get_diff(filePath)` to see the unified diff for each file.
+
+## Tools
+- `get_changed_files()` — full list of changed files
+- `get_diff(filePath)` — unified diff for a specific file (START HERE)
+- `report_finding(id, severity, file, line, action, details, confidence)` — record an issue (MANDATORY for every finding)
+- `decide_finding(findingId, action, reason)` — decide on prior findings
+- `get_prior_findings()` — findings from previous iterations
+- `get_prior_decisions()` — decisions from previous iterations
+
+Follow your agent instructions for HOW to review. Use `get_diff()` on the changed files to understand what was modified, then investigate as needed.

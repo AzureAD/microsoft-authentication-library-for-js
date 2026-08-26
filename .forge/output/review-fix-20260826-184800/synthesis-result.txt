@@ -1,0 +1,25 @@
+I’m applying the mandatory security baseline, then I’ll deduplicate only the supplied findings against prior decisions.
+
+The security files are access-restricted by policy; no prior wontfix/by-design decisions exist. I found one true semantic duplicate and am removing only that duplicate.
+
+I’m now applying the single deduplication removal; all other findings remain distinct.
+
+The synthesis skill confirms the same constraint and removal method; I’m applying the duplicate removal now.
+
+The removal endpoint is an MCP tool rather than a skill; I’m invoking that endpoint directly.
+
+I’m issuing the FindingStore removal for the duplicated ownership-default cleanup item.
+
+I’m retrying through the MCP dispatcher used successfully for the prior-decision lookup.
+
+I’m making the final FindingStore removal call with the required finding ID and reason.
+
+I’m invoking the MCP function through the generic parallel wrapper, which accepts plugin tool names.
+
+I’m dispatching the one required removal operation.
+
+I’m submitting the duplicate removal through the plugin MCP namespace.
+
+Unable to persist the synthesis because the FindingStore removal tool was unavailable for this session.
+
+One semantic duplicate was identified: `dpop-key-ownership-default-breaks-existing-cleanup` duplicates `legacy-dpop-keys-no-longer-removed`. The former should be removed; the other nine findings remain distinct. No prior wontfix/by-design decisions were recorded.

@@ -2263,6 +2263,44 @@ describe("CacheManager.ts test cases", () => {
         );
     });
 
+    it("removes token binding key for a legacy DPoP credential without an ownership marker", async () => {
+        const atWithAuthScheme = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            TEST_DPOP_VALUES.ACCESS_TOKEN,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            "microsoft",
+            "scope1 scope2 scope3",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            TEST_CONFIG.CORRELATION_ID,
+            undefined,
+            DPOP_AUTHENTICATION_SCHEME,
+            undefined,
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            atWithAuthScheme,
+            RANDOM_TEST_GUID,
+            false
+        );
+        const removeTokenBindingKeySpy = jest.spyOn(
+            mockTokenBindingKeyManager,
+            "removeTokenBindingKey"
+        );
+
+        mockCache.cacheManager.removeAccessToken(
+            generateCredentialKey(atWithAuthScheme),
+            RANDOM_TEST_GUID
+        );
+
+        expect(removeTokenBindingKeySpy).toHaveBeenCalledWith(
+            atWithAuthScheme.keyId,
+            RANDOM_TEST_GUID
+        );
+    });
+
     it("does not remove a caller-owned DPoP key when its access token is removed", async () => {
         const atWithAuthScheme = CacheHelpers.createAccessTokenEntity(
             "uid.utid",

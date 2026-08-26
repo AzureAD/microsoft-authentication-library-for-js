@@ -1,0 +1,5 @@
+I’m loading the mandatory security baseline and repository review configuration before evaluating the PR diff.
+
+```json:findings
+[]
+```

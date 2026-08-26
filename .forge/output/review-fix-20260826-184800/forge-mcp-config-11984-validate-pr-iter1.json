@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "forge-tools": {
+      "type": "http",
+      "url": "http://127.0.0.1:55870/mcp/11984-validate-pr-iter1",
+      "tools": [
+        "*"
+      ]
+    }
+  }
+}

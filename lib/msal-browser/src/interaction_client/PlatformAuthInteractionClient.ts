@@ -92,10 +92,12 @@ import { SilentCacheClient } from "./SilentCacheClient.js";
 
 const DPOP_BROKER_REQUEST_TOKEN_TYPE = Constants.AuthenticationScheme.DPOP;
 
+/**
+ * Tracks active users and pending cleanup for an MSAL-generated DPoP key.
+ */
 type DpopKeyCleanupState = {
     activeRequestCount: number;
     cleanupRequested: boolean;
-    retainedByCache: boolean;
 };
 
 const dpopKeyCleanupByManager = new WeakMap<
@@ -755,14 +757,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         // cache accounts and tokens in the appropriate storage
-        const isL3DpopResponse =
-            response.token_type?.toLowerCase() ===
-                DPOP_BROKER_REQUEST_TOKEN_TYPE.toLowerCase() &&
-            response.DPoP !== undefined;
+        const isDpopResponse =
+            request.tokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE;
+        const isL3DpopResponse = isDpopResponse && response.DPoP !== undefined;
         await this.cacheAccount(
             baseAccount,
             AuthToken.isKmsi(idTokenClaims),
-            !isL3DpopResponse
+            !isDpopResponse
         );
         await this.cacheNativeTokens(
             response,
@@ -775,17 +776,15 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             storeInCache
         );
 
-        if (isL3DpopResponse) {
-            await this.resetGeneratedDpopRequestKey(request);
-        } else if (
-            request.tokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE &&
-            request.keyId
+        const isGeneratedDpopKey =
+            !!request.keyId &&
+            this.msalOwnedDpopRequests.get(request) === request.keyId;
+        if (
+            isL3DpopResponse ||
+            isGeneratedDpopKey ||
+            storeInCache?.accessToken === false
         ) {
-            if (storeInCache?.accessToken === false) {
-                await this.resetGeneratedDpopRequestKey(request);
-            } else {
-                this.retainDpopRequestKey(request);
-            }
+            await this.resetGeneratedDpopRequestKey(request);
         }
 
         return result;
@@ -1054,7 +1053,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         if (
             request.tokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE &&
-            response.DPoP !== undefined
+            (response.DPoP !== undefined ||
+                (!!request.keyId &&
+                    this.msalOwnedDpopRequests.get(request) === request.keyId))
         ) {
             return;
         }
@@ -1506,7 +1507,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         if (
             !request.reqCnf ||
             !request.keyId ||
-            response.attested_chosen === true ||
+            response.attested_chosen !== false ||
             (response.token_binding_key_id !== undefined &&
                 response.token_binding_key_id !== request.keyId)
         ) {
@@ -1635,28 +1636,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Transfers a generated request key to the token cache without deleting it.
-     * @param request - Request whose key is retained by a cached access token.
-     */
-    private retainDpopRequestKey(request: PlatformAuthRequest): void {
-        const keyId = this.msalOwnedDpopRequests.get(request);
-        if (!keyId) {
-            return;
-        }
-
-        this.msalOwnedDpopRequests.delete(request);
-        const cleanupState = this.getDpopKeyCleanupState(keyId);
-        cleanupState.activeRequestCount = Math.max(
-            cleanupState.activeRequestCount - 1,
-            0
-        );
-        cleanupState.retainedByCache = true;
-        if (cleanupState.activeRequestCount === 0) {
-            this.getDpopKeyCleanupStates().delete(keyId);
-        }
-    }
-
-    /**
      * Returns the cleanup state for a key owned by this client's key manager.
      * @param keyId - Opaque key-manager identifier.
      * @returns Mutable cleanup state for the key.
@@ -1668,7 +1647,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             cleanupState = {
                 activeRequestCount: 0,
                 cleanupRequested: false,
-                retainedByCache: false,
             };
             cleanupStates.set(keyId, cleanupState);
         }
@@ -1704,10 +1682,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         cleanupState: DpopKeyCleanupState
     ): Promise<boolean> {
         if (cleanupState.activeRequestCount > 0) {
-            return true;
-        }
-        if (cleanupState.retainedByCache) {
-            this.getDpopKeyCleanupStates().delete(keyId);
             return true;
         }
         if (!cleanupState.cleanupRequested) {

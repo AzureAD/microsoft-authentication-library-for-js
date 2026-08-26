@@ -1147,8 +1147,12 @@ export abstract class CacheManager implements ICacheManager {
                     if (
                         kid &&
                         accessTokenWithAuthSchemeEntity.tokenBindingKeyOwnedByMsal ===
-                            true
+                            false
                     ) {
+                        break;
+                    }
+
+                    if (kid) {
                         void this.tokenBindingKeyManager
                             .removeTokenBindingKey(kid, correlationId)
                             .catch(() => {

@@ -404,7 +404,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(sendMessageSpy).not.toHaveBeenCalled();
         });
 
-        it("Extension: locally signs and caches an L1 DPoP fallback using the MSAL-owned request key", async () => {
+        it("Extension: locally signs an L1 DPoP fallback and removes the generated key without caching", async () => {
             const keyManager =
                 // @ts-ignore
                 platformAuthInteractionClient.tokenBindingKeyManager;
@@ -444,6 +444,13 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 internalStorage,
                 "saveCacheRecord"
             );
+            const removeKeySpy = jest
+                .spyOn(keyManager, "removeTokenBindingKey")
+                .mockResolvedValue();
+            const removeAccountContextSpy = jest.spyOn(
+                browserCacheManager,
+                "removeAccountContext"
+            );
 
             const response = await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
@@ -458,19 +465,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 Constants.AuthenticationScheme.DPOP
             );
             expect(signSpy).toHaveBeenCalledTimes(1);
-            expect(saveCacheRecordSpy).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    accessToken: expect.objectContaining({
-                        secret: MOCK_WAM_RESPONSE.access_token,
-                        tokenType: Constants.AuthenticationScheme.DPOP,
-                        keyId: "local-dpop-key",
-                        tokenBindingKeyOwnedByMsal: true,
-                    }),
-                }),
-                RANDOM_TEST_GUID,
-                false,
-                ApiId.acquireTokenRedirect,
-                undefined
+            expect(saveCacheRecordSpy).not.toHaveBeenCalled();
+            expect(removeAccountContextSpy).not.toHaveBeenCalled();
+            expect(removeKeySpy).toHaveBeenCalledWith(
+                "local-dpop-key",
+                RANDOM_TEST_GUID
             );
         });
 
@@ -803,6 +802,12 @@ describe("PlatformAuthInteractionClient Tests", () => {
             {
                 name: "unknown DPoP token type",
                 response: { token_type: "unknown" },
+            },
+            {
+                name: "L1 outcome without an explicit attestation decision",
+                response: {
+                    token_type: Constants.AuthenticationScheme.DPOP,
+                },
             },
             {
                 name: "attested L1 fallback",

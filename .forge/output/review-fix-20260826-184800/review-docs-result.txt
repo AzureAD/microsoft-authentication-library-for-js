@@ -1,0 +1,5 @@
+I’m loading the mandatory security baseline and the identity/TypeScript guidance before inspecting the PR diff.
+
+```json:findings
+[]
+```

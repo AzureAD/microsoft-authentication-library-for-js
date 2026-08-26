@@ -1,0 +1,38 @@
+I’ll load the mandatory security and repository guidance, then trace the production diffs and their affected flows.
+
+The organization blocked direct access to the injected guardrail files; I’ll continue within the visible security constraints and review only the authoritative PR diff.
+
+The main acquisition client contains most of the behavioral change; I’m expanding that diff alongside protocol tests to verify request/response and cache-key ownership end to end.
+
+I traced two cache regressions introduced by the DPoP ownership and account-clearing changes; I’m registering both against their exact changed lines.
+
+```json:findings
+[
+  {
+    "id": "legacy-dpop-keys-no-longer-removed",
+    "severity": "🟡",
+    "file": "lib/msal-common/src/cache/CacheManager.ts",
+    "line": 1149,
+    "action": "fix",
+    "details": {
+      "problem": "DPoP key cleanup now requires `tokenBindingKeyOwnedByMsal === true`, but non-broker and pre-existing DPoP cache entities never set this new field.",
+      "reasoning": "Previously every evicted DPoP access token with a keyId removed its token-binding key. The only production assignment added by this PR is in `PlatformAuthInteractionClient`; entities created by the normal `ResponseHandler` path and entities persisted before upgrade have undefined ownership. Removing those tokens now leaves their generated private keys behind indefinitely.",
+      "suggestion": "Treat only `tokenBindingKeyOwnedByMsal === false` as caller-owned, or populate ownership in every DPoP creation path while preserving cleanup compatibility for entities where the field is absent."
+    },
+    "confidence": "high"
+  },
+  {
+    "id": "l1-dpop-cache-partitions-evict-each-other",
+    "severity": "🟡",
+    "file": "lib/msal-browser/src/interaction_client/PlatformAuthInteractionClient.ts",
+    "line": 765,
+    "action": "fix",
+    "details": {
+      "problem": "An L1 DPoP broker response still clears the entire account token context before saving its key-partitioned access token.",
+      "reasoning": "`clearExistingTokens` is disabled only for L3 responses. Acquiring an L1 token with key B therefore removes an existing valid token partition for key A before caching B, forcing later requests using A back to the broker and causing independent resource bindings to interfere.",
+      "suggestion": "Do not clear the whole account context for cacheable DPoP responses. Replace only the matching key partition and add coverage proving that tokens acquired with two distinct `popKid` values remain independently retrievable."
+    },
+    "confidence": "high"
+  }
+]
+```
