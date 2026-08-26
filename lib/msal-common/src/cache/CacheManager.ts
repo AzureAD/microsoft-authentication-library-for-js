@@ -1118,13 +1118,37 @@ export abstract class CacheManager implements ICacheManager {
         ) {
             const tokenType = credential.tokenType?.toLowerCase();
             switch (tokenType) {
-                case Constants.AuthenticationScheme.POP:
-                case Constants.AuthenticationScheme.DPOP.toLowerCase(): {
+                case Constants.AuthenticationScheme.POP: {
                     const accessTokenWithAuthSchemeEntity =
                         credential as AccessTokenEntity;
                     const kid = accessTokenWithAuthSchemeEntity.keyId;
 
                     if (kid) {
+                        void this.tokenBindingKeyManager
+                            .removeTokenBindingKey(kid, correlationId)
+                            .catch(() => {
+                                this.commonLogger.error(
+                                    "Failed to remove token binding key",
+                                    correlationId
+                                );
+                                this.performanceClient?.incrementFields(
+                                    { removeTokenBindingKeyFailure: 1 },
+                                    correlationId
+                                );
+                            });
+                    }
+                    break;
+                }
+                case Constants.AuthenticationScheme.DPOP.toLowerCase(): {
+                    const accessTokenWithAuthSchemeEntity =
+                        credential as AccessTokenEntity;
+                    const kid = accessTokenWithAuthSchemeEntity.keyId;
+
+                    if (
+                        kid &&
+                        accessTokenWithAuthSchemeEntity.tokenBindingKeyOwnedByMsal ===
+                            true
+                    ) {
                         void this.tokenBindingKeyManager
                             .removeTokenBindingKey(kid, correlationId)
                             .catch(() => {
@@ -1391,7 +1415,7 @@ export abstract class CacheManager implements ICacheManager {
                     ? request.sshKid
                     : normalizedAuthScheme ===
                       Constants.AuthenticationScheme.DPOP.toLowerCase()
-                    ? request.popKid || request.dpopJkt
+                    ? request.dpopJkt || request.popKid
                     : undefined,
             additionalCacheKeyComponents: additionalCacheKeyComponents,
         };

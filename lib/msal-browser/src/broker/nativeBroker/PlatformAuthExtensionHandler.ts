@@ -39,8 +39,9 @@ type ResponseResolvers<T> = {
     ) => void;
 };
 
+const PROOF_CONTEXT_EXTENSION_VERSION = 3;
+
 export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
-    private static readonly PROOF_CONTEXT_EXTENSION_VERSION = 3;
     private extensionId: string | undefined;
     private extensionVersion: string | undefined;
     private logger: Logger;
@@ -116,14 +117,19 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         return validatedResponse;
     }
 
+    /**
+     * Converts canonical proof-context fields to the extension v3 wire format.
+     * Older or unknown extension versions receive the legacy request unchanged.
+     * @param request - Canonical platform broker request.
+     * @returns The version-compatible extension request.
+     */
     private initializeNativeExtensionRequest(
         request: PlatformAuthRequest
     ): PlatformAuthRequest {
         const extensionVersion = Number(this.extensionVersion);
         if (
             !Number.isFinite(extensionVersion) ||
-            extensionVersion <
-                PlatformAuthExtensionHandler.PROOF_CONTEXT_EXTENSION_VERSION
+            extensionVersion < PROOF_CONTEXT_EXTENSION_VERSION
         ) {
             return request;
         }

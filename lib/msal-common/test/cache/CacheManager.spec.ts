@@ -2240,6 +2240,7 @@ describe("CacheManager.ts test cases", () => {
             undefined,
             TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
         );
+        atWithAuthScheme.tokenBindingKeyOwnedByMsal = true;
         await mockCache.cacheManager.setAccessTokenCredential(
             atWithAuthScheme,
             RANDOM_TEST_GUID,
@@ -2262,6 +2263,42 @@ describe("CacheManager.ts test cases", () => {
         );
     });
 
+    it("does not remove a caller-owned DPoP key when its access token is removed", async () => {
+        const atWithAuthScheme = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            TEST_DPOP_VALUES.ACCESS_TOKEN,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            "microsoft",
+            "scope1 scope2 scope3",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            TEST_CONFIG.CORRELATION_ID,
+            undefined,
+            DPOP_AUTHENTICATION_SCHEME,
+            undefined,
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+        );
+        atWithAuthScheme.tokenBindingKeyOwnedByMsal = false;
+        await mockCache.cacheManager.setAccessTokenCredential(
+            atWithAuthScheme,
+            RANDOM_TEST_GUID,
+            false
+        );
+        const removeTokenBindingKeySpy = jest.spyOn(
+            mockTokenBindingKeyManager,
+            "removeTokenBindingKey"
+        );
+
+        mockCache.cacheManager.removeAccessToken(
+            generateCredentialKey(atWithAuthScheme),
+            RANDOM_TEST_GUID
+        );
+
+        expect(removeTokenBindingKeySpy).not.toHaveBeenCalled();
+    });
+
     it("does not log token binding key ID when DPoP key removal fails", async () => {
         const atWithAuthScheme = CacheHelpers.createAccessTokenEntity(
             "uid.utid",
@@ -2279,6 +2316,7 @@ describe("CacheManager.ts test cases", () => {
             undefined,
             TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
         );
+        atWithAuthScheme.tokenBindingKeyOwnedByMsal = true;
         await mockCache.cacheManager.setAccessTokenCredential(
             atWithAuthScheme,
             RANDOM_TEST_GUID,
@@ -3219,6 +3257,20 @@ describe("CacheManager.ts test cases", () => {
             mockCache.cacheManager.getAccessToken(mockedAccountInfo, {
                 ...dpopRequest,
                 popKid: "different-jkt",
+            })
+        ).toBeNull();
+        expect(
+            mockCache.cacheManager.getAccessToken(mockedAccountInfo, {
+                ...dpopRequest,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                popKid: "different-jkt",
+            })
+        ).toEqual(dpopAtEntity);
+        expect(
+            mockCache.cacheManager.getAccessToken(mockedAccountInfo, {
+                ...dpopRequest,
+                dpopJkt: "different-jkt",
+                popKid: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
             })
         ).toBeNull();
         expect(

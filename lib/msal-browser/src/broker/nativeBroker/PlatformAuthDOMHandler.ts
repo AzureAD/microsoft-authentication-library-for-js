@@ -269,6 +269,15 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         return nativeResponse;
     }
 
+    /**
+     * Maps canonical PoP and DPoP proof context into the DOM broker protocol's
+     * non-cacheable parameter bag. Bearer requests return no proof parameters.
+     * @param isProofOfPossessionRequest - Whether proof context is applicable.
+     * @param resourceRequestMethod - Resource HTTP method.
+     * @param resourceRequestUri - Resource URI.
+     * @param extraParametersNoCache - Existing non-cacheable proof parameters.
+     * @returns DOM-compatible non-cacheable parameters, when applicable.
+     */
     private getDOMExtraParamsNoCache(
         isProofOfPossessionRequest: boolean,
         resourceRequestMethod?: string,

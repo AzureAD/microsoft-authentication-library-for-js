@@ -110,6 +110,7 @@ export type AccessTokenEntity = CredentialEntity & {
     refreshOn?: string;
     tokenType?: AuthenticationScheme;
     resource?: string;
+    tokenBindingKeyOwnedByMsal?: boolean;
 };
 
 // @internal (undocumented)
