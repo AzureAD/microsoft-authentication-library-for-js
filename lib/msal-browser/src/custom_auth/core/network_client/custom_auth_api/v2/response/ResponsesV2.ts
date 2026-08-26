@@ -108,6 +108,8 @@ export type ChallengeResponseV2 =
     | CodeChallengeResponseV2
     | PasswordChallengeResponseV2;
 
+export type SignUpSubmitAttributesResponseV2 = CodeChallengeResponseV2;
+
 /*
  * Credential-verification response. For password reset, the `update` relation
  * identifies where the new password is submitted.

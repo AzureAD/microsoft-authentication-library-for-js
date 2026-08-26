@@ -419,6 +419,136 @@ describe("CustomAuthApiClientV2", () => {
         });
     });
 
+    describe("submitSignUpAttributes", () => {
+        it("submits attributes and returns the issued email challenge", async () => {
+            const request = {
+                continuationToken: "ct-start",
+                attributes: {
+                    email: "user@test.com",
+                    password: "P@ssword1!",
+                    displayName: "Test User",
+                },
+            };
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-submit",
+                    state: "interactionRequired",
+                    action: "verify",
+                    id: "email-1",
+                    type: "email",
+                    hint: "u***@test.com",
+                    codeLength: 8,
+                    _links: {
+                        verify: {
+                            href: "/tenant/api/v0.1/signup/verify",
+                        },
+                        resend: {
+                            href: "/tenant/api/v0.1/signup/resend",
+                        },
+                    },
+                })
+            );
+
+            const result = await apiClient.submitSignUpAttributes(
+                "/tenant/api/v0.1/signup/submitattributes",
+                request,
+                context
+            );
+
+            expect(result).toEqual({
+                continuationToken: "ct-submit",
+                type: "email",
+                hint: "u***@test.com",
+                codeLength: 8,
+                verifyHref: "/tenant/api/v0.1/signup/verify",
+                resendHref: "/tenant/api/v0.1/signup/resend",
+            });
+
+            const [url, options] = mockHttpClient.sendAsync.mock.calls[0];
+            expect(url.href).toBe(
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/signup/submitattributes"
+            );
+            expect(JSON.parse(options.body)).toEqual(request);
+        });
+
+        it("retains attribute-validation error details", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse(
+                    {
+                        error: {
+                            code: "invalidRequest",
+                            message:
+                                "AADSTS1002027: Some of the collected attributes were invalid.",
+                            correlationId: "corr-response",
+                            innerError: {
+                                code: "attributeValidationError",
+                                details: [
+                                    {
+                                        attributeIds: ["email"],
+                                        code: "attributeRequired",
+                                        message:
+                                            "Attribute 'email': is required.",
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                    400
+                )
+            );
+
+            await expect(
+                apiClient.submitSignUpAttributes(
+                    "/tenant/api/v0.1/signup/submitattributes",
+                    {
+                        continuationToken: "ct-start",
+                        attributes: { email: "" },
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: "invalidRequest",
+                subError: "attributeValidationError",
+                correlationId: "corr-response",
+                attributeValidationDetails: [
+                    {
+                        attributeIds: ["email"],
+                        code: "attributeRequired",
+                        message: "Attribute 'email': is required.",
+                    },
+                ],
+            });
+        });
+
+        it("rejects a response that does not advance to verify", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-submit",
+                    state: "interactionRequired",
+                    action: "collectAttributes",
+                    _links: {
+                        verify: {
+                            href: "/tenant/api/v0.1/signup/verify",
+                        },
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.submitSignUpAttributes(
+                    "/tenant/api/v0.1/signup/submitattributes",
+                    {
+                        continuationToken: "ct-start",
+                        attributes: { email: "user@test.com" },
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+            });
+        });
+    });
+
     describe("requestChallenge", () => {
         it("returns the verify href and challenge metadata", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(

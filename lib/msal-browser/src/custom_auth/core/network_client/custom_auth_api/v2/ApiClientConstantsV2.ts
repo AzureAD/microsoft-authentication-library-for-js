@@ -9,6 +9,7 @@ export const JSON_CONTENT_TYPE = "application/json";
 // Server action returned after successful credential verification.
 export const UPDATE_RELATION = "update";
 export const CHALLENGE_RELATION = "challenge";
+export const VERIFY_RELATION = "verify";
 
 /*
  * Known `state` values on a HAL response. Kept open (the body field is typed as string) because

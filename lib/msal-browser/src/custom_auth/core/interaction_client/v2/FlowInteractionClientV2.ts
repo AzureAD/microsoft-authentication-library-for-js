@@ -204,7 +204,9 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     /*
      * Starts sign-up and resolves the server-provided attribute-submission transition.
      */
-    async signUp(parameters: FlowSignUpStartParamsV2): Promise<never> {
+    async signUp(
+        parameters: FlowSignUpStartParamsV2
+    ): Promise<FlowCodeRequiredResultV2> {
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             PublicApiId.SIGN_UP_V2_START,
@@ -228,10 +230,41 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             },
             context
         );
-        const message = `Sign-up start returned the submit-attributes link '${startResult.submitAttributesHref}', which is not handled until the next sign-up phase.`;
-        this.logger.error(message, correlationId);
+        const attributes = {
+            ...parameters.attributes,
+            email: parameters.username,
+            ...(parameters.password !== undefined
+                ? { password: parameters.password }
+                : {}),
+        };
+        const submitResult = await this.apiClient.submitSignUpAttributes(
+            startResult.submitAttributesHref,
+            {
+                continuationToken: startResult.continuationToken,
+                attributes,
+            },
+            context
+        );
+        const continuationState: FlowContinuationStateV2 = {
+            continuationToken: submitResult.continuationToken,
+            scenario: CustomAuthFlowScenarioV2.SignUp,
+            links: {
+                verify: submitResult.verifyHref,
+                resend: submitResult.resendHref,
+            },
+            tokenRequest: {
+                scopes: parameters.scopes,
+                claims: parameters.claims,
+            },
+        };
 
-        throw new CustomAuthError(SIGN_UP_UNSUPPORTED, message, correlationId);
+        return createFlowCodeRequiredResultV2({
+            correlationId,
+            continuationState,
+            channel: submitResult.type,
+            sentTo: submitResult.hint,
+            codeLength: submitResult.codeLength,
+        });
     }
 
     /*

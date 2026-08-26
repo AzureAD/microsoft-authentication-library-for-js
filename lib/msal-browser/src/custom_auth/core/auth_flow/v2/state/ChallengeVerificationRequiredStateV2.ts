@@ -29,7 +29,7 @@ import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth
 export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequiredStateBase<ChallengeVerificationRequiredStateParametersV2> {
     readonly stateType = "challengeVerificationRequired";
 
-    readonly method: AuthenticationMethodV2;
+    readonly method?: AuthenticationMethodV2;
 
     readonly sentTo?: string;
 

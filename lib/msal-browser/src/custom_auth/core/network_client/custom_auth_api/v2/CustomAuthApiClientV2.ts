@@ -24,6 +24,7 @@ import {
     PasswordResetStartResponseV2,
     SignInStartResponseV2,
     SignUpStartResponseV2,
+    SignUpSubmitAttributesResponseV2,
     ChallengeResponseV2,
     VerifyResponseV2,
     UpdatePasswordResponseV2,
@@ -36,6 +37,7 @@ import {
     PasswordResetStartRequestV2,
     SignInStartRequestV2,
     SignUpStartRequestV2,
+    SignUpSubmitAttributesRequestV2,
     ChallengeRequestV2,
     VerifyRequestV2,
     UpdatePasswordRequestV2,
@@ -44,6 +46,7 @@ import {
 import {
     CHALLENGE_RELATION,
     UPDATE_RELATION,
+    VERIFY_RELATION,
     ResponseStateV2,
 } from "./ApiClientConstantsV2.js";
 import {
@@ -112,15 +115,40 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 "submitAttributes",
                 parsedResponse.correlationId
             ),
-            attributes: parsedResponse.body.attributes?.map((attribute) => ({
-                attributeId: attribute.attributeId,
-                inputType: attribute.inputType,
-                required: attribute.required,
-                canChange: attribute.canChange,
-                label: attribute.label,
-                regex: attribute.regex,
-            })),
+            attributes: parsedResponse.body.attributes,
         };
+    }
+
+    /*
+     * Submits the initial sign-up attributes. A successful response has already
+     * sent the email code and supplies the links needed to verify or resend it.
+     */
+    async submitSignUpAttributes(
+        submitAttributesHref: string,
+        request: SignUpSubmitAttributesRequestV2,
+        context: RequestContextV2
+    ): Promise<ChallengeResultV2> {
+        const parsedResponse =
+            await this.sendActionRequest<SignUpSubmitAttributesResponseV2>(
+                submitAttributesHref,
+                HttpMethod.POST,
+                request,
+                context
+            );
+
+        if (parsedResponse.body.action !== VERIFY_RELATION) {
+            const message =
+                "Invalid HAL response: sign-up attribute submission did not return the verify action";
+            this.logger?.error(message, parsedResponse.correlationId);
+
+            throw new CustomAuthError(
+                INVALID_HAL_RESPONSE,
+                message,
+                parsedResponse.correlationId
+            );
+        }
+
+        return this.toChallengeResult(parsedResponse);
     }
 
     /*
@@ -139,32 +167,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 context
             );
 
-        const nextContinuationToken = this.handler.requireContinuationToken(
-            parsedResponse.continuationToken,
-            parsedResponse.correlationId
-        );
-        const links = parsedResponse.body._links;
-        const codeMetadata =
-            "hint" in parsedResponse.body ||
-            "codeLength" in parsedResponse.body ||
-            "payload" in parsedResponse.body
-                ? parsedResponse.body
-                : undefined;
-
-        return {
-            continuationToken: nextContinuationToken,
-            verifyHref: this.handler.requireHref(
-                links?.verify?.href,
-                "verify",
-                parsedResponse.correlationId
-            ),
-            resendHref:
-                links && "resend" in links ? links.resend?.href : undefined,
-            codeLength:
-                codeMetadata?.codeLength ?? codeMetadata?.payload?.codeLength,
-            hint: codeMetadata?.hint,
-            type: parsedResponse.body.type,
-        };
+        return this.toChallengeResult(parsedResponse);
     }
 
     /*
@@ -350,6 +353,37 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             message,
             correlationId
         );
+    }
+
+    private toChallengeResult(
+        parsedResponse: ParsedResponseV2<ChallengeResponseV2>
+    ): ChallengeResultV2 {
+        const continuationToken = this.handler.requireContinuationToken(
+            parsedResponse.continuationToken,
+            parsedResponse.correlationId
+        );
+        const links = parsedResponse.body._links;
+        const codeMetadata =
+            "hint" in parsedResponse.body ||
+            "codeLength" in parsedResponse.body ||
+            "payload" in parsedResponse.body
+                ? parsedResponse.body
+                : undefined;
+
+        return {
+            continuationToken,
+            verifyHref: this.handler.requireHref(
+                links?.verify?.href,
+                "verify",
+                parsedResponse.correlationId
+            ),
+            resendHref:
+                links && "resend" in links ? links.resend?.href : undefined,
+            codeLength:
+                codeMetadata?.codeLength ?? codeMetadata?.payload?.codeLength,
+            hint: codeMetadata?.hint,
+            type: parsedResponse.body.type,
+        };
     }
 
     private resolveMethods(

@@ -4,6 +4,7 @@
  */
 
 import { ApiRequestBase } from "../../types/ApiTypesBase.js";
+import { UserAccountAttributes } from "../../../../../UserAccountAttributes.js";
 
 /*
  * Per-request context threaded through every V2 network-layer call. These shared fields drive
@@ -81,6 +82,13 @@ export type PasswordResetStartRequestV2 = StartRequestV2;
 export type SignInStartRequestV2 = StartRequestV2;
 
 export type SignUpStartRequestV2 = ActionRequestBaseV2;
+
+export interface SignUpSubmitAttributesRequestV2 extends ActionRequestBaseV2 {
+    attributes: UserAccountAttributes & {
+        email: string;
+        password?: string;
+    };
+}
 
 // Request or resend a challenge.
 export type ChallengeRequestV2 = ActionRequestBaseV2;

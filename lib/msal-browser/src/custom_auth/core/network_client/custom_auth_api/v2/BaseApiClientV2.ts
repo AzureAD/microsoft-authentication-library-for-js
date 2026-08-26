@@ -348,7 +348,8 @@ export abstract class BaseApiClientV2 {
             undefined,
             undefined,
             serverError.traceId,
-            serverError.timestamp
+            serverError.timestamp,
+            serverError.attributeValidationDetails
         );
     }
 

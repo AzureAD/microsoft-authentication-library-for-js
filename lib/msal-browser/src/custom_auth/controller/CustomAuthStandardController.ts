@@ -847,7 +847,7 @@ export class CustomAuthStandardController
                 correlationId
             );
 
-            await this.flowClientV2.signUp({
+            const result = await this.flowClientV2.signUp({
                 correlationId,
                 username: inputs.username,
                 password: inputs.password,
@@ -856,9 +856,27 @@ export class CustomAuthStandardController
                 claims: inputs.claims,
             });
 
-            throw new UnexpectedError(
-                "Unsupported native auth V2 sign-up result type.",
-                correlationId
+            if (result.type !== FLOW_CODE_REQUIRED_V2) {
+                throw new UnexpectedError(
+                    "Unsupported native auth V2 sign-up result type.",
+                    correlationId
+                );
+            }
+
+            return new CustomAuthResultV2(
+                new ChallengeVerificationRequiredStateV2({
+                    correlationId: result.correlationId,
+                    logger: this.logger,
+                    config: this.customAuthConfig,
+                    flowClient: this.flowClientV2,
+                    continuationState: result.continuationState,
+                    cacheClient: this.cacheClient,
+                    sentTo: result.sentTo,
+                    channel: result.channel,
+                    codeLength: result.codeLength,
+                }),
+                undefined,
+                result.continuationState.scenario
             );
         } catch (error) {
             this.logger.errorPii(

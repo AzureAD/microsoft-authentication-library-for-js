@@ -4,6 +4,7 @@
  */
 
 import { UserAttribute } from "../network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
+import { AttributeValidationDetailV2 } from "../network_client/custom_auth_api/v2/response/ErrorResponsesV2.js";
 import { CustomAuthError } from "./CustomAuthError.js";
 
 /**
@@ -34,7 +35,8 @@ export class CustomAuthApiError extends CustomAuthError {
         public attributes?: Array<UserAttribute>,
         public continuationToken?: string,
         public traceId?: string,
-        public timestamp?: string
+        public timestamp?: string,
+        public attributeValidationDetails?: AttributeValidationDetailV2[]
     ) {
         super(error, errorDescription, correlationId, errorCodes, subError);
         Object.setPrototypeOf(this, CustomAuthApiError.prototype);
