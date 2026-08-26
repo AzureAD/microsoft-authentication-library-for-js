@@ -140,6 +140,24 @@ type PersistedDpopKeyCleanupState = {
     cleanupAttemptCount: number;
 };
 
+function isPersistedDpopKeyCleanupState(
+    entry: unknown
+): entry is PersistedDpopKeyCleanupState {
+    if (typeof entry !== "object" || entry === null) {
+        return false;
+    }
+
+    const candidate = entry as Record<string, unknown>;
+    return (
+        typeof candidate.keyId === "string" &&
+        candidate.keyId.length > 0 &&
+        typeof candidate.cleanupAttemptCount === "number" &&
+        Number.isInteger(candidate.cleanupAttemptCount) &&
+        candidate.cleanupAttemptCount >= 0 &&
+        candidate.cleanupAttemptCount < MAX_DPOP_KEY_CLEANUP_ATTEMPTS
+    );
+}
+
 const dpopKeyCleanupByManager = new WeakMap<
     ITokenBindingKeyManager,
     Map<string, DpopKeyCleanupState>
@@ -1807,30 +1825,14 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
 
         cleanupEntries.forEach((entry: unknown) => {
-            if (
-                typeof entry !== "object" ||
-                entry === null ||
-                typeof (entry as PersistedDpopKeyCleanupState).keyId !==
-                    "string" ||
-                !(entry as PersistedDpopKeyCleanupState).keyId ||
-                !Number.isInteger(
-                    (entry as PersistedDpopKeyCleanupState).cleanupAttemptCount
-                ) ||
-                (entry as PersistedDpopKeyCleanupState).cleanupAttemptCount <
-                    0 ||
-                (entry as PersistedDpopKeyCleanupState).cleanupAttemptCount >=
-                    MAX_DPOP_KEY_CLEANUP_ATTEMPTS
-            ) {
+            if (!isPersistedDpopKeyCleanupState(entry)) {
                 return;
             }
 
-            const persistedState = entry as PersistedDpopKeyCleanupState;
-            const cleanupState = this.getDpopKeyCleanupState(
-                persistedState.keyId
-            );
+            const cleanupState = this.getDpopKeyCleanupState(entry.keyId);
             cleanupState.cleanupAttemptCount = Math.max(
                 cleanupState.cleanupAttemptCount,
-                persistedState.cleanupAttemptCount
+                entry.cleanupAttemptCount
             );
             cleanupState.cleanupRequested = true;
         });

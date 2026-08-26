@@ -2268,9 +2268,10 @@ describe("CacheManager.ts test cases", () => {
         );
 
         const atKey = generateCredentialKey(atWithAuthScheme);
-        expect(mockCache.cacheManager.getAccessTokenCredential(atKey)).toEqual(
-            atWithAuthScheme
-        );
+        expect(mockCache.cacheManager.getAccessTokenCredential(atKey)).toEqual({
+            ...atWithAuthScheme,
+            lastUpdatedAt: expect.any(String),
+        });
         mockCache.cacheManager.removeAccessToken(atKey, RANDOM_TEST_GUID);
         expect(
             mockCache.cacheManager.getAccessTokenCredential(atKey)
