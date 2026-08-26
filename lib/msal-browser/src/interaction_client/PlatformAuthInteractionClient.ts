@@ -1055,8 +1055,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             const isPreservedCallerDpopToken =
                 accessToken?.tokenType?.toLowerCase() ===
                     Constants.AuthenticationScheme.DPOP.toLowerCase() &&
-                accessToken.keyId === preservedKeyId &&
-                accessToken.tokenBindingKeyOwnedByMsal === false;
+                accessToken.keyId === preservedKeyId;
             if (!isPreservedCallerDpopToken) {
                 this.browserStorage.removeAccessToken(key, this.correlationId);
             }

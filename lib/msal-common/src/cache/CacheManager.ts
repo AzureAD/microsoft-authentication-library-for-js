@@ -747,7 +747,12 @@ export abstract class CacheManager implements ICacheManager {
                     correlationId
                 );
                 if (tokenScopeSet.intersectingScopeSets(currentScopes)) {
-                    this.removeAccessToken(key, correlationId);
+                    this.removeAccessTokenInternal(
+                        key,
+                        correlationId,
+                        !!credential.keyId &&
+                            credential.keyId === tokenEntity.keyId
+                    );
                 }
             }
         });
@@ -1111,6 +1116,21 @@ export abstract class CacheManager implements ICacheManager {
      * @param correlationId
      */
     removeAccessToken(key: string, correlationId: string): void {
+        this.removeAccessTokenInternal(key, correlationId, false);
+    }
+
+    /**
+     * Removes an access token and optionally preserves its binding key when a
+     * replacement token remains bound to the same key.
+     * @param key
+     * @param correlationId
+     * @param preserveTokenBindingKey
+     */
+    private removeAccessTokenInternal(
+        key: string,
+        correlationId: string,
+        preserveTokenBindingKey: boolean
+    ): void {
         const credential = this.getAccessTokenCredential(key, correlationId);
         if (!credential) {
             return;
@@ -1124,8 +1144,9 @@ export abstract class CacheManager implements ICacheManager {
 
         // Remove Token Binding Key from key store for token-bound access token credentials
         if (
+            !preserveTokenBindingKey &&
             credential.credentialType.toLowerCase() ===
-            Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
+                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
         ) {
             const tokenType = credential.tokenType?.toLowerCase();
             switch (tokenType) {

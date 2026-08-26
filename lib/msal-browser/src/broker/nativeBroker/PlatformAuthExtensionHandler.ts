@@ -56,7 +56,7 @@ function getExtensionMajorVersion(
 
     const versionComponents = String(version).split(".");
     if (
-        versionComponents.length > 3 ||
+        versionComponents.length > 4 ||
         versionComponents.some(
             (component) =>
                 !component ||

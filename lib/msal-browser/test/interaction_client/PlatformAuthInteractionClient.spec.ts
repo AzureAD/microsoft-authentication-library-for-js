@@ -58,7 +58,13 @@ import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 
 const TEST_DPOP_RESOURCE_METHOD = "POST";
 const TEST_DPOP_RESOURCE_URI = "https://graph.microsoft.com/v1.0/me";
-const TEST_DPOP_ATH = "VA09zkzsfmBu0zotQAkj_5xPQr9hLU5mKeyOYwFQCRM";
+const TEST_DPOP_ATH = "pS8-zc3RXDHOH8171tgs2hxvWy9jUrkDMIyBAHzD43s";
+const TEST_DPOP_JKT = "test-proof-jkt";
+const TEST_DPOP_ACCESS_TOKEN = `${window
+    .btoa(JSON.stringify({ alg: "ES256" }))
+    .replace(/=+$/, "")}.${window
+    .btoa(JSON.stringify({ cnf: { jkt: TEST_DPOP_JKT } }))
+    .replace(/=+$/, "")}.test-signature`;
 const DPOP_BROKER_REQUEST_TOKEN_TYPE = "dpop_proof";
 const TEST_DPOP_PUBLIC_JWK: JsonWebKey = {
     kty: "EC",
@@ -179,6 +185,14 @@ describe("PlatformAuthInteractionClient Tests", () => {
             {} as CryptoKey
         );
         jest.spyOn(BrowserCrypto, "verify").mockResolvedValue(true);
+        const computeJwkThumbprint = BrowserCrypto.computeJwkThumbprint;
+        jest.spyOn(BrowserCrypto, "computeJwkThumbprint").mockImplementation(
+            (jwk, correlationId) =>
+                jwk.x === TEST_DPOP_PUBLIC_JWK.x &&
+                jwk.y === TEST_DPOP_PUBLIC_JWK.y
+                    ? Promise.resolve(TEST_DPOP_JKT)
+                    : computeJwkThumbprint(jwk, correlationId)
+        );
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -352,7 +366,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                             key === preservedDpopKey
                                 ? "caller-dpop-key"
                                 : "stale-caller-dpop-key",
-                        tokenBindingKeyOwnedByMsal: false,
+                        tokenBindingKeyOwnedByMsal:
+                            key === preservedDpopKey ? undefined : false,
                     };
                 }
                 return testAccessTokenEntity;
@@ -447,6 +462,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 brokerRequest = { ...request };
                 return Promise.resolve({
                     ...MOCK_WAM_RESPONSE,
+                    access_token: TEST_DPOP_ACCESS_TOKEN,
                     token_type: DPOP_BROKER_REQUEST_TOKEN_TYPE,
                     DPoP: TEST_DPOP_PROOF,
                     attested_chosen: true,
@@ -483,7 +499,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 })
             );
-            expect(response.accessToken).toBe(MOCK_WAM_RESPONSE.access_token);
+            expect(response.accessToken).toBe(TEST_DPOP_ACCESS_TOKEN);
             expect(response.dpopProof).toBe(TEST_DPOP_PROOF);
             expect(response.tokenType).toBe(
                 Constants.AuthenticationScheme.DPOP
@@ -1449,6 +1465,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 platformAuthInteractionClient.validateDpopBrokerOutcome(
                     {
                         ...MOCK_WAM_RESPONSE,
+                        access_token: TEST_DPOP_ACCESS_TOKEN,
                         token_type: Constants.AuthenticationScheme.DPOP,
                         DPoP: TEST_DPOP_PROOF,
                         attested_chosen: true,
@@ -1514,6 +1531,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
                 .mockResolvedValue({
                     ...MOCK_WAM_RESPONSE,
+                    access_token: TEST_DPOP_ACCESS_TOKEN,
                     token_type: DPOP_BROKER_REQUEST_TOKEN_TYPE,
                     DPoP: createTestDpopProof(
                         TEST_DPOP_RESOURCE_METHOD,
@@ -1621,6 +1639,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
                 .mockResolvedValue({
                     ...MOCK_WAM_RESPONSE,
+                    access_token: TEST_DPOP_ACCESS_TOKEN,
                     token_type: DPOP_BROKER_REQUEST_TOKEN_TYPE,
                     DPoP: TEST_DPOP_PROOF,
                     attested_chosen: true,
@@ -1968,6 +1987,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "sendMessage"
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
+                access_token: TEST_DPOP_ACCESS_TOKEN,
                 token_type: DPOP_BROKER_REQUEST_TOKEN_TYPE,
                 DPoP: TEST_DPOP_PROOF,
                 attested_chosen: true,
@@ -3103,6 +3123,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "sendMessage"
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
+                access_token: TEST_DPOP_ACCESS_TOKEN,
                 token_type: DPOP_BROKER_REQUEST_TOKEN_TYPE,
                 DPoP: TEST_DPOP_PROOF,
                 attested_chosen: true,
@@ -3162,6 +3183,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "sendMessage"
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
+                access_token: TEST_DPOP_ACCESS_TOKEN,
                 token_type: DPOP_BROKER_REQUEST_TOKEN_TYPE,
                 DPoP: TEST_DPOP_PROOF,
                 attested_chosen: true,

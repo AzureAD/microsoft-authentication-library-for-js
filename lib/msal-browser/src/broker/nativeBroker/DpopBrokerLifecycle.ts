@@ -14,6 +14,7 @@ import {
     Logger,
     TimeUtils,
     createAuthError,
+    invokeAsync,
 } from "@azure/msal-common/browser";
 import { BrowserCacheManager } from "../../cache/BrowserCacheManager.js";
 import {
@@ -29,6 +30,7 @@ import {
     createBrowserAuthError,
 } from "../../error/BrowserAuthError.js";
 import { TemporaryCacheKeys } from "../../utils/BrowserConstants.js";
+import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
 import {
     DPOP_BROKER_REQUEST_TOKEN_TYPE,
     PlatformAuthRequest,
@@ -106,45 +108,60 @@ export async function prepareDpopBrokerRequest(
     lifecycle: DpopBrokerLifecycle,
     request: PlatformAuthRequest
 ): Promise<void> {
-    await restorePersistedDpopKeyCleanup(lifecycle);
-    await retryDpopKeyCleanup(lifecycle);
-
-    if (request.tokenType !== DPOP_BROKER_REQUEST_TOKEN_TYPE) {
-        return;
-    }
-
     const { context } = lifecycle;
-    if (!request.keyId) {
-        request.keyId =
-            await context.tokenBindingKeyManager.provisionTokenBindingKey({
-                tokenBindingKeyType:
-                    Constants.AuthenticationScheme.DPOP.toLowerCase(),
-                tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
-                correlationId: context.correlationId,
-            });
-        trackDpopRequestKey(lifecycle, request, request.keyId);
-    }
+    return invokeAsync(
+        async (): Promise<void> => {
+            await restorePersistedDpopKeyCleanup(lifecycle);
+            await retryDpopKeyCleanup(lifecycle);
 
-    const publicJwk =
-        await context.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
-            request.keyId,
-            context.correlationId
-        );
-    if (!isValidDpopPublicJwk(publicJwk)) {
-        throw createBrowserAuthError(
-            BrowserAuthErrorCodes.invalidPublicJwk,
-            context.correlationId
-        );
-    }
+            if (request.tokenType !== DPOP_BROKER_REQUEST_TOKEN_TYPE) {
+                return;
+            }
 
-    const jkt = await computeJwkThumbprint(publicJwk, context.correlationId);
-    const ownedKeyId = lifecycle.msalOwnedRequests.get(request);
-    if (ownedKeyId) {
-        getDpopKeyCleanupState(lifecycle, ownedKeyId).keyThumbprint = jkt;
-    }
-    request.reqCnf = context.browserCrypto.base64UrlEncode(
-        JSON.stringify({ jkt })
-    );
+            if (!request.keyId) {
+                request.keyId =
+                    await context.tokenBindingKeyManager.provisionTokenBindingKey(
+                        {
+                            tokenBindingKeyType:
+                                Constants.AuthenticationScheme.DPOP.toLowerCase(),
+                            tokenBindingKeyAlgorithm:
+                                JsonWebTokenAlgorithms.ES256,
+                            correlationId: context.correlationId,
+                        }
+                    );
+                trackDpopRequestKey(lifecycle, request, request.keyId);
+            }
+
+            const publicJwk =
+                await context.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                    request.keyId,
+                    context.correlationId
+                );
+            if (!isValidDpopPublicJwk(publicJwk)) {
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.invalidPublicJwk,
+                    context.correlationId
+                );
+            }
+
+            const jkt = await computeJwkThumbprint(
+                publicJwk,
+                context.correlationId
+            );
+            const ownedKeyId = lifecycle.msalOwnedRequests.get(request);
+            if (ownedKeyId) {
+                getDpopKeyCleanupState(lifecycle, ownedKeyId).keyThumbprint =
+                    jkt;
+            }
+            request.reqCnf = context.browserCrypto.base64UrlEncode(
+                JSON.stringify({ jkt })
+            );
+        },
+        BrowserPerformanceEvents.DpopBrokerLifecyclePrepareRequest,
+        context.logger,
+        context.performanceClient,
+        context.correlationId
+    )();
 }
 
 /**
@@ -156,91 +173,109 @@ export async function validateDpopBrokerOutcome(
     request: PlatformAuthRequest
 ): Promise<void> {
     const { context } = lifecycle;
-    const isDpopRequest = request.tokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE;
-    if (
-        (response.token_type !== undefined &&
-            typeof response.token_type !== "string") ||
-        (response.DPoP !== undefined && typeof response.DPoP !== "string") ||
-        (response.attested_chosen !== undefined &&
-            typeof response.attested_chosen !== "boolean") ||
-        (response.token_binding_key_id !== undefined &&
-            typeof response.token_binding_key_id !== "string")
-    ) {
-        throwMalformedDpopResponse(context, "Malformed DPoP broker response.");
-    }
+    return invokeAsync(
+        async (): Promise<void> => {
+            const isDpopRequest =
+                request.tokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE;
+            if (
+                (response.token_type !== undefined &&
+                    typeof response.token_type !== "string") ||
+                (response.DPoP !== undefined &&
+                    typeof response.DPoP !== "string") ||
+                (response.attested_chosen !== undefined &&
+                    typeof response.attested_chosen !== "boolean") ||
+                (response.token_binding_key_id !== undefined &&
+                    typeof response.token_binding_key_id !== "string")
+            ) {
+                throwMalformedDpopResponse(
+                    context,
+                    "Malformed DPoP broker response."
+                );
+            }
 
-    const responseTokenType = response.token_type?.toLowerCase();
-    const isDpopResponseToken =
-        responseTokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE.toLowerCase();
-    const isStandardDpopResponseToken =
-        responseTokenType === Constants.AuthenticationScheme.DPOP.toLowerCase();
-    const hasDpopResponse =
-        isDpopResponseToken ||
-        isStandardDpopResponseToken ||
-        response.DPoP !== undefined ||
-        response.attested_chosen !== undefined ||
-        response.token_binding_key_id !== undefined;
+            const responseTokenType = response.token_type?.toLowerCase();
+            const isDpopResponseToken =
+                responseTokenType ===
+                DPOP_BROKER_REQUEST_TOKEN_TYPE.toLowerCase();
+            const isStandardDpopResponseToken =
+                responseTokenType ===
+                Constants.AuthenticationScheme.DPOP.toLowerCase();
+            const hasDpopResponse =
+                isDpopResponseToken ||
+                isStandardDpopResponseToken ||
+                response.DPoP !== undefined ||
+                response.attested_chosen !== undefined ||
+                response.token_binding_key_id !== undefined;
 
-    if (!isDpopRequest) {
-        if (hasDpopResponse) {
-            throwMalformedDpopResponse(
-                context,
-                "Unexpected DPoP broker response."
+            if (!isDpopRequest) {
+                if (hasDpopResponse) {
+                    throwMalformedDpopResponse(
+                        context,
+                        "Unexpected DPoP broker response."
+                    );
+                }
+                return;
+            }
+
+            if (!isDpopResponseToken && !isStandardDpopResponseToken) {
+                throwMalformedDpopResponse(
+                    context,
+                    "Unknown DPoP broker response."
+                );
+            }
+
+            if (response.DPoP !== undefined) {
+                if (
+                    !(await isValidBrokerDpopProof(
+                        context,
+                        response.DPoP,
+                        response.access_token,
+                        request
+                    )) ||
+                    response.attested_chosen !== true ||
+                    (response.token_binding_key_id !== undefined &&
+                        response.token_binding_key_id === request.keyId)
+                ) {
+                    throwMalformedDpopResponse(
+                        context,
+                        "Malformed DPoP broker response."
+                    );
+                }
+                context.performanceClient.addFields(
+                    {
+                        "ext.brokerDpopSupported": true,
+                        "ext.brokerDpopBindingLevel": "L3",
+                    },
+                    context.correlationId
+                );
+                return;
+            }
+
+            if (
+                !request.reqCnf ||
+                !request.keyId ||
+                response.attested_chosen !== false ||
+                (response.token_binding_key_id !== undefined &&
+                    response.token_binding_key_id !== request.keyId)
+            ) {
+                throwMalformedDpopResponse(
+                    context,
+                    "Malformed DPoP broker fallback response."
+                );
+            }
+            context.performanceClient.addFields(
+                {
+                    "ext.brokerDpopSupported": true,
+                    "ext.brokerDpopBindingLevel": "L1",
+                },
+                context.correlationId
             );
-        }
-        return;
-    }
-
-    if (!isDpopResponseToken && !isStandardDpopResponseToken) {
-        throwMalformedDpopResponse(context, "Unknown DPoP broker response.");
-    }
-
-    if (response.DPoP !== undefined) {
-        if (
-            !(await isValidBrokerDpopProof(
-                context,
-                response.DPoP,
-                response.access_token,
-                request
-            )) ||
-            response.attested_chosen !== true ||
-            (response.token_binding_key_id !== undefined &&
-                response.token_binding_key_id === request.keyId)
-        ) {
-            throwMalformedDpopResponse(
-                context,
-                "Malformed DPoP broker response."
-            );
-        }
-        context.performanceClient.addFields(
-            {
-                "ext.brokerDpopSupported": true,
-                "ext.brokerDpopBindingLevel": "L3",
-            },
-            context.correlationId
-        );
-        return;
-    }
-
-    if (
-        !request.reqCnf ||
-        !request.keyId ||
-        response.attested_chosen !== false ||
-        (response.token_binding_key_id !== undefined &&
-            response.token_binding_key_id !== request.keyId)
-    ) {
-        throwMalformedDpopResponse(
-            context,
-            "Malformed DPoP broker fallback response."
-        );
-    }
-    context.performanceClient.addFields(
-        {
-            "ext.brokerDpopSupported": true,
-            "ext.brokerDpopBindingLevel": "L1",
         },
+        BrowserPerformanceEvents.DpopBrokerLifecycleValidateOutcome,
+        context.logger,
+        context.performanceClient,
         context.correlationId
-    );
+    )();
 }
 
 /**
@@ -251,24 +286,32 @@ export async function generateDpopProof(
     response: PlatformAuthResponse,
     request: PlatformAuthRequest
 ): Promise<string> {
-    if (response.DPoP !== undefined) {
-        return response.DPoP;
-    }
-
     const { context } = lifecycle;
-    return new DpopProofGenerator(
-        context.browserCrypto,
-        context.tokenBindingKeyManager
-    ).generateResourceProof(
-        {
-            htu: request.resourceRequestUri,
-            htm: request.resourceRequestMethod,
-            nonce: request.extraParametersNoCache?.pop_nonce,
-            accessToken: response.access_token,
+    return invokeAsync(
+        async (): Promise<string> => {
+            if (response.DPoP !== undefined) {
+                return response.DPoP;
+            }
+
+            return new DpopProofGenerator(
+                context.browserCrypto,
+                context.tokenBindingKeyManager
+            ).generateResourceProof(
+                {
+                    htu: request.resourceRequestUri,
+                    htm: request.resourceRequestMethod,
+                    nonce: request.extraParametersNoCache?.pop_nonce,
+                    accessToken: response.access_token,
+                },
+                request.keyId as string,
+                context.correlationId
+            );
         },
-        request.keyId as string,
+        BrowserPerformanceEvents.DpopBrokerLifecycleGenerateProof,
+        context.logger,
+        context.performanceClient,
         context.correlationId
-    );
+    )();
 }
 
 /**
@@ -278,13 +321,22 @@ export async function resetGeneratedDpopRequestKey(
     lifecycle: DpopBrokerLifecycle,
     request: PlatformAuthRequest
 ): Promise<void> {
-    if (!request.keyId || !lifecycle.msalOwnedRequests.has(request)) {
-        return;
-    }
+    const { context } = lifecycle;
+    return invokeAsync(
+        async (): Promise<void> => {
+            if (!request.keyId || !lifecycle.msalOwnedRequests.has(request)) {
+                return;
+            }
 
-    await removeDpopRequestKey(lifecycle, request);
-    request.keyId = undefined;
-    request.reqCnf = undefined;
+            await removeDpopRequestKey(lifecycle, request);
+            request.keyId = undefined;
+            request.reqCnf = undefined;
+        },
+        BrowserPerformanceEvents.DpopBrokerLifecycleResetRequestKey,
+        context.logger,
+        context.performanceClient,
+        context.correlationId
+    )();
 }
 
 /**
@@ -294,21 +346,39 @@ export async function removeDpopRequestKey(
     lifecycle: DpopBrokerLifecycle,
     request: PlatformAuthRequest
 ): Promise<boolean> {
-    const ownedKeyId = lifecycle.msalOwnedRequests.get(request);
-    if (!ownedKeyId) {
-        return true;
-    }
+    const { context } = lifecycle;
+    return invokeAsync(
+        async (): Promise<boolean> => {
+            const ownedKeyId = lifecycle.msalOwnedRequests.get(request);
+            if (!ownedKeyId) {
+                return true;
+            }
 
-    lifecycle.msalOwnedRequests.delete(request);
-    const cleanupState = getDpopKeyCleanupState(lifecycle, ownedKeyId);
-    cleanupState.activeRequestCount = Math.max(
-        cleanupState.activeRequestCount - 1,
-        0
-    );
-    cleanupState.cleanupRequested = true;
-    return removeInactiveDpopKey(lifecycle, ownedKeyId, cleanupState);
+            lifecycle.msalOwnedRequests.delete(request);
+            const cleanupState = getDpopKeyCleanupState(lifecycle, ownedKeyId);
+            cleanupState.activeRequestCount = Math.max(
+                cleanupState.activeRequestCount - 1,
+                0
+            );
+            cleanupState.cleanupRequested = true;
+            return removeInactiveDpopKey(lifecycle, ownedKeyId, cleanupState);
+        },
+        BrowserPerformanceEvents.DpopBrokerLifecycleRemoveRequestKey,
+        context.logger,
+        context.performanceClient,
+        context.correlationId
+    )();
 }
 
+/**
+ * Validates the broker proof structure, signature, access-token binding, and
+ * resource request claims.
+ * @param context - Broker DPoP dependencies.
+ * @param proof - Compact DPoP proof returned by the broker.
+ * @param accessToken - Access token the proof must bind.
+ * @param request - Request context the proof must cover.
+ * @returns Whether the proof satisfies the complete L3 validation contract.
+ */
 async function isValidBrokerDpopProof(
     context: DpopBrokerLifecycleContext,
     proof: string,
@@ -357,6 +427,15 @@ async function isValidBrokerDpopProof(
             return false;
         }
 
+        const proofJkt = await computeJwkThumbprint(
+            header.jwk,
+            context.correlationId
+        );
+        const accessTokenJkt = getAccessTokenJkt(accessToken);
+        if (!accessTokenJkt || proofJkt !== accessTokenJkt) {
+            return false;
+        }
+
         const expectedAth = await context.browserCrypto.hashString(accessToken);
         const currentTime = TimeUtils.nowSeconds();
         const expectedNonce = request.extraParametersNoCache?.pop_nonce;
@@ -377,6 +456,39 @@ async function isValidBrokerDpopProof(
     }
 }
 
+/**
+ * Extracts the DPoP JWK thumbprint from an access token confirmation claim.
+ * @param accessToken - JWT access token returned by the broker.
+ * @returns The `cnf.jkt` value, or undefined when absent or malformed.
+ */
+function getAccessTokenJkt(accessToken: string): string | undefined {
+    const tokenParts = accessToken.split(".");
+    if (tokenParts.length !== 3 || tokenParts[1].length === 0) {
+        return undefined;
+    }
+    try {
+        const claims = JSON.parse(base64Decode(tokenParts[1])) as {
+            cnf?: unknown;
+        };
+        if (
+            typeof claims.cnf !== "object" ||
+            claims.cnf === null ||
+            Array.isArray(claims.cnf)
+        ) {
+            return undefined;
+        }
+        const jkt = (claims.cnf as Record<string, unknown>).jkt;
+        return typeof jkt === "string" && jkt.length > 0 ? jkt : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Checks that a value is a public P-256 JWK suitable for DPoP verification.
+ * @param jwk - Candidate JWK value.
+ * @returns Whether the value is a valid public DPoP JWK.
+ */
 function isValidDpopPublicJwk(jwk: unknown): jwk is JsonWebKey {
     if (typeof jwk !== "object" || jwk === null || Array.isArray(jwk)) {
         return false;
@@ -393,6 +505,11 @@ function isValidDpopPublicJwk(jwk: unknown): jwk is JsonWebKey {
     );
 }
 
+/**
+ * Validates persisted DPoP cleanup state before it is restored.
+ * @param entry - Candidate persisted cleanup entry.
+ * @returns Whether the entry has a supported shape and retry count.
+ */
 function isPersistedDpopKeyCleanupState(
     entry: unknown
 ): entry is PersistedDpopKeyCleanupState {
@@ -412,6 +529,10 @@ function isPersistedDpopKeyCleanupState(
     );
 }
 
+/**
+ * Retries cleanup for inactive keys owned by the current key manager.
+ * @param lifecycle - Broker DPoP lifecycle state.
+ */
 async function retryDpopKeyCleanup(
     lifecycle: DpopBrokerLifecycle
 ): Promise<void> {
@@ -426,6 +547,11 @@ async function retryDpopKeyCleanup(
     }
 }
 
+/**
+ * Restores cleanup state belonging to the current key manager and retains
+ * unmatched entries for bounded future retries.
+ * @param lifecycle - Broker DPoP lifecycle state.
+ */
 async function restorePersistedDpopKeyCleanup(
     lifecycle: DpopBrokerLifecycle
 ): Promise<void> {
@@ -502,6 +628,10 @@ async function restorePersistedDpopKeyCleanup(
     persistDpopKeyCleanup(lifecycle);
 }
 
+/**
+ * Writes pending cleanup state or removes storage when no work remains.
+ * @param lifecycle - Broker DPoP lifecycle state.
+ */
 function persistDpopKeyCleanup(lifecycle: DpopBrokerLifecycle): void {
     const cleanupEntries = Array.from(
         getDpopKeyCleanupStates(lifecycle),
@@ -530,6 +660,10 @@ function persistDpopKeyCleanup(lifecycle: DpopBrokerLifecycle): void {
     );
 }
 
+/**
+ * Removes persisted DPoP cleanup state from temporary storage.
+ * @param lifecycle - Broker DPoP lifecycle state.
+ */
 function removePersistedDpopKeyCleanup(lifecycle: DpopBrokerLifecycle): void {
     const storage = lifecycle.context.browserStorage;
     storage.removeTemporaryItem(
@@ -537,6 +671,12 @@ function removePersistedDpopKeyCleanup(lifecycle: DpopBrokerLifecycle): void {
     );
 }
 
+/**
+ * Marks a provisioned request key as MSAL-owned and active.
+ * @param lifecycle - Broker DPoP lifecycle state.
+ * @param request - Request that owns the key reference.
+ * @param keyId - Provisioned key identifier.
+ */
 function trackDpopRequestKey(
     lifecycle: DpopBrokerLifecycle,
     request: PlatformAuthRequest,
@@ -546,6 +686,12 @@ function trackDpopRequestKey(
     getDpopKeyCleanupState(lifecycle, keyId).activeRequestCount += 1;
 }
 
+/**
+ * Returns mutable cleanup state for a key, creating it when necessary.
+ * @param lifecycle - Broker DPoP lifecycle state.
+ * @param keyId - Token-binding key identifier.
+ * @returns Cleanup state associated with the key.
+ */
 function getDpopKeyCleanupState(
     lifecycle: DpopBrokerLifecycle,
     keyId: string
@@ -563,6 +709,11 @@ function getDpopKeyCleanupState(
     return cleanupState;
 }
 
+/**
+ * Returns cleanup state scoped to the lifecycle's token-binding key manager.
+ * @param lifecycle - Broker DPoP lifecycle state.
+ * @returns The key manager's cleanup-state map.
+ */
 function getDpopKeyCleanupStates(
     lifecycle: DpopBrokerLifecycle
 ): Map<string, DpopKeyCleanupState> {
@@ -575,6 +726,14 @@ function getDpopKeyCleanupStates(
     return cleanupStates;
 }
 
+/**
+ * Removes a cleanup-requested key when it has no active request references,
+ * persisting bounded retry state when removal fails.
+ * @param lifecycle - Broker DPoP lifecycle state.
+ * @param keyId - Token-binding key identifier.
+ * @param cleanupState - Current cleanup and reference state.
+ * @returns Whether cleanup is complete or not currently required.
+ */
 async function removeInactiveDpopKey(
     lifecycle: DpopBrokerLifecycle,
     keyId: string,
@@ -615,6 +774,11 @@ async function removeInactiveDpopKey(
     }
 }
 
+/**
+ * Throws the standard unexpected-error shape for a malformed broker outcome.
+ * @param context - Broker DPoP dependencies.
+ * @param message - Validation failure description.
+ */
 function throwMalformedDpopResponse(
     context: DpopBrokerLifecycleContext,
     message: string

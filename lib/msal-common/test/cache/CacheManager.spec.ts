@@ -319,6 +319,10 @@ describe("CacheManager.ts test cases", () => {
                 true,
                 0
             );
+            const removeTokenBindingKeySpy = jest.spyOn(
+                mockTokenBindingKeyManager,
+                "removeTokenBindingKey"
+            );
             await mockCache.cacheManager.saveCacheRecord(
                 { accessToken: replacementAccessToken },
                 TEST_CONFIG.CORRELATION_ID,
@@ -342,6 +346,7 @@ describe("CacheManager.ts test cases", () => {
                     accessTokenKeys[0]
                 )?.secret
             ).toBe("replacement-access-token");
+            expect(removeTokenBindingKeySpy).not.toHaveBeenCalled();
         });
 
         it("requires cached keyId metadata for accessToken with Auth Scheme (dpop)", () => {

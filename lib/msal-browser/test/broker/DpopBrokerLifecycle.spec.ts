@@ -46,28 +46,39 @@ describe("DpopBrokerLifecycle", () => {
         );
         const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
         const browserCrypto = new CryptoOps(new Logger({}));
-        const accessToken = "test-access-token";
+        const proofJkt = await BrowserCrypto.computeJwkThumbprint(
+            publicJwk,
+            "test-correlation-id"
+        );
+        const createAccessToken = (jkt: string): string =>
+            `${base64UrlEncodeJson({ alg: "ES256" })}.${base64UrlEncodeJson({
+                cnf: { jkt },
+            })}.test-signature`;
+        const accessToken = createAccessToken(proofJkt);
         const encodedHeader = base64UrlEncodeJson({
             alg: "ES256",
             typ: "dpop+jwt",
             jwk: publicJwk,
         });
-        const encodedClaims = base64UrlEncodeJson({
-            ath: await browserCrypto.hashString(accessToken),
-            htm: "POST",
-            htu: "https://graph.microsoft.com/v1.0/me",
-            iat: TimeUtils.nowSeconds(),
-            jti: "test-jti",
-        });
-        const signingInput = `${encodedHeader}.${encodedClaims}`;
-        const signature = await BrowserCrypto.sign(
-            keyPair.privateKey,
-            new TextEncoder().encode(signingInput),
-            BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS
-        );
-        const proof = `${signingInput}.${base64UrlEncodeBytes(
-            new Uint8Array(signature)
-        )}`;
+        const createProof = async (token: string): Promise<string> => {
+            const encodedClaims = base64UrlEncodeJson({
+                ath: await browserCrypto.hashString(token),
+                htm: "POST",
+                htu: "https://graph.microsoft.com/v1.0/me",
+                iat: TimeUtils.nowSeconds(),
+                jti: "test-jti",
+            });
+            const signingInput = `${encodedHeader}.${encodedClaims}`;
+            const signature = await BrowserCrypto.sign(
+                keyPair.privateKey,
+                new TextEncoder().encode(signingInput),
+                BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS
+            );
+            return `${signingInput}.${base64UrlEncodeBytes(
+                new Uint8Array(signature)
+            )}`;
+        };
+        const proof = await createProof(accessToken);
         const lifecycle = createDpopBrokerLifecycle({
             browserCrypto,
             browserStorage: {} as BrowserCacheManager,
@@ -107,6 +118,22 @@ describe("DpopBrokerLifecycle", () => {
                     access_token: accessToken,
                     token_type: Constants.AuthenticationScheme.DPOP,
                     DPoP: `${encodedProofHeader}.${encodedProofClaims}.${invalidSignature}`,
+                    attested_chosen: true,
+                } as PlatformAuthResponse,
+                request
+            )
+        ).rejects.toMatchObject({ errorCode: "unexpected_error" });
+
+        const mismatchedAccessToken = createAccessToken(
+            "mismatched-key-thumbprint"
+        );
+        await expect(
+            validateDpopBrokerOutcome(
+                lifecycle,
+                {
+                    access_token: mismatchedAccessToken,
+                    token_type: Constants.AuthenticationScheme.DPOP,
+                    DPoP: await createProof(mismatchedAccessToken),
                     attested_chosen: true,
                 } as PlatformAuthResponse,
                 request

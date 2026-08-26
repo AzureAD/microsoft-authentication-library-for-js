@@ -293,7 +293,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             expect(initializeNativeExtensionRequest(request)).toBe(request);
         });
 
-        it.each(["3", "3.0.0"])(
+        it.each(["3", "3.0.0", "3.0.0.0"])(
             "Uses the v3 proof context wire format for extension version %s",
             (extensionVersion) => {
                 const wamMessageHandler = new PlatformAuthExtensionHandler(
