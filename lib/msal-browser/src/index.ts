@@ -66,7 +66,26 @@ export { AuthenticationResult } from "./response/AuthenticationResult.js";
 export { ClearCacheRequest } from "./request/ClearCacheRequest.js";
 export { InitializeApplicationRequest } from "./request/InitializeApplicationRequest.js";
 export { HandleRedirectPromiseOptions } from "./request/HandleRedirectPromiseOptions.js";
-export type { IWebBrokerBridgeMessage } from "./webBrokerBridge/IWebBrokerBridgeMessage.js";
+export type {
+    IWebBrokerBridgeMessage,
+    IWebBrokerBridgeResponse,
+} from "./webBrokerBridge/IWebBrokerBridgeMessage.js";
+export type { WebBrokerBridgeError } from "./webBrokerBridge/WebBrokerBridgeError.js";
+export { WebBrokerBridgeErrorCode } from "./webBrokerBridge/WebBrokerBridgeError.js";
+export { toAuthError } from "./webBrokerBridge/WebBrokerBridgeErrorMap.js";
+export { PendingRequestRegistry } from "./webBrokerBridge/PendingRequestRegistry.js";
+export type { WebBrokerBridgeSendFn } from "./webBrokerBridge/PendingRequestRegistry.js";
+export {
+    addLegacyRequestFields,
+    addResourceField,
+    normalizeIncomingRequest,
+    normalizeResourceField,
+} from "./webBrokerBridge/adapter/CrossVersionRequestAdapter.js";
+export type {
+    CrossVersionRequest,
+    CrossVersionRequestFields,
+    LegacyRequestFields,
+} from "./webBrokerBridge/adapter/CrossVersionRequestAdapter.js";
 
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache.js";

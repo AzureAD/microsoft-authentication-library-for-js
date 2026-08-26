@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Export shared web broker bridge runtime utilities from the package root.",
+  "packageName": "@azure/msal-browser",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
