@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add browser DPoP proof signer helper and internal token-endpoint resolution/trust-validation for DPoP endpoint agreement [#8788](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8788)",
+  "comment": "Add browser DPoP proof signing, endpoint agreement, and external response cache hydration support [#8788](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8788)",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"

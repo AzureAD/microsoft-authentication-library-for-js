@@ -634,7 +634,8 @@ export class ResponseHandler {
             }
             if (
                 accessTokenType ===
-                Constants.AuthenticationScheme.DPOP.toLowerCase()
+                    Constants.AuthenticationScheme.DPOP.toLowerCase() &&
+                !request.dpopProof
             ) {
                 if (!cacheRecord.accessToken.keyId) {
                     throw createClientAuthError(
