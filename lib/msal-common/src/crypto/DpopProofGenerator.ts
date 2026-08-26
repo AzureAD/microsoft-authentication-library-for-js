@@ -11,6 +11,7 @@ import {
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError.js";
 import { JoseHeader } from "./JoseHeader.js";
+import type { PublicJsonWebKey } from "./PublicJsonWebKey.js";
 
 /**
  * RFC 9449 DPoP proof JWT payload claims.
@@ -58,7 +59,7 @@ const DPOP_TOKEN_BINDING_KEY_TYPE = "dpop";
 const DPOP_JWT_HEADER_ALGORITHM = JsonWebTokenAlgorithms.ES256;
 
 function buildProofHeader(
-    publicJwk: JsonWebKey,
+    publicJwk: PublicJsonWebKey,
     correlationId: string
 ): JoseHeader {
     return JoseHeader.getDpopHeader(

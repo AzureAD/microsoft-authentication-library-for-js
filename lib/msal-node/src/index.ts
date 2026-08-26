@@ -22,7 +22,6 @@ export { IConfidentialClientApplication } from "./client/IConfidentialClientAppl
 export { ITokenCache } from "./cache/ITokenCache.js";
 export { ICacheClient } from "./cache/distributed/ICacheClient.js";
 export { IPartitionManager } from "./cache/distributed/IPartitionManager.js";
-export { ILoopbackClient } from "./network/ILoopbackClient.js";
 
 // Clients and Configuration
 export { PublicClientApplication } from "./client/PublicClientApplication.js";
