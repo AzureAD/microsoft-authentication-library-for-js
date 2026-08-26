@@ -50,6 +50,30 @@ import { PlatformAuthResponse } from "../../src/broker/nativeBroker/PlatformAuth
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
 import { updateAccountTenantProfileData } from "@azure/msal-common/browser";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
+
+const TEST_DPOP_RESOURCE_METHOD = "POST";
+const TEST_DPOP_RESOURCE_URI = "https://graph.microsoft.com/v1.0/me";
+
+function createTestDpopProof(
+    htm: string = TEST_DPOP_RESOURCE_METHOD,
+    htu: string = TEST_DPOP_RESOURCE_URI
+): string {
+    const encode = (value: object): string =>
+        window
+            .btoa(JSON.stringify(value))
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=+$/, "");
+    return `${encode({ alg: "ES256", typ: "dpop+jwt" })}.${encode({
+        htm,
+        htu,
+        iat: 1,
+        jti: "test-jti",
+    })}.test-signature`;
+}
+
+const TEST_DPOP_PROOF = createTestDpopProof();
+
 const MOCK_WAM_RESPONSE: PlatformAuthResponse = {
     access_token: TEST_TOKENS.ACCESS_TOKEN,
     id_token: TEST_TOKENS.IDTOKEN_V2,
@@ -398,7 +422,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 return Promise.resolve({
                     ...MOCK_WAM_RESPONSE,
                     token_type: Constants.AuthenticationScheme.DPOP,
-                    DPoP: "test-dpop-proof",
+                    DPoP: TEST_DPOP_PROOF,
                     attested_chosen: true,
                 });
             });
@@ -434,7 +458,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 })
             );
             expect(response.accessToken).toBe(MOCK_WAM_RESPONSE.access_token);
-            expect(response.dpopProof).toBe("test-dpop-proof");
+            expect(response.dpopProof).toBe(TEST_DPOP_PROOF);
             expect(response.tokenType).toBe(
                 Constants.AuthenticationScheme.DPOP
             );
@@ -709,6 +733,55 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(removeKeySpy).toHaveBeenCalledTimes(2);
         });
 
+        it("Extension: stops retrying generated-key cleanup after the bounded attempt limit", async () => {
+            const clientInternals =
+                platformAuthInteractionClient as unknown as {
+                    resetGeneratedDpopRequestKey(
+                        request: PlatformAuthRequest
+                    ): Promise<void>;
+                    prepareDpopBrokerRequest(
+                        request: PlatformAuthRequest
+                    ): Promise<void>;
+                    tokenBindingKeyManager: {
+                        provisionTokenBindingKey(): Promise<string>;
+                        getTokenBindingPublicKeyJwk(): Promise<JsonWebKey>;
+                        removeTokenBindingKey(): Promise<void>;
+                    };
+                };
+            const request = {
+                tokenType: Constants.AuthenticationScheme.DPOP,
+            } as PlatformAuthRequest;
+            jest.spyOn(
+                clientInternals.tokenBindingKeyManager,
+                "provisionTokenBindingKey"
+            ).mockResolvedValue("permanently-failing-cleanup-key");
+            jest.spyOn(
+                clientInternals.tokenBindingKeyManager,
+                "getTokenBindingPublicKeyJwk"
+            ).mockResolvedValue({
+                kty: "EC",
+                crv: "P-256",
+                x: "test-x",
+                y: "test-y",
+            });
+            const removeKeySpy = jest
+                .spyOn(
+                    clientInternals.tokenBindingKeyManager,
+                    "removeTokenBindingKey"
+                )
+                .mockRejectedValue(new Error("persistent failure"));
+
+            await clientInternals.prepareDpopBrokerRequest(request);
+            await clientInternals.resetGeneratedDpopRequestKey(request);
+            for (let i = 0; i < 4; i++) {
+                await clientInternals.prepareDpopBrokerRequest({
+                    tokenType: Constants.AuthenticationScheme.BEARER,
+                } as PlatformAuthRequest);
+            }
+
+            expect(removeKeySpy).toHaveBeenCalledTimes(3);
+        });
+
         it("Extension: isolates generated-key cleanup by key-manager instance", async () => {
             const firstClient = platformAuthInteractionClient as unknown as {
                 prepareDpopBrokerRequest(
@@ -857,6 +930,17 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 response: {
                     token_type: Constants.AuthenticationScheme.DPOP,
                     DPoP: " ",
+                    attested_chosen: true,
+                },
+            },
+            {
+                name: "L3 outcome bound to another resource",
+                response: {
+                    token_type: Constants.AuthenticationScheme.DPOP,
+                    DPoP: createTestDpopProof(
+                        TEST_DPOP_RESOURCE_METHOD,
+                        "https://graph.microsoft.com/v1.0/users"
+                    ),
                     attested_chosen: true,
                 },
             },
@@ -1091,7 +1175,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 .mockResolvedValue({
                     ...MOCK_WAM_RESPONSE,
                     token_type: Constants.AuthenticationScheme.DPOP,
-                    DPoP: "broker-dpop-proof",
+                    DPoP: TEST_DPOP_PROOF,
                     attested_chosen: true,
                 });
 
@@ -1126,7 +1210,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 )
             ).toEqual({ jkt: expectedJkt });
             expect(expectedJkt).not.toBe("existing-msal-key");
-            expect(response.dpopProof).toBe("broker-dpop-proof");
+            expect(response.dpopProof).toBe(TEST_DPOP_PROOF);
             expect(removeKeySpy).not.toHaveBeenCalled();
         });
 
@@ -1187,12 +1271,66 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     accessToken: expect.objectContaining({
                         keyId: "caller-dpop-key",
                         tokenBindingKeyOwnedByMsal: false,
+                        additionalCacheKeyComponents: {
+                            dpop_key_id: "caller-dpop-key",
+                        },
                     }),
                 }),
                 RANDOM_TEST_GUID,
                 false,
                 ApiId.acquireTokenRedirect,
                 undefined
+            );
+        });
+
+        it("Extension: partitions cached caller-supplied DPoP tokens by key", async () => {
+            const request = {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                correlationId: RANDOM_TEST_GUID,
+                scope: "User.Read",
+                tokenType: Constants.AuthenticationScheme.DPOP,
+                keyId: "first-caller-key",
+            } as PlatformAuthRequest;
+            const response = {
+                ...MOCK_WAM_RESPONSE,
+                token_type: Constants.AuthenticationScheme.DPOP,
+                attested_chosen: false,
+            };
+
+            await platformAuthInteractionClient.cacheNativeTokens(
+                response,
+                request,
+                TEST_ACCOUNT_INFO.homeAccountId,
+                ID_TOKEN_CLAIMS,
+                TEST_ACCOUNT_INFO.tenantId,
+                TimeUtils.nowSeconds(),
+                testAccountEntity.environment
+            );
+            await platformAuthInteractionClient.cacheNativeTokens(
+                { ...response, access_token: "second-access-token" },
+                { ...request, keyId: "second-caller-key" },
+                TEST_ACCOUNT_INFO.homeAccountId,
+                ID_TOKEN_CLAIMS,
+                TEST_ACCOUNT_INFO.tenantId,
+                TimeUtils.nowSeconds(),
+                testAccountEntity.environment
+            );
+
+            const accessTokenKeys = internalStorage.getTokenKeys().accessToken;
+            expect(accessTokenKeys).toHaveLength(2);
+            expect(
+                accessTokenKeys.map(
+                    (key) =>
+                        internalStorage.getAccessTokenCredential(
+                            key,
+                            RANDOM_TEST_GUID
+                        )?.keyId
+                )
+            ).toEqual(
+                expect.arrayContaining([
+                    "first-caller-key",
+                    "second-caller-key",
+                ])
             );
         });
 
@@ -1320,7 +1458,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
                 token_type: Constants.AuthenticationScheme.DPOP,
-                DPoP: "test-dpop-proof",
+                DPoP: TEST_DPOP_PROOF,
                 attested_chosen: true,
             });
 
@@ -1331,7 +1469,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
             });
 
-            expect(response.dpopProof).toBe("test-dpop-proof");
+            expect(response.dpopProof).toBe(TEST_DPOP_PROOF);
         });
 
         it("Extension: token request contains user input extra params", async () => {
@@ -2455,7 +2593,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
                 token_type: Constants.AuthenticationScheme.DPOP,
-                DPoP: "broker-dpop-proof",
+                DPoP: TEST_DPOP_PROOF,
                 attested_chosen: true,
             });
 
@@ -2514,7 +2652,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
                 token_type: Constants.AuthenticationScheme.DPOP,
-                DPoP: "broker-dpop-proof",
+                DPoP: TEST_DPOP_PROOF,
                 attested_chosen: true,
             });
 

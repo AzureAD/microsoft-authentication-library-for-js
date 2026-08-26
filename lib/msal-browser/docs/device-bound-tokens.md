@@ -57,9 +57,25 @@ There are a few things that may behave a little differently when acquiring token
 
 When `allowPlatformBroker` is enabled, requests using `authenticationScheme: AuthenticationScheme.DPOP` can complete with either broker-owned L3 binding or browser-managed L1 binding. For L3, the broker returns an affirmatively attested resource proof; MSAL returns that proof without locally signing or caching the access token or proof. For L1, MSAL signs the resource proof with the request's local DPoP key. Access tokens using an application-supplied `popKid` can be cached in MSAL's internal in-memory broker cache, partitioned by that key. Proof JWTs are never cached.
 
-Generated L1 keys and their access tokens are not cached because a later request has no stable identifier with which to address that cache partition. MSAL removes a generated key after producing the response. Application-supplied `popKid` keys remain application-owned and are never removed by MSAL. Redirect requests do not persist generated key identifiers across navigation because the fallback keystore may be page-local; MSAL provisions a new key when redirect handling resumes. Application-supplied key identifiers are retained.
+Generated L1 keys and their access tokens are not cached because a later request has no stable identifier with which to address that cache partition. MSAL attempts to remove a generated key after producing the response. If removal fails, MSAL retries cleanup on a subsequent broker request up to a bounded retry limit. Application-supplied `popKid` keys remain application-owned and are never removed by MSAL. Redirect requests do not persist generated key identifiers across navigation because the fallback keystore may be page-local; MSAL provisions a new key when redirect handling resumes. Application-supplied key identifiers are retained.
 
 DPoP requests must include the resource method and URI used to build the proof. For the complete request shape and proof usage, see [DPoP for PublicClientApplication](./access-token-proof-of-possession.md#dpop-for-publicclientapplication).
+
+To use an application-managed key for broker DPoP, provision the ES256 DPoP key through the token-binding key manager configured for the `PublicClientApplication`, retain its opaque key identifier, and pass that identifier as `popKid` together with the required resource context:
+
+```typescript
+const dpopRequest = {
+    scopes: ["User.Read"],
+    authenticationScheme: msal.AuthenticationScheme.DPOP,
+    popKid: applicationManagedDpopKeyId,
+    resourceRequestMethod: "GET",
+    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+};
+
+const result = await myMSALObj.acquireTokenPopup(dpopRequest);
+```
+
+The configured key manager must be able to resolve `popKid` to the corresponding public and private key material. The application owns the key lifecycle and must retain the key while cached tokens in that partition may be reused, then remove it when it is no longer needed.
 
 ## Acquiring Device Bound Tokens using DOM API
 

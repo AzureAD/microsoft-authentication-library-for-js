@@ -711,6 +711,9 @@ export abstract class CacheManager implements ICacheManager {
             homeAccountId: credential.homeAccountId,
             realm: credential.realm,
             tokenType: credential.tokenType,
+            keyId: credential.keyId,
+            additionalCacheKeyComponents:
+                credential.additionalCacheKeyComponents,
         };
 
         const tokenKeys = this.getTokenKeys();
@@ -919,10 +922,14 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         // Additional cache key components matching (bidirectional isolation)
-        const entityComponents = entity.additionalCacheKeyComponents;
+        const entityComponents = {
+            ...entity.additionalCacheKeyComponents,
+        };
+        if (filter.keyId && entityComponents.dpop_key_id === filter.keyId) {
+            delete entityComponents.dpop_key_id;
+        }
         const filterComponents = filter.additionalCacheKeyComponents;
-        const entityHasComponents =
-            !!entityComponents && Object.keys(entityComponents).length > 0;
+        const entityHasComponents = Object.keys(entityComponents).length > 0;
         const filterHasComponents =
             !!filterComponents && Object.keys(filterComponents).length > 0;
 

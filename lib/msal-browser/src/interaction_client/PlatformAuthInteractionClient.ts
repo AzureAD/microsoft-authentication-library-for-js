@@ -91,12 +91,24 @@ import {
 import { SilentCacheClient } from "./SilentCacheClient.js";
 
 const DPOP_BROKER_REQUEST_TOKEN_TYPE = Constants.AuthenticationScheme.DPOP;
+const MAX_DPOP_KEY_CLEANUP_ATTEMPTS = 3;
+
+/**
+ * Claims required in a broker-supplied resource DPoP proof.
+ */
+type BrokerDpopProofClaims = {
+    htm: string;
+    htu: string;
+    iat: number;
+    jti: string;
+};
 
 /**
  * Tracks active users and pending cleanup for an MSAL-generated DPoP key.
  */
 type DpopKeyCleanupState = {
     activeRequestCount: number;
+    cleanupAttemptCount: number;
     cleanupRequested: boolean;
 };
 
@@ -1124,11 +1136,15 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             request.scope
         );
 
-        const additionalCacheKeyComponents = request.attributeTokens
-            ? {
-                  attribute_tokens: request.attributeTokens,
-              }
-            : undefined;
+        const additionalCacheKeyComponents = {
+            ...(request.attributeTokens && {
+                attribute_tokens: request.attributeTokens,
+            }),
+            ...(request.tokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE &&
+                request.keyId && {
+                    dpop_key_id: request.keyId,
+                }),
+        };
 
         const cachedAccessToken: AccessTokenEntity | null =
             CacheHelpers.createAccessTokenEntity(
@@ -1534,7 +1550,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         if (response.DPoP !== undefined) {
             if (
-                !response.DPoP.trim() ||
+                !this.isValidBrokerDpopProof(response.DPoP, request) ||
                 response.attested_chosen !== true ||
                 (response.token_binding_key_id !== undefined &&
                     response.token_binding_key_id === request.keyId)
@@ -1575,6 +1591,50 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             },
             this.correlationId
         );
+    }
+
+    /**
+     * Validates the structure and resource binding of an L3 broker proof.
+     * The broker attestation establishes trust in the signature.
+     * @param proof - Compact DPoP proof JWT returned by the broker.
+     * @param request - Broker request containing normalized resource context.
+     * @returns Whether the proof contains the required DPoP header and claims.
+     */
+    private isValidBrokerDpopProof(
+        proof: string,
+        request: PlatformAuthRequest
+    ): boolean {
+        const tokenParts = proof.split(".");
+        if (
+            tokenParts.length !== 3 ||
+            tokenParts.some((part) => part.length === 0)
+        ) {
+            return false;
+        }
+
+        try {
+            const header = JSON.parse(base64Decode(tokenParts[0])) as {
+                alg?: unknown;
+                typ?: unknown;
+            };
+            const claims = JSON.parse(
+                base64Decode(tokenParts[1])
+            ) as Partial<BrokerDpopProofClaims>;
+            return (
+                typeof header.alg === "string" &&
+                header.alg.length > 0 &&
+                typeof header.typ === "string" &&
+                header.typ.toLowerCase() === "dpop+jwt" &&
+                claims.htm === request.resourceRequestMethod &&
+                claims.htu === request.resourceRequestUri &&
+                typeof claims.iat === "number" &&
+                Number.isFinite(claims.iat) &&
+                typeof claims.jti === "string" &&
+                claims.jti.length > 0
+            );
+        } catch {
+            return false;
+        }
     }
 
     /**
@@ -1690,6 +1750,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         if (!cleanupState) {
             cleanupState = {
                 activeRequestCount: 0,
+                cleanupAttemptCount: 0,
                 cleanupRequested: false,
             };
             cleanupStates.set(keyId, cleanupState);
@@ -1740,6 +1801,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.getDpopKeyCleanupStates().delete(keyId);
             return true;
         } catch {
+            cleanupState.cleanupAttemptCount += 1;
+            if (
+                cleanupState.cleanupAttemptCount >=
+                MAX_DPOP_KEY_CLEANUP_ATTEMPTS
+            ) {
+                this.getDpopKeyCleanupStates().delete(keyId);
+            }
             this.logger.error(
                 "Failed to remove unused DPoP request key",
                 this.correlationId
