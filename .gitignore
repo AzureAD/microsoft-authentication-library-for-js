@@ -288,3 +288,7 @@ junit.xml
 
 # ApiExtractor
 temp/
+
+# Forge runtime artifacts
+.forge/loops/
+.forge/output/

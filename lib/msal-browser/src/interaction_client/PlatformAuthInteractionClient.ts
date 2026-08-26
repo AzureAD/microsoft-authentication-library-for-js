@@ -763,7 +763,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         await this.cacheAccount(
             baseAccount,
             AuthToken.isKmsi(idTokenClaims),
-            !isDpopResponse
+            true,
+            isDpopResponse ? request.keyId : undefined
         );
         await this.cacheNativeTokens(
             response,
@@ -991,11 +992,15 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     /**
      * cache the account entity in browser storage
      * @param accountEntity
+     * @param kmsi
+     * @param clearExistingTokens
+     * @param preservedCallerDpopKeyId
      */
     async cacheAccount(
         accountEntity: AccountEntity,
         kmsi: boolean,
-        clearExistingTokens: boolean = true
+        clearExistingTokens: boolean = true,
+        preservedCallerDpopKeyId?: string
     ): Promise<void> {
         // Store the account info and hence `nativeAccountId` in browser cache
         await this.browserStorage.setAccount(
@@ -1006,11 +1011,57 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
         // Remove any existing cached tokens for this account in browser storage
         if (clearExistingTokens) {
+            if (preservedCallerDpopKeyId) {
+                this.removeAccountContextPreservingCallerDpopToken(
+                    AccountEntityUtils.getAccountInfo(accountEntity),
+                    preservedCallerDpopKeyId
+                );
+                return;
+            }
             this.browserStorage.removeAccountContext(
                 AccountEntityUtils.getAccountInfo(accountEntity),
                 this.correlationId
             );
         }
+    }
+
+    /**
+     * Removes browser credentials for an account while retaining the
+     * caller-owned DPoP partition used by the current broker request.
+     * @param account
+     * @param preservedKeyId
+     */
+    private removeAccountContextPreservingCallerDpopToken(
+        account: AccountInfo,
+        preservedKeyId: string
+    ): void {
+        const allTokenKeys = this.browserStorage.getTokenKeys();
+        const belongsToAccount = (key: string): boolean =>
+            key.includes(account.homeAccountId) &&
+            key.includes(account.environment);
+
+        allTokenKeys.idToken.filter(belongsToAccount).forEach((key) => {
+            this.browserStorage.removeIdToken(key, this.correlationId);
+        });
+
+        allTokenKeys.accessToken.filter(belongsToAccount).forEach((key) => {
+            const accessToken = this.browserStorage.getAccessTokenCredential(
+                key,
+                this.correlationId
+            );
+            const isPreservedCallerDpopToken =
+                accessToken?.tokenType?.toLowerCase() ===
+                    Constants.AuthenticationScheme.DPOP.toLowerCase() &&
+                accessToken.keyId === preservedKeyId &&
+                accessToken.tokenBindingKeyOwnedByMsal === false;
+            if (!isPreservedCallerDpopToken) {
+                this.browserStorage.removeAccessToken(key, this.correlationId);
+            }
+        });
+
+        allTokenKeys.refreshToken.filter(belongsToAccount).forEach((key) => {
+            this.browserStorage.removeRefreshToken(key, this.correlationId);
+        });
     }
 
     /**
@@ -1568,14 +1619,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return;
         }
 
-        const keyRemoved = await this.removeDpopRequestKey(request);
-        if (!keyRemoved) {
-            throw createAuthError(
-                AuthErrorCodes.unexpectedError,
-                this.correlationId,
-                "Failed to remove generated DPoP request key."
-            );
-        }
+        await this.removeDpopRequestKey(request);
         request.keyId = undefined;
         request.reqCnf = undefined;
     }

@@ -275,6 +275,82 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
         });
 
+        it("clears stale account credentials while preserving the requested caller-owned DPoP partition", async () => {
+            const accountKeyPrefix = `${testAccountEntity.homeAccountId}-${testAccountEntity.environment}`;
+            const idTokenKey = `${accountKeyPrefix}-id-token`;
+            const preservedDpopKey = `${accountKeyPrefix}-preserved-dpop`;
+            const staleDpopKey = `${accountKeyPrefix}-stale-dpop`;
+            const staleBearerKey = `${accountKeyPrefix}-stale-bearer`;
+            const refreshTokenKey = `${accountKeyPrefix}-refresh-token`;
+            jest.spyOn(browserCacheManager, "getTokenKeys").mockReturnValue({
+                idToken: [idTokenKey],
+                accessToken: [preservedDpopKey, staleDpopKey, staleBearerKey],
+                refreshToken: [refreshTokenKey],
+            });
+            jest.spyOn(
+                browserCacheManager,
+                "getAccessTokenCredential"
+            ).mockImplementation((key) => {
+                if (key === preservedDpopKey || key === staleDpopKey) {
+                    return {
+                        ...testAccessTokenEntity,
+                        credentialType:
+                            Constants.CredentialType
+                                .ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                        tokenType: Constants.AuthenticationScheme.DPOP,
+                        keyId:
+                            key === preservedDpopKey
+                                ? "caller-dpop-key"
+                                : "stale-caller-dpop-key",
+                        tokenBindingKeyOwnedByMsal: false,
+                    };
+                }
+                return testAccessTokenEntity;
+            });
+            const removeAccountContextSpy = jest.spyOn(
+                browserCacheManager,
+                "removeAccountContext"
+            );
+            const removeIdTokenSpy = jest.spyOn(
+                browserCacheManager,
+                "removeIdToken"
+            );
+            const removeAccessTokenSpy = jest.spyOn(
+                browserCacheManager,
+                "removeAccessToken"
+            );
+            const removeRefreshTokenSpy = jest.spyOn(
+                browserCacheManager,
+                "removeRefreshToken"
+            );
+
+            await platformAuthInteractionClient.cacheAccount(
+                testAccountEntity,
+                false,
+                true,
+                "caller-dpop-key"
+            );
+
+            expect(removeAccountContextSpy).not.toHaveBeenCalled();
+            expect(removeIdTokenSpy).toHaveBeenCalledWith(
+                idTokenKey,
+                RANDOM_TEST_GUID
+            );
+            expect(removeAccessTokenSpy).toHaveBeenCalledTimes(2);
+            expect(removeAccessTokenSpy).toHaveBeenCalledWith(
+                staleDpopKey,
+                RANDOM_TEST_GUID
+            );
+            expect(removeAccessTokenSpy).toHaveBeenCalledWith(
+                staleBearerKey,
+                RANDOM_TEST_GUID
+            );
+            expect(removeRefreshTokenSpy).toHaveBeenCalledWith(
+                refreshTokenKey,
+                RANDOM_TEST_GUID
+            );
+        });
+
         it("Extension: returns an L3 broker DPoP proof without caching or locally signing it", async () => {
             const cacheLookupSpy = jest.spyOn(
                 platformAuthInteractionClient as unknown as {
@@ -554,7 +630,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(internalStorage.getTokenKeys().accessToken).toHaveLength(0);
         });
 
-        it("Extension: retries failed generated-key cleanup from a later client instance", async () => {
+        it("Extension: defers failed generated-key cleanup without changing the request outcome", async () => {
             const clientInternals =
                 platformAuthInteractionClient as unknown as {
                     resetGeneratedDpopRequestKey(
@@ -596,9 +672,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             await clientInternals.prepareDpopBrokerRequest(request);
             await expect(
                 clientInternals.resetGeneratedDpopRequestKey(request)
-            ).rejects.toThrow("Failed to remove generated DPoP request key.");
-            expect(request.keyId).toBe("retry-cleanup-dpop-key");
-            expect(request.reqCnf).toEqual(expect.any(String));
+            ).resolves.toBeUndefined();
+            expect(request.keyId).toBeUndefined();
+            expect(request.reqCnf).toBeUndefined();
 
             const nextClient = new PlatformAuthInteractionClient(
                 // @ts-ignore
@@ -670,7 +746,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             await firstClient.prepareDpopBrokerRequest(firstRequest);
             await expect(
                 firstClient.resetGeneratedDpopRequestKey(firstRequest)
-            ).rejects.toThrow("Failed to remove generated DPoP request key.");
+            ).resolves.toBeUndefined();
 
             const secondKeyManager = {
                 provisionTokenBindingKey: jest
@@ -2342,7 +2418,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
         });
 
-        it("does not persist a generated memory-backed DPoP key across redirect", async () => {
+        it("does not mask a successful redirect response when generated-key cleanup fails", async () => {
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateExternal"
@@ -2371,6 +2447,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             });
             const removeKeySpy = jest
                 .spyOn(keyManager, "removeTokenBindingKey")
+                .mockRejectedValueOnce(new Error("temporary cleanup failure"))
                 .mockResolvedValue();
             jest.spyOn(
                 PlatformAuthExtensionHandler.prototype,

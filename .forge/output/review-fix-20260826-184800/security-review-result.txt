@@ -1,9 +1,0 @@
-I’m loading the mandatory security baseline and identity/TypeScript guidance before reviewing the authentication changes.
-
-The mandatory guardrails are loaded; I’m now tracing the DPoP key/proof and broker response flows for concrete exploit paths.
-
-No security vulnerabilities found in the reviewed changes.
-
-```json:findings
-[]
-```
