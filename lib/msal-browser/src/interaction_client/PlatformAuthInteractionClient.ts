@@ -44,7 +44,10 @@ import {
     updateAccountTenantProfileData,
 } from "@azure/msal-common/browser";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
+import {
+    DPOP_BROKER_REQUEST_TOKEN_TYPE,
+    PlatformAuthRequest,
+} from "../broker/nativeBroker/PlatformAuthRequest.js";
 import {
     MATS,
     PlatformAuthResponse,
@@ -90,13 +93,13 @@ import {
 } from "./BaseInteractionClient.js";
 import { SilentCacheClient } from "./SilentCacheClient.js";
 
-const DPOP_BROKER_REQUEST_TOKEN_TYPE = Constants.AuthenticationScheme.DPOP;
 const MAX_DPOP_KEY_CLEANUP_ATTEMPTS = 3;
 
 /**
  * Claims required in a broker-supplied resource DPoP proof.
  */
 type BrokerDpopProofClaims = {
+    ath: string;
     htm: string;
     htu: string;
     iat: number;
@@ -501,7 +504,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             const response = await this.platformAuthProvider.sendMessage(
                 nativeRequest
             );
-            this.validateDpopBrokerOutcome(response, nativeRequest);
+            await this.validateDpopBrokerOutcome(response, nativeRequest);
             await this.resetGeneratedDpopRequestKey(nativeRequest);
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
@@ -687,7 +690,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.correlationId
         );
 
-        this.validateDpopBrokerOutcome(response, request);
+        await this.validateDpopBrokerOutcome(response, request);
 
         // generate identifiers
         const idTokenClaims = AuthToken.extractTokenClaims(
@@ -1497,10 +1500,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @param response - Broker response to validate.
      * @param request - Broker request associated with the response.
      */
-    private validateDpopBrokerOutcome(
+    private async validateDpopBrokerOutcome(
         response: PlatformAuthResponse,
         request: PlatformAuthRequest
-    ): void {
+    ): Promise<void> {
         const isDpopRequest =
             request.tokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE;
         if (
@@ -1550,7 +1553,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         if (response.DPoP !== undefined) {
             if (
-                !this.isValidBrokerDpopProof(response.DPoP, request) ||
+                !(await this.isValidBrokerDpopProof(
+                    response.DPoP,
+                    response.access_token,
+                    request
+                )) ||
                 response.attested_chosen !== true ||
                 (response.token_binding_key_id !== undefined &&
                     response.token_binding_key_id === request.keyId)
@@ -1597,13 +1604,15 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * Validates the structure and resource binding of an L3 broker proof.
      * The broker attestation establishes trust in the signature.
      * @param proof - Compact DPoP proof JWT returned by the broker.
+     * @param accessToken - Access token the proof must bind with its ath claim.
      * @param request - Broker request containing normalized resource context.
      * @returns Whether the proof contains the required DPoP header and claims.
      */
-    private isValidBrokerDpopProof(
+    private async isValidBrokerDpopProof(
         proof: string,
+        accessToken: string,
         request: PlatformAuthRequest
-    ): boolean {
+    ): Promise<boolean> {
         const tokenParts = proof.split(".");
         if (
             tokenParts.length !== 3 ||
@@ -1620,6 +1629,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             const claims = JSON.parse(
                 base64Decode(tokenParts[1])
             ) as Partial<BrokerDpopProofClaims>;
+            const expectedAth = await this.browserCrypto.hashString(
+                accessToken
+            );
             return (
                 typeof header.alg === "string" &&
                 header.alg.length > 0 &&
@@ -1627,6 +1639,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 header.typ.toLowerCase() === "dpop+jwt" &&
                 claims.htm === request.resourceRequestMethod &&
                 claims.htu === request.resourceRequestUri &&
+                claims.ath === expectedAth &&
                 typeof claims.iat === "number" &&
                 Number.isFinite(claims.iat) &&
                 typeof claims.jti === "string" &&
@@ -1802,11 +1815,19 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return true;
         } catch {
             cleanupState.cleanupAttemptCount += 1;
+            this.performanceClient.incrementFields(
+                { removeTokenBindingKeyFailure: 1 },
+                this.correlationId
+            );
             if (
                 cleanupState.cleanupAttemptCount >=
                 MAX_DPOP_KEY_CLEANUP_ATTEMPTS
             ) {
                 this.getDpopKeyCleanupStates().delete(keyId);
+                this.performanceClient.incrementFields(
+                    { "ext.dpopKeyCleanupRetryExhausted": 1 },
+                    this.correlationId
+                );
             }
             this.logger.error(
                 "Failed to remove unused DPoP request key",

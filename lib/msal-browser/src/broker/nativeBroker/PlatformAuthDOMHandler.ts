@@ -12,6 +12,7 @@ import {
     Constants,
 } from "@azure/msal-common/browser";
 import {
+    DPOP_BROKER_REQUEST_TOKEN_TYPE,
     DOMExtraParameters,
     PlatformAuthRequest,
     PlatformAuthRequestExtraParametersNoCache,
@@ -158,7 +159,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         );
         const isProofOfPossessionRequest =
             request.tokenType === Constants.AuthenticationScheme.POP ||
-            request.tokenType === Constants.AuthenticationScheme.DPOP;
+            request.tokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE;
 
         const validExtraParametersNoCache = this.getDOMExtraParamsNoCache(
             isProofOfPossessionRequest,

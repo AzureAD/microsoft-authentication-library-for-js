@@ -928,10 +928,14 @@ export abstract class CacheManager implements ICacheManager {
         if (filter.keyId && entityComponents.dpop_key_id === filter.keyId) {
             delete entityComponents.dpop_key_id;
         }
-        const filterComponents = filter.additionalCacheKeyComponents;
+        const filterComponents = {
+            ...filter.additionalCacheKeyComponents,
+        };
+        if (filter.keyId && filterComponents.dpop_key_id === filter.keyId) {
+            delete filterComponents.dpop_key_id;
+        }
         const entityHasComponents = Object.keys(entityComponents).length > 0;
-        const filterHasComponents =
-            !!filterComponents && Object.keys(filterComponents).length > 0;
+        const filterHasComponents = Object.keys(filterComponents).length > 0;
 
         if (entityHasComponents !== filterHasComponents) {
             return false;

@@ -18,6 +18,7 @@ import {
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
 import {
+    DPOP_BROKER_REQUEST_TOKEN_TYPE,
     NativeExtensionRequest,
     NativeExtensionRequestBody,
     PlatformAuthRequest,
@@ -143,7 +144,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
 
         const isProofOfPossessionRequest =
             request.tokenType === Constants.AuthenticationScheme.POP ||
-            request.tokenType === Constants.AuthenticationScheme.DPOP;
+            request.tokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE;
 
         const nativeExtraParametersNoCache = isProofOfPossessionRequest
             ? {

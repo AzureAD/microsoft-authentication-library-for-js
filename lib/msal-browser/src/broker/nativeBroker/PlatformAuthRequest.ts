@@ -7,6 +7,11 @@ import { NativeExtensionMethod } from "../../utils/BrowserConstants.js";
 import { StringDict } from "@azure/msal-common/browser";
 
 /**
+ * Native broker wire discriminator for DPoP proof requests and responses.
+ */
+export const DPOP_BROKER_REQUEST_TOKEN_TYPE = "dpop_proof";
+
+/**
  * No-cache parameters MSAL.js sends to the native broker for proof-of-possession requests.
  */
 export type PlatformAuthRequestExtraParametersNoCache = {

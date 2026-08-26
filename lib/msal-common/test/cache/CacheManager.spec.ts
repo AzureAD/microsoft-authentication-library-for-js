@@ -287,6 +287,63 @@ describe("CacheManager.ts test cases", () => {
             );
         });
 
+        it("replaces an intersecting DPoP access token in the same key partition", async () => {
+            const firstAccessToken = CacheHelpers.createAccessTokenEntity(
+                "someUid.someUtid",
+                "login.microsoftonline.com",
+                "first-access-token",
+                "mock_client_id",
+                "microsoft",
+                "scope6 scope7",
+                4600,
+                4600,
+                mockCrypto.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                undefined,
+                DPOP_AUTHENTICATION_SCHEME,
+                undefined,
+                TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+            );
+            firstAccessToken.additionalCacheKeyComponents = {
+                dpop_key_id: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+            };
+            const replacementAccessToken = {
+                ...firstAccessToken,
+                secret: "replacement-access-token",
+                target: "scope7 scope8",
+            };
+
+            await mockCache.cacheManager.saveCacheRecord(
+                { accessToken: firstAccessToken },
+                TEST_CONFIG.CORRELATION_ID,
+                true,
+                0
+            );
+            await mockCache.cacheManager.saveCacheRecord(
+                { accessToken: replacementAccessToken },
+                TEST_CONFIG.CORRELATION_ID,
+                true,
+                0
+            );
+
+            const accessTokenKeys = mockCache.cacheManager
+                .getTokenKeys()
+                .accessToken.filter((key) => {
+                    const token =
+                        mockCache.cacheManager.getAccessTokenCredential(key);
+                    return (
+                        token?.homeAccountId === "someUid.someUtid" &&
+                        token.keyId === TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+                    );
+                });
+            expect(accessTokenKeys).toHaveLength(1);
+            expect(
+                mockCache.cacheManager.getAccessTokenCredential(
+                    accessTokenKeys[0]
+                )?.secret
+            ).toBe("replacement-access-token");
+        });
+
         it("requires cached keyId metadata for accessToken with Auth Scheme (dpop)", () => {
             expect(() =>
                 CacheHelpers.createAccessTokenEntity(
