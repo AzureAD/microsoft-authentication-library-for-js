@@ -223,6 +223,7 @@ describe("PopupMonitor.monitorPopupForHash", () => {
             "beforeunload",
             unloadHandler
         );
+        expect(closeSpy).toHaveBeenCalled();
     });
 
     it("keeps polling while the popup is on about:blank, then resolves once it navigates", async () => {

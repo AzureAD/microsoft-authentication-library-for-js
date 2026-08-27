@@ -1,6 +1,6 @@
 {
     "type": "minor",
-    "comment": "Add the pocd (popup origin check done) parameter to authorize and end-session requests",
+    "comment": "Add the pocd (popup origin check done) parameter to authorize and end-session requests [#8793](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8793)",
     "packageName": "@azure/msal-common",
     "email": "kshabelko@microsoft.com",
     "dependentChangeType": "patch"

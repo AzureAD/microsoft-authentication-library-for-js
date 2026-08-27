@@ -66,7 +66,7 @@ describe("LegacyPopupSample - auth code stripping (enableLegacyPolling)", () => 
     beforeAll(async () => {
         // @ts-ignore
         browser = await puppeteer.launch({
-            ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"],
+            ignoreDefaultArgs: ["--no-sandbox", "--disable-setuid-sandbox"],
             acceptInsecureCerts: true, // To allow using self-signed certificates
         });
 

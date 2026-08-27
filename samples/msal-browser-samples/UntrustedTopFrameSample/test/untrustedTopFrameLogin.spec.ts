@@ -127,7 +127,7 @@ describe("Untrusted Top Frame Sample", () => {
     beforeAll(async () => {
         // @ts-ignore
         browser = await puppeteer.launch({
-            ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"],
+            ignoreDefaultArgs: ["--no-sandbox", "--disable-setuid-sandbox"],
             acceptInsecureCerts: true, // accept the self-signed localhost cert
         });
 
