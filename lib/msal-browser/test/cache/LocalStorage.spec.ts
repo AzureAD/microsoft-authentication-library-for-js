@@ -1,5 +1,10 @@
-import { Logger, StubPerformanceClient } from "@azure/msal-common/browser";
+import {
+    Logger,
+    PerformanceEvent,
+    StubPerformanceClient,
+} from "@azure/msal-common/browser";
 import { LocalStorage } from "../../src/cache/LocalStorage.js";
+import * as BrowserRootPerformanceEvents from "../../src/telemetry/BrowserRootPerformanceEvents.js";
 import { TEST_CONFIG } from "../utils/StringConstants.js";
 import {
     getAccountKeysCacheKey,
@@ -304,6 +309,168 @@ describe("LocalStorage tests", () => {
                     }
                 }
             }, 50);
+        });
+    });
+
+    describe("broadcast event telemetry", () => {
+        const OTHER_CLIENT_ID = "8b1cd6a2-4e07-4f39-9b1a-2c0f5e6d7a34";
+        const BROADCAST_CHANNEL_NAME = "msal.broadcast.cache";
+
+        /**
+         * Replaces the localStorageUpdated measurement with a spy so we can assert
+         * whether it was ended (emitted) or discarded. Other measurements taken by
+         * MSAL are delegated to the real implementation.
+         */
+        function spyOnCacheUpdateMeasurement() {
+            const measurement = {
+                end: jest.fn(),
+                discard: jest.fn(),
+                add: jest.fn(),
+                increment: jest.fn(),
+                event: {} as PerformanceEvent,
+            };
+
+            const realStartMeasurement =
+                performanceClient.startMeasurement.bind(performanceClient);
+
+            jest.spyOn(
+                performanceClient,
+                "startMeasurement"
+            ).mockImplementation(
+                (measureName: string, correlationId?: string) => {
+                    if (
+                        measureName ===
+                        BrowserRootPerformanceEvents.LocalStorageUpdated
+                    ) {
+                        return measurement;
+                    }
+                    return realStartMeasurement(measureName, correlationId);
+                }
+            );
+
+            return measurement;
+        }
+
+        /**
+         * BroadcastChannel delivery is asynchronous, so poll until the receiving
+         * instance has handled the message (or fail once the budget is exhausted).
+         */
+        async function waitFor(assertion: () => void): Promise<void> {
+            let attemptsRemaining = 20;
+            while (true) {
+                try {
+                    assertion();
+                    return;
+                } catch (e) {
+                    if (attemptsRemaining === 0) {
+                        throw e;
+                    }
+                    attemptsRemaining--;
+                    await new Promise((resolve) => setTimeout(resolve, 25));
+                }
+            }
+        }
+
+        async function createInitializedInstance(): Promise<LocalStorage> {
+            const instance = new LocalStorage(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                logger,
+                performanceClient
+            );
+            await instance.initialize(TEST_CONFIG.CORRELATION_ID);
+            return instance;
+        }
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it("discards the measurement when the broadcast targets another clientId", async () => {
+            await createInitializedInstance();
+            const measurement = spyOnCacheUpdateMeasurement();
+
+            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+            sender.postMessage({
+                key: "someOtherAppsKey",
+                value: "someOtherAppsVal",
+                context: OTHER_CLIENT_ID,
+            });
+
+            await waitFor(() => {
+                expect(measurement.discard).toHaveBeenCalled();
+            });
+            // The discard is expected routing, not a failure - nothing should be emitted
+            expect(measurement.end).not.toHaveBeenCalled();
+
+            sender.close();
+        });
+
+        it("emits the measurement when the broadcast targets this clientId", async () => {
+            const receiver = await createInitializedInstance();
+            const measurement = spyOnCacheUpdateMeasurement();
+
+            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+            sender.postMessage({
+                key: "ownKey",
+                value: "ownVal",
+                context: TEST_CONFIG.MSAL_CLIENT_ID,
+            });
+
+            await waitFor(() => {
+                expect(measurement.end).toHaveBeenCalledWith({
+                    success: true,
+                });
+            });
+            expect(measurement.discard).not.toHaveBeenCalled();
+            expect(receiver.getUserData("ownKey")).toBe("ownVal");
+
+            sender.close();
+        });
+
+        it("emits the measurement for shared entries that carry no context", async () => {
+            // Shared entries (accounts, family refresh tokens) intentionally reach
+            // every instance, so they must not be swept up by the discard path.
+            const receiver = await createInitializedInstance();
+            const measurement = spyOnCacheUpdateMeasurement();
+
+            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+            sender.postMessage({
+                key: "sharedKey",
+                value: "sharedVal",
+                context: "",
+            });
+
+            await waitFor(() => {
+                expect(measurement.end).toHaveBeenCalledWith({
+                    success: true,
+                });
+            });
+            expect(measurement.discard).not.toHaveBeenCalled();
+            expect(receiver.getUserData("sharedKey")).toBe("sharedVal");
+
+            sender.close();
+        });
+
+        it("still reports genuine failures such as a missing key", async () => {
+            await createInitializedInstance();
+            const measurement = spyOnCacheUpdateMeasurement();
+
+            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+            sender.postMessage({
+                key: undefined,
+                value: "orphanVal",
+                context: TEST_CONFIG.MSAL_CLIENT_ID,
+            });
+
+            await waitFor(() => {
+                expect(measurement.end).toHaveBeenCalledWith({
+                    success: false,
+                    errorCode: "noKey",
+                });
+            });
+            expect(measurement.discard).not.toHaveBeenCalled();
+
+            sender.close();
         });
     });
 
