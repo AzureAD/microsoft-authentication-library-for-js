@@ -2631,6 +2631,39 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
         });
 
+        it.each([
+            ["emits pocd=1 when the request sets it", true, "1"],
+            ["omits pocd when the request does not set it", false, null],
+            [
+                "omits pocd when the request leaves it undefined",
+                undefined,
+                null,
+            ],
+        ])("%s", async (_name, popupOriginCheckDone, expected) => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+
+            const logoutUri = client.getLogoutUri({
+                account: null,
+                correlationId: RANDOM_TEST_GUID,
+                popupOriginCheckDone,
+            });
+
+            expect(
+                new URL(logoutUri).searchParams.get(
+                    AADServerParamKeys.POPUP_ORIGIN_CHECK_DONE
+                )
+            ).toBe(expected);
+        });
+
         it("Returns a uri with given parameters", async () => {
             jest.spyOn(
                 Authority.prototype,

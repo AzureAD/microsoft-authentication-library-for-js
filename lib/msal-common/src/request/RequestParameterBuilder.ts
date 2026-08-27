@@ -475,6 +475,21 @@ export function addInstanceAware(parameters: Map<string, string>): void {
 }
 
 /**
+ * Adds `pocd=1`, telling the STS that the client verified the popup driving
+ * this request cannot be reached by an untrusted window, so the
+ * Cross-Origin-Opener-Policy response header may be omitted.
+ *
+ * Only ever added when the check passed — a negative result is signalled by
+ * omitting the parameter, which keeps the STS default (apply COOP) and stays
+ * compatible with library versions that never send it.
+ */
+export function addPopupOriginCheckDone(parameters: Map<string, string>): void {
+    if (!parameters.has(AADServerParamKeys.POPUP_ORIGIN_CHECK_DONE)) {
+        parameters.set(AADServerParamKeys.POPUP_ORIGIN_CHECK_DONE, "1");
+    }
+}
+
+/**
  * Add extraParameters
  * @param extraParams - String dictionary containing extra parameters to be added.
  */

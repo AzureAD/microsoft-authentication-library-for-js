@@ -1,0 +1,33 @@
+{
+    "name": "untrusted-top-frame-sample",
+    "version": "0.1.0",
+    "private": true,
+    "main": "server.js",
+    "scripts": {
+        "build": "vite build",
+        "start": "vite build && node server.js",
+        "start:https": "vite build && node server.js -h",
+        "start:build": "npm run build:package && npm start",
+        "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-browser",
+        "generate:certs": "openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 7 -nodes -subj /CN=localhost -addext subjectAltName=DNS:localhost",
+        "test:e2e": "env-cmd -f .env jest"
+    },
+    "dependencies": {
+        "@azure/msal-browser": "^5.6.0",
+        "express": "^4.12.3",
+        "morgan": "^1.10.0",
+        "yargs": "^17.7.2"
+    },
+    "devDependencies": {
+        "@types/jest": "^29.5.0",
+        "dotenv": "^8.2.0",
+        "e2e-test-utils": "^0.0.1",
+        "env-cmd": "^10.1.0",
+        "jest": "^29.5.0",
+        "jest-junit": "^16.0.0",
+        "puppeteer": "^24.1.0",
+        "ts-jest": "^29.1.1",
+        "typescript": "^4.9.5",
+        "vite": "^5.4.0"
+    }
+}

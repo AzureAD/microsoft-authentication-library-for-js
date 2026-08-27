@@ -279,4 +279,105 @@ describe("Configuration.ts Class Unit Tests", () => {
         );
         expect(loggerSpy).toBeCalled();
     });
+    describe("origin check risk warning", () => {
+        const CROSS_ORIGIN_OPENER = {
+            get location(): Location {
+                // Mirrors the SecurityError a real cross-origin Window throws.
+                throw new Error("SecurityError");
+            },
+        } as unknown as Window;
+
+        let originalOpener: Window | null;
+
+        beforeEach(() => {
+            originalOpener = window.opener;
+        });
+
+        afterEach(() => {
+            window.opener = originalOpener;
+            jest.restoreAllMocks();
+        });
+
+        const build = (config: Configuration): void => {
+            buildConfiguration(config, true);
+        };
+
+        const baseAuth = {
+            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            authority: TEST_CONFIG.validAuthority,
+        };
+
+        it("warns when the origin check is explicitly disabled and the top-level opener is cross-origin", () => {
+            window.opener = CROSS_ORIGIN_OPENER;
+            const loggerSpy = jest
+                .spyOn(Logger.prototype, "warning")
+                .mockImplementation();
+
+            build({ auth: { ...baseAuth, originCheck: false } });
+
+            expect(loggerSpy).toHaveBeenCalledWith(
+                expect.stringContaining("auth.originCheck is disabled"),
+                ""
+            );
+        });
+
+        it("warns when legacy polling implicitly disables the origin check", () => {
+            window.opener = CROSS_ORIGIN_OPENER;
+            const loggerSpy = jest
+                .spyOn(Logger.prototype, "warning")
+                .mockImplementation();
+
+            build({
+                auth: baseAuth,
+                system: { enableLegacyPolling: true },
+            });
+
+            expect(loggerSpy).toHaveBeenCalledWith(
+                expect.stringContaining("auth.originCheck is disabled"),
+                ""
+            );
+        });
+
+        it("does not warn when the origin check is left enabled, even under a cross-origin opener", () => {
+            window.opener = CROSS_ORIGIN_OPENER;
+            const loggerSpy = jest
+                .spyOn(Logger.prototype, "warning")
+                .mockImplementation();
+
+            build({ auth: baseAuth });
+
+            expect(loggerSpy).not.toHaveBeenCalledWith(
+                expect.stringContaining("auth.originCheck is disabled"),
+                ""
+            );
+        });
+
+        it("does not warn when the origin check is disabled but there is no opener", () => {
+            window.opener = null;
+            const loggerSpy = jest
+                .spyOn(Logger.prototype, "warning")
+                .mockImplementation();
+
+            build({ auth: { ...baseAuth, originCheck: false } });
+
+            expect(loggerSpy).not.toHaveBeenCalledWith(
+                expect.stringContaining("auth.originCheck is disabled"),
+                ""
+            );
+        });
+
+        it("does not warn when the origin check is disabled and the opener is same-origin", () => {
+            window.opener = window;
+            const loggerSpy = jest
+                .spyOn(Logger.prototype, "warning")
+                .mockImplementation();
+
+            build({ auth: { ...baseAuth, originCheck: false } });
+
+            expect(loggerSpy).not.toHaveBeenCalledWith(
+                expect.stringContaining("auth.originCheck is disabled"),
+                ""
+            );
+        });
+    });
 });

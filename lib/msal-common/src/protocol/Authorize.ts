@@ -267,6 +267,10 @@ export function getStandardAuthorizeRequestParameters(
         RequestParameterBuilder.addInstanceAware(parameters);
     }
 
+    if (request.popupOriginCheckDone) {
+        RequestParameterBuilder.addPopupOriginCheckDone(parameters);
+    }
+
     return parameters;
 }
 

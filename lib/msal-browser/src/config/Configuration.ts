@@ -23,6 +23,7 @@ import {
     Constants,
 } from "@azure/msal-common/browser";
 import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
+import { topOpenerIsSameOriginOrAbsent } from "../utils/PopupOriginCheck.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { NavigationClient } from "../navigation/NavigationClient.js";
 import { FetchClient } from "../network/FetchClient.js";
@@ -115,6 +116,21 @@ export type BrowserAuthOptions = {
      * This is a boolean flag and defaults to false if not specified.
      */
     verifySSO?: boolean;
+    /**
+     * Whether MSAL computes the origin check behind the `pocd` authorize
+     * parameter, which tells Entra it may omit the
+     * `Cross-Origin-Opener-Policy` response header. Applies to every authorize
+     * and end-session request — popup, redirect and silent alike.
+     *
+     * `true` (default) sends `pocd=1` only when the popup is unreachable by an
+     * untrusted window. `false` skips the check and always sends it, moving
+     * responsibility for the framing threat model to the application.
+     *
+     * `system.enableLegacyPolling: true` implies `false` unless set explicitly.
+     *
+     * See [Cross-Origin-Opener-Policy and popup responses](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#cross-origin-opener-policy-and-popup-responses).
+     */
+    originCheck?: boolean;
 };
 
 /** @internal */
@@ -161,6 +177,23 @@ export type BrowserSystemOptions = SystemOptions & {
      * Sets the timeout for waiting for response from an iframe using BroadcastChannel
      */
     iframeBridgeTimeout?: number;
+    /**
+     * Opt in to the legacy (non-COOP) hash-polling flow for `acquireTokenPopup`,
+     * `logoutPopup` and `ssoSilent`. When `true`, MSAL polls the popup/iframe
+     * `location` for the auth response instead of using the `BroadcastChannel`
+     * redirect bridge — the v4-style behavior.
+     *
+     * Intended for apps in third-party frames, where storage partitioning stops
+     * the bridge from delivering the response.
+     *
+     * ⚠️ Polling requires COOP to be absent on both the app's origin and the
+     * STS response; it implies {@link BrowserAuthOptions.originCheck} `= false`.
+     * Prefer {@link BrowserAuthOptions.popupRelayUri} where a top-level
+     * same-origin page can be hosted, which keeps COOP enforced.
+     *
+     * See [Cross-Origin-Opener-Policy and popup responses](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#cross-origin-opener-policy-and-popup-responses).
+     */
+    enableLegacyPolling?: boolean;
     /**
      * Time to wait for redirection to occur before resolving promise
      */
@@ -305,6 +338,8 @@ export function buildConfiguration(
         instanceAware: false,
         isMcp: false,
         verifySSO: false,
+        // Legacy polling needs COOP omitted, so it implies asserting pocd=1.
+        originCheck: !userInputSystem?.enableLegacyPolling,
     };
 
     // Default cache options for browser
@@ -344,6 +379,7 @@ export function buildConfiguration(
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
         protocolMode: ProtocolMode.AAD,
         serverTelemetryEnabled: false,
+        enableLegacyPolling: false,
     };
 
     const providedSystemOptions: Required<BrowserSystemOptions> = {
@@ -394,6 +430,46 @@ export function buildConfiguration(
     ) {
         throw createClientConfigurationError(
             ClientConfigurationErrorCodes.cannotAllowPlatformBroker,
+            ""
+        );
+    }
+
+    /*
+     * The origin check computes 0 in the embedded contexts legacy polling
+     * serves, so re-enabling it there breaks the flow. Honor it, but warn.
+     */
+    if (
+        userInputSystem?.enableLegacyPolling &&
+        userInputAuth?.originCheck === true
+    ) {
+        const logger = new Logger(
+            providedSystemOptions.loggerOptions,
+            name,
+            version
+        );
+        logger.warning(
+            "buildConfiguration: system.enableLegacyPolling is true and auth.originCheck is explicitly true. Legacy polling requires pocd=1, which the origin check will not produce in an embedded context. Unset auth.originCheck to let legacy polling assert it.",
+            ""
+        );
+    }
+
+    /*
+     * Opting out is a deliberate risk transfer, not an error — but the app
+     * cannot know at config time that the risky topology is actually present.
+     */
+    if (
+        (userInputAuth?.originCheck ?? DEFAULT_AUTH_OPTIONS.originCheck) ===
+            false &&
+        typeof window !== "undefined" &&
+        !topOpenerIsSameOriginOrAbsent(window)
+    ) {
+        const logger = new Logger(
+            providedSystemOptions.loggerOptions,
+            name,
+            version
+        );
+        logger.warning(
+            "buildConfiguration: auth.originCheck is disabled and the top-level window has a cross-origin opener. MSAL will assert pocd=1, so the STS omits Cross-Origin-Opener-Policy and that opener can reach the auth popup. The application is responsible for this risk.",
             ""
         );
     }

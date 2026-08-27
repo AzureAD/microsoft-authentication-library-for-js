@@ -62,7 +62,6 @@ extends:
                             - name: "PerformanceTelemetrySample"
                             - name: "BrokerTestApp-React"
                             - name: "BrokerSingleFrameTestApp"
-                            - name: "LegacyPollingSample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}
