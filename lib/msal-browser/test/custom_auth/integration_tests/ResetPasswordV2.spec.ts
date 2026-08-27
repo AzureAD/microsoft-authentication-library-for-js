@@ -188,6 +188,7 @@ describe("Reset password V2 (SSPR)", () => {
         const signInState = submitResult.state as SignInContinuationStateV2;
         const signInResult = await signInState.signIn({
             scopes: ["User.Read"],
+            claims: '{"id_token":{}}',
         });
         expect(signInResult.isFailed()).toBe(false);
         expect(signInResult.isState("completed")).toBe(true);
@@ -203,6 +204,9 @@ describe("Reset password V2 (SSPR)", () => {
         expect(tokenRequest.body).toBeInstanceOf(URLSearchParams);
         expect((tokenRequest.body as URLSearchParams).get("scope")).toBe(
             "User.Read openid profile offline_access"
+        );
+        expect((tokenRequest.body as URLSearchParams).has("claims")).toBe(
+            false
         );
     });
 

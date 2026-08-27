@@ -42,26 +42,22 @@ export interface AuthorizeChallengeContinueRequestV2 {
  * Token exchange (POST /oauth2/v2.0/token). Redeems the authorization `code` for
  * tokens. OAuth form-encoded, so it carries `client_id` (via OAuthFormRequestV2). `client_info`
  * is required so the server returns the `client_info` blob (base64 `{uid, utid}`) that MSAL needs
- * to build the account's home id; `claims` is an optional app-provided OAuth claims-request JSON
- * string.
+ * to build the account's home id.
  */
 export interface TokenRequestV2 extends OAuthFormRequestV2 {
     grant_type: string;
     code: string;
     client_info: string;
     scope?: string;
-    claims?: string;
 }
 
 /*
  * Compound token-completion operation. The continuation is first redeemed for
- * an authorization code, which is then exchanged using the requested scopes
- * and optional claims.
+ * an authorization code, which is then exchanged using the requested scopes.
  */
 export interface CompleteWithTokensRequestV2 {
     continuationToken: string;
     scopes: string[];
-    claims?: string;
 }
 
 /*
@@ -103,9 +99,7 @@ interface VerifyPasswordRequestV2 extends VerifyRequestBaseV2 {
     password: string;
 }
 
-export type VerifyRequestV2 =
-    | VerifyOtpRequestV2
-    | VerifyPasswordRequestV2;
+export type VerifyRequestV2 = VerifyOtpRequestV2 | VerifyPasswordRequestV2;
 
 /*
  * Submit a new password (PUT `/methods/password/{id}`). SSPR (recovery) only — this

@@ -700,6 +700,13 @@ export class CustomAuthStandardController
                 inputs.username,
                 correlationId
             );
+            if (inputs.claims) {
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "inputs.claims",
+                    inputs.claims,
+                    correlationId
+                );
+            }
             this.ensureUserNotSignedIn(correlationId);
 
             this.logger.verbose(
@@ -712,7 +719,6 @@ export class CustomAuthStandardController
                 username: inputs.username,
                 password: inputs.password,
                 scopes: inputs.scopes,
-                claims: inputs.claims,
             });
 
             if (result.type === FLOW_COMPLETED_V2) {

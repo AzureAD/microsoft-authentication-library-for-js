@@ -28,6 +28,5 @@ export interface FlowContinuationStateV2 {
     links: FlowLinksV2;
     tokenRequest?: {
         scopes?: string[];
-        claims?: string;
     };
 }

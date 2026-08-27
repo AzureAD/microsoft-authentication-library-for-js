@@ -36,7 +36,6 @@ describe("PasswordRequiredStateV2", () => {
                 },
                 tokenRequest: {
                     scopes: ["User.Read"],
-                    claims: '{"access_token":{}}',
                 },
             },
         });
@@ -55,7 +54,6 @@ describe("PasswordRequiredStateV2", () => {
                 links: {},
                 tokenRequest: {
                     scopes: ["User.Read"],
-                    claims: '{"access_token":{}}',
                 },
             },
             methods: [
@@ -80,7 +78,6 @@ describe("PasswordRequiredStateV2", () => {
                 },
                 tokenRequest: {
                     scopes: ["User.Read"],
-                    claims: '{"access_token":{}}',
                 },
             },
             password: "P@ssword1!",

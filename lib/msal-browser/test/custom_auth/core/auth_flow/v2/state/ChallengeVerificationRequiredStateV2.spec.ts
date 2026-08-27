@@ -38,7 +38,6 @@ describe("ChallengeVerificationRequiredStateV2", () => {
                 },
                 tokenRequest: {
                     scopes: ["User.Read"],
-                    claims: '{"access_token":{}}',
                 },
             },
             method: {
@@ -79,7 +78,6 @@ describe("ChallengeVerificationRequiredStateV2", () => {
                 },
                 tokenRequest: {
                     scopes: ["User.Read"],
-                    claims: '{"access_token":{}}',
                 },
             },
             code: "123456",

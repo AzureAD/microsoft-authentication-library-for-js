@@ -133,7 +133,7 @@ export abstract class BaseApiClientV2 {
             context
         );
 
-        return this.token(code, request.scopes, context, request.claims);
+        return this.token(code, request.scopes, context);
     }
 
     /*
@@ -180,8 +180,7 @@ export abstract class BaseApiClientV2 {
     protected async token(
         code: string,
         scopes: string[],
-        context: RequestContextV2,
-        claims?: string
+        context: RequestContextV2
     ): Promise<TokenResponseV2> {
         const request: TokenRequestV2 = {
             client_id: this.clientId,
@@ -193,10 +192,6 @@ export abstract class BaseApiClientV2 {
 
         if (scopes.length > 0) {
             request.scope = scopes.join(" ");
-        }
-
-        if (claims) {
-            request.claims = claims;
         }
 
         const parsedResponse = await this.postOAuthForm<TokenResponseV2>(

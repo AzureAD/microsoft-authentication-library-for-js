@@ -144,7 +144,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             links: {},
             tokenRequest: {
                 scopes: parameters.scopes,
-                claims: parameters.claims,
             },
         };
         const methods = startResult.methods.map((method) => ({
@@ -502,7 +501,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             {
                 continuationToken: continuationState.continuationToken,
                 scopes,
-                claims: parameters.claims,
             },
             context
         );
@@ -604,7 +602,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 tokenRequest: continuationState.tokenRequest,
             },
             scopes: continuationState.tokenRequest?.scopes,
-            claims: continuationState.tokenRequest?.claims,
         });
     }
 

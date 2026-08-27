@@ -39,6 +39,10 @@ import {
     getDefaultNavigationClient,
     getDefaultPerformanceClient,
 } from "../../../test_resources/TestModules.js";
+import {
+    SIGN_IN_V2_SUBMIT_CODE,
+    SIGN_IN_V2_SUBMIT_PASSWORD,
+} from "../../../../../src/custom_auth/core/telemetry/PublicApiId.js";
 
 describe("FlowInteractionClientV2", () => {
     let client: FlowInteractionClientV2;
@@ -160,7 +164,6 @@ describe("FlowInteractionClientV2", () => {
                 correlationId,
                 username: "user@contoso.com",
                 scopes: ["User.Read"],
-                claims: '{"id_token":{}}',
             });
 
             expect(apiClient.authorizeChallengeStart).toHaveBeenCalledWith(
@@ -192,7 +195,6 @@ describe("FlowInteractionClientV2", () => {
                 },
                 tokenRequest: {
                     scopes: ["User.Read"],
-                    claims: '{"id_token":{}}',
                 },
             });
         });
@@ -261,7 +263,6 @@ describe("FlowInteractionClientV2", () => {
                 username: "user@contoso.com",
                 password: "P@ssword1!",
                 scopes: ["User.Read"],
-                claims: '{"access_token":{}}',
             });
 
             expect(result.type).toBe(FLOW_MFA_REQUIRED_V2);
@@ -282,7 +283,6 @@ describe("FlowInteractionClientV2", () => {
                 links: {},
                 tokenRequest: {
                     scopes: ["User.Read"],
-                    claims: '{"access_token":{}}',
                 },
             });
         });
@@ -547,6 +547,15 @@ describe("FlowInteractionClientV2", () => {
         });
 
         it("verifies an MFA code and completes sign-in", async () => {
+            const contextSpy = jest.spyOn(
+                client as unknown as {
+                    createRequestContext: (
+                        apiId: number,
+                        correlationId: string
+                    ) => unknown;
+                },
+                "createRequestContext"
+            );
             const signInContinuationState: FlowContinuationStateV2 = {
                 continuationToken: "ct-mfa-challenge",
                 scenario: "signIn",
@@ -555,7 +564,6 @@ describe("FlowInteractionClientV2", () => {
                 },
                 tokenRequest: {
                     scopes: ["User.Read"],
-                    claims: '{"access_token":{}}',
                 },
             };
             const tokenResponse = {
@@ -590,6 +598,10 @@ describe("FlowInteractionClientV2", () => {
                 code: "123456",
             });
 
+            expect(contextSpy).toHaveBeenCalledWith(
+                SIGN_IN_V2_SUBMIT_CODE,
+                correlationId
+            );
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
                 {
                     continuationToken: "ct-mfa-verify",
@@ -599,7 +611,6 @@ describe("FlowInteractionClientV2", () => {
                         "profile",
                         "offline_access",
                     ],
-                    claims: '{"access_token":{}}',
                 },
                 expect.objectContaining({ correlationId })
             );
@@ -644,6 +655,48 @@ describe("FlowInteractionClientV2", () => {
 
             expect(errorSpy).toHaveBeenCalledWith(
                 "Verification next action 'continue' is not supported for the 'passwordReset' flow.",
+                correlationId
+            );
+        });
+    });
+
+    describe("submitSignInPassword", () => {
+        it("uses the sign-in submit-password API ID", async () => {
+            const contextSpy = jest.spyOn(
+                client as unknown as {
+                    createRequestContext: (
+                        apiId: number,
+                        correlationId: string
+                    ) => unknown;
+                },
+                "createRequestContext"
+            );
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "challenge",
+                continuationToken: "ct-mfa",
+                methods: [
+                    {
+                        id: "email-mfa",
+                        type: "email",
+                        challengeHref: "https://endpoint/mfa/challenge",
+                    },
+                ],
+            });
+
+            await client.submitSignInPassword({
+                correlationId,
+                continuationState: {
+                    continuationToken: "ct-password",
+                    scenario: "signIn",
+                    links: {
+                        verify: "https://endpoint/password/verify",
+                    },
+                },
+                password: "P@ssword1!",
+            });
+
+            expect(contextSpy).toHaveBeenCalledWith(
+                SIGN_IN_V2_SUBMIT_PASSWORD,
                 correlationId
             );
         });
@@ -940,7 +993,6 @@ describe("FlowInteractionClientV2", () => {
                 {
                     continuationToken: "ct-complete",
                     scopes: ["openid", "profile", "offline_access"],
-                    claims: undefined,
                 },
                 expect.objectContaining({ correlationId })
             );
@@ -957,7 +1009,7 @@ describe("FlowInteractionClientV2", () => {
             expect(completed.authenticationResult).toBe(fakeAuthResult);
         });
 
-        it("unions caller-supplied scopes with the default OIDC scopes and forwards claims", async () => {
+        it("unions caller-supplied scopes with the default OIDC scopes", async () => {
             apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
             jest.spyOn(
                 client as unknown as {
@@ -972,7 +1024,6 @@ describe("FlowInteractionClientV2", () => {
                 correlationId,
                 continuationState,
                 scopes: ["User.Read"],
-                claims: '{"id_token":{}}',
             });
 
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
@@ -984,7 +1035,6 @@ describe("FlowInteractionClientV2", () => {
                         "profile",
                         "offline_access",
                     ],
-                    claims: '{"id_token":{}}',
                 },
                 expect.objectContaining({ correlationId })
             );
@@ -1016,7 +1066,6 @@ describe("FlowInteractionClientV2", () => {
                         "offline_access",
                         "profile",
                     ],
-                    claims: undefined,
                 },
                 expect.objectContaining({ correlationId })
             );

@@ -43,7 +43,6 @@ describe("MFARequiredStateV2", () => {
                 links: {},
                 tokenRequest: {
                     scopes: ["User.Read"],
-                    claims: '{"access_token":{}}',
                 },
             },
             methods,
@@ -73,7 +72,6 @@ describe("MFARequiredStateV2", () => {
                 },
                 tokenRequest: {
                     scopes: ["User.Read"],
-                    claims: '{"access_token":{}}',
                 },
             },
             channel: "email",
@@ -94,7 +92,6 @@ describe("MFARequiredStateV2", () => {
                 links: { challenge: "/mfa/email/challenge" },
                 tokenRequest: {
                     scopes: ["User.Read"],
-                    claims: '{"access_token":{}}',
                 },
             },
         });

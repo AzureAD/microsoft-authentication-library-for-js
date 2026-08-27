@@ -177,6 +177,22 @@ describe("Sign-in V2 entry", () => {
         expect(result.state).toBeInstanceOf(PasswordRequiredStateV2);
         expect(result.scenario).toBe("signIn");
         expect(fetch).toHaveBeenCalledTimes(3);
+
+        const passwordState = result.state as PasswordRequiredStateV2;
+        expect(
+            passwordState["stateParameters"].continuationState
+        ).toMatchObject({
+            tokenRequest: {
+                scopes: ["User.Read"],
+            },
+        });
+        expect(
+            passwordState["stateParameters"].continuationState.tokenRequest
+        ).not.toHaveProperty("claims");
+
+        for (const [, options] of (fetch as jest.Mock).mock.calls) {
+            expect(options.body.toString()).not.toContain("claims");
+        }
     });
 
     it("submits a password from PasswordRequiredStateV2 and completes sign-in", async () => {
@@ -290,6 +306,12 @@ describe("Sign-in V2 entry", () => {
         expect(completedResult.state).toBeInstanceOf(CompletedStateV2);
         expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(fetch).toHaveBeenCalledTimes(9);
+
+        const tokenRequest = (fetch as jest.Mock).mock.calls[8][1];
+        expect(tokenRequest.body).toBeInstanceOf(URLSearchParams);
+        expect((tokenRequest.body as URLSearchParams).has("claims")).toBe(
+            false
+        );
     });
 
     it("automatically selects and submits password when multiple methods are returned", async () => {
@@ -452,6 +474,17 @@ describe("Sign-in V2 entry", () => {
         expect(result.isFailed()).toBe(true);
         expect(result.error?.isInvalidInput()).toBe(true);
         expect(result.error?.isInvalidUsername()).toBe(false);
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it("rejects malformed claims without sending a request", async () => {
+        const result = await app.signInV2({
+            username: "user@contoso.com",
+            claims: "not-json",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidInput()).toBe(true);
         expect(fetch).not.toHaveBeenCalled();
     });
 

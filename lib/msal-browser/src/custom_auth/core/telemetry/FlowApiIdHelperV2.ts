@@ -12,6 +12,7 @@ import {
     SIGN_IN_AFTER_PASSWORD_RESET,
     SIGN_IN_V2_CHALLENGE,
     SIGN_IN_V2_COMPLETE,
+    SIGN_IN_V2_SUBMIT_CODE,
     SIGN_IN_V2_SUBMIT_PASSWORD,
 } from "./PublicApiId.js";
 
@@ -24,10 +25,7 @@ export type FlowStepV2 =
     | "signInWithContinuation";
 
 const FLOW_STEP_API_IDS_V2: Partial<
-    Record<
-        CustomAuthFlowScenarioV2,
-        Partial<Record<FlowStepV2, number>>
-    >
+    Record<CustomAuthFlowScenarioV2, Partial<Record<FlowStepV2, number>>>
 > = {
     [CustomAuthFlowScenarioV2.PasswordReset]: {
         requestChallenge: RESET_PASSWORD_V2_CHALLENGE,
@@ -38,7 +36,7 @@ const FLOW_STEP_API_IDS_V2: Partial<
     },
     [CustomAuthFlowScenarioV2.SignIn]: {
         requestChallenge: SIGN_IN_V2_CHALLENGE,
-        submitCode: SIGN_IN_V2_SUBMIT_PASSWORD,
+        submitCode: SIGN_IN_V2_SUBMIT_CODE,
         resendCode: SIGN_IN_V2_CHALLENGE,
         submitPassword: SIGN_IN_V2_SUBMIT_PASSWORD,
         signInWithContinuation: SIGN_IN_V2_COMPLETE,
