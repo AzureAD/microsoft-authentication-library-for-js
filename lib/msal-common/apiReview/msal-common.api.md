@@ -1545,8 +1545,6 @@ const dpopMissingResourceContext = "dpop_missing_resource_context";
 const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
 
 // @public (undocumented)
-
-// @public (undocumented)
 const EAR_JWE_CRYPTO = "ear_jwe_crypto";
 
 // @public (undocumented)
