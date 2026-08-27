@@ -141,8 +141,6 @@ export class Authority {
             switch (pathSegments[0].toLowerCase()) {
                 case Constants.ADFS:
                     return AuthorityType.Adfs;
-                case Constants.DSTS:
-                    return AuthorityType.Dsts;
                 default:
                     break;
             }

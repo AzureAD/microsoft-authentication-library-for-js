@@ -259,7 +259,7 @@ describe("BaseInteractionClient", () => {
             const testAccount = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows-ppe.net",
+                environment: "login.microsoftonline.us",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
                 loginHint: "loginHint",

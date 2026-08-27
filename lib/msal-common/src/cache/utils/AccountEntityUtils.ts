@@ -276,8 +276,8 @@ export function generateHomeAccountId(
     correlationId: string,
     idTokenClaims?: TokenClaims
 ): string {
-    // since ADFS/DSTS do not have tid and does not set client_info
-    if (!(authType === AuthorityType.Adfs || authType === AuthorityType.Dsts)) {
+    // ADFS does not have tid and does not set client_info
+    if (authType !== AuthorityType.Adfs) {
         // for cases where there is clientInfo
         if (serverClientInfo) {
             try {

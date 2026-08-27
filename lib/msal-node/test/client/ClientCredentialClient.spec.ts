@@ -24,8 +24,6 @@ import {
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     CORS_SIMPLE_REQUEST_HEADERS,
     DEFAULT_OPENID_CONFIG_RESPONSE,
-    DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
-    DSTS_OPENID_CONFIG_RESPONSE,
     RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_TOKENS,
@@ -212,95 +210,6 @@ describe("ClientCredentialClient unit tests", () => {
                 ClientAuthErrorCodes.multipleMatchingTokens,
                 ""
             )
-        );
-    });
-
-    it("acquires a token from dSTS authority", async () => {
-        const dSTSConfig: ClientConfiguration =
-            await ClientTestUtils.createTestClientConfiguration(
-                undefined,
-                mockNetworkClient(
-                    DSTS_OPENID_CONFIG_RESPONSE.body,
-                    DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
-                )
-            );
-        const client: ClientCredentialClient = new ClientCredentialClient(
-            dSTSConfig
-        );
-
-        const clientCredentialRequest: CommonClientCredentialRequest = {
-            authority: TEST_CONFIG.DSTS_VALID_AUTHORITY,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            scopes: TEST_CONFIG.DSTS_TEST_SCOPE,
-        };
-
-        const authResult = (await client.acquireToken(
-            clientCredentialRequest
-        )) as AuthenticationResult;
-        const expectedScopes = [TEST_CONFIG.DSTS_TEST_SCOPE[0]];
-        expect(authResult.scopes).toEqual(expectedScopes);
-        expect(authResult.accessToken).toEqual(
-            DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
-        );
-        expect(authResult.state).toHaveLength(0);
-
-        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
-            clientCredentialRequest
-        );
-
-        const returnVal: string = await createTokenRequestBodySpy.mock
-            .results[0].value;
-        const checks = {
-            dstsScope: true,
-            clientId: true,
-            grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
-            clientSecret: true,
-            clientSku: true,
-            clientVersion: true,
-            clientOs: true,
-            clientCpu: true,
-            appName: true,
-            appVersion: true,
-            msLibraryCapability: true,
-        };
-        checkMockedNetworkRequest(returnVal, checks);
-    });
-
-    it("acquires a token from cache when using dSTS authority", async () => {
-        const dSTSConfig: ClientConfiguration =
-            await ClientTestUtils.createTestClientConfiguration(
-                undefined,
-                mockNetworkClient(
-                    DSTS_OPENID_CONFIG_RESPONSE.body,
-                    DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
-                )
-            );
-        const client: ClientCredentialClient = new ClientCredentialClient(
-            dSTSConfig
-        );
-
-        const clientCredentialRequest: CommonClientCredentialRequest = {
-            authority: TEST_CONFIG.DSTS_VALID_AUTHORITY,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            scopes: TEST_CONFIG.DSTS_TEST_SCOPE,
-        };
-
-        // First call should return from "network" (mocked)
-        const networkAuthResult = (await client.acquireToken(
-            clientCredentialRequest
-        )) as AuthenticationResult;
-        expect(networkAuthResult.fromCache).toBe(false);
-
-        // Second call should return from cache
-        const cachedAuthResult = (await client.acquireToken(
-            clientCredentialRequest
-        )) as AuthenticationResult;
-        expect(cachedAuthResult.fromCache).toBe(true);
-        expect(cachedAuthResult.accessToken).toBe(
-            networkAuthResult.accessToken
-        );
-        expect(cachedAuthResult.expiresOn).toStrictEqual(
-            networkAuthResult.expiresOn
         );
     });
 

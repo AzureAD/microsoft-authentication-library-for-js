@@ -10,7 +10,6 @@ export const DEFAULT_AUTHORITY_HOST = "login.microsoftonline.com";
 export const DEFAULT_COMMON_TENANT = "common";
 // ADFS String
 export const ADFS = "adfs";
-export const DSTS = "dstsv2";
 // Default AAD Instance Discovery Endpoint
 export const AAD_INSTANCE_DISCOVERY_ENDPT = `${DEFAULT_AUTHORITY}discovery/instance?api-version=1.1&authorization_endpoint=`;
 // CIAM URL
