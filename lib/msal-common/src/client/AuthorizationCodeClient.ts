@@ -604,6 +604,10 @@ export class AuthorizationCodeClient {
             );
         }
 
+        if (request.popupOriginCheckDone) {
+            RequestParameterBuilder.addPopupOriginCheckDone(parameters);
+        }
+
         if (this.config.authOptions.instanceAware) {
             RequestParameterBuilder.addInstanceAware(parameters);
         }

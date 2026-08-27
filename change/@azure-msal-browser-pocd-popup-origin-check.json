@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Add the pocd (popup origin check done) parameter to all authorize and end-session requests (popup, redirect, silent; GET, POST and EAR) and the auth.originCheck option (which, when disabled, warns if the top-level window has a cross-origin opener), and move the legacy hash-polling flow (system.enableLegacyPolling) from msal-browser-1p into msal-browser",
+    "packageName": "@azure/msal-browser",
+    "email": "kshabelko@microsoft.com",
+    "dependentChangeType": "patch"
+}

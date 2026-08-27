@@ -243,6 +243,7 @@ export type BrowserAuthOptions = {
     instanceAware?: boolean;
     isMcp?: boolean;
     verifySSO?: boolean;
+    originCheck?: boolean;
 };
 
 // @public (undocumented)
@@ -329,6 +330,7 @@ export type BrowserSystemOptions = SystemOptions & {
     navigationClient?: INavigationClient;
     popupBridgeTimeout?: number;
     iframeBridgeTimeout?: number;
+    enableLegacyPolling?: boolean;
     redirectNavigationTimeout?: number;
     navigatePopups?: boolean;
     allowRedirectInIframe?: boolean;

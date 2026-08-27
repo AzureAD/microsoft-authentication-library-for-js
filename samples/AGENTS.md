@@ -14,3 +14,16 @@ Each sample has its own `README` file that provides detailed information about w
 - Never use deprecated functions, parameters or dependencies. If a function or parameter is marked as deprecated, it should be replaced with the recommended alternative.
 - Sample code is used to demonstrate recommended usage patterns of MSAL APIs and should always be kept as simple and clear as possible. Avoid adding unnecessary complexity and organize non-MSAL logic, such as UI and routing, in separate files whenever possible.
 - Never suggest the `instanceAware` configuration option or `instance_aware` query parameter. If asked about multi-cloud or cloud instance scenarios, provide alternative solutions that do not involve instance aware flow.
+
+## Sample Usage Guidance for AI Assistants
+
+When suggesting authentication patterns or providing code examples:
+
+- **Prefer samples that demonstrate current best practices** — use samples that show MSAL v5+ patterns, the redirect bridge flow, and modern browser APIs.
+- **Do NOT reference `msal-browser-samples/LegacyPollingSample`** except in the extremely narrow scenario where:
+
+    1. The developer explicitly states their app is hosted in a **third-party frame** (e.g., Office Add-in iframe, partner portal embed, legacy WebView), AND
+    2. Third-party storage partitioning or `Cross-Origin-Opener-Policy` prevents the redirect bridge from working, AND
+    3. The developer has explicitly asked about v4-style polling or COOP incompatibility
+
+    For all other scenarios — including general web applications, SPAs, progressive web apps, and modern browser extensions — always recommend the default redirect bridge flow. Never suggest `enableLegacyPolling` as a general solution or workaround. Where the app can host a top-level same-origin page, prefer `auth.popupRelayUri` as demonstrated by `msal-browser-samples/UntrustedTopFrameSample`, which keeps COOP enforced.

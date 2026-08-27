@@ -807,4 +807,159 @@ describe("Authorize Protocol Tests", () => {
             );
         });
     });
+    describe("pocd coverage across flows", () => {
+        const logger = new Logger({});
+        const performanceClient = new StubPerformanceClient();
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: ProtocolMode.AAD,
+            knownAuthorities: [],
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: "",
+        };
+        const baseConfig = buildConfiguration(
+            { auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID } },
+            true
+        );
+        const eventHandler = new EventHandler();
+        const cacheManager = new BrowserCacheManager(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            baseConfig.cache,
+            new CryptoOps(logger, performanceClient),
+            logger,
+            performanceClient,
+            eventHandler
+        );
+        let authority: Authority;
+
+        const validRequest: CommonAuthorizationUrlRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            scopes: ["openid", "profile"],
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            redirectUri: window.location.href,
+            state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+            nonce: ID_TOKEN_CLAIMS.nonce,
+            responseMode: Constants.ResponseMode.FRAGMENT,
+            codeChallenge: "code-challenge",
+            earJwk: validEarJWK,
+        };
+
+        const POCD = AADServerParamKeys.POPUP_ORIGIN_CHECK_DONE;
+
+        const formValue = (
+            form: HTMLFormElement,
+            key: string
+        ): string | undefined =>
+            (form.elements.namedItem(key) as HTMLInputElement | null)?.value;
+
+        beforeAll(async () => {
+            authority = await AuthorityFactory.createDiscoveredInstance(
+                TEST_CONFIG.validAuthority,
+                baseConfig.system.networkClient,
+                cacheManager,
+                authorityOptions,
+                logger,
+                TEST_CONFIG.CORRELATION_ID,
+                performanceClient
+            );
+        });
+
+        it("emits pocd=1 on the authorize URL (redirect, popup and silent iframe share this builder)", async () => {
+            const url = await Authorize.getAuthCodeRequestUrl(
+                baseConfig,
+                authority,
+                validRequest,
+                logger,
+                performanceClient
+            );
+            expect(new URL(url).searchParams.get(POCD)).toBe("1");
+        });
+
+        it("emits pocd=1 on the auth-code form post", async () => {
+            const form = await Authorize.getCodeForm(
+                document,
+                baseConfig,
+                authority,
+                validRequest,
+                logger,
+                performanceClient
+            );
+            expect(formValue(form, POCD)).toBe("1");
+        });
+
+        it("emits pocd=1 on the EAR form post", async () => {
+            const form = await Authorize.getEARForm(
+                document,
+                baseConfig,
+                authority,
+                validRequest,
+                logger,
+                performanceClient
+            );
+            expect(formValue(form, POCD)).toBe("1");
+        });
+
+        it("emits pocd=1 when the app opts out of the origin check", async () => {
+            const config = buildConfiguration(
+                {
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        originCheck: false,
+                    },
+                },
+                true
+            );
+            const url = await Authorize.getAuthCodeRequestUrl(
+                config,
+                authority,
+                validRequest,
+                logger,
+                performanceClient
+            );
+            expect(new URL(url).searchParams.get(POCD)).toBe("1");
+        });
+
+        it("omits pocd when the top window has a cross-origin opener", async () => {
+            const originalOpener = window.opener;
+            window.opener = {
+                get location(): Location {
+                    throw new Error("SecurityError");
+                },
+            } as unknown as Window;
+
+            try {
+                const url = await Authorize.getAuthCodeRequestUrl(
+                    baseConfig,
+                    authority,
+                    validRequest,
+                    logger,
+                    performanceClient
+                );
+                expect(new URL(url).searchParams.has(POCD)).toBe(false);
+            } finally {
+                window.opener = originalOpener;
+            }
+        });
+
+        it("honors an explicit request assertion over the computed value", async () => {
+            const originalOpener = window.opener;
+            window.opener = {
+                get location(): Location {
+                    throw new Error("SecurityError");
+                },
+            } as unknown as Window;
+
+            try {
+                const url = await Authorize.getAuthCodeRequestUrl(
+                    baseConfig,
+                    authority,
+                    { ...validRequest, popupOriginCheckDone: true },
+                    logger,
+                    performanceClient
+                );
+                expect(new URL(url).searchParams.get(POCD)).toBe("1");
+            } finally {
+                window.opener = originalOpener;
+            }
+        });
+    });
 });

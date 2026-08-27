@@ -164,6 +164,21 @@ const msalConfig = {
 > [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login),
 > or for non-interactive redirect-in-iframe scenarios where no user interaction is required. This is distinct from MSAL's silent token renewal APIs (`ssoSilent` / `acquireTokenSilent`), which use a hidden iframe with `prompt=none` and are subject to third-party cookie and tracking-prevention restrictions.
 
+#### Option 3: Relay the popup through a top-level page
+
+If NAA is unavailable and the identity provider refuses to render in an iframe,
+set [`auth.popupRelayUri`](./configuration.md#popup-relay-for-cross-origin-iframes)
+to a same-origin page that calls `runPopupRelay()`. MSAL opens that page
+top-level instead of navigating the popup straight to the IdP, so the flow runs
+outside the host's storage partition and `Cross-Origin-Opener-Policy` stays
+enforced. `acquireTokenPopup()` and `logoutPopup()` both work unchanged.
+
+Where no top-level relay page can be hosted, `system.enableLegacyPolling` falls
+back to reading the popup URL directly instead of using `BroadcastChannel`. It
+requires COOP to be absent on both your origin and the IdP response — see
+[Cross-Origin-Opener-Policy and popup responses](./configuration.md#cross-origin-opener-policy-and-popup-responses)
+for the trade-offs before enabling it.
+
 For more information on running MSAL in iframes, see
 [Using MSAL in iframed apps](./iframe-usage.md).
 

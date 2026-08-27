@@ -29,6 +29,7 @@ import {
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
+import { computePocd } from "../utils/PopupOriginCheck.js";
 import { ApiId, BrowserConstants } from "../utils/BrowserConstants.js";
 import { version } from "../packageMetadata.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
@@ -156,7 +157,17 @@ async function getStandardParameters(
 ): Promise<Map<string, string>> {
     const parameters = AuthorizeProtocol.getStandardAuthorizeRequestParameters(
         { ...config.auth, authority: authority },
-        request,
+        {
+            ...request,
+            /*
+             * Computed here rather than per flow so every authorize request
+             * carries it — GET, POST and EAR, interactive and silent alike.
+             * A request may assert it instead when the topology, rather than
+             * the current window, is what makes the popup unreachable.
+             */
+            popupOriginCheckDone:
+                request.popupOriginCheckDone ?? computePocd(config) === 1,
+        },
         logger,
         performanceClient
     );
