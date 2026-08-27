@@ -13,6 +13,8 @@ import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth
 import {
     NO_AUTHENTICATION_METHODS,
     SIGN_IN_UNSUPPORTED,
+    UNEXPECTED_AUTHENTICATION_FACTOR,
+    UNSUPPORTED_FLOW_TRANSITION,
 } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
@@ -615,8 +617,8 @@ describe("Sign-in V2 entry", () => {
         expect(result.error?.errorData.error).toBe(NO_AUTHENTICATION_METHODS);
     });
 
-    it.each([undefined, "unknownFactor", "multiFactor"])(
-        "ignores the authentication factor %s and follows the returned methods",
+    it.each([undefined, "unknownFactor"])(
+        "fails for unexpected authentication factor %s",
         async (authenticationFactor) => {
             (fetch as jest.Mock)
                 .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
@@ -628,16 +630,38 @@ describe("Sign-in V2 entry", () => {
                             : undefined,
                         _embedded: START_RESPONSE._embedded,
                     })
-                )
-                .mockResolvedValueOnce(
-                    buildResponse(PASSWORD_CHALLENGE_RESPONSE)
                 );
 
             const result = await app.signInV2({
                 username: "user@contoso.com",
             });
 
-            expect(result.isState("passwordRequired")).toBe(true);
+            expect(result.isFailed()).toBe(true);
+            expect(result.error?.errorData.error).toBe(
+                UNEXPECTED_AUTHENTICATION_FACTOR
+            );
         }
     );
+
+    it("rejects a multi-factor sign-in start transition", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-start",
+                    challengeContext: {
+                        authenticationFactor: "multiFactor",
+                    },
+                    _embedded: START_RESPONSE._embedded,
+                })
+            );
+
+        const result = await app.signInV2({
+            username: "user@contoso.com",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.errorData.error).toBe(UNSUPPORTED_FLOW_TRANSITION);
+        expect(fetch).toHaveBeenCalledTimes(2);
+    });
 });

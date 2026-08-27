@@ -19,3 +19,5 @@ export const RESET_PASSWORD_TIMEOUT = "reset_password_timeout";
 export const UNSUPPORTED_FLOW_STEP = "unsupported_flow_step";
 export const UNSUPPORTED_FLOW_TRANSITION = "unsupported_flow_transition";
 export const NO_AUTHENTICATION_METHODS = "no_authentication_methods";
+export const UNEXPECTED_AUTHENTICATION_FACTOR =
+    "unexpected_authentication_factor";

@@ -63,6 +63,7 @@ import type {
     VerifyResultV2,
 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import { VerifyNextActionV2 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
+import { AuthenticationFactorV2 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import type { FlowContinuationStateV2 } from "./FlowContinuationStateV2.js";
 
 /*
@@ -137,6 +138,18 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             },
             context
         );
+        if (
+            startResult.authenticationFactor !==
+            AuthenticationFactorV2.SINGLE_FACTOR
+        ) {
+            const message = `Authentication factor '${startResult.authenticationFactor}' is not supported for sign-in start.`;
+            this.logger.error(message, correlationId);
+            throw new CustomAuthError(
+                UNSUPPORTED_FLOW_TRANSITION,
+                message,
+                correlationId
+            );
+        }
 
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: startResult.continuationToken,
@@ -235,6 +248,18 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             },
             context
         );
+        if (
+            startResult.authenticationFactor !==
+            AuthenticationFactorV2.SINGLE_FACTOR
+        ) {
+            const message = `Authentication factor '${startResult.authenticationFactor}' is not supported for password-reset start.`;
+            this.logger.error(message, correlationId);
+            throw new CustomAuthError(
+                UNSUPPORTED_FLOW_TRANSITION,
+                message,
+                correlationId
+            );
+        }
         this.logger.verbose(
             "V2 self-service password reset method selection required.",
             correlationId
@@ -267,12 +292,13 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             parameters,
             "requestChallenge"
         );
+        const challengeType = challengeResult.type ?? "email";
         const continuationState = this.createChallengeContinuationState(
             parameters.continuationState,
             challengeResult
         );
 
-        if (challengeResult.type?.toLowerCase() === "password") {
+        if (challengeType.toLowerCase() === "password") {
             return createFlowPasswordRequiredResultV2({
                 correlationId: parameters.correlationId,
                 continuationState,
@@ -282,7 +308,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         return createFlowCodeRequiredResultV2({
             correlationId: parameters.correlationId,
             continuationState,
-            channel: challengeResult.type,
+            channel: challengeType,
             sentTo: challengeResult.hint,
             codeLength: challengeResult.codeLength,
         });
@@ -529,6 +555,19 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         correlationId: string
     ): Promise<FlowMFARequiredResultV2 | FlowCompletedResultV2> {
         if (verifyResult.nextAction === VerifyNextActionV2.CHALLENGE) {
+            if (
+                verifyResult.authenticationFactor !==
+                AuthenticationFactorV2.MULTI_FACTOR
+            ) {
+                const message = `Authentication factor '${verifyResult.authenticationFactor}' is not supported after password verification.`;
+                this.logger.error(message, correlationId);
+                throw new CustomAuthError(
+                    UNSUPPORTED_FLOW_TRANSITION,
+                    message,
+                    correlationId
+                );
+            }
+
             return createFlowMFARequiredResultV2({
                 correlationId,
                 continuationState: {
@@ -652,7 +691,9 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     challengeResult.resendHref ??
                     continuationState.links.resend,
             },
-            tokenRequest: continuationState.tokenRequest,
+            ...(continuationState.tokenRequest && {
+                tokenRequest: continuationState.tokenRequest,
+            }),
         };
     }
 

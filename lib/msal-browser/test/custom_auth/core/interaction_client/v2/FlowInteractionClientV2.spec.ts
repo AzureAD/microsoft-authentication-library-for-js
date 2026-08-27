@@ -28,6 +28,7 @@ import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/netw
 import {
     RESET_PASSWORD_UNSUPPORTED,
     SIGN_IN_UNSUPPORTED,
+    UNSUPPORTED_FLOW_TRANSITION,
 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { buildConfiguration } from "../../../../../src/config/Configuration.js";
 import { customAuthConfig } from "../../../test_resources/CustomAuthConfig.js";
@@ -141,6 +142,7 @@ describe("FlowInteractionClientV2", () => {
             });
             apiClient.signInStart.mockResolvedValue({
                 continuationToken: "ct-sign-in",
+                authenticationFactor: "singleFactor",
                 methods: [
                     {
                         id: "password-1",
@@ -206,6 +208,7 @@ describe("FlowInteractionClientV2", () => {
             });
             apiClient.signInStart.mockResolvedValue({
                 continuationToken: "ct-sign-in",
+                authenticationFactor: "singleFactor",
                 methods: [
                     {
                         id: "other-1",
@@ -225,6 +228,35 @@ describe("FlowInteractionClientV2", () => {
             expect(apiClient.requestChallenge).not.toHaveBeenCalled();
         });
 
+        it("rejects a multi-factor sign-in start transition", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                signInHref: "https://endpoint/sign-in",
+            });
+            apiClient.signInStart.mockResolvedValue({
+                continuationToken: "ct-sign-in",
+                authenticationFactor: "multiFactor",
+                methods: [
+                    {
+                        id: "email-mfa",
+                        type: "email",
+                        challengeHref: "https://endpoint/mfa/challenge",
+                    },
+                ],
+            });
+
+            await expect(
+                client.signIn({
+                    correlationId,
+                    username: "user@contoso.com",
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+            });
+
+            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+        });
+
         it("returns MFA-required after automatically submitting a password", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
@@ -232,6 +264,7 @@ describe("FlowInteractionClientV2", () => {
             });
             apiClient.signInStart.mockResolvedValue({
                 continuationToken: "ct-sign-in",
+                authenticationFactor: "singleFactor",
                 methods: [
                     {
                         id: "password-1",
@@ -248,6 +281,7 @@ describe("FlowInteractionClientV2", () => {
             apiClient.verifyChallenge.mockResolvedValue({
                 nextAction: "challenge",
                 continuationToken: "ct-mfa",
+                authenticationFactor: "multiFactor",
                 methods: [
                     {
                         id: "email-mfa",
@@ -294,6 +328,7 @@ describe("FlowInteractionClientV2", () => {
             });
             apiClient.signInStart.mockResolvedValue({
                 continuationToken: "ct-sign-in",
+                authenticationFactor: "singleFactor",
                 methods: [
                     {
                         id: "password-1",
@@ -310,6 +345,7 @@ describe("FlowInteractionClientV2", () => {
             apiClient.verifyChallenge.mockResolvedValue({
                 nextAction: "challenge",
                 continuationToken: "ct-mfa",
+                authenticationFactor: "multiFactor",
                 methods: [
                     {
                         id: "email-mfa",
@@ -352,6 +388,7 @@ describe("FlowInteractionClientV2", () => {
             });
             apiClient.resetPasswordStart.mockResolvedValue({
                 continuationToken: "ct-start",
+                authenticationFactor: "singleFactor",
                 methods: [
                     {
                         id: "email",
@@ -397,6 +434,33 @@ describe("FlowInteractionClientV2", () => {
                 continuationToken: "ct-start",
                 scenario: "passwordReset",
                 links: {},
+            });
+        });
+
+        it("rejects a multi-factor password-reset start transition", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                resetPasswordHref: "https://endpoint/reset-password",
+            });
+            apiClient.resetPasswordStart.mockResolvedValue({
+                continuationToken: "ct-start",
+                authenticationFactor: "multiFactor",
+                methods: [
+                    {
+                        id: "email-mfa",
+                        type: "email",
+                        challengeHref: "https://endpoint/mfa/challenge",
+                    },
+                ],
+            });
+
+            await expect(
+                client.resetPassword({
+                    correlationId,
+                    username: "user@contoso.com",
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
             });
         });
 
@@ -463,7 +527,7 @@ describe("FlowInteractionClientV2", () => {
             });
         });
 
-        it("returns a password-required result for a password challenge", async () => {
+        it("returns a password-required result for a selected password challenge", async () => {
             apiClient.requestChallenge.mockResolvedValue({
                 continuationToken: "ct-challenge",
                 verifyHref: "https://endpoint/verify",
@@ -472,7 +536,9 @@ describe("FlowInteractionClientV2", () => {
 
             const result = await client.requestChallenge({
                 correlationId,
-                continuationState,
+                continuationState: {
+                    ...continuationState,
+                },
             });
 
             expect(result.type).toBe(FLOW_PASSWORD_REQUIRED_V2);
@@ -487,6 +553,37 @@ describe("FlowInteractionClientV2", () => {
                     resend: undefined,
                 },
             });
+        });
+
+        it("accepts a future non-password OTP channel", async () => {
+            apiClient.requestChallenge.mockResolvedValue({
+                continuationToken: "ct-challenge",
+                verifyHref: "https://endpoint/verify",
+                type: "sms",
+            });
+
+            const result = await client.requestChallenge({
+                correlationId,
+                continuationState,
+            });
+
+            expect(result.type).toBe(FLOW_CODE_REQUIRED_V2);
+            expect((result as FlowCodeRequiredResultV2).channel).toBe("sms");
+        });
+
+        it("defaults a challenge response without a type to email", async () => {
+            apiClient.requestChallenge.mockResolvedValue({
+                continuationToken: "ct-challenge",
+                verifyHref: "https://endpoint/verify",
+            });
+
+            const result = await client.requestChallenge({
+                correlationId,
+                continuationState,
+            });
+
+            expect(result.type).toBe(FLOW_CODE_REQUIRED_V2);
+            expect((result as FlowCodeRequiredResultV2).channel).toBe("email");
         });
 
         it("throws when the continuation is missing the challenge link", async () => {
@@ -674,6 +771,7 @@ describe("FlowInteractionClientV2", () => {
             apiClient.verifyChallenge.mockResolvedValue({
                 nextAction: "challenge",
                 continuationToken: "ct-mfa",
+                authenticationFactor: "multiFactor",
                 methods: [
                     {
                         id: "email-mfa",
@@ -699,6 +797,37 @@ describe("FlowInteractionClientV2", () => {
                 SIGN_IN_V2_SUBMIT_PASSWORD,
                 correlationId
             );
+        });
+
+        it("rejects a single-factor challenge after password verification", async () => {
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "challenge",
+                continuationToken: "ct-single-factor",
+                authenticationFactor: "singleFactor",
+                methods: [
+                    {
+                        id: "email",
+                        type: "email",
+                        challengeHref: "https://endpoint/email/challenge",
+                    },
+                ],
+            });
+
+            await expect(
+                client.submitSignInPassword({
+                    correlationId,
+                    continuationState: {
+                        continuationToken: "ct-password",
+                        scenario: "signIn",
+                        links: {
+                            verify: "https://endpoint/password/verify",
+                        },
+                    },
+                    password: "P@ssword1!",
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+            });
         });
     });
 
@@ -764,6 +893,21 @@ describe("FlowInteractionClientV2", () => {
             ).rejects.toThrow();
 
             expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+        });
+
+        it("preserves a future OTP channel returned by resend", async () => {
+            apiClient.requestChallenge.mockResolvedValue({
+                continuationToken: "ct-challenge-2",
+                verifyHref: "https://endpoint/verify-2",
+                type: "sms",
+            });
+
+            const result = await client.resendCode({
+                correlationId,
+                continuationState,
+            });
+
+            expect(result.channel).toBe("sms");
         });
     });
 

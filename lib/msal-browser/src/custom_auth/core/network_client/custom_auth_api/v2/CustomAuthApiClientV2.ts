@@ -17,6 +17,7 @@ import {
     ChallengeResultV2,
     VerifyResultV2,
     VerifyNextActionV2,
+    AuthenticationFactorV2,
 } from "./result/BaseResultsV2.js";
 import {
     PasswordResetStartResponseV2,
@@ -45,8 +46,9 @@ import {
 import {
     INVALID_HAL_RESPONSE,
     NO_AUTHENTICATION_METHODS,
+    UNEXPECTED_AUTHENTICATION_FACTOR,
 } from "./ErrorCodesV2.js";
-import { CustomAuthError } from "../../../error/CustomAuthError.js";
+import { CustomAuthApiError } from "../../../error/CustomAuthApiError.js";
 
 /*
  * Native Auth V2 network client that follows server-provided HAL links.
@@ -229,6 +231,10 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 parsedResponse.body,
                 parsedResponse.correlationId
             ),
+            authenticationFactor: this.resolveAuthenticationFactor(
+                parsedResponse.body.challengeContext?.authenticationFactor,
+                parsedResponse.correlationId
+            ),
             scenario: parsedResponse.body.scenario,
         };
     }
@@ -265,6 +271,10 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             return {
                 nextAction: VerifyNextActionV2.CHALLENGE,
                 continuationToken,
+                authenticationFactor: this.resolveAuthenticationFactor(
+                    parsedResponse.body.challengeContext?.authenticationFactor,
+                    correlationId
+                ),
                 methods: this.resolveMethods(
                     parsedResponse.body,
                     correlationId
@@ -272,9 +282,32 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             };
         }
 
-        throw new CustomAuthError(
+        throw new CustomAuthApiError(
             INVALID_HAL_RESPONSE,
             "Invalid HAL response: verify returned no known next action",
+            correlationId
+        );
+    }
+
+    private resolveAuthenticationFactor(
+        authenticationFactor: string | undefined,
+        correlationId: string
+    ): AuthenticationFactorV2 {
+        if (
+            authenticationFactor === AuthenticationFactorV2.SINGLE_FACTOR ||
+            authenticationFactor === AuthenticationFactorV2.MULTI_FACTOR
+        ) {
+            return authenticationFactor;
+        }
+
+        const message = authenticationFactor
+            ? `Unexpected authentication factor '${authenticationFactor}'.`
+            : "The response did not include an authentication factor.";
+        this.logger?.error(message, correlationId);
+
+        throw new CustomAuthApiError(
+            UNEXPECTED_AUTHENTICATION_FACTOR,
+            message,
             correlationId
         );
     }
@@ -312,7 +345,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 correlationId
             );
 
-            throw new CustomAuthError(
+            throw new CustomAuthApiError(
                 NO_AUTHENTICATION_METHODS,
                 "The flow-start response contains no authentication method with a challenge link",
                 correlationId

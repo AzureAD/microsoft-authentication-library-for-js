@@ -28,13 +28,22 @@ export interface StartMethodV2 {
     challengeHref: string;
 }
 
+export const AuthenticationFactorV2 = {
+    SINGLE_FACTOR: "singleFactor",
+    MULTI_FACTOR: "multiFactor",
+} as const;
+
+export type AuthenticationFactorV2 =
+    (typeof AuthenticationFactorV2)[keyof typeof AuthenticationFactorV2];
+
 /*
  * Result of starting a flow. It contains the continuation token, available
- * authentication methods, and optional server scenario.
+ * authentication methods, authentication factor, and optional server scenario.
  */
 export interface StartResultV2 {
     continuationToken: string;
     methods: StartMethodV2[];
+    authenticationFactor: AuthenticationFactorV2;
     scenario?: string;
 }
 
@@ -77,5 +86,6 @@ export type VerifyResultV2 =
     | {
           nextAction: typeof VerifyNextActionV2.CHALLENGE;
           continuationToken: string;
+          authenticationFactor: AuthenticationFactorV2;
           methods: StartMethodV2[];
       };

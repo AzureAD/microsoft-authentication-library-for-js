@@ -5,7 +5,7 @@
 
 import { Logger } from "@azure/msal-common/browser";
 import { HttpHeaderKeys } from "../../../../CustomAuthConstants.js";
-import { CustomAuthError } from "../../../error/CustomAuthError.js";
+import { CustomAuthApiError } from "../../../error/CustomAuthApiError.js";
 import { normalizeServerErrorV2 } from "./response/ErrorNormalizerV2.js";
 import { EmbeddedMethodV2, ParsedResponseV2 } from "./response/ResponsesV2.js";
 import { ResponseStateV2 } from "./ApiClientConstantsV2.js";
@@ -85,7 +85,11 @@ export class ResponseHandlerV2 {
 
             this.logger?.error(errorMessage, correlationId);
 
-            throw new CustomAuthError(errorCode, errorMessage, correlationId);
+            throw new CustomAuthApiError(
+                errorCode,
+                errorMessage,
+                correlationId
+            );
         }
 
         return href;
@@ -102,7 +106,7 @@ export class ResponseHandlerV2 {
                 correlationId
             );
 
-            throw new CustomAuthError(
+            throw new CustomAuthApiError(
                 CONTINUATION_TOKEN_MISSING,
                 "Continuation token is missing in the response",
                 correlationId
@@ -123,7 +127,7 @@ export class ResponseHandlerV2 {
                 correlationId
             );
 
-            throw new CustomAuthError(
+            throw new CustomAuthApiError(
                 NO_AUTHENTICATION_METHODS,
                 "Invalid HAL response: no embedded authentication methods",
                 correlationId
@@ -147,7 +151,7 @@ export class ResponseHandlerV2 {
                 correlationId
             );
 
-            throw new CustomAuthError(
+            throw new CustomAuthApiError(
                 INVALID_RESPONSE_BODY,
                 `V2 response body is not valid JSON: '${e}'`,
                 correlationId
@@ -161,7 +165,7 @@ export class ResponseHandlerV2 {
                 correlationId
             );
 
-            throw new CustomAuthError(
+            throw new CustomAuthApiError(
                 INVALID_RESPONSE_BODY,
                 "V2 response body is not a JSON object",
                 correlationId

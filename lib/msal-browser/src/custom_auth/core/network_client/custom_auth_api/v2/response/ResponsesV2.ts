@@ -15,6 +15,9 @@ export interface HalResponseBaseV2 extends HalResource {
     state?: string;
     action?: string;
     scenario?: string;
+    challengeContext?: {
+        authenticationFactor?: string;
+    };
     correlationId?: string;
 }
 

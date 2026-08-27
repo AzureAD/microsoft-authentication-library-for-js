@@ -18,7 +18,6 @@ import { buildUrl, parseUrl } from "../../../utils/UrlUtils.js";
 import { filterCustomHeaders } from "../../../utils/CustomHeaderUtils.js";
 import { CustomAuthRequestInterceptor } from "../../../../configuration/CustomAuthRequestInterceptor.js";
 import { ResponseHandlerV2 } from "./ResponseHandlerV2.js";
-import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { CustomAuthApiError } from "../../../error/CustomAuthApiError.js";
 import { ServerErrorV2 } from "./response/ErrorResponsesV2.js";
 import { resolveHrefV2 } from "./HrefResolverV2.js";
@@ -99,7 +98,7 @@ export abstract class BaseApiClientV2 {
         if (!continuationToken) {
             const apiError = error
                 ? this.toApiError(error, correlationId)
-                : new CustomAuthError(
+                : new CustomAuthApiError(
                       CONTINUATION_TOKEN_MISSING,
                       "Continuation token is missing in the response",
                       correlationId
@@ -164,7 +163,7 @@ export abstract class BaseApiClientV2 {
                 parsedResponse.correlationId
             );
 
-            throw new CustomAuthError(
+            throw new CustomAuthApiError(
                 AUTH_CODE_MISSING,
                 "Authorization code is missing in the response body",
                 parsedResponse.correlationId
@@ -224,7 +223,7 @@ export abstract class BaseApiClientV2 {
                 context.correlationId
             );
 
-            throw new CustomAuthError(
+            throw new CustomAuthApiError(
                 CONTINUATION_TOKEN_MISSING,
                 "The HAL request body did not include a continuation token, so the server-driven reset flow cannot advance",
                 context.correlationId
@@ -323,7 +322,7 @@ export abstract class BaseApiClientV2 {
                 headers,
             });
         } catch (e) {
-            throw new CustomAuthError(
+            throw new CustomAuthApiError(
                 HTTP_REQUEST_FAILED,
                 `Failed to send request to '${url}': '${e}'`,
                 context.correlationId
@@ -365,7 +364,7 @@ export abstract class BaseApiClientV2 {
         correlationId: string
     ): void {
         if (!tokenResponse.access_token) {
-            throw new CustomAuthError(
+            throw new CustomAuthApiError(
                 INVALID_TOKEN_RESPONSE,
                 "Access token is missing in the response body",
                 correlationId
