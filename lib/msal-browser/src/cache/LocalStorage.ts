@@ -495,10 +495,20 @@ export class LocalStorage implements IWindowStorage<string> {
                 `Ignoring broadcast event from clientId: '${context}'`,
                 correlationId
             );
-            perfMeasurement.end({
-                success: false,
-                errorCode: "contextMismatch",
-            });
+            /*
+             * Discarded rather than ended: this is expected routing, not a failure.
+             * BroadcastChannel has no server-side filtering, so every MSAL instance on
+             * the origin receives every message and drops the ones scoped to another
+             * clientId. With N instances sharing an origin each write produces N-1 of
+             * these no-ops, so emitting them scales O(N^2) - and because they were
+             * previously reported with success: false they bypassed both the 1% misc
+             * sampler and the observability trimming in the 1P telemetry reporter,
+             * shipping at full payload. On origins hosting many embedded first-party
+             * apps that dwarfed all other MSAL telemetry combined. These events carry
+             * no diagnostic value, so drop the measurement entirely. Genuine faults
+             * such as the noKey case above are still reported.
+             */
+            perfMeasurement.discard();
             return;
         }
 
