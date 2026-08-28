@@ -2,6 +2,41 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 28 Aug 2026 19:00:38 GMT",
+      "version": "16.14.0",
+      "tag": "@azure/msal-common_v16.14.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Remove the DOM type dependency from public declarations [#8784](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8784)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Remove legacy environment metadata and legacy authority support [#8794](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8794)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Enable support for tenant_region_subscope optional claim [#8765](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8765)"
+          },
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Enable public L1 PCA DPoP request, cache, and AuthenticationResult support [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 18 Aug 2026 20:10:56 GMT",
       "version": "16.13.0",
       "tag": "@azure/msal-common_v16.13.0",

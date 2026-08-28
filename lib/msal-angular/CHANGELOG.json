@@ -2,6 +2,29 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Fri, 28 Aug 2026 19:00:38 GMT",
+      "version": "6.2.0",
+      "tag": "@azure/msal-angular_v6.2.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalima.sharda@gmail.com",
+            "package": "@azure/msal-angular",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Bump @angular-devkit/build-angular to 22.1.x to pull patched http-proxy-middleware 4.2.0 (GHSA-gcq2-9pq2-cxqm) [#8781](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8781)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.20.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 18 Aug 2026 20:10:56 GMT",
       "version": "6.1.0",
       "tag": "@azure/msal-angular_v6.1.0",
