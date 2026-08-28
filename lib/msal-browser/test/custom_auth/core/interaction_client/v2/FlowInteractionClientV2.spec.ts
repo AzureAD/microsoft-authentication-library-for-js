@@ -462,7 +462,7 @@ describe("FlowInteractionClientV2", () => {
     });
 
     describe("resetPassword", () => {
-        it("runs the entry and returns a method-selection result without sending a challenge", async () => {
+        it("automatically challenges the only available method", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
                 resetPasswordHref: "https://endpoint/reset-password",
@@ -478,6 +478,14 @@ describe("FlowInteractionClientV2", () => {
                         challengeHref: "https://endpoint/challenge",
                     },
                 ],
+            });
+            apiClient.requestChallenge.mockResolvedValue({
+                continuationToken: "ct-challenge",
+                verifyHref: "https://endpoint/verify",
+                resendHref: "https://endpoint/resend",
+                type: "email",
+                hint: "u***@contoso.com",
+                codeLength: 6,
             });
 
             const result = await client.resetPassword({
@@ -496,25 +504,124 @@ describe("FlowInteractionClientV2", () => {
                 },
                 expect.objectContaining({ correlationId })
             );
-            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
-
-            expect(result.type).toBe(FLOW_METHOD_SELECTION_REQUIRED_V2);
-
-            const methodSelection =
-                result as FlowMethodSelectionRequiredResultV2;
-            expect(methodSelection.correlationId).toBe(correlationId);
-            expect(methodSelection.methods).toEqual([
-                {
+            expect(apiClient.requestChallenge).toHaveBeenCalledWith(
+                "https://endpoint/challenge",
+                { continuationToken: "ct-start" },
+                expect.objectContaining({ correlationId })
+            );
+            expect(result).toMatchObject({
+                type: FLOW_CODE_REQUIRED_V2,
+                channel: "email",
+                sentTo: "u***@contoso.com",
+                codeLength: 6,
+                method: {
                     id: "email",
                     type: "email",
                     hint: "u***@contoso.com",
                     challengeHref: "https://endpoint/challenge",
                 },
-            ]);
-            expect(methodSelection.continuationState).toEqual({
+                continuationState: {
+                    continuationToken: "ct-challenge",
+                    scenario: "passwordReset",
+                    links: {
+                        challenge: "https://endpoint/challenge",
+                        verify: "https://endpoint/verify",
+                        resend: "https://endpoint/resend",
+                    },
+                },
+            });
+        });
+
+        it("returns method selection when multiple methods are available", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                resetPasswordHref: "https://endpoint/reset-password",
+            });
+            apiClient.resetPasswordStart.mockResolvedValue({
+                continuationToken: "ct-start",
+                authenticationFactor: "singleFactor",
+                methods: [
+                    {
+                        id: "email",
+                        type: "email",
+                        challengeHref: "https://endpoint/email/challenge",
+                    },
+                    {
+                        id: "password",
+                        type: "password",
+                        challengeHref: "https://endpoint/password/challenge",
+                    },
+                ],
+            });
+
+            const result = await client.resetPassword({
+                correlationId,
+                username: "user@contoso.com",
+            });
+
+            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+            expect(result.type).toBe(FLOW_METHOD_SELECTION_REQUIRED_V2);
+            expect(
+                (result as FlowMethodSelectionRequiredResultV2).methods
+            ).toHaveLength(2);
+            expect(result.continuationState).toEqual({
                 continuationToken: "ct-start",
                 scenario: "passwordReset",
                 links: {},
+            });
+        });
+
+        it("rejects an empty method list", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                resetPasswordHref: "https://endpoint/reset-password",
+            });
+            apiClient.resetPasswordStart.mockResolvedValue({
+                continuationToken: "ct-start",
+                authenticationFactor: "singleFactor",
+                methods: [],
+            });
+
+            await expect(
+                client.resetPassword({
+                    correlationId,
+                    username: "user@contoso.com",
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+            });
+            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+        });
+
+        it("rejects an unsupported challenge for the only available method", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                resetPasswordHref: "https://endpoint/reset-password",
+            });
+            apiClient.resetPasswordStart.mockResolvedValue({
+                continuationToken: "ct-start",
+                authenticationFactor: "singleFactor",
+                methods: [
+                    {
+                        id: "password",
+                        type: "password",
+                        challengeHref: "https://endpoint/password/challenge",
+                    },
+                ],
+            });
+            apiClient.requestChallenge.mockResolvedValue({
+                continuationToken: "ct-password",
+                verifyHref: "https://endpoint/password/verify",
+                type: "password",
+            });
+
+            await expect(
+                client.resetPassword({
+                    correlationId,
+                    username: "user@contoso.com",
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
             });
         });
 

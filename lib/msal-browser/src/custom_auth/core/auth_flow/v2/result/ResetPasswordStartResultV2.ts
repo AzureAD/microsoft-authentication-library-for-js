@@ -6,15 +6,17 @@
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import type { ResetPasswordStartErrorV2 } from "../error/ResetPasswordStartErrorV2.js";
 import type { AuthenticationMethodSelectionRequiredStateV2 } from "../state/AuthenticationMethodSelectionRequiredStateV2.js";
+import type { ChallengeVerificationRequiredStateV2 } from "../state/ChallengeVerificationRequiredStateV2.js";
 import type { FailedStateV2 } from "../state/FailedStateV2.js";
 
 /**
  * The states a reset-password (V2) entry operation can resolve to. On success
- * the server drives the flow to `AuthenticationMethodSelectionRequiredStateV2`;
- * `FailedStateV2` carries a terminal error.
+ * a sole method is challenged automatically; multiple methods require
+ * selection. `FailedStateV2` carries a terminal error.
  */
 export type ResetPasswordStartResultStateV2 =
     | AuthenticationMethodSelectionRequiredStateV2
+    | ChallengeVerificationRequiredStateV2
     | FailedStateV2;
 
 /**

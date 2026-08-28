@@ -661,6 +661,25 @@ export class CustomAuthStandardController
                 correlationId
             );
 
+            if (result.type === FLOW_CODE_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new ChallengeVerificationRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                        method: result.method,
+                        sentTo: result.sentTo,
+                        channel: result.channel,
+                        codeLength: result.codeLength,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
             return new CustomAuthResultV2(
                 new AuthenticationMethodSelectionRequiredStateV2({
                     correlationId: result.correlationId,

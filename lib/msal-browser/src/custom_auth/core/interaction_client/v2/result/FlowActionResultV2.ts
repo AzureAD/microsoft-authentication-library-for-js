@@ -45,6 +45,11 @@ export interface FlowSignInCodeRequiredResultV2
     method: AuthenticationMethodV2;
 }
 
+export interface FlowResetPasswordCodeRequiredResultV2
+    extends FlowCodeRequiredResultV2 {
+    method: AuthenticationMethodV2;
+}
+
 // The user's existing password must be submitted next for sign-in.
 export interface FlowPasswordRequiredResultV2 extends FlowActionResultBaseV2 {
     type: typeof FLOW_PASSWORD_REQUIRED_V2;
@@ -84,6 +89,7 @@ export interface FlowCompletedResultV2 extends FlowActionResultBaseV2 {
 export type FlowActionResultV2 =
     | FlowMethodSelectionRequiredResultV2
     | FlowCodeRequiredResultV2
+    | FlowResetPasswordCodeRequiredResultV2
     | FlowPasswordRequiredResultV2
     | FlowMFARequiredResultV2
     | FlowNewPasswordRequiredResultV2

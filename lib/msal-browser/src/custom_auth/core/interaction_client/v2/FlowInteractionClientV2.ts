@@ -33,6 +33,7 @@ import type {
     FlowMethodSelectionRequiredResultV2,
     FlowCodeRequiredResultV2,
     FlowSignInCodeRequiredResultV2,
+    FlowResetPasswordCodeRequiredResultV2,
     FlowPasswordRequiredResultV2,
     FlowMFARequiredResultV2,
     FlowNewPasswordRequiredResultV2,
@@ -199,12 +200,15 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Starts password reset and returns the available authentication methods.
-     * The selected method can then be challenged through `requestChallenge`.
+     * Starts password reset, automatically challenging a sole method or
+     * returning multiple methods for selection.
      */
     async resetPassword(
         parameters: FlowStartParamsV2
-    ): Promise<FlowMethodSelectionRequiredResultV2> {
+    ): Promise<
+        | FlowMethodSelectionRequiredResultV2
+        | FlowResetPasswordCodeRequiredResultV2
+    > {
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             PublicApiId.RESET_PASSWORD_V2_START,
@@ -237,6 +241,64 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             "password-reset start",
             correlationId
         );
+        const continuationState: FlowContinuationStateV2 = {
+            continuationToken: startResult.continuationToken,
+            scenario: CustomAuthFlowScenarioV2.PasswordReset,
+            links: {},
+        };
+        const methods = startResult.methods.map((method) => ({
+            id: method.id,
+            type: method.type ?? "",
+            hint: method.hint,
+            challengeHref: method.challengeHref,
+        }));
+
+        if (methods.length === 0) {
+            const message =
+                "The password-reset start response did not include an authentication method.";
+            this.logger.error(message, correlationId);
+            throw new CustomAuthError(
+                UNSUPPORTED_FLOW_TRANSITION,
+                message,
+                correlationId
+            );
+        }
+
+        if (methods.length === 1) {
+            const selectedMethod = methods[0];
+            const challengeResult = await this.requestChallenge({
+                correlationId,
+                continuationState: {
+                    ...continuationState,
+                    links: {
+                        challenge: selectedMethod.challengeHref,
+                    },
+                },
+            });
+
+            if (
+                challengeResult.type === FLOW_CODE_REQUIRED_V2 &&
+                challengeResult.channel?.toLowerCase() === "email"
+            ) {
+                return {
+                    ...challengeResult,
+                    method: selectedMethod,
+                };
+            }
+
+            const channel =
+                challengeResult.type === FLOW_CODE_REQUIRED_V2
+                    ? challengeResult.channel
+                    : "password";
+            const message = `Challenge type '${challengeResult.type}' with channel '${channel}' is not supported for password reset.`;
+            this.logger.error(message, correlationId);
+            throw new CustomAuthError(
+                UNSUPPORTED_FLOW_TRANSITION,
+                message,
+                correlationId
+            );
+        }
+
         this.logger.verbose(
             "V2 self-service password reset method selection required.",
             correlationId
@@ -244,17 +306,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         return createFlowMethodSelectionRequiredResultV2({
             correlationId,
-            continuationState: {
-                continuationToken: startResult.continuationToken,
-                scenario: CustomAuthFlowScenarioV2.PasswordReset,
-                links: {},
-            },
-            methods: startResult.methods.map((method) => ({
-                id: method.id,
-                type: method.type ?? "",
-                hint: method.hint,
-                challengeHref: method.challengeHref,
-            })),
+            continuationState,
+            methods,
         });
     }
 

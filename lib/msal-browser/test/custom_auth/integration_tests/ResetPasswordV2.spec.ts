@@ -65,6 +65,15 @@ const START_RESPONSE = {
                     },
                 },
             },
+            {
+                id: "password",
+                type: "password",
+                _links: {
+                    challenge: {
+                        href: "/tenant/api/v0.1/methods/password/challenge",
+                    },
+                },
+            },
         ],
     },
     _links: {},
@@ -148,6 +157,34 @@ describe("Reset password V2 (SSPR)", () => {
             return startResult.state as AuthenticationMethodSelectionRequiredStateV2;
         };
 
+    it("automatically challenges the only available method", async () => {
+        const singleMethodStartResponse = {
+            ...START_RESPONSE,
+            _embedded: {
+                methods: [START_RESPONSE._embedded.methods[0]],
+            },
+        };
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(singleMethodStartResponse))
+            .mockResolvedValueOnce(buildResponse(CHALLENGE_RESPONSE));
+
+        const result = await app.resetPasswordV2({
+            username: "user@contoso.com",
+        });
+
+        expect(result.isFailed()).toBe(false);
+        expect(result.isState("challengeVerificationRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(
+            ChallengeVerificationRequiredStateV2
+        );
+
+        const codeState = result.state as ChallengeVerificationRequiredStateV2;
+        expect(codeState.method.id).toBe("email");
+        expect(codeState.channel).toBe("email");
+        expect(fetch as jest.Mock).toHaveBeenCalledTimes(3);
+    });
+
     it("appends OIDC scopes and caches the ID token when the app requests only an API scope", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE)) // 1. authorize-challenge entry
@@ -161,8 +198,7 @@ describe("Reset password V2 (SSPR)", () => {
 
         const methodState = await startToMethodSelection();
 
-        // The start response advertised exactly one (email) method to select.
-        expect(methodState.methods).toHaveLength(1);
+        expect(methodState.methods).toHaveLength(2);
         expect(methodState.methods[0].type).toBe("email");
 
         const challengeResult = await methodState.requestChallenge(
