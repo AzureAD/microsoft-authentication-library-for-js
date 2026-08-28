@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Remove the disallowedChangeTypes beachball guard on @azure/msal-node to allow the upcoming v6 major release [#8782](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8782)",
-  "packageName": "@azure/msal-node",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}

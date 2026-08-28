@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-angular
 
-<!-- This log was last generated on Tue, 18 Aug 2026 20:10:56 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 28 Aug 2026 21:29:53 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 6.2.0
+
+Fri, 28 Aug 2026 21:29:53 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to v5.20.0
+
+### Patches
+
+- Bump @angular-devkit/build-angular to 22.1.x to pull patched http-proxy-middleware 4.2.0 (GHSA-gcq2-9pq2-cxqm) [#8781](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8781) (lalima.sharda@gmail.com)
 
 ## 6.1.0
 
