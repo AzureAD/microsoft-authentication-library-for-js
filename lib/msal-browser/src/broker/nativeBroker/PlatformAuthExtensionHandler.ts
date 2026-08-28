@@ -18,7 +18,6 @@ import {
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
 import {
-    DPOP_BROKER_REQUEST_TOKEN_TYPE,
     NativeExtensionRequest,
     NativeExtensionRequestBody,
     PlatformAuthRequest,
@@ -40,39 +39,8 @@ type ResponseResolvers<T> = {
     ) => void;
 };
 
-const PROOF_CONTEXT_EXTENSION_VERSION = 3;
-
-/**
- * Returns the major protocol version from a numeric or semantic version.
- * @param version - Version reported by the extension handshake.
- * @returns The major version, or undefined for an invalid version.
- */
-function getExtensionMajorVersion(
-    version: string | undefined
-): number | undefined {
-    if (!version) {
-        return undefined;
-    }
-
-    const versionComponents = String(version).split(".");
-    if (
-        versionComponents.length > 4 ||
-        versionComponents.some(
-            (component) =>
-                !component ||
-                Array.from(component).some(
-                    (character) => character < "0" || character > "9"
-                )
-        )
-    ) {
-        return undefined;
-    }
-
-    const majorVersion = Number(versionComponents[0]);
-    return Number.isSafeInteger(majorVersion) ? majorVersion : undefined;
-}
-
 export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
+    private static readonly PROOF_CONTEXT_EXTENSION_VERSION = 3;
     private extensionId: string | undefined;
     private extensionVersion: string | undefined;
     private logger: Logger;
@@ -148,21 +116,14 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         return validatedResponse;
     }
 
-    /**
-     * Converts canonical proof-context fields to the extension v3 wire format.
-     * Older or unknown extension versions receive the legacy request unchanged.
-     * @param request - Canonical platform broker request.
-     * @returns The version-compatible extension request.
-     */
     private initializeNativeExtensionRequest(
         request: PlatformAuthRequest
     ): PlatformAuthRequest {
-        const extensionVersion = getExtensionMajorVersion(
-            this.extensionVersion
-        );
+        const extensionVersion = Number(this.extensionVersion);
         if (
-            extensionVersion === undefined ||
-            extensionVersion < PROOF_CONTEXT_EXTENSION_VERSION
+            !Number.isFinite(extensionVersion) ||
+            extensionVersion <
+                PlatformAuthExtensionHandler.PROOF_CONTEXT_EXTENSION_VERSION
         ) {
             return request;
         }
@@ -176,7 +137,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
 
         const isProofOfPossessionRequest =
             request.tokenType === Constants.AuthenticationScheme.POP ||
-            request.tokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE;
+            request.tokenType === Constants.AuthenticationScheme.DPOP;
 
         const nativeExtraParametersNoCache = isProofOfPossessionRequest
             ? {

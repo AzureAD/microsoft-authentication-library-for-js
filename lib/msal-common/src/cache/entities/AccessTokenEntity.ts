@@ -26,6 +26,4 @@ export type AccessTokenEntity = CredentialEntity & {
     tokenType?: AuthenticationScheme;
     /** Matches the resource passed into the request for MCP flows */
     resource?: string;
-    /** Whether MSAL owns and may remove the token-binding key when the token is evicted. */
-    tokenBindingKeyOwnedByMsal?: boolean;
 };

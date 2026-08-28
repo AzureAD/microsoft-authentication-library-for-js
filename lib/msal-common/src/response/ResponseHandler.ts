@@ -650,7 +650,6 @@ export class ResponseHandler {
                     {
                         htu: request.resourceRequestUri,
                         htm: request.resourceRequestMethod,
-                        nonce: request.shrNonce,
                         accessToken: cacheRecord.accessToken.secret,
                     },
                     cacheRecord.accessToken.keyId,

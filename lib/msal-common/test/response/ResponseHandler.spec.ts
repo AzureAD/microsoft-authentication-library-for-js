@@ -816,7 +816,6 @@ describe("ResponseHandler.ts", () => {
                 dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
                 resourceRequestMethod: "GET",
                 resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
-                shrNonce: "resource-nonce",
             };
             const testResponse: ServerAuthorizationTokenResponse = {
                 ...AUTHENTICATION_RESULT.body,
@@ -857,9 +856,6 @@ describe("ResponseHandler.ts", () => {
             expect(result.dpopProof).toBe("fresh-dpop-proof");
             expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(signSpy).toHaveBeenCalled();
-            expect(signSpy.mock.calls[0][1]).toEqual(
-                expect.objectContaining({ nonce: "resource-nonce" })
-            );
         });
 
         it("returns fresh proof for lowercase cached DPoP access token", async () => {

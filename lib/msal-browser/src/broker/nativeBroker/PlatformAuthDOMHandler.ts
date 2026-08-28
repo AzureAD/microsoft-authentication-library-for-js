@@ -12,7 +12,6 @@ import {
     Constants,
 } from "@azure/msal-common/browser";
 import {
-    DPOP_BROKER_REQUEST_TOKEN_TYPE,
     DOMExtraParameters,
     PlatformAuthRequest,
     PlatformAuthRequestExtraParametersNoCache,
@@ -159,7 +158,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         );
         const isProofOfPossessionRequest =
             request.tokenType === Constants.AuthenticationScheme.POP ||
-            request.tokenType === DPOP_BROKER_REQUEST_TOKEN_TYPE;
+            request.tokenType === Constants.AuthenticationScheme.DPOP;
 
         const validExtraParametersNoCache = this.getDOMExtraParamsNoCache(
             isProofOfPossessionRequest,
@@ -270,15 +269,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         return nativeResponse;
     }
 
-    /**
-     * Maps canonical PoP and DPoP proof context into the DOM broker protocol's
-     * non-cacheable parameter bag. Bearer requests return no proof parameters.
-     * @param isProofOfPossessionRequest - Whether proof context is applicable.
-     * @param resourceRequestMethod - Resource HTTP method.
-     * @param resourceRequestUri - Resource URI.
-     * @param extraParametersNoCache - Existing non-cacheable proof parameters.
-     * @returns DOM-compatible non-cacheable parameters, when applicable.
-     */
     private getDOMExtraParamsNoCache(
         isProofOfPossessionRequest: boolean,
         resourceRequestMethod?: string,

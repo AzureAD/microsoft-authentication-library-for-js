@@ -79,36 +79,6 @@ export const NativeInteractionClientAcquireTokenRedirect =
     "nativeInteractionClientAcquireToken";
 
 /**
- * Broker DPoP request key provisioning and confirmation.
- */
-export const DpopBrokerLifecyclePrepareRequest =
-    "dpopBrokerLifecyclePrepareRequest";
-
-/**
- * Broker DPoP outcome and proof validation.
- */
-export const DpopBrokerLifecycleValidateOutcome =
-    "dpopBrokerLifecycleValidateOutcome";
-
-/**
- * Broker DPoP resource proof generation.
- */
-export const DpopBrokerLifecycleGenerateProof =
-    "dpopBrokerLifecycleGenerateProof";
-
-/**
- * Broker DPoP generated-key reset.
- */
-export const DpopBrokerLifecycleResetRequestKey =
-    "dpopBrokerLifecycleResetRequestKey";
-
-/**
- * Broker DPoP generated-key cleanup.
- */
-export const DpopBrokerLifecycleRemoveRequestKey =
-    "dpopBrokerLifecycleRemoveRequestKey";
-
-/**
  * Time spent creating default headers for requests to token endpoint
  */
 export const BaseClientCreateTokenRequestHeaders =

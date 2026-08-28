@@ -711,9 +711,6 @@ export abstract class CacheManager implements ICacheManager {
             homeAccountId: credential.homeAccountId,
             realm: credential.realm,
             tokenType: credential.tokenType,
-            keyId: credential.keyId,
-            additionalCacheKeyComponents:
-                credential.additionalCacheKeyComponents,
         };
 
         const tokenKeys = this.getTokenKeys();
@@ -747,12 +744,7 @@ export abstract class CacheManager implements ICacheManager {
                     correlationId
                 );
                 if (tokenScopeSet.intersectingScopeSets(currentScopes)) {
-                    this.removeAccessTokenInternal(
-                        key,
-                        correlationId,
-                        !!credential.keyId &&
-                            credential.keyId === tokenEntity.keyId
-                    );
+                    this.removeAccessToken(key, correlationId);
                 }
             }
         });
@@ -927,20 +919,12 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         // Additional cache key components matching (bidirectional isolation)
-        const entityComponents = {
-            ...entity.additionalCacheKeyComponents,
-        };
-        if (filter.keyId && entityComponents.dpop_key_id === filter.keyId) {
-            delete entityComponents.dpop_key_id;
-        }
-        const filterComponents = {
-            ...filter.additionalCacheKeyComponents,
-        };
-        if (filter.keyId && filterComponents.dpop_key_id === filter.keyId) {
-            delete filterComponents.dpop_key_id;
-        }
-        const entityHasComponents = Object.keys(entityComponents).length > 0;
-        const filterHasComponents = Object.keys(filterComponents).length > 0;
+        const entityComponents = entity.additionalCacheKeyComponents;
+        const filterComponents = filter.additionalCacheKeyComponents;
+        const entityHasComponents =
+            !!entityComponents && Object.keys(entityComponents).length > 0;
+        const filterHasComponents =
+            !!filterComponents && Object.keys(filterComponents).length > 0;
 
         if (entityHasComponents !== filterHasComponents) {
             return false;
@@ -1116,21 +1100,6 @@ export abstract class CacheManager implements ICacheManager {
      * @param correlationId
      */
     removeAccessToken(key: string, correlationId: string): void {
-        this.removeAccessTokenInternal(key, correlationId, false);
-    }
-
-    /**
-     * Removes an access token and optionally preserves its binding key when a
-     * replacement token remains bound to the same key.
-     * @param key
-     * @param correlationId
-     * @param preserveTokenBindingKey
-     */
-    private removeAccessTokenInternal(
-        key: string,
-        correlationId: string,
-        preserveTokenBindingKey: boolean
-    ): void {
         const credential = this.getAccessTokenCredential(key, correlationId);
         if (!credential) {
             return;
@@ -1144,45 +1113,16 @@ export abstract class CacheManager implements ICacheManager {
 
         // Remove Token Binding Key from key store for token-bound access token credentials
         if (
-            !preserveTokenBindingKey &&
             credential.credentialType.toLowerCase() ===
-                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
+            Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
         ) {
             const tokenType = credential.tokenType?.toLowerCase();
             switch (tokenType) {
-                case Constants.AuthenticationScheme.POP: {
-                    const accessTokenWithAuthSchemeEntity =
-                        credential as AccessTokenEntity;
-                    const kid = accessTokenWithAuthSchemeEntity.keyId;
-
-                    if (kid) {
-                        void this.tokenBindingKeyManager
-                            .removeTokenBindingKey(kid, correlationId)
-                            .catch(() => {
-                                this.commonLogger.error(
-                                    "Failed to remove token binding key",
-                                    correlationId
-                                );
-                                this.performanceClient?.incrementFields(
-                                    { removeTokenBindingKeyFailure: 1 },
-                                    correlationId
-                                );
-                            });
-                    }
-                    break;
-                }
+                case Constants.AuthenticationScheme.POP:
                 case Constants.AuthenticationScheme.DPOP.toLowerCase(): {
                     const accessTokenWithAuthSchemeEntity =
                         credential as AccessTokenEntity;
                     const kid = accessTokenWithAuthSchemeEntity.keyId;
-
-                    if (
-                        kid &&
-                        accessTokenWithAuthSchemeEntity.tokenBindingKeyOwnedByMsal ===
-                            false
-                    ) {
-                        break;
-                    }
 
                     if (kid) {
                         void this.tokenBindingKeyManager
@@ -1451,7 +1391,7 @@ export abstract class CacheManager implements ICacheManager {
                     ? request.sshKid
                     : normalizedAuthScheme ===
                       Constants.AuthenticationScheme.DPOP.toLowerCase()
-                    ? request.dpopJkt || request.popKid
+                    ? request.popKid || request.dpopJkt
                     : undefined,
             additionalCacheKeyComponents: additionalCacheKeyComponents,
         };
