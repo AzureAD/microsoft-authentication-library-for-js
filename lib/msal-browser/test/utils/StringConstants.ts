@@ -635,14 +635,19 @@ export function expectAuthenticationResult(
         actualDate: Date | null | undefined,
         expectedDate: Date | null | undefined
     ): void => {
+        if (!actualDate || !expectedDate) {
+            // Both should be absent/present together
+            expect(actualDate).toBe(expectedDate);
+            return;
+        }
+
         expect(
-            Math.abs(actualDate!.getTime() - expectedDate!.getTime())
+            Math.abs(actualDate.getTime() - expectedDate.getTime())
         ).toBeLessThanOrEqual(toleranceMs);
     };
 
     withinTolerance(actualExpiresOn, expectedExpiresOn);
     withinTolerance(actualExtExpiresOn, expectedExtExpiresOn);
-}
 
 export const PlatformDOMTestTokenResponseObject = {
     isSuccess: true,
