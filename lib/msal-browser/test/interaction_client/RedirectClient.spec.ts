@@ -22,6 +22,7 @@ import {
     verifyUrl,
     validEarJWK,
     getTestAuthenticationResult,
+    expectAuthenticationResult,
     validEarJWE,
     testNavUrl,
 } from "../utils/StringConstants.js";
@@ -3499,7 +3500,10 @@ describe("RedirectClient", () => {
                     pca.handleRedirectPromise({
                         hash: `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
                     }).then((result) => {
-                        expect(result).toEqual(getTestAuthenticationResult());
+                        expectAuthenticationResult(
+                            result,
+                            getTestAuthenticationResult()
+                        );
                         done();
                     });
                 }
@@ -3520,17 +3524,24 @@ describe("RedirectClient", () => {
             jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
+            /*
+             * Build the result once and reuse it for both the mock and the
+             * assertion. Calling getTestAuthenticationResult() twice reads the
+             * clock twice, so the mocked response and the expectation drift
+             * apart whenever a second boundary falls between the two calls.
+             */
+            const expectedResult = getTestAuthenticationResult();
             jest.spyOn(
                 AuthorizeProtocol,
                 "handleResponseCode"
-            ).mockResolvedValue(getTestAuthenticationResult());
+            ).mockResolvedValue(expectedResult);
             jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(
                 () => {
                     // Supress navigation
                     pca.handleRedirectPromise({
                         hash: `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
                     }).then((result) => {
-                        expect(result).toEqual(getTestAuthenticationResult());
+                        expect(result).toEqual(expectedResult);
                         done();
                     });
                 }

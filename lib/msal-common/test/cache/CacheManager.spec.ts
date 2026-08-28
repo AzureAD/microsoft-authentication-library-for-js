@@ -2211,9 +2211,17 @@ describe("CacheManager.ts test cases", () => {
         );
 
         const atKey = generateCredentialKey(atWithAuthScheme);
-        expect(mockCache.cacheManager.getAccessTokenCredential(atKey)).toEqual(
-            atWithAuthScheme
-        );
+        expect(mockCache.cacheManager.getAccessTokenCredential(atKey)).toEqual({
+            ...atWithAuthScheme,
+            /*
+             * MockCache seeded the cached entity with its own Date.now() at
+             * cache-initialization time, while the fixture above was built with
+             * a second Date.now() when this test ran. The two are only equal if
+             * no millisecond elapsed in between, so assert presence and type
+             * rather than an exact value.
+             */
+            lastUpdatedAt: expect.any(String),
+        });
         mockCache.cacheManager.removeAccessToken(atKey, RANDOM_TEST_GUID);
         expect(
             mockCache.cacheManager.getAccessTokenCredential(atKey)

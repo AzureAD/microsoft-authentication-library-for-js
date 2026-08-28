@@ -18,6 +18,7 @@ import {
     generateValidEarJWE,
     ID_TOKEN_CLAIMS,
     getTestAuthenticationResult,
+    expectAuthenticationResult,
     TEST_CONFIG,
     TEST_STATE_VALUES,
     validEarJWE,
@@ -317,12 +318,19 @@ describe("Authorize Protocol Tests", () => {
                     2000,
                     performanceClient
                 );
+                /*
+                 * Build the result once and reuse it for both the mock and the
+                 * assertion. Calling getTestAuthenticationResult() twice reads
+                 * the clock twice, so the two copies disagree whenever a second
+                 * boundary falls between the calls.
+                 */
+                const expectedResult = getTestAuthenticationResult();
                 const platformBrokerSpy = jest
                     .spyOn(
                         PlatformAuthInteractionClient.prototype,
                         "acquireToken"
                     )
-                    .mockResolvedValue(getTestAuthenticationResult());
+                    .mockResolvedValue(expectedResult);
 
                 const authResult = await Authorize.handleResponseEAR(
                     validRequest,
@@ -338,7 +346,7 @@ describe("Authorize Protocol Tests", () => {
                     nativeMessageHandler
                 );
                 expect(platformBrokerSpy).toHaveBeenCalled();
-                expect(authResult).toEqual(getTestAuthenticationResult());
+                expect(authResult).toEqual(expectedResult);
             });
 
             it("If decrypted data contains error, throw it", async () => {
@@ -386,7 +394,10 @@ describe("Authorize Protocol Tests", () => {
                     logger,
                     performanceClient
                 );
-                expect(response).toEqual(getTestAuthenticationResult());
+                expectAuthenticationResult(
+                    response,
+                    getTestAuthenticationResult()
+                );
             });
         });
     });
@@ -766,9 +777,14 @@ describe("Authorize Protocol Tests", () => {
         });
 
         it("handleResponseCode preserves DPoP key id on auth code token request", async () => {
-            const acquireTokenSpy = jest
-                .fn()
-                .mockResolvedValue(getTestAuthenticationResult());
+            /*
+             * Build the result once and reuse it for both the mock and the
+             * assertion. Calling getTestAuthenticationResult() twice reads the
+             * clock twice, so the two copies disagree whenever a second
+             * boundary falls between the calls.
+             */
+            const expectedResult = getTestAuthenticationResult();
+            const acquireTokenSpy = jest.fn().mockResolvedValue(expectedResult);
             const dpopRequest: CommonAuthorizationUrlRequest = {
                 ...validRequest,
                 authenticationScheme: Constants.AuthenticationScheme.DPOP,
@@ -792,7 +808,7 @@ describe("Authorize Protocol Tests", () => {
                 performanceClient
             );
 
-            expect(result).toEqual(getTestAuthenticationResult());
+            expect(result).toEqual(expectedResult);
             expect(acquireTokenSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     authenticationScheme: Constants.AuthenticationScheme.DPOP,

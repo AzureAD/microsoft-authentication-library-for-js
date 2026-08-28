@@ -18,6 +18,7 @@ import {
     ID_TOKEN_CLAIMS,
     validEarJWK,
     getTestAuthenticationResult,
+    expectAuthenticationResult,
     validEarJWE,
 } from "../utils/StringConstants.js";
 import {
@@ -1804,7 +1805,10 @@ describe("SilentIframeClient", () => {
                     .mockResolvedValue(document.createElement("iframe"));
 
                 const result = await pca.ssoSilent(validRequest);
-                expect(result).toEqual(getTestAuthenticationResult());
+                expectAuthenticationResult(
+                    result,
+                    getTestAuthenticationResult()
+                );
                 expect(earFormSpy).toHaveBeenCalled();
             });
 
@@ -1820,9 +1824,16 @@ describe("SilentIframeClient", () => {
                 ).mockResolvedValue(
                     `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
                 );
+                /*
+                 * Build the result once and reuse it for both the mock and the
+                 * assertion. Calling getTestAuthenticationResult() twice reads
+                 * the clock twice, so the two copies disagree whenever a second
+                 * boundary falls between the calls.
+                 */
+                const expectedResult = getTestAuthenticationResult();
                 const handleResponseCodeSpy = jest
                     .spyOn(AuthorizeProtocol, "handleResponseCode")
-                    .mockResolvedValue(getTestAuthenticationResult());
+                    .mockResolvedValue(expectedResult);
                 const earFormSpy = jest
                     .spyOn(SilentHandler, "initiateEarRequest")
                     .mockResolvedValue(document.createElement("iframe"));
@@ -1831,7 +1842,7 @@ describe("SilentIframeClient", () => {
                     ...validRequest,
                     attributeTokens: ["zeta", "alpha", "mike"],
                 });
-                expect(result).toEqual(getTestAuthenticationResult());
+                expect(result).toEqual(expectedResult);
                 expect(earFormSpy).toHaveBeenCalled();
                 expect(handleResponseCodeSpy).toHaveBeenCalledWith(
                     expect.objectContaining({

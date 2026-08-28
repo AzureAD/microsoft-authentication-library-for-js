@@ -19,6 +19,7 @@ import {
     ID_TOKEN_CLAIMS,
     validEarJWK,
     getTestAuthenticationResult,
+    expectAuthenticationResult,
     validEarJWE,
 } from "../utils/StringConstants.js";
 import {
@@ -1033,7 +1034,10 @@ describe("PopupClient", () => {
                 );
 
                 const result = await pca.acquireTokenPopup(validRequest);
-                expect(result).toEqual(getTestAuthenticationResult());
+                expectAuthenticationResult(
+                    result,
+                    getTestAuthenticationResult()
+                );
                 expect(earFormSpy).toHaveBeenCalled();
             });
 
@@ -1064,13 +1068,20 @@ describe("PopupClient", () => {
                 ).mockResolvedValue(
                     `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
                 );
+                /*
+                 * Build the result once and reuse it for both the mock and the
+                 * assertion. Calling getTestAuthenticationResult() twice reads
+                 * the clock twice, so the two copies disagree whenever a second
+                 * boundary falls between the calls.
+                 */
+                const expectedResult = getTestAuthenticationResult();
                 jest.spyOn(
                     AuthorizeProtocol,
                     "handleResponseCode"
-                ).mockResolvedValue(getTestAuthenticationResult());
+                ).mockResolvedValue(expectedResult);
 
                 const result = await pca.acquireTokenPopup(validRequest);
-                expect(result).toEqual(getTestAuthenticationResult());
+                expect(result).toEqual(expectedResult);
                 expect(earFormSpy).toHaveBeenCalled();
             });
 

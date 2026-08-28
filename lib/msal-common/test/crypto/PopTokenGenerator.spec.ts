@@ -77,6 +77,17 @@ describe("PopTokenGenerator Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
             };
+        });
+
+        beforeEach(() => {
+            /*
+             * Freeze the clock before every test, not once in beforeAll. The
+             * outer afterEach calls jest.restoreAllMocks(), which would remove a
+             * beforeAll spy after the first test and leave the remaining tests
+             * reading the real clock -- racing the timestamp that signPopToken
+             * generates internally and failing whenever the two reads land on
+             * either side of a second boundary.
+             */
             jest.spyOn(TimeUtils, "nowSeconds").mockReturnValue(currTime);
         });
 
