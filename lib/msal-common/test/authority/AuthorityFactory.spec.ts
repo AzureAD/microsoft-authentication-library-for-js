@@ -79,6 +79,25 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
     });
 
+    it("classifies an unrecognized authority path as default", async () => {
+        const resolveEndpointsStub = jest
+            .spyOn(Authority.prototype, "resolveEndpointsAsync")
+            .mockResolvedValue();
+        const authorityInstance =
+            await AuthorityFactory.createDiscoveredInstance(
+                "https://login.microsoftonline.com/legacy/tenant/",
+                networkInterface,
+                mockStorage,
+                authorityOptions,
+                logger,
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
+            );
+
+        expect(authorityInstance.authorityType).toBe(AuthorityType.Default);
+        expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
+    });
+
     it("createDiscoveredInstance throws if resolveEndpointsAsync fails", (done) => {
         const resolveEndpointsStub = jest
             .spyOn(Authority.prototype, "resolveEndpointsAsync")

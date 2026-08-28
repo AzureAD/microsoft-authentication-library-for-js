@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Remove legacy environment metadata and legacy authority support [#8794](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8794)",
+    "packageName": "@azure/msal-common",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "patch"
+}

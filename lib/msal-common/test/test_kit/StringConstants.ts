@@ -210,7 +210,6 @@ export const TEST_CONFIG = {
     organizationsAuthority: TEST_URIS.DEFAULT_INSTANCE + "organizations",
     consumersAuthority: TEST_URIS.DEFAULT_INSTANCE + "consumers",
     ADFS_VALID_AUTHORITY: "https://on.prem/adfs",
-    DSTS_VALID_AUTHORITY: "https://domain.dsts.subdomain/dstsv2/tenant",
     b2cValidAuthority:
         "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_susi",
     applicationName: "msal.js-tests",
@@ -223,9 +222,6 @@ export const TEST_CONFIG = {
     CODE_CHALLENGE_METHOD: "S256",
     TOKEN_TYPE_BEARER: "Bearer",
     DEFAULT_SCOPES: ["openid", "profile", "offline_access"],
-    DSTS_TEST_SCOPE: [
-        "https://testserviceprincipalname-6df5cfbb-2ff9-45bb-b27a-595f48f4c7e4/.default",
-    ],
     DEFAULT_GRAPH_SCOPE: ["User.Read"],
     LOGIN_HINT: "user@test.com",
     DOMAIN_HINT: "test.com",
@@ -362,12 +358,6 @@ export const TEST_TENANT_DISCOVERY_RESPONSE = {
     },
 };
 
-export const DSTS_OPENID_CONFIG_RESPONSE = {
-    body: {
-        token_endpoint:
-            "https://login.microsoftonline.com/dstsv2/{tenant}/oauth2/v2.0/token",
-    },
-};
 export const DEFAULT_OPENID_CONFIG_RESPONSE = {
     body: {
         token_endpoint:
@@ -661,16 +651,6 @@ export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     },
 };
 
-export const DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
-    status: 200,
-    body: {
-        token_type: AuthenticationScheme.BEARER,
-        expires_in: 86396,
-        ext_expires_in: 86396,
-        refresh_in: 43198,
-        access_token: "thisIs.a.dsts.accessT0ken",
-    },
-};
 export const DEVICE_CODE_RESPONSE = {
     userCode: "FRWQDE7YL",
     deviceCode:

@@ -1031,7 +1031,7 @@ Mon, 07 Aug 2023 18:15:15 GMT
 -   Added new ClientConfigurationError type for authority mismatch in login request #6002 (lalimasharda@microsoft.com)
 -   Fix bugs in CIAM Authority Support (#5917) (sameera.gajjarapu@microsoft.com)
 -   Update polycheck version (#5901) (sameera.gajjarapu@microsoft.com)
--   Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
+-   Fix: Legacy authority token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
 -   Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805 (rginsburg@microsoft.com)
 -   `removeAccount` does not throw if account does not exist in cache #5911 (thomas.norling@microsoft.com)
 -   Remove unused enum (thomas.norling@microsoft.com)
@@ -1192,7 +1192,7 @@ Mon, 03 Oct 2022 22:12:26 GMT
 -   Add x-ms-request-id to perf telemetry logging #5244 (joarroyo@microsoft.com)
 -   Added 'no_session' to prompt enum #5131 (rginsburg@microsoft.com)
 -   Added Support for the OIDC max_age parameter #5125 (rginsburg@microsoft.com)
--   Add initial support for DSTS authorities in MSAL Common #5212 (hemoral@microsoft.com)
+-   Add initial support for legacy authorities in MSAL Common #5212 (hemoral@microsoft.com)
 
 ### Patches
 
