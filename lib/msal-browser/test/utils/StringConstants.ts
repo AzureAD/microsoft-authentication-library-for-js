@@ -648,6 +648,7 @@ export function expectAuthenticationResult(
 
     withinTolerance(actualExpiresOn, expectedExpiresOn);
     withinTolerance(actualExtExpiresOn, expectedExtExpiresOn);
+}
 
 export const PlatformDOMTestTokenResponseObject = {
     isSuccess: true,
