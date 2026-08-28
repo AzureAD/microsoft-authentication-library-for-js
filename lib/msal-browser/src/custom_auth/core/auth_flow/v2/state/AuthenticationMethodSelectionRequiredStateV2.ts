@@ -7,13 +7,9 @@ import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
 import { ChallengeVerificationRequiredStateV2 } from "./ChallengeVerificationRequiredStateV2.js";
-import { PasswordRequiredStateV2 } from "../../../../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import type { AuthenticationMethodSelectionRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
-import {
-    FLOW_CODE_REQUIRED_V2,
-    FLOW_PASSWORD_REQUIRED_V2,
-} from "../../../interaction_client/v2/result/FlowActionResultV2.js";
+import { FLOW_CODE_REQUIRED_V2 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
 import { AuthenticationMethodSelectionStateBaseV2 } from "./AuthenticationMethodSelectionStateBaseV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
@@ -58,15 +54,10 @@ export class AuthenticationMethodSelectionRequiredStateV2 extends Authentication
                 cacheClient: this.stateParameters.cacheClient,
             };
 
-            if (result.type === FLOW_PASSWORD_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new PasswordRequiredStateV2(commonStateParameters),
-                    undefined,
-                    result.continuationState.scenario
-                );
-            }
-
-            if (result.type === FLOW_CODE_REQUIRED_V2) {
+            if (
+                result.type === FLOW_CODE_REQUIRED_V2 &&
+                result.channel?.toLowerCase() === "email"
+            ) {
                 return new CustomAuthResultV2(
                     new ChallengeVerificationRequiredStateV2({
                         ...commonStateParameters,
@@ -82,7 +73,11 @@ export class AuthenticationMethodSelectionRequiredStateV2 extends Authentication
 
             throw new CustomAuthError(
                 UNSUPPORTED_FLOW_TRANSITION,
-                `Challenge type '${resultType}' is not supported for authentication method selection.`,
+                `Challenge type '${resultType}' with channel '${
+                    result.type === FLOW_CODE_REQUIRED_V2
+                        ? result.channel
+                        : "password"
+                }' is not supported for password reset.`,
                 correlationId
             );
         } catch (error) {

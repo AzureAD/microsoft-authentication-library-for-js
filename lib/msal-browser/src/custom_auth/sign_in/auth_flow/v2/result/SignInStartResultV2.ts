@@ -10,12 +10,14 @@ import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/Cu
 import type { SignInStartErrorV2 } from "../error_type/SignInStartErrorV2.js";
 import type { PasswordRequiredStateV2 } from "../state/PasswordRequiredStateV2.js";
 import type { MFARequiredStateV2 } from "../../../../core/auth_flow/v2/state/MFARequiredStateV2.js";
+import type { ChallengeVerificationRequiredStateV2 } from "../../../../core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
 
 /**
  * States returned when native auth V2 sign-in starts.
  */
 export type SignInStartResultStateV2 =
     | PasswordRequiredStateV2
+    | ChallengeVerificationRequiredStateV2
     | MFARequiredStateV2
     | CompletedStateV2
     | FailedStateV2;

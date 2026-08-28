@@ -1198,10 +1198,6 @@ const msalConfig = {
 
 -   The native authentication server did not return any available authentication methods.
 
-#### `password_method_unavailable`
-
--   The native authentication server did not return a password authentication method.
-
 #### `invalid_request`
 
 -   The authentication request is malformed or contains invalid parameters.

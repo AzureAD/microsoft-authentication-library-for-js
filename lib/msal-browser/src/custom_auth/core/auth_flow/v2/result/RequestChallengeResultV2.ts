@@ -7,15 +7,13 @@ import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import type { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
 import type { ChallengeVerificationRequiredStateV2 } from "../state/ChallengeVerificationRequiredStateV2.js";
 import type { FailedStateV2 } from "../state/FailedStateV2.js";
-import type { PasswordRequiredStateV2 } from "../../../../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 
 /**
- * The states a request-challenge action can resolve to. The selected method
- * determines whether the application must submit a one-time code or password.
+ * The states a password-reset request-challenge action can resolve to.
+ * Password reset supports email one-time-code verification only.
  */
 export type RequestChallengeResultStateV2 =
     | ChallengeVerificationRequiredStateV2
-    | PasswordRequiredStateV2
     | FailedStateV2;
 
 /**

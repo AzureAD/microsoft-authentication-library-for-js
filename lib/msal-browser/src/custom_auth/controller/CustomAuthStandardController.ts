@@ -40,11 +40,13 @@ import { SignInStartResultV2 } from "../sign_in/auth_flow/v2/result/SignInStartR
 import { CompletedStateV2 } from "../core/auth_flow/v2/state/CompletedStateV2.js";
 import {
     FLOW_COMPLETED_V2,
+    FLOW_CODE_REQUIRED_V2,
     FLOW_MFA_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
 } from "../core/interaction_client/v2/result/FlowActionResultV2.js";
 import { PasswordRequiredStateV2 } from "../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { MFARequiredStateV2 } from "../core/auth_flow/v2/state/MFARequiredStateV2.js";
+import { ChallengeVerificationRequiredStateV2 } from "../core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
@@ -751,24 +753,43 @@ export class CustomAuthStandardController
                 );
             }
 
-            if (result.type !== FLOW_PASSWORD_REQUIRED_V2) {
-                throw new UnexpectedError(
-                    "Unsupported native auth V2 sign-in result type.",
-                    correlationId
+            if (result.type === FLOW_CODE_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new ChallengeVerificationRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                        method: result.method,
+                        sentTo: result.sentTo,
+                        channel: result.channel,
+                        codeLength: result.codeLength,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
                 );
             }
 
-            return new CustomAuthResultV2(
-                new PasswordRequiredStateV2({
-                    correlationId: result.correlationId,
-                    logger: this.logger,
-                    config: this.customAuthConfig,
-                    flowClient: this.flowClientV2,
-                    continuationState: result.continuationState,
-                    cacheClient: this.cacheClient,
-                }),
-                undefined,
-                result.continuationState.scenario
+            if (result.type === FLOW_PASSWORD_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new PasswordRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            throw new UnexpectedError(
+                "Unsupported native auth V2 sign-in result type.",
+                correlationId
             );
         } catch (error) {
             this.logger.errorPii(

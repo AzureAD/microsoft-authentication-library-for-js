@@ -26,11 +26,13 @@ import {
     createFlowNewPasswordRequiredResultV2,
     createFlowSignInContinuationRequiredResultV2,
     createFlowCompletedResultV2,
+    FLOW_CODE_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
 } from "./result/FlowActionResultV2.js";
 import type {
     FlowMethodSelectionRequiredResultV2,
     FlowCodeRequiredResultV2,
+    FlowSignInCodeRequiredResultV2,
     FlowPasswordRequiredResultV2,
     FlowMFARequiredResultV2,
     FlowNewPasswordRequiredResultV2,
@@ -65,6 +67,7 @@ import type {
 import { VerifyNextActionV2 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import { AuthenticationFactorV2 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import type { FlowContinuationStateV2 } from "./FlowContinuationStateV2.js";
+import type { AuthenticationMethodV2 } from "../../auth_flow/v2/AuthenticationMethodV2.js";
 
 /*
  * Polls up to five times for password-update completion, waiting 1.5 seconds
@@ -106,12 +109,13 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Starts password sign-in using the first password method offered by the server.
+     * Starts sign-in using the preferred supported method offered by the server.
      */
     async signIn(
         parameters: FlowSignInStartParamsV2
     ): Promise<
         | FlowPasswordRequiredResultV2
+        | FlowSignInCodeRequiredResultV2
         | FlowMFARequiredResultV2
         | FlowCompletedResultV2
     > {
@@ -138,18 +142,12 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             },
             context
         );
-        if (
-            startResult.authenticationFactor !==
-            AuthenticationFactorV2.SINGLE_FACTOR
-        ) {
-            const message = `Authentication factor '${startResult.authenticationFactor}' is not supported for sign-in start.`;
-            this.logger.error(message, correlationId);
-            throw new CustomAuthError(
-                UNSUPPORTED_FLOW_TRANSITION,
-                message,
-                correlationId
-            );
-        }
+        this.ensureAuthenticationFactor(
+            startResult.authenticationFactor,
+            AuthenticationFactorV2.SINGLE_FACTOR,
+            "sign-in start",
+            correlationId
+        );
 
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: startResult.continuationToken,
@@ -165,21 +163,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             hint: method.hint,
             challengeHref: method.challengeHref,
         }));
-        const passwordMethod = methods.find(
-            (method) => method.type.toLowerCase() === "password"
+        const selectedMethod = this.selectSignInMethod(
+            methods,
+            parameters.password !== undefined,
+            correlationId
         );
-
-        if (!passwordMethod) {
-            const message =
-                "The sign-in start response did not include a supported password method.";
-            this.logger.error(message, correlationId);
-
-            throw new CustomAuthError(
-                SIGN_IN_UNSUPPORTED,
-                message,
-                correlationId
-            );
-        }
 
         const challengeResult = await this.requestChallenge({
             correlationId,
@@ -187,28 +175,23 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 ...continuationState,
                 links: {
                     ...continuationState.links,
-                    challenge: passwordMethod.challengeHref,
+                    challenge: selectedMethod.challengeHref,
                 },
             },
         });
 
-        if (challengeResult.type !== FLOW_PASSWORD_REQUIRED_V2) {
-            const message = `Challenge type '${challengeResult.type}' is not supported for sign-in.`;
-            this.logger.error(message, correlationId);
-
-            throw new CustomAuthError(
-                UNSUPPORTED_FLOW_TRANSITION,
-                message,
-                correlationId
-            );
+        if (challengeResult.type === FLOW_CODE_REQUIRED_V2) {
+            return {
+                ...challengeResult,
+                method: selectedMethod,
+            };
         }
 
-        const password = parameters.password;
-        if (password) {
+        if (parameters.password) {
             return this.submitSignInPassword({
                 correlationId,
                 continuationState: challengeResult.continuationState,
-                password,
+                password: parameters.password,
             });
         }
 
@@ -248,18 +231,12 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             },
             context
         );
-        if (
-            startResult.authenticationFactor !==
-            AuthenticationFactorV2.SINGLE_FACTOR
-        ) {
-            const message = `Authentication factor '${startResult.authenticationFactor}' is not supported for password-reset start.`;
-            this.logger.error(message, correlationId);
-            throw new CustomAuthError(
-                UNSUPPORTED_FLOW_TRANSITION,
-                message,
-                correlationId
-            );
-        }
+        this.ensureAuthenticationFactor(
+            startResult.authenticationFactor,
+            AuthenticationFactorV2.SINGLE_FACTOR,
+            "password-reset start",
+            correlationId
+        );
         this.logger.verbose(
             "V2 self-service password reset method selection required.",
             correlationId
@@ -555,18 +532,12 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         correlationId: string
     ): Promise<FlowMFARequiredResultV2 | FlowCompletedResultV2> {
         if (verifyResult.nextAction === VerifyNextActionV2.CHALLENGE) {
-            if (
-                verifyResult.authenticationFactor !==
-                AuthenticationFactorV2.MULTI_FACTOR
-            ) {
-                const message = `Authentication factor '${verifyResult.authenticationFactor}' is not supported after password verification.`;
-                this.logger.error(message, correlationId);
-                throw new CustomAuthError(
-                    UNSUPPORTED_FLOW_TRANSITION,
-                    message,
-                    correlationId
-                );
-            }
+            this.ensureAuthenticationFactor(
+                verifyResult.authenticationFactor,
+                AuthenticationFactorV2.MULTI_FACTOR,
+                "after password verification",
+                correlationId
+            );
 
             return createFlowMFARequiredResultV2({
                 correlationId,
@@ -594,6 +565,61 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         }
 
         const message = `Password verification next action '${verifyResult.nextAction}' is not supported for sign-in.`;
+        this.logger.error(message, correlationId);
+        throw new CustomAuthError(
+            UNSUPPORTED_FLOW_TRANSITION,
+            message,
+            correlationId
+        );
+    }
+
+    private selectSignInMethod(
+        methods: AuthenticationMethodV2[],
+        passwordProvided: boolean,
+        correlationId: string
+    ): AuthenticationMethodV2 {
+        const passwordMethod = methods.find(
+            (method) => method.type.toLowerCase() === "password"
+        );
+        const emailMethod = methods.find(
+            (method) => method.type.toLowerCase() === "email"
+        );
+
+        if (passwordProvided) {
+            // Use the supplied password when supported; otherwise fall back to email OTP.
+            const selectedMethod = passwordMethod ?? emailMethod;
+            if (selectedMethod) {
+                return selectedMethod;
+            }
+        } else {
+            // Without a password, prefer email OTP; otherwise ask for a password afterward.
+            const selectedMethod = emailMethod ?? passwordMethod;
+            if (selectedMethod) {
+                return selectedMethod;
+            }
+        }
+
+        const message =
+            "The sign-in start response did not include a supported email or password method.";
+        this.logger.error(message, correlationId);
+        throw new CustomAuthError(
+            UNSUPPORTED_FLOW_TRANSITION,
+            message,
+            correlationId
+        );
+    }
+
+    private ensureAuthenticationFactor(
+        authenticationFactor: AuthenticationFactorV2,
+        expectedFactor: AuthenticationFactorV2,
+        transition: string,
+        correlationId: string
+    ): void {
+        if (authenticationFactor === expectedFactor) {
+            return;
+        }
+
+        const message = `Authentication factor '${authenticationFactor}' is not supported for ${transition}.`;
         this.logger.error(message, correlationId);
         throw new CustomAuthError(
             UNSUPPORTED_FLOW_TRANSITION,

@@ -40,6 +40,11 @@ export interface FlowCodeRequiredResultV2 extends FlowActionResultBaseV2 {
     codeLength?: number;
 }
 
+export interface FlowSignInCodeRequiredResultV2
+    extends FlowCodeRequiredResultV2 {
+    method: AuthenticationMethodV2;
+}
+
 // The user's existing password must be submitted next for sign-in.
 export interface FlowPasswordRequiredResultV2 extends FlowActionResultBaseV2 {
     type: typeof FLOW_PASSWORD_REQUIRED_V2;

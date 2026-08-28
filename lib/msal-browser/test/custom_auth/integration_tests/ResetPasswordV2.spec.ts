@@ -14,6 +14,7 @@ import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/sta
 import { RequestChallengeErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/RequestChallengeErrorV2.js";
 import { VerifyChallengeErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/VerifyChallengeErrorV2.js";
 import { SubmitNewPasswordErrorV2 } from "../../../src/custom_auth/reset_password/auth_flow/v2/error_type/SubmitNewPasswordErrorV2.js";
+import { UNSUPPORTED_FLOW_TRANSITION } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 
@@ -296,4 +297,29 @@ describe("Reset password V2 (SSPR)", () => {
         expect(challengeResult.error).toBeInstanceOf(RequestChallengeErrorV2);
         expect(challengeResult.error?.isBrowserRequired()).toBe(true);
     });
+
+    it.each(["password", "sms"])(
+        "rejects a %s challenge for password reset",
+        async (type) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        ...CHALLENGE_RESPONSE,
+                        type,
+                    })
+                );
+
+            const methodState = await startToMethodSelection();
+            const challengeResult = await methodState.requestChallenge(
+                methodState.methods[0]
+            );
+
+            expect(challengeResult.isFailed()).toBe(true);
+            expect(challengeResult.error?.errorData.error).toBe(
+                UNSUPPORTED_FLOW_TRANSITION
+            );
+        }
+    );
 });

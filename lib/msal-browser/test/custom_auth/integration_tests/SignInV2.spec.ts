@@ -75,12 +75,48 @@ const MULTI_METHOD_START_RESPONSE = {
     },
 };
 
+const EMAIL_METHOD = {
+    id: "email-1",
+    type: "email",
+    hint: "u***@contoso.com",
+    _links: {
+        challenge: {
+            href: "/tenant/api/v0.1/email/challenge",
+        },
+    },
+};
+
+const EMAIL_START_RESPONSE = {
+    ...START_RESPONSE,
+    _embedded: {
+        methods: [EMAIL_METHOD],
+    },
+};
+
+const PASSWORD_AND_EMAIL_START_RESPONSE = {
+    ...START_RESPONSE,
+    _embedded: {
+        methods: [...START_RESPONSE._embedded.methods, EMAIL_METHOD],
+    },
+};
+
 const PASSWORD_CHALLENGE_RESPONSE = {
     continuationToken: "ct-challenge",
     id: "password-1",
     type: "password",
     _links: {
         verify: { href: "/tenant/api/v0.1/password/verify" },
+    },
+};
+
+const EMAIL_CHALLENGE_RESPONSE = {
+    continuationToken: "ct-email-challenge",
+    type: "email",
+    codeLength: 6,
+    hint: "u***@contoso.com",
+    _links: {
+        verify: { href: "/tenant/api/v0.1/email/verify" },
+        resend: { href: "/tenant/api/v0.1/email/resend" },
     },
 };
 
@@ -195,6 +231,90 @@ describe("Sign-in V2 entry", () => {
         for (const [, options] of (fetch as jest.Mock).mock.calls) {
             expect(options.body.toString()).not.toContain("claims");
         }
+    });
+
+    it("prefers email OTP when no password is supplied", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse(PASSWORD_AND_EMAIL_START_RESPONSE)
+            )
+            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE));
+
+        const result = await app.signInV2({
+            username: "user@contoso.com",
+            scopes: ["User.Read"],
+        });
+
+        expect(result.isState("challengeVerificationRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(
+            ChallengeVerificationRequiredStateV2
+        );
+
+        const challengeState =
+            result.state as ChallengeVerificationRequiredStateV2;
+        expect(challengeState.method.id).toBe("email-1");
+        expect(challengeState.channel).toBe("email");
+        expect(challengeState.sentTo).toBe("u***@contoso.com");
+        expect((fetch as jest.Mock).mock.calls[2][0].href).toContain(
+            "/email/challenge"
+        );
+    });
+
+    it("falls back to email OTP without submitting a supplied password", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE));
+
+        const result = await app.signInV2({
+            username: "user@contoso.com",
+            password: "P@ssword1!",
+        });
+
+        expect(result.isState("challengeVerificationRequired")).toBe(true);
+        expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it("completes sign-in after first-factor email OTP", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_VERIFY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+        const startResult = await app.signInV2({
+            username: "user@contoso.com",
+            scopes: ["User.Read"],
+        });
+        const result = await (
+            startResult.state as ChallengeVerificationRequiredStateV2
+        ).verifyChallenge("123456");
+
+        expect(result.isState("completed")).toBe(true);
+        expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+        expect(fetch).toHaveBeenCalledTimes(6);
+    });
+
+    it("rejects MFA-required after first-factor email OTP", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(MFA_REQUIRED_RESPONSE));
+
+        const startResult = await app.signInV2({
+            username: "user@contoso.com",
+            scopes: ["User.Read"],
+        });
+        const result = await (
+            startResult.state as ChallengeVerificationRequiredStateV2
+        ).verifyChallenge("123456");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.errorData.error).toBe(UNSUPPORTED_FLOW_TRANSITION);
     });
 
     it("submits a password from PasswordRequiredStateV2 and completes sign-in", async () => {
@@ -319,7 +439,9 @@ describe("Sign-in V2 entry", () => {
     it("automatically selects and submits password when multiple methods are returned", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(MULTI_METHOD_START_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse(PASSWORD_AND_EMAIL_START_RESPONSE)
+            )
             .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE))
             .mockResolvedValueOnce(buildResponse(PASSWORD_VERIFY_RESPONSE))
             .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
