@@ -1025,7 +1025,7 @@ Mon, 07 Aug 2023 18:15:15 GMT
 -   Update MSAL Node compatible versions to include Node v20 and drop v16 #5905 (hemoral@microsoft.com)
 -   Remove `null` from `acquireTokenSilent` return type #5912 (thomas.norling@microsoft.com)
 -   Fix prepack hook #5967 (kshabelko@microsoft.com)
--   Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
+-   Fix: Legacy authority token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
 -   Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805 (rginsburg@microsoft.com)
 -   `removeAccount` does not throw if account does not exist in cache #5911 (thomas.norling@microsoft.com)
 -   Remove unused enum (thomas.norling@microsoft.com)

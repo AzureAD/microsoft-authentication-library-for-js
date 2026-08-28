@@ -1,4 +1,10 @@
-import { StaticAuthorityOptions, Constants, LogLevel, Logger } from "../../src";
+import {
+    StaticAuthorityOptions,
+    Constants,
+    LogLevel,
+    Logger,
+    AzureCloudInstance,
+} from "../../src";
 import {
     InstanceDiscoveryMetadata,
     getAliasesFromStaticSources,
@@ -28,6 +34,24 @@ const loggerOptions = {
 const logger = new Logger(loggerOptions);
 
 describe("AuthorityMetadata.ts Unit Tests", () => {
+    it("contains metadata only for supported cloud hosts", () => {
+        expect(
+            InstanceDiscoveryMetadata.metadata.map(
+                (metadata) => metadata.aliases
+            )
+        ).toEqual(Object.values(METADATA_ALIASES));
+    });
+
+    it("exports only supported cloud instances", () => {
+        expect(AzureCloudInstance).toEqual({
+            None: "none",
+            AzurePublic: "https://login.microsoftonline.com",
+            AzureChina: "https://login.chinacloudapi.cn",
+            AzureGermany: "https://login.microsoftonline.de",
+            AzureUsGovernment: "https://login.microsoftonline.us",
+        });
+    });
+
     describe("getAliasesFromStaticSources()", () => {
         describe("from config CloudDiscoveryMetadataResponse", () => {
             const staticAuthorityOptions: StaticAuthorityOptions = {
