@@ -17,18 +17,22 @@ import {
     FlowSubmitCodeParamsV2,
     FlowSubmitNewPasswordParamsV2,
     FlowSubmitSignInPasswordParamsV2,
+    FlowSubmitSignUpAttributesParamsV2,
     FlowSignInWithContinuationParamsV2,
 } from "./parameter/FlowParamsV2.js";
 import {
     createFlowMethodSelectionRequiredResultV2,
     createFlowCodeRequiredResultV2,
     createFlowPasswordRequiredResultV2,
+    createFlowSignUpPasswordRequiredResultV2,
     createFlowMFARequiredResultV2,
     createFlowNewPasswordRequiredResultV2,
+    createFlowAttributesRequiredResultV2,
     createFlowSignInContinuationRequiredResultV2,
     createFlowCompletedResultV2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
+    FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "./result/FlowActionResultV2.js";
 import type {
     FlowMethodSelectionRequiredResultV2,
@@ -36,10 +40,14 @@ import type {
     FlowSignInCodeRequiredResultV2,
     FlowResetPasswordCodeRequiredResultV2,
     FlowPasswordRequiredResultV2,
+    FlowSignUpPasswordRequiredResultV2,
     FlowMFARequiredResultV2,
     FlowNewPasswordRequiredResultV2,
+    FlowAttributesRequiredResultV2,
     FlowSignInContinuationRequiredResultV2,
     FlowCompletedResultV2,
+    FlowSignUpActionResultV2,
+    FlowSignUpStartResultV2,
 } from "./result/FlowActionResultV2.js";
 import { BrowserConfiguration } from "../../../../config/Configuration.js";
 import { BrowserCacheManager } from "../../../../cache/BrowserCacheManager.js";
@@ -71,6 +79,10 @@ import { VerifyNextActionV2 } from "../../network_client/custom_auth_api/v2/resu
 import { AuthenticationFactorV2 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import type { FlowContinuationStateV2 } from "./FlowContinuationStateV2.js";
 import type { AuthenticationMethodV2 } from "../../auth_flow/v2/AuthenticationMethodV2.js";
+import {
+    SignUpSubmitAttributesNextActionV2,
+    type SignUpSubmitAttributesApiResultV2,
+} from "../../network_client/custom_auth_api/v2/result/SignUpResultsV2.js";
 
 /*
  * Polls up to five times for password-update completion, waiting 1.5 seconds
@@ -206,7 +218,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      */
     async signUp(
         parameters: FlowSignUpStartParamsV2
-    ): Promise<FlowCodeRequiredResultV2> {
+    ): Promise<FlowSignUpStartResultV2> {
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             PublicApiId.SIGN_UP_V2_START,
@@ -246,25 +258,35 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             context
         );
         const continuationState: FlowContinuationStateV2 = {
-            continuationToken: submitResult.continuationToken,
+            continuationToken: startResult.continuationToken,
             scenario: CustomAuthFlowScenarioV2.SignUp,
-            links: {
-                verify: submitResult.verifyHref,
-                resend: submitResult.resendHref,
-            },
+            links: {},
             tokenRequest: {
                 scopes: parameters.scopes,
-                claims: parameters.claims,
+            },
+            signUp: {
+                passwordWasSupplied: attributes.password !== undefined,
             },
         };
 
-        return createFlowCodeRequiredResultV2({
-            correlationId,
+        const result = this.toSignUpActionResult(
+            submitResult,
             continuationState,
-            channel: submitResult.type,
-            sentTo: submitResult.hint,
-            codeLength: submitResult.codeLength,
-        });
+            correlationId
+        );
+
+        if (result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2) {
+            const message =
+                "Initial sign-up attribute submission cannot complete without code verification or additional attributes.";
+            this.logger.error(message, correlationId);
+            throw new CustomAuthError(
+                UNSUPPORTED_FLOW_TRANSITION,
+                message,
+                correlationId
+            );
+        }
+
+        return result;
     }
 
     /*
@@ -418,7 +440,13 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      */
     async submitCode(
         parameters: FlowSubmitCodeParamsV2
-    ): Promise<FlowNewPasswordRequiredResultV2 | FlowCompletedResultV2> {
+    ): Promise<
+        | FlowNewPasswordRequiredResultV2
+        | FlowSignUpPasswordRequiredResultV2
+        | FlowAttributesRequiredResultV2
+        | FlowSignInContinuationRequiredResultV2
+        | FlowCompletedResultV2
+    > {
         const continuationState = parameters.continuationState;
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
@@ -432,12 +460,17 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         this.logger.verbose("Submitting V2 one-time code.", correlationId);
 
+        const verifyHref = this.requireLink(
+            correlationId,
+            continuationState.links.verify
+        );
+        const verifyRequest = {
+            continuationToken: continuationState.continuationToken,
+            otp: parameters.code,
+        };
         const verifyResult = await this.apiClient.verifyChallenge(
-            this.requireLink(correlationId, continuationState.links.verify),
-            {
-                continuationToken: continuationState.continuationToken,
-                otp: parameters.code,
-            },
+            verifyHref,
+            verifyRequest,
             context
         );
 
@@ -465,6 +498,63 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 verifyResult.continuationToken,
                 correlationId
             );
+        }
+
+        if (
+            continuationState.scenario === CustomAuthFlowScenarioV2.SignUp &&
+            verifyResult.nextAction === VerifyNextActionV2.COLLECT_ATTRIBUTES
+        ) {
+            const requiredPasswordAttribute = verifyResult.attributes.find(
+                (attribute) =>
+                    attribute.attributeId.toLowerCase() === "password" &&
+                    attribute.required === true
+            );
+            const nextContinuationState: FlowContinuationStateV2 = {
+                continuationToken: verifyResult.continuationToken,
+                scenario: continuationState.scenario,
+                links: {
+                    submitAttributes: verifyResult.submitAttributesHref,
+                },
+                tokenRequest: continuationState.tokenRequest,
+                signUp: continuationState.signUp,
+            };
+            const attributes = verifyResult.attributes.filter(
+                (attribute) =>
+                    attribute.attributeId.toLowerCase() !== "password"
+            );
+
+            if (
+                requiredPasswordAttribute &&
+                continuationState.signUp?.passwordWasSupplied !== true
+            ) {
+                return createFlowSignUpPasswordRequiredResultV2({
+                    correlationId,
+                    continuationState: nextContinuationState,
+                    attributes,
+                    requiredPasswordAttribute,
+                });
+            }
+
+            return createFlowAttributesRequiredResultV2({
+                correlationId,
+                continuationState: nextContinuationState,
+                attributes,
+            });
+        }
+
+        if (
+            continuationState.scenario === CustomAuthFlowScenarioV2.SignUp &&
+            verifyResult.nextAction === VerifyNextActionV2.CONTINUE
+        ) {
+            return createFlowSignInContinuationRequiredResultV2({
+                correlationId,
+                continuationState: {
+                    continuationToken: verifyResult.continuationToken,
+                    scenario: continuationState.scenario,
+                    links: {},
+                    tokenRequest: continuationState.tokenRequest,
+                },
+            });
         }
 
         const message = `Verification next action '${verifyResult.nextAction}' is not supported for the '${continuationState.scenario}' flow.`;
@@ -501,6 +591,50 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         });
     }
 
+    async submitSignUpAttributes(
+        parameters: FlowSubmitSignUpAttributesParamsV2
+    ): Promise<FlowSignUpActionResultV2> {
+        const { continuationState, correlationId, attributes } = parameters;
+        const context = this.createRequestContext(
+            this.resolveStepApiId(
+                continuationState.scenario,
+                "submitAttributes",
+                correlationId
+            ),
+            correlationId
+        );
+
+        this.logger.verbose(
+            "Submitting additional V2 sign-up attributes.",
+            correlationId
+        );
+
+        const submitResult = await this.apiClient.submitSignUpAttributes(
+            this.requireLink(
+                correlationId,
+                continuationState.links.submitAttributes
+            ),
+            {
+                continuationToken: continuationState.continuationToken,
+                attributes,
+            },
+            context
+        );
+
+        return this.toSignUpActionResult(
+            submitResult,
+            {
+                ...continuationState,
+                signUp: {
+                    passwordWasSupplied:
+                        continuationState.signUp?.passwordWasSupplied === true ||
+                        attributes.password !== undefined,
+                },
+            },
+            correlationId
+        );
+    }
+
     /*
      * Submits the new password and polls until the reset completes. The result
      * contains the continuation state required for explicit sign-in.
@@ -533,7 +667,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         let pollToken = updateResult.continuationToken;
         let pollHref = updateResult.pollHref;
         let completionToken: string | undefined;
-        let continueHref: string | undefined;
 
         for (let attempt = 1; attempt <= POLL_MAX_ATTEMPTS; attempt++) {
             const pollResult = await this.apiClient.poll(
@@ -544,7 +677,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
             if (pollResult.isCompleted) {
                 completionToken = pollResult.continuationToken;
-                continueHref = pollResult.continueHref;
                 break;
             }
 
@@ -578,7 +710,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             continuationState: {
                 continuationToken: completionToken,
                 scenario: continuationState.scenario,
-                links: { continue: continueHref },
+                links: {},
             },
         });
     }
@@ -730,6 +862,97 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         );
     }
 
+    private toSignUpActionResult(
+        result: SignUpSubmitAttributesApiResultV2,
+        continuationState: FlowContinuationStateV2,
+        correlationId: string
+    ): FlowSignUpActionResultV2 {
+        const nextAction: string = result.nextAction;
+
+        if (result.nextAction === SignUpSubmitAttributesNextActionV2.VERIFY) {
+            return createFlowCodeRequiredResultV2({
+                correlationId,
+                continuationState: {
+                    continuationToken: result.continuationToken,
+                    scenario: continuationState.scenario,
+                    links: {
+                        verify: result.verifyHref,
+                        resend: result.resendHref,
+                    },
+                    tokenRequest: continuationState.tokenRequest,
+                    signUp: continuationState.signUp,
+                },
+                channel: result.type,
+                sentTo: result.hint,
+                codeLength: result.codeLength,
+            });
+        }
+
+        if (
+            result.nextAction ===
+            SignUpSubmitAttributesNextActionV2.COLLECT_ATTRIBUTES
+        ) {
+            const requiredPasswordAttribute = result.attributes.find(
+                (attribute) =>
+                    attribute.attributeId.toLowerCase() === "password" &&
+                    attribute.required === true
+            );
+            const nextContinuationState: FlowContinuationStateV2 = {
+                continuationToken: result.continuationToken,
+                scenario: continuationState.scenario,
+                links: {
+                    submitAttributes: result.submitAttributesHref,
+                },
+                tokenRequest: continuationState.tokenRequest,
+                signUp: continuationState.signUp,
+            };
+            const attributes = result.attributes.filter(
+                (attribute) =>
+                    attribute.attributeId.toLowerCase() !== "password"
+            );
+
+            if (
+                requiredPasswordAttribute &&
+                continuationState.signUp?.passwordWasSupplied !== true
+            ) {
+                return createFlowSignUpPasswordRequiredResultV2({
+                    correlationId,
+                    continuationState: nextContinuationState,
+                    attributes,
+                    requiredPasswordAttribute,
+                });
+            }
+
+            return createFlowAttributesRequiredResultV2({
+                correlationId,
+                continuationState: nextContinuationState,
+                attributes,
+            });
+        }
+
+        if (
+            result.nextAction === SignUpSubmitAttributesNextActionV2.CONTINUE
+        ) {
+            return createFlowSignInContinuationRequiredResultV2({
+                correlationId,
+                continuationState: {
+                    continuationToken: result.continuationToken,
+                    scenario: continuationState.scenario,
+                    links: {},
+                    tokenRequest: continuationState.tokenRequest,
+                },
+            });
+        }
+
+        const message = `Sign-up attribute submission next action '${nextAction}' is not supported.`;
+        this.logger.error(message, correlationId);
+        throw new CustomAuthError(
+            UNSUPPORTED_FLOW_TRANSITION,
+            message,
+            correlationId
+        );
+    }
+
     private ensureAuthenticationFactor(
         authenticationFactor: AuthenticationFactorV2,
         expectedFactor: AuthenticationFactorV2,
@@ -840,6 +1063,9 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             },
             ...(continuationState.tokenRequest && {
                 tokenRequest: continuationState.tokenRequest,
+            }),
+            ...(continuationState.signUp && {
+                signUp: continuationState.signUp,
             }),
         };
     }

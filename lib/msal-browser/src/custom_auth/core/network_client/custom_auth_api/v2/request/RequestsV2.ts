@@ -85,7 +85,7 @@ export type SignUpStartRequestV2 = ActionRequestBaseV2;
 
 export interface SignUpSubmitAttributesRequestV2 extends ActionRequestBaseV2 {
     attributes: UserAccountAttributes & {
-        email: string;
+        email?: string;
         password?: string;
     };
 }

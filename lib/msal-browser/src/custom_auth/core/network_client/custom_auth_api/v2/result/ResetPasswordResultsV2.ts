@@ -15,14 +15,12 @@ export interface ResetPasswordUpdateResultV2 {
 }
 
 /*
- * Result of a single poll. `isCompleted` is true once the server reports `state: continue`, at
- * which point `continueHref` (the authorize-challenge resume endpoint) is present. While still in
- * progress the server returns a fresh `pollHref` (the poll endpoint may relocate between attempts);
- * the bounded poll loop that repeats this call lives in the controller layer, not in the api-client.
+ * Result of a single poll. `isCompleted` is true once the server reports
+ * `state: continue`. While still in progress the server returns a fresh
+ * `pollHref`; the bounded poll loop lives in the controller layer.
  */
 export interface ResetPasswordPollResultV2 {
     continuationToken: string;
     isCompleted: boolean;
-    continueHref?: string;
     pollHref?: string;
 }

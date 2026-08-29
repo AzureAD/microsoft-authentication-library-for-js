@@ -41,6 +41,7 @@ import { SignUpStartResultV2 } from "../sign_up/auth_flow/v2/result/SignUpStartR
 import { CompletedStateV2 } from "../core/auth_flow/v2/state/CompletedStateV2.js";
 import {
     FLOW_COMPLETED_V2,
+    FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_MFA_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
@@ -48,7 +49,8 @@ import {
 import { PasswordRequiredStateV2 } from "../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { ChallengeVerificationRequiredStateV2 } from "../core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
 import { MFARequiredStateV2 } from "../core/auth_flow/v2/state/MFARequiredStateV2.js";
-import { ChallengeVerificationRequiredStateV2 } from "../core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+import { AttributesRequiredStateV2 } from "../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
+import { SignUpPasswordRequiredStateV2 } from "../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
@@ -856,27 +858,55 @@ export class CustomAuthStandardController
                 claims: inputs.claims,
             });
 
-            if (result.type !== FLOW_CODE_REQUIRED_V2) {
-                throw new UnexpectedError(
-                    "Unsupported native auth V2 sign-up result type.",
-                    correlationId
+            const commonStateParameters = {
+                correlationId: result.correlationId,
+                logger: this.logger,
+                config: this.customAuthConfig,
+                flowClient: this.flowClientV2,
+                continuationState: result.continuationState,
+                cacheClient: this.cacheClient,
+            };
+
+            if (result.type === FLOW_CODE_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new ChallengeVerificationRequiredStateV2({
+                        ...commonStateParameters,
+                        sentTo: result.sentTo,
+                        channel: result.channel,
+                        codeLength: result.codeLength,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
                 );
             }
 
-            return new CustomAuthResultV2(
-                new ChallengeVerificationRequiredStateV2({
-                    correlationId: result.correlationId,
-                    logger: this.logger,
-                    config: this.customAuthConfig,
-                    flowClient: this.flowClientV2,
-                    continuationState: result.continuationState,
-                    cacheClient: this.cacheClient,
-                    sentTo: result.sentTo,
-                    channel: result.channel,
-                    codeLength: result.codeLength,
-                }),
-                undefined,
-                result.continuationState.scenario
+            if (result.type === FLOW_PASSWORD_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new SignUpPasswordRequiredStateV2({
+                        ...commonStateParameters,
+                        attributes: result.attributes,
+                        requiredPasswordAttribute:
+                            result.requiredPasswordAttribute,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_ATTRIBUTES_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new AttributesRequiredStateV2({
+                        ...commonStateParameters,
+                        attributes: result.attributes,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            throw new UnexpectedError(
+                "Unsupported native auth V2 sign-up result type.",
+                correlationId
             );
         } catch (error) {
             this.logger.errorPii(

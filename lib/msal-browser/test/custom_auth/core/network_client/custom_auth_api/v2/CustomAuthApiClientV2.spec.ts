@@ -438,6 +438,13 @@ describe("CustomAuthApiClientV2", () => {
                     type: "email",
                     hint: "u***@test.com",
                     codeLength: 8,
+                    attributes: [
+                        {
+                            attributeId: "password",
+                            inputType: "password",
+                            required: true,
+                        },
+                    ],
                     _links: {
                         verify: {
                             href: "/tenant/api/v0.1/signup/verify",
@@ -456,12 +463,20 @@ describe("CustomAuthApiClientV2", () => {
             );
 
             expect(result).toEqual({
+                nextAction: "verify",
                 continuationToken: "ct-submit",
                 type: "email",
                 hint: "u***@test.com",
                 codeLength: 8,
                 verifyHref: "/tenant/api/v0.1/signup/verify",
                 resendHref: "/tenant/api/v0.1/signup/resend",
+                attributes: [
+                    {
+                        attributeId: "password",
+                        inputType: "password",
+                        required: true,
+                    },
+                ],
             });
 
             const [url, options] = mockHttpClient.sendAsync.mock.calls[0];
@@ -520,31 +535,71 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
-        it("rejects a response that does not advance to verify", async () => {
+        it("maps a repeated collect-attributes response", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     continuationToken: "ct-submit",
                     state: "interactionRequired",
                     action: "collectAttributes",
+                    attributes: [
+                        {
+                            attributeId: "jobTitle",
+                            inputType: "text",
+                            required: true,
+                        },
+                    ],
                     _links: {
-                        verify: {
-                            href: "/tenant/api/v0.1/signup/verify",
+                        submitAttributes: {
+                            href: "/tenant/api/v0.1/signup/submitattributes-2",
                         },
                     },
                 })
             );
 
-            await expect(
-                apiClient.submitSignUpAttributes(
-                    "/tenant/api/v0.1/signup/submitattributes",
+            const result = await apiClient.submitSignUpAttributes(
+                "/tenant/api/v0.1/signup/submitattributes",
+                {
+                    continuationToken: "ct-start",
+                    attributes: { city: "Redmond" },
+                },
+                context
+            );
+
+            expect(result).toEqual({
+                nextAction: "collectAttributes",
+                continuationToken: "ct-submit",
+                attributes: [
                     {
-                        continuationToken: "ct-start",
-                        attributes: { email: "user@test.com" },
+                        attributeId: "jobTitle",
+                        inputType: "text",
+                        required: true,
                     },
-                    context
-                )
-            ).rejects.toMatchObject({
-                error: INVALID_HAL_RESPONSE,
+                ],
+                submitAttributesHref:
+                    "/tenant/api/v0.1/signup/submitattributes-2",
+            });
+        });
+
+        it("maps a completed attribute submission", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-complete",
+                    state: "continue",
+                })
+            );
+
+            const result = await apiClient.submitSignUpAttributes(
+                "/tenant/api/v0.1/signup/submitattributes",
+                {
+                    continuationToken: "ct-start",
+                    attributes: { jobTitle: "Engineer" },
+                },
+                context
+            );
+
+            expect(result).toEqual({
+                nextAction: "continue",
+                continuationToken: "ct-complete",
             });
         });
     });
@@ -671,6 +726,88 @@ describe("CustomAuthApiClientV2", () => {
             expect(result).toEqual({
                 nextAction: "continue",
                 continuationToken: "ct-verify",
+            });
+        });
+
+        it("maps sign-up state:continue using its continuation token", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-sign-up-verify",
+                    state: "continue",
+                })
+            );
+
+            const result = await apiClient.verifyChallenge(
+                "/tenant/api/v0.1/signup/verify",
+                { continuationToken: "ct-challenge", otp: "12345678" },
+                context
+            );
+
+            expect(result).toEqual({
+                nextAction: "continue",
+                continuationToken: "ct-sign-up-verify",
+            });
+        });
+
+        it("maps sign-up collectAttributes metadata and submit href", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-sign-up-verify",
+                    state: "interactionRequired",
+                    action: "collectAttributes",
+                    attributes: [
+                        {
+                            attributeId: "password",
+                            inputType: "password",
+                            required: true,
+                            canChange: true,
+                            label: "Password",
+                            confirmationInput: "retype",
+                        },
+                        {
+                            attributeId: "jobTitle",
+                            inputType: "text",
+                            canChange: true,
+                            label: "Job Title",
+                            regex: "^.*",
+                        },
+                    ],
+                    _links: {
+                        submitAttributes: {
+                            href: "/tenant/api/v0.1/signup/submitattributes",
+                        },
+                    },
+                })
+            );
+
+            const result = await apiClient.verifyChallenge(
+                "/tenant/api/v0.1/signup/verify",
+                { continuationToken: "ct-challenge", otp: "12345678" },
+                context
+            );
+
+            expect(result).toEqual({
+                nextAction: "collectAttributes",
+                continuationToken: "ct-sign-up-verify",
+                attributes: [
+                    {
+                        attributeId: "password",
+                        inputType: "password",
+                        required: true,
+                        canChange: true,
+                        label: "Password",
+                        confirmationInput: "retype",
+                    },
+                    {
+                        attributeId: "jobTitle",
+                        inputType: "text",
+                        canChange: true,
+                        label: "Job Title",
+                        regex: "^.*",
+                    },
+                ],
+                submitAttributesHref:
+                    "/tenant/api/v0.1/signup/submitattributes",
             });
         });
 
@@ -876,14 +1013,11 @@ describe("CustomAuthApiClientV2", () => {
     });
 
     describe("poll", () => {
-        it("reports completion with the continue href on state continue", async () => {
+        it("reports completion on state continue", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     state: "continue",
                     continuationToken: "ct-poll",
-                    _links: {
-                        continue: { href: "/tenant/api/v0.1/continue" },
-                    },
                 })
             );
 
@@ -896,7 +1030,6 @@ describe("CustomAuthApiClientV2", () => {
             expect(result).toEqual({
                 continuationToken: "ct-poll",
                 isCompleted: true,
-                continueHref: "/tenant/api/v0.1/continue",
             });
         });
 
@@ -918,7 +1051,6 @@ describe("CustomAuthApiClientV2", () => {
 
             expect(result.isCompleted).toBe(false);
             expect(result.continuationToken).toBe("ct-update");
-            expect(result.continueHref).toBeUndefined();
             expect(result.pollHref).toBe("/tenant/api/v0.1/poll-next");
         });
     });

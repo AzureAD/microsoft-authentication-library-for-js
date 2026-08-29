@@ -19,7 +19,11 @@ import {
     VerifyNextActionV2,
     AuthenticationFactorV2,
 } from "./result/BaseResultsV2.js";
-import { SignUpStartApiResultV2 } from "./result/SignUpResultsV2.js";
+import {
+    SignUpStartApiResultV2,
+    SignUpSubmitAttributesApiResultV2,
+    SignUpSubmitAttributesNextActionV2,
+} from "./result/SignUpResultsV2.js";
 import {
     PasswordResetStartResponseV2,
     SignInStartResponseV2,
@@ -45,6 +49,7 @@ import {
 } from "./request/RequestsV2.js";
 import {
     CHALLENGE_RELATION,
+    COLLECT_ATTRIBUTES_RELATION,
     UPDATE_RELATION,
     VERIFY_RELATION,
     ResponseStateV2,
@@ -127,7 +132,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
         submitAttributesHref: string,
         request: SignUpSubmitAttributesRequestV2,
         context: RequestContextV2
-    ): Promise<ChallengeResultV2> {
+    ): Promise<SignUpSubmitAttributesApiResultV2> {
         const parsedResponse =
             await this.sendActionRequest<SignUpSubmitAttributesResponseV2>(
                 submitAttributesHref,
@@ -136,19 +141,50 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 context
             );
 
-        if (parsedResponse.body.action !== VERIFY_RELATION) {
-            const message =
-                "Invalid HAL response: sign-up attribute submission did not return the verify action";
-            this.logger?.error(message, parsedResponse.correlationId);
+        const correlationId = parsedResponse.correlationId;
+        const continuationToken = this.handler.requireContinuationToken(
+            parsedResponse.continuationToken,
+            correlationId
+        );
 
-            throw new CustomAuthError(
-                INVALID_HAL_RESPONSE,
-                message,
-                parsedResponse.correlationId
-            );
+        if (parsedResponse.body.state === ResponseStateV2.CONTINUE) {
+            return {
+                nextAction: SignUpSubmitAttributesNextActionV2.CONTINUE,
+                continuationToken,
+            };
         }
 
-        return this.toChallengeResult(parsedResponse);
+        if (parsedResponse.body.action === COLLECT_ATTRIBUTES_RELATION) {
+            return {
+                nextAction:
+                    SignUpSubmitAttributesNextActionV2.COLLECT_ATTRIBUTES,
+                continuationToken,
+                attributes: parsedResponse.body.attributes ?? [],
+                submitAttributesHref: this.handler.requireHref(
+                    parsedResponse.body._links?.submitAttributes?.href,
+                    "submitAttributes",
+                    correlationId
+                ),
+            };
+        }
+
+        if (parsedResponse.body.action === VERIFY_RELATION) {
+            return {
+                nextAction: SignUpSubmitAttributesNextActionV2.VERIFY,
+                ...this.toChallengeResult(parsedResponse),
+                attributes: parsedResponse.body.attributes,
+            };
+        }
+
+        const message =
+            "Invalid HAL response: sign-up attribute submission returned no known next action";
+        this.logger?.error(message, correlationId);
+
+        throw new CustomAuthApiError(
+            INVALID_HAL_RESPONSE,
+            message,
+            correlationId
+        );
     }
 
     /*
@@ -241,9 +277,6 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             continuationToken:
                 parsedResponse.continuationToken ?? request.continuationToken,
             isCompleted,
-            continueHref: isCompleted
-                ? parsedResponse.body._links?.continue?.href
-                : undefined,
             pollHref: isCompleted
                 ? undefined
                 : this.handler.requireHref(
@@ -295,6 +328,19 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             return {
                 nextAction: VerifyNextActionV2.CONTINUE,
                 continuationToken,
+            };
+        }
+
+        if (parsedResponse.body.action === COLLECT_ATTRIBUTES_RELATION) {
+            return {
+                nextAction: VerifyNextActionV2.COLLECT_ATTRIBUTES,
+                continuationToken,
+                attributes: parsedResponse.body.attributes ?? [],
+                submitAttributesHref: this.handler.requireHref(
+                    parsedResponse.body._links?.submitAttributes?.href,
+                    "submitAttributes",
+                    correlationId
+                ),
             };
         }
 

@@ -54,6 +54,11 @@ export interface FlowSubmitSignInPasswordParamsV2 extends FlowParamsBaseV2 {
     password: string;
 }
 
+export interface FlowSubmitSignUpAttributesParamsV2 extends FlowParamsBaseV2 {
+    continuationState: FlowContinuationStateV2;
+    attributes: UserAccountAttributes;
+}
+
 // Sign the account in by redeeming a completed flow's continuation for tokens.
 export interface FlowSignInWithContinuationParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
