@@ -185,3 +185,63 @@ export async function enterAadCredentials(
 }
 
 // #endregion
+
+// #region EAR (Encrypted Authorize Response) assertions
+
+// sessionStorage key the decrypt spy increments on every AES-GCM decrypt. A
+// non-zero count proves MSAL decrypted an `ear_jwe` (EAR response) rather than
+// falling back to a plaintext auth-code exchange.
+export const EAR_DECRYPT_COUNT_KEY = "__earDecryptCount";
+
+// Installs an AES-GCM decrypt counter on every document in the context, before
+// any page script runs. Wrapping `crypto.subtle.decrypt` lets the specs prove
+// the host performed an EAR authorize (its own login and the tokens it brokers
+// for the nested app both decrypt an `ear_jwe`). Best-effort: never breaks auth.
+export async function installEarDecryptSpy(
+    context: BrowserContext
+): Promise<void> {
+    await context.addInitScript((key: string) => {
+        try {
+            if (!window.crypto || !window.crypto.subtle) {
+                return;
+            }
+            const realDecrypt = window.crypto.subtle.decrypt.bind(
+                window.crypto.subtle
+            );
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (window.crypto.subtle as any).decrypt = function (
+                algorithm: AlgorithmIdentifier,
+                cryptoKey: CryptoKey,
+                data: BufferSource
+            ) {
+                const algName =
+                    typeof algorithm === "string" ? algorithm : algorithm.name;
+                if (algName === "AES-GCM") {
+                    try {
+                        const next =
+                            parseInt(
+                                window.sessionStorage.getItem(key) || "0",
+                                10
+                            ) + 1;
+                        window.sessionStorage.setItem(key, String(next));
+                    } catch {
+                        // ignore storage errors
+                    }
+                }
+                return realDecrypt(algorithm, cryptoKey, data);
+            };
+        } catch {
+            // best-effort spy: never break the auth flow
+        }
+    }, EAR_DECRYPT_COUNT_KEY);
+}
+
+// Reads the AES-GCM decrypt count from the page or frame's sessionStorage.
+export async function getEarDecryptCount(page: Page | Frame): Promise<number> {
+    return page.evaluate(
+        (key) => parseInt(window.sessionStorage.getItem(key) || "0", 10),
+        EAR_DECRYPT_COUNT_KEY
+    );
+}
+
+// #endregion
