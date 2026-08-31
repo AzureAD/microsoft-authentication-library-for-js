@@ -138,10 +138,20 @@ function validateNavigationTarget(
         throwRelayError(UNSAFE_URL_SUBERROR);
     }
     if (
-        allowedAuthorityOrigins &&
-        normalizeAllowedOrigins(allowedAuthorityOrigins).indexOf(
-            parsed.origin
-        ) < 0
+        allowedAuthorityOrigins !== undefined &&
+        !Array.isArray(allowedAuthorityOrigins)
+    ) {
+        throwRelayError(INVALID_ALLOWED_ORIGIN_SUBERROR);
+    }
+
+    const normalizedAllowedOrigins =
+        allowedAuthorityOrigins === undefined
+            ? undefined
+            : normalizeAllowedOrigins(allowedAuthorityOrigins);
+
+    if (
+        normalizedAllowedOrigins &&
+        normalizedAllowedOrigins.indexOf(parsed.origin) < 0
     ) {
         throwRelayError(UNTRUSTED_AUTHORITY_SUBERROR);
     }
