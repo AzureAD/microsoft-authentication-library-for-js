@@ -2,6 +2,63 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Fri, 28 Aug 2026 21:29:53 GMT",
+      "version": "6.0.0",
+      "tag": "@azure/msal-node_v6.0.0",
+      "comments": {
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Remove legacy environment metadata and legacy authority support [#8794](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8794)"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Remove the disallowedChangeTypes beachball guard on @azure/msal-node to allow the upcoming v6 major release [#8782](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8782)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Validate Node consumers without DOM typings during type builds [#8784](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8784)"
+          }
+        ],
+        "major": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "[Breaking] Default acquireTokenInteractive responseMode to form_post and remove the deprecated loopbackClient option and ILoopbackClient interface (v6) [#8779](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8779)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.14.0",
+            "commit": "not available"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Enable support for tenant_region_subscope optional claim [#8765](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8765)"
+          },
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Align node storage with explicit DPoP token-binding key manager wiring [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 18 Aug 2026 20:10:56 GMT",
       "version": "5.6.0",
       "tag": "@azure/msal-node_v5.6.0",

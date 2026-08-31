@@ -1,7 +1,0 @@
-{
-    "type": "minor",
-    "comment": "Align node storage with explicit DPoP token-binding key manager wiring [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735)",
-    "packageName": "@azure/msal-node",
-    "email": "hectormmg@microsoft.com",
-    "dependentChangeType": "minor"
-}

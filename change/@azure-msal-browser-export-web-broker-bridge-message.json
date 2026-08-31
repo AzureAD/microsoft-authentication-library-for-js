@@ -1,7 +1,0 @@
-{
-    "type": "minor",
-    "comment": "Export IWebBrokerBridgeMessage from the msal-browser package root [#8780](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8780)",
-    "packageName": "@azure/msal-browser",
-    "email": "shylasummers@microsoft.com",
-    "dependentChangeType": "minor"
-}
