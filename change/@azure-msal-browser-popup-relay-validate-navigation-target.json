@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Validate the relayed request in runPopupRelay before navigating and add an optional allowedAuthorityOrigins pin",
+    "packageName": "@azure/msal-browser",
+    "email": "kshabelko@microsoft.com",
+    "dependentChangeType": "patch"
+}
