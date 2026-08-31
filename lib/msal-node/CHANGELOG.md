@@ -1,8 +1,26 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 18 Aug 2026 20:10:56 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 31 Aug 2026 16:34:34 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 6.0.0
+
+Mon, 31 Aug 2026 16:34:34 GMT
+
+### Major changes
+
+- [Breaking] Default acquireTokenInteractive responseMode to form_post and remove the deprecated loopbackClient option and ILoopbackClient interface (v6) [#8779](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8779) (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v16.14.0
+
+### Minor changes
+
+- Enable support for tenant_region_subscope optional claim [#8765](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8765) (kshabelko@microsoft.com)
+- Align node storage with explicit DPoP token-binding key manager wiring [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735) (hectormmg@microsoft.com)
+
+### Patches
+
+- Validate Node consumers without DOM typings during type builds [#8784](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8784) (hectormmg@microsoft.com)
 
 ## 5.6.0
 

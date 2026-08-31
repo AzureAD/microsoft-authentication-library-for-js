@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 18 Aug 2026 20:10:56 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 31 Aug 2026 16:34:34 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.14.0
+
+Mon, 31 Aug 2026 16:34:34 GMT
+
+### Minor changes
+
+- Remove legacy environment metadata and legacy authority support [#8794](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8794) (sameera.gajjarapu@microsoft.com)
+- Enable support for tenant_region_subscope optional claim [#8765](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8765) (kshabelko@microsoft.com)
+- Enable public L1 PCA DPoP request, cache, and AuthenticationResult support [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735) (hectormmg@microsoft.com)
+
+### Patches
+
+- Remove the DOM type dependency from public declarations [#8784](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8784) (hectormmg@microsoft.com)
 
 ## 16.13.0
 

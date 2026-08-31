@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Bump @angular-devkit/build-angular to 22.1.x to pull patched http-proxy-middleware 4.2.0 (GHSA-gcq2-9pq2-cxqm) [#8781](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8781)",
-  "packageName": "@azure/msal-angular",
-  "email": "lalima.sharda@gmail.com",
-  "dependentChangeType": "patch"
-}
