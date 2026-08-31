@@ -610,6 +610,48 @@ describe("runPopupRelay request validation", () => {
             expect(openSpy).not.toHaveBeenCalled();
         });
 
+        /*
+         * The allow list is a security control, so an entry that cannot express
+         * a trustworthy origin must not be accepted as one. A non-https or
+         * credential-bearing entry is a configuration bug, and silently keeping
+         * it would let the pin appear stricter than it is.
+         */
+        it.each([
+            ["a non-https entry", "http://login.microsoftonline.com"],
+            [
+                "an entry carrying credentials",
+                "https://user:pass@login.microsoftonline.com",
+            ],
+        ])("rejects %s in the allow list", (_label, entry) => {
+            setReq({ id: CHANNEL_ID, method: "GET", url: AUTH_URL });
+
+            expect(() =>
+                runPopupRelay({ allowedAuthorityOrigins: [entry] })
+            ).toThrowError(
+                expect.objectContaining({
+                    subError: "popup_relay_invalid_allowed_origin",
+                })
+            );
+            expect(openSpy).not.toHaveBeenCalled();
+        });
+
+        it("rejects an allowedAuthorityOrigins that is not an array", () => {
+            setReq({ id: CHANNEL_ID, method: "GET", url: AUTH_URL });
+
+            expect(() =>
+                runPopupRelay({
+                    // Guards JS callers, who are not held to the string[] type.
+                    allowedAuthorityOrigins:
+                        "https://login.microsoftonline.com" as unknown as string[],
+                })
+            ).toThrowError(
+                expect.objectContaining({
+                    subError: "popup_relay_invalid_allowed_origin",
+                })
+            );
+            expect(openSpy).not.toHaveBeenCalled();
+        });
+
         it("pins the POST form action as well as the GET url", () => {
             setReq({
                 id: CHANNEL_ID,
