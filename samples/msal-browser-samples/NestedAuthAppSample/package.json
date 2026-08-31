@@ -6,6 +6,7 @@
     "scripts": {
         "start": "node server.js",
         "start:https": "node server.js --https",
+        "start:e2e": "env-cmd -f .env.e2e npm run start:https",
         "start:all": "node server.js",
         "start:build": "npm run build:package && npm start",
         "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-browser",
