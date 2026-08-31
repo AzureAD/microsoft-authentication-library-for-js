@@ -96,7 +96,12 @@ function tryParseJson(raw: string): unknown {
 function normalizeAllowedOrigins(allowedAuthorityOrigins: string[]): string[] {
     return allowedAuthorityOrigins.map((entry) => {
         const parsed = typeof entry === "string" ? tryParseUrl(entry) : null;
-        if (!parsed) {
+        if (
+            !parsed ||
+            parsed.protocol !== "https:" ||
+            parsed.username ||
+            parsed.password
+        ) {
             throwRelayError(INVALID_ALLOWED_ORIGIN_SUBERROR);
         }
         return parsed.origin;
