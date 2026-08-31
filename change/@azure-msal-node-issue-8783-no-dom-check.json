@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Validate Node consumers without DOM typings during type builds [#8784](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8784)",
-    "packageName": "@azure/msal-node",
-    "email": "hectormmg@microsoft.com",
-    "dependentChangeType": "patch"
-}
