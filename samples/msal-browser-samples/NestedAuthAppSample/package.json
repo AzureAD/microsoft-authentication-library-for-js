@@ -11,7 +11,9 @@
         "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-browser",
         "test:e2e": "jest",
         "test:e2e:basic": "jest naa-basic",
-        "test:e2e:broker": "jest naa-platform-broker"
+        "test:e2e:broker": "jest naa-platform-broker",
+        "test:e2e:ear": "env-cmd -f .env.e2e jest naa-basic -t EAR",
+        "test:e2e:ear-broker": "jest naa-platform-broker -t EAR"
     },
     "workspaces": [
         "hostApp",
