@@ -83,6 +83,29 @@ async function getNestedFrame(hostPage: Page): Promise<Frame> {
     return frame;
 }
 
+// Resets the nested app to a pristine state before each case: clears its MSAL
+// cache and reloads the iframe so the nested PCA re-initializes with an empty
+// token cache. Without this the cases share one nested cache, so a cache-first
+// API (e.g. ssoSilent after acquireTokenSilent) would be served the token a
+// previous case cached and never issue its own bridge request. The account
+// context is restored from the host bridge on reload, so every API still
+// resolves — but only by genuinely exercising its bridge path.
+async function resetNestedFrame(hostPage: Page): Promise<Frame> {
+    const frame = await getNestedFrame(hostPage);
+    await frame.evaluate(() => window.sessionStorage.clear());
+    await hostPage.evaluate((selector) => {
+        const iframe = document.querySelector(
+            selector
+        ) as HTMLIFrameElement | null;
+        if (iframe) {
+            // Re-assigning src (even to the same URL) reloads the iframe.
+            // eslint-disable-next-line no-self-assign
+            iframe.src = iframe.src;
+        }
+    }, NESTED_IFRAME);
+    return getNestedFrame(hostPage);
+}
+
 // Asserts a nestable-client token store: one id + access token for the scopes,
 // and no refresh token (the broker holds it).
 function assertNestedTokenStore(store: TokenStore): void {
@@ -214,6 +237,12 @@ brokerDescribe("NAA token APIs brokered through the platform broker", () => {
         }
         await serverUtils.killServer(HOST_APP_PORT);
         await serverUtils.killServer(NESTED_APP_PORT);
+    });
+
+    // Reset the nested cache before every case so each API exercises its own
+    // bridge path instead of being served a token a prior case cached.
+    beforeEach(async () => {
+        nestedFrame = await resetNestedFrame(hostPage);
     });
 
     it.each(TOKEN_APIS)(
