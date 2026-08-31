@@ -71,12 +71,6 @@ const AcquireTokenRedirect = "acquireTokenRedirect";
 const AcquireTokenSilent = "acquireTokenSilent";
 
 // @public
-export function addLegacyRequestFields<TRequest extends CrossVersionRequestFields>(request: TRequest): CrossVersionRequest<TRequest>;
-
-// @public
-export function addResourceField<TRequest extends CrossVersionRequestFields>(request: TRequest): TRequest;
-
-// @public
 export const ApiId: {
     readonly acquireTokenRedirect: 861;
     readonly acquireTokenPopup: 862;
@@ -442,19 +436,6 @@ export function createNestablePublicClientApplication(configuration: Configurati
 // @public
 export function createStandardPublicClientApplication(configuration: Configuration): Promise<IPublicClientApplication>;
 
-// @public
-export type CrossVersionRequest<TRequest extends CrossVersionRequestFields = CrossVersionRequestFields> = TRequest & LegacyRequestFields;
-
-// @public
-export interface CrossVersionRequestFields {
-    // (undocumented)
-    extraParameters?: StringDict;
-    // (undocumented)
-    extraQueryParameters?: StringDict;
-    // (undocumented)
-    resource?: string;
-}
-
 // @public (undocumented)
 const cryptoKeyNotFound = "crypto_key_not_found";
 
@@ -740,17 +721,6 @@ function isInPopup(): boolean;
 // @public
 export function isPlatformBrokerAvailable(domConfig: boolean, loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
 
-// @public
-export interface IWebBrokerBridgeMessage {
-    readonly requestId: string;
-    readonly type: string;
-}
-
-// @public
-export interface IWebBrokerBridgeResponse extends IWebBrokerBridgeMessage {
-    error?: WebBrokerBridgeError;
-}
-
 // @public (undocumented)
 export interface IWindowStorage<T> {
     containsKey(key: string): boolean;
@@ -775,16 +745,6 @@ export const JsonWebTokenTypes: {
 
 // @public (undocumented)
 export type JsonWebTokenTypes = Constants.JsonWebTokenTypes;
-
-// @public
-export interface LegacyRequestFields {
-    // (undocumented)
-    authorizePostBodyParameters?: StringDict;
-    // (undocumented)
-    tokenBodyParameters?: StringDict;
-    // (undocumented)
-    tokenQueryParameters?: StringDict;
-}
 
 // @public (undocumented)
 const LoadExternalTokens = "loadExternalTokens";
@@ -893,12 +853,6 @@ const nonBrowserEnvironment = "non_browser_environment";
 // @public (undocumented)
 const noNetworkConnectivity = "no_network_connectivity";
 
-// @public
-export function normalizeIncomingRequest<TRequest extends CrossVersionRequestFields>(request: CrossVersionRequest<TRequest>): TRequest;
-
-// @public
-export function normalizeResourceField<TRequest extends CrossVersionRequestFields>(request: TRequest): TRequest;
-
 // @public (undocumented)
 const noStateInHash = "no_state_in_hash";
 
@@ -921,15 +875,6 @@ function parseAuthResponseFromUrl(): {
         meta: Record<string, string>;
     };
 };
-
-// @public
-export class PendingRequestRegistry<TResp> {
-    has(requestId: string): boolean;
-    register(requestId: string): Promise<TResp>;
-    reject(requestId: string, reason: unknown): void;
-    resolve(requestId: string, response: TResp): void;
-    sendAndAwait<TReq extends IWebBrokerBridgeMessage>(message: TReq, send: WebBrokerBridgeSendFn<TReq>): Promise<TResp>;
-}
 
 export { PerformanceCallbackFunction }
 
@@ -1150,9 +1095,6 @@ export { TenantProfile }
 // @public (undocumented)
 const timedOut = "timed_out";
 
-// @public
-export function toAuthError(err: WebBrokerBridgeError): AuthError;
-
 // @public (undocumented)
 const tokenBindingKeyAlgorithmMismatch = "token_binding_key_algorithm_mismatch";
 
@@ -1196,40 +1138,6 @@ interface WaitForBridgeRequest {
 
 // @internal (undocumented)
 function waitForBridgeResponse(timeoutMs: number, logger: Logger, request: WaitForBridgeRequest, performanceClient: IPerformanceClient, experimentalConfig?: BrowserExperimentalOptions): Promise<string>;
-
-// @public
-export interface WebBrokerBridgeError {
-    readonly code: WebBrokerBridgeErrorCode;
-    readonly correlationId?: string;
-    readonly description?: string;
-    readonly innerErrorCode?: string;
-    readonly subError?: string;
-}
-
-// @public
-export const WebBrokerBridgeErrorCode: {
-    readonly UserInteractionRequired: "user_interaction_required";
-    readonly UserCanceled: "user_canceled";
-    readonly NoNetwork: "no_network";
-    readonly AccountUnavailable: "account_unavailable";
-    readonly BridgeDisabled: "bridge_disabled";
-    readonly BridgeUnavailable: "bridge_unavailable";
-    readonly TransientError: "transient_error";
-    readonly PersistentError: "persistent_error";
-    readonly BridgeTimeout: "bridge_timeout";
-    readonly BridgeHandshakeFailed: "bridge_handshake_failed";
-    readonly BridgeConnectionReset: "bridge_connection_reset";
-    readonly BridgeResponseInvalid: "bridge_response_invalid";
-    readonly PopupWillRedirect: "popup_will_redirect";
-    readonly ShrGenerationError: "shr_generation_error";
-    readonly Unknown: "unknown";
-};
-
-// @public (undocumented)
-export type WebBrokerBridgeErrorCode = (typeof WebBrokerBridgeErrorCode)[keyof typeof WebBrokerBridgeErrorCode];
-
-// @public (undocumented)
-export type WebBrokerBridgeSendFn<TReq extends IWebBrokerBridgeMessage> = (message: TReq) => void;
 
 // @public (undocumented)
 export const WrapperSKU: {

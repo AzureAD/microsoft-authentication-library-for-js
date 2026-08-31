@@ -26,6 +26,13 @@
   "main": "./lib/msal-browser.cjs",
   "module": "./dist/index.mjs",
   "types": "./types/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "web-broker-bridge": [
+        "./types/webBrokerBridge/index.d.ts"
+      ]
+    }
+  },
   "exports": {
     "./custom-auth": {
       "import": {
@@ -55,6 +62,16 @@
       "require": {
         "types": "./types/popup_relay/index.d.cts",
         "default": "./lib/popup-relay/msal-popup-relay.cjs"
+      }
+    },
+    "./web-broker-bridge": {
+      "import": {
+        "types": "./types/webBrokerBridge/index.d.ts",
+        "default": "./dist/webBrokerBridge/index.mjs"
+      },
+      "require": {
+        "types": "./types/webBrokerBridge/index.d.cts",
+        "default": "./lib/web-broker-bridge/msal-web-broker-bridge.cjs"
       }
     },
     ".": {
