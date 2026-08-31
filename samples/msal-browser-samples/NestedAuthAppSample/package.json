@@ -21,6 +21,7 @@
     "devDependencies": {
         "@types/jest": "^29.5.0",
         "@vitejs/plugin-basic-ssl": "^2.3.0",
+        "@vitejs/plugin-react": "^4.3.3",
         "dotenv": "^16.6.1",
         "e2e-test-utils": "file:../../e2eTestUtils",
         "env-cmd": "^10.1.0",
@@ -29,6 +30,7 @@
         "playwright-core": "^1.61.1",
         "puppeteer": "^24.2.1",
         "ts-jest": "^29.1.1",
-        "typescript": "5.7.3"
+        "typescript": "5.7.3",
+        "vite": "^5.4.11"
     }
 }
