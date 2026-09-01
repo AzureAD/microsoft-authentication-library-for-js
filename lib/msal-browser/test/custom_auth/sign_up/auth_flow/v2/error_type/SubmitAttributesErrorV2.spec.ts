@@ -61,7 +61,7 @@ describe("SubmitAttributesErrorV2", () => {
         expect(error.isInvalidPassword()).toBe(true);
     });
 
-    it("leaves duplicate and unsupported flatusername details as general errors", () => {
+    it("leaves duplicate and unsupported attribute details as general errors", () => {
         const error = new SubmitAttributesErrorV2(
             new CustomAuthApiError(
                 "invalidRequest",
@@ -80,7 +80,7 @@ describe("SubmitAttributesErrorV2", () => {
                         message: "The account already exists.",
                     },
                     {
-                        attributeIds: ["flatusername"],
+                        attributeIds: ["unsupportedAttribute"],
                         code: "notSupported",
                         message: "The attribute is not supported.",
                     },

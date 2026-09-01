@@ -199,6 +199,18 @@ describe("Sign-up V2 entry", () => {
                 city: "Redmond",
             },
         },
+        {
+            name: "email and username alias",
+            inputs: {
+                attributes: {
+                    username: "test-user",
+                },
+            },
+            expectedAttributes: {
+                email: "user@contoso.com",
+                username: "test-user",
+            },
+        },
     ])(
         "submits the initial $name combination once",
         async ({ inputs, expectedAttributes }) => {
@@ -264,56 +276,6 @@ describe("Sign-up V2 entry", () => {
                     attributeIds: ["email"],
                     code: "userAlreadyExists",
                     message: "An account with this identifier already exists.",
-                },
-            ],
-        });
-    });
-
-    it("surfaces flatusername rejection as a general sign-up error", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
-            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-            .mockResolvedValueOnce(
-                buildResponse(
-                    {
-                        error: {
-                            code: "invalidRequest",
-                            message:
-                                "AADSTS901002: The 'flatusername' request parameter is not supported.",
-                            correlationId: "corr-flatusername",
-                            innerError: {
-                                code: "attributeValidationError",
-                                details: [
-                                    {
-                                        attributeIds: ["flatusername"],
-                                        code: "notSupported",
-                                        message:
-                                            "The flatusername attribute is not supported.",
-                                    },
-                                ],
-                            },
-                        },
-                    },
-                    400
-                )
-            );
-
-        const result = await app.signUpV2({
-            username: "user@contoso.com",
-            attributes: {
-                flatusername: "test-user",
-            },
-        });
-
-        expect(result.isFailed()).toBe(true);
-        expect(result.error?.errorData).toMatchObject({
-            error: "invalidRequest",
-            correlationId: "corr-flatusername",
-            attributeValidationDetails: [
-                {
-                    attributeIds: ["flatusername"],
-                    code: "notSupported",
-                    message: "The flatusername attribute is not supported.",
                 },
             ],
         });

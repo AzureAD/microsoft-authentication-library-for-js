@@ -7,6 +7,7 @@ import { CustomAuthFlowScenarioV2 } from "../../../../src/custom_auth/core/auth_
 import { getPublicApiIdV2 } from "../../../../src/custom_auth/core/telemetry/FlowApiIdHelperV2.js";
 import {
     RESET_PASSWORD_V2_SUBMIT_CODE,
+    SIGN_IN_AFTER_SIGN_UP,
     SIGN_IN_V2_SUBMIT_CODE,
     SIGN_IN_V2_SUBMIT_PASSWORD,
 } from "../../../../src/custom_auth/core/telemetry/PublicApiId.js";
@@ -27,6 +28,11 @@ describe("getPublicApiIdV2", () => {
             scenario: CustomAuthFlowScenarioV2.PasswordReset,
             step: "submitCode" as const,
             expectedApiId: RESET_PASSWORD_V2_SUBMIT_CODE,
+        },
+        {
+            scenario: CustomAuthFlowScenarioV2.SignUp,
+            step: "signInWithContinuation" as const,
+            expectedApiId: SIGN_IN_AFTER_SIGN_UP,
         },
     ])(
         "maps $scenario $step to $expectedApiId",

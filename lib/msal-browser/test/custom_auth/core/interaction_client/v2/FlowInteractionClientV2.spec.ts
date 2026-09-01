@@ -45,6 +45,7 @@ import {
     getDefaultPerformanceClient,
 } from "../../../test_resources/TestModules.js";
 import {
+    SIGN_IN_AFTER_SIGN_UP,
     SIGN_IN_V2_SUBMIT_CODE,
     SIGN_IN_V2_SUBMIT_PASSWORD,
 } from "../../../../../src/custom_auth/core/telemetry/PublicApiId.js";
@@ -173,7 +174,7 @@ describe("FlowInteractionClientV2", () => {
                     email: "wrong@contoso.com",
                     password: "wrong-password",
                     displayName: "Test User",
-                    flatusername: "test-user",
+                    username: "test-user",
                 },
                 scopes: ["User.Read"],
             });
@@ -186,7 +187,7 @@ describe("FlowInteractionClientV2", () => {
                         email: "user@contoso.com",
                         password: "P@ssword1!",
                         displayName: "Test User",
-                        flatusername: "test-user",
+                        username: "test-user",
                     },
                 },
                 expect.objectContaining({ correlationId })
@@ -1439,7 +1440,7 @@ describe("FlowInteractionClientV2", () => {
                 correlationId,
                 continuationState,
                 attributes: {
-                    flatusername: "test-user",
+                    username: "test-user",
                 },
             });
 
@@ -1799,6 +1800,35 @@ describe("FlowInteractionClientV2", () => {
             const completed = result as FlowCompletedResultV2;
             expect(completed.correlationId).toBe(correlationId);
             expect(completed.authenticationResult).toBe(fakeAuthResult);
+        });
+
+        it("uses the sign-in-after-sign-up API ID for sign-up continuation", async () => {
+            apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
+            const handleSpy = jest
+                .spyOn(
+                    client as unknown as {
+                        handleTokenResponse: (
+                            ...args: unknown[]
+                        ) => Promise<unknown>;
+                    },
+                    "handleTokenResponse"
+                )
+                .mockResolvedValue(fakeAuthResult);
+
+            await client.signInWithContinuation({
+                correlationId,
+                continuationState: {
+                    ...continuationState,
+                    scenario: "signUp",
+                },
+            });
+
+            expect(handleSpy).toHaveBeenCalledWith(
+                tokenResponse,
+                ["openid", "profile", "offline_access"],
+                correlationId,
+                SIGN_IN_AFTER_SIGN_UP
+            );
         });
 
         it("unions caller-supplied scopes with the default OIDC scopes", async () => {

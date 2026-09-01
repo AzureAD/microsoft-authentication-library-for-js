@@ -1146,6 +1146,14 @@ describe("CustomAuthApiClientV2", () => {
 
             expect(result.access_token).toBe("access-1");
             expect(mockHttpClient.sendAsync).toHaveBeenCalledTimes(2);
+            expect(
+                mockHttpClient.sendAsync.mock.calls[0][1].body.toString()
+            ).toBe("continuation_token=ct-poll");
+            expect(
+                mockHttpClient.sendAsync.mock.calls[1][1].body.toString()
+            ).toBe(
+                "client_id=client-id-123&grant_type=authorization_code&code=auth-code-1&client_info=1&scope=openid"
+            );
         });
     });
 });
