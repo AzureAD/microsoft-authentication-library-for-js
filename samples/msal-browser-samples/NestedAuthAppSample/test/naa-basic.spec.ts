@@ -82,14 +82,7 @@ const verifyNestedTokenStore = async (
  * The host app implements and supplies `window.nestedAppAuthBridge`, brokering
  * the nested app's tokens over the regular web flow. The nested app acquires a
  * token silently through that bridge and never holds a refresh token — that is
- * the core NAA property under test. (When a platform broker is available the
- * host can forward the same requests to it; that path is wired up separately.)
- *
- * NOTE: brokering the nested token over the web flow has the host redeem the
- * auth code for the nested client id on the HOST origin, so the nested app
- * registration trusts the host origin as a SPA redirect URI. The registrations
- * configured in `.env.e2e` (host + nested broker test apps) are set up for
- * this, so the brokered acquisition succeeds. Requires lab credentials.
+ * the core NAA property under test. Requires lab credentials.
  */
 describe("Nested App Authentication brokered through the host app", () => {
     jest.setTimeout(jestTimeout);
@@ -177,10 +170,8 @@ describe("Nested App Authentication brokered through the host app", () => {
         await screenshot.takeScreenshot(page, "Nested app authenticated");
 
         // Nested app must not hold a refresh token — it stays with the host/broker.
-        // The nested app caches to sessionStorage, which is scoped to its
-        // browsing context (the iframe). Read it from the frame directly — a
-        // fresh top-level page to the same origin would get an empty,
-        // unrelated sessionStorage.
+        // The nested app caches to sessionStorage, which is scoped to the iframe's
+        // browsing context, so read it from the frame directly.
         const nestedCache = new BrowserCacheUtils(
             nestedFrame as unknown as Page,
             "sessionStorage"

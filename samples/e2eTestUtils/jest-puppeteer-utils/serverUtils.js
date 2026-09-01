@@ -84,10 +84,8 @@ async function isServerUp(port, timeout) {
                 // errors will be raised until the server is up. Ignore errors
             });
 
-            // ...and over HTTPS on IPv6. Vite defaults to binding "localhost",
-            // which on Node 18+ (verbatim DNS resolution) can resolve to IPv6
-            // (::1) only. Without this probe an https sample bound to ::1 would
-            // never be detected as up (the https check above forces IPv4).
+            // ...and over HTTPS on IPv6, for samples bound to localhost that
+            // resolve to ::1 only.
             const requestHttpsIPv6 = {
                 protocol: "https:",
                 host: "localhost",
