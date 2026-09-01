@@ -177,7 +177,7 @@ describe("ResponseHandler.ts", () => {
             scopes: ["openid"],
         };
 
-        it("rejects an ID Token nonce when no expected nonce is supplied", async () => {
+        it("does not enforce nonce presence when validation is not enabled", async () => {
             const warningSpy = jest.spyOn(logger, "warning");
             const responseHandler = new ResponseHandler(
                 TEST_CONFIG.MSAL_CLIENT_ID,
@@ -198,6 +198,34 @@ describe("ResponseHandler.ts", () => {
                     0,
                     { code: TEST_TOKENS.AUTHORIZATION_CODE }
                 )
+            ).resolves.toBeDefined();
+            expect(warningSpy).not.toHaveBeenCalled();
+        });
+
+        it("rejects an ID Token nonce when no expected nonce is supplied", async () => {
+            const warningSpy = jest.spyOn(logger, "warning");
+            const responseHandler = new ResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+
+            await expect(
+                responseHandler.handleServerTokenResponse(
+                    AUTHENTICATION_RESULT.body,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    testRequest,
+                    0,
+                    {
+                        code: TEST_TOKENS.AUTHORIZATION_CODE,
+                        nonce: undefined,
+                    }
+                )
             ).rejects.toMatchObject({
                 errorCode: ClientAuthErrorCodes.nonceMismatch,
             });
@@ -205,6 +233,71 @@ describe("ResponseHandler.ts", () => {
                 "Authorization code response contains an ID Token nonce, but no expected nonce was supplied. Rejecting the response.",
                 TEST_CONFIG.CORRELATION_ID
             );
+        });
+
+        it("rejects an empty ID Token nonce when no expected nonce is supplied", async () => {
+            claimsStub.mockReturnValue({
+                ...ID_TOKEN_CLAIMS,
+                nonce: "",
+            });
+            const warningSpy = jest.spyOn(logger, "warning");
+            const responseHandler = new ResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+
+            await expect(
+                responseHandler.handleServerTokenResponse(
+                    AUTHENTICATION_RESULT.body,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    testRequest,
+                    0,
+                    {
+                        code: TEST_TOKENS.AUTHORIZATION_CODE,
+                        nonce: undefined,
+                    }
+                )
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.nonceMismatch,
+            });
+            expect(warningSpy).toHaveBeenCalledWith(
+                "Authorization code response contains an ID Token nonce, but no expected nonce was supplied. Rejecting the response.",
+                TEST_CONFIG.CORRELATION_ID
+            );
+        });
+
+        it("rejects a missing ID Token nonce when an empty expected nonce is supplied", async () => {
+            const responseHandler = new ResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+
+            await expect(
+                responseHandler.handleServerTokenResponse(
+                    AUTHENTICATION_RESULT.body,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    testRequest,
+                    0,
+                    {
+                        code: TEST_TOKENS.AUTHORIZATION_CODE,
+                        nonce: "",
+                    }
+                )
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.nonceMismatch,
+            });
         });
 
         it("rejects a missing ID Token when an expected nonce is supplied", async () => {

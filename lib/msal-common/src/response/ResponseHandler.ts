@@ -221,18 +221,30 @@ export class ResponseHandler {
             );
         }
 
-        if (authCodePayload) {
+        /*
+         * Callers opt in to strict nonce-presence validation by including
+         * the nonce property, even when its value is undefined.
+         */
+        if (
+            authCodePayload &&
+            Object.prototype.hasOwnProperty.call(authCodePayload, "nonce")
+        ) {
             const expectedNonce = authCodePayload.nonce;
             const tokenNonce = idTokenClaims?.nonce;
+            const expectedNoncePresent = expectedNonce !== undefined;
+            const tokenNoncePresent = tokenNonce !== undefined;
 
-            if (tokenNonce && !expectedNonce) {
+            if (tokenNoncePresent && !expectedNoncePresent) {
                 this.logger.warning(
                     "Authorization code response contains an ID Token nonce, but no expected nonce was supplied. Rejecting the response.",
                     request.correlationId
                 );
             }
 
-            if ((expectedNonce || tokenNonce) && expectedNonce !== tokenNonce) {
+            if (
+                (expectedNoncePresent || tokenNoncePresent) &&
+                expectedNonce !== tokenNonce
+            ) {
                 throw createClientAuthError(
                     ClientAuthErrorCodes.nonceMismatch,
                     request.correlationId

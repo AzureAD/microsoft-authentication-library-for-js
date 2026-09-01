@@ -228,6 +228,10 @@ describe("PublicClientApplication", () => {
 
         const MockAuthorizationCodeClient =
             getMsalCommonAutoMock().AuthorizationCodeClient;
+        const acquireTokenSpy = jest.spyOn(
+            MockAuthorizationCodeClient.prototype,
+            "acquireToken"
+        );
 
         jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
             (config) =>
@@ -241,6 +245,10 @@ describe("PublicClientApplication", () => {
         await authApp.acquireTokenByCode(request);
 
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        expect(acquireTokenSpy.mock.calls[0][2]).toEqual({
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            nonce: undefined,
+        });
     });
 
     test("acquireTokenByCode forwards request nonce in auth code payload", async () => {
@@ -274,6 +282,38 @@ describe("PublicClientApplication", () => {
         expect(acquireTokenSpy.mock.calls[0][2]).toEqual({
             code: TEST_CONSTANTS.AUTHORIZATION_CODE,
             nonce,
+        });
+    });
+
+    test("acquireTokenByCode preserves an empty request nonce in auth code payload", async () => {
+        const request: AuthorizationCodeRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            nonce: "",
+        };
+
+        const MockAuthorizationCodeClient =
+            getMsalCommonAutoMock().AuthorizationCodeClient;
+        const acquireTokenSpy = jest.spyOn(
+            MockAuthorizationCodeClient.prototype,
+            "acquireToken"
+        );
+
+        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+            (config) =>
+                new MockAuthorizationCodeClient(
+                    config,
+                    new StubPerformanceClient()
+                )
+        );
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenByCode(request);
+
+        expect(acquireTokenSpy.mock.calls[0][2]).toEqual({
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            nonce: "",
         });
     });
 

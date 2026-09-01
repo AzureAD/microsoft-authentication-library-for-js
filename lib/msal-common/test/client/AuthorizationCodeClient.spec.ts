@@ -1035,56 +1035,6 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
         });
 
-        it("passes a code-only auth code payload to ResponseHandler when no payload is provided", async () => {
-            jest.spyOn(
-                Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
-            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            jest.spyOn(
-                TokenProtocol,
-                "executePostToTokenEndpoint"
-            ).mockResolvedValue(AUTHENTICATION_RESULT as any);
-
-            jest.spyOn(
-                ResponseHandler.prototype,
-                "validateTokenResponse"
-            ).mockImplementation(() => undefined);
-            const handleServerTokenResponseSpy = jest
-                .spyOn(ResponseHandler.prototype, "handleServerTokenResponse")
-                .mockResolvedValue(AUTHENTICATION_RESULT as any);
-
-            const client = new AuthorizationCodeClient(
-                config,
-                stubPerformanceClient
-            );
-            const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
-                scopes: [
-                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                    ...TEST_CONFIG.DEFAULT_SCOPES,
-                ],
-                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                code: TEST_TOKENS.AUTHORIZATION_CODE,
-                correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: Constants.AuthenticationScheme.BEARER,
-            };
-
-            await client.acquireToken(authorizationCodeRequest, 0);
-
-            expect(handleServerTokenResponseSpy).toHaveBeenCalledWith(
-                AUTHENTICATION_RESULT.body,
-                expect.anything(),
-                expect.any(Number),
-                authorizationCodeRequest,
-                0,
-                { code: authorizationCodeRequest.code },
-                undefined,
-                undefined,
-                undefined,
-                undefined
-            );
-        });
-
         it("emits hasAttributeTokens telemetry during auth code redemption", async () => {
             jest.spyOn(
                 Authority.prototype,
