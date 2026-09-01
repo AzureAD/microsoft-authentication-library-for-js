@@ -12,6 +12,7 @@ import { CustomAuthApiError } from "../../../../../src/custom_auth/core/error/Cu
 import { MsalCustomAuthError } from "../../../../../src/custom_auth/core/error/MsalCustomAuthError.js";
 import { UnexpectedError } from "../../../../../src/custom_auth/core/error/UnexpectedError.js";
 import { AuthenticationMethodSelectionRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredStateV2.js";
+import { ChallengeVerificationRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
 import { FailedStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/FailedStateV2.js";
 import { AuthenticationMethodV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/AuthenticationMethodV2.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
@@ -72,6 +73,32 @@ describe("CustomAuthResultV2", () => {
             );
 
             expect(result.isState("failed")).toBe(false);
+        });
+
+        it("narrows an auto-selected reset result to code verification", () => {
+            const result: ResetPasswordStartResultV2 = new CustomAuthResultV2(
+                new ChallengeVerificationRequiredStateV2({
+                    correlationId,
+                    logger: getDefaultLogger(),
+                    config: mockConfig,
+                    flowClient: {} as unknown as FlowInteractionClientV2,
+                    cacheClient: {} as unknown as CustomAuthSilentCacheClient,
+                    continuationState: {
+                        continuationToken: "ct",
+                        scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                        links: {
+                            verify: "/verify",
+                        },
+                    },
+                    method,
+                    channel: "email",
+                })
+            );
+
+            expect(result.isState("challengeVerificationRequired")).toBe(true);
+            if (result.isState("challengeVerificationRequired")) {
+                expect(result.state.method).toBe(method);
+            }
         });
     });
 

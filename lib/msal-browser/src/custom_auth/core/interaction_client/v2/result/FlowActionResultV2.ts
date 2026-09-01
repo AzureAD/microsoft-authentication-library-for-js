@@ -40,9 +40,33 @@ export interface FlowCodeRequiredResultV2 extends FlowActionResultBaseV2 {
     codeLength?: number;
 }
 
-// The code was accepted; a new password must be submitted next (carries the `update` href).
+export interface FlowSignInCodeRequiredResultV2
+    extends FlowCodeRequiredResultV2 {
+    method: AuthenticationMethodV2;
+}
+
+export interface FlowResetPasswordCodeRequiredResultV2
+    extends FlowCodeRequiredResultV2 {
+    method: AuthenticationMethodV2;
+}
+
+// The user's existing password must be submitted next for sign-in.
 export interface FlowPasswordRequiredResultV2 extends FlowActionResultBaseV2 {
     type: typeof FLOW_PASSWORD_REQUIRED_V2;
+    continuationState: FlowContinuationStateV2;
+}
+
+// A registered MFA method must be selected to continue sign-in.
+export interface FlowMFARequiredResultV2 extends FlowActionResultBaseV2 {
+    type: typeof FLOW_MFA_REQUIRED_V2;
+    continuationState: FlowContinuationStateV2;
+    methods: AuthenticationMethodV2[];
+}
+
+// A new password must be submitted next for password reset.
+export interface FlowNewPasswordRequiredResultV2
+    extends FlowActionResultBaseV2 {
+    type: typeof FLOW_NEW_PASSWORD_REQUIRED_V2;
     continuationState: FlowContinuationStateV2;
 }
 
@@ -65,7 +89,10 @@ export interface FlowCompletedResultV2 extends FlowActionResultBaseV2 {
 export type FlowActionResultV2 =
     | FlowMethodSelectionRequiredResultV2
     | FlowCodeRequiredResultV2
+    | FlowResetPasswordCodeRequiredResultV2
     | FlowPasswordRequiredResultV2
+    | FlowMFARequiredResultV2
+    | FlowNewPasswordRequiredResultV2
     | FlowSignInContinuationRequiredResultV2
     | FlowCompletedResultV2;
 
@@ -74,6 +101,8 @@ export const FLOW_METHOD_SELECTION_REQUIRED_V2 =
     "FlowMethodSelectionRequiredResultV2";
 export const FLOW_CODE_REQUIRED_V2 = "FlowCodeRequiredResultV2";
 export const FLOW_PASSWORD_REQUIRED_V2 = "FlowPasswordRequiredResultV2";
+export const FLOW_MFA_REQUIRED_V2 = "FlowMFARequiredResultV2";
+export const FLOW_NEW_PASSWORD_REQUIRED_V2 = "FlowNewPasswordRequiredResultV2";
 export const FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2 =
     "FlowSignInContinuationRequiredResultV2";
 export const FLOW_COMPLETED_V2 = "FlowCompletedResultV2";
@@ -94,6 +123,18 @@ export function createFlowPasswordRequiredResultV2(
     input: Omit<FlowPasswordRequiredResultV2, "type">
 ): FlowPasswordRequiredResultV2 {
     return { type: FLOW_PASSWORD_REQUIRED_V2, ...input };
+}
+
+export function createFlowMFARequiredResultV2(
+    input: Omit<FlowMFARequiredResultV2, "type">
+): FlowMFARequiredResultV2 {
+    return { type: FLOW_MFA_REQUIRED_V2, ...input };
+}
+
+export function createFlowNewPasswordRequiredResultV2(
+    input: Omit<FlowNewPasswordRequiredResultV2, "type">
+): FlowNewPasswordRequiredResultV2 {
+    return { type: FLOW_NEW_PASSWORD_REQUIRED_V2, ...input };
 }
 
 export function createFlowSignInContinuationRequiredResultV2(

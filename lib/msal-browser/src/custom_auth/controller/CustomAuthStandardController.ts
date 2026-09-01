@@ -25,13 +25,28 @@ import { CustomAuthAccountData } from "../get_account/auth_flow/CustomAuthAccoun
 import { UnexpectedError } from "../core/error/UnexpectedError.js";
 import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { ResetPasswordStartResultV2 } from "../core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
-import { ResetPasswordInputsV2 } from "../CustomAuthActionInputsV2.js";
+import {
+    ResetPasswordInputsV2,
+    SignInInputsV2,
+} from "../CustomAuthActionInputsV2.js";
 import { CustomAuthApiClientV2 } from "../core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { FlowInteractionClientV2 } from "../core/interaction_client/v2/FlowInteractionClientV2.js";
 import { AuthenticationMethodSelectionRequiredStateV2 } from "../core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredStateV2.js";
 import { ResetPasswordStartErrorV2 } from "../core/auth_flow/v2/error/ResetPasswordStartErrorV2.js";
 import { CustomAuthResultV2 } from "../core/auth_flow/v2/CustomAuthResultV2.js";
 import { CustomAuthFlowScenarioV2 } from "../core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
+import { SignInStartErrorV2 } from "../sign_in/auth_flow/v2/error_type/SignInStartErrorV2.js";
+import { SignInStartResultV2 } from "../sign_in/auth_flow/v2/result/SignInStartResultV2.js";
+import { CompletedStateV2 } from "../core/auth_flow/v2/state/CompletedStateV2.js";
+import {
+    FLOW_COMPLETED_V2,
+    FLOW_CODE_REQUIRED_V2,
+    FLOW_MFA_REQUIRED_V2,
+    FLOW_PASSWORD_REQUIRED_V2,
+} from "../core/interaction_client/v2/result/FlowActionResultV2.js";
+import { PasswordRequiredStateV2 } from "../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import { MFARequiredStateV2 } from "../core/auth_flow/v2/state/MFARequiredStateV2.js";
+import { ChallengeVerificationRequiredStateV2 } from "../core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
@@ -646,6 +661,25 @@ export class CustomAuthStandardController
                 correlationId
             );
 
+            if (result.type === FLOW_CODE_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new ChallengeVerificationRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                        method: result.method,
+                        sentTo: result.sentTo,
+                        channel: result.channel,
+                        codeLength: result.codeLength,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
             return new CustomAuthResultV2(
                 new AuthenticationMethodSelectionRequiredStateV2({
                     correlationId: result.correlationId,
@@ -668,6 +702,123 @@ export class CustomAuthStandardController
             return CustomAuthResultV2.createWithError(error, {
                 errorType: ResetPasswordStartErrorV2,
                 scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                correlationId,
+            });
+        }
+    }
+
+    async signInV2(inputs: SignInInputsV2): Promise<SignInStartResultV2> {
+        const correlationId = this.getCorrelationId(inputs);
+
+        try {
+            ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+                "inputs",
+                inputs,
+                correlationId
+            );
+            ArgumentValidator.ensureArgumentIsNotEmptyString(
+                "inputs.username",
+                inputs.username,
+                correlationId
+            );
+            if (inputs.claims) {
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "inputs.claims",
+                    inputs.claims,
+                    correlationId
+                );
+            }
+            this.ensureUserNotSignedIn(correlationId);
+
+            this.logger.verbose(
+                "Starting native auth V2 sign-in.",
+                correlationId
+            );
+
+            const result = await this.flowClientV2.signIn({
+                correlationId,
+                username: inputs.username,
+                password: inputs.password,
+                scopes: inputs.scopes,
+            });
+
+            if (result.type === FLOW_COMPLETED_V2) {
+                return new CustomAuthResultV2(
+                    new CompletedStateV2(),
+                    new CustomAuthAccountData(
+                        result.authenticationResult.account,
+                        this.customAuthConfig,
+                        this.cacheClient,
+                        this.logger,
+                        correlationId
+                    ),
+                    CustomAuthFlowScenarioV2.SignIn
+                );
+            }
+
+            if (result.type === FLOW_MFA_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new MFARequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                        methods: result.methods,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_CODE_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new ChallengeVerificationRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                        method: result.method,
+                        sentTo: result.sentTo,
+                        channel: result.channel,
+                        codeLength: result.codeLength,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_PASSWORD_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new PasswordRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            throw new UnexpectedError(
+                "Unsupported native auth V2 sign-in result type.",
+                correlationId
+            );
+        } catch (error) {
+            this.logger.errorPii(
+                `An error occurred during native auth V2 sign-in: '${error}'`,
+                correlationId
+            );
+
+            return CustomAuthResultV2.createWithError(error, {
+                errorType: SignInStartErrorV2,
+                scenario: CustomAuthFlowScenarioV2.SignIn,
                 correlationId,
             });
         }

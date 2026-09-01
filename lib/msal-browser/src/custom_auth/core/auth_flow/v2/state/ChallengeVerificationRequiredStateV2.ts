@@ -12,6 +12,14 @@ import { NewPasswordRequiredStateV2 } from "../../../../reset_password/auth_flow
 import type { ChallengeVerificationRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { VerifyChallengeResultV2 } from "../result/VerifyChallengeResultV2.js";
 import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
+import { CompletedStateV2 } from "./CompletedStateV2.js";
+import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
+import {
+    FLOW_COMPLETED_V2,
+    FLOW_NEW_PASSWORD_REQUIRED_V2,
+} from "../../../interaction_client/v2/result/FlowActionResultV2.js";
+import { CustomAuthError } from "../../../error/CustomAuthError.js";
+import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 
 /**
  * State returned when the user must verify a challenge, for example by
@@ -61,18 +69,43 @@ export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequired
                 continuationState,
                 code,
             });
+            const resultType: string = result.type;
 
-            return new CustomAuthResultV2(
-                new NewPasswordRequiredStateV2({
-                    correlationId: result.correlationId,
+            if (result.type === FLOW_NEW_PASSWORD_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new NewPasswordRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger,
+                        config: this.stateParameters.config,
+                        flowClient,
+                        continuationState: result.continuationState,
+                        cacheClient: this.stateParameters.cacheClient,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_COMPLETED_V2) {
+                const account = new CustomAuthAccountData(
+                    result.authenticationResult.account,
+                    this.stateParameters.config,
+                    this.stateParameters.cacheClient,
                     logger,
-                    config: this.stateParameters.config,
-                    flowClient,
-                    continuationState: result.continuationState,
-                    cacheClient: this.stateParameters.cacheClient,
-                }),
-                undefined,
-                result.continuationState.scenario
+                    correlationId
+                );
+
+                return new CustomAuthResultV2(
+                    new CompletedStateV2(),
+                    account,
+                    continuationState.scenario
+                );
+            }
+
+            throw new CustomAuthError(
+                UNSUPPORTED_FLOW_TRANSITION,
+                `Challenge verification result type '${resultType}' is not supported.`,
+                correlationId
             );
         } catch (error) {
             logger.errorPii(
