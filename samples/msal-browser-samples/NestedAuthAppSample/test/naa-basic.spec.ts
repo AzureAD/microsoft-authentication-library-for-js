@@ -87,11 +87,9 @@ const verifyNestedTokenStore = async (
  *
  * NOTE: brokering the nested token over the web flow has the host redeem the
  * auth code for the nested client id on the HOST origin, so the nested app
- * registration must trust `https://localhost:30668` as a SPA redirect URI.
- * Until that redirect URI is added to the nested client id the brokered
- * acquisition fails with AADSTS50011 — which is why this sample is currently
- * commented out of the e2e pipeline (see `.pipelines/3p-e2e.yml`). Requires lab
- * credentials.
+ * registration trusts the host origin as a SPA redirect URI. The registrations
+ * configured in `.env.e2e` (host + nested broker test apps) are set up for
+ * this, so the brokered acquisition succeeds. Requires lab credentials.
  */
 describe("Nested App Authentication brokered through the host app", () => {
     jest.setTimeout(jestTimeout);
