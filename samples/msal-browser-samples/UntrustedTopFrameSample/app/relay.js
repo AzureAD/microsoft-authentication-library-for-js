@@ -14,6 +14,7 @@
  * The child popup is opened on a click so popup blockers don't block it.
  */
 import { runPopupRelay } from "@azure/msal-browser/popup-relay";
+import { AUTHORITY } from "./constants.js";
 
 (function () {
     "use strict";
@@ -21,11 +22,19 @@ import { runPopupRelay } from "@azure/msal-browser/popup-relay";
     const statusEl = document.getElementById("status");
     const continueBtn = document.getElementById("continue");
 
+    /*
+     * This page is publicly reachable on the app's own origin, so pin the
+     * origins the relay is allowed to send its child popup to. runPopupRelay
+     * already rejects anything that isn't an absolute https URL; pinning the
+     * authority origin narrows that further to "my identity provider only".
+     */
+    const allowedAuthorityOrigins = [new URL(AUTHORITY).origin];
+
     continueBtn.addEventListener("click", function () {
         continueBtn.disabled = true;
         statusEl.textContent = "Contacting Microsoft...";
         try {
-            runPopupRelay();
+            runPopupRelay({ allowedAuthorityOrigins });
         } catch (e) {
             statusEl.textContent =
                 "Sign-in unavailable: " + (e && e.message ? e.message : e);
