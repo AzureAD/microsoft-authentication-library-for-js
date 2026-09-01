@@ -74,14 +74,6 @@ function tryParseUrl(raw: string): URL | null {
     }
 }
 
-function tryParseJson(raw: string): unknown {
-    try {
-        return JSON.parse(raw);
-    } catch (e) {
-        return undefined;
-    }
-}
-
 /**
  * Reduces each configured allow-list entry to its origin so the comparison is
  * robust to the shapes a developer naturally reaches for. Passing the
@@ -180,7 +172,12 @@ function parseRelayRequest(
     rawReq: string,
     allowedAuthorityOrigins?: string[]
 ): PopupRelayRequest {
-    const parsed = tryParseJson(rawReq);
+    let parsed;
+    try {
+        parsed = JSON.parse(rawReq);
+    } catch (e) {
+        parsed = null;
+    }
     if (typeof parsed !== "object" || parsed === null) {
         throwRelayError(BAD_REQUEST_SUBERROR);
     }
