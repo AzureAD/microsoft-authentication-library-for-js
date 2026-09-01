@@ -95,6 +95,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 Setup:
 
 -   Host a same-origin page at `popupRelayUri` that calls `runPopupRelay()` from the `@azure/msal-browser/popup-relay` sub-export. It opens the IdP child popup, so call it from a user gesture (e.g. a "Continue" button click) so popup blockers don't block it.
+-   Pass your authority's origin to `runPopupRelay({ allowedAuthorityOrigins: ["https://login.microsoftonline.com"] })`. The relay page is a publicly reachable page on your origin, so pinning the origins it may navigate to means a crafted link can only ever reach your identity provider. See [Securing the relay page](#securing-the-relay-page).
 -   Point your `redirectUri` (and, for logout, `postLogoutRedirectUri`) at a page that calls `broadcastResponseToMainFrame()` from the `@azure/msal-browser/redirect-bridge` sub-export.
 
 Caveats:
@@ -103,6 +104,16 @@ Caveats:
 -   `popupRelayUri` must resolve to the **same origin** as the app; a cross-origin value throws `popup_relay_unsupported_flow` with sub-error `popup_relay_cross_origin` (see [errors](../../../docs/errors.md#popup_relay_unsupported_flow)).
 -   The relay page opens the IdP popup, so it must be triggered by a user gesture.
 -   The auth-code (GET), `form_post`, and EAR response modes are all supported.
+
+##### Securing the relay page
+
+The relay page is deployed on your own origin and anyone can navigate to it directly, so `runPopupRelay()` treats the request carried in its hash as untrusted input rather than as authority:
+
+-   The request shape is validated exactly. A request with a missing or unrecognized `method` is rejected instead of being treated as a `GET`.
+-   Navigation targets — both the `GET` url and the `POST` form action — must be absolute `https:` URLs with no embedded credentials. Active and local schemes (`javascript:`, `data:`, `blob:`, `file:`) are rejected with sub-error `popup_relay_unsafe_url`, so a crafted link cannot run script in your app's origin.
+-   Setting `allowedAuthorityOrigins` additionally pins **which** https origins are acceptable; anything else is rejected with sub-error `popup_relay_untrusted_authority`. This is strongly recommended — it reduces the relay page from "can open any https URL" to "can only reach my identity provider". The option is optional and additive: omitting it does not disable the relay, it just skips the origin pin. Entries are compared by origin, so passing your full configured authority (`https://login.microsoftonline.com/common`) works as well as the bare origin.
+
+As defense in depth, serve the relay page with a Content Security Policy that blocks `javascript:` URLs (for example a `script-src` directive without `unsafe-inline`, and a restrictive `default-src`).
 
 ### Cache Config Options
 
