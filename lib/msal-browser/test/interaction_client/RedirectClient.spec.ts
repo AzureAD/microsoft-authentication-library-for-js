@@ -22,7 +22,6 @@ import {
     verifyUrl,
     validEarJWK,
     getTestAuthenticationResult,
-    expectAuthenticationResult,
     validEarJWE,
     testNavUrl,
 } from "../utils/StringConstants.js";
@@ -3468,6 +3467,39 @@ describe("RedirectClient", () => {
     });
 
     describe("EAR Flow Tests", () => {
+        beforeAll(() => {
+            /*
+             * Freeze the clock so the expiry timestamps the EAR flow generates
+             * match those in the expected result built by the assertion.
+             * Otherwise the two clock reads race across a second boundary.
+             *
+             * Only Date is faked: this block also covers a redirect-timeout
+             * test that needs real setTimeout to fire.
+             */
+            jest.useFakeTimers({
+                doNotFake: [
+                    "setTimeout",
+                    "clearTimeout",
+                    "setInterval",
+                    "clearInterval",
+                    "setImmediate",
+                    "clearImmediate",
+                    "nextTick",
+                    "queueMicrotask",
+                    "performance",
+                    "requestAnimationFrame",
+                    "cancelAnimationFrame",
+                    "requestIdleCallback",
+                    "cancelIdleCallback",
+                    "hrtime",
+                ],
+            });
+        });
+
+        afterAll(() => {
+            jest.useRealTimers();
+        });
+
         beforeEach(async () => {
             pca = new PublicClientApplication({
                 auth: {
@@ -3500,10 +3532,7 @@ describe("RedirectClient", () => {
                     pca.handleRedirectPromise({
                         hash: `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
                     }).then((result) => {
-                        expectAuthenticationResult(
-                            result,
-                            getTestAuthenticationResult()
-                        );
+                        expect(result).toEqual(getTestAuthenticationResult());
                         done();
                     });
                 }
@@ -3524,24 +3553,17 @@ describe("RedirectClient", () => {
             jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
-            /*
-             * Build the result once and reuse it for both the mock and the
-             * assertion. Calling getTestAuthenticationResult() twice reads the
-             * clock twice, so the mocked response and the expectation drift
-             * apart whenever a second boundary falls between the two calls.
-             */
-            const expectedResult = getTestAuthenticationResult();
             jest.spyOn(
                 AuthorizeProtocol,
                 "handleResponseCode"
-            ).mockResolvedValue(expectedResult);
+            ).mockResolvedValue(getTestAuthenticationResult());
             jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(
                 () => {
                     // Supress navigation
                     pca.handleRedirectPromise({
                         hash: `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
                     }).then((result) => {
-                        expect(result).toEqual(expectedResult);
+                        expect(result).toEqual(getTestAuthenticationResult());
                         done();
                     });
                 }

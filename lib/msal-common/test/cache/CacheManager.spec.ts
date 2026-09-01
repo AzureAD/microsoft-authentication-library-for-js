@@ -68,6 +68,12 @@ describe("CacheManager.ts test cases", () => {
     );
     let authorityMetadataStub: jest.SpyInstance;
     beforeEach(async () => {
+        /*
+         * Freeze the clock before seeding the cache so entities written here
+         * carry the same lastUpdatedAt as fixtures the tests build later.
+         * Otherwise the two Date.now() reads differ by a millisecond or more.
+         */
+        jest.useFakeTimers();
         await mockCache.initializeCache();
         authorityMetadataStub = jest
             .spyOn(CacheManager.prototype, "getAuthorityMetadataByAlias")
@@ -94,6 +100,7 @@ describe("CacheManager.ts test cases", () => {
     afterEach(async () => {
         await mockCache.clearCache();
         jest.restoreAllMocks();
+        jest.useRealTimers();
     });
 
     describe("saveCacheRecord tests", () => {
@@ -2211,17 +2218,9 @@ describe("CacheManager.ts test cases", () => {
         );
 
         const atKey = generateCredentialKey(atWithAuthScheme);
-        expect(mockCache.cacheManager.getAccessTokenCredential(atKey)).toEqual({
-            ...atWithAuthScheme,
-            /*
-             * MockCache seeded the cached entity with its own Date.now() at
-             * cache-initialization time, while the fixture above was built with
-             * a second Date.now() when this test ran. The two are only equal if
-             * no millisecond elapsed in between, so assert presence and type
-             * rather than an exact value.
-             */
-            lastUpdatedAt: expect.any(String),
-        });
+        expect(mockCache.cacheManager.getAccessTokenCredential(atKey)).toEqual(
+            atWithAuthScheme
+        );
         mockCache.cacheManager.removeAccessToken(atKey, RANDOM_TEST_GUID);
         expect(
             mockCache.cacheManager.getAccessTokenCredential(atKey)

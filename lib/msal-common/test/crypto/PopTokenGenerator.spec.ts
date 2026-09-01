@@ -67,11 +67,9 @@ describe("PopTokenGenerator Unit Tests", () => {
     });
 
     describe("signPopToken", () => {
-        let currTime: number;
         let testRequest: BaseAuthRequest;
 
         beforeAll(() => {
-            currTime = TimeUtils.nowSeconds();
             testRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -81,14 +79,16 @@ describe("PopTokenGenerator Unit Tests", () => {
 
         beforeEach(() => {
             /*
-             * Freeze the clock before every test, not once in beforeAll. The
-             * outer afterEach calls jest.restoreAllMocks(), which would remove a
-             * beforeAll spy after the first test and leave the remaining tests
-             * reading the real clock -- racing the timestamp that signPopToken
-             * generates internally and failing whenever the two reads land on
-             * either side of a second boundary.
+             * Freeze the clock so the timestamp signPopToken generates
+             * internally matches the one each test reads for its expectation.
+             * Without this the two reads race and disagree whenever they
+             * straddle a second boundary.
              */
-            jest.spyOn(TimeUtils, "nowSeconds").mockReturnValue(currTime);
+            jest.useFakeTimers();
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
         });
 
         it("Signs the proof-of-possession JWT token with all PoP parameters in the request", (done) => {
