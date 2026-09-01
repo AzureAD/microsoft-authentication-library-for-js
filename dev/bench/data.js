@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788214939188,
+  "lastUpdate": 1788290467897,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23087,6 +23087,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.74%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e7c704c5affca50980b331730d96c40dcd7ba93c",
+          "message": "Validate the relayed request in runPopupRelay before navigating (#8800)\n\nThis pull request strengthens the security of the popup relay flow in\n`@azure/msal-browser` by validating navigation targets and introducing\nan optional `allowedAuthorityOrigins` pin. The relay page now treats its\nhash as untrusted input, enforcing stricter validation on relayed\nrequests to prevent malicious navigation and improve defense in depth.\nDocumentation and error handling have been updated to reflect these\nchanges.\n\n**Security improvements to popup relay:**\n\n* Added strict validation of relayed requests in `runPopupRelay()`,\nensuring the request shape matches expectations and navigation targets\nare absolute `https:` URLs without embedded credentials. Active or local\nschemes (e.g., `javascript:`, `data:`) are explicitly rejected.\n[[1]](diffhunk://#diff-925f278341374f963127c4078c75de2d38a149263704f1c785dbd42872276aadR56-R213)\n[[2]](diffhunk://#diff-925f278341374f963127c4078c75de2d38a149263704f1c785dbd42872276aadL64-R252)\n* Introduced the optional `allowedAuthorityOrigins` parameter to\n`PopupRelayOptions`, allowing developers to pin which `https:` origins\nthe relay page may navigate to. If set, only navigation targets matching\nthese origins are accepted.\n[[1]](diffhunk://#diff-925f278341374f963127c4078c75de2d38a149263704f1c785dbd42872276aadR27-R44)\n[[2]](diffhunk://#diff-925f278341374f963127c4078c75de2d38a149263704f1c785dbd42872276aadR56-R213)\n* Updated the implementation of `runPopupRelay()` to fully validate the\nrelayed request before opening any popups or performing navigation,\ntreating the hash as attacker-controlled input.\n\n**Documentation and error handling updates:**\n\n* Expanded documentation in `configuration.md` and `errors.md` to\ndescribe the new validation logic, the `allowedAuthorityOrigins` option,\nand new sub-errors such as `popup_relay_unsafe_url`,\n`popup_relay_untrusted_authority`, and\n`popup_relay_invalid_allowed_origin`.\n[[1]](diffhunk://#diff-b50088530c035ffb7feb43ef085da52f5d977cebfec286eb975e5b10a745c63cR98)\n[[2]](diffhunk://#diff-b50088530c035ffb7feb43ef085da52f5d977cebfec286eb975e5b10a745c63cR108-R117)\n[[3]](diffhunk://#diff-5c0106f1b82570db9c632cceba7ac0a81efb2eb9301a53378c8c6466b2eed2dfL680-R683)\n* Added a changelog entry describing these changes.\n\n---------\n\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-09-01T15:13:32-04:00",
+          "tree_id": "e8babd89dba0b3d95f85e1c26dc5737e5db541d3",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e7c704c5affca50980b331730d96c40dcd7ba93c"
+        },
+        "date": 1788290464033,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 472281,
+            "range": "±0.88%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 470512,
+            "range": "±1.30%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
