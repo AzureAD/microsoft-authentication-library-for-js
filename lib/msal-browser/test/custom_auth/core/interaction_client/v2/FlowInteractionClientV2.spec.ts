@@ -45,9 +45,13 @@ import {
     getDefaultPerformanceClient,
 } from "../../../test_resources/TestModules.js";
 import {
-    SIGN_IN_AFTER_SIGN_UP,
     SIGN_IN_V2_SUBMIT_CODE,
     SIGN_IN_V2_SUBMIT_PASSWORD,
+    SIGN_UP_V2_COMPLETE,
+    SIGN_UP_V2_RESEND_CODE,
+    SIGN_UP_V2_START,
+    SIGN_UP_V2_SUBMIT_ATTRIBUTES,
+    SIGN_UP_V2_SUBMIT_CODE,
 } from "../../../../../src/custom_auth/core/telemetry/PublicApiId.js";
 
 describe("FlowInteractionClientV2", () => {
@@ -147,6 +151,15 @@ describe("FlowInteractionClientV2", () => {
 
     describe("signUp", () => {
         it("submits all initial attributes once without retaining their values", async () => {
+            const contextSpy = jest.spyOn(
+                client as unknown as {
+                    createRequestContext: (
+                        apiId: number,
+                        correlationId: string
+                    ) => unknown;
+                },
+                "createRequestContext"
+            );
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
                 signUpHref: "https://endpoint/signup/start",
@@ -193,6 +206,10 @@ describe("FlowInteractionClientV2", () => {
                 expect.objectContaining({ correlationId })
             );
             expect(result.type).toBe(FLOW_CODE_REQUIRED_V2);
+            expect(contextSpy).toHaveBeenCalledWith(
+                SIGN_UP_V2_START,
+                correlationId
+            );
             expect(
                 (result as FlowCodeRequiredResultV2).continuationState
             ).toEqual({
@@ -1172,6 +1189,15 @@ describe("FlowInteractionClientV2", () => {
         });
 
         it("returns sign-up password required when it was not initially submitted", async () => {
+            const contextSpy = jest.spyOn(
+                client as unknown as {
+                    createRequestContext: (
+                        apiId: number,
+                        correlationId: string
+                    ) => unknown;
+                },
+                "createRequestContext"
+            );
             const signUpContinuationState: FlowContinuationStateV2 = {
                 continuationToken: "ct-sign-up-challenge",
                 scenario: "signUp",
@@ -1203,6 +1229,10 @@ describe("FlowInteractionClientV2", () => {
             });
 
             expect(result.type).toBe(FLOW_PASSWORD_REQUIRED_V2);
+            expect(contextSpy).toHaveBeenCalledWith(
+                SIGN_UP_V2_SUBMIT_CODE,
+                correlationId
+            );
             expect(
                 (result as FlowSignUpPasswordRequiredResultV2)
                     .requiredPasswordAttribute
@@ -1382,6 +1412,15 @@ describe("FlowInteractionClientV2", () => {
         };
 
         it("submits mixed password and profile attributes in one request", async () => {
+            const contextSpy = jest.spyOn(
+                client as unknown as {
+                    createRequestContext: (
+                        apiId: number,
+                        correlationId: string
+                    ) => unknown;
+                },
+                "createRequestContext"
+            );
             apiClient.submitSignUpAttributes.mockResolvedValue({
                 nextAction: "continue",
                 continuationToken: "ct-complete",
@@ -1408,6 +1447,10 @@ describe("FlowInteractionClientV2", () => {
                 expect.objectContaining({ correlationId })
             );
             expect(result.type).toBe(FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2);
+            expect(contextSpy).toHaveBeenCalledWith(
+                SIGN_UP_V2_SUBMIT_ATTRIBUTES,
+                correlationId
+            );
             expect(
                 (result as FlowSignInContinuationRequiredResultV2)
                     .continuationState
@@ -1531,6 +1574,38 @@ describe("FlowInteractionClientV2", () => {
                     resend: "https://endpoint/resend-2",
                 },
             });
+        });
+
+        it("uses the sign-up resend API ID for a sign-up challenge", async () => {
+            const contextSpy = jest.spyOn(
+                client as unknown as {
+                    createRequestContext: (
+                        apiId: number,
+                        correlationId: string
+                    ) => unknown;
+                },
+                "createRequestContext"
+            );
+            apiClient.requestChallenge.mockResolvedValue({
+                continuationToken: "ct-sign-up-challenge-2",
+                verifyHref: "https://endpoint/verify-2",
+                resendHref: "https://endpoint/resend-2",
+                codeLength: 8,
+                type: "email",
+            });
+
+            await client.resendCode({
+                correlationId,
+                continuationState: {
+                    ...continuationState,
+                    scenario: "signUp",
+                },
+            });
+
+            expect(contextSpy).toHaveBeenCalledWith(
+                SIGN_UP_V2_RESEND_CODE,
+                correlationId
+            );
         });
 
         it("throws when the continuation is missing the resend link", async () => {
@@ -1827,7 +1902,7 @@ describe("FlowInteractionClientV2", () => {
                 tokenResponse,
                 ["openid", "profile", "offline_access"],
                 correlationId,
-                SIGN_IN_AFTER_SIGN_UP
+                SIGN_UP_V2_COMPLETE
             );
         });
 

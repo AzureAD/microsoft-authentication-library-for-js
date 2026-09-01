@@ -10,12 +10,13 @@ import {
     RESET_PASSWORD_V2_SUBMIT,
     RESET_PASSWORD_V2_SUBMIT_CODE,
     SIGN_IN_AFTER_PASSWORD_RESET,
-    SIGN_IN_AFTER_SIGN_UP,
     SIGN_IN_V2_CHALLENGE,
     SIGN_IN_V2_COMPLETE,
     SIGN_IN_V2_SUBMIT_CODE,
     SIGN_IN_V2_SUBMIT_PASSWORD,
     SIGN_UP_V2_CHALLENGE,
+    SIGN_UP_V2_COMPLETE,
+    SIGN_UP_V2_RESEND_CODE,
     SIGN_UP_V2_SUBMIT_ATTRIBUTES,
     SIGN_UP_V2_SUBMIT_CODE,
 } from "./PublicApiId.js";
@@ -49,9 +50,9 @@ const FLOW_STEP_API_IDS_V2: Partial<
     [CustomAuthFlowScenarioV2.SignUp]: {
         requestChallenge: SIGN_UP_V2_CHALLENGE,
         submitCode: SIGN_UP_V2_SUBMIT_CODE,
-        resendCode: SIGN_UP_V2_CHALLENGE,
+        resendCode: SIGN_UP_V2_RESEND_CODE,
         submitAttributes: SIGN_UP_V2_SUBMIT_ATTRIBUTES,
-        signInWithContinuation: SIGN_IN_AFTER_SIGN_UP,
+        signInWithContinuation: SIGN_UP_V2_COMPLETE,
     },
 };
 
