@@ -15,8 +15,12 @@ import {
     SignUpInputs,
     ResetPasswordInputs,
 } from "./CustomAuthActionInputs.js";
-import { ResetPasswordInputsV2 } from "./CustomAuthActionInputsV2.js";
+import {
+    ResetPasswordInputsV2,
+    SignInInputsV2,
+} from "./CustomAuthActionInputsV2.js";
 import { ResetPasswordStartResultV2 } from "./core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
+import { SignInStartResultV2 } from "./sign_in/auth_flow/v2/result/SignInStartResultV2.js";
 import { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration.js";
 import { CustomAuthOperatingContext } from "./operating_context/CustomAuthOperatingContext.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
@@ -114,6 +118,16 @@ export class CustomAuthPublicClientApplication
         resetPasswordInputs: ResetPasswordInputs
     ): Promise<ResetPasswordStartResult> {
         return this.customAuthController.resetPassword(resetPasswordInputs);
+    }
+
+    /**
+     * Starts native auth V2 sign-in and returns the authentication methods
+     * offered for the first factor.
+     * @param inputs - Inputs for the sign-in V2 flow.
+     * @returns A promise that resolves to the sign-in start result.
+     */
+    signInV2(inputs: SignInInputsV2): Promise<SignInStartResultV2> {
+        return this.customAuthController.signInV2(inputs);
     }
 
     /**

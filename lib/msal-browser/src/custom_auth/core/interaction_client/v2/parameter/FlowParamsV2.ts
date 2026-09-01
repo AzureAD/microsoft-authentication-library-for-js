@@ -19,6 +19,11 @@ export interface FlowStartParamsV2 extends FlowParamsBaseV2 {
     username: string;
 }
 
+export interface FlowSignInStartParamsV2 extends FlowStartParamsV2 {
+    password?: string;
+    scopes?: string[];
+}
+
 // Request the challenge for the selected method, sending the one-time code to it.
 export interface FlowChallengeParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
@@ -31,14 +36,18 @@ export interface FlowSubmitCodeParamsV2 extends FlowParamsBaseV2 {
 }
 
 // Submit the new password once the code has been verified.
-export interface FlowSubmitPasswordParamsV2 extends FlowParamsBaseV2 {
+export interface FlowSubmitNewPasswordParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
     newPassword: string;
+}
+
+export interface FlowSubmitSignInPasswordParamsV2 extends FlowParamsBaseV2 {
+    continuationState: FlowContinuationStateV2;
+    password: string;
 }
 
 // Sign the account in by redeeming a completed flow's continuation for tokens.
 export interface FlowSignInWithContinuationParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
     scopes?: string[];
-    claims?: string;
 }

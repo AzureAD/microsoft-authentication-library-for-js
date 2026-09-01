@@ -6,12 +6,13 @@
 import { ServerTelemetryManager } from "@azure/msal-common/browser";
 import { CustomAuthApiClientV2 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { CustomAuthError } from "../../../../../../src/custom_auth/core/error/CustomAuthError.js";
+import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import {
-    RESET_PASSWORD_UNSUPPORTED,
     REDIRECT_TO_WEB,
     CONTINUATION_TOKEN_MISSING,
     INVALID_HAL_RESPONSE,
     NO_AUTHENTICATION_METHODS,
+    UNEXPECTED_AUTHENTICATION_FACTOR,
 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { HttpMethod } from "../../../../../../src/custom_auth/core/network_client/http_client/IHttpClient.js";
 
@@ -135,6 +136,9 @@ describe("CustomAuthApiClientV2", () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     continuationToken: "ct-start",
+                    challengeContext: {
+                        authenticationFactor: "singleFactor",
+                    },
                     scenario: "recovery",
                     _embedded: {
                         methods: [
@@ -161,6 +165,7 @@ describe("CustomAuthApiClientV2", () => {
 
             expect(result.continuationToken).toBe("ct-start");
             expect(result.scenario).toBe("recovery");
+            expect(result.authenticationFactor).toBe("singleFactor");
             expect(result.methods[0].challengeHref).toBe(
                 "/tenant/api/v0.1/methods/email/challenge"
             );
@@ -171,14 +176,141 @@ describe("CustomAuthApiClientV2", () => {
                 "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/auth/resetpassword?dc=X"
             );
         });
+    });
 
-        it("throws RESET_PASSWORD_UNSUPPORTED when the href is missing", async () => {
-            await expect(
-                apiClient.resetPasswordStart(undefined, request, context)
-            ).rejects.toMatchObject({ error: RESET_PASSWORD_UNSUPPORTED });
+    describe("signInStart", () => {
+        const request = {
+            continuationToken: "ct-entry",
+            username: "user@test.com",
+        };
 
-            expect(mockHttpClient.sendAsync).not.toHaveBeenCalled();
+        it("returns the embedded authentication methods", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-start",
+                    challengeContext: {
+                        authenticationFactor: "singleFactor",
+                    },
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "password-1",
+                                type: "password",
+                                _links: {
+                                    challenge: {
+                                        href: "/tenant/api/v0.1/password/challenge",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            const result = await apiClient.signInStart(
+                "/tenant/api/v0.1/signin/start",
+                request,
+                context
+            );
+
+            expect(result).toEqual({
+                continuationToken: "ct-start",
+                methods: [
+                    {
+                        id: "password-1",
+                        type: "password",
+                        hint: undefined,
+                        challengeHref: "/tenant/api/v0.1/password/challenge",
+                    },
+                ],
+                authenticationFactor: "singleFactor",
+                scenario: undefined,
+            });
+            expect(mockHttpClient.sendAsync).toHaveBeenCalledTimes(1);
+
+            const [startUrl, options] = mockHttpClient.sendAsync.mock.calls[0];
+            expect(startUrl.href).toBe(
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/signin/start"
+            );
+            expect(options.method).toBe(HttpMethod.POST);
+            expect(JSON.parse(options.body)).toEqual({
+                ...request,
+            });
         });
+
+        it("returns a recognized multi-factor value", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-start",
+                    challengeContext: {
+                        authenticationFactor: "multiFactor",
+                    },
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "password-1",
+                                type: "password",
+                                _links: {
+                                    challenge: {
+                                        href: "/tenant/api/v0.1/password/challenge",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.signInStart(
+                    "/tenant/api/v0.1/signin/start",
+                    request,
+                    context
+                )
+            ).resolves.toMatchObject({
+                authenticationFactor: "multiFactor",
+            });
+        });
+
+        it.each([undefined, null, "", "unknownFactor"])(
+            "rejects the authentication factor %s",
+            async (authenticationFactor) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-start",
+                        challengeContext: {
+                            authenticationFactor,
+                        },
+                        _embedded: {
+                            methods: [
+                                {
+                                    id: "password-1",
+                                    type: "password",
+                                    _links: {
+                                        challenge: {
+                                            href: "/tenant/api/v0.1/password/challenge",
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    })
+                );
+
+                const startPromise = apiClient.signInStart(
+                    "/tenant/api/v0.1/signin/start",
+                    request,
+                    context
+                );
+
+                await expect(startPromise).rejects.toMatchObject({
+                    error: UNEXPECTED_AUTHENTICATION_FACTOR,
+                });
+                await expect(startPromise).rejects.toBeInstanceOf(
+                    CustomAuthApiError
+                );
+            }
+        );
     });
 
     describe("requestChallenge", () => {
@@ -186,6 +318,7 @@ describe("CustomAuthApiClientV2", () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     continuationToken: "ct-challenge",
+                    type: "email",
                     codeLength: 6,
                     hint: "u***@test.com",
                     _links: {
@@ -203,6 +336,7 @@ describe("CustomAuthApiClientV2", () => {
 
             expect(result).toEqual({
                 continuationToken: "ct-challenge",
+                type: "email",
                 verifyHref: "/tenant/api/v0.1/verify",
                 resendHref: "/tenant/api/v0.1/resend",
                 codeLength: 6,
@@ -226,6 +360,38 @@ describe("CustomAuthApiClientV2", () => {
             );
             expect(result.codeLength).toBe(8);
             expect(result.codeLength).toBe(8);
+        });
+
+        it("maps a password challenge without OTP metadata", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-password",
+                    id: "password-1",
+                    type: "password",
+                    _links: {
+                        verify: { href: "/tenant/api/v0.1/password/verify" },
+                        recover: {
+                            href: "/tenant/api/v0.1/password/recover",
+                        },
+                        self: { href: "/tenant/api/v0.1/password/verify" },
+                    },
+                })
+            );
+
+            const result = await apiClient.requestChallenge(
+                "/tenant/api/v0.1/password/challenge",
+                { continuationToken: "ct-start" },
+                context
+            );
+
+            expect(result).toEqual({
+                continuationToken: "ct-password",
+                type: "password",
+                verifyHref: "/tenant/api/v0.1/password/verify",
+                resendHref: undefined,
+                codeLength: undefined,
+                hint: undefined,
+            });
         });
     });
 
@@ -269,6 +435,164 @@ describe("CustomAuthApiClientV2", () => {
             expect(result).toEqual({
                 nextAction: "continue",
                 continuationToken: "ct-verify",
+            });
+        });
+
+        it("maps a multi-factor challenge and its registered methods", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-mfa",
+                    state: "interactionRequired",
+                    action: "challenge",
+                    challengeContext: {
+                        authenticationFactor: "multiFactor",
+                    },
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "email-mfa",
+                                type: "email",
+                                hint: "u***@test.com",
+                                _links: {
+                                    challenge: {
+                                        href: "/tenant/api/v0.1/mfa/challenge",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            const result = await apiClient.verifyChallenge(
+                "/tenant/api/v0.1/password/verify",
+                {
+                    continuationToken: "ct-password",
+                    password: "P@ssword1!",
+                },
+                context
+            );
+
+            expect(result).toEqual({
+                nextAction: "challenge",
+                continuationToken: "ct-mfa",
+                authenticationFactor: "multiFactor",
+                methods: [
+                    {
+                        id: "email-mfa",
+                        type: "email",
+                        hint: "u***@test.com",
+                        challengeHref: "/tenant/api/v0.1/mfa/challenge",
+                    },
+                ],
+            });
+        });
+
+        it("returns the single-factor value for a challenge", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-verify",
+                    action: "challenge",
+                    challengeContext: {
+                        authenticationFactor: "singleFactor",
+                    },
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "email",
+                                type: "email",
+                                _links: {
+                                    challenge: {
+                                        href: "/tenant/api/v0.1/challenge",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            const result = await apiClient.verifyChallenge(
+                "/tenant/api/v0.1/password/verify",
+                {
+                    continuationToken: "ct-password",
+                    password: "P@ssword1!",
+                },
+                context
+            );
+
+            expect(result).toMatchObject({
+                nextAction: "challenge",
+                authenticationFactor: "singleFactor",
+            });
+        });
+
+        it.each([undefined, null, "", "unknownFactor"])(
+            "rejects challenge authentication factor %s",
+            async (authenticationFactor) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-verify",
+                        action: "challenge",
+                        challengeContext: {
+                            authenticationFactor,
+                        },
+                        _embedded: {
+                            methods: [
+                                {
+                                    id: "email",
+                                    type: "email",
+                                    _links: {
+                                        challenge: {
+                                            href: "/tenant/api/v0.1/challenge",
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    })
+                );
+
+                const verifyPromise = apiClient.verifyChallenge(
+                    "/tenant/api/v0.1/password/verify",
+                    {
+                        continuationToken: "ct-password",
+                        password: "P@ssword1!",
+                    },
+                    context
+                );
+
+                await expect(verifyPromise).rejects.toMatchObject({
+                    error: UNEXPECTED_AUTHENTICATION_FACTOR,
+                });
+                await expect(verifyPromise).rejects.toBeInstanceOf(
+                    CustomAuthApiError
+                );
+            }
+        );
+
+        it("rejects a multi-factor challenge without registered methods", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-verify",
+                    action: "challenge",
+                    challengeContext: {
+                        authenticationFactor: "multiFactor",
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.verifyChallenge(
+                    "/tenant/api/v0.1/password/verify",
+                    {
+                        continuationToken: "ct-password",
+                        password: "P@ssword1!",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: NO_AUTHENTICATION_METHODS,
             });
         });
 

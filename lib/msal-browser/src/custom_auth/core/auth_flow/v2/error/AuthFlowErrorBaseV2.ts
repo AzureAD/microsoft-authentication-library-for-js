@@ -8,6 +8,7 @@ import { InvalidArgumentError } from "../../../error/InvalidArgumentError.js";
 import { REDIRECT_TO_WEB } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import {
     INVALID_ONE_TIME_CODE,
+    INVALID_USERNAME_OR_PASSWORD,
     PASSWORD_TOO_WEAK,
 } from "./AuthFlowErrorSubcodesV2.js";
 import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
@@ -73,6 +74,16 @@ export abstract class AuthFlowErrorBaseV2 {
         );
     }
 
+    protected isUserInvalidError(): boolean {
+        return (
+            this.errorData.error === "invalidRequest" &&
+            this.errorData.errorDescription?.includes("AADSTS90100") === true &&
+            this.errorData.errorDescription
+                .toLowerCase()
+                .includes("username parameter")
+        );
+    }
+
     // The verification endpoint uses this outer/inner code pair for an invalid one-time code.
     protected isInvalidCodeError(): boolean {
         return (
@@ -86,6 +97,13 @@ export abstract class AuthFlowErrorBaseV2 {
         return (
             this.errorData.error === "invalidRequest" &&
             this.errorData.subError === PASSWORD_TOO_WEAK
+        );
+    }
+
+    protected isPasswordIncorrectError(): boolean {
+        return (
+            this.errorData.error === "invalidGrant" &&
+            this.errorData.subError === INVALID_USERNAME_OR_PASSWORD
         );
     }
 }

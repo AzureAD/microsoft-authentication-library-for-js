@@ -21,6 +21,11 @@ export interface AuthenticationMethodSelectionRequiredStateParametersV2
     methods: readonly AuthenticationMethodV2[];
 }
 
+export interface MFARequiredStateParametersV2
+    extends CustomAuthActionRequiredStateParametersV2 {
+    methods: readonly AuthenticationMethodV2[];
+}
+
 export interface ChallengeVerificationRequiredStateParametersV2
     extends CustomAuthActionRequiredStateParametersV2 {
     method: AuthenticationMethodV2;

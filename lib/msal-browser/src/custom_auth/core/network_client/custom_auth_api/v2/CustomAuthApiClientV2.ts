@@ -10,35 +10,45 @@ import {
     ResetPasswordPollResultV2,
 } from "./result/ResetPasswordResultsV2.js";
 import {
+    ResetPasswordStartApiResultV2,
+    SignInStartApiResultV2,
     StartResultV2,
     StartMethodV2,
     ChallengeResultV2,
     VerifyResultV2,
+    VerifyNextActionV2,
+    AuthenticationFactorV2,
 } from "./result/BaseResultsV2.js";
 import {
-    ResetPasswordStartResponseV2,
+    PasswordResetStartResponseV2,
+    SignInStartResponseV2,
     ChallengeResponseV2,
     VerifyResponseV2,
     UpdatePasswordResponseV2,
     PollResponseV2,
     ParsedResponseV2,
+    EmbeddedMethodV2,
 } from "./response/ResponsesV2.js";
 import {
     RequestContextV2,
-    ActionRequestBaseV2,
-    ResetPasswordStartRequestV2,
+    PasswordResetStartRequestV2,
+    SignInStartRequestV2,
     ChallengeRequestV2,
     VerifyRequestV2,
     UpdatePasswordRequestV2,
     PollRequestV2,
 } from "./request/RequestsV2.js";
-import { UPDATE_RELATION, ResponseStateV2 } from "./ApiClientConstantsV2.js";
+import {
+    CHALLENGE_RELATION,
+    UPDATE_RELATION,
+    ResponseStateV2,
+} from "./ApiClientConstantsV2.js";
 import {
     INVALID_HAL_RESPONSE,
     NO_AUTHENTICATION_METHODS,
-    RESET_PASSWORD_UNSUPPORTED,
+    UNEXPECTED_AUTHENTICATION_FACTOR,
 } from "./ErrorCodesV2.js";
-import { CustomAuthError } from "../../../error/CustomAuthError.js";
+import { CustomAuthApiError } from "../../../error/CustomAuthApiError.js";
 
 /*
  * Native Auth V2 network client that follows server-provided HAL links.
@@ -49,58 +59,32 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
      * Starts the reset-password flow using a server-provided link.
      */
     async resetPasswordStart(
-        resetPasswordHref: string | undefined,
-        request: ResetPasswordStartRequestV2,
+        resetPasswordHref: string,
+        request: PasswordResetStartRequestV2,
         context: RequestContextV2
-    ): Promise<StartResultV2> {
-        const startHref = this.handler.requireHref(
-            resetPasswordHref,
-            "reset-password",
-            context.correlationId,
-            {
-                code: RESET_PASSWORD_UNSUPPORTED,
-                message:
-                    "The authorize-challenge entry response did not include a reset-password link, so self-service password reset is not available for this application or tenant configuration",
-            }
-        );
-
-        return this.startFlow<ResetPasswordStartRequestV2>(
-            startHref,
-            request,
-            context
-        );
-    }
-
-    private async startFlow<TRequest extends ActionRequestBaseV2>(
-        startHref: string,
-        request: TRequest,
-        context: RequestContextV2
-    ): Promise<StartResultV2> {
-        const parsedResponse =
-            await this.sendActionRequest<ResetPasswordStartResponseV2>(
-                startHref,
-                HttpMethod.POST,
-                request,
-                context
-            );
-
-        const continuationToken = this.handler.requireContinuationToken(
-            parsedResponse.continuationToken,
-            parsedResponse.correlationId
-        );
-
-        return {
-            continuationToken,
-            methods: this.resolveMethods(
-                parsedResponse.body,
-                parsedResponse.correlationId
-            ),
-            scenario: parsedResponse.body.scenario,
-        };
+    ): Promise<ResetPasswordStartApiResultV2> {
+        return this.sendStartRequest(resetPasswordHref, request, context);
     }
 
     /*
-     * Requests an OTP and returns the links and metadata needed for verification.
+     * Starts sign-in using a server-provided link.
+     */
+    async signInStart(
+        signInHref: string,
+        request: SignInStartRequestV2,
+        context: RequestContextV2
+    ): Promise<SignInStartApiResultV2> {
+        const result = await this.sendStartRequest(
+            signInHref,
+            request,
+            context
+        );
+
+        return result;
+    }
+
+    /*
+     * Requests the selected method's challenge and returns the data needed for verification.
      */
     async requestChallenge(
         challengeHref: string,
@@ -119,25 +103,32 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             parsedResponse.continuationToken,
             parsedResponse.correlationId
         );
+        const links = parsedResponse.body._links;
+        const codeMetadata =
+            "hint" in parsedResponse.body ||
+            "codeLength" in parsedResponse.body ||
+            "payload" in parsedResponse.body
+                ? parsedResponse.body
+                : undefined;
 
         return {
             continuationToken: nextContinuationToken,
             verifyHref: this.handler.requireHref(
-                parsedResponse.body._links?.verify?.href,
+                links?.verify?.href,
                 "verify",
                 parsedResponse.correlationId
             ),
-            resendHref: parsedResponse.body._links?.resend?.href,
+            resendHref:
+                links && "resend" in links ? links.resend?.href : undefined,
             codeLength:
-                parsedResponse.body.codeLength ??
-                parsedResponse.body.payload?.codeLength,
-            hint: parsedResponse.body.hint,
-            channel: parsedResponse.body.type,
+                codeMetadata?.codeLength ?? codeMetadata?.payload?.codeLength,
+            hint: codeMetadata?.hint,
+            type: parsedResponse.body.type,
         };
     }
 
     /*
-     * Verifies the OTP and returns the server-directed next action.
+     * Verifies the submitted credential and returns the server-directed next action.
      */
     async verifyChallenge(
         verifyHref: string,
@@ -152,41 +143,6 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
         );
 
         return this.toVerifyResult(parsedResponse);
-    }
-
-    private toVerifyResult(
-        parsedResponse: ParsedResponseV2<VerifyResponseV2>
-    ): VerifyResultV2 {
-        const correlationId = parsedResponse.correlationId;
-        const continuationToken = this.handler.requireContinuationToken(
-            parsedResponse.continuationToken,
-            correlationId
-        );
-
-        if (parsedResponse.body.state === ResponseStateV2.CONTINUE) {
-            return {
-                nextAction: "continue",
-                continuationToken,
-            };
-        }
-
-        if (parsedResponse.body.action === UPDATE_RELATION) {
-            return {
-                nextAction: "update",
-                continuationToken,
-                updateHref: this.handler.requireHref(
-                    parsedResponse.body._links?.update?.href,
-                    "update",
-                    correlationId
-                ),
-            };
-        }
-
-        throw new CustomAuthError(
-            INVALID_HAL_RESPONSE,
-            "Invalid HAL response: verify returned no known next action",
-            correlationId
-        );
     }
 
     /*
@@ -255,8 +211,113 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
         };
     }
 
+    private async sendStartRequest(
+        startHref: string,
+        request: PasswordResetStartRequestV2 | SignInStartRequestV2,
+        context: RequestContextV2
+    ): Promise<StartResultV2> {
+        const parsedResponse = await this.sendActionRequest<
+            PasswordResetStartResponseV2 | SignInStartResponseV2
+        >(startHref, HttpMethod.POST, request, context);
+
+        const continuationToken = this.handler.requireContinuationToken(
+            parsedResponse.continuationToken,
+            parsedResponse.correlationId
+        );
+
+        return {
+            continuationToken,
+            methods: this.resolveMethods(
+                parsedResponse.body,
+                parsedResponse.correlationId
+            ),
+            authenticationFactor: this.resolveAuthenticationFactor(
+                parsedResponse.body.challengeContext?.authenticationFactor,
+                parsedResponse.correlationId
+            ),
+            scenario: parsedResponse.body.scenario,
+        };
+    }
+
+    private toVerifyResult(
+        parsedResponse: ParsedResponseV2<VerifyResponseV2>
+    ): VerifyResultV2 {
+        const correlationId = parsedResponse.correlationId;
+        const continuationToken = this.handler.requireContinuationToken(
+            parsedResponse.continuationToken,
+            correlationId
+        );
+
+        if (parsedResponse.body.state === ResponseStateV2.CONTINUE) {
+            return {
+                nextAction: VerifyNextActionV2.CONTINUE,
+                continuationToken,
+            };
+        }
+
+        if (parsedResponse.body.action === UPDATE_RELATION) {
+            return {
+                nextAction: VerifyNextActionV2.UPDATE,
+                continuationToken,
+                updateHref: this.handler.requireHref(
+                    parsedResponse.body._links?.update?.href,
+                    "update",
+                    correlationId
+                ),
+            };
+        }
+
+        if (parsedResponse.body.action === CHALLENGE_RELATION) {
+            return {
+                nextAction: VerifyNextActionV2.CHALLENGE,
+                continuationToken,
+                authenticationFactor: this.resolveAuthenticationFactor(
+                    parsedResponse.body.challengeContext?.authenticationFactor,
+                    correlationId
+                ),
+                methods: this.resolveMethods(
+                    parsedResponse.body,
+                    correlationId
+                ),
+            };
+        }
+
+        throw new CustomAuthApiError(
+            INVALID_HAL_RESPONSE,
+            "Invalid HAL response: verify returned no known next action",
+            correlationId
+        );
+    }
+
+    private resolveAuthenticationFactor(
+        authenticationFactor: string | undefined,
+        correlationId: string
+    ): AuthenticationFactorV2 {
+        if (
+            authenticationFactor === AuthenticationFactorV2.SINGLE_FACTOR ||
+            authenticationFactor === AuthenticationFactorV2.MULTI_FACTOR
+        ) {
+            return authenticationFactor;
+        }
+
+        const message = authenticationFactor
+            ? `Unexpected authentication factor '${authenticationFactor}'.`
+            : "The response did not include an authentication factor.";
+        this.logger?.error(message, correlationId);
+
+        throw new CustomAuthApiError(
+            UNEXPECTED_AUTHENTICATION_FACTOR,
+            message,
+            correlationId
+        );
+    }
+
     private resolveMethods(
-        body: ResetPasswordStartResponseV2,
+        body: {
+            _embedded?: {
+                methods?: EmbeddedMethodV2[];
+            };
+        },
         correlationId: string
     ): StartMethodV2[] {
         const methods = this.handler.requireMethods(
@@ -284,7 +345,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 correlationId
             );
 
-            throw new CustomAuthError(
+            throw new CustomAuthApiError(
                 NO_AUTHENTICATION_METHODS,
                 "The flow-start response contains no authentication method with a challenge link",
                 correlationId

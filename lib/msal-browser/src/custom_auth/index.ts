@@ -265,7 +265,9 @@ export { ResetPasswordStartErrorV2 } from "./core/auth_flow/v2/error/ResetPasswo
 export { RequestChallengeErrorV2 } from "./core/auth_flow/v2/error/RequestChallengeErrorV2.js";
 export { VerifyChallengeErrorV2 } from "./core/auth_flow/v2/error/VerifyChallengeErrorV2.js";
 export { SubmitNewPasswordErrorV2 } from "./reset_password/auth_flow/v2/error_type/SubmitNewPasswordErrorV2.js";
+export { SignInStartErrorV2 } from "./sign_in/auth_flow/v2/error_type/SignInStartErrorV2.js";
 export { SignInContinuationErrorV2 } from "./sign_in/auth_flow/v2/error_type/SignInContinuationErrorV2.js";
+export { SubmitPasswordErrorV2 } from "./sign_in/auth_flow/v2/error_type/SubmitPasswordErrorV2.js";
 
 // Native Auth V2 States
 export { CompletedStateV2 } from "./core/auth_flow/v2/state/CompletedStateV2.js";
@@ -273,6 +275,8 @@ export { FailedStateV2 } from "./core/auth_flow/v2/state/FailedStateV2.js";
 export { NewPasswordRequiredStateV2 } from "./reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 export { ChallengeVerificationRequiredStateV2 } from "./core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
 export { AuthenticationMethodSelectionRequiredStateV2 } from "./core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredStateV2.js";
+export { MFARequiredStateV2 } from "./core/auth_flow/v2/state/MFARequiredStateV2.js";
+export { PasswordRequiredStateV2 } from "./sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 export { SignInContinuationStateV2 } from "./sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 
 // Native Auth V2 Results
@@ -281,9 +285,17 @@ export {
     ResetPasswordStartResultStateV2,
 } from "./core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
 export {
+    SignInStartResultV2,
+    SignInStartResultStateV2,
+} from "./sign_in/auth_flow/v2/result/SignInStartResultV2.js";
+export {
     RequestChallengeResultV2,
     RequestChallengeResultStateV2,
 } from "./core/auth_flow/v2/result/RequestChallengeResultV2.js";
+export {
+    MFARequestChallengeResultV2,
+    MFARequestChallengeResultStateV2,
+} from "./core/auth_flow/v2/result/MFARequestChallengeResultV2.js";
 export {
     VerifyChallengeResultV2,
     VerifyChallengeResultStateV2,
@@ -296,6 +308,10 @@ export {
     SignInContinuationResultV2,
     SignInContinuationResultStateV2,
 } from "./sign_in/auth_flow/v2/result/SignInContinuationResultV2.js";
+export {
+    SubmitPasswordResultV2,
+    SubmitPasswordResultStateV2,
+} from "./sign_in/auth_flow/v2/result/SubmitPasswordResultV2.js";
 
 // Components from msal_browser
 export { LogLevel } from "@azure/msal-common/browser";

@@ -18,7 +18,6 @@ import { buildUrl, parseUrl } from "../../../utils/UrlUtils.js";
 import { filterCustomHeaders } from "../../../utils/CustomHeaderUtils.js";
 import { CustomAuthRequestInterceptor } from "../../../../configuration/CustomAuthRequestInterceptor.js";
 import { ResponseHandlerV2 } from "./ResponseHandlerV2.js";
-import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { CustomAuthApiError } from "../../../error/CustomAuthApiError.js";
 import { ServerErrorV2 } from "./response/ErrorResponsesV2.js";
 import { resolveHrefV2 } from "./HrefResolverV2.js";
@@ -99,7 +98,7 @@ export abstract class BaseApiClientV2 {
         if (!continuationToken) {
             const apiError = error
                 ? this.toApiError(error, correlationId)
-                : new CustomAuthError(
+                : new CustomAuthApiError(
                       CONTINUATION_TOKEN_MISSING,
                       "Continuation token is missing in the response",
                       correlationId
@@ -119,6 +118,21 @@ export abstract class BaseApiClientV2 {
             signInHref: body.sign_in,
             signUpHref: body.sign_up,
         };
+    }
+
+    /*
+     * Redeems a continuation token for an authorization code and then tokens.
+     */
+    async completeWithTokens(
+        request: CompleteWithTokensRequestV2,
+        context: RequestContextV2
+    ): Promise<TokenResponseV2> {
+        const code = await this.authorizeChallengeContinue(
+            request.continuationToken,
+            context
+        );
+
+        return this.token(code, request.scopes, context);
     }
 
     /*
@@ -149,7 +163,7 @@ export abstract class BaseApiClientV2 {
                 parsedResponse.correlationId
             );
 
-            throw new CustomAuthError(
+            throw new CustomAuthApiError(
                 AUTH_CODE_MISSING,
                 "Authorization code is missing in the response body",
                 parsedResponse.correlationId
@@ -165,8 +179,7 @@ export abstract class BaseApiClientV2 {
     protected async token(
         code: string,
         scopes: string[],
-        context: RequestContextV2,
-        claims?: string
+        context: RequestContextV2
     ): Promise<TokenResponseV2> {
         const request: TokenRequestV2 = {
             client_id: this.clientId,
@@ -178,10 +191,6 @@ export abstract class BaseApiClientV2 {
 
         if (scopes.length > 0) {
             request.scope = scopes.join(" ");
-        }
-
-        if (claims) {
-            request.claims = claims;
         }
 
         const parsedResponse = await this.postOAuthForm<TokenResponseV2>(
@@ -200,18 +209,62 @@ export abstract class BaseApiClientV2 {
     }
 
     /*
-     * Redeems a continuation token for an authorization code and then tokens.
+     * Sends a JSON action request to a server-provided link.
      */
-    async completeWithTokens(
-        request: CompleteWithTokensRequestV2,
+    protected async sendActionRequest<T>(
+        href: string,
+        method: (typeof HttpMethod)[keyof typeof HttpMethod],
+        body: ActionRequestBaseV2,
         context: RequestContextV2
-    ): Promise<TokenResponseV2> {
-        const code = await this.authorizeChallengeContinue(
-            request.continuationToken,
+    ): Promise<ParsedResponseV2<T>> {
+        if (!body.continuationToken) {
+            this.logger?.error(
+                "V2 HAL request is missing the continuation token that threads the flow forward",
+                context.correlationId
+            );
+
+            throw new CustomAuthApiError(
+                CONTINUATION_TOKEN_MISSING,
+                "The HAL request body did not include a continuation token, so the server-driven reset flow cannot advance",
+                context.correlationId
+            );
+        }
+
+        const url = resolveHrefV2(this.baseRequestUrl, href);
+
+        const response = await this.sendRequest(
+            url,
+            method,
+            JSON.stringify(body),
+            JSON_CONTENT_TYPE,
             context
         );
 
-        return this.token(code, request.scopes, context, request.claims);
+        const parsedResponse = await this.handler.parseResponse<T>(
+            response,
+            context.correlationId
+        );
+
+        this.throwOnWebFallback(parsedResponse);
+        this.throwOnApiError(parsedResponse);
+
+        return parsedResponse;
+    }
+
+    protected throwOnApiError(parsedResponse: ParsedResponseV2<unknown>): void {
+        if (parsedResponse.error) {
+            const apiError = this.toApiError(
+                parsedResponse.error,
+                parsedResponse.correlationId
+            );
+
+            this.logger?.error(
+                `V2 API returned an error: '${apiError.error}'`,
+                parsedResponse.correlationId
+            );
+
+            throw apiError;
+        }
     }
 
     private async postOAuthForm<T>(
@@ -246,49 +299,6 @@ export abstract class BaseApiClientV2 {
         return parsedResponse;
     }
 
-    /*
-     * Sends a JSON action request to a server-provided link.
-     */
-    protected async sendActionRequest<T>(
-        href: string,
-        method: (typeof HttpMethod)[keyof typeof HttpMethod],
-        body: ActionRequestBaseV2,
-        context: RequestContextV2
-    ): Promise<ParsedResponseV2<T>> {
-        if (!body.continuationToken) {
-            this.logger?.error(
-                "V2 HAL request is missing the continuation token that threads the flow forward",
-                context.correlationId
-            );
-
-            throw new CustomAuthError(
-                CONTINUATION_TOKEN_MISSING,
-                "The HAL request body did not include a continuation token, so the server-driven reset flow cannot advance",
-                context.correlationId
-            );
-        }
-
-        const url = resolveHrefV2(this.baseRequestUrl, href);
-
-        const response = await this.sendRequest(
-            url,
-            method,
-            JSON.stringify(body),
-            JSON_CONTENT_TYPE,
-            context
-        );
-
-        const parsedResponse = await this.handler.parseResponse<T>(
-            response,
-            context.correlationId
-        );
-
-        this.throwOnWebFallback(parsedResponse);
-        this.throwOnApiError(parsedResponse);
-
-        return parsedResponse;
-    }
-
     private async sendRequest(
         url: URL,
         method: (typeof HttpMethod)[keyof typeof HttpMethod],
@@ -312,27 +322,11 @@ export abstract class BaseApiClientV2 {
                 headers,
             });
         } catch (e) {
-            throw new CustomAuthError(
+            throw new CustomAuthApiError(
                 HTTP_REQUEST_FAILED,
                 `Failed to send request to '${url}': '${e}'`,
                 context.correlationId
             );
-        }
-    }
-
-    protected throwOnApiError(parsedResponse: ParsedResponseV2<unknown>): void {
-        if (parsedResponse.error) {
-            const apiError = this.toApiError(
-                parsedResponse.error,
-                parsedResponse.correlationId
-            );
-
-            this.logger?.error(
-                `V2 API returned an error: '${apiError.error}'`,
-                parsedResponse.correlationId
-            );
-
-            throw apiError;
         }
     }
 
@@ -370,7 +364,7 @@ export abstract class BaseApiClientV2 {
         correlationId: string
     ): void {
         if (!tokenResponse.access_token) {
-            throw new CustomAuthError(
+            throw new CustomAuthApiError(
                 INVALID_TOKEN_RESPONSE,
                 "Access token is missing in the response body",
                 correlationId

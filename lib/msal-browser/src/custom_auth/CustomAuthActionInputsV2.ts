@@ -14,7 +14,8 @@ export type ResetPasswordInputsV2 = CustomAuthActionInputs & {
 };
 
 /**
- * Inputs for the native auth V2 sign-in flow.
+ * Inputs for the native auth V2 sign-in flow. A supplied password is used only
+ * while processing this call and is not retained in continuation state.
  */
 export type SignInInputsV2 = CustomAuthActionInputs & {
     username: string;

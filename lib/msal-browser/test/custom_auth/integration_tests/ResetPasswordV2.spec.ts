@@ -14,6 +14,7 @@ import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/sta
 import { RequestChallengeErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/RequestChallengeErrorV2.js";
 import { VerifyChallengeErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/VerifyChallengeErrorV2.js";
 import { SubmitNewPasswordErrorV2 } from "../../../src/custom_auth/reset_password/auth_flow/v2/error_type/SubmitNewPasswordErrorV2.js";
+import { UNSUPPORTED_FLOW_TRANSITION } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 
@@ -48,6 +49,9 @@ const ENTRY_RESPONSE = {
 
 const START_RESPONSE = {
     continuationToken: "ct-start",
+    challengeContext: {
+        authenticationFactor: "singleFactor",
+    },
     scenario: "recovery",
     _embedded: {
         methods: [
@@ -58,6 +62,15 @@ const START_RESPONSE = {
                 _links: {
                     challenge: {
                         href: "/tenant/api/v0.1/methods/email/challenge",
+                    },
+                },
+            },
+            {
+                id: "password",
+                type: "password",
+                _links: {
+                    challenge: {
+                        href: "/tenant/api/v0.1/methods/password/challenge",
                     },
                 },
             },
@@ -144,6 +157,34 @@ describe("Reset password V2 (SSPR)", () => {
             return startResult.state as AuthenticationMethodSelectionRequiredStateV2;
         };
 
+    it("automatically challenges the only available method", async () => {
+        const singleMethodStartResponse = {
+            ...START_RESPONSE,
+            _embedded: {
+                methods: [START_RESPONSE._embedded.methods[0]],
+            },
+        };
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(singleMethodStartResponse))
+            .mockResolvedValueOnce(buildResponse(CHALLENGE_RESPONSE));
+
+        const result = await app.resetPasswordV2({
+            username: "user@contoso.com",
+        });
+
+        expect(result.isFailed()).toBe(false);
+        expect(result.isState("challengeVerificationRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(
+            ChallengeVerificationRequiredStateV2
+        );
+
+        const codeState = result.state as ChallengeVerificationRequiredStateV2;
+        expect(codeState.method.id).toBe("email");
+        expect(codeState.channel).toBe("email");
+        expect(fetch as jest.Mock).toHaveBeenCalledTimes(3);
+    });
+
     it("appends OIDC scopes and caches the ID token when the app requests only an API scope", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE)) // 1. authorize-challenge entry
@@ -157,8 +198,7 @@ describe("Reset password V2 (SSPR)", () => {
 
         const methodState = await startToMethodSelection();
 
-        // The start response advertised exactly one (email) method to select.
-        expect(methodState.methods).toHaveLength(1);
+        expect(methodState.methods).toHaveLength(2);
         expect(methodState.methods[0].type).toBe("email");
 
         const challengeResult = await methodState.requestChallenge(
@@ -185,6 +225,7 @@ describe("Reset password V2 (SSPR)", () => {
         const signInState = submitResult.state as SignInContinuationStateV2;
         const signInResult = await signInState.signIn({
             scopes: ["User.Read"],
+            claims: '{"id_token":{}}',
         });
         expect(signInResult.isFailed()).toBe(false);
         expect(signInResult.isState("completed")).toBe(true);
@@ -200,6 +241,9 @@ describe("Reset password V2 (SSPR)", () => {
         expect(tokenRequest.body).toBeInstanceOf(URLSearchParams);
         expect((tokenRequest.body as URLSearchParams).get("scope")).toBe(
             "User.Read openid profile offline_access"
+        );
+        expect((tokenRequest.body as URLSearchParams).has("claims")).toBe(
+            false
         );
     });
 
@@ -289,4 +333,29 @@ describe("Reset password V2 (SSPR)", () => {
         expect(challengeResult.error).toBeInstanceOf(RequestChallengeErrorV2);
         expect(challengeResult.error?.isBrowserRequired()).toBe(true);
     });
+
+    it.each(["password", "sms"])(
+        "rejects a %s challenge for password reset",
+        async (type) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        ...CHALLENGE_RESPONSE,
+                        type,
+                    })
+                );
+
+            const methodState = await startToMethodSelection();
+            const challengeResult = await methodState.requestChallenge(
+                methodState.methods[0]
+            );
+
+            expect(challengeResult.isFailed()).toBe(true);
+            expect(challengeResult.error?.errorData.error).toBe(
+                UNSUPPORTED_FLOW_TRANSITION
+            );
+        }
+    );
 });

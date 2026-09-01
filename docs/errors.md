@@ -1185,6 +1185,10 @@ const msalConfig = {
 
 -   Password reset is not supported by the native authentication server.
 
+#### `sign_in_unsupported`
+
+-   Sign-in is not supported by the native authentication server.
+
 #### `continuation_link_missing`
 
 -   A server-provided link required to continue the native authentication flow is missing.
@@ -1196,6 +1200,14 @@ const msalConfig = {
 #### `unsupported_flow_step`
 
 -   The requested native authentication flow step is not supported.
+
+#### `unsupported_flow_transition`
+
+-   The native authentication server returned an outcome that is not supported for the current flow step.
+
+#### `unexpected_authentication_factor`
+
+-   The native authentication server returned an authentication factor that is not expected for the current flow step.
 
 #### `no_authentication_methods`
 
