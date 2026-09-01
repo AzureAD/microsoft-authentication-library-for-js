@@ -128,6 +128,12 @@ describe("ConfidentialClientApplication", () => {
                 ClientApplication.prototype,
                 <any>"acquireTokenByCode"
             );
+            const { nonce: _nonce, ...claimsWithoutNonce } = ID_TOKEN_CLAIMS;
+            const configWithoutNonce =
+                await ClientTestUtils.createTestConfidentialClientConfiguration(
+                    undefined,
+                    createAuthCodeNetworkClient(claimsWithoutNonce)
+                );
 
             const request: AuthorizationCodeRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
@@ -136,7 +142,7 @@ describe("ConfidentialClientApplication", () => {
             };
 
             const client: ConfidentialClientApplication =
-                new ConfidentialClientApplication(config);
+                new ConfidentialClientApplication(configWithoutNonce);
 
             const authResult = (await client.acquireTokenByCode(
                 request
@@ -146,6 +152,32 @@ describe("ConfidentialClientApplication", () => {
             );
             expect(acquireTokenByCodeSpy).toHaveBeenCalledTimes(1);
         });
+
+        test.each([undefined, ""])(
+            "acquireTokenByAuthorizationCode rejects ID Token nonce when request nonce is %p",
+            async (nonce) => {
+                const configWithNonce =
+                    await ClientTestUtils.createTestConfidentialClientConfiguration(
+                        undefined,
+                        createAuthCodeNetworkClient(ID_TOKEN_CLAIMS)
+                    );
+                const request: AuthorizationCodeRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                    code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                    nonce,
+                };
+                const client = new ConfidentialClientApplication(
+                    configWithNonce
+                );
+
+                await expect(
+                    client.acquireTokenByCode(request)
+                ).rejects.toMatchObject({
+                    errorCode: ClientAuthErrorCodes.nonceMismatch,
+                });
+            }
+        );
 
         test("acquireTokenByAuthorizationCode validates matching request nonce", async () => {
             const matchingConfig =

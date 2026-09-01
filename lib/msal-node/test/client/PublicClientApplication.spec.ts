@@ -100,6 +100,23 @@ function createTestAccount(): AccountInfo {
     };
 }
 
+function createAuthenticationResultWithoutNonce() {
+    const { nonce: _nonce, ...claimsWithoutNonce } = ID_TOKEN_CLAIMS;
+    const idToken = [
+        Buffer.from(JSON.stringify({ alg: "none" })).toString("base64url"),
+        Buffer.from(JSON.stringify(claimsWithoutNonce)).toString("base64url"),
+        "signature",
+    ].join(".");
+
+    return {
+        ...AUTHENTICATION_RESULT,
+        body: {
+            ...AUTHENTICATION_RESULT.body,
+            id_token: idToken,
+        },
+    };
+}
+
 function createTestIdToken(): IdTokenEntity {
     return {
         homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
@@ -2285,7 +2302,7 @@ describe("MCP flow tests", () => {
             jest.spyOn(
                 HttpClient.prototype,
                 "sendPostRequestAsync"
-            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            ).mockResolvedValue(createAuthenticationResultWithoutNonce());
             const saveCacheRecordSpy = jest.spyOn(
                 CacheManager.prototype,
                 "saveCacheRecord"
@@ -2412,7 +2429,7 @@ describe("MCP flow tests", () => {
             jest.spyOn(
                 HttpClient.prototype,
                 "sendPostRequestAsync"
-            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            ).mockResolvedValue(createAuthenticationResultWithoutNonce());
             const saveCacheRecordSpy = jest.spyOn(
                 CacheManager.prototype,
                 "saveCacheRecord"

@@ -219,15 +219,24 @@ export class ResponseHandler {
                 this.cryptoObj.base64Decode,
                 request.correlationId
             );
+        }
 
-            // token nonce check (TODO: Add a warning if no nonce is given?)
-            if (authCodePayload && authCodePayload.nonce) {
-                if (idTokenClaims.nonce !== authCodePayload.nonce) {
-                    throw createClientAuthError(
-                        ClientAuthErrorCodes.nonceMismatch,
-                        request.correlationId
-                    );
-                }
+        if (authCodePayload) {
+            const expectedNonce = authCodePayload.nonce;
+            const tokenNonce = idTokenClaims?.nonce;
+
+            if (tokenNonce && !expectedNonce) {
+                this.logger.warning(
+                    "Authorization code response contains an ID Token nonce, but no expected nonce was supplied. Rejecting the response.",
+                    request.correlationId
+                );
+            }
+
+            if ((expectedNonce || tokenNonce) && expectedNonce !== tokenNonce) {
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.nonceMismatch,
+                    request.correlationId
+                );
             }
         }
 

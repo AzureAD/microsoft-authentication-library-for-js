@@ -138,15 +138,22 @@ export class AuthorizationCodeClient {
             );
         }
 
+        const validatedAuthCodePayload = authCodePayload ?? {
+            code: request.code,
+        };
+
         // Check for new cloud instance
-        if (authCodePayload && authCodePayload.cloud_instance_host_name) {
+        if (validatedAuthCodePayload.cloud_instance_host_name) {
             await invokeAsync(
                 this.updateTokenEndpointAuthority.bind(this),
                 PerformanceEvents.UpdateTokenEndpointAuthority,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
-            )(authCodePayload.cloud_instance_host_name, request.correlationId);
+            )(
+                validatedAuthCodePayload.cloud_instance_host_name,
+                request.correlationId
+            );
         }
 
         const reqTimestamp = TimeUtils.nowSeconds();
@@ -191,7 +198,7 @@ export class AuthorizationCodeClient {
             reqTimestamp,
             request,
             apiId,
-            authCodePayload,
+            validatedAuthCodePayload,
             undefined,
             undefined,
             undefined,
