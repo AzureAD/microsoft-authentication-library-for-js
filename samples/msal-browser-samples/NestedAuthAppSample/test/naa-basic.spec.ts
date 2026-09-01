@@ -179,10 +179,12 @@ describe("Nested App Authentication brokered through the host app", () => {
         await screenshot.takeScreenshot(page, "Nested app authenticated");
 
         // Nested app must not hold a refresh token — it stays with the host/broker.
-        const nestedCachePage = await context.newPage();
-        await nestedCachePage.goto(`${protocol}://localhost:${nestedPort}`);
+        // The nested app caches to sessionStorage, which is scoped to its
+        // browsing context (the iframe). Read it from the frame directly — a
+        // fresh top-level page to the same origin would get an empty,
+        // unrelated sessionStorage.
         const nestedCache = new BrowserCacheUtils(
-            nestedCachePage,
+            nestedFrame as unknown as Page,
             "sessionStorage"
         );
         await verifyNestedTokenStore(nestedCache, ["User.Read"]);
