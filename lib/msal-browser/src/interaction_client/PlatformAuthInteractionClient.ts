@@ -96,7 +96,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected silentCacheClient: SilentCacheClient;
     protected nativeStorageManager: BrowserCacheManager;
     protected skus: string;
-    private msalOwnedDpopKeys = new Set<string>();
 
     private static readonly DPOP_BROKER_REQUEST_TOKEN_TYPE =
         Constants.AuthenticationScheme.DPOP;
@@ -466,6 +465,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 );
                 serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
                 if (isFatalNativeAuthError(e)) {
+                    await this.removeDpopRequestKey(nativeRequest);
                     /*
                      * Fatal error on redirect initiate always falls back to a
                      * regular web redirect, so this request did not complete
@@ -741,13 +741,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         } else if (
             request.tokenType ===
                 PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE &&
-            request.keyId
+            request.keyId &&
+            storeInCache?.accessToken === false
         ) {
-            if (storeInCache?.accessToken === false) {
-                await this.removeDpopRequestKey(request);
-            } else {
-                this.msalOwnedDpopKeys.delete(request.keyId);
-            }
+            await this.removeDpopRequestKey(request);
         }
 
         return result;
@@ -1243,6 +1240,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         if (
             request.authenticationScheme === Constants.AuthenticationScheme.DPOP
         ) {
+            if (request.popKid) {
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.dpopPopKidNotSupported,
+                    this.correlationId
+                );
+            }
+
             if (
                 !request.resourceRequestMethod?.trim() ||
                 !request.resourceRequestUri?.trim()
@@ -1344,8 +1348,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     private async prepareDpopBrokerRequest(
         request: PlatformAuthRequest
     ): Promise<void> {
-        await this.retryDpopKeyCleanup();
-
         if (
             request.tokenType !==
             PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE
@@ -1353,22 +1355,21 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return;
         }
 
-        if (!request.keyId) {
-            request.keyId =
-                await this.tokenBindingKeyManager.provisionTokenBindingKey({
-                    tokenBindingKeyType:
-                        Constants.AuthenticationScheme.DPOP.toLowerCase(),
-                    tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
-                    correlationId: this.correlationId,
-                });
-            this.msalOwnedDpopKeys.add(request.keyId);
-        } else {
-            await this.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
-                request.keyId,
-                this.correlationId
+        if (request.keyId) {
+            throw createAuthError(
+                AuthErrorCodes.unexpectedError,
+                this.correlationId,
+                "Unexpected preexisting DPoP request key."
             );
         }
 
+        request.keyId =
+            await this.tokenBindingKeyManager.provisionTokenBindingKey({
+                tokenBindingKeyType:
+                    Constants.AuthenticationScheme.DPOP.toLowerCase(),
+                tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
+                correlationId: this.correlationId,
+            });
         request.reqCnf = this.browserCrypto.base64UrlEncode(
             JSON.stringify({ jkt: request.keyId })
         );
@@ -1481,7 +1482,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     private async resetGeneratedDpopRequestKey(
         request: PlatformAuthRequest
     ): Promise<void> {
-        if (!request.keyId || !this.msalOwnedDpopKeys.has(request.keyId)) {
+        if (
+            request.tokenType !==
+                PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE ||
+            !request.keyId
+        ) {
             return;
         }
 
@@ -1500,7 +1505,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     private async removeDpopRequestKey(
         request: PlatformAuthRequest
     ): Promise<boolean> {
-        if (!request.keyId || !this.msalOwnedDpopKeys.has(request.keyId)) {
+        if (
+            request.tokenType !==
+                PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE ||
+            !request.keyId
+        ) {
             return true;
         }
 
@@ -1509,7 +1518,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 request.keyId,
                 this.correlationId
             );
-            this.msalOwnedDpopKeys.delete(request.keyId);
             return true;
         } catch {
             this.logger.error(
@@ -1517,14 +1525,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.correlationId
             );
             return false;
-        }
-    }
-
-    private async retryDpopKeyCleanup(): Promise<void> {
-        for (const keyId of this.msalOwnedDpopKeys) {
-            await this.removeDpopRequestKey({
-                keyId,
-            } as PlatformAuthRequest);
         }
     }
 

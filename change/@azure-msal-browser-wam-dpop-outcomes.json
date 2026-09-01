@@ -1,6 +1,6 @@
 {
     "type": "minor",
-    "comment": "Implement WAM DPoP routing outcomes and proof cache policy [#8789](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8789)",
+    "comment": "Implement WAM DPoP routing outcomes, MSAL-managed request keys, and proof cache policy [#8789](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8789)",
     "packageName": "@azure/msal-browser",
     "email": "hectormmg@microsoft.com",
     "dependentChangeType": "minor"
