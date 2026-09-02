@@ -721,6 +721,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             response.token_type?.toLowerCase() ===
                 PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE.toLowerCase() &&
             response.DPoP !== undefined;
+        if (isL3DpopResponse) {
+            await this.resetGeneratedDpopRequestKey(request);
+        }
+
         await this.cacheAccount(
             baseAccount,
             AuthToken.isKmsi(idTokenClaims),
@@ -737,9 +741,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             storeInCache
         );
 
-        if (isL3DpopResponse) {
-            await this.resetGeneratedDpopRequestKey(request);
-        } else if (
+        if (
+            !isL3DpopResponse &&
             request.tokenType ===
                 PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE &&
             request.keyId &&
@@ -1272,6 +1275,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     this.correlationId
                 );
             validatedRequest.resourceRequestUri = resourceProofClaims.htu;
+            validatedRequest.resourceRequestMethod = resourceProofClaims.htm;
 
             validatedRequest.tokenType =
                 PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE;

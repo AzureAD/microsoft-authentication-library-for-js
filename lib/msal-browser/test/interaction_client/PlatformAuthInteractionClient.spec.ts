@@ -374,6 +374,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 DPoP: "test-dpop-proof",
                 attested_chosen: true,
             });
+            const setAccountSpy = jest.spyOn(browserCacheManager, "setAccount");
+            const setIdTokenSpy = jest.spyOn(
+                browserCacheManager,
+                "setIdTokenCredential"
+            );
 
             await expect(
                 platformAuthInteractionClient.acquireToken({
@@ -385,6 +390,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).rejects.toMatchObject({
                 errorCode: AuthErrorCodes.unexpectedError,
             });
+            expect(setAccountSpy).not.toHaveBeenCalled();
+            expect(setIdTokenSpy).not.toHaveBeenCalled();
         });
 
         it("Extension: locally signs and caches an L1 DPoP fallback using the MSAL-owned request key", async () => {
@@ -2779,7 +2786,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 await platformAuthInteractionClient.initializePlatformRequest({
                     scopes: ["User.Read"],
                     authenticationScheme: Constants.AuthenticationScheme.DPOP,
-                    resourceRequestMethod: "POST",
+                    resourceRequestMethod: "post",
                     resourceRequestUri:
                         "https://graph.microsoft.com/v1.0/me?user=alice#profile",
                 });
