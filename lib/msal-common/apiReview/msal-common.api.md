@@ -556,7 +556,6 @@ const AuthorityResolveEndpointsAsync = "authorityResolveEndpointsAsync";
 export const AuthorityType: {
     readonly Default: 0;
     readonly Adfs: 1;
-    readonly Dsts: 2;
     readonly Ciam: 3;
 };
 
@@ -668,7 +667,6 @@ const AZURE_REGION_AUTO_DISCOVER_FLAG = "TryAutoDetect";
 export const AzureCloudInstance: {
     readonly None: "none";
     readonly AzurePublic: "https://login.microsoftonline.com";
-    readonly AzurePpe: "https://login.windows-ppe.net";
     readonly AzureChina: "https://login.chinacloudapi.cn";
     readonly AzureGermany: "https://login.microsoftonline.de";
     readonly AzureUsGovernment: "https://login.microsoftonline.us";
@@ -1247,7 +1245,6 @@ declare namespace Constants {
         DEFAULT_AUTHORITY_HOST,
         DEFAULT_COMMON_TENANT,
         ADFS,
-        DSTS,
         AAD_INSTANCE_DISCOVERY_ENDPT,
         CIAM_AUTH_URL,
         AAD_TENANT_DOMAIN_SUFFIX,
@@ -1546,9 +1543,6 @@ const dpopMissingResourceContext = "dpop_missing_resource_context";
 
 // @public (undocumented)
 const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
-
-// @public (undocumented)
-const DSTS = "dstsv2";
 
 // @public (undocumented)
 const EAR_JWE_CRYPTO = "ear_jwe_crypto";
@@ -3495,7 +3489,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.13.0";
+export const version = "16.14.0";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;

@@ -98,6 +98,26 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
         ).toEqual("uid.utid-login.microsoftonline.com-utid");
     });
 
+    it("uses the subject claim when a default authority omits client info", () => {
+        const warningSpy = jest.spyOn(logger, "warning");
+        const subject = "subject-id";
+
+        const homeAccountId = AccountEntityUtils.generateHomeAccountId(
+            "",
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            TEST_CONFIG.CORRELATION_ID,
+            { sub: subject }
+        );
+
+        expect(homeAccountId).toBe(subject);
+        expect(warningSpy).toHaveBeenCalledWith(
+            "No client info in response",
+            TEST_CONFIG.CORRELATION_ID
+        );
+    });
+
     it("create an Account", () => {
         // Set up stubs
         const idTokenClaims = {

@@ -454,7 +454,6 @@ export class ClientTestUtils {
 }
 
 interface checks {
-    dstsScope?: boolean;
     graphScope?: boolean;
     clientId?: boolean;
     grantType?: string;
@@ -481,14 +480,6 @@ export const checkMockedNetworkRequest = (
     returnVal: string,
     checks: checks
 ): void => {
-    if (checks.dstsScope !== undefined) {
-        expect(
-            returnVal.includes(
-                encodeURIComponent(TEST_CONFIG.DSTS_TEST_SCOPE[0])
-            )
-        ).toBe(checks.dstsScope);
-    }
-
     if (checks.graphScope !== undefined) {
         expect(
             returnVal.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)

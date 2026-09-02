@@ -2,6 +2,47 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Fri, 28 Aug 2026 21:29:53 GMT",
+      "version": "5.20.0",
+      "tag": "@azure/msal-browser_v5.20.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Discard local storage events from another client ids [#8795](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8795)"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Relocate the cross-version request adapter into the shared webBrokerBridge module without changing request transformation behavior [#8771](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8771)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Enable browser-native PublicClientApplication DPoP acquisition flows [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735)"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Export IWebBrokerBridgeMessage from the msal-browser package root [#8780](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8780)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.14.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 18 Aug 2026 20:10:56 GMT",
       "version": "5.19.0",
       "tag": "@azure/msal-browser_v5.19.0",
@@ -5305,7 +5346,7 @@
             "author": "kapjain@microsoft.com",
             "package": "@azure/msal-common",
             "commit": "84a31a3476375782c63a1b558ea1fd1ec52efb40",
-            "comment": "Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint"
+            "comment": "Fix: Legacy authority token dummy aud claim value for requests with scope input by using v2.0 endpoint"
           },
           {
             "author": "rginsburg@microsoft.com",
