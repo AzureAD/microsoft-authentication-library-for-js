@@ -76,12 +76,13 @@ export type PlatformDOMTokenRequest = {
     isSecurityTokenService: boolean;
     state?: string;
     preferBinding?: string;
+    requestConfirmation?: string;
     extraParametersNoCache?: PlatformAuthRequestExtraParametersNoCache;
     /*
      * Known optional parameters will go into extraQueryParameters.
      * List of known parameters is:
      * "prompt", "nonce", "claims", "loginHint", "instanceAware", "windowTitleSubstring", "extendedExpiryToken",
-     * ProofOfPossessionParams: "reqCnf", "keyId", "tokenType", "shrClaims", "shrNonce", "signPopToken"
+     * ProofOfPossessionParams: "keyId", "tokenType", "shrClaims", "shrNonce", "signPopToken"
      */
     extraParameters?: DOMExtraParameters;
 };
@@ -94,7 +95,6 @@ export type DOMExtraParameters = StringDict & {
     instanceAware?: string;
     windowTitleSubstring?: string;
     extendedExpiryToken?: string;
-    reqCnf?: string;
     keyId?: string;
     tokenType?: string;
     shrClaims?: string;
