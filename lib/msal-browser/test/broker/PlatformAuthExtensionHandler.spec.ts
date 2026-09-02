@@ -294,6 +294,44 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             expect(initializeNativeExtensionRequest(request)).toBe(request);
         });
 
+        it.each(["3", "3.0.0", "3.0.0.0"])(
+            "Uses the current proof context wire format for extension version %s",
+            (extensionVersion) => {
+                const wamMessageHandler = new PlatformAuthExtensionHandler(
+                    new Logger({}),
+                    2000,
+                    performanceClient
+                );
+                (
+                    wamMessageHandler as unknown as {
+                        extensionVersion: string;
+                    }
+                ).extensionVersion = extensionVersion;
+                const initializeNativeExtensionRequest = (
+                    wamMessageHandler as unknown as {
+                        initializeNativeExtensionRequest(
+                            request: PlatformAuthRequest
+                        ): PlatformAuthRequest;
+                    }
+                ).initializeNativeExtensionRequest.bind(wamMessageHandler);
+                const request: PlatformAuthRequest = {
+                    ...TEST_REQUEST,
+                    tokenType: Constants.AuthenticationScheme.DPOP,
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                };
+
+                expect(initializeNativeExtensionRequest(request)).toEqual({
+                    ...TEST_REQUEST,
+                    tokenType: Constants.AuthenticationScheme.DPOP,
+                    extraParametersNoCache: {
+                        pop_method: "POST",
+                        pop_uri: "https://graph.microsoft.com/v1.0/me",
+                    },
+                });
+            }
+        );
+
         it("Sends message to WAM extension", async () => {
             const testWAMResponse = {
                 access_token: "test-access-token",

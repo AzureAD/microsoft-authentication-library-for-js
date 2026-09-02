@@ -442,11 +442,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         const nativeRequest = await this.initializePlatformRequest(request);
-        await this.prepareDpopBrokerRequest(nativeRequest);
         const navigateToLoginRequestUrl =
             options?.navigateToLoginRequestUrl ?? true;
 
         try {
+            await this.prepareDpopBrokerRequest(nativeRequest);
             const response = await this.platformAuthProvider.sendMessage(
                 nativeRequest
             );
@@ -738,14 +738,14 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         if (isL3DpopResponse) {
-            await this.removeDpopRequestKey(request);
+            await this.resetGeneratedDpopRequestKey(request);
         } else if (
             request.tokenType ===
                 PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE &&
             request.keyId &&
             storeInCache?.accessToken === false
         ) {
-            await this.removeDpopRequestKey(request);
+            await this.resetGeneratedDpopRequestKey(request);
         }
 
         return result;
@@ -1262,14 +1262,16 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.browserCrypto,
                 this.tokenBindingKeyManager
             );
-            dpopProofGenerator.buildResourceProofClaims(
-                {
-                    htm: request.resourceRequestMethod,
-                    htu: request.resourceRequestUri,
-                    ath: "",
-                },
-                this.correlationId
-            );
+            const resourceProofClaims =
+                dpopProofGenerator.buildResourceProofClaims(
+                    {
+                        htm: request.resourceRequestMethod,
+                        htu: request.resourceRequestUri,
+                        ath: "",
+                    },
+                    this.correlationId
+                );
+            validatedRequest.resourceRequestUri = resourceProofClaims.htu;
 
             validatedRequest.tokenType =
                 PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE;
@@ -1442,7 +1444,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         if (
             !request.reqCnf ||
             !request.keyId ||
-            response.attested_chosen === true ||
+            response.attested_chosen !== false ||
             (response.token_binding_key_id !== undefined &&
                 response.token_binding_key_id !== request.keyId)
         ) {

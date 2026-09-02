@@ -119,10 +119,17 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     private initializeNativeExtensionRequest(
         request: PlatformAuthRequest
     ): PlatformAuthRequest {
-        const extensionVersion = Number(this.extensionVersion);
+        const extensionVersionParts =
+            this.extensionVersion === undefined
+                ? undefined
+                : String(this.extensionVersion).split(".");
+        const extensionMajorVersion =
+            extensionVersionParts?.every((part) => /^\d+$/.test(part)) === true
+                ? Number(extensionVersionParts[0])
+                : NaN;
         if (
-            !Number.isFinite(extensionVersion) ||
-            extensionVersion <
+            !Number.isSafeInteger(extensionMajorVersion) ||
+            extensionMajorVersion <
                 PlatformAuthExtensionHandler.PROOF_CONTEXT_EXTENSION_VERSION
         ) {
             return request;
