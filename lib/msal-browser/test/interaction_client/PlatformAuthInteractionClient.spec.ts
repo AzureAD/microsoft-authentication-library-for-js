@@ -49,6 +49,7 @@ import * as NativeStatusCodes from "../../src/broker/nativeBroker/NativeStatusCo
 import { PlatformAuthResponse } from "../../src/broker/nativeBroker/PlatformAuthResponse.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
 import { updateAccountTenantProfileData } from "@azure/msal-common/browser";
+import { base64Decode } from "../../src/encode/Base64Decode.js";
 const MOCK_WAM_RESPONSE: PlatformAuthResponse = {
     access_token: TEST_TOKENS.ACCESS_TOKEN,
     id_token: TEST_TOKENS.IDTOKEN_V2,
@@ -112,6 +113,11 @@ const testAccessTokenEntity: AccessTokenEntity = {
     cachedAt: `${TimeUtils.nowSeconds()}`,
     lastUpdatedAt: Date.now().toString(),
 };
+
+function decodeReqCnf(reqCnf: string | undefined): object {
+    expect(reqCnf).toEqual(expect.any(String));
+    return JSON.parse(base64Decode(reqCnf as string));
+}
 
 describe("PlatformAuthInteractionClient Tests", () => {
     let pca: PublicClientApplication;
@@ -318,13 +324,16 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(brokerRequest).toEqual(
                 expect.objectContaining({
                     tokenType: Constants.AuthenticationScheme.DPOP,
-                    reqCnf: expect.any(String),
-                    keyId: expect.any(String),
+                    keyId: "local-dpop-key",
                     preferBinding: "attested",
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 })
             );
+            expect(decodeReqCnf(brokerRequest.reqCnf)).toEqual({
+                kid: "local-dpop-key",
+                xms_ksl: "sw",
+            });
             expect(response.accessToken).toBe(MOCK_WAM_RESPONSE.access_token);
             expect(response.dpopProof).toBe("test-dpop-proof");
             expect(response.tokenType).toBe(
@@ -2576,7 +2585,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     },
                 });
             expect(nativeRequest).not.toHaveProperty("preferBinding");
-            expect(nativeRequest.reqCnf).toEqual(expect.any(String));
+            expect(decodeReqCnf(nativeRequest.reqCnf)).toEqual({
+                kid: "test-pop-kid",
+            });
             expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
             expect(nativeRequest.extraParameters?.userEQP).toBe(
                 "customUserParam"
@@ -2596,13 +2607,13 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     authenticationScheme: Constants.AuthenticationScheme.DPOP,
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                }                );
-                expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
-                expect(nativeRequest.tokenType).toBe(
-                    Constants.AuthenticationScheme.DPOP
-                );
-                expect(nativeRequest.preferBinding).toBe("attested");
-                expect(nativeRequest.resourceRequestMethod).toBe("POST");
+                });
+            expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
+            expect(nativeRequest.tokenType).toBe(
+                Constants.AuthenticationScheme.DPOP
+            );
+            expect(nativeRequest.preferBinding).toBe("attested");
+            expect(nativeRequest.resourceRequestMethod).toBe("POST");
             expect(nativeRequest.resourceRequestUri).toBe(
                 "https://graph.microsoft.com/v1.0/me"
             );

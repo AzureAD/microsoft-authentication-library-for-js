@@ -99,6 +99,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
     private static readonly DPOP_BROKER_REQUEST_TOKEN_TYPE =
         Constants.AuthenticationScheme.DPOP;
+    private static readonly DPOP_BROKER_REQUEST_KEY_LOCATION = "sw";
 
     constructor(
         config: BrowserConfiguration,
@@ -1371,7 +1372,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 correlationId: this.correlationId,
             });
         request.reqCnf = this.browserCrypto.base64UrlEncode(
-            JSON.stringify({ jkt: request.keyId })
+            JSON.stringify({
+                kid: request.keyId,
+                xms_ksl:
+                    PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_KEY_LOCATION,
+            })
         );
     }
 
