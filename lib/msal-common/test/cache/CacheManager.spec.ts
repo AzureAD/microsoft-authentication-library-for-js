@@ -2211,9 +2211,16 @@ describe("CacheManager.ts test cases", () => {
         );
 
         const atKey = generateCredentialKey(atWithAuthScheme);
-        expect(mockCache.cacheManager.getAccessTokenCredential(atKey)).toEqual(
-            atWithAuthScheme
-        );
+        const cachedAtWithAuthScheme =
+            mockCache.cacheManager.getAccessTokenCredential(atKey);
+        // `lastUpdatedAt` is stamped with `Date.now()` when the entity is
+        // seeded into the cache, which can differ by a millisecond from the
+        // value built above. Compare against the cached timestamp so the
+        // assertion doesn't race the clock.
+        expect(cachedAtWithAuthScheme).toEqual({
+            ...atWithAuthScheme,
+            lastUpdatedAt: cachedAtWithAuthScheme?.lastUpdatedAt,
+        });
         mockCache.cacheManager.removeAccessToken(atKey, RANDOM_TEST_GUID);
         expect(
             mockCache.cacheManager.getAccessTokenCredential(atKey)
