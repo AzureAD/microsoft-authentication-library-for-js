@@ -510,7 +510,6 @@ describe("PlatformAuthDOMHandler tests", () => {
                 extraParameters: {
                     customUserInput: "test-user-input",
                     windowTitleSubstring: "test-window-substring",
-                    reqCnf: "test-req-cnf",
                     tokenType: Constants.AuthenticationScheme.DPOP,
                 },
                 extraParametersNoCache: {
@@ -519,10 +518,15 @@ describe("PlatformAuthDOMHandler tests", () => {
                     pop_nonce: "test-dpop-nonce",
                 },
                 preferBinding: "test-prefer-binding",
+                requestConfirmation: "test-req-cnf",
                 redirectUri: testRequest.redirectUri,
                 scope: testRequest.scope,
                 state: undefined,
             });
+            expect(platformDOMRequest).not.toHaveProperty("reqCnf");
+            expect(platformDOMRequest.extraParameters).not.toHaveProperty(
+                "reqCnf"
+            );
         });
     });
 

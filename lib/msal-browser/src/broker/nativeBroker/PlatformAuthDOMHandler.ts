@@ -146,6 +146,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             state,
             extraParameters,
             preferBinding,
+            reqCnf,
             resourceRequestMethod,
             resourceRequestUri,
             extraParametersNoCache,
@@ -182,6 +183,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             scope: scope,
             state: state,
             preferBinding: preferBinding,
+            requestConfirmation: reqCnf,
             extraParametersNoCache: validExtraParametersNoCache,
         };
 
