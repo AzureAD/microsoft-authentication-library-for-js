@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Validate the relayed request in runPopupRelay before navigating and add an optional allowedAuthorityOrigins pin [#8800](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8800)",
+    "packageName": "@azure/msal-browser",
+    "email": "kshabelko@microsoft.com",
+    "dependentChangeType": "patch"
+}

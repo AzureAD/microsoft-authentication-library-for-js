@@ -4,7 +4,16 @@
  */
 
 import { NativeExtensionMethod } from "../../utils/BrowserConstants.js";
-import { StringDict } from "@azure/msal-common/browser";
+import { Constants, StringDict } from "@azure/msal-common/browser";
+
+export function isProofOfPossessionTokenType(
+    tokenType: string | undefined
+): boolean {
+    return (
+        tokenType === Constants.AuthenticationScheme.POP ||
+        tokenType === Constants.AuthenticationScheme.DPOP
+    );
+}
 
 /**
  * No-cache parameters MSAL.js sends to the native broker for proof-of-possession requests.
@@ -76,12 +85,13 @@ export type PlatformDOMTokenRequest = {
     isSecurityTokenService: boolean;
     state?: string;
     preferBinding?: string;
+    requestConfirmation?: string;
     extraParametersNoCache?: PlatformAuthRequestExtraParametersNoCache;
     /*
      * Known optional parameters will go into extraQueryParameters.
      * List of known parameters is:
      * "prompt", "nonce", "claims", "loginHint", "instanceAware", "windowTitleSubstring", "extendedExpiryToken",
-     * ProofOfPossessionParams: "reqCnf", "keyId", "tokenType", "shrClaims", "shrNonce", "signPopToken"
+     * ProofOfPossessionParams: "keyId", "tokenType", "shrClaims", "shrNonce", "signPopToken"
      */
     extraParameters?: DOMExtraParameters;
 };
@@ -94,7 +104,6 @@ export type DOMExtraParameters = StringDict & {
     instanceAware?: string;
     windowTitleSubstring?: string;
     extendedExpiryToken?: string;
-    reqCnf?: string;
     keyId?: string;
     tokenType?: string;
     shrClaims?: string;

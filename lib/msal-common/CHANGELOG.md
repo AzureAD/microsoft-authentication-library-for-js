@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 18 Aug 2026 20:10:56 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 28 Aug 2026 21:29:53 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.14.0
+
+Fri, 28 Aug 2026 21:29:53 GMT
+
+### Minor changes
+
+- Remove legacy environment metadata and legacy authority support [#8794](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8794) (sameera.gajjarapu@microsoft.com)
+- Enable support for tenant_region_subscope optional claim [#8765](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8765) (kshabelko@microsoft.com)
+- Enable public L1 PCA DPoP request, cache, and AuthenticationResult support [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735) (hectormmg@microsoft.com)
+
+### Patches
+
+- Remove the DOM type dependency from public declarations [#8784](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8784) (hectormmg@microsoft.com)
 
 ## 16.13.0
 
@@ -1031,7 +1045,7 @@ Mon, 07 Aug 2023 18:15:15 GMT
 -   Added new ClientConfigurationError type for authority mismatch in login request #6002 (lalimasharda@microsoft.com)
 -   Fix bugs in CIAM Authority Support (#5917) (sameera.gajjarapu@microsoft.com)
 -   Update polycheck version (#5901) (sameera.gajjarapu@microsoft.com)
--   Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
+-   Fix: Legacy authority token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
 -   Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805 (rginsburg@microsoft.com)
 -   `removeAccount` does not throw if account does not exist in cache #5911 (thomas.norling@microsoft.com)
 -   Remove unused enum (thomas.norling@microsoft.com)
@@ -1192,7 +1206,7 @@ Mon, 03 Oct 2022 22:12:26 GMT
 -   Add x-ms-request-id to perf telemetry logging #5244 (joarroyo@microsoft.com)
 -   Added 'no_session' to prompt enum #5131 (rginsburg@microsoft.com)
 -   Added Support for the OIDC max_age parameter #5125 (rginsburg@microsoft.com)
--   Add initial support for DSTS authorities in MSAL Common #5212 (hemoral@microsoft.com)
+-   Add initial support for legacy authorities in MSAL Common #5212 (hemoral@microsoft.com)
 
 ### Patches
 

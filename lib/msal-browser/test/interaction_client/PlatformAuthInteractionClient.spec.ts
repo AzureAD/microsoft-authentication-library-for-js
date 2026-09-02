@@ -2596,14 +2596,13 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     authenticationScheme: Constants.AuthenticationScheme.DPOP,
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                });
-
-            expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
-            expect(nativeRequest.tokenType).toBe(
-                Constants.AuthenticationScheme.DPOP
-            );
-            expect(nativeRequest.preferBinding).toBe("attested");
-            expect(nativeRequest.resourceRequestMethod).toBe("POST");
+                }                );
+                expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
+                expect(nativeRequest.tokenType).toBe(
+                    Constants.AuthenticationScheme.DPOP
+                );
+                expect(nativeRequest.preferBinding).toBe("attested");
+                expect(nativeRequest.resourceRequestMethod).toBe("POST");
             expect(nativeRequest.resourceRequestUri).toBe(
                 "https://graph.microsoft.com/v1.0/me"
             );

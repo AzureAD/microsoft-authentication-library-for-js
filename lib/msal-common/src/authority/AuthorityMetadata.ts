@@ -102,15 +102,6 @@ export const rawMetdataJSON: RawMetadata = {
                 preferred_cache: "login.sovcloud-identity.sg",
                 aliases: ["login.sovcloud-identity.sg"],
             },
-            {
-                preferred_network: "login.windows-ppe.net",
-                preferred_cache: "login.windows-ppe.net",
-                aliases: [
-                    "login.windows-ppe.net",
-                    "sts.windows-ppe.net",
-                    "login.microsoft-ppe.com",
-                ],
-            },
         ],
     },
 };

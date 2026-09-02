@@ -14,12 +14,12 @@ import {
     AuthErrorCodes,
     InProgressPerformanceEvent,
     IPerformanceClient,
-    Constants,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
 import {
     NativeExtensionRequest,
     NativeExtensionRequestBody,
+    isProofOfPossessionTokenType,
     PlatformAuthRequest,
 } from "./PlatformAuthRequest.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
@@ -135,9 +135,9 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             ...extensionRequest
         } = request;
 
-        const isProofOfPossessionRequest =
-            request.tokenType === Constants.AuthenticationScheme.POP ||
-            request.tokenType === Constants.AuthenticationScheme.DPOP;
+        const isProofOfPossessionRequest = isProofOfPossessionTokenType(
+            request.tokenType
+        );
 
         const nativeExtraParametersNoCache = isProofOfPossessionRequest
             ? {
