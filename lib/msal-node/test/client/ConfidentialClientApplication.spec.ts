@@ -154,7 +154,7 @@ describe("ConfidentialClientApplication", () => {
         });
 
         test.each([undefined, ""])(
-            "acquireTokenByAuthorizationCode rejects ID Token nonce when request nonce is %p",
+            "acquireTokenByCode rejects ID Token nonce when request nonce is %p",
             async (nonce) => {
                 const configWithNonce =
                     await ClientTestUtils.createTestConfidentialClientConfiguration(
