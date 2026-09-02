@@ -18,7 +18,7 @@ import {
     FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_COMPLETED_V2,
     FLOW_NEW_PASSWORD_REQUIRED_V2,
-    FLOW_PASSWORD_REQUIRED_V2,
+    FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
@@ -108,7 +108,7 @@ export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequired
                 );
             }
 
-            if (result.type === FLOW_PASSWORD_REQUIRED_V2) {
+            if (result.type === FLOW_SIGN_UP_PASSWORD_REQUIRED_V2) {
                 return new CustomAuthResultV2(
                     new SignUpPasswordRequiredStateV2({
                         correlationId: result.correlationId,

@@ -45,6 +45,7 @@ import {
     FLOW_CODE_REQUIRED_V2,
     FLOW_MFA_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
+    FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
 } from "../core/interaction_client/v2/result/FlowActionResultV2.js";
 import { PasswordRequiredStateV2 } from "../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { ChallengeVerificationRequiredStateV2 } from "../core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
@@ -892,7 +893,7 @@ export class CustomAuthStandardController
                 );
             }
 
-            if (result.type === FLOW_PASSWORD_REQUIRED_V2) {
+            if (result.type === FLOW_SIGN_UP_PASSWORD_REQUIRED_V2) {
                 return new CustomAuthResultV2(
                     new SignUpPasswordRequiredStateV2({
                         ...commonStateParameters,

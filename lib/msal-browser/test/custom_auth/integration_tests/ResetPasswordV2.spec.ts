@@ -180,7 +180,7 @@ describe("Reset password V2 (SSPR)", () => {
         );
 
         const codeState = result.state as ChallengeVerificationRequiredStateV2;
-        expect(codeState.method.id).toBe("email");
+        expect(codeState.method?.id).toBe("email");
         expect(codeState.channel).toBe("email");
         expect(fetch as jest.Mock).toHaveBeenCalledTimes(3);
     });

@@ -31,7 +31,6 @@ import {
     createFlowSignInContinuationRequiredResultV2,
     createFlowCompletedResultV2,
     FLOW_CODE_REQUIRED_V2,
-    FLOW_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "./result/FlowActionResultV2.js";
 import type {
@@ -71,12 +70,12 @@ import {
     getPublicApiIdV2,
     FlowStepV2,
 } from "../../telemetry/FlowApiIdHelperV2.js";
-import type {
-    ChallengeResultV2,
-    VerifyResultV2,
+import {
+    AuthenticationFactorV2,
+    type ChallengeResultV2,
+    VerifyNextActionV2,
+    type VerifyResultV2,
 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
-import { VerifyNextActionV2 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
-import { AuthenticationFactorV2 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import type { FlowContinuationStateV2 } from "./FlowContinuationStateV2.js";
 import type { AuthenticationMethodV2 } from "../../auth_flow/v2/AuthenticationMethodV2.js";
 import {
@@ -627,8 +626,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 ...continuationState,
                 signUp: {
                     passwordWasSupplied:
-                        continuationState.signUp?.passwordWasSupplied === true ||
-                        attributes.password !== undefined,
+                        continuationState.signUp?.passwordWasSupplied ===
+                            true || attributes.password !== undefined,
                 },
             },
             correlationId
@@ -930,9 +929,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             });
         }
 
-        if (
-            result.nextAction === SignUpSubmitAttributesNextActionV2.CONTINUE
-        ) {
+        if (result.nextAction === SignUpSubmitAttributesNextActionV2.CONTINUE) {
             return createFlowSignInContinuationRequiredResultV2({
                 correlationId,
                 continuationState: {

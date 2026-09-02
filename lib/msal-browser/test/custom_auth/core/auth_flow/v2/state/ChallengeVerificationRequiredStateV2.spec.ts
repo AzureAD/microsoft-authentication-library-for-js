@@ -14,7 +14,7 @@ import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/
 import {
     FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_COMPLETED_V2,
-    FLOW_PASSWORD_REQUIRED_V2,
+    FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthAccountData } from "../../../../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
@@ -168,7 +168,7 @@ describe("ChallengeVerificationRequiredStateV2", () => {
             confirmationInput: "retype",
         };
         flowClient.submitCode.mockResolvedValue({
-            type: FLOW_PASSWORD_REQUIRED_V2,
+            type: FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
             correlationId,
             continuationState: {
                 continuationToken: "ct-sign-up-verify",

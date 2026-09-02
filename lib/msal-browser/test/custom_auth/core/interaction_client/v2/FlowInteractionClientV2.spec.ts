@@ -9,6 +9,7 @@ import {
     FLOW_METHOD_SELECTION_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
+    FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
     FLOW_MFA_REQUIRED_V2,
     FLOW_NEW_PASSWORD_REQUIRED_V2,
     FLOW_ATTRIBUTES_REQUIRED_V2,
@@ -268,7 +269,7 @@ describe("FlowInteractionClientV2", () => {
                 username: "user@contoso.com",
             });
 
-            expect(result.type).toBe(FLOW_PASSWORD_REQUIRED_V2);
+            expect(result.type).toBe(FLOW_SIGN_UP_PASSWORD_REQUIRED_V2);
             expect(
                 (result as FlowSignUpPasswordRequiredResultV2)
                     .requiredPasswordAttribute
@@ -1228,7 +1229,7 @@ describe("FlowInteractionClientV2", () => {
                 code: "12345678",
             });
 
-            expect(result.type).toBe(FLOW_PASSWORD_REQUIRED_V2);
+            expect(result.type).toBe(FLOW_SIGN_UP_PASSWORD_REQUIRED_V2);
             expect(contextSpy).toHaveBeenCalledWith(
                 SIGN_UP_V2_SUBMIT_CODE,
                 correlationId
