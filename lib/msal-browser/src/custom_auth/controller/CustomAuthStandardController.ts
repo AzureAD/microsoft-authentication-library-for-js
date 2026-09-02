@@ -842,6 +842,18 @@ export class CustomAuthStandardController
                 inputs.username,
                 correlationId
             );
+            if (Object.prototype.hasOwnProperty.call(inputs, "password")) {
+                ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+                    "inputs.password",
+                    inputs.password,
+                    correlationId
+                );
+                ArgumentValidator.ensureArgumentIsNotEmptyString(
+                    "inputs.password",
+                    inputs.password,
+                    correlationId
+                );
+            }
             this.ensureUserNotSignedIn(correlationId);
 
             this.logger.verbose(

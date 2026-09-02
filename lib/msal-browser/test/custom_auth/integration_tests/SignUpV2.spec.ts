@@ -94,6 +94,24 @@ describe("Sign-up V2 entry", () => {
         jest.clearAllMocks();
     });
 
+    it.each([
+        ["undefined", undefined],
+        ["null", null],
+        ["empty", ""],
+    ])(
+        "rejects an explicitly supplied %s password before networking",
+        async (_, password) => {
+            const result = await app.signUpV2({
+                username: "user@contoso.com",
+                password: password as unknown as string,
+            });
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.error?.isInvalidInput()).toBe(true);
+            expect(fetch).not.toHaveBeenCalled();
+        }
+    );
+
     it("starts sign-up, submits initial data, and returns email code required", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
