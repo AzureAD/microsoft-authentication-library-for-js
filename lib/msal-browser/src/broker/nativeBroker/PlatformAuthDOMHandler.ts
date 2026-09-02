@@ -9,10 +9,10 @@ import {
     AuthErrorCodes,
     IPerformanceClient,
     StringDict,
-    Constants,
 } from "@azure/msal-common/browser";
 import {
     DOMExtraParameters,
+    isProofOfPossessionTokenType,
     PlatformAuthRequest,
     PlatformAuthRequestExtraParametersNoCache,
     PlatformDOMTokenRequest,
@@ -157,9 +157,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             remainingProperties,
             correlationId
         );
-        const isProofOfPossessionRequest =
-            request.tokenType === Constants.AuthenticationScheme.POP ||
-            request.tokenType === Constants.AuthenticationScheme.DPOP;
+        const isProofOfPossessionRequest = isProofOfPossessionTokenType(
+            request.tokenType
+        );
 
         const validExtraParametersNoCache = this.getDOMExtraParamsNoCache(
             isProofOfPossessionRequest,

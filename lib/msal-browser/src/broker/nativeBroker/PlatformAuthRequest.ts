@@ -4,7 +4,16 @@
  */
 
 import { NativeExtensionMethod } from "../../utils/BrowserConstants.js";
-import { StringDict } from "@azure/msal-common/browser";
+import { Constants, StringDict } from "@azure/msal-common/browser";
+
+export function isProofOfPossessionTokenType(
+    tokenType: string | undefined
+): boolean {
+    return (
+        tokenType === Constants.AuthenticationScheme.POP ||
+        tokenType === Constants.AuthenticationScheme.DPOP
+    );
+}
 
 /**
  * No-cache parameters MSAL.js sends to the native broker for proof-of-possession requests.
