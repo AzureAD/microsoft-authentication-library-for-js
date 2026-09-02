@@ -6,6 +6,7 @@
 import { AuthenticationResult } from "../../../../../response/AuthenticationResult.js";
 import { AuthenticationMethodV2 } from "../../../auth_flow/v2/AuthenticationMethodV2.js";
 import { FlowContinuationStateV2 } from "../FlowContinuationStateV2.js";
+import { SignUpAttributeV2 } from "../../../network_client/custom_auth_api/v2/result/SignUpResultsV2.js";
 
 /*
  * Unified outcome envelope returned by V2 interaction-client actions. The L1
@@ -56,6 +57,14 @@ export interface FlowPasswordRequiredResultV2 extends FlowActionResultBaseV2 {
     continuationState: FlowContinuationStateV2;
 }
 
+export interface FlowSignUpPasswordRequiredResultV2
+    extends FlowActionResultBaseV2 {
+    type: typeof FLOW_SIGN_UP_PASSWORD_REQUIRED_V2;
+    continuationState: FlowContinuationStateV2;
+    attributes: SignUpAttributeV2[];
+    requiredPasswordAttribute: SignUpAttributeV2;
+}
+
 // A registered MFA method must be selected to continue sign-in.
 export interface FlowMFARequiredResultV2 extends FlowActionResultBaseV2 {
     type: typeof FLOW_MFA_REQUIRED_V2;
@@ -68,6 +77,12 @@ export interface FlowNewPasswordRequiredResultV2
     extends FlowActionResultBaseV2 {
     type: typeof FLOW_NEW_PASSWORD_REQUIRED_V2;
     continuationState: FlowContinuationStateV2;
+}
+
+export interface FlowAttributesRequiredResultV2 extends FlowActionResultBaseV2 {
+    type: typeof FLOW_ATTRIBUTES_REQUIRED_V2;
+    continuationState: FlowContinuationStateV2;
+    attributes: SignUpAttributeV2[];
 }
 
 /*
@@ -91,18 +106,34 @@ export type FlowActionResultV2 =
     | FlowCodeRequiredResultV2
     | FlowResetPasswordCodeRequiredResultV2
     | FlowPasswordRequiredResultV2
+    | FlowSignUpPasswordRequiredResultV2
     | FlowMFARequiredResultV2
     | FlowNewPasswordRequiredResultV2
+    | FlowAttributesRequiredResultV2
     | FlowSignInContinuationRequiredResultV2
     | FlowCompletedResultV2;
+
+export type FlowSignUpActionResultV2 =
+    | FlowCodeRequiredResultV2
+    | FlowSignUpPasswordRequiredResultV2
+    | FlowAttributesRequiredResultV2
+    | FlowSignInContinuationRequiredResultV2;
+
+export type FlowSignUpStartResultV2 =
+    | FlowCodeRequiredResultV2
+    | FlowSignUpPasswordRequiredResultV2
+    | FlowAttributesRequiredResultV2;
 
 // Result type discriminators.
 export const FLOW_METHOD_SELECTION_REQUIRED_V2 =
     "FlowMethodSelectionRequiredResultV2";
 export const FLOW_CODE_REQUIRED_V2 = "FlowCodeRequiredResultV2";
 export const FLOW_PASSWORD_REQUIRED_V2 = "FlowPasswordRequiredResultV2";
+export const FLOW_SIGN_UP_PASSWORD_REQUIRED_V2 =
+    "FlowSignUpPasswordRequiredResultV2";
 export const FLOW_MFA_REQUIRED_V2 = "FlowMFARequiredResultV2";
 export const FLOW_NEW_PASSWORD_REQUIRED_V2 = "FlowNewPasswordRequiredResultV2";
+export const FLOW_ATTRIBUTES_REQUIRED_V2 = "FlowAttributesRequiredResultV2";
 export const FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2 =
     "FlowSignInContinuationRequiredResultV2";
 export const FLOW_COMPLETED_V2 = "FlowCompletedResultV2";
@@ -125,6 +156,12 @@ export function createFlowPasswordRequiredResultV2(
     return { type: FLOW_PASSWORD_REQUIRED_V2, ...input };
 }
 
+export function createFlowSignUpPasswordRequiredResultV2(
+    input: Omit<FlowSignUpPasswordRequiredResultV2, "type">
+): FlowSignUpPasswordRequiredResultV2 {
+    return { type: FLOW_SIGN_UP_PASSWORD_REQUIRED_V2, ...input };
+}
+
 export function createFlowMFARequiredResultV2(
     input: Omit<FlowMFARequiredResultV2, "type">
 ): FlowMFARequiredResultV2 {
@@ -135,6 +172,12 @@ export function createFlowNewPasswordRequiredResultV2(
     input: Omit<FlowNewPasswordRequiredResultV2, "type">
 ): FlowNewPasswordRequiredResultV2 {
     return { type: FLOW_NEW_PASSWORD_REQUIRED_V2, ...input };
+}
+
+export function createFlowAttributesRequiredResultV2(
+    input: Omit<FlowAttributesRequiredResultV2, "type">
+): FlowAttributesRequiredResultV2 {
+    return { type: FLOW_ATTRIBUTES_REQUIRED_V2, ...input };
 }
 
 export function createFlowSignInContinuationRequiredResultV2(

@@ -15,11 +15,17 @@ import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV
 import { CompletedStateV2 } from "./CompletedStateV2.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import {
+    FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_COMPLETED_V2,
     FLOW_NEW_PASSWORD_REQUIRED_V2,
+    FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
+    FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
+import { AttributesRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
+import { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
+import { SignUpPasswordRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
 
 /**
  * State returned when the user must verify a challenge, for example by
@@ -29,7 +35,7 @@ import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth
 export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequiredStateBase<ChallengeVerificationRequiredStateParametersV2> {
     readonly stateType = "challengeVerificationRequired";
 
-    readonly method: AuthenticationMethodV2;
+    readonly method?: AuthenticationMethodV2;
 
     readonly sentTo?: string;
 
@@ -74,6 +80,55 @@ export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequired
             if (result.type === FLOW_NEW_PASSWORD_REQUIRED_V2) {
                 return new CustomAuthResultV2(
                     new NewPasswordRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger,
+                        config: this.stateParameters.config,
+                        flowClient,
+                        continuationState: result.continuationState,
+                        cacheClient: this.stateParameters.cacheClient,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_ATTRIBUTES_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new AttributesRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger,
+                        config: this.stateParameters.config,
+                        flowClient,
+                        continuationState: result.continuationState,
+                        cacheClient: this.stateParameters.cacheClient,
+                        attributes: result.attributes,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_SIGN_UP_PASSWORD_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new SignUpPasswordRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger,
+                        config: this.stateParameters.config,
+                        flowClient,
+                        continuationState: result.continuationState,
+                        cacheClient: this.stateParameters.cacheClient,
+                        attributes: result.attributes,
+                        requiredPasswordAttribute:
+                            result.requiredPasswordAttribute,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new SignInContinuationStateV2({
                         correlationId: result.correlationId,
                         logger,
                         config: this.stateParameters.config,

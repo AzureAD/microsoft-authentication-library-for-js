@@ -66,6 +66,24 @@ interface StartResponseV2 extends Omit<HalResponseBaseV2, "_embedded"> {
 export type PasswordResetStartResponseV2 = StartResponseV2;
 export type SignInStartResponseV2 = StartResponseV2;
 
+export interface SignUpAttributeResponseV2 {
+    attributeId: string;
+    inputType?: string;
+    required?: boolean;
+    canChange?: boolean;
+    label?: string;
+    regex?: string;
+    confirmationInput?: string;
+}
+
+export interface SignUpStartResponseV2
+    extends Omit<HalResponseBaseV2, "_links"> {
+    attributes?: SignUpAttributeResponseV2[];
+    _links?: {
+        submitAttributes?: HalLink;
+    };
+}
+
 interface ChallengeResponseBaseV2 extends Omit<HalResponseBaseV2, "_links"> {
     id?: string;
     type?: string;
@@ -91,6 +109,16 @@ export type ChallengeResponseV2 =
     | CodeChallengeResponseV2
     | PasswordChallengeResponseV2;
 
+export interface SignUpSubmitAttributesResponseV2
+    extends Omit<CodeChallengeResponseV2, "_links"> {
+    attributes?: SignUpAttributeResponseV2[];
+    _links?: {
+        verify?: HalLink;
+        resend?: HalLink;
+        submitAttributes?: HalLink;
+    };
+}
+
 /*
  * Credential-verification response. For password reset, the `update` relation
  * identifies where the new password is submitted.
@@ -99,8 +127,10 @@ export interface VerifyResponseV2 extends Omit<HalResponseBaseV2, "_links"> {
     id?: string;
     type?: string;
     payload?: Record<string, unknown>;
+    attributes?: SignUpAttributeResponseV2[];
     _links?: {
         update?: HalLink;
+        submitAttributes?: HalLink;
     };
     _embedded?: {
         methods?: EmbeddedMethodV2[];
@@ -122,12 +152,10 @@ export interface UpdatePasswordResponseV2
 }
 
 /*
- * Password-reset polling response. When the state becomes `continue`, the
- * `continue` relation returns the flow to authorize-challenge for token issuance.
+ * Password-reset polling response.
  */
 export interface PollResponseV2 extends Omit<HalResponseBaseV2, "_links"> {
     _links?: {
-        continue?: HalLink;
         poll?: HalLink;
     };
 }

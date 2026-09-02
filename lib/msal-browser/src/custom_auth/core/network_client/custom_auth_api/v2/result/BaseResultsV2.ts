@@ -7,6 +7,7 @@
  * Return contracts of the shared V2 base client (BaseApiClientV2), flow-agnostic and reused by
  * every V2 flow. Distinct from the per-flow result DTOs (e.g. ResetPasswordResultsV2).
  */
+import type { SignUpAttributeV2 } from "./SignUpResultsV2.js";
 
 // Initial continuation token and available flow links.
 export interface AuthorizeChallengeEntryResultV2 {
@@ -67,6 +68,7 @@ export const VerifyNextActionV2 = {
     UPDATE: "update",
     CONTINUE: "continue",
     CHALLENGE: "challenge",
+    COLLECT_ATTRIBUTES: "collectAttributes",
 } as const;
 
 /*
@@ -88,4 +90,10 @@ export type VerifyResultV2 =
           continuationToken: string;
           authenticationFactor: AuthenticationFactorV2;
           methods: StartMethodV2[];
+      }
+    | {
+          nextAction: typeof VerifyNextActionV2.COLLECT_ATTRIBUTES;
+          continuationToken: string;
+          attributes: SignUpAttributeV2[];
+          submitAttributesHref: string;
       };

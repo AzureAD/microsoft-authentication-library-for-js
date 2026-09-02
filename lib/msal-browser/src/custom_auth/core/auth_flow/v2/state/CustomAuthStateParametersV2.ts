@@ -28,7 +28,7 @@ export interface MFARequiredStateParametersV2
 
 export interface ChallengeVerificationRequiredStateParametersV2
     extends CustomAuthActionRequiredStateParametersV2 {
-    method: AuthenticationMethodV2;
+    method?: AuthenticationMethodV2;
     sentTo?: string;
     channel?: string;
     codeLength?: number;

@@ -12,6 +12,7 @@ import {
     PASSWORD_TOO_WEAK,
 } from "./AuthFlowErrorSubcodesV2.js";
 import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
+import type { AttributeValidationDetailV2 } from "../../../network_client/custom_auth_api/v2/response/ErrorResponsesV2.js";
 
 /*
  * Standalone V2 error base; intentionally does NOT extend the V1 AuthFlowErrorBase.
@@ -105,5 +106,20 @@ export abstract class AuthFlowErrorBaseV2 {
             this.errorData.error === "invalidGrant" &&
             this.errorData.subError === INVALID_USERNAME_OR_PASSWORD
         );
+    }
+
+    protected getAttributeValidationDetails(): AttributeValidationDetailV2[] {
+        const details = (
+            this.errorData as CustomAuthError & {
+                attributeValidationDetails?: unknown;
+            }
+        ).attributeValidationDetails;
+
+        return Array.isArray(details)
+            ? details.filter(
+                  (detail): detail is AttributeValidationDetailV2 =>
+                      typeof detail === "object" && detail !== null
+              )
+            : [];
     }
 }

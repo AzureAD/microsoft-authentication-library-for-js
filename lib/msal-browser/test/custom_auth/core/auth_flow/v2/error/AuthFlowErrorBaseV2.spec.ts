@@ -156,12 +156,12 @@ describe("AuthFlowErrorBaseV2 error mapping", () => {
             expect(error.correlationId).toBe(
                 "66693bdf-6ecc-4b63-8773-8bdafe4f9ca4"
             );
-            expect(
-                (error.errorData as CustomAuthApiError).traceId
-            ).toBe("c1cb8eb0-c234-4d17-9420-86b85fcb0300");
-            expect(
-                (error.errorData as CustomAuthApiError).timestamp
-            ).toBe("2026-08-22 19:26:35Z");
+            expect((error.errorData as CustomAuthApiError).traceId).toBe(
+                "c1cb8eb0-c234-4d17-9420-86b85fcb0300"
+            );
+            expect((error.errorData as CustomAuthApiError).timestamp).toBe(
+                "2026-08-22 19:26:35Z"
+            );
         });
 
         it("is false for an unrelated sign-in start failure", () => {
@@ -224,12 +224,12 @@ describe("AuthFlowErrorBaseV2 error mapping", () => {
             expect(error.correlationId).toBe(
                 "6ed6616b-9580-4d7b-9d91-9dfe75d7bf97"
             );
-            expect(
-                (error.errorData as CustomAuthApiError).traceId
-            ).toBe("50708ac8-4bb6-44d4-be3c-0065413b0400");
-            expect(
-                (error.errorData as CustomAuthApiError).timestamp
-            ).toBe("2026-08-22 19:25:11Z");
+            expect((error.errorData as CustomAuthApiError).traceId).toBe(
+                "50708ac8-4bb6-44d4-be3c-0065413b0400"
+            );
+            expect((error.errorData as CustomAuthApiError).timestamp).toBe(
+                "2026-08-22 19:25:11Z"
+            );
         });
 
         it("preserves an invalid continuation-token failure", () => {
@@ -256,12 +256,12 @@ describe("AuthFlowErrorBaseV2 error mapping", () => {
             expect(error.correlationId).toBe(
                 "0125cc68-08de-42d2-819d-135ac42be44b"
             );
-            expect(
-                (error.errorData as CustomAuthApiError).traceId
-            ).toBe("0fb57f04-25a3-4a68-878f-829645380400");
-            expect(
-                (error.errorData as CustomAuthApiError).timestamp
-            ).toBe("2026-08-22 19:25:49Z");
+            expect((error.errorData as CustomAuthApiError).traceId).toBe(
+                "0fb57f04-25a3-4a68-878f-829645380400"
+            );
+            expect((error.errorData as CustomAuthApiError).timestamp).toBe(
+                "2026-08-22 19:25:49Z"
+            );
         });
     });
 

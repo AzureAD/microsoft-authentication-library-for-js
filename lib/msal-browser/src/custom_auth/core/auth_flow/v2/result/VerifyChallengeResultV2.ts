@@ -9,6 +9,9 @@ import type { NewPasswordRequiredStateV2 } from "../../../../reset_password/auth
 import type { FailedStateV2 } from "../state/FailedStateV2.js";
 import type { CompletedStateV2 } from "../state/CompletedStateV2.js";
 import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
+import type { AttributesRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
+import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
+import type { SignUpPasswordRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
 
 /**
  * The states a verify-challenge action can resolve to. Verifying the one-time
@@ -17,6 +20,9 @@ import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/Cu
  */
 export type VerifyChallengeResultStateV2 =
     | NewPasswordRequiredStateV2
+    | SignUpPasswordRequiredStateV2
+    | AttributesRequiredStateV2
+    | SignInContinuationStateV2
     | CompletedStateV2
     | FailedStateV2;
 
