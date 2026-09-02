@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788389169672,
+  "lastUpdate": 1788390532833,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23163,6 +23163,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.87%",
             "unit": "ops/sec",
             "extra": "232 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5e6367b9737902cae3411f5c98b2e36c01e0037f",
+          "message": "fix(e2e): stop device-code sample tests timing out on optional ESTS pages (#8806)\n\n## Problem  \nThe `device-code` sample e2e tests (`device-code-aad`,\n`device-code-adfs`, `device-code-aad-agc`) intermittently — and on\nslower agents, *consistently* — time out. The failure surfaces as\n`Waiting for selector #message failed` / `Target closed`, even though\nauthentication actually succeeds.\n\n### Root cause  \nThe device-code login walks a long serial chain of real ESTS pages\nagainst a fixed `jest.setTimeout(90000)`. Several steps use the **30s\ndefault** `waitForSelector` timeout on *optional* pages. In the AAD\ndevice-code flow the `approveRemoteConnect` confirmation page (\"Are you\ntrying to sign in?\") **does not appear**, so `waitForSelector` sits on\nits full default timeout before giving up — burning ~30s every run.\nScreenshots captured locally showed a **43-second gap** between the\ndevice-code entry page and the username page, isolating that wasted\nwait. It pushes the baseline test time to ~85–90s, right on the 90s cap.\n`jest.retryTimes(5)` normally rescues it (one of six attempts lands\nunder 90s), which is why most PRs stay green — but on a loaded/slow\nagent every attempt tips over and it looks like a hard, consistent\nfailure.\n\n## Changes  \n- **`approveRemoteConnect` (`e2eTestUtils/src/TestUtils.ts`)**: give the\noptional confirmation page a short **5s** explicit `waitForSelector`\ntimeout instead of the 30s default, so a run where it doesn't appear\ndoesn't starve the rest of the login chain. It's already wrapped in\n`try/catch/return`, so a missing page is a no-op — this is strictly an\nimprovement for every caller.\n- **device-code specs (aad, adfs, agc)**: raise `jest.setTimeout` **90s\n→ 120s** for headroom against agent/network variance. ## Validation Ran\nlocally on **Node v22.12** (the CI matrix version): `device-code-aad`\nnow passes in **~43s** (test body 43.4s), where it previously timed out\nat 90s across all retries.\n\nSamples-only change — no changefile required.\n\n<!-- BEGIN pr-telemetry --> assistance: agentic-cli type: test\nagent-tool: copilot-cli agent-model: claude-opus-4.8 work-item: AB#n/a\n<!-- END pr-telemetry -->\n\nCopilot-Session: d9ccc5f1-36f3-4786-a416-e2afe65eb259",
+          "timestamp": "2026-09-02T23:00:49Z",
+          "tree_id": "d7fbe2b5094d0abda7886c049c1905a39f27f861",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5e6367b9737902cae3411f5c98b2e36c01e0037f"
+        },
+        "date": 1788390529337,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 402806,
+            "range": "±0.60%",
+            "unit": "ops/sec",
+            "extra": "240 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 402135,
+            "range": "±0.64%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
