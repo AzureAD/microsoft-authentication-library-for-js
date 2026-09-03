@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>MSAL.js Legacy Polling Sample (1P)</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>
+            body {
+                font-family: Segoe UI, sans-serif;
+                margin: 2rem;
+                max-width: 720px;
+            }
+            button {
+                padding: 0.5rem 1rem;
+                margin-right: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+            pre {
+                background: #f4f4f4;
+                padding: 1rem;
+                white-space: pre-wrap;
+                word-break: break-all;
+            }
+            .row {
+                margin: 1rem 0;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>MSAL.js Legacy Polling Sample</h1>
+        <p>
+            Demonstrates <code>system.enableLegacyPolling</code>
+            opt-in. When enabled, popup, logoutPopup, and ssoSilent flows poll
+            the popup/iframe URL for the auth response (v4 behavior) instead of
+            relying on COOP-safe redirect-bridge messaging. Use this when your
+            host (e.g. Office Add-ins, legacy in-app browsers) cannot adopt COOP
+            yet.
+        </p>
+
+        <div class="row">
+            <strong>Active account:</strong>
+            <span id="account">none</span>
+        </div>
+
+        <div class="row">
+            <button id="btn-login">Login (Legacy Popup)</button>
+            <button id="btn-sso-silent">ssoSilent (Legacy SSO)</button>
+            <button id="btn-logout">Logout (Legacy Popup)</button>
+        </div>
+
+        <h3>Last result</h3>
+        <pre id="output">(none)</pre>
+
+        <!--
+            Load the locally-built msal-browser UMD bundle. server.js mounts
+            /lib → ../../../lib/msal-browser/lib so the sample picks up the
+            local build (run npm run build:package first).
+        -->
+        <script src="/lib/msal-browser.min.js"></script>
+        <script src="./authConfig.js"></script>
+        <script src="./auth.js"></script>
+    </body>
+</html>

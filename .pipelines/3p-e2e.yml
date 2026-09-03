@@ -96,6 +96,8 @@ extends:
                               dir: "ExpressSample"
                               testFilter: "ear-basic"
                             - name: "NativeAuthSample"
+                            - name: "LegacyPollingSample"
+                            - name: "UntrustedTopFrameSample"
                             # - name: "NestedAuthAppSample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}

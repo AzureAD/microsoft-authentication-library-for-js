@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Untrusted Host Application</title>
+        <link
+            rel="stylesheet"
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+            integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+            crossorigin="anonymous"
+        />
+        <style>
+            #embedded-frame-container {
+                border: 2px solid #0078d4;
+                border-radius: 8px;
+                margin: 20px auto;
+                max-width: 800px;
+                overflow: hidden;
+            }
+            #embedded-frame-container iframe {
+                width: 100%;
+                height: 320px;
+                border: none;
+            }
+            .frame-banner {
+                background-color: #f0f0f0;
+                padding: 10px 20px;
+                border-bottom: 1px solid #ddd;
+                font-size: 0.85em;
+                color: #666;
+            }
+        </style>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <a class="navbar-brand" href="/">Untrusted Host Application</a>
+            <span class="navbar-text text-muted ml-auto">
+                This app does NOT use MSAL and never sees tokens.
+            </span>
+        </nav>
+
+        <div class="container mt-4">
+            <div class="alert alert-info">
+                <strong>Untrusted Top Frame Sample</strong> — this untrusted
+                host runs on <code>localhost:3000</code> and embeds a trusted
+                first-party app from <code>localhost:3001</code> in the iframe
+                below. When you sign in, the iframe calls
+                <code>acquireTokenPopup</code>, which opens a
+                <strong>top-level popup-relay page on its own origin</strong>
+                that relays a single-use, PKCE-bound authorization
+                <strong>code</strong> (never a token) back to the iframe, where
+                MSAL completes the token exchange. The host is never part of the
+                auth flow.
+            </div>
+
+            <div id="embedded-frame-container">
+                <div class="frame-banner">
+                    Embedded trusted app (origin: localhost:3001)
+                </div>
+                <iframe
+                    id="embedded-iframe"
+                    allow="publickey-credentials-get"
+                ></iframe>
+            </div>
+        </div>
+
+        <script>
+            // Forward the query string (e.g. ?httpMethod=GET|POST) to the
+            // embedded iframe so the trusted app configures the matching
+            // /authorize request shape. The host itself never touches MSAL — it
+            // only passes the flags along.
+            (function () {
+                document.getElementById("embedded-iframe").src =
+                    "//localhost:3001/" + window.location.search;
+            })();
+        </script>
+    </body>
+</html>

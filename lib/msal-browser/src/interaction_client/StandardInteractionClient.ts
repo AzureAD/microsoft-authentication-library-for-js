@@ -46,6 +46,7 @@ import {
     initializeBaseRequest,
     validateRequestMethod,
 } from "../request/RequestHelpers.js";
+import { computePocd } from "../utils/PopupOriginCheck.js";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -66,6 +67,11 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const validLogoutRequest: CommonEndSessionRequest = {
             correlationId: this.correlationId,
             ...logoutRequest,
+            /*
+             * Computed here rather than per flow so every end-session request
+             * carries it, matching the authorize path.
+             */
+            popupOriginCheckDone: computePocd(this.config) === 1,
         };
 
         /**

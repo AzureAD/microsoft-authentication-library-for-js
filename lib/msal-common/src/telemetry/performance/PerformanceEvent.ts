@@ -368,6 +368,18 @@ export type PerformanceEvent = {
 
     isAsyncPopup?: boolean;
 
+    /**
+     * Whether the auth response was collected via the legacy (non-COOP)
+     * location-polling flow rather than the BroadcastChannel redirect bridge.
+     */
+    usesLegacyPolling?: boolean;
+
+    /**
+     * Timeout, in milliseconds, applied while polling a silent iframe for the
+     * auth response under the legacy polling flow.
+     */
+    iframePollTimeout?: number;
+
     cacheRtExpiresOnSeconds?: number;
     ntwkRtExpiresOnSeconds?: number;
     extRtExpiresOnSeconds?: number;

@@ -202,6 +202,10 @@ export class PopupClient extends StandardInteractionClient {
             this.logger.verbose("logoutPopup called", this.correlationId);
             const validLogoutRequest =
                 this.initializeLogoutRequest(logoutRequest);
+            // Relay logout opens the IdP window as a grandchild popup too.
+            validLogoutRequest.popupOriginCheckDone =
+                this.assertsPopupOriginCheckDone() ??
+                validLogoutRequest.popupOriginCheckDone;
             const popupParams: PopupParams = {
                 popupName: this.generateLogoutPopupName(validLogoutRequest),
                 popupWindowAttributes:
@@ -350,6 +354,7 @@ export class PopupClient extends StandardInteractionClient {
             ...request,
             codeChallenge: pkce.challenge,
             ...tokenBindingParams,
+            popupOriginCheckDone: this.assertsPopupOriginCheckDone(),
         };
 
         try {
@@ -536,6 +541,7 @@ export class PopupClient extends StandardInteractionClient {
             earJwk: earJwk,
             codeChallenge: pkce.challenge,
             ...tokenBindingParams,
+            popupOriginCheckDone: this.assertsPopupOriginCheckDone(),
         };
         const popupWindow = await this.openPostFormPopup(
             popupRequest,
@@ -1134,6 +1140,19 @@ export class PopupClient extends StandardInteractionClient {
             state,
             correlationId
         ).libraryState.id;
+    }
+
+    /**
+     * Asserts `pocd=1` for the relay flow, or defers to the standard
+     * per-request computation.
+     *
+     * With a relay the IdP window is a grandchild popup, which an untrusted
+     * ancestor cannot reach by name — so the topology satisfies the check by
+     * construction. The current window is framed and would otherwise compute
+     * `0`. Returning `undefined` leaves the computation to the caller.
+     */
+    private assertsPopupOriginCheckDone(): true | undefined {
+        return this.config.auth.popupRelayUri ? true : undefined;
     }
 
     /**
