@@ -300,6 +300,39 @@ describe("ResponseHandler.ts", () => {
             });
         });
 
+        it("rejects matching null nonce values", async () => {
+            claimsStub.mockReturnValue({
+                ...ID_TOKEN_CLAIMS,
+                nonce: null,
+            });
+            const responseHandler = new ResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+
+            await expect(
+                responseHandler.handleServerTokenResponse(
+                    AUTHENTICATION_RESULT.body,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    testRequest,
+                    0,
+                    {
+                        code: TEST_TOKENS.AUTHORIZATION_CODE,
+                        // @ts-expect-error Testing invalid runtime input.
+                        nonce: null,
+                    }
+                )
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.nonceMismatch,
+            });
+        });
+
         it("rejects a missing ID Token when an expected nonce is supplied", async () => {
             const responseHandler = new ResponseHandler(
                 TEST_CONFIG.MSAL_CLIENT_ID,

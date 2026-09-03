@@ -231,19 +231,21 @@ export class ResponseHandler {
         ) {
             const expectedNonce = authCodePayload.nonce;
             const tokenNonce = idTokenClaims?.nonce;
-            const expectedNoncePresent = expectedNonce !== undefined;
-            const tokenNoncePresent = tokenNonce !== undefined;
 
-            if (tokenNoncePresent && !expectedNoncePresent) {
+            // Warn when the ID Token nonce cannot be bound to the request.
+            if (tokenNonce !== undefined && expectedNonce === undefined) {
                 this.logger.warning(
                     "Authorization code response contains an ID Token nonce, but no expected nonce was supplied. Rejecting the response.",
                     request.correlationId
                 );
             }
 
+            // If either side supplies a nonce, both values must be strings and match.
             if (
-                (expectedNoncePresent || tokenNoncePresent) &&
-                expectedNonce !== tokenNonce
+                (expectedNonce !== undefined || tokenNonce !== undefined) &&
+                (typeof expectedNonce !== "string" ||
+                    typeof tokenNonce !== "string" ||
+                    expectedNonce !== tokenNonce)
             ) {
                 throw createClientAuthError(
                     ClientAuthErrorCodes.nonceMismatch,
