@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788451678375,
+  "lastUpdate": 1788462414894,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23239,6 +23239,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.86%",
             "unit": "ops/sec",
             "extra": "215 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "20a87693626b80cff9fe846cc68c64ebb5e24a3f",
+          "message": "Fix flaky timestamp validation in unit tests (#8796)\n\nThis pull request improves the reliability of authentication result\ntests by addressing timing issues caused by clock drift, and introduces\na utility for tolerant result comparison. It also updates tests to use\nthis utility, ensuring that tests are not flaky due to second-boundary\ntiming differences. Additionally, it enhances test setup practices to\nprevent time-related race conditions.\n\n**Test stability and reliability improvements:**\n\n* Added `expectAuthenticationResult` utility in `StringConstants.ts` to\ncompare `AuthenticationResult` objects while tolerating small\ndifferences in expiry timestamps, reducing test flakiness caused by\ntiming differences.\n* Updated all relevant test cases in `PopupClient.spec.ts`,\n`RedirectClient.spec.ts`, `SilentIframeClient.spec.ts`, and\n`Authorize.spec.ts` to use `expectAuthenticationResult` instead of\ndirect equality checks, and refactored tests to reuse a single expected\nresult object where possible.\n[[1]](diffhunk://#diff-0e4f86d8a16dd8be09b5f3b33d82dafe4c4325e3fd92b994120b0290beb0c2d6L1036-R1040)\n[[2]](diffhunk://#diff-6892d11e0bf0f9de499d836141fe1b0e7fe40f2b7d1d28e57830a083ba0080a4L3502-R3506)\n[[3]](diffhunk://#diff-ee3bc256edbe0cc9b07264ac953b539bf0be0c3737eb24a91cf11b35e20086a3L1807-R1811)\n[[4]](diffhunk://#diff-383f979b9a05a2d7fe02052138e8087f6ca2167e78d44dc4d41c391463d4da04L389-R400)\n\n**Test utility and fixture improvements:**\n\n* Modified `getTestAuthenticationResult` to read the clock only once per\ninvocation, ensuring consistent expiry timestamps within the same result\nobject.\n[[1]](diffhunk://#diff-2e5c268e977ace942971e41e81ebc723555fe267f5389c84bcc6caaad7f58497R563-R569)\n[[2]](diffhunk://#diff-2e5c268e977ace942971e41e81ebc723555fe267f5389c84bcc6caaad7f58497L572-R586)\n\n**Test setup enhancements:**\n\n* Updated `PopTokenGenerator.spec.ts` to freeze the clock before each\ntest, preventing timing-related race conditions in tests that depend on\nthe current time.\n\n**Test assertion improvements:**\n\n* Updated the `CacheManager.spec.ts` test to assert the presence and\ntype of the `lastUpdatedAt` field rather than its exact value,\naccounting for the use of different clock reads during test execution.\n\n---------\n\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-09-03T14:59:39-04:00",
+          "tree_id": "ca7d0f88c66f1c506e40576d6e263b9803a094e7",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/20a87693626b80cff9fe846cc68c64ebb5e24a3f"
+        },
+        "date": 1788462410480,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 509031,
+            "range": "±1.14%",
+            "unit": "ops/sec",
+            "extra": "228 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 514757,
+            "range": "±0.88%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
