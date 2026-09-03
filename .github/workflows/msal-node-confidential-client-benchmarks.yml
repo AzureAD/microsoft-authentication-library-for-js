@@ -19,13 +19,13 @@ jobs:
             - uses: actions/setup-node@v6
 
             - name: Install dependencies
-              run: npm install --workspace=lib/msal-common --workspace=lib/msal-node
+              run: npm ci --workspace=lib/msal-common --workspace=lib/msal-node --workspace=regression-tests/msal-node/client-credential
 
             - name: Build dependencies
               run: npm run build --workspace=lib/msal-common --workspace=lib/msal-node
 
             - name: Run benchmark
-              run: npm install && node index.js | tee output.txt
+              run: node index.js | tee output.txt
               working-directory: regression-tests/msal-node/client-credential
 
             # gh-pages branch is updated and pushed automatically with extracted benchmark data
