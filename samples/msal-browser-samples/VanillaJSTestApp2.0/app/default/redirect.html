@@ -1,6 +1,18 @@
-<!-- 
-    Blank page for redirect purposes. When using popup and silent APIs,
-    we recommend setting the redirectUri to a blank page or a page that does not implement MSAL.
-    For more information, please follow this link: 
-    https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#redirecturi-considerations 
--->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect Page</title>
+</head>
+<body>
+    <p>Processing authentication...</p>
+
+    <script src="../../lib/redirect-bridge/msal-redirect-bridge.min.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        // This broadcasts the auth response from popup/iframe to the main window via BroadcastChannel
+        msalRedirectBridge.broadcastResponseToMainFrame();
+    </script>
+</body>
+</html>
