@@ -100,6 +100,23 @@ function createTestAccount(): AccountInfo {
     };
 }
 
+function createAuthenticationResultWithoutNonce() {
+    const { nonce: _nonce, ...claimsWithoutNonce } = ID_TOKEN_CLAIMS;
+    const idToken = [
+        Buffer.from(JSON.stringify({ alg: "none" })).toString("base64url"),
+        Buffer.from(JSON.stringify(claimsWithoutNonce)).toString("base64url"),
+        "signature",
+    ].join(".");
+
+    return {
+        ...AUTHENTICATION_RESULT,
+        body: {
+            ...AUTHENTICATION_RESULT.body,
+            id_token: idToken,
+        },
+    };
+}
+
 function createTestIdToken(): IdTokenEntity {
     return {
         homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
@@ -211,6 +228,10 @@ describe("PublicClientApplication", () => {
 
         const MockAuthorizationCodeClient =
             getMsalCommonAutoMock().AuthorizationCodeClient;
+        const acquireTokenSpy = jest.spyOn(
+            MockAuthorizationCodeClient.prototype,
+            "acquireToken"
+        );
 
         jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
             (config) =>
@@ -224,6 +245,10 @@ describe("PublicClientApplication", () => {
         await authApp.acquireTokenByCode(request);
 
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        expect(acquireTokenSpy.mock.calls[0][2]).toEqual({
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            nonce: undefined,
+        });
     });
 
     test("acquireTokenByCode forwards request nonce in auth code payload", async () => {
@@ -257,6 +282,38 @@ describe("PublicClientApplication", () => {
         expect(acquireTokenSpy.mock.calls[0][2]).toEqual({
             code: TEST_CONSTANTS.AUTHORIZATION_CODE,
             nonce,
+        });
+    });
+
+    test("acquireTokenByCode preserves an empty request nonce in auth code payload", async () => {
+        const request: AuthorizationCodeRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            nonce: "",
+        };
+
+        const MockAuthorizationCodeClient =
+            getMsalCommonAutoMock().AuthorizationCodeClient;
+        const acquireTokenSpy = jest.spyOn(
+            MockAuthorizationCodeClient.prototype,
+            "acquireToken"
+        );
+
+        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+            (config) =>
+                new MockAuthorizationCodeClient(
+                    config,
+                    new StubPerformanceClient()
+                )
+        );
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenByCode(request);
+
+        expect(acquireTokenSpy.mock.calls[0][2]).toEqual({
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            nonce: "",
         });
     });
 
@@ -2285,7 +2342,7 @@ describe("MCP flow tests", () => {
             jest.spyOn(
                 HttpClient.prototype,
                 "sendPostRequestAsync"
-            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            ).mockResolvedValue(createAuthenticationResultWithoutNonce());
             const saveCacheRecordSpy = jest.spyOn(
                 CacheManager.prototype,
                 "saveCacheRecord"
@@ -2412,7 +2469,7 @@ describe("MCP flow tests", () => {
             jest.spyOn(
                 HttpClient.prototype,
                 "sendPostRequestAsync"
-            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            ).mockResolvedValue(createAuthenticationResultWithoutNonce());
             const saveCacheRecordSpy = jest.spyOn(
                 CacheManager.prototype,
                 "saveCacheRecord"
