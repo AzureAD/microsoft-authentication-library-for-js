@@ -24,6 +24,7 @@ export const redirectBridgeEmptyResponse = "redirect_bridge_empty_response";
 export const redirectInIframe = "redirect_in_iframe";
 export const blockIframeReload = "block_iframe_reload";
 export const blockNestedPopups = "block_nested_popups";
+export const popupRelayUnsupportedFlow = "popup_relay_unsupported_flow";
 export const iframeClosedPrematurely = "iframe_closed_prematurely";
 export const silentLogoutUnsupported = "silent_logout_unsupported";
 export const noAccountError = "no_account_error";
@@ -41,6 +42,7 @@ export const getRequestFailed = "get_request_failed";
 export const failedToParseResponse = "failed_to_parse_response";
 export const unableToLoadToken = "unable_to_load_token";
 export const cryptoKeyNotFound = "crypto_key_not_found";
+export const invalidPublicJwk = "invalid_public_jwk";
 export const authCodeRequired = "auth_code_required";
 export const authCodeOrNativeAccountIdRequired =
     "auth_code_or_nativeAccountId_required";
@@ -58,6 +60,12 @@ export const uninitializedPublicClientApplication =
 export const nativePromptNotSupported = "native_prompt_not_supported";
 export const invalidBase64String = "invalid_base64_string";
 export const invalidPopTokenRequest = "invalid_pop_token_request";
+export const unsupportedTokenBindingAlgorithm =
+    "unsupported_token_binding_algorithm";
+export const tokenBindingKeyAlgorithmMismatch =
+    "token_binding_key_algorithm_mismatch";
+export const tokenBindingKeyJwkThumbprintMismatch =
+    "token_binding_key_jwk_thumbprint_mismatch";
 export const failedToBuildHeaders = "failed_to_build_headers";
 export const failedToParseHeaders = "failed_to_parse_headers";
 export const failedToDecryptEarResponse = "failed_to_decrypt_ear_response";

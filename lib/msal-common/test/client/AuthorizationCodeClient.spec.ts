@@ -12,6 +12,7 @@ import {
     TEST_SSH_VALUES,
     AUTHENTICATION_RESULT_WITH_HEADERS,
     CORS_RESPONSE_HEADERS,
+    TEST_DPOP_VALUES,
 } from "../test_kit/StringConstants.js";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration.js";
 import * as Constants from "../../src/utils/Constants.js";
@@ -36,9 +37,10 @@ import {
 import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import * as TokenProtocol from "../../src/protocol/Token.js";
 import * as AuthorityFactory from "../../src/authority/AuthorityFactory.js";
+import { ResponseHandler } from "../../src/response/ResponseHandler.js";
 
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
-    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
 
 describe("AuthorizationCodeClient unit tests", () => {
     let stubPerformanceClient: StubPerformanceClient;
@@ -378,6 +380,121 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
 
             expect(executePostToTokenEndpointSpy).toHaveBeenCalled();
+        });
+
+        it("sends DPoP proof header and omits POP body params for authorization code requests", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue({
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            });
+            jest.spyOn(
+                config.cryptoInterface!,
+                "signTokenBindingJwt"
+            ).mockResolvedValue(TEST_DPOP_VALUES.DPOP_PROOF);
+            const executePostToTokenEndpointSpy = jest
+                .spyOn(TokenProtocol, "executePostToTokenEndpoint")
+                .mockImplementation(
+                    (
+                        tokenEndpoint: string,
+                        queryString: string,
+                        headers: Record<string, string>
+                    ) => {
+                        expect(headers[Constants.HeaderNames.DPOP]).toBe(
+                            TEST_DPOP_VALUES.DPOP_PROOF
+                        );
+                        const params = new URLSearchParams(queryString);
+                        expect(params.has(AADServerParamKeys.REQ_CNF)).toBe(
+                            false
+                        );
+                        expect(params.has(AADServerParamKeys.TOKEN_TYPE)).toBe(
+                            false
+                        );
+
+                        return Promise.resolve({
+                            ...AUTHENTICATION_RESULT_WITH_HEADERS,
+                            body: {
+                                ...AUTHENTICATION_RESULT_WITH_HEADERS.body,
+                                token_type: Constants.AuthenticationScheme.DPOP,
+                            },
+                        });
+                    }
+                );
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+
+            await client.acquireToken(authCodeRequest, 0, {
+                code: authCodeRequest.code,
+                nonce: "123523",
+            });
+
+            expect(executePostToTokenEndpointSpy).toHaveBeenCalled();
+        });
+
+        it("throws before token request when DPoP key id is missing", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const executePostToTokenEndpointSpy = jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            );
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+
+            await expect(
+                client.acquireToken(authCodeRequest, 0, {
+                    code: authCodeRequest.code,
+                    nonce: "123523",
+                })
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.keyIdMissing,
+            });
+            expect(executePostToTokenEndpointSpy).not.toHaveBeenCalled();
         });
 
         it("Does not add headers that do not qualify for a simple request", async () => {
@@ -818,6 +935,162 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
         });
 
+        it("Adds sorted attribute_tokens to the /token request body", (done) => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                try {
+                    expect(body).toContain(
+                        "attribute_tokens=alpha%20mike%20zeta"
+                    );
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                attributeTokens: ["zeta", "alpha", "mike"],
+            };
+
+            client.acquireToken(authorizationCodeRequest, 0).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("passes attribute token cache components to ResponseHandler during auth code redemption", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT as any);
+
+            const validateTokenResponseSpy = jest
+                .spyOn(ResponseHandler.prototype, "validateTokenResponse")
+                .mockImplementation(() => undefined);
+            const handleServerTokenResponseSpy = jest
+                .spyOn(ResponseHandler.prototype, "handleServerTokenResponse")
+                .mockResolvedValue(AUTHENTICATION_RESULT as any);
+
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                attributeTokens: ["zeta", "alpha", "mike"],
+            };
+
+            await client.acquireToken(authorizationCodeRequest, 0, {
+                code: authorizationCodeRequest.code,
+                state: "test-state",
+            });
+
+            expect(validateTokenResponseSpy).toHaveBeenCalled();
+            expect(handleServerTokenResponseSpy).toHaveBeenCalledWith(
+                AUTHENTICATION_RESULT.body,
+                expect.anything(),
+                expect.any(Number),
+                authorizationCodeRequest,
+                0,
+                expect.objectContaining({ state: "test-state" }),
+                undefined,
+                undefined,
+                undefined,
+                undefined
+            );
+        });
+
+        it("emits hasAttributeTokens telemetry during auth code redemption", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT as any);
+            jest.spyOn(
+                ResponseHandler.prototype,
+                "validateTokenResponse"
+            ).mockImplementation(() => undefined);
+            jest.spyOn(
+                ResponseHandler.prototype,
+                "handleServerTokenResponse"
+            ).mockResolvedValue(AUTHENTICATION_RESULT as any);
+
+            const addFieldsSpy = jest.spyOn(stubPerformanceClient, "addFields");
+
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                attributeTokens: ["zeta", "alpha"],
+            };
+
+            await client.acquireToken(authorizationCodeRequest, 0, {
+                code: authorizationCodeRequest.code,
+                state: "test-state",
+            });
+
+            const hasAttributeTokensCalls = (
+                addFieldsSpy.mock.calls as any[]
+            ).filter(
+                (args: any[]) =>
+                    typeof args[0]?.hasAttributeTokens !== "undefined"
+            );
+            expect(hasAttributeTokensCalls.length).toBeGreaterThanOrEqual(1);
+            expect(hasAttributeTokensCalls[0][0]).toMatchObject({
+                hasAttributeTokens: true,
+            });
+        });
+
         it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {
             jest.spyOn(
                 Authority.prototype,
@@ -1097,16 +1370,16 @@ describe("AuthorizationCodeClient unit tests", () => {
             const signedJwt =
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
-            config.cryptoInterface.signJwt = async (
-                // @ts-ignore
-                payload: SignedHttpRequest,
-                kid: string
-            ): Promise<string> => {
-                expect(payload.at).toBe(
+            jest.spyOn(
+                config.cryptoInterface,
+                "signTokenBindingJwt"
+            ).mockImplementation(async (header, payload, kid) => {
+                expect((payload as { at?: string }).at).toBe(
                     POP_AUTHENTICATION_RESULT.body.access_token
                 );
+                expect(kid).toBe(TEST_POP_VALUES.KID);
                 return signedJwt;
-            };
+            });
             // Set up stubs
             const idTokenClaims = {
                 ver: "2.0",
@@ -1290,16 +1563,16 @@ describe("AuthorizationCodeClient unit tests", () => {
             const signedJwt =
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
-            config.cryptoInterface.signJwt = async (
-                // @ts-ignore
-                payload: SignedHttpRequest,
-                kid: string
-            ): Promise<string> => {
-                expect(payload.at).toBe(
+            jest.spyOn(
+                config.cryptoInterface,
+                "signTokenBindingJwt"
+            ).mockImplementation(async (header, payload, kid) => {
+                expect((payload as { at?: string }).at).toBe(
                     POP_AUTHENTICATION_RESULT.body.access_token
                 );
+                expect(kid).toBe(TEST_POP_VALUES.KID);
                 return signedJwt;
-            };
+            });
             // Set up stubs
             const idTokenClaims = {
                 ver: "2.0",
@@ -1478,16 +1751,16 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             const signedJwt = "signedJwt";
 
-            config.cryptoInterface.signJwt = async (
-                // @ts-ignore
-                payload: SignedHttpRequest,
-                kid: string
-            ): Promise<string> => {
-                expect(payload.at).toBe(
+            jest.spyOn(
+                config.cryptoInterface,
+                "signTokenBindingJwt"
+            ).mockImplementation(async (header, payload, kid) => {
+                expect((payload as { at?: string }).at).toBe(
                     POP_AUTHENTICATION_RESULT.body.access_token
                 );
+                expect(kid).toBe(TEST_POP_VALUES.KID);
                 return signedJwt;
-            };
+            });
             // Set up stubs
             const idTokenClaims = {
                 ver: "2.0",

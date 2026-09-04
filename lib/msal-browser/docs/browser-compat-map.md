@@ -12,13 +12,13 @@ This document catalogs browser Web APIs that MSAL Browser depends on, their role
 |-----|-----------|----------|
 | `sessionStorage` | Interaction status, PKCE verifier, redirect origin URL, redirect bridge response cache | `MemoryStorage` (response lost on navigation) |
 | `localStorage` | Persistent token cache (when `cacheLocation: "localStorage"`) | None if configured; not used by default |
-| `IndexedDB` | PoP token RSA keypairs | In-memory (keys lost on reload) |
+| `IndexedDB` | PoP token RSA keypairs and DPoP token-binding keypairs | In-memory (keys lost on reload) |
 | `document.cookie` | Encryption key for localStorage cache | None — cache cannot be decrypted without it |
 
 **MSAL-specific restrictions:**
 - Safari PB: `sessionStorage.setItem()` immediately before `location.replace()` may lose data — affects redirect bridge (`handleRedirectPromise` returns `null`)
 - Safari ITP: 7-day cap on script-writable `localStorage`/cookies — tokens evicted without user interaction
-- Firefox PB: `indexedDB.open()` throws `SecurityError` — PoP falls back to memory
+- Firefox PB: `indexedDB.open()` throws `SecurityError` — PoP/DPoP key storage falls back to memory
 - Chrome 115+ / Safari 16.1+: storage partitioned in cross-origin iframes — affects NAA and embedded apps
 
 ### Crypto
@@ -29,9 +29,9 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 |-----|-----------|----------|
 | `crypto.subtle.digest()` | PKCE `code_challenge` (SHA-256) | None — PKCE is mandatory |
 | `crypto.getRandomValues()` | PKCE verifier, state, nonce, correlation IDs | None |
-| `crypto.subtle.generateKey()` | PoP RSA keypairs, EAR AES keys | None for PoP/EAR |
-| `crypto.subtle.importKey()` | PoP signing, EAR decryption, localStorage encryption (HKDF → AES-GCM) | None |
-| `crypto.subtle.sign()` | PoP token signing | None |
+| `crypto.subtle.generateKey()` | PoP RSA keypairs, DPoP ES256/P-256 keypairs, EAR AES keys | None for PoP/DPoP/EAR |
+| `crypto.subtle.importKey()` | PoP signing, DPoP signing, EAR decryption, localStorage encryption (HKDF → AES-GCM) | None |
+| `crypto.subtle.sign()` | PoP token signing, DPoP proof signing | None |
 | `crypto.subtle.decrypt()` | EAR response decryption, localStorage decryption | None |
 | `crypto.subtle.deriveKey()` | HKDF key derivation for localStorage encryption | None |
 
@@ -71,6 +71,7 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 | API | MSAL Usage | Fallback |
 |-----|-----------|----------|
 | `fetch()` | All HTTP requests (token endpoint, discovery, custom auth) | None |
+| `navigator.onLine` | Distinguish network-offline from transport failures when token POST fails | Assumes online (retries once for non-abort transport failures) |
 | `TextEncoder` / `TextDecoder` | String ↔ binary for crypto | None |
 | `atob()` / `btoa()` | Base64 for JWK and token parsing | None |
 | Hidden form + `form.submit()` | POST-based `/authorize` (EAR, redirect POST, silent iframe POST) | None for POST flows |

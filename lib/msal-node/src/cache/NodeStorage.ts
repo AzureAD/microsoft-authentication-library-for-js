@@ -24,6 +24,7 @@ import {
     CredentialEntity,
     AccountInfo,
     StubPerformanceClient,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
 } from "@azure/msal-common/node";
 
 import { Deserializer } from "./serializer/Deserializer.js";
@@ -56,7 +57,8 @@ export class NodeStorage extends CacheManager {
             cryptoImpl,
             logger,
             new StubPerformanceClient(),
-            staticAuthorityOptions
+            staticAuthorityOptions,
+            DEFAULT_TOKEN_BINDING_KEY_MANAGER
         );
         this.logger = logger;
     }
@@ -206,8 +208,11 @@ export class NodeStorage extends CacheManager {
         this.setCache(cache);
     }
 
-    generateCredentialKey(credential: CredentialEntity): string {
-        return generateCredentialKey(credential);
+    generateCredentialKey(
+        credential: CredentialEntity,
+        additionalCacheKeyHash?: string
+    ): string {
+        return generateCredentialKey(credential, additionalCacheKeyHash);
     }
 
     generateAccountKey(account: AccountInfo): string {
@@ -289,13 +294,22 @@ export class NodeStorage extends CacheManager {
     }
 
     /**
-     * set accessToken credential
-     * @param accessToken -  cache value to be set of type AccessTokenEntity
+     * Set accessToken credential to the cache
+     * @param accessToken - the access token entity to cache
+     * @param _correlationId - unique identifier for the request
+     * @param _kmsi - keep me signed in flag
+     * @param additionalCacheKeyHash - optional precomputed hash of additionalCacheKeyComponents used in key generation
      */
     async setAccessTokenCredential(
-        accessToken: AccessTokenEntity
+        accessToken: AccessTokenEntity,
+        _correlationId: string,
+        _kmsi: boolean,
+        additionalCacheKeyHash?: string
     ): Promise<void> {
-        const accessTokenKey = this.generateCredentialKey(accessToken);
+        const accessTokenKey = this.generateCredentialKey(
+            accessToken,
+            additionalCacheKeyHash
+        );
         this.setItem(accessTokenKey, accessToken);
     }
 

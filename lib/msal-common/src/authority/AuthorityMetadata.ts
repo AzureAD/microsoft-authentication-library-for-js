@@ -19,10 +19,7 @@ type RawMetadata = {
 // Build endpoint metadata dynamically to avoid string duplication
 const endpointHosts: Array<{ host: string; issuerHost?: string }> = [
     { host: "login.microsoftonline.com" },
-    {
-        host: "login.chinacloudapi.cn",
-        issuerHost: "login.partner.microsoftonline.cn", // Issuer differs
-    },
+    { host: "login.partner.microsoftonline.cn" },
     { host: "login.microsoftonline.us" },
     { host: "login.sovcloud-identity.fr" },
     { host: "login.sovcloud-identity.de" },
@@ -104,15 +101,6 @@ export const rawMetdataJSON: RawMetadata = {
                 preferred_network: "login.sovcloud-identity.sg",
                 preferred_cache: "login.sovcloud-identity.sg",
                 aliases: ["login.sovcloud-identity.sg"],
-            },
-            {
-                preferred_network: "login.windows-ppe.net",
-                preferred_cache: "login.windows-ppe.net",
-                aliases: [
-                    "login.windows-ppe.net",
-                    "sts.windows-ppe.net",
-                    "login.microsoft-ppe.com",
-                ],
             },
         ],
     },

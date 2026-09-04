@@ -20,11 +20,13 @@ import {
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
     ProtocolUtils,
+    ITokenBindingKeyManager,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
+import { getTokenBindingRequestParams } from "../request/RequestHelpers.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     ApiId,
@@ -89,7 +91,8 @@ export class RedirectClient extends StandardInteractionClient {
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
-        platformAuthHandler?: IPlatformAuthHandler
+        platformAuthHandler?: IPlatformAuthHandler,
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,
@@ -100,7 +103,8 @@ export class RedirectClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            platformAuthHandler
+            platformAuthHandler,
+            tokenBindingKeyManager
         );
         this.nativeStorage = nativeStorageImpl;
     }
@@ -210,9 +214,16 @@ export class RedirectClient extends StandardInteractionClient {
             correlationId
         )(this.performanceClient, this.logger, correlationId);
 
+        const tokenBindingParams = await getTokenBindingRequestParams(
+            request,
+            this.tokenBindingKeyManager,
+            this.logger,
+            this.performanceClient
+        );
         const redirectRequest = {
             ...request,
             codeChallenge: pkceCodes.challenge,
+            ...tokenBindingParams,
         };
 
         this.browserStorage.cacheAuthorizeRequest(
@@ -315,10 +326,17 @@ export class RedirectClient extends StandardInteractionClient {
             correlationId
         )(this.performanceClient, this.logger, correlationId);
 
+        const tokenBindingParams = await getTokenBindingRequestParams(
+            request,
+            this.tokenBindingKeyManager,
+            this.logger,
+            this.performanceClient
+        );
         const redirectRequest = {
             ...request,
             earJwk: earJwk,
             codeChallenge: pkceCodes.challenge,
+            ...tokenBindingParams,
         };
 
         this.browserStorage.cacheAuthorizeRequest(

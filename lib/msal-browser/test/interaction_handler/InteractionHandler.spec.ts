@@ -24,6 +24,7 @@ import {
     CcsCredentialType,
     StubPerformanceClient,
     AuthorityFactory,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
 } from "@azure/msal-common/browser";
 import {
     Configuration,
@@ -135,10 +136,16 @@ const cryptoInterface = {
     generatePkceCodes: async (): Promise<PkceCodes> => {
         return testPkceCodes;
     },
-    getPublicKeyThumbprint: async (): Promise<string> => {
+    provisionTokenBindingKey: async (): Promise<string> => {
         return TEST_POP_VALUES.ENCODED_REQ_CNF;
     },
-    signJwt: async (): Promise<string> => {
+    getTokenBindingPublicKeyJwk: async (): Promise<JsonWebKey> => {
+        return {
+            kty: "RSA",
+            alg: "RS256",
+        };
+    },
+    signTokenBindingJwt: async (): Promise<string> => {
         return "signedJwt";
     },
     removeTokenBindingKey: async (): Promise<void> => {
@@ -212,7 +219,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cryptoInterface,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                undefined,
+                DEFAULT_TOKEN_BINDING_KEY_MANAGER
             ),
             networkInterface: {
                 sendGetRequestAsync: async (

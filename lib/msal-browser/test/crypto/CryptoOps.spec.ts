@@ -1,7 +1,13 @@
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
-import { PkceCodes, BaseAuthRequest, Logger } from "@azure/msal-common";
+import {
+    Constants,
+    JoseHeader,
+    PkceCodes,
+    Logger,
+    PerformanceEventStatus,
+} from "@azure/msal-common";
 import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
@@ -14,16 +20,39 @@ import {
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { generatePkceCodes } from "../../src/crypto/PkceGenerator";
 import { StubPerformanceClient } from "@azure/msal-common";
+import { DpopProofGenerator } from "../../../msal-common/src/crypto/DpopProofGenerator.js";
+import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents";
+import { TokenBindingKeyManager } from "../../src/crypto/TokenBindingKeyManager";
 
 let mockDatabase = {
     "TestDB.keys": {},
 };
 
+const DPOP_KEY_CONTEXT = {
+    tokenBindingKeyType: "dpop",
+    tokenBindingKeyAlgorithm: "ES256",
+    correlationId: TEST_CONFIG.CORRELATION_ID,
+} as const;
+
+const SHR_KEY_CONTEXT = {
+    tokenBindingKeyType: "shr",
+    tokenBindingKeyAlgorithm: "RS256",
+    correlationId: TEST_CONFIG.CORRELATION_ID,
+} as const;
+
+function expectCorrelationId(
+    correlationId: string | undefined
+): asserts correlationId is string {
+    expect(correlationId).toEqual(expect.any(String));
+}
+
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
+    let tokenBindingKeyManager: TokenBindingKeyManager;
 
     beforeEach(() => {
         cryptoObj = new CryptoOps(new Logger({}));
+        tokenBindingKeyManager = new TokenBindingKeyManager(new Logger({}));
 
         // Mock DatabaseStorage
         jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
@@ -50,9 +79,23 @@ describe("CryptoOps.ts Unit Tests", () => {
                 return !!mockDatabase["TestDB.keys"][kid];
             }
         );
+        jest.spyOn(DatabaseStorage.prototype, "getKeys").mockImplementation(
+            async () => {
+                return Object.keys(mockDatabase["TestDB.keys"]);
+            }
+        );
+        jest.spyOn(
+            DatabaseStorage.prototype,
+            "deleteDatabase"
+        ).mockImplementation(async () => {
+            mockDatabase["TestDB.keys"] = {};
+            return true;
+        });
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        await cryptoObj.clearKeystore(TEST_CONFIG.CORRELATION_ID);
+        await tokenBindingKeyManager.clearKeystore(TEST_CONFIG.CORRELATION_ID);
         jest.restoreAllMocks();
         mockDatabase = {
             "TestDB.keys": {},
@@ -259,7 +302,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(regExp.test(generatedCodes.verifier)).toBe(true);
     });
 
-    it("getPublicKeyThumbprint() generates a valid request thumbprint", async () => {
+    it("TokenBindingKeyManager.provisionTokenBindingKey() generates a valid request thumbprint", async () => {
         jest.setTimeout(30000);
         jest.spyOn(
             BrowserCrypto,
@@ -272,22 +315,28 @@ describe("CryptoOps.ts Unit Tests", () => {
         });
         const generateKeyPairSpy = jest.spyOn(BrowserCrypto, "generateKeyPair");
         const exportJwkSpy = jest.spyOn(BrowserCrypto, "exportJwk");
-        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({
-            resourceRequestMethod: "POST",
-            resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS,
-        } as BaseAuthRequest);
+        const pkThumbprint =
+            await tokenBindingKeyManager.provisionTokenBindingKey({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                tokenBindingKeyType: "shr",
+                tokenBindingKeyAlgorithm: "RS256",
+            });
         /**
          * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
          */
         const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
-        expect(generateKeyPairSpy).toHaveBeenCalledWith(true, [
-            "sign",
-            "verify",
-        ]);
+        expect(generateKeyPairSpy).toHaveBeenCalledWith(
+            false,
+            ["sign", "verify"],
+            BrowserCrypto.RSA_KEYGEN_ALGORITHM_OPTIONS
+        );
         const result = await generateKeyPairSpy.mock.results[0].value;
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
         expect(mockDatabase["TestDB.keys"][pkThumbprint]).not.toBe(undefined);
+        expect(
+            mockDatabase["TestDB.keys"][pkThumbprint].privateKey.extractable
+        ).toBe(false);
     }, 30000);
 
     it("removeTokenBindingKey() removes the specified key from storage", async () => {
@@ -300,10 +349,12 @@ describe("CryptoOps.ts Unit Tests", () => {
                 createHash("SHA256").update(Buffer.from(data)).digest()
             );
         });
-        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({
-            resourceRequestMethod: "POST",
-            resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS,
-        } as BaseAuthRequest);
+        const pkThumbprint =
+            await tokenBindingKeyManager.provisionTokenBindingKey({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                tokenBindingKeyType: "shr",
+                tokenBindingKeyAlgorithm: "RS256",
+            });
         const key = mockDatabase["TestDB.keys"][pkThumbprint];
         await cryptoObj.removeTokenBindingKey(
             pkThumbprint,
@@ -313,10 +364,305 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(mockDatabase["TestDB.keys"][pkThumbprint]).toBe(undefined);
     }, 30000);
 
-    it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
-        expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(
-            createBrowserAuthError(BrowserAuthErrorCodes.cryptoKeyNotFound, "")
+    it("signTokenBindingJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
+        await expect(
+            cryptoObj.signTokenBindingJwt(
+                new JoseHeader({ alg: "RS256" }, TEST_CONFIG.CORRELATION_ID),
+                {},
+                "testString",
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).rejects.toThrow(
+            createBrowserAuthError(
+                BrowserAuthErrorCodes.cryptoKeyNotFound,
+                TEST_CONFIG.CORRELATION_ID
+            )
         );
+    }, 30000);
+
+    it("emits token-binding key metadata for SHR and DPoP key generation", async () => {
+        const performanceClient = new StubPerformanceClient();
+        const endMeasurement = jest.fn();
+        jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
+        );
+        tokenBindingKeyManager = new TokenBindingKeyManager(
+            new Logger({}),
+            performanceClient
+        );
+
+        await tokenBindingKeyManager.provisionTokenBindingKey(SHR_KEY_CONTEXT);
+        await tokenBindingKeyManager.provisionTokenBindingKey(DPOP_KEY_CONTEXT);
+        await tokenBindingKeyManager.provisionTokenBindingKey(DPOP_KEY_CONTEXT);
+
+        expect(performanceClient.startMeasurement).toHaveBeenCalledWith(
+            BrowserPerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
+            TEST_CONFIG.CORRELATION_ID
+        );
+        expect(endMeasurement).toHaveBeenNthCalledWith(1, {
+            success: true,
+            tokenBindingKeyType: "shr",
+            tokenBindingKeyAlgorithm: "RS256",
+        });
+        expect(endMeasurement).toHaveBeenNthCalledWith(2, {
+            success: true,
+            tokenBindingKeyType: "dpop",
+            tokenBindingKeyAlgorithm: "ES256",
+        });
+        expect(endMeasurement).toHaveBeenNthCalledWith(3, {
+            success: true,
+            tokenBindingKeyType: "dpop",
+            tokenBindingKeyAlgorithm: "ES256",
+        });
+    }, 30000);
+
+    it("emits token-binding key metadata when key generation fails", async () => {
+        const performanceClient = new StubPerformanceClient();
+        const endMeasurement = jest.fn();
+        jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
+        );
+        jest.spyOn(BrowserCrypto, "generateKeyPair").mockRejectedValue(
+            new Error("key generation failed")
+        );
+        tokenBindingKeyManager = new TokenBindingKeyManager(
+            new Logger({}),
+            performanceClient
+        );
+
+        await expect(
+            tokenBindingKeyManager.provisionTokenBindingKey(DPOP_KEY_CONTEXT)
+        ).rejects.toThrow("key generation failed");
+
+        expect(endMeasurement).toHaveBeenCalledWith({
+            success: false,
+            tokenBindingKeyType: "dpop",
+            tokenBindingKeyAlgorithm: "ES256",
+        });
+    }, 30000);
+
+    it("emits SHR key generation metadata when key generation fails", async () => {
+        const performanceClient = new StubPerformanceClient();
+        const endMeasurement = jest.fn();
+        jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
+        );
+        jest.spyOn(BrowserCrypto, "generateKeyPair").mockRejectedValue(
+            new Error("key generation failed")
+        );
+        tokenBindingKeyManager = new TokenBindingKeyManager(
+            new Logger({}),
+            performanceClient
+        );
+
+        await expect(
+            tokenBindingKeyManager.provisionTokenBindingKey(SHR_KEY_CONTEXT)
+        ).rejects.toThrow("key generation failed");
+
+        expect(endMeasurement).toHaveBeenCalledWith({
+            success: false,
+            tokenBindingKeyType: "shr",
+            tokenBindingKeyAlgorithm: "RS256",
+        });
+    }, 30000);
+
+    it("emits token-binding signing metadata for SHR and DPoP signatures", async () => {
+        const performanceClient = new StubPerformanceClient();
+        const endMeasurement = jest.fn();
+        jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
+        );
+        cryptoObj = new CryptoOps(new Logger({}), performanceClient);
+
+        const popKeyId = await tokenBindingKeyManager.provisionTokenBindingKey(
+            SHR_KEY_CONTEXT
+        );
+        await tokenBindingKeyManager.provisionTokenBindingKey(DPOP_KEY_CONTEXT);
+        const dpopKeyId = await tokenBindingKeyManager.provisionTokenBindingKey(
+            DPOP_KEY_CONTEXT
+        );
+        const dpopPublicJwk =
+            await tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                dpopKeyId,
+                TEST_CONFIG.CORRELATION_ID
+            );
+        endMeasurement.mockClear();
+
+        await cryptoObj.signTokenBindingJwt(
+            JoseHeader.getShrHeader(
+                {
+                    alg: "RS256",
+                    typ: Constants.JsonWebTokenTypes.Pop,
+                    kid: "pop-kid",
+                },
+                TEST_CONFIG.CORRELATION_ID
+            ),
+            { at: "access-token" },
+            popKeyId,
+            TEST_CONFIG.CORRELATION_ID
+        );
+        await cryptoObj.signTokenBindingJwt(
+            JoseHeader.getDpopHeader(
+                { alg: "ES256", jwk: dpopPublicJwk },
+                TEST_CONFIG.CORRELATION_ID
+            ),
+            { htm: "POST", htu: TEST_URIS.TEST_AUTH_ENDPT, iat: 1, jti: "jti" },
+            dpopKeyId,
+            TEST_CONFIG.CORRELATION_ID
+        );
+
+        expect(performanceClient.startMeasurement).toHaveBeenCalledWith(
+            BrowserPerformanceEvents.CryptoOptsSignJwt,
+            TEST_CONFIG.CORRELATION_ID
+        );
+        expect(endMeasurement).toHaveBeenNthCalledWith(1, {
+            success: true,
+            tokenBindingKeyType: "shr",
+            tokenBindingKeyAlgorithm: "RS256",
+        });
+        expect(endMeasurement).toHaveBeenNthCalledWith(2, {
+            success: true,
+            tokenBindingKeyType: "dpop",
+            tokenBindingKeyAlgorithm: "ES256",
+        });
+    }, 30000);
+
+    it("emits token-binding signing metadata when signing fails", async () => {
+        const performanceClient = new StubPerformanceClient();
+        const endMeasurement = jest.fn();
+        jest.spyOn(performanceClient, "startMeasurement").mockImplementation(
+            (measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            }
+        );
+        cryptoObj = new CryptoOps(new Logger({}), performanceClient);
+
+        await expect(
+            cryptoObj.signTokenBindingJwt(
+                JoseHeader.getDpopHeader(
+                    {
+                        alg: "ES256",
+                        jwk: {
+                            kty: "EC",
+                            crv: "P-256",
+                            x: "A".repeat(43),
+                            y: "B".repeat(43),
+                        },
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                ),
+                {
+                    htm: "POST",
+                    htu: TEST_URIS.TEST_AUTH_ENDPT,
+                    iat: 1,
+                    jti: "jti",
+                },
+                "missing-key-id",
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).rejects.toThrow(
+            createBrowserAuthError(
+                BrowserAuthErrorCodes.cryptoKeyNotFound,
+                TEST_CONFIG.CORRELATION_ID
+            )
+        );
+
+        expect(endMeasurement).toHaveBeenCalledWith({
+            success: false,
+        });
     }, 30000);
 
     it("hashString() returns a valid SHA-256 hash of an input string", async () => {
@@ -332,6 +678,577 @@ describe("CryptoOps.ts Unit Tests", () => {
         const result = await cryptoObj.hashString("testString");
         expect(regExp.test(result)).toBe(true);
     });
+
+    describe("DPoP internal crypto helpers", () => {
+        it("computeJwkThumbprint returns a valid base64url string of expected length", async () => {
+            jest.spyOn(
+                BrowserCrypto,
+                "sha256Digest"
+                // @ts-ignore
+            ).mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
+                return Promise.resolve(
+                    createHash("SHA256").update(Buffer.from(data)).digest()
+                );
+            });
+
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
+            const thumbprint = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            // SHA-256 base64url is always 43 characters (base64url alphabet: A-Z a-z 0-9 - _)
+            const regExp = new RegExp("^[A-Za-z0-9_-]{43}$");
+            expect(regExp.test(thumbprint)).toBe(true);
+        }, 10000);
+
+        it("computeJwkThumbprint computes RFC 7638 thumbprints for RSA public JWKs", async () => {
+            jest.spyOn(
+                BrowserCrypto,
+                "sha256Digest"
+                // @ts-ignore
+            ).mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
+                return Promise.resolve(
+                    createHash("SHA256").update(Buffer.from(data)).digest()
+                );
+            });
+
+            const publicJwk = {
+                kty: "RSA",
+                e: "AQAB",
+                n: "test-modulus",
+            };
+            const thumbprint = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            const expectedThumbprint = createHash("SHA256")
+                .update(JSON.stringify(publicJwk, ["e", "kty", "n"]))
+                .digest("base64url");
+
+            expect(thumbprint).toBe(expectedThumbprint);
+        });
+
+        it("computeJwkThumbprint rejects unsupported public JWK key types", async () => {
+            await expect(
+                BrowserCrypto.computeJwkThumbprint(
+                    {
+                        kty: "oct",
+                        k: "symmetric-key",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+                subError: "unsupported_jwk_kty",
+            });
+        });
+
+        it("computeJwkThumbprint rejects missing public JWK key types", async () => {
+            await expect(
+                BrowserCrypto.computeJwkThumbprint(
+                    {
+                        crv: "P-256",
+                        x: "x-coordinate",
+                        y: "y-coordinate",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+                subError: "missing_jwk_kty",
+            });
+        });
+
+        it("computeJwkThumbprint rejects missing or empty public JWK coordinates", async () => {
+            await expect(
+                BrowserCrypto.computeJwkThumbprint(
+                    {
+                        kty: "EC",
+                        crv: "P-256",
+                        x: "x-coordinate",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+                subError: "missing_jwk_member",
+            });
+
+            await expect(
+                BrowserCrypto.computeJwkThumbprint(
+                    {
+                        kty: "EC",
+                        crv: "P-256",
+                        x: "",
+                        y: "y-coordinate",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.invalidPublicJwk,
+                subError: "empty_jwk_member",
+            });
+        });
+
+        it("signTokenBindingJwt uses requested signing params when compatible with the stored key", async () => {
+            const performanceClient = new StubPerformanceClient();
+            const endMeasurement = jest.fn();
+            jest.spyOn(
+                performanceClient,
+                "startMeasurement"
+            ).mockImplementation((measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            });
+            cryptoObj = new CryptoOps(new Logger({}), performanceClient);
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
+            const keyId = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            mockDatabase["TestDB.keys"][keyId] = {
+                privateKey: keyPair.privateKey,
+                publicKey: keyPair.publicKey,
+                tokenBindingKeyType: "dpop",
+                tokenBindingKeyAlgorithm: "ES256",
+            };
+            const signSpy = jest.spyOn(BrowserCrypto, "sign");
+
+            const proof = await cryptoObj.signTokenBindingJwt(
+                JoseHeader.getDpopHeader(
+                    { alg: "ES256", jwk: publicJwk },
+                    TEST_CONFIG.CORRELATION_ID
+                ),
+                {
+                    htm: "POST",
+                    htu: TEST_URIS.TEST_AUTH_ENDPT,
+                    iat: 1,
+                    jti: "jti",
+                },
+                keyId,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            expect(endMeasurement).toHaveBeenCalledWith({
+                success: true,
+                tokenBindingKeyType: "dpop",
+                tokenBindingKeyAlgorithm: "ES256",
+            });
+            expect(signSpy.mock.calls[0][0]).toBe(keyPair.privateKey);
+            expect(signSpy.mock.calls[0][2]).toEqual(
+                BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS
+            );
+            const [encodedHeader, encodedPayload, signature] = proof.split(".");
+            const verified = await window.crypto.subtle.verify(
+                BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS,
+                keyPair.publicKey,
+                Buffer.from(signature, "base64url"),
+                new TextEncoder().encode(`${encodedHeader}.${encodedPayload}`)
+            );
+            expect(verified).toBe(true);
+        }, 10000);
+
+        it("signTokenBindingJwt signs the provided validated DPoP header", async () => {
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
+            const keyId = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            mockDatabase["TestDB.keys"][keyId] = {
+                privateKey: keyPair.privateKey,
+                publicKey: keyPair.publicKey,
+                tokenBindingKeyType: "dpop",
+                tokenBindingKeyAlgorithm: "ES256",
+            };
+            const header = JoseHeader.getDpopHeader(
+                {
+                    alg: "ES256",
+                    jwk: publicJwk,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const proof = await cryptoObj.signTokenBindingJwt(
+                header,
+                {
+                    htm: "POST",
+                    htu: TEST_URIS.TEST_AUTH_ENDPT,
+                    iat: 1,
+                    jti: "jti",
+                },
+                keyId,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const [encodedHeader, encodedPayload, signature] = proof.split(".");
+            const proofHeader = JSON.parse(
+                Buffer.from(encodedHeader, "base64url").toString("utf8")
+            );
+            const verified = await window.crypto.subtle.verify(
+                BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS,
+                keyPair.publicKey,
+                Buffer.from(signature, "base64url"),
+                new TextEncoder().encode(`${encodedHeader}.${encodedPayload}`)
+            );
+
+            expect(proofHeader).toEqual({
+                alg: "ES256",
+                typ: "dpop+jwt",
+                jwk: publicJwk,
+            });
+            expect(verified).toBe(true);
+        }, 10000);
+
+        it("signTokenBindingJwt preserves caller-provided SHR header fields", async () => {
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.RSA_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
+            const keyId = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            mockDatabase["TestDB.keys"][keyId] = {
+                privateKey: keyPair.privateKey,
+                publicKey: keyPair.publicKey,
+                tokenBindingKeyType: "shr",
+                tokenBindingKeyAlgorithm: "RS256",
+            };
+
+            const proof = await cryptoObj.signTokenBindingJwt(
+                JoseHeader.getShrHeader(
+                    {
+                        alg: "RS256",
+                        typ: Constants.JsonWebTokenTypes.Pop,
+                        kid: "pop-key-id",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                ),
+                { at: "access-token" },
+                keyId,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const [encodedHeader, encodedPayload, signature] = proof.split(".");
+            const proofHeader = JSON.parse(
+                Buffer.from(encodedHeader, "base64url").toString("utf8")
+            );
+            const verified = await window.crypto.subtle.verify(
+                BrowserCrypto.RSA_SIGN_ALGORITHM_OPTIONS,
+                keyPair.publicKey,
+                Buffer.from(signature, "base64url"),
+                new TextEncoder().encode(`${encodedHeader}.${encodedPayload}`)
+            );
+
+            expect(proofHeader).toEqual({
+                alg: "RS256",
+                typ: "pop",
+                kid: "pop-key-id",
+            });
+            expect(verified).toBe(true);
+        }, 10000);
+
+        it("signTokenBindingJwt rejects DPoP header JWKs that do not match the signing key", async () => {
+            const signingKeyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const signingPublicJwk = await BrowserCrypto.exportJwk(
+                signingKeyPair.publicKey
+            );
+            const signingKeyId = await BrowserCrypto.computeJwkThumbprint(
+                signingPublicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            mockDatabase["TestDB.keys"][signingKeyId] = {
+                privateKey: signingKeyPair.privateKey,
+                publicKey: signingKeyPair.publicKey,
+                tokenBindingKeyType: "dpop",
+                tokenBindingKeyAlgorithm: "ES256",
+            };
+            const mismatchedKeyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const mismatchedPublicJwk = await BrowserCrypto.exportJwk(
+                mismatchedKeyPair.publicKey
+            );
+
+            await expect(
+                cryptoObj.signTokenBindingJwt(
+                    JoseHeader.getDpopHeader(
+                        {
+                            alg: "ES256",
+                            jwk: mismatchedPublicJwk,
+                        },
+                        TEST_CONFIG.CORRELATION_ID
+                    ),
+                    {
+                        htm: "POST",
+                        htu: TEST_URIS.TEST_AUTH_ENDPT,
+                        iat: 1,
+                        jti: "jti",
+                    },
+                    signingKeyId,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toThrow(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.invalidPublicJwk,
+                    TEST_CONFIG.CORRELATION_ID,
+                    BrowserAuthErrorCodes.tokenBindingKeyJwkThumbprintMismatch
+                )
+            );
+        }, 10000);
+
+        it("signTokenBindingJwt rejects requested algorithms incompatible with the stored key", async () => {
+            const performanceClient = new StubPerformanceClient();
+            const endMeasurement = jest.fn();
+            jest.spyOn(
+                performanceClient,
+                "startMeasurement"
+            ).mockImplementation((measureName, correlationId) => {
+                expectCorrelationId(correlationId);
+                return {
+                    end: endMeasurement,
+                    discard: jest.fn(),
+                    add: jest.fn(),
+                    increment: jest.fn(),
+                    event: {
+                        eventId: "test-event-id",
+                        status: PerformanceEventStatus.InProgress,
+                        authority: "",
+                        libraryName: "",
+                        libraryVersion: "",
+                        clientId: "",
+                        name: measureName,
+                        startTimeMs: Date.now(),
+                        correlationId,
+                    },
+                };
+            });
+            cryptoObj = new CryptoOps(new Logger({}), performanceClient);
+            const keyPair = await BrowserCrypto.generateKeyPair(
+                false,
+                ["sign", "verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const publicJwk = await BrowserCrypto.exportJwk(keyPair.publicKey);
+            const keyId = await BrowserCrypto.computeJwkThumbprint(
+                publicJwk,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            mockDatabase["TestDB.keys"][keyId] = {
+                privateKey: keyPair.privateKey,
+                publicKey: keyPair.publicKey,
+                tokenBindingKeyType: "dpop",
+                tokenBindingKeyAlgorithm: "ES256",
+            };
+
+            await expect(
+                cryptoObj.signTokenBindingJwt(
+                    JoseHeader.getDpopHeader(
+                        { alg: "RS256", jwk: publicJwk },
+                        TEST_CONFIG.CORRELATION_ID
+                    ),
+                    {
+                        htm: "POST",
+                        htu: TEST_URIS.TEST_AUTH_ENDPT,
+                        iat: 1,
+                        jti: "jti",
+                    },
+                    keyId,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toThrow(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.unsupportedTokenBindingAlgorithm,
+                    TEST_CONFIG.CORRELATION_ID,
+                    BrowserAuthErrorCodes.tokenBindingKeyAlgorithmMismatch
+                )
+            );
+
+            expect(endMeasurement).toHaveBeenCalledWith({
+                success: false,
+                tokenBindingKeyType: "dpop",
+                tokenBindingKeyAlgorithm: "ES256",
+            });
+        }, 10000);
+
+        it("signTokenBindingJwt rejects unsupported stored key algorithms", async () => {
+            mockDatabase["TestDB.keys"]["unsupported-key-id"] = {
+                privateKey: {
+                    algorithm: {
+                        name: "ECDSA",
+                        namedCurve: "P-384",
+                    },
+                    extractable: false,
+                    type: "private",
+                    usages: ["sign"],
+                } as CryptoKey,
+                publicKey: {
+                    algorithm: {
+                        name: "ECDSA",
+                        namedCurve: "P-384",
+                    },
+                    extractable: true,
+                    type: "public",
+                    usages: ["verify"],
+                } as CryptoKey,
+            };
+
+            await expect(
+                cryptoObj.signTokenBindingJwt(
+                    new JoseHeader(
+                        {
+                            alg: "ES384",
+                            typ: Constants.JsonWebTokenTypes.Dpop,
+                        },
+                        TEST_CONFIG.CORRELATION_ID
+                    ),
+                    {
+                        htm: "POST",
+                        htu: TEST_URIS.TEST_AUTH_ENDPT,
+                        iat: 1,
+                        jti: "jti",
+                    },
+                    "unsupported-key-id",
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toThrow(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.unsupportedTokenBindingAlgorithm,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+        });
+
+        it("generates a DPoP proof whose embedded public key verifies the signature", async () => {
+            const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
+                DPOP_KEY_CONTEXT
+            );
+            const publicJwk =
+                await tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                    keyId,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            const dpopPublicJwk: Record<string, unknown> = {};
+            Object.entries(publicJwk).forEach(([key, value]) => {
+                dpopPublicJwk[key] = value;
+            });
+            const dpopProofGenerator = new DpopProofGenerator(
+                cryptoObj,
+                tokenBindingKeyManager
+            );
+            const proof = await dpopProofGenerator.generateTokenProof(
+                {
+                    tokenEndpoint: TEST_URIS.TEST_AUTH_ENDPT,
+                },
+                keyId,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            const [encodedHeader, encodedClaims, signature] = proof.split(".");
+            if (!encodedHeader || !encodedClaims || !signature) {
+                throw new Error("Expected compact DPoP proof JWT");
+            }
+            const proofHeader = JSON.parse(
+                Buffer.from(encodedHeader, "base64url").toString("utf8")
+            );
+            const proofPublicKey = await BrowserCrypto.importJwk(
+                proofHeader.jwk,
+                true,
+                ["verify"],
+                BrowserCrypto.ECDSA_P256_KEYGEN_ALGORITHM_OPTIONS
+            );
+            const verified = await window.crypto.subtle.verify(
+                BrowserCrypto.ECDSA_SHA256_SIGN_ALGORITHM_OPTIONS,
+                proofPublicKey,
+                Buffer.from(signature, "base64url"),
+                new TextEncoder().encode(`${encodedHeader}.${encodedClaims}`)
+            );
+
+            expect(proofHeader.jwk).toEqual(dpopPublicJwk);
+            expect(verified).toBe(true);
+        }, 10000);
+
+        it("generates a DPoP proof when IndexedDB is unavailable and signing uses a separate manager", async () => {
+            jest.spyOn(DatabaseStorage.prototype, "setItem").mockRejectedValue(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.databaseUnavailable,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+            jest.spyOn(DatabaseStorage.prototype, "getItem").mockRejectedValue(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.databaseUnavailable,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+            jest.spyOn(DatabaseStorage.prototype, "getKeys").mockRejectedValue(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.databaseUnavailable,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+            const provisioningKeyManager = new TokenBindingKeyManager(
+                new Logger({})
+            );
+            const dpopProofGenerator = new DpopProofGenerator(
+                cryptoObj,
+                provisioningKeyManager
+            );
+
+            const keyId = await provisioningKeyManager.provisionTokenBindingKey(
+                DPOP_KEY_CONTEXT
+            );
+            const proof = await dpopProofGenerator.generateTokenProof(
+                {
+                    tokenEndpoint: TEST_URIS.TEST_AUTH_ENDPT,
+                },
+                keyId,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            expect(proof.split(".")).toHaveLength(3);
+        }, 10000);
+    });
+
     it("throws if crypto is unavailable", () => {
         const mockedWindow = window;
         //@ts-ignore

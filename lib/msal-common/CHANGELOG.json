@@ -2,6 +2,130 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 28 Aug 2026 21:29:53 GMT",
+      "version": "16.14.0",
+      "tag": "@azure/msal-common_v16.14.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Remove the DOM type dependency from public declarations [#8784](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8784)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Remove legacy environment metadata and legacy authority support [#8794](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8794)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Enable support for tenant_region_subscope optional claim [#8765](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8765)"
+          },
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Enable public L1 PCA DPoP request, cache, and AuthenticationResult support [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 18 Aug 2026 20:10:56 GMT",
+      "version": "16.13.0",
+      "tag": "@azure/msal-common_v16.13.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4f0241d6e3fcafeb3aac0a041b867aeae71fe749",
+            "comment": "Add internal keyId-bound contracts for DPoP proof generation [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4f0241d6e3fcafeb3aac0a041b867aeae71fe749",
+            "comment": "Fix hardcoded China authority metadata to use the preferred partner host [#8762](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8762)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 04 Aug 2026 20:17:38 GMT",
+      "version": "16.12.0",
+      "tag": "@azure/msal-common_v16.12.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "spingale@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5c53ac62bb060632b340e850e80ceaff950655a7",
+            "comment": "Add attribute-tokens support [#8700](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8700)"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5c53ac62bb060632b340e850e80ceaff950655a7",
+            "comment": "Support merging client-originated claims into request claims via `addClaims`/`buildMergedClaims` [#8686](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8686)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 29 Jul 2026 00:26:31 GMT",
+      "version": "16.11.3",
+      "tag": "@azure/msal-common_v16.11.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3e4b83714371d1e9471fc65c7d9c69f1f746f741",
+            "comment": "Add optional correlationId and performanceClient to NetworkRequestOptions; add fetchRetryCount to PerformanceEvent [#8732](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8732)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 15 Jul 2026 22:35:35 GMT",
+      "version": "16.11.2",
+      "tag": "@azure/msal-common_v16.11.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5d1a16e9103853601886375dbcb15f06a02bc545",
+            "comment": "Add internal DPoP proof payload builder (DpopProofGenerator) with RFC 9449 token-endpoint and resource-endpoint claim helpers [#8683](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8683)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Jul 2026 22:16:01 GMT",
+      "version": "16.11.1",
+      "tag": "@azure/msal-common_v16.11.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "aa48c36402b908a4a7ef36a1b254d73fc66e4b3f",
+            "comment": "Add invalid_response_mode ClientConfigurationError code [#8694](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8694)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 30 Jun 2026 21:04:20 GMT",
       "version": "16.11.0",
       "tag": "@azure/msal-common_v16.11.0",
@@ -3183,7 +3307,7 @@
             "author": "kapjain@microsoft.com",
             "package": "@azure/msal-common",
             "commit": "84a31a3476375782c63a1b558ea1fd1ec52efb40",
-            "comment": "Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint"
+            "comment": "Fix: Legacy authority token dummy aud claim value for requests with scope input by using v2.0 endpoint"
           },
           {
             "author": "rginsburg@microsoft.com",
@@ -3631,7 +3755,7 @@
             "author": "hemoral@microsoft.com",
             "package": "@azure/msal-common",
             "commit": "f4f3b99460c216acc64d8caf963030a4b31df7d5",
-            "comment": "Add initial support for DSTS authorities in MSAL Common #5212"
+            "comment": "Add initial support for legacy authorities in MSAL Common #5212"
           }
         ],
         "none": [

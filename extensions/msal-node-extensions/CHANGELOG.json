@@ -2,6 +2,96 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Fri, 28 Aug 2026 21:29:54 GMT",
+      "version": "5.5.0",
+      "tag": "@azure/msal-node-extensions_v5.5.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.14.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 18 Aug 2026 20:10:56 GMT",
+      "version": "5.4.0",
+      "tag": "@azure/msal-node-extensions_v5.4.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.13.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 04 Aug 2026 20:17:39 GMT",
+      "version": "5.3.5",
+      "tag": "@azure/msal-node-extensions_v5.3.5",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.12.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 29 Jul 2026 00:26:31 GMT",
+      "version": "5.3.4",
+      "tag": "@azure/msal-node-extensions_v5.3.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.11.3",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 15 Jul 2026 22:35:35 GMT",
+      "version": "5.3.3",
+      "tag": "@azure/msal-node-extensions_v5.3.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.11.2",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Jul 2026 22:16:01 GMT",
+      "version": "5.3.2",
+      "tag": "@azure/msal-node-extensions_v5.3.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.11.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 30 Jun 2026 21:04:20 GMT",
       "version": "5.3.1",
       "tag": "@azure/msal-node-extensions_v5.3.1",

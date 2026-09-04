@@ -30,14 +30,20 @@ import {
     getTenantIdFromIdTokenClaims,
     TimeUtils,
     Constants,
+    CacheHelpers,
 } from "@azure/msal-common/browser";
-import { isBridgeError } from "../BridgeError.js";
+import { isBridgeError, BridgeError } from "../BridgeError.js";
 import { BridgeStatusCode } from "../BridgeStatusCode.js";
 import { AuthenticationResult } from "../../response/AuthenticationResult.js";
 import {} from "../../error/BrowserAuthErrorCodes.js";
 import { AuthResult } from "../AuthResult.js";
 import { SsoSilentRequest } from "../../request/SsoSilentRequest.js";
 import { SilentRequest } from "../../request/SilentRequest.js";
+import {
+    WebBrokerBridgeError,
+    WebBrokerBridgeErrorCode,
+} from "../../webBrokerBridge/WebBrokerBridgeError.js";
+import { toAuthError } from "../../webBrokerBridge/WebBrokerBridgeErrorMap.js";
 
 export class NestedAppAuthAdapter {
     protected crypto: ICrypto;
@@ -80,6 +86,9 @@ export class NestedAppAuthAdapter {
             this.clientCapabilities
         );
         const scopes = request.scopes || Constants.OIDC_DEFAULT_SCOPES;
+        const attributeTokens = CacheHelpers.serializeAttributeTokens(
+            request.attributeTokens
+        );
         const tokenRequest: TokenRequest = {
             platformBrokerId: request.account?.homeAccountId,
             clientId: this.clientId,
@@ -93,6 +102,7 @@ export class NestedAppAuthAdapter {
                 request.authenticationScheme ||
                 Constants.AuthenticationScheme.BEARER,
             extraParameters: extraParams,
+            attributeTokens,
         };
 
         return tokenRequest;
@@ -266,61 +276,9 @@ export class NestedAppAuthAdapter {
         | ServerError
         | InteractionRequiredAuthError {
         if (isBridgeError(error)) {
-            switch (error.status) {
-                case BridgeStatusCode.UserCancel:
-                    return new ClientAuthError(
-                        ClientAuthErrorCodes.userCanceled,
-                        ""
-                    );
-                case BridgeStatusCode.NoNetwork:
-                    return new ClientAuthError(
-                        ClientAuthErrorCodes.noNetworkConnectivity,
-                        ""
-                    );
-                case BridgeStatusCode.AccountUnavailable:
-                    return new ClientAuthError(
-                        ClientAuthErrorCodes.noAccountFound,
-                        ""
-                    );
-                case BridgeStatusCode.Disabled:
-                    return new ClientAuthError(
-                        ClientAuthErrorCodes.nestedAppAuthBridgeDisabled,
-                        ""
-                    );
-                case BridgeStatusCode.NestedAppAuthUnavailable:
-                    return new ClientAuthError(
-                        error.code ||
-                            ClientAuthErrorCodes.nestedAppAuthBridgeDisabled,
-                        "",
-                        error.description
-                    );
-                case BridgeStatusCode.TransientError:
-                case BridgeStatusCode.PersistentError:
-                    return new ServerError(
-                        error.code || "",
-                        "",
-                        error.description
-                    );
-                case BridgeStatusCode.UserInteractionRequired:
-                    return new InteractionRequiredAuthError(
-                        error.code || "",
-                        "",
-                        error.description
-                    );
-                default:
-                    return new AuthError(
-                        error.code || "",
-                        "",
-                        error.description
-                    );
-            }
-        } else {
-            return new AuthError(
-                "unknown_error",
-                "",
-                "An unknown error occurred"
-            );
+            return toAuthError(bridgeErrorToWebBrokerBridgeError(error));
         }
+        return new AuthError("unknown_error", "", "An unknown error occurred");
     }
 
     /**
@@ -376,5 +334,54 @@ export class NestedAppAuthAdapter {
         };
 
         return authenticationResult;
+    }
+}
+
+/**
+ * Converts NAA `BridgeError` into the shared `WebBrokerBridgeError`
+ * taxonomy.
+ */
+function bridgeErrorToWebBrokerBridgeError(
+    error: BridgeError
+): WebBrokerBridgeError {
+    switch (error.status) {
+        case BridgeStatusCode.UserCancel:
+            return { code: WebBrokerBridgeErrorCode.UserCanceled };
+        case BridgeStatusCode.NoNetwork:
+            return { code: WebBrokerBridgeErrorCode.NoNetwork };
+        case BridgeStatusCode.AccountUnavailable:
+            return { code: WebBrokerBridgeErrorCode.AccountUnavailable };
+        case BridgeStatusCode.Disabled:
+            return { code: WebBrokerBridgeErrorCode.BridgeDisabled };
+        case BridgeStatusCode.NestedAppAuthUnavailable:
+            return {
+                code: WebBrokerBridgeErrorCode.BridgeUnavailable,
+                innerErrorCode: error.code,
+                description: error.description,
+            };
+        case BridgeStatusCode.TransientError:
+            return {
+                code: WebBrokerBridgeErrorCode.TransientError,
+                innerErrorCode: error.code,
+                description: error.description,
+            };
+        case BridgeStatusCode.PersistentError:
+            return {
+                code: WebBrokerBridgeErrorCode.PersistentError,
+                innerErrorCode: error.code,
+                description: error.description,
+            };
+        case BridgeStatusCode.UserInteractionRequired:
+            return {
+                code: WebBrokerBridgeErrorCode.UserInteractionRequired,
+                innerErrorCode: error.code,
+                description: error.description,
+            };
+        default:
+            return {
+                code: WebBrokerBridgeErrorCode.Unknown,
+                innerErrorCode: error.code,
+                description: error.description,
+            };
     }
 }

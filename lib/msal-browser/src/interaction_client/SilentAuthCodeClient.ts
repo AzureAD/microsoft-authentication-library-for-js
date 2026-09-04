@@ -10,6 +10,7 @@ import {
     AuthError,
     IPerformanceClient,
     PerformanceEvents,
+    ITokenBindingKeyManager,
     invokeAsync,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
@@ -17,6 +18,7 @@ import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
+import { getTokenBindingRequestParams } from "../request/RequestHelpers.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
@@ -47,7 +49,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         apiId: ApiId,
         performanceClient: IPerformanceClient,
         correlationId: string,
-        platformAuthProvider?: IPlatformAuthHandler
+        platformAuthProvider?: IPlatformAuthHandler,
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,
@@ -58,7 +61,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            platformAuthProvider
+            platformAuthProvider,
+            tokenBindingKeyManager
         );
         this.apiId = apiId;
     }
@@ -111,10 +115,17 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         );
 
         try {
+            const tokenBindingParams = await getTokenBindingRequestParams(
+                silentRequest,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
             // Create auth code request (PKCE not needed)
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 ...silentRequest,
                 code: request.code,
+                ...tokenBindingParams,
             };
 
             // Initialize the client

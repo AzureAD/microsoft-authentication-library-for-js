@@ -13,7 +13,6 @@ import {
     IPerformanceClient,
     Logger,
     PerformanceEvents,
-    PopTokenGenerator,
     ProtocolMode,
     RequestParameterBuilder,
     CommonAuthorizationCodeRequest,
@@ -26,6 +25,7 @@ import {
     AuthorizationCodePayload,
     ServerAuthorizationTokenResponse,
     Constants,
+    AADServerParamKeys,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -43,6 +43,7 @@ import { PlatformAuthInteractionClient } from "../interaction_client/PlatformAut
 import { EventHandler } from "../event/EventHandler.js";
 import { decryptEarResponse } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 /**
  * Parsed representation of the clientdata response parameter from the /authorize endpoint.
@@ -186,30 +187,19 @@ async function getStandardParameters(
 
         // pass the req_cnf for POP
         if (
-            request.authenticationScheme === Constants.AuthenticationScheme.POP
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.POP &&
+            request.reqCnf
         ) {
-            const cryptoOps = new CryptoOps(logger, performanceClient);
-            const popTokenGenerator = new PopTokenGenerator(
-                cryptoOps,
-                performanceClient
-            );
-
-            // req_cnf is always sent as a string for SPAs
-            let reqCnfData;
-            if (!request.popKid) {
-                const generatedReqCnfData = await invokeAsync(
-                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
-                    PerformanceEvents.PopTokenGenerateCnf,
-                    logger,
-                    performanceClient,
-                    request.correlationId
-                )(request, logger);
-                reqCnfData = generatedReqCnfData.reqCnfString;
-            } else {
-                reqCnfData = cryptoOps.encodeKid(request.popKid);
-            }
-            RequestParameterBuilder.addPopToken(parameters, reqCnfData);
+            RequestParameterBuilder.addPopToken(parameters, request.reqCnf);
         }
+    }
+
+    if (
+        request.authenticationScheme === Constants.AuthenticationScheme.DPOP &&
+        request.dpopJkt
+    ) {
+        parameters.set(AADServerParamKeys.DPOP_JKT, request.dpopJkt);
     }
 
     RequestParameterBuilder.instrumentBrokerParams(
@@ -271,17 +261,22 @@ export async function getAuthCodeRequestUrl(
     return AuthorizeProtocol.getAuthorizeUrl(authority, parameters);
 }
 
+/** Action URL + POST-body fields for a /authorize form submission. */
+export type AuthorizeFormData = {
+    action: string;
+    fields: Record<string, string>;
+};
+
 /**
- * Gets the form that will be posted to /authorize with request parameters when using EAR
+ * Builds the action URL + POST-body fields for the EAR /authorize form.
  */
-export async function getEARForm(
-    frame: Document,
+export async function getEARFormData(
     config: BrowserConfiguration,
     authority: Authority,
     request: CommonAuthorizationUrlRequest,
     logger: Logger,
     performanceClient: IPerformanceClient
-): Promise<HTMLFormElement> {
+): Promise<AuthorizeFormData> {
     if (!request.earJwk) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.earJwkEmpty,
@@ -326,15 +321,15 @@ export async function getEARForm(
         request.correlationId
     );
 
-    const url = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
+    const action = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
 
-    return createForm(frame, url, parameters);
+    return { action, fields: Object.fromEntries(parameters) };
 }
 
 /**
- * Gets the form that will be posted to /authorize with request parameters when using POST method
+ * Gets the form that will be posted to /authorize with request parameters when using EAR
  */
-export async function getCodeForm(
+export async function getEARForm(
     frame: Document,
     config: BrowserConfiguration,
     authority: Authority,
@@ -342,6 +337,26 @@ export async function getCodeForm(
     logger: Logger,
     performanceClient: IPerformanceClient
 ): Promise<HTMLFormElement> {
+    const { action, fields } = await getEARFormData(
+        config,
+        authority,
+        request,
+        logger,
+        performanceClient
+    );
+    return createForm(frame, action, fields);
+}
+
+/**
+ * Builds the action URL + POST-body fields for the auth-code /authorize form.
+ */
+export async function getCodeFormData(
+    config: BrowserConfiguration,
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<AuthorizeFormData> {
     const parameters = await getStandardParameters(
         config,
         authority,
@@ -379,34 +394,58 @@ export async function getCodeForm(
         request.correlationId
     );
 
-    const url = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
+    const action = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
 
-    return createForm(frame, url, parameters);
+    return { action, fields: Object.fromEntries(parameters) };
 }
 
 /**
- * Creates form element in the provided document with auth parameters in the post body
- * @param frame
- * @param authorizeUrl
- * @param parameters
- * @returns
+ * Gets the form that will be posted to /authorize with request parameters when using POST method
  */
-function createForm(
+export async function getCodeForm(
     frame: Document,
-    authorizeUrl: string,
-    parameters: Map<string, string>
+    config: BrowserConfiguration,
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<HTMLFormElement> {
+    const { action, fields } = await getCodeFormData(
+        config,
+        authority,
+        request,
+        logger,
+        performanceClient
+    );
+    return createForm(frame, action, fields);
+}
+
+/**
+ * Creates a POST `<form>` in the provided document with the given auth
+ * parameters as hidden inputs, targeting `action`. Shared by the popup auth
+ * flows (`getEARForm` / `getCodeForm`) and the popup-relay page
+ * (`runPopupRelay`) so the form is built one way only.
+ *
+ * @param frame - document to create the form in
+ * @param action - form action (the /authorize URL)
+ * @param fields - POST-body fields
+ * @internal
+ */
+export function createForm(
+    frame: Document,
+    action: string,
+    fields: Record<string, string>
 ): HTMLFormElement {
     const form = frame.createElement("form");
     form.method = "post";
-    form.action = authorizeUrl;
+    form.action = action;
 
-    parameters.forEach((value: string, key: string) => {
-        const param = frame.createElement("input");
-        param.hidden = true;
-        param.name = key;
-        param.value = value;
-
-        form.appendChild(param);
+    Object.keys(fields).forEach((name) => {
+        const input = frame.createElement("input");
+        input.hidden = true;
+        input.name = name;
+        input.value = fields[name];
+        form.appendChild(input);
     });
 
     frame.body.appendChild(form);
@@ -660,7 +699,8 @@ export async function handleResponseEAR(
         logger,
         performanceClient,
         null,
-        null
+        null,
+        new TokenBindingKeyManager(logger, performanceClient)
     );
 
     // Validate response. This function throws a server error if an error is returned by the server.

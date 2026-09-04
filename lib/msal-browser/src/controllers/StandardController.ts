@@ -31,6 +31,8 @@ import {
     enforceResourceParameter,
     CacheHelpers,
     TimeUtils,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+    ITokenBindingKeyManager,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -97,6 +99,7 @@ import {
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
 function preflightCheck(
     initialized: boolean,
@@ -119,6 +122,9 @@ export class StandardController implements IController {
 
     // Crypto interface implementation
     protected readonly browserCrypto: ICrypto;
+
+    // Token-binding key lifecycle implementation
+    protected readonly tokenBindingKeyManager: ITokenBindingKeyManager;
 
     // Storage interface implementation
     protected readonly browserStorage: BrowserCacheManager;
@@ -222,10 +228,20 @@ export class StandardController implements IController {
         // Initialize performance client
         this.performanceClient = this.config.telemetry.client;
 
-        // Initialize the crypto class.
-        this.browserCrypto = this.isBrowserEnvironment
-            ? new CryptoOps(this.logger, this.performanceClient)
-            : DEFAULT_CRYPTO_IMPLEMENTATION;
+        // Initialize environment-specific crypto and token-binding services.
+        if (this.isBrowserEnvironment) {
+            this.browserCrypto = new CryptoOps(
+                this.logger,
+                this.performanceClient
+            );
+            this.tokenBindingKeyManager = new TokenBindingKeyManager(
+                this.logger,
+                this.performanceClient
+            );
+        } else {
+            this.browserCrypto = DEFAULT_CRYPTO_IMPLEMENTATION;
+            this.tokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER;
+        }
 
         this.eventHandler = new EventHandler(this.logger);
 
@@ -238,13 +254,16 @@ export class StandardController implements IController {
                   this.logger,
                   this.performanceClient,
                   this.eventHandler,
-                  buildStaticAuthorityOptions(this.config.auth)
+                  buildStaticAuthorityOptions(this.config.auth),
+                  this.tokenBindingKeyManager
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
                   this.logger,
                   this.performanceClient,
-                  this.eventHandler
+                  this.eventHandler,
+                  undefined,
+                  this.tokenBindingKeyManager
               );
 
         // initialize in memory storage for native flows
@@ -258,7 +277,9 @@ export class StandardController implements IController {
             this.browserCrypto,
             this.logger,
             this.performanceClient,
-            this.eventHandler
+            this.eventHandler,
+            undefined,
+            this.tokenBindingKeyManager
         );
 
         this.activeSilentTokenRequests = new Map();
@@ -494,6 +515,7 @@ export class StandardController implements IController {
                     "handleRedirectPromise - acquiring token from native platform",
                     correlationId
                 );
+                // Cached nativeAccountId routes directly to the broker (no /authorize call)
                 rootMeasurement.add({
                     isPlatformBrokerRequest: true,
                 });
@@ -509,7 +531,8 @@ export class StandardController implements IController {
                     this.platformAuthProvider,
                     platformBrokerRequest.accountId,
                     this.nativeInternalStorage,
-                    platformBrokerRequest.correlationId
+                    platformBrokerRequest.correlationId,
+                    this.tokenBindingKeyManager
                 );
 
                 redirectResponse = invokeAsync(
@@ -584,6 +607,7 @@ export class StandardController implements IController {
                     rootMeasurement.end(
                         {
                             success: true,
+                            isNativeBroker: result.fromPlatformBroker ?? false,
                         },
                         undefined,
                         result.account
@@ -599,8 +623,8 @@ export class StandardController implements IController {
                      * Instrument an event only if an error code is set. Otherwise, discard it when the redirect response
                      * is empty and the error code is missing.
                      */
-                    if (rootMeasurement.event.errorCode) {
-                        rootMeasurement.end({ success: false }, undefined);
+                    if (!!rootMeasurement.event.errorCode) {
+                        rootMeasurement.end({ success: false });
                     } else {
                         rootMeasurement.discard();
                     }
@@ -716,7 +740,8 @@ export class StandardController implements IController {
                     this.platformAuthProvider,
                     this.getNativeAccountId(request),
                     this.nativeInternalStorage,
-                    correlationId
+                    correlationId,
+                    this.tokenBindingKeyManager
                 );
                 result = invokeAsync(
                     nativeClient.acquireTokenRedirect.bind(nativeClient),
@@ -725,10 +750,6 @@ export class StandardController implements IController {
                     this.performanceClient,
                     correlationId
                 )(request, atrMeasurement).catch((e: AuthError) => {
-                    atrMeasurement.add({
-                        brokerErrorName: e.name,
-                        brokerErrorCode: e.errorCode,
-                    });
                     if (
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
@@ -836,6 +857,7 @@ export class StandardController implements IController {
         const pkce = this.getPreGeneratedPkceCodes(correlationId);
 
         if (this.canUsePlatformBroker(request)) {
+            // Cached nativeAccountId routes directly to the broker (no /authorize call)
             atPopupMeasurement.add({
                 isPlatformBrokerRequest: true,
             });
@@ -850,7 +872,8 @@ export class StandardController implements IController {
                     atPopupMeasurement.end(
                         {
                             success: true,
-                            isNativeBroker: true,
+                            isNativeBroker:
+                                response.fromPlatformBroker ?? false,
                         },
                         undefined,
                         response.account
@@ -858,10 +881,6 @@ export class StandardController implements IController {
                     return response;
                 })
                 .catch((e: AuthError) => {
-                    atPopupMeasurement.add({
-                        brokerErrorName: e.name,
-                        brokerErrorCode: e.errorCode,
-                    });
                     if (
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
@@ -911,6 +930,7 @@ export class StandardController implements IController {
                 atPopupMeasurement.end(
                     {
                         success: true,
+                        isNativeBroker: result.fromPlatformBroker ?? false,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
                     },
@@ -1193,6 +1213,7 @@ export class StandardController implements IController {
         let result: Promise<AuthenticationResult>;
 
         if (this.canUsePlatformBroker(validRequest)) {
+            // Cached nativeAccountId routes directly to the broker (no /authorize call)
             this.ssoSilentMeasurement?.add({
                 isPlatformBrokerRequest: true,
             });
@@ -1200,10 +1221,6 @@ export class StandardController implements IController {
                 validRequest,
                 ApiId.ssoSilent
             ).catch((e: AuthError) => {
-                this.ssoSilentMeasurement?.add({
-                    brokerErrorName: e.name,
-                    brokerErrorCode: e.errorCode,
-                });
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                     this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt platform broker calls
@@ -1242,7 +1259,7 @@ export class StandardController implements IController {
                 this.ssoSilentMeasurement?.end(
                     {
                         success: true,
-                        isNativeBroker: response.fromPlatformBroker,
+                        isNativeBroker: response.fromPlatformBroker ?? false,
                         accessTokenSize: response.accessToken.length,
                         idTokenSize: response.idToken.length,
                     },
@@ -1333,6 +1350,7 @@ export class StandardController implements IController {
                             atbcMeasurement.end(
                                 {
                                     success: true,
+                                    isNativeBroker: false,
                                     accessTokenSize: result.accessToken.length,
                                     idTokenSize: result.idToken.length,
                                 },
@@ -1382,10 +1400,6 @@ export class StandardController implements IController {
                         ApiId.acquireTokenByCode,
                         request.nativeAccountId
                     ).catch((e: AuthError) => {
-                        atbcMeasurement.add({
-                            brokerErrorName: e.name,
-                            brokerErrorCode: e.errorCode,
-                        });
                         // If native token acquisition fails for availability reasons fallback to standard flow
                         if (
                             e instanceof NativeAuthError &&
@@ -1398,6 +1412,7 @@ export class StandardController implements IController {
                     atbcMeasurement.end(
                         {
                             success: true,
+                            isNativeBroker: result.fromPlatformBroker ?? false,
                         },
                         undefined,
                         result.account
@@ -1460,6 +1475,7 @@ export class StandardController implements IController {
             .then((response) => {
                 this.acquireTokenByCodeAsyncMeasurement?.end({
                     success: true,
+                    isNativeBroker: false,
                     fromCache: response.fromCache,
                 });
                 return response;
@@ -1729,6 +1745,14 @@ export class StandardController implements IController {
             );
 
             // Create accessToken entity and store in native internal storage
+            const attributeTokenPartition =
+                CacheHelpers.serializeAttributeTokens(request.attributeTokens);
+            const additionalCacheKeyComponents = attributeTokenPartition
+                ? {
+                      attribute_tokens: attributeTokenPartition,
+                  }
+                : undefined;
+
             const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
                 result.account.homeAccountId,
                 result.account.environment,
@@ -1747,12 +1771,21 @@ export class StandardController implements IController {
                 undefined, // refreshOn
                 result.tokenType as Constants.AuthenticationScheme,
                 undefined, // userAssertionHash
-                request.sshKid
+                request.sshKid,
+                additionalCacheKeyComponents
             );
 
             if (request.resource) {
                 accessTokenEntity.resource = request.resource;
             }
+
+            // Get attribute token partition hash for cache key isolation
+            const components = additionalCacheKeyComponents;
+            const additionalCacheKeyHash = components
+                ? await this.browserCrypto.hashString(
+                      JSON.stringify(components)
+                  )
+                : undefined;
 
             const kmsi = AuthToken.isKmsi(result.idTokenClaims);
 
@@ -1767,7 +1800,8 @@ export class StandardController implements IController {
             await this.nativeInternalStorage.setAccessTokenCredential(
                 accessTokenEntity,
                 result.correlationId,
-                kmsi
+                kmsi,
+                additionalCacheKeyHash
             );
         } else {
             return this.browserStorage.hydrateCache(result, request);
@@ -1779,6 +1813,9 @@ export class StandardController implements IController {
     /**
      * Acquire a token from native device (e.g. WAM)
      * @param request
+     * @param apiId
+     * @param accountId
+     * @param cacheLookupPolicy
      */
     public async acquireTokenNative(
         request: PopupRequest | SilentRequest | SsoSilentRequest,
@@ -1786,6 +1823,11 @@ export class StandardController implements IController {
         accountId?: string,
         cacheLookupPolicy?: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
+        /*
+         * Callers always normalize correlationId onto the request before delegating
+         * here, so it is guaranteed defined and is the single id used to key this
+         * flow's telemetry.
+         */
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("acquireTokenNative called", correlationId);
         if (!this.platformAuthProvider) {
@@ -1807,7 +1849,8 @@ export class StandardController implements IController {
             this.platformAuthProvider,
             accountId || this.getNativeAccountId(request),
             this.nativeInternalStorage,
-            correlationId
+            correlationId,
+            this.tokenBindingKeyManager
         );
 
         return invokeAsync(
@@ -1920,7 +1963,8 @@ export class StandardController implements IController {
             this.nativeInternalStorage,
             correlationId,
             this.platformAuthProvider,
-            this.operatingContext.getResponseHandlers()?.waitForPopupResponse
+            this.operatingContext.getResponseHandlers()?.waitForPopupResponse,
+            this.tokenBindingKeyManager
         );
     }
 
@@ -1939,7 +1983,8 @@ export class StandardController implements IController {
             this.performanceClient,
             this.nativeInternalStorage,
             correlationId,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.tokenBindingKeyManager
         );
     }
 
@@ -1960,7 +2005,8 @@ export class StandardController implements IController {
             this.nativeInternalStorage,
             correlationId,
             this.platformAuthProvider,
-            this.operatingContext.getResponseHandlers()?.waitForIframeResponse
+            this.operatingContext.getResponseHandlers()?.waitForIframeResponse,
+            this.tokenBindingKeyManager
         );
     }
 
@@ -1979,7 +2025,8 @@ export class StandardController implements IController {
             this.navigationClient,
             this.performanceClient,
             correlationId,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.tokenBindingKeyManager
         );
     }
 
@@ -1998,7 +2045,8 @@ export class StandardController implements IController {
             this.navigationClient,
             this.performanceClient,
             correlationId,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.tokenBindingKeyManager
         );
     }
 
@@ -2018,7 +2066,8 @@ export class StandardController implements IController {
             ApiId.acquireTokenByCode,
             this.performanceClient,
             correlationId,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.tokenBindingKeyManager
         );
     }
 
@@ -2213,6 +2262,7 @@ export class StandardController implements IController {
                 atsMeasurement.end(
                     {
                         success: true,
+                        isNativeBroker: result.fromPlatformBroker ?? false,
                         fromCache: result.fromCache,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
@@ -2463,7 +2513,8 @@ export class StandardController implements IController {
                     this.performanceClient.addFields(
                         {
                             fromCache: response.fromCache,
-                            isNativeBroker: response.fromPlatformBroker,
+                            isNativeBroker:
+                                response.fromPlatformBroker ?? false,
                         },
                         request.correlationId
                     );
@@ -2523,14 +2574,6 @@ export class StandardController implements IController {
                 silentRequest.account.nativeAccountId,
                 cacheLookupPolicy
             ).catch(async (e: AuthError) => {
-                this.performanceClient.addFields(
-                    {
-                        brokerErrorName: e.name,
-                        brokerErrorCode: e.errorCode,
-                    },
-                    silentRequest.correlationId
-                );
-
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                     this.logger.verbose(

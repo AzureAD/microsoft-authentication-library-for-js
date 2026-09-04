@@ -182,6 +182,20 @@ export const TEST_CRYPTO_VALUES = {
     TEST_USER_ASSERTION_HASH: "nFDCbX7CudvdluSPGh34Y-VKZIXRG1rquljNBbn7xuE",
 };
 
+const TEST_DPOP_ACCESS_TOKEN_HEADER = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
+const TEST_DPOP_ACCESS_TOKEN_PAYLOAD =
+    "eyJhdWQiOiJodHRwczovL2dyYXBoLm1pY3Jvc29mdC5jb20iLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vY29tbW9uL3YyLjAiLCJpYXQiOjE3MTAwMDAwMDAsIm5iZiI6MTcxMDAwMDAwMCwiZXhwIjoxNzEwMDAzNjAwLCJzY3AiOiJVc2VyLlJlYWQiLCJzdWIiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0aWQiOiIzMzM4MDQwZC02YzY3LTRjNWItYjExMi0zNmEzMDRiNjZkYWQiLCJ2ZXIiOiIyLjAiLCJjbmYiOnsiamt0IjoidmRsdVNQR2gzNFktbkZEQ2JYN0N1ZFZLWklYUkcxcnF1bGpOQmJuN3h1RSJ9fQ";
+const TEST_DPOP_ACCESS_TOKEN_SIGNATURE =
+    "VwWJdkoY7Es43b-AOoxMpSXjqDc28LwsUMEAVbEIIvA";
+
+export const TEST_DPOP_VALUES = {
+    ACCESS_TOKEN_JKT: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
+    ACCESS_TOKEN: `${TEST_DPOP_ACCESS_TOKEN_HEADER}.${TEST_DPOP_ACCESS_TOKEN_PAYLOAD}.${TEST_DPOP_ACCESS_TOKEN_SIGNATURE}`,
+    ACCESS_TOKEN_ATH: "oibgRw-IL8UIg-yZNKxPlcExMIH7FfjKKI2-n4ujIfs",
+    DPOP_PROOF:
+        "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoidGVzdC1kcG9wLXB1YmxpYy1rZXkteC1jb29yZGluYXRlIiwieSI6InRlc3QtZHBvcC1wdWJsaWMta2V5LXktY29vcmRpbmF0ZSJ9fQ.eyJqdGkiOiJ0ZXN0LWRwb3AtcHJvb2YtanRpIiwiaHRtIjoiUE9TVCIsImh0dSI6Imh0dHBzOi8vbG9naW4ubWljcm9zb2Z0b25saW5lLmNvbS9jb21tb24vb2F1dGgyL3YyLjAvdG9rZW4iLCJpYXQiOjE3MTAwMDAwMDB9.dGVzdC1kcG9wLXByb29mLXNpZ25hdHVyZQ",
+};
+
 // Test MSAL config params
 export const TEST_CONFIG = {
     TENANT: "common",
@@ -196,7 +210,6 @@ export const TEST_CONFIG = {
     organizationsAuthority: TEST_URIS.DEFAULT_INSTANCE + "organizations",
     consumersAuthority: TEST_URIS.DEFAULT_INSTANCE + "consumers",
     ADFS_VALID_AUTHORITY: "https://on.prem/adfs",
-    DSTS_VALID_AUTHORITY: "https://domain.dsts.subdomain/dstsv2/tenant",
     b2cValidAuthority:
         "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_susi",
     applicationName: "msal.js-tests",
@@ -209,9 +222,6 @@ export const TEST_CONFIG = {
     CODE_CHALLENGE_METHOD: "S256",
     TOKEN_TYPE_BEARER: "Bearer",
     DEFAULT_SCOPES: ["openid", "profile", "offline_access"],
-    DSTS_TEST_SCOPE: [
-        "https://testserviceprincipalname-6df5cfbb-2ff9-45bb-b27a-595f48f4c7e4/.default",
-    ],
     DEFAULT_GRAPH_SCOPE: ["User.Read"],
     LOGIN_HINT: "user@test.com",
     DOMAIN_HINT: "test.com",
@@ -348,12 +358,6 @@ export const TEST_TENANT_DISCOVERY_RESPONSE = {
     },
 };
 
-export const DSTS_OPENID_CONFIG_RESPONSE = {
-    body: {
-        token_endpoint:
-            "https://login.microsoftonline.com/dstsv2/{tenant}/oauth2/v2.0/token",
-    },
-};
 export const DEFAULT_OPENID_CONFIG_RESPONSE = {
     body: {
         token_endpoint:
@@ -647,16 +651,6 @@ export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     },
 };
 
-export const DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
-    status: 200,
-    body: {
-        token_type: AuthenticationScheme.BEARER,
-        expires_in: 86396,
-        ext_expires_in: 86396,
-        refresh_in: 43198,
-        access_token: "thisIs.a.dsts.accessT0ken",
-    },
-};
 export const DEVICE_CODE_RESPONSE = {
     userCode: "FRWQDE7YL",
     deviceCode:

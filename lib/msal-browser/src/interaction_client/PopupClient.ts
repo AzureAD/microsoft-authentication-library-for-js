@@ -19,11 +19,17 @@ import {
     PkceCodes,
     CommonAuthorizationUrlRequest,
     ProtocolUtils,
+    Authority,
+    ITokenBindingKeyManager,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
+import {
+    getTokenBindingRequestParams,
+    validateRequestMethod,
+} from "../request/RequestHelpers.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { EventType } from "../event/EventType.js";
 import {
@@ -34,6 +40,8 @@ import {
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
 import { NavigationOptions } from "../navigation/NavigationOptions.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
+import * as PopupRelay from "../popup_relay/relayClient.js";
+import { base64Decode } from "../encode/Base64Decode.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import {
     createBrowserAuthError,
@@ -57,7 +65,6 @@ import {
     getDiscoveredAuthority,
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
-import { validateRequestMethod } from "../request/RequestHelpers.js";
 
 /**
  * Signature of the popup-response handler supplied by
@@ -97,7 +104,8 @@ export class PopupClient extends StandardInteractionClient {
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
         platformAuthHandler?: IPlatformAuthHandler,
-        waitForPopupResponseHook?: WaitForPopupResponseFn
+        waitForPopupResponseHook?: WaitForPopupResponseFn,
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,
@@ -108,7 +116,8 @@ export class PopupClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             correlationId,
-            platformAuthHandler
+            platformAuthHandler,
+            tokenBindingKeyManager
         );
         this.nativeStorage = nativeStorageImpl;
         this.eventHandler = eventHandler;
@@ -331,9 +340,16 @@ export class PopupClient extends StandardInteractionClient {
                 correlationId
             )(this.performanceClient, this.logger, correlationId));
 
+        const tokenBindingParams = await getTokenBindingRequestParams(
+            request,
+            this.tokenBindingKeyManager,
+            this.logger,
+            this.performanceClient
+        );
         const popupRequest = {
             ...request,
             codeChallenge: pkce.challenge,
+            ...tokenBindingParams,
         };
 
         try {
@@ -375,9 +391,26 @@ export class PopupClient extends StandardInteractionClient {
                     this.performanceClient
                 );
 
+                /*
+                 * When a popup-relay page is configured, open it top-level
+                 * (same first-party origin) instead of navigating the popup
+                 * straight to the IdP, and carry the /authorize URL in its hash.
+                 * The relay page opens the IdP child popup and relays the
+                 * response back via postMessage (see waitForPopupResponse).
+                 */
+                const popupRelayUri = this.config.auth.popupRelayUri;
+                const popupNavigateUrl = popupRelayUri
+                    ? PopupRelay.buildPopupRelayUrl(
+                          popupRelayUri,
+                          this.getRelayStateId(request.state, correlationId),
+                          { method: "GET", url: navigateUrl },
+                          correlationId
+                      )
+                    : navigateUrl;
+
                 // Show the UI once the url has been created. Get the window handle for the popup.
                 const popupWindow: Window = this.initiateAuthRequest(
-                    navigateUrl,
+                    popupNavigateUrl,
                     popupParams
                 );
                 this.eventHandler.emitEvent(
@@ -415,7 +448,7 @@ export class PopupClient extends StandardInteractionClient {
                     this.performanceClient,
                     correlationId
                 )(
-                    request,
+                    popupRequest,
                     serverParams,
                     pkce.verifier,
                     ApiId.acquireTokenPopup,
@@ -492,23 +525,25 @@ export class PopupClient extends StandardInteractionClient {
                 this.performanceClient,
                 correlationId
             )(this.performanceClient, this.logger, correlationId));
+        const tokenBindingParams = await getTokenBindingRequestParams(
+            request,
+            this.tokenBindingKeyManager,
+            this.logger,
+            this.performanceClient
+        );
         const popupRequest = {
             ...request,
             earJwk: earJwk,
             codeChallenge: pkce.challenge,
+            ...tokenBindingParams,
         };
-        const popupWindow =
-            popupParams.popup || this.openPopup("about:blank", popupParams);
-
-        const form = await Authorize.getEARForm(
-            popupWindow.document,
-            this.config,
-            discoveredAuthority,
+        const popupWindow = await this.openPostFormPopup(
             popupRequest,
-            this.logger,
-            this.performanceClient
+            discoveredAuthority,
+            popupParams,
+            correlationId,
+            true
         );
-        form.submit();
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
@@ -621,19 +656,13 @@ export class PopupClient extends StandardInteractionClient {
             this.logger
         );
 
-        const popupWindow =
-            popupParams.popup || this.openPopup("about:blank", popupParams);
-
-        const form = await Authorize.getCodeForm(
-            popupWindow.document,
-            this.config,
-            discoveredAuthority,
+        const popupWindow = await this.openPostFormPopup(
             request,
-            this.logger,
-            this.performanceClient
+            discoveredAuthority,
+            popupParams,
+            correlationId,
+            false
         );
-
-        form.submit();
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
@@ -794,8 +823,30 @@ export class PopupClient extends StandardInteractionClient {
                 validRequest
             );
 
+            /*
+             * When a popup-relay page is configured, open it top-level (same
+             * first-party origin) and carry the end-session URL in its hash,
+             * exactly like the login flow. The relay page opens the IdP child
+             * popup and the post-logout redirect page (running the redirect
+             * bridge) relays completion back via postMessage — so logout works
+             * from an embedded, cross-origin iframe where a direct popup to the
+             * IdP cannot. See runPopupRelay / waitForPopupResponse.
+             */
+            const popupRelayUri = this.config.auth.popupRelayUri;
+            const popupNavigateUrl = popupRelayUri
+                ? PopupRelay.buildPopupRelayUrl(
+                      popupRelayUri,
+                      this.getRelayStateId(
+                          validRequest.state || "",
+                          this.correlationId
+                      ),
+                      { method: "GET", url: logoutUri },
+                      this.correlationId
+                  )
+                : logoutUri;
+
             // Open the popup window to requestUrl.
-            const popupWindow = this.openPopup(logoutUri, popupParams);
+            const popupWindow = this.openPopup(popupNavigateUrl, popupParams);
             this.eventHandler.emitEvent(
                 EventType.POPUP_OPENED,
                 validRequest.correlationId,
@@ -1074,11 +1125,94 @@ export class PopupClient extends StandardInteractionClient {
         return `${BrowserConstants.POPUP_NAME_PREFIX}.${this.config.auth.clientId}.${homeAccountId}.${this.correlationId}`;
     }
 
+    /**
+     * Decodes the per-request library-state id from the encoded request state.
+     */
+    private getRelayStateId(state: string, correlationId: string): string {
+        return ProtocolUtils.parseRequestState(
+            base64Decode,
+            state,
+            correlationId
+        ).libraryState.id;
+    }
+
+    /**
+     * Opens the interactive popup for a POST-form /authorize request. Shared by
+     * the auth-code POST and EAR flows, which are identical apart from the form
+     * builder (`isEAR` selects the EAR vs auth-code builders). When a
+     * popup-relay page is configured the form is carried to the relay page
+     * (which opens the IdP child popup); otherwise the form is submitted
+     * directly into the popup.
+     */
+    private async openPostFormPopup(
+        request: CommonAuthorizationUrlRequest,
+        discoveredAuthority: Authority,
+        popupParams: PopupParams,
+        correlationId: string,
+        isEAR: boolean
+    ): Promise<Window> {
+        const popupRelayUri = this.config.auth.popupRelayUri;
+        if (popupRelayUri) {
+            const getFormData = isEAR
+                ? Authorize.getEARFormData
+                : Authorize.getCodeFormData;
+            const formData = await getFormData(
+                this.config,
+                discoveredAuthority,
+                request,
+                this.logger,
+                this.performanceClient
+            );
+            const relayUrl = PopupRelay.buildPopupRelayUrl(
+                popupRelayUri,
+                this.getRelayStateId(request.state, correlationId),
+                {
+                    method: "POST",
+                    action: formData.action,
+                    fields: formData.fields,
+                },
+                correlationId
+            );
+            return this.initiateAuthRequest(relayUrl, popupParams);
+        }
+
+        const popupWindow =
+            popupParams.popup || this.openPopup("about:blank", popupParams);
+        const getForm = isEAR ? Authorize.getEARForm : Authorize.getCodeForm;
+        const form = await getForm(
+            popupWindow.document,
+            this.config,
+            discoveredAuthority,
+            request,
+            this.logger,
+            this.performanceClient
+        );
+        form.submit();
+        return popupWindow;
+    }
+
     protected async waitForPopupResponse(
         request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
         popupWindow: Window,
         popupWindowParent: Window
     ): Promise<string> {
+        /*
+         * When a popup-relay page is configured the response is relayed back to
+         * this frame by the relay page via postMessage, and the relay popup's
+         * lifecycle (including the user dismissing it before signing in) must be
+         * tracked here. This takes precedence over the default bridge response
+         * hook, whose BroadcastChannel cannot reach a partitioned cross-site
+         * frame and which does not track the relay popup.
+         */
+        if (this.config.auth.popupRelayUri) {
+            return PopupRelay.waitForPopupRelayResponse(
+                this.config.system.popupBridgeTimeout,
+                this.logger,
+                request,
+                popupWindow,
+                this.performanceClient
+            );
+        }
         if (this.waitForPopupResponseHook) {
             return this.waitForPopupResponseHook(
                 request,

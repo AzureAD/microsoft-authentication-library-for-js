@@ -7,6 +7,8 @@ import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity.js";
+import { CacheRecord } from "../../src/cache/entities/CacheRecord.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
 import {
     AuthError,
@@ -33,14 +35,22 @@ import {
 } from "../../src/response/ResponseHandler.js";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse.js";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
-import { AuthenticationScheme } from "../../src/utils/Constants.js";
+import {
+    AuthenticationScheme,
+    CredentialType,
+} from "../../src/utils/Constants.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
-import { mockCrypto, MockStorageClass } from "../client/ClientTestUtils.js";
+import {
+    mockCrypto,
+    mockTokenBindingKeyManager,
+    MockStorageClass,
+} from "../client/ClientTestUtils.js";
 import {
     AUTHENTICATION_RESULT,
     ID_TOKEN_CLAIMS,
     POP_AUTHENTICATION_RESULT,
     TEST_CONFIG,
+    TEST_DPOP_VALUES,
     TEST_DATA_CLIENT_INFO,
     TEST_POP_VALUES,
     TEST_TOKEN_LIFETIMES,
@@ -453,6 +463,74 @@ describe("ResponseHandler.ts", () => {
             );
         });
 
+        it("persists attribute-token partition and precomputed hash on cache record", (done) => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                attributeTokens: ["alpha", "zeta"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+            const hashStringSpy = jest.spyOn(cryptoInterface, "hashString");
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+
+            jest.spyOn(
+                ResponseHandler,
+                "generateAuthenticationResult"
+            ).mockImplementation(
+                async (_cryptoObj, _authority, cacheRecord) => {
+                    try {
+                        expect(
+                            cacheRecord.accessToken
+                                ?.additionalCacheKeyComponents
+                        ).toEqual({
+                            attribute_tokens: "alpha zeta",
+                        });
+                        // hash input is JSON.stringify of additionalCacheKeyComponents
+                        expect(hashStringSpy).toHaveBeenCalledWith(
+                            JSON.stringify({ attribute_tokens: "alpha zeta" })
+                        );
+                        // The entity itself must not carry the hash field
+                        const entityAsRecord =
+                            cacheRecord.accessToken as Record<string, unknown>;
+                        expect(
+                            entityAsRecord["additionalCacheKeyComponentsHash"]
+                        ).toBeUndefined();
+                        done();
+                    } catch (error) {
+                        done(error);
+                    }
+                    return {} as AuthenticationResult;
+                }
+            );
+
+            const timestamp = TimeUtils.nowSeconds();
+            responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest,
+                0,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined
+            );
+        });
+
         it("includes spa_code in response as code", async () => {
             const testSpaCode = "sample-spa-code";
 
@@ -542,17 +620,7 @@ describe("ResponseHandler.ts", () => {
                 ResponseHandler,
                 "generateAuthenticationResult"
             ).mockImplementation(
-                async (
-                    _cryptoObj,
-                    _authority,
-                    cacheRecord,
-                    _fromTokenCache,
-                    _request,
-                    _idTokenClaims,
-                    _requestState,
-                    _serverTokenResponse,
-                    _requestId
-                ) => {
+                async (_cryptoObj, _authority, cacheRecord) => {
                     expect(cacheRecord.accessToken?.realm).toBeDefined();
 
                     done();
@@ -604,6 +672,84 @@ describe("ResponseHandler.ts", () => {
             expect(result.familyId).toBe("");
         });
 
+        it("emits regionSubScope telemetry when tenant_region_sub_scope is present", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+            claimsStub.mockReturnValue({
+                ...ID_TOKEN_CLAIMS,
+                tenant_region_sub_scope: "DODCON",
+            } as TokenClaims);
+
+            const perfClient = new StubPerformanceClient();
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                perfClient,
+                null,
+                null
+            );
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                TimeUtils.nowSeconds(),
+                testRequest,
+                0
+            );
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { regionSubScope: "DODCON" },
+                testRequest.correlationId
+            );
+        });
+
+        it("does not emit regionSubScope telemetry when the claim is absent", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+
+            const perfClient = new StubPerformanceClient();
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                perfClient,
+                null,
+                null
+            );
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                TimeUtils.nowSeconds(),
+                testRequest,
+                0
+            );
+
+            expect(addFieldsSpy).not.toHaveBeenCalledWith(
+                expect.objectContaining({
+                    regionSubScope: expect.anything(),
+                }),
+                expect.anything()
+            );
+        });
+
         it("sets default values for access token using PoP scheme", async () => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
@@ -639,7 +785,8 @@ describe("ResponseHandler.ts", () => {
                 logger,
                 stubPerformanceClient,
                 null,
-                null
+                null,
+                mockTokenBindingKeyManager
             );
             const timestamp = TimeUtils.nowSeconds();
             const result = await responseHandler.handleServerTokenResponse(
@@ -652,6 +799,165 @@ describe("ResponseHandler.ts", () => {
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
             expect(result.accessToken).toBe(TEST_TOKENS.POP_TOKEN);
+        });
+
+        it("returns raw DPoP access token with a separate resource proof", async () => {
+            const hashSpy = jest
+                .spyOn(cryptoInterface, "hashString")
+                .mockResolvedValue(TEST_DPOP_VALUES.ACCESS_TOKEN_ATH);
+            const signSpy = jest
+                .spyOn(cryptoInterface, "signTokenBindingJwt")
+                .mockResolvedValue("fresh-dpop-proof");
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                authenticationScheme: AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                access_token: TEST_DPOP_VALUES.ACCESS_TOKEN,
+                token_type: AuthenticationScheme.DPOP,
+            };
+            claimsStub.mockImplementation(
+                (encodedToken: string): TokenClaims | null => {
+                    switch (encodedToken) {
+                        case testResponse.id_token:
+                            return ID_TOKEN_CLAIMS as TokenClaims;
+                        default:
+                            return null;
+                    }
+                }
+            );
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null,
+                mockTokenBindingKeyManager
+            );
+            const result = await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                TimeUtils.nowSeconds(),
+                testRequest,
+                0
+            );
+
+            expect(result.tokenType).toBe(AuthenticationScheme.DPOP);
+            expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
+            expect(result.dpopProof).toBe("fresh-dpop-proof");
+            expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
+            expect(signSpy).toHaveBeenCalled();
+        });
+
+        it("returns fresh proof for lowercase cached DPoP access token", async () => {
+            const hashSpy = jest
+                .spyOn(cryptoInterface, "hashString")
+                .mockResolvedValue(TEST_DPOP_VALUES.ACCESS_TOKEN_ATH);
+            const signSpy = jest
+                .spyOn(cryptoInterface, "signTokenBindingJwt")
+                .mockResolvedValue("cached-dpop-proof");
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                authenticationScheme: AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+            const dpopAccessToken: AccessTokenEntity = {
+                homeAccountId: testAccount.homeAccountId,
+                environment: testAccount.environment,
+                credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                clientId: "this-is-a-client-id",
+                secret: TEST_DPOP_VALUES.ACCESS_TOKEN,
+                realm: testAccount.tenantId,
+                target: testRequest.scopes.join(" "),
+                cachedAt: TimeUtils.nowSeconds().toString(),
+                expiresOn: (TimeUtils.nowSeconds() + 3600).toString(),
+                tokenType:
+                    AuthenticationScheme.DPOP.toLowerCase() as AuthenticationScheme,
+                keyId: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                lastUpdatedAt: TimeUtils.nowSeconds().toString(),
+            };
+            const cacheRecord: CacheRecord = {
+                accessToken: dpopAccessToken,
+            };
+
+            const result = await ResponseHandler.generateAuthenticationResult(
+                cryptoInterface,
+                testAuthority,
+                cacheRecord,
+                true,
+                testRequest,
+                stubPerformanceClient,
+                {
+                    idTokenClaims: ID_TOKEN_CLAIMS as TokenClaims,
+                    tokenBindingKeyManager: mockTokenBindingKeyManager,
+                }
+            );
+
+            expect(result.tokenType).toBe(AuthenticationScheme.DPOP);
+            expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
+            expect(result.dpopProof).toBe("cached-dpop-proof");
+            expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
+            expect(signSpy).toHaveBeenCalled();
+        });
+
+        it("throws when DPoP request receives non-DPoP token_type", async () => {
+            const addFieldsSpy = jest.spyOn(stubPerformanceClient, "addFields");
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                scopes: ["openid", "profile", "User.Read", "email"],
+                authenticationScheme: AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                access_token: TEST_DPOP_VALUES.ACCESS_TOKEN,
+                token_type: AuthenticationScheme.BEARER,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null,
+                mockTokenBindingKeyManager
+            );
+
+            await expect(
+                responseHandler.handleServerTokenResponse(
+                    testResponse,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    testRequest,
+                    0
+                )
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.dpopTokenTypeMismatch,
+            });
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    dpopTokenTypeMismatch: AuthenticationScheme.BEARER,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("Does not sign access token when PoP kid is set and PoP scheme enabled", async () => {

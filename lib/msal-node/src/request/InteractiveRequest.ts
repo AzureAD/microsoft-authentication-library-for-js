@@ -4,7 +4,6 @@
  */
 
 import { CommonAuthorizationUrlRequest } from "@azure/msal-common/node";
-import { ILoopbackClient } from "../network/ILoopbackClient.js";
 
 /**
  * Request object passed by user to configure acquireTokenInteractive API
@@ -34,7 +33,8 @@ export type InteractiveRequest = Partial<
      */
     windowHandle?: Buffer; // Relevant only to brokered requests
     /**
-     * Custom implementation for a loopback server to listen for authorization code response.
+     * Preferred port for the loopback server to listen on. If the port is unavailable, a random port will be used.
+     * Set this when you need a fixed port for redirect URI registration.
      */
-    loopbackClient?: ILoopbackClient;
+    preferredPort?: number;
 };

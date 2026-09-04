@@ -117,6 +117,73 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.telemetry.application.appVersion).toHaveLength(0);
     });
 
+    it("default token-binding key manager propagates correlation IDs", async () => {
+        const emptyConfig: CommonClientConfiguration = buildClientConfiguration(
+            {
+                //@ts-ignore
+                authOptions: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            }
+        );
+
+        await expect(
+            emptyConfig.tokenBindingKeyManager.provisionTokenBindingKey({
+                tokenBindingKeyType: "pop",
+                tokenBindingKeyAlgorithm: "ES256",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            })
+        ).rejects.toMatchObject(
+            createClientAuthError(
+                ClientAuthErrorCodes.methodNotImplemented,
+                TEST_CONFIG.CORRELATION_ID
+            )
+        );
+        await expect(
+            emptyConfig.tokenBindingKeyManager.removeTokenBindingKey(
+                "kid",
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).rejects.toMatchObject(
+            createClientAuthError(
+                ClientAuthErrorCodes.methodNotImplemented,
+                TEST_CONFIG.CORRELATION_ID
+            )
+        );
+        await expect(
+            emptyConfig.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                "kid",
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).rejects.toMatchObject(
+            createClientAuthError(
+                ClientAuthErrorCodes.methodNotImplemented,
+                TEST_CONFIG.CORRELATION_ID
+            )
+        );
+        await expect(
+            emptyConfig.cryptoInterface.clearKeystore(
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).rejects.toMatchObject(
+            createClientAuthError(
+                ClientAuthErrorCodes.methodNotImplemented,
+                TEST_CONFIG.CORRELATION_ID
+            )
+        );
+        await expect(
+            emptyConfig.cryptoInterface.removeTokenBindingKey(
+                "kid",
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).rejects.toMatchObject(
+            createClientAuthError(
+                ClientAuthErrorCodes.methodNotImplemented,
+                TEST_CONFIG.CORRELATION_ID
+            )
+        );
+    });
+
     const cacheStorageMock = new MockStorageClass(
         TEST_CONFIG.MSAL_CLIENT_ID,
         mockCrypto,

@@ -24,6 +24,8 @@ import {
     IdTokenEntity,
     invokeAsync,
     IPerformanceClient,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+    ITokenBindingKeyManager,
     Logger,
     PerformanceEvents,
     RefreshTokenEntity,
@@ -120,14 +122,16 @@ export class BrowserCacheManager extends CacheManager {
         logger: Logger,
         performanceClient: IPerformanceClient,
         eventHandler: EventHandler,
-        staticAuthorityOptions?: StaticAuthorityOptions
+        staticAuthorityOptions?: StaticAuthorityOptions,
+        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER
     ) {
         super(
             clientId,
             cryptoImpl,
             logger,
             performanceClient,
-            staticAuthorityOptions
+            staticAuthorityOptions,
+            tokenBindingKeyManager
         );
         this.cacheConfig = cacheConfig;
         this.logger = logger;
@@ -1571,19 +1575,23 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * set accessToken credential to the platform cache
-     * @param accessToken
+     * Set accessToken credential to the platform cache
+     * @param accessToken - the access token entity to cache
      */
     async setAccessTokenCredential(
         accessToken: AccessTokenEntity,
         correlationId: string,
-        kmsi: boolean
+        kmsi: boolean,
+        additionalCacheKeyHash?: string
     ): Promise<void> {
         this.logger.trace(
             "BrowserCacheManager.setAccessTokenCredential called",
             correlationId
         );
-        const accessTokenKey = this.generateCredentialKey(accessToken);
+        const accessTokenKey = this.generateCredentialKey(
+            accessToken,
+            additionalCacheKeyHash
+        );
         const timestamp = Date.now().toString();
         accessToken.lastUpdatedAt = timestamp;
 
@@ -2118,11 +2126,16 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Generate Credential Key. All changes to the key REQUIRE a schema version update.
-     * Cache Key: msal.<schema_version>|<home_account_id>|<environment>|<credential_type>|<client_id or familyId>|<realm>|<scopes>|<scheme>
+     * Cache Key: msal.<schema_version>|<home_account_id>|<environment>|<credential_type>|<client_id or familyId>|<realm>|<scopes>|<scheme>|<additional_cache_key_components_hash>
+     *
      * @param credentialEntity
+     * @param hash - optional precomputed hash of additionalCacheKeyComponents
      * @returns
      */
-    generateCredentialKey(credential: CredentialEntity): string {
+    generateCredentialKey(
+        credential: CredentialEntity,
+        additionalCacheKeyHash?: string
+    ): string {
         const familyId =
             (credential.credentialType ===
                 Constants.CredentialType.REFRESH_TOKEN &&
@@ -2144,6 +2157,15 @@ export class BrowserCacheManager extends CacheManager {
             credential.target || "",
             scheme,
         ];
+
+        // Append precomputed component-hash segment.
+        if (
+            credential.additionalCacheKeyComponents &&
+            Object.keys(credential.additionalCacheKeyComponents).length > 0 &&
+            additionalCacheKeyHash
+        ) {
+            credentialKey.push(additionalCacheKeyHash);
+        }
 
         return credentialKey.join(CacheKeys.CACHE_KEY_SEPARATOR).toLowerCase();
     }
@@ -2537,7 +2559,9 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
     clientId: string,
     logger: Logger,
     performanceClient: IPerformanceClient,
-    eventHandler: EventHandler
+    eventHandler: EventHandler,
+    staticAuthorityOptions?: StaticAuthorityOptions,
+    tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER
 ): BrowserCacheManager => {
     const cacheOptions: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
@@ -2549,6 +2573,8 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
         DEFAULT_CRYPTO_IMPLEMENTATION,
         logger,
         performanceClient,
-        eventHandler
+        eventHandler,
+        staticAuthorityOptions,
+        tokenBindingKeyManager
     );
 };

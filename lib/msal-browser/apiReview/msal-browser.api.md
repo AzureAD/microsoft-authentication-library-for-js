@@ -105,6 +105,7 @@ export type AuthenticationResult = AuthenticationResult_2 & {
 export const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
+    readonly DPOP: "DPoP";
     readonly SSH: "ssh-cert";
 };
 
@@ -183,6 +184,7 @@ declare namespace BrowserAuthErrorCodes {
         redirectInIframe,
         blockIframeReload,
         blockNestedPopups,
+        popupRelayUnsupportedFlow,
         iframeClosedPrematurely,
         silentLogoutUnsupported,
         noAccountError,
@@ -199,6 +201,7 @@ declare namespace BrowserAuthErrorCodes {
         failedToParseResponse,
         unableToLoadToken,
         cryptoKeyNotFound,
+        invalidPublicJwk,
         authCodeRequired,
         authCodeOrNativeAccountIdRequired,
         spaCodeAndNativeAccountIdPresent,
@@ -211,6 +214,9 @@ declare namespace BrowserAuthErrorCodes {
         nativePromptNotSupported,
         invalidBase64String,
         invalidPopTokenRequest,
+        unsupportedTokenBindingAlgorithm,
+        tokenBindingKeyAlgorithmMismatch,
+        tokenBindingKeyJwkThumbprintMismatch,
         failedToBuildHeaders,
         failedToParseHeaders,
         failedToDecryptEarResponse,
@@ -229,6 +235,7 @@ export type BrowserAuthOptions = {
     authorityMetadata?: string;
     redirectUri?: string;
     postLogoutRedirectUri?: string | null;
+    popupRelayUri?: string;
     clientCapabilities?: Array<string>;
     OIDCOptions?: OIDCOptions;
     azureCloudOptions?: AzureCloudOptions;
@@ -644,6 +651,9 @@ const invalidCacheType = "invalid_cache_type";
 // @public (undocumented)
 const invalidPopTokenRequest = "invalid_pop_token_request";
 
+// @public (undocumented)
+const invalidPublicJwk = "invalid_public_jwk";
+
 export { IPerformanceClient }
 
 // @public (undocumented)
@@ -711,6 +721,12 @@ function isInPopup(): boolean;
 // @public
 export function isPlatformBrokerAvailable(domConfig: boolean, loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
 
+// @public
+export interface IWebBrokerBridgeMessage {
+    readonly requestId: string;
+    readonly type: string;
+}
+
 // @public (undocumented)
 export interface IWindowStorage<T> {
     containsKey(key: string): boolean;
@@ -730,6 +746,7 @@ export const JsonWebTokenTypes: {
     readonly Jwt: "JWT";
     readonly Jwk: "JWK";
     readonly Pop: "pop";
+    readonly Dpop: "dpop+jwt";
 };
 
 // @public (undocumented)
@@ -882,6 +899,9 @@ export type PopupPosition = {
     top: number;
     left: number;
 };
+
+// @public (undocumented)
+const popupRelayUnsupportedFlow = "popup_relay_unsupported_flow";
 
 // @public
 export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
@@ -1082,6 +1102,12 @@ export { TenantProfile }
 const timedOut = "timed_out";
 
 // @public (undocumented)
+const tokenBindingKeyAlgorithmMismatch = "token_binding_key_algorithm_mismatch";
+
+// @public (undocumented)
+const tokenBindingKeyJwkThumbprintMismatch = "token_binding_key_jwk_thumbprint_mismatch";
+
+// @public (undocumented)
 const unableToAcquireTokenFromNativePlatform = "unable_to_acquire_token_from_native_platform";
 
 // @public (undocumented)
@@ -1097,10 +1123,13 @@ const unableToParseTokenRequestCacheError = "unable_to_parse_token_request_cache
 const uninitializedPublicClientApplication = "uninitialized_public_client_application";
 
 // @public (undocumented)
+const unsupportedTokenBindingAlgorithm = "unsupported_token_binding_algorithm";
+
+// @public (undocumented)
 const userCancelled = "user_cancelled";
 
 // @public (undocumented)
-export const version = "5.16.0";
+export const version = "5.21.0";
 
 // @public (undocumented)
 const WaitForBridgeLateResponse = "waitForBridgeLateResponse";

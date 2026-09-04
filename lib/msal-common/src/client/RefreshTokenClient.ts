@@ -19,6 +19,7 @@ import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
+import { DpopProofGenerator } from "../crypto/DpopProofGenerator.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import {
@@ -46,6 +47,7 @@ import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
 import { getRequestThumbprint } from "../network/RequestThumbprint.js";
 import {
+    addDpopTokenProofHeader,
     createTokenQueryParameters,
     createTokenRequestHeaders,
     executePostToTokenEndpoint,
@@ -139,7 +141,8 @@ export class RefreshTokenClient {
             this.logger,
             this.performanceClient,
             this.config.serializableCache,
-            this.config.persistencePlugin
+            this.config.persistencePlugin,
+            this.config.tokenBindingKeyManager
         );
         responseHandler.validateTokenResponse(
             response.body,
@@ -297,6 +300,19 @@ export class RefreshTokenClient {
                 type: CcsCredentialType.HOME_ACCOUNT_ID,
             },
         };
+        if (
+            refreshTokenRequest.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP &&
+            !refreshTokenRequest.dpopJkt
+        ) {
+            const dpopProofGenerator = new DpopProofGenerator(
+                this.cryptoUtils,
+                this.config.tokenBindingKeyManager
+            );
+            refreshTokenRequest.dpopJkt = await dpopProofGenerator.generateJkt(
+                request.correlationId
+            );
+        }
 
         try {
             return await invokeAsync(
@@ -358,6 +374,13 @@ export class RefreshTokenClient {
             this.logger,
             this.config.systemOptions.preventCorsPreflight,
             request.ccsCredential
+        );
+        await addDpopTokenProofHeader(
+            headers,
+            request,
+            endpoint,
+            this.cryptoUtils,
+            this.config.tokenBindingKeyManager
         );
 
         const thumbprint = getRequestThumbprint(
@@ -445,6 +468,19 @@ export class RefreshTokenClient {
             request.refreshToken
         );
 
+        if (request.attributeTokens) {
+            RequestParameterBuilder.addAttributeTokens(
+                parameters,
+                request.attributeTokens
+            );
+        }
+        this.performanceClient?.addFields(
+            {
+                hasAttributeTokens: !!request.attributeTokens?.length,
+            },
+            request.correlationId
+        );
+
         if (this.config.clientCredentials.clientSecret) {
             RequestParameterBuilder.addClientSecret(
                 parameters,
@@ -475,6 +511,7 @@ export class RefreshTokenClient {
         ) {
             const popTokenGenerator = new PopTokenGenerator(
                 this.cryptoUtils,
+                this.config.tokenBindingKeyManager,
                 this.performanceClient
             );
 

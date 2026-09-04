@@ -2,6 +2,199 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Fri, 28 Aug 2026 21:29:53 GMT",
+      "version": "6.0.0",
+      "tag": "@azure/msal-node_v6.0.0",
+      "comments": {
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Remove legacy environment metadata and legacy authority support [#8794](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8794)"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Remove the disallowedChangeTypes beachball guard on @azure/msal-node to allow the upcoming v6 major release [#8782](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8782)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Validate Node consumers without DOM typings during type builds [#8784](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8784)"
+          }
+        ],
+        "major": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "[Breaking] Default acquireTokenInteractive responseMode to form_post and remove the deprecated loopbackClient option and ILoopbackClient interface (v6) [#8779](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8779)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.14.0",
+            "commit": "not available"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Enable support for tenant_region_subscope optional claim [#8765](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8765)"
+          },
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Align node storage with explicit DPoP token-binding key manager wiring [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 18 Aug 2026 20:10:56 GMT",
+      "version": "5.6.0",
+      "tag": "@azure/msal-node_v5.6.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4f0241d6e3fcafeb3aac0a041b867aeae71fe749",
+            "comment": "Validate the ID Token nonce against the nonce supplied on authorization code requests [#8763](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8763)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "90415114+gladjohn@users.noreply.github.com",
+            "package": "@azure/msal-node",
+            "commit": "4f0241d6e3fcafeb3aac0a041b867aeae71fe749",
+            "comment": "Add Azure Arc user-assigned managed identity support: forward the client_id/object_id/msi_res_id selector and fail closed when the token response does not confirm the requested identity [#8761](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8761)"
+          },
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4f0241d6e3fcafeb3aac0a041b867aeae71fe749",
+            "comment": "Align node token-binding stubs with the keyId-only DPoP key contract [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.13.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 04 Aug 2026 20:17:38 GMT",
+      "version": "5.5.0",
+      "tag": "@azure/msal-node_v5.5.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "spingale@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5c53ac62bb060632b340e850e80ceaff950655a7",
+            "comment": "Add attribute-tokens support [#8700](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8700)"
+          },
+          {
+            "author": "nichoudhary@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5c53ac62bb060632b340e850e80ceaff950655a7",
+            "comment": "Use length-prefix encoding for the additional cache key hash to prevent credential cache-key collisions [#8713](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8713)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5c53ac62bb060632b340e850e80ceaff950655a7",
+            "comment": "Add `claimsFromClient` request parameter to forward client-originated claims to IDP  [#8686](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8686)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.12.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 29 Jul 2026 00:26:31 GMT",
+      "version": "5.4.3",
+      "tag": "@azure/msal-node_v5.4.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.11.3",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 21 Jul 2026 22:25:04 GMT",
+      "version": "5.4.2",
+      "tag": "@azure/msal-node_v5.4.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "gladjohn@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "32259ab11239f3777045db30cd145d215e46539f",
+            "comment": "Upgrade Azure Arc HIMDS token endpoint api-version from 2019-11-01 to 2020-06-01 [#8711](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8711)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 15 Jul 2026 22:35:35 GMT",
+      "version": "5.4.1",
+      "tag": "@azure/msal-node_v5.4.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.11.2",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Jul 2026 22:16:01 GMT",
+      "version": "5.4.0",
+      "tag": "@azure/msal-node_v5.4.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "aa48c36402b908a4a7ef36a1b254d73fc66e4b3f",
+            "comment": "Add form_post response mode support, preferredPort option, and deprecate custom loopbackClient [#8694](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8694)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.11.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 30 Jun 2026 21:04:20 GMT",
       "version": "5.3.1",
       "tag": "@azure/msal-node_v5.3.1",

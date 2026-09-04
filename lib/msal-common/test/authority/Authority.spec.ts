@@ -1421,6 +1421,67 @@ describe("Authority.ts Class Unit Tests", () => {
                 ).not.toHaveBeenCalled();
             });
 
+            it("Gets China cloud endpoints from hardcoded values for preferred and legacy aliases", async () => {
+                const customAuthorityOptions: AuthorityOptions = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: [],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: "",
+                };
+
+                const chinaAuthorityHosts = [
+                    "login.partner.microsoftonline.cn",
+                    "login.chinacloudapi.cn",
+                ];
+
+                for (const host of chinaAuthorityHosts) {
+                    jest.clearAllMocks();
+                    const authority = new Authority(
+                        `https://${host}/common/`,
+                        networkInterface,
+                        new MockStorageClass(
+                            TEST_CONFIG.MSAL_CLIENT_ID,
+                            mockCrypto,
+                            logger,
+                            new StubPerformanceClient()
+                        ),
+                        customAuthorityOptions,
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
+                    );
+
+                    await authority.resolveEndpointsAsync();
+
+                    expect(authority.discoveryComplete()).toBe(true);
+                    expect(
+                        authority.isAlias("login.partner.microsoftonline.cn")
+                    ).toBe(true);
+                    expect(authority.isAlias("login.chinacloudapi.cn")).toBe(
+                        true
+                    );
+                    expect(authority.canonicalAuthority).toContain(
+                        "login.partner.microsoftonline.cn"
+                    );
+                    expect(authority.authorizationEndpoint).toBe(
+                        "https://login.partner.microsoftonline.cn/common/oauth2/v2.0/authorize"
+                    );
+                    expect(authority.tokenEndpoint).toBe(
+                        "https://login.partner.microsoftonline.cn/common/oauth2/v2.0/token"
+                    );
+                    expect(authority.selfSignedJwtAudience).toBe(
+                        "https://login.partner.microsoftonline.cn/common/v2.0"
+                    );
+                    expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
+                    expect(
+                        getEndpointMetadataFromHarcodedValuesSpy
+                    ).toHaveBeenCalled();
+                    expect(
+                        getEndpointMetadataFromNetworkSpy
+                    ).not.toHaveBeenCalled();
+                }
+            });
+
             it("Gets endpoints for tenanted Microsoft authority from hardcoded values", async () => {
                 const customAuthorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
@@ -2908,72 +2969,6 @@ describe("Authority.ts Class Unit Tests", () => {
                         );
                     }
                 });
-
-                it("Sets metadata from host for DSTS authority", async () => {
-                    const authorityOptions: AuthorityOptions = {
-                        protocolMode: ProtocolMode.AAD,
-                        knownAuthorities: [
-                            "https://custom-domain.microsoft.com/dstsv2",
-                        ],
-                        cloudDiscoveryMetadata: "",
-                        authorityMetadata: "",
-                    };
-                    networkInterface.sendGetRequestAsync = (
-                        url: string,
-                        options?: NetworkRequestOptions
-                    ): any => {
-                        return DEFAULT_TENANT_DISCOVERY_RESPONSE;
-                    };
-                    jest.spyOn(
-                        Authority.prototype,
-                        <any>"updateEndpointMetadata"
-                    ).mockResolvedValue("cache");
-                    authority = new Authority(
-                        "https://custom-domain.microsoft.com/dstsv2",
-                        networkInterface,
-                        mockStorage,
-                        authorityOptions,
-                        logger,
-                        TEST_CONFIG.CORRELATION_ID,
-                        new StubPerformanceClient()
-                    );
-
-                    await authority.resolveEndpointsAsync();
-                    expect(
-                        authority.isAlias("custom-domain.microsoft.com")
-                    ).toBe(true);
-                    expect(authority.getPreferredCache()).toBe(
-                        "custom-domain.microsoft.com"
-                    );
-                    expect(
-                        authority.canonicalAuthority.includes(
-                            "custom-domain.microsoft.com"
-                        )
-                    );
-
-                    // Test that the metadata is cached
-                    const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-custom-domain.microsoft.com`;
-                    const cachedAuthorityMetadata =
-                        mockStorage.getAuthorityMetadata(key);
-                    if (!cachedAuthorityMetadata) {
-                        throw Error(
-                            "Cached AuthorityMetadata should not be null!"
-                        );
-                    } else {
-                        expect(cachedAuthorityMetadata.aliases).toContain(
-                            "custom-domain.microsoft.com"
-                        );
-                        expect(cachedAuthorityMetadata.preferred_cache).toBe(
-                            "custom-domain.microsoft.com"
-                        );
-                        expect(cachedAuthorityMetadata.preferred_network).toBe(
-                            "custom-domain.microsoft.com"
-                        );
-                        expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(
-                            false
-                        );
-                    }
-                });
             });
 
             it("Throws if cloudDiscoveryMetadata cannot be parsed into json", (done) => {
@@ -3219,45 +3214,6 @@ describe("Authority.ts Class Unit Tests", () => {
             // @ts-ignore
             expect(authority.defaultOpenIdConfigurationEndpoint).toBe(
                 `${authorityUrl}/.well-known/openid-configuration`
-            );
-        });
-
-        it("DSTS authority uses v2 well-known endpoint with common authority", async () => {
-            const authorityUrl =
-                "https://login.microsoftonline.com/dstsv2/common/";
-            authority = new Authority(
-                authorityUrl,
-                networkInterface,
-                mockStorage,
-                authorityOptions,
-                logger,
-                TEST_CONFIG.CORRELATION_ID,
-                new StubPerformanceClient()
-            );
-
-            await authority.resolveEndpointsAsync();
-            // @ts-ignore
-            expect(authority.defaultOpenIdConfigurationEndpoint).toBe(
-                `${authorityUrl}v2.0/.well-known/openid-configuration`
-            );
-        });
-
-        it("DSTS authority uses v2 well-known  with tenanted authority", async () => {
-            const authorityUrl = `https://login.microsoftonline.com/dstsv2/${TEST_CONFIG.TENANT}/`;
-            authority = new Authority(
-                authorityUrl,
-                networkInterface,
-                mockStorage,
-                authorityOptions,
-                logger,
-                TEST_CONFIG.CORRELATION_ID,
-                new StubPerformanceClient()
-            );
-
-            await authority.resolveEndpointsAsync();
-            // @ts-ignore
-            expect(authority.defaultOpenIdConfigurationEndpoint).toBe(
-                `${authorityUrl}v2.0/.well-known/openid-configuration`
             );
         });
 

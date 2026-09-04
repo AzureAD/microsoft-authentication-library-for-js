@@ -68,6 +68,23 @@ export type BrowserAuthOptions = {
     postLogoutRedirectUri?: string | null;
 
     /**
+     * URI of a first-party, top-level "popup-relay" page used to acquire tokens
+     * interactively from inside a cross-origin iframe that an untrusted host has
+     * embedded (where third-party storage partitioning and COOP break the normal
+     * popup flow). When set, `acquireTokenPopup` opens this page top-level
+     * instead of navigating the popup straight to the IdP, and the page must call
+     * `runPopupRelay()`. Resolved relative to the app origin, so it must be
+     * same-origin as the embedded frame.
+     *
+     * This is a browser SPA-only mechanism (`PublicClientApplication` in
+     * `@azure/msal-browser`): it brokers the standard interactive popup
+     * auth-code flow through a same-origin page. It does not apply to native
+     * app, platform broker (WAM), Nested App Auth, or confidential-client /
+     * server-side scenarios.
+     */
+    popupRelayUri?: string;
+
+    /**
      * Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
      */
     clientCapabilities?: Array<string>;
@@ -271,6 +288,7 @@ export function buildConfiguration(
                 ? window.location.href.split("?")[0].split("#")[0]
                 : "",
         postLogoutRedirectUri: "",
+        popupRelayUri: "",
         clientCapabilities: [],
         OIDCOptions: {
             responseMode: Constants.ResponseMode.FRAGMENT,

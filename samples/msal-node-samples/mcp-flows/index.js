@@ -108,10 +108,10 @@ const getTokenMcp = function (scenarioConfig, clientApplication, port, msalToken
         const tokenRequest = {
             ...requestConfig.tokenRequest,
             code: req.query.code,
+            nonce: req.session.nonce,
             state: req.query.state,
         };
         const authCodeResponse = {
-            nonce: req.session.nonce,
             code: req.query.code,
             state: req.session.state,
         };

@@ -43,11 +43,25 @@ import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 import { CredentialEntity } from "../../src/cache/entities/CredentialEntity.js";
 import { AccountInfo } from "../../src/account/AccountInfo.js";
+import { ITokenBindingKeyManager } from "../../src/crypto/ITokenBindingKeyManager.js";
+import { ICrypto } from "../../src/crypto/ICrypto.js";
+import { StaticAuthorityOptions } from "../../src/authority/AuthorityOptions.js";
+import { createHash } from "crypto";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
 
-export function generateCredentialKey(credential: CredentialEntity): string {
+/** Compute additional-cache-key hash deterministically — matches production algo. */
+function computeTestHash(components: Record<string, string>): string {
+    return createHash("sha256")
+        .update(JSON.stringify(components), "utf8")
+        .digest("base64url");
+}
+
+export function generateCredentialKey(
+    credential: CredentialEntity,
+    hash?: string
+): string {
     const familyId =
         (credential.credentialType === CredentialType.REFRESH_TOKEN &&
             credential.familyId) ||
@@ -68,6 +82,15 @@ export function generateCredentialKey(credential: CredentialEntity): string {
         scheme,
     ];
 
+    if (
+        credential.additionalCacheKeyComponents &&
+        Object.keys(credential.additionalCacheKeyComponents).length > 0
+    ) {
+        credentialKey.push(
+            hash ?? computeTestHash(credential.additionalCacheKeyComponents)
+        );
+    }
+
     return credentialKey.join(CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
@@ -81,11 +104,44 @@ export function generateAccountKey(account: AccountInfo): string {
     return accountKey.join(CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
+export const mockTokenBindingKeyManager: ITokenBindingKeyManager = {
+    async provisionTokenBindingKey(): Promise<string> {
+        return TEST_POP_VALUES.KID;
+    },
+    async getTokenBindingPublicKeyJwk(): Promise<JsonWebKey> {
+        return {
+            kty: "RSA",
+            alg: "RS256",
+        };
+    },
+    async removeTokenBindingKey(): Promise<void> {
+        return Promise.resolve();
+    },
+};
+
 export class MockStorageClass extends CacheManager {
     store = {};
 
-    generateCredentialKey(credential: CredentialEntity): string {
-        return generateCredentialKey(credential);
+    constructor(
+        clientId: string,
+        cryptoImpl: ICrypto,
+        logger: Logger,
+        performanceClient: StubPerformanceClient,
+        staticAuthorityOptions?: StaticAuthorityOptions,
+        tokenBindingKeyManager: ITokenBindingKeyManager = mockTokenBindingKeyManager
+    ) {
+        super(
+            clientId,
+            cryptoImpl,
+            logger,
+            performanceClient,
+            staticAuthorityOptions,
+            tokenBindingKeyManager
+        );
+    }
+
+    generateCredentialKey(credential: CredentialEntity, hash?: string): string {
+        return generateCredentialKey(credential, hash);
     }
 
     generateAccountKey(account: AccountInfo): string {
@@ -165,8 +221,13 @@ export class MockStorageClass extends CacheManager {
     getAccessTokenCredential(key: string): AccessTokenEntity | null {
         return (this.store[key] as AccessTokenEntity) || null;
     }
-    async setAccessTokenCredential(value: AccessTokenEntity): Promise<void> {
-        const key = this.generateCredentialKey(value);
+    async setAccessTokenCredential(
+        value: AccessTokenEntity,
+        _correlationId: string,
+        _kmsi: boolean,
+        additionalCacheKeyHash?: string
+    ): Promise<void> {
+        const key = this.generateCredentialKey(value, additionalCacheKeyHash);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -275,13 +336,10 @@ export const mockCrypto = {
             EncodingTypes.UTF8
         ).toString("base64url");
     },
-    async getPublicKeyThumbprint(): Promise<string> {
-        return TEST_POP_VALUES.KID;
-    },
     async removeTokenBindingKey(keyId: string): Promise<void> {
         return Promise.resolve();
     },
-    async signJwt(): Promise<string> {
+    async signTokenBindingJwt(): Promise<string> {
         return TEST_TOKENS.POP_TOKEN;
     },
     async clearKeystore(): Promise<boolean> {
@@ -347,6 +405,7 @@ export class ClientTestUtils {
             storageInterface: mockStorage,
             networkInterface: mockNetworkClient,
             cryptoInterface: mockCrypto,
+            tokenBindingKeyManager: mockTokenBindingKeyManager,
             loggerOptions: {
                 loggerCallback: testLoggerCallback,
             },

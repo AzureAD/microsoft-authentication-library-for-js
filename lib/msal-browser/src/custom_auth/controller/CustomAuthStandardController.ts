@@ -127,7 +127,8 @@ export class CustomAuthStandardController
                     this.customAuthConfig.customAuth?.requestInterceptor,
                     this.logger
                 ),
-            this.authority
+            this.authority,
+            this.tokenBindingKeyManager
         );
 
         this.signInClient = interactionClientFactory.create(SignInClient);

@@ -1654,6 +1654,49 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response).toEqual(testTokenResponse);
         });
 
+        it("retrieves and applies storeInCache directive persisted across the redirect", async () => {
+            // storeInCache is not a broker-contract field, so it is persisted alongside the
+            // cached native request and must be read back in handleRedirectPromise. This test
+            // proves the directive survives the redirect round-trip (cache write -> read).
+            jest.spyOn(
+                NavigationClient.prototype,
+                "navigateExternal"
+            ).mockImplementation((url: string) => {
+                expect(url).toBe(window.location.href);
+                return Promise.resolve(true);
+            });
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockResolvedValue(MOCK_WAM_RESPONSE);
+            // @ts-ignore
+            pca.browserStorage.setInteractionInProgress(true);
+            await platformAuthInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                    storeInCache: {
+                        idToken: false,
+                    },
+                },
+                perfMeasurement
+            );
+
+            const response =
+                await platformAuthInteractionClient.handleRedirectPromise();
+            expect(response).not.toBe(null);
+            // The response still surfaces the idToken to the caller...
+            expect(response!.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
+            expect(response!.accessToken).toEqual(
+                MOCK_WAM_RESPONSE.access_token
+            );
+
+            // ...but the storeInCache directive (idToken: false) was honored, so the
+            // idToken was NOT written to the cache while the accessToken was.
+            const internalTokenKeys = internalStorage.getTokenKeys();
+            expect(internalTokenKeys.idToken).toHaveLength(0);
+            expect(internalTokenKeys.accessToken).toHaveLength(1);
+        });
+
         it("If request includes a prompt value it is ignored on the 2nd call to native broker", async () => {
             // The user should not be prompted twice, prompt value should only be used on the first call to the native broker (before returning to the redirect uri). Native broker calls from handleRedirectPromise should ignore the prompt.
             jest.spyOn(
@@ -1762,10 +1805,12 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     scopes: ["User.Read"],
                     prompt: Constants.PromptValue.LOGIN,
                     redirectUri: "localhost",
+                    resource: "https://graph.microsoft.com",
                     extraParameters: {
                         brk_client_id: "broker_client_id",
                         brk_redirect_uri: "https://broker_redirect_uri.com",
                         client_id: "parent_client_id",
+                        userEQP: "customUserParam",
                     },
                 });
 
@@ -1778,6 +1823,23 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).toEqual("localhost");
             expect(nativeRequest.redirectUri).toEqual(
                 "https://broker_redirect_uri.com"
+            );
+            // Translated brk_* / client_id keys are stripped from extraParameters
+            expect(nativeRequest.extraParameters).not.toHaveProperty(
+                "brk_client_id"
+            );
+            expect(nativeRequest.extraParameters).not.toHaveProperty(
+                "brk_redirect_uri"
+            );
+            expect(nativeRequest.extraParameters).not.toHaveProperty(
+                "client_id"
+            );
+            // Other extraParameters (resource, developer-supplied params) are preserved
+            expect(nativeRequest.extraParameters!["resource"]).toEqual(
+                "https://graph.microsoft.com"
+            );
+            expect(nativeRequest.extraParameters!["userEQP"]).toEqual(
+                "customUserParam"
             );
         });
 
@@ -1804,7 +1866,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(nativeRequest.redirectUri).toEqual("localhost");
         });
 
-        it("includes resource in native request when provided", async () => {
+        it("forwards resource via extraParameters when provided", async () => {
             const nativeRequest =
                 // @ts-ignore
                 await platformAuthInteractionClient.initializePlatformRequest({
@@ -1812,9 +1874,96 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     resource: "https://graph.microsoft.com",
                 });
 
-            expect(nativeRequest.resource).toEqual(
+            // resource is not a top-level broker-contract param; it is forwarded via
+            // extraParameters so it reaches ESTS on both the extension and DOM paths
+            expect(nativeRequest).not.toHaveProperty("resource");
+            expect(nativeRequest.extraParameters?.resource).toEqual(
                 "https://graph.microsoft.com"
             );
+        });
+
+        it("preserves resource and developer extraParameters when embeddedClientId is set", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializePlatformRequest({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    resource: "https://graph.microsoft.com",
+                    embeddedClientId: "embedded-client-id",
+                    extraParameters: {
+                        userEQP: "customUserParam",
+                    },
+                });
+
+            // Child fields are set from embeddedClientId
+            expect(nativeRequest.extraParameters!["child_client_id"]).toEqual(
+                "embedded-client-id"
+            );
+            expect(
+                nativeRequest.extraParameters!["child_redirect_uri"]
+            ).toEqual("localhost");
+            // embeddedClientId is not a broker-contract param and must not sit on the request
+            expect(nativeRequest).not.toHaveProperty("embeddedClientId");
+            // resource and developer-supplied extraParameters survive the embedded path
+            expect(nativeRequest.extraParameters!["resource"]).toEqual(
+                "https://graph.microsoft.com"
+            );
+            expect(nativeRequest.extraParameters!["userEQP"]).toEqual(
+                "customUserParam"
+            );
+        });
+
+        it("forwards broker-contract params and drops non-contract SDK/ESTS fields", async () => {
+            // Cast to any so non-contract SDK/ESTS-only fields can be supplied without type errors
+            const requestWithExtraFields: any = {
+                scopes: ["User.Read"],
+                // Broker-contract MSAL JS acquire-token params
+                loginHint: "user@contoso.com",
+                nonce: "test-nonce",
+                state: "test-state",
+                prompt: Constants.PromptValue.LOGIN,
+                // Non-contract SDK/ESTS-only fields that must NOT reach the broker
+                azureCloudOptions: { azureCloudInstance: 1 },
+                maxAge: 3600,
+                sshJwk: "test-ssh-jwk",
+                sshKid: "test-ssh-kid",
+                scenarioId: "test-scenario",
+                skipBrokerClaims: true,
+                extraQueryParameters: { eqp: "value" },
+                sid: "test-sid",
+                domainHint: "contoso.com",
+                // Client-side cache directive, consumed internally and passed to
+                // cacheNativeTokens as a param rather than sent to the broker
+                storeInCache: { idToken: false },
+            };
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializePlatformRequest(
+                    requestWithExtraFields
+                );
+
+            // Contract params are forwarded
+            expect(nativeRequest.loginHint).toEqual("user@contoso.com");
+            expect(nativeRequest.nonce).toEqual("test-nonce");
+            expect(nativeRequest.state).toEqual("test-state");
+            expect(nativeRequest.prompt).toEqual(Constants.PromptValue.LOGIN);
+
+            // Non-contract fields are not present on the request sent to the broker
+            [
+                "azureCloudOptions",
+                "maxAge",
+                "sshJwk",
+                "sshKid",
+                "scenarioId",
+                "skipBrokerClaims",
+                "extraQueryParameters",
+                "sid",
+                "domainHint",
+                "storeInCache",
+                "embeddedClientId",
+            ].forEach((field) => {
+                expect(nativeRequest).not.toHaveProperty(field);
+            });
         });
 
         it("merges client capabilities with empty claims", async () => {
@@ -2037,6 +2186,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(parsedClaims.id_token).toEqual({
                 signin_state: { essential: false },
                 login_hint: { essential: false },
+                tenant_region_sub_scope: { essential: false },
             });
             expect(parsedClaims.access_token).toBeUndefined();
         });
@@ -2052,6 +2202,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(parsedClaims.id_token).toEqual({
                 signin_state: { essential: false },
                 login_hint: { essential: false },
+                tenant_region_sub_scope: { essential: false },
             });
         });
 
@@ -2113,6 +2264,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(parsedClaims.id_token).toEqual({
                 signin_state: { essential: false },
                 login_hint: { essential: false },
+                tenant_region_sub_scope: { essential: false },
             });
             expect(parsedClaims.access_token).toBeUndefined();
         });
@@ -2182,6 +2334,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(parsedClaims.id_token).toEqual({
                 signin_state: { essential: false },
                 login_hint: { essential: false },
+                tenant_region_sub_scope: { essential: false },
             });
             // Verify broker's client capabilities are NOT added
             expect(parsedClaims.access_token).toBeUndefined();
@@ -2334,6 +2487,65 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "CP3",
             ]);
         });
+
+        it("omits attributeTokens when not provided", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializePlatformRequest({
+                    scopes: ["User.Read"],
+                });
+
+            expect(nativeRequest.attributeTokens).toBeUndefined();
+        });
+
+        it("omits attributeTokens when explicitly empty", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializePlatformRequest({
+                    scopes: ["User.Read"],
+                    attributeTokens: [],
+                });
+
+            expect(nativeRequest.attributeTokens).toBeUndefined();
+        });
+
+        it("serializes sorted, space-joined attributeTokens string", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializePlatformRequest({
+                    scopes: ["User.Read"],
+                    attributeTokens: ["zeta", "alpha", "mike"],
+                });
+
+            expect(nativeRequest.attributeTokens).toBe("alpha mike zeta");
+        });
+
+        it("emits hasAttributeTokens telemetry for absent and present attributeTokens", async () => {
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+
+            // @ts-ignore
+            await platformAuthInteractionClient.initializePlatformRequest({
+                scopes: ["User.Read"],
+            });
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { hasAttributeTokens: false },
+                expect.any(String)
+            );
+
+            addFieldsSpy.mockClear();
+
+            // @ts-ignore
+            await platformAuthInteractionClient.initializePlatformRequest({
+                scopes: ["User.Read"],
+                attributeTokens: ["zeta", "alpha", "mike"],
+            });
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { hasAttributeTokens: true },
+                expect.any(String)
+            );
+        });
     });
 
     describe("Performance Event Validation", () => {
@@ -2359,123 +2571,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
         afterEach(() => {
             performanceSpy.mockRestore();
             startMeasurementSpy.mockRestore();
-        });
-
-        it("emits isNativeBroker=true for acquireToken success", async () => {
-            jest.spyOn(
-                PlatformAuthExtensionHandler.prototype,
-                "sendMessage"
-            ).mockImplementation((): Promise<PlatformAuthResponse> => {
-                return Promise.resolve(MOCK_WAM_RESPONSE);
-            });
-
-            // Mock successful token acquisition from cache first
-            const mockAuthResult = {
-                accessToken: "mock_access_token",
-                idToken: "mock_id_token",
-                account: {
-                    homeAccountId: "test-home-account-id",
-                    environment: "login.microsoftonline.com",
-                    nativeAccountId: "test-native-account-id",
-                    tenantId: "test-tenant-id",
-                    username: "test@example.com",
-                    localAccountId: "test-local-account-id",
-                    name: "Test User",
-                    idTokenClaims: {},
-                },
-                scopes: ["User.Read"],
-                expiresOn: new Date(Date.now() + 3600000),
-                tenantId: "test-tenant-id",
-                uniqueId: "test-unique-id",
-                tokenType: "Bearer" as const,
-                correlationId: RANDOM_TEST_GUID,
-                extExpiresOn: new Date(Date.now() + 7200000),
-                state: "",
-                fromCache: false,
-            };
-
-            // Mock the acquireTokensFromCache method to simulate a cache miss (rejects first), then WAM success (resolves)
-            jest.spyOn(
-                platformAuthInteractionClient as any,
-                "acquireTokensFromCache"
-            )
-                // First call rejects (simulates cache miss), second call resolves (simulates WAM success)
-                .mockRejectedValueOnce(new Error("No cached tokens"))
-                .mockResolvedValue(mockAuthResult);
-
-            await platformAuthInteractionClient.acquireToken({
-                scopes: ["User.Read"],
-                account: mockAuthResult.account,
-                correlationId: RANDOM_TEST_GUID,
-            });
-
-            // Get the latest mock measurement object
-            const mockMeasurement =
-                startMeasurementSpy.mock.results[
-                    startMeasurementSpy.mock.results.length - 1
-                ].value;
-
-            // Verify isNativeBroker is set during successful completion
-            expect(mockMeasurement.end).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: true,
-                    isNativeBroker: true,
-                })
-            );
-
-            // Verify the measurement was started with correct correlation ID
-            expect(startMeasurementSpy).toHaveBeenCalledWith(
-                expect.any(String),
-                RANDOM_TEST_GUID
-            );
-        });
-
-        it("should emit isNativeBroker=true for handleRedirectPromise", async () => {
-            // @ts-ignore
-            pca.browserStorage.setInteractionInProgress(true);
-            // @ts-ignore
-            pca.browserStorage.setTemporaryCache(
-                "request.native",
-                JSON.stringify({
-                    scopes: ["User.Read"],
-                    correlationId: RANDOM_TEST_GUID,
-                }),
-                true
-            );
-
-            jest.spyOn(
-                PlatformAuthExtensionHandler.prototype,
-                "sendMessage"
-            ).mockImplementation((): Promise<PlatformAuthResponse> => {
-                return Promise.resolve(MOCK_WAM_RESPONSE);
-            });
-
-            // Mock the protected handleNativeResponse method
-            jest.spyOn(
-                platformAuthInteractionClient as any,
-                "handleNativeResponse"
-            ).mockResolvedValue({
-                accessToken: "mock_access_token",
-                idToken: "mock_id_token",
-                account: null,
-                scopes: ["User.Read"],
-                expiresOn: new Date(Date.now() + 3600000),
-                tenantId: "mock_tenant_id",
-                uniqueId: "mock_unique_id",
-                tokenType: "Bearer",
-                correlationId: RANDOM_TEST_GUID,
-            });
-
-            // Spy on performanceClient.addFields since handleRedirectPromise uses it directly
-            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
-
-            await platformAuthInteractionClient.handleRedirectPromise();
-
-            // Verify that addFields was called with isNativeBroker: true
-            expect(addFieldsSpy).toHaveBeenCalledWith(
-                { isNativeBroker: true },
-                RANDOM_TEST_GUID
-            );
         });
 
         it("should use synchronized correlationId in performance measurements", async () => {
@@ -2549,12 +2644,13 @@ describe("PlatformAuthInteractionClient Tests", () => {
             // Get the mock measurement object that was returned
             const mockMeasurement = startMeasurementSpy.mock.results[0].value;
 
-            // Check that measurement.end was called with success: false and errorCode
+            // Check that measurement.end was called with success: false and the
+            // error object (perf client derives errorCode/subErrorCode from it)
             expect(mockMeasurement.end).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    errorCode: "test_error",
-                })
+                }),
+                authError
             );
         });
 
@@ -2584,12 +2680,174 @@ describe("PlatformAuthInteractionClient Tests", () => {
             // Get the mock measurement object that was returned
             const mockMeasurement = startMeasurementSpy.mock.results[0].value;
 
-            // After the fix, measurement.end should now be called when sendMessage fails
+            // After the fix, measurement.end should now be called when sendMessage
+            // fails, passing the error object as the second argument
             expect(mockMeasurement.end).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                })
+                }),
+                nativeError
             );
+        });
+
+        describe("brokerErrorName/brokerErrorCode telemetry", () => {
+            it("acquireToken records brokerErrorName/brokerErrorCode when the broker rejects with a NativeAuthError", async () => {
+                // Broker dispatch (sendMessage) rejects with a NativeAuthError
+                const brokerError = new NativeAuthError(
+                    "OSError",
+                    RANDOM_TEST_GUID,
+                    "there is an OSError",
+                    { error: -2147186943 }
+                );
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockRejectedValue(brokerError);
+
+                await expect(
+                    platformAuthInteractionClient.acquireToken({
+                        scopes: ["User.Read"],
+                        correlationId: RANDOM_TEST_GUID,
+                    })
+                ).rejects.toBe(brokerError);
+
+                // NativeAuthError is an AuthError, so its name/errorCode land on the root event
+                expect(performanceSpy).toHaveBeenCalledWith(
+                    {
+                        isNativeBroker: true,
+                        brokerErrorName: "NativeAuthError",
+                        brokerErrorCode: "OSError",
+                    },
+                    RANDOM_TEST_GUID
+                );
+            });
+
+            it("acquireToken records brokerErrorName/brokerErrorCode when handleNativeResponse rejects with an AuthError", async () => {
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockResolvedValue(MOCK_WAM_RESPONSE);
+
+                const authError = new AuthError(
+                    "broker_response_error",
+                    "Broker response could not be handled"
+                );
+                jest.spyOn(
+                    platformAuthInteractionClient as any,
+                    "handleNativeResponse"
+                ).mockRejectedValue(authError);
+
+                await expect(
+                    platformAuthInteractionClient.acquireToken({
+                        scopes: ["User.Read"],
+                        correlationId: RANDOM_TEST_GUID,
+                    })
+                ).rejects.toBe(authError);
+
+                expect(performanceSpy).toHaveBeenCalledWith(
+                    {
+                        isNativeBroker: true,
+                        brokerErrorName: "AuthError",
+                        brokerErrorCode: "broker_response_error",
+                    },
+                    RANDOM_TEST_GUID
+                );
+            });
+
+            it("acquireToken does not record broker error fields when the broker rejects with a non-AuthError", async () => {
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockResolvedValue(MOCK_WAM_RESPONSE);
+
+                const plainError = new Error("unexpected failure");
+                jest.spyOn(
+                    platformAuthInteractionClient as any,
+                    "handleNativeResponse"
+                ).mockRejectedValue(plainError);
+
+                await expect(
+                    platformAuthInteractionClient.acquireToken({
+                        scopes: ["User.Read"],
+                        correlationId: RANDOM_TEST_GUID,
+                    })
+                ).rejects.toBe(plainError);
+
+                // Non-AuthError errors carry no broker name/code, so nothing is recorded
+                expect(performanceSpy).not.toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        brokerErrorName: expect.anything(),
+                    }),
+                    expect.anything()
+                );
+            });
+
+            it("acquireTokenRedirect records brokerErrorName/brokerErrorCode on a fatal broker error", async () => {
+                const fatalError = new NativeAuthError(
+                    "OSError",
+                    RANDOM_TEST_GUID,
+                    "there is an OSError",
+                    { error: -2147186943 }
+                );
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockRejectedValue(fatalError);
+
+                await expect(
+                    platformAuthInteractionClient.acquireTokenRedirect(
+                        { scopes: ["User.Read"] },
+                        perfMeasurement
+                    )
+                ).rejects.toBe(fatalError);
+
+                expect(performanceSpy).toHaveBeenCalledWith(
+                    {
+                        isNativeBroker: true,
+                        brokerErrorName: "NativeAuthError",
+                        brokerErrorCode: "OSError",
+                    },
+                    RANDOM_TEST_GUID
+                );
+            });
+
+            it("handleRedirectPromise records brokerErrorName/brokerErrorCode when the broker rejects with a NativeAuthError", async () => {
+                // @ts-ignore
+                pca.browserStorage.setInteractionInProgress(true);
+                // @ts-ignore
+                pca.browserStorage.setTemporaryCache(
+                    "request.native",
+                    JSON.stringify({
+                        scopes: ["User.Read"],
+                        correlationId: RANDOM_TEST_GUID,
+                    }),
+                    true
+                );
+
+                const brokerError = new NativeAuthError(
+                    "OSError",
+                    RANDOM_TEST_GUID,
+                    "there is an OSError",
+                    { error: -2147186943 }
+                );
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockRejectedValue(brokerError);
+
+                await expect(
+                    platformAuthInteractionClient.handleRedirectPromise()
+                ).rejects.toBe(brokerError);
+
+                expect(performanceSpy).toHaveBeenCalledWith(
+                    {
+                        isNativeBroker: true,
+                        brokerErrorName: "NativeAuthError",
+                        brokerErrorCode: "OSError",
+                    },
+                    RANDOM_TEST_GUID
+                );
+            });
         });
     });
 });

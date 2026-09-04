@@ -6,6 +6,7 @@
 import { StaticAuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
+import { ITokenBindingKeyManager } from "../../src/crypto/ITokenBindingKeyManager.js";
 import { Logger } from "../../src/logger/Logger.js";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 import {
@@ -27,14 +28,16 @@ export class MockCache {
     constructor(
         clientId: string,
         cryptoImpl: ICrypto,
-        staticAuthorityOptions?: StaticAuthorityOptions
+        staticAuthorityOptions?: StaticAuthorityOptions,
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         this.cacheManager = new MockStorageClass(
             clientId,
             cryptoImpl,
             new Logger({}),
             new StubPerformanceClient(),
-            staticAuthorityOptions
+            staticAuthorityOptions,
+            tokenBindingKeyManager
         );
     }
 
@@ -115,7 +118,7 @@ export class MockCache {
             tokenType: AuthenticationScheme.BEARER,
             lastUpdatedAt: Date.now().toString(),
         };
-        await this.cacheManager.setAccessTokenCredential(atOne);
+        await this.cacheManager.setAccessTokenCredential(atOne, "", false);
 
         const atTwo = {
             environment: "login.microsoftonline.com",
@@ -131,7 +134,7 @@ export class MockCache {
             tokenType: AuthenticationScheme.BEARER,
             lastUpdatedAt: Date.now().toString(),
         };
-        await this.cacheManager.setAccessTokenCredential(atTwo);
+        await this.cacheManager.setAccessTokenCredential(atTwo, "", false);
 
         // With requested claims
         const atThree = {
@@ -149,7 +152,7 @@ export class MockCache {
             lastUpdatedAt: Date.now().toString(),
         };
 
-        await this.cacheManager.setAccessTokenCredential(atThree);
+        await this.cacheManager.setAccessTokenCredential(atThree, "", false);
 
         // BEARER with AuthScheme Token
         const bearerAtWithAuthScheme = {
@@ -167,7 +170,9 @@ export class MockCache {
             lastUpdatedAt: Date.now().toString(),
         };
         await this.cacheManager.setAccessTokenCredential(
-            bearerAtWithAuthScheme
+            bearerAtWithAuthScheme,
+            "",
+            false
         );
 
         // POP Token
@@ -186,7 +191,11 @@ export class MockCache {
             keyId: "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y",
             lastUpdatedAt: Date.now().toString(),
         };
-        await this.cacheManager.setAccessTokenCredential(popAtWithAuthScheme);
+        await this.cacheManager.setAccessTokenCredential(
+            popAtWithAuthScheme,
+            "",
+            false
+        );
 
         // SSH Certificate
         const sshAtWithAuthScheme = {
@@ -204,7 +213,11 @@ export class MockCache {
             keyId: "some_key_id",
             lastUpdatedAt: Date.now().toString(),
         };
-        await this.cacheManager.setAccessTokenCredential(sshAtWithAuthScheme);
+        await this.cacheManager.setAccessTokenCredential(
+            sshAtWithAuthScheme,
+            "",
+            false
+        );
 
         // userAssertionHash
         const atWithUserAssertionHash = {
@@ -223,7 +236,9 @@ export class MockCache {
             lastUpdatedAt: Date.now().toString(),
         };
         await this.cacheManager.setAccessTokenCredential(
-            atWithUserAssertionHash
+            atWithUserAssertionHash,
+            "",
+            false
         );
     }
 

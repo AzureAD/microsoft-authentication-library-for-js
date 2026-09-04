@@ -83,15 +83,52 @@ async function isServerUp(port, timeout) {
             }).on("error", (e) => {
                 // errors will be raised until the server is up. Ignore errors
             });
+
+            // ...and over HTTPS on IPv6, for samples bound to localhost that
+            // resolve to ::1 only.
+            const requestHttpsIPv6 = {
+                protocol: "https:",
+                host: "localhost",
+                port: port,
+                family: 6,
+                rejectUnauthorized: false, // codeql[js/disabling-certificate-validation]: This line is necessary for first-party HTTPS samples using self-signed SSL certificates. It is safe to ignore this finding as it is only used in MSAL.js samples and never hits the production environment.
+            };
+
+            https
+                .get(requestHttpsIPv6, (res) => {
+                    const { statusCode } = res;
+
+                    if (statusCode === 200) {
+                        resolve(true);
+                        clearInterval(interval);
+                    }
+                })
+                .on("error", (e) => {
+                    // errors will be raised until the server is up. Ignore errors
+                });
         }, 100);
     });
 }
 
 /**
- * Spawns a child process to serve the sample
+ * Spawns a child process to serve the sample.
+ *
+ * @param {string} cmd - command to run (e.g. "npm start")
+ * @param {string} directory - working directory of the app
+ * @param {number} [port] - port the app should listen on (exposed to the child as PORT)
+ * @param {object} [env] - extra environment variables for the child process
+ * @returns {import("child_process").ChildProcess} the spawned process
  */
-function startServer(cmd, directory) {
-    const serverProcess = spawn(cmd, { shell: true, cwd: directory });
+function startServer(cmd, directory, port, env) {
+    const serverProcess = spawn(cmd, {
+        shell: true,
+        cwd: directory,
+        env: {
+            ...process.env,
+            ...env,
+            ...(port ? { PORT: port.toString() } : {}),
+        },
+    });
 
     serverProcess.on("error", (err) => {
         console.error("Failed to start sample.");
@@ -109,6 +146,8 @@ function startServer(cmd, directory) {
     serverProcess.on("close", (code) => {
         console.log(`child process exited with code ${code}`);
     });
+
+    return serverProcess;
 }
 
 /**

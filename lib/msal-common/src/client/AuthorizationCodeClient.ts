@@ -44,6 +44,7 @@ import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
 import { getRequestThumbprint } from "../network/RequestThumbprint.js";
 import {
+    addDpopTokenProofHeader,
     createTokenQueryParameters,
     createTokenRequestHeaders,
     executePostToTokenEndpoint,
@@ -168,7 +169,8 @@ export class AuthorizationCodeClient {
             this.logger,
             this.performanceClient,
             this.config.serializableCache,
-            this.config.persistencePlugin
+            this.config.persistencePlugin,
+            this.config.tokenBindingKeyManager
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
@@ -271,6 +273,13 @@ export class AuthorizationCodeClient {
             this.config.systemOptions.preventCorsPreflight,
             ccsCredential || request.ccsCredential
         );
+        await addDpopTokenProofHeader(
+            headers,
+            request,
+            endpoint,
+            this.cryptoUtils,
+            this.config.tokenBindingKeyManager
+        );
 
         const thumbprint = getRequestThumbprint(
             this.config.authOptions.clientId,
@@ -344,6 +353,19 @@ export class AuthorizationCodeClient {
 
         RequestParameterBuilder.addResource(parameters, request.resource);
 
+        if (request.attributeTokens) {
+            RequestParameterBuilder.addAttributeTokens(
+                parameters,
+                request.attributeTokens
+            );
+        }
+        this.performanceClient?.addFields(
+            {
+                hasAttributeTokens: !!request.attributeTokens?.length,
+            },
+            request.correlationId
+        );
+
         // add code: user set, not validated
         RequestParameterBuilder.addAuthorizationCode(parameters, request.code);
 
@@ -409,6 +431,7 @@ export class AuthorizationCodeClient {
         ) {
             const popTokenGenerator = new PopTokenGenerator(
                 this.cryptoUtils,
+                this.config.tokenBindingKeyManager,
                 this.performanceClient
             );
 

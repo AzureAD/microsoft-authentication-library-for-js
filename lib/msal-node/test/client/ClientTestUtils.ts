@@ -33,6 +33,10 @@ import {
     StubPerformanceClient,
     AccountInfo,
     CredentialEntity,
+    ICrypto,
+    IPerformanceClient,
+    StaticAuthorityOptions,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -58,8 +62,25 @@ const TOKEN_KEYS = "TOKEN_KEYS";
 export class MockStorageClass extends CacheManager {
     store = {};
 
-    generateCredentialKey(credential: CredentialEntity): string {
-        return generateCredentialKey(credential);
+    constructor(
+        clientId: string,
+        cryptoImpl: ICrypto,
+        logger: Logger,
+        performanceClient: IPerformanceClient,
+        staticAuthorityOptions?: StaticAuthorityOptions
+    ) {
+        super(
+            clientId,
+            cryptoImpl,
+            logger,
+            performanceClient,
+            staticAuthorityOptions,
+            DEFAULT_TOKEN_BINDING_KEY_MANAGER
+        );
+    }
+
+    generateCredentialKey(credential: CredentialEntity, hash?: string): string {
+        return generateCredentialKey(credential, hash);
     }
 
     generateAccountKey(account: AccountInfo): string {
@@ -137,8 +158,13 @@ export class MockStorageClass extends CacheManager {
     getAccessTokenCredential(key: string): AccessTokenEntity | null {
         return (this.store[key] as AccessTokenEntity) || null;
     }
-    async setAccessTokenCredential(value: AccessTokenEntity): Promise<void> {
-        const key = this.generateCredentialKey(value);
+    async setAccessTokenCredential(
+        value: AccessTokenEntity,
+        _correlationId: string,
+        _kmsi: boolean,
+        additionalCacheKeyHash?: string
+    ): Promise<void> {
+        const key = this.generateCredentialKey(value, additionalCacheKeyHash);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -264,13 +290,10 @@ export const mockCrypto = {
             verifier: TEST_CONFIG.TEST_VERIFIER,
         };
     },
-    async getPublicKeyThumbprint(): Promise<string> {
-        return TEST_POP_VALUES.KID;
-    },
     async removeTokenBindingKey(): Promise<void> {
         return Promise.resolve();
     },
-    async signJwt(): Promise<string> {
+    async signTokenBindingJwt(): Promise<string> {
         return "";
     },
     async clearKeystore(): Promise<boolean> {
@@ -431,7 +454,6 @@ export class ClientTestUtils {
 }
 
 interface checks {
-    dstsScope?: boolean;
     graphScope?: boolean;
     clientId?: boolean;
     grantType?: string;
@@ -458,14 +480,6 @@ export const checkMockedNetworkRequest = (
     returnVal: string,
     checks: checks
 ): void => {
-    if (checks.dstsScope !== undefined) {
-        expect(
-            returnVal.includes(
-                encodeURIComponent(TEST_CONFIG.DSTS_TEST_SCOPE[0])
-            )
-        ).toBe(checks.dstsScope);
-    }
-
     if (checks.graphScope !== undefined) {
         expect(
             returnVal.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
@@ -556,7 +570,7 @@ export const checkMockedNetworkRequest = (
 
     if (checks.claims !== undefined) {
         const mergedTestClaims =
-            '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+            '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
         expect(
             returnVal.includes(
                 `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(

@@ -4,10 +4,10 @@ This document will outline techniques your application can use to improve the pe
 
 ## Bypass cloud instance discovery resolution
 
-> :information_source: This section does not apply if you are using **B2C**, **ADFS** or **dSTS** authorities. You will need to provide your authority domains to the `auth.knownAuthorities` property in the `PublicClientApplication`/`ConfidentialClientApplication` configuration object instead.
+> :information_source: This section does not apply if you are using **B2C** or **ADFS** authorities. You will need to provide your authority domains to the `auth.knownAuthorities` property in the `PublicClientApplication`/`ConfidentialClientApplication` configuration object instead.
 >
-> * [msal-browser configration](../../msal-browser/docs/configuration.md#auth-config-options)
-> * [msal-node configuration](../../msal-browser/docs/configuration.md#auth-config-options)
+> * [msal-browser configuration](../../msal-browser/docs/configuration.md#auth-config-options)
+> * [msal-node configuration](../../msal-node/docs/configuration.md#auth-config-options)
 
 By default, during the process of retrieving a token, MSAL will make a network request to retrieve metadata associated with the various Azure clouds. If you would like to skip this network request, you can provide the required metadata in the configuration of `PublicClientApplication` or `ConfidentialClientApplication`.
 

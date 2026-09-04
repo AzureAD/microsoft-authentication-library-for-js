@@ -17,7 +17,7 @@ import {
 } from "../error/ClientAuthError.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { CacheRecord } from "../cache/entities/CacheRecord.js";
-import { CacheOutcome } from "../utils/Constants.js";
+import { AuthenticationScheme, CacheOutcome } from "../utils/Constants.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { StringUtils } from "../utils/StringUtils.js";
 import { extractTokenClaims } from "../account/AuthToken.js";
@@ -181,6 +181,45 @@ export class SilentFlowClient {
             // don't throw ClientAuthError.createRefreshRequiredError(), return cached token instead
         }
 
+        const cachedAccessTokenType =
+            cachedAccessToken.tokenType?.toLowerCase();
+        if (cachedAccessTokenType === AuthenticationScheme.DPOP.toLowerCase()) {
+            if (!cachedAccessToken.keyId) {
+                this.logger.info(
+                    "SilentFlowClient:acquireCachedToken - Cached DPoP access token is missing keyId; refresh required",
+                    request.correlationId
+                );
+                this.setCacheOutcome(
+                    CacheOutcome.NO_CACHED_ACCESS_TOKEN,
+                    request.correlationId
+                );
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                    request.correlationId
+                );
+            }
+
+            try {
+                await this.config.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                    cachedAccessToken.keyId,
+                    request.correlationId
+                );
+            } catch {
+                this.logger.info(
+                    "SilentFlowClient:acquireCachedToken - Local DPoP key was not found for cached access token; refresh required",
+                    request.correlationId
+                );
+                this.setCacheOutcome(
+                    CacheOutcome.NO_CACHED_ACCESS_TOKEN,
+                    request.correlationId
+                );
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                    request.correlationId
+                );
+            }
+        }
+
         const environment =
             request.authority || this.authority.getPreferredCache();
         const cacheRecord: CacheRecord = {
@@ -263,7 +302,10 @@ export class SilentFlowClient {
             true,
             request,
             this.performanceClient,
-            idTokenClaims
+            {
+                idTokenClaims,
+                tokenBindingKeyManager: this.config.tokenBindingKeyManager,
+            }
         );
     }
 }

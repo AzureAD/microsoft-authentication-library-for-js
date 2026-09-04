@@ -203,6 +203,16 @@ export type PerformanceEvent = {
     cacheOutcome?: number;
 
     /**
+     * Token binding key type used by crypto operations.
+     */
+    tokenBindingKeyType?: string;
+
+    /**
+     * JOSE algorithm used by token binding crypto operations.
+     */
+    tokenBindingKeyAlgorithm?: string;
+
+    /**
      * Sub-measurements for internal use. To be deleted before flushing.
      */
     incompleteSubMeasurements?: Map<string, SubMeasurement>;
@@ -229,6 +239,11 @@ export type PerformanceEvent = {
     isRedirectUriCrossOrigin?: boolean;
     redirectBridgeMessageVersion?: number;
     lateResponseExperimentEnabled?: boolean;
+
+    /**
+     * Number of times a fetch POST request was retried due to transport failure
+     */
+    fetchRetryCount?: number;
 
     /**
      * Size of the id token
@@ -425,9 +440,26 @@ export type PerformanceEvent = {
     deduped?: boolean;
 
     /**
+     * Whether caller-provided attribute tokens are present on the request
+     */
+    hasAttributeTokens?: boolean;
+
+    /**
+     * Mismatched token_type returned for a DPoP request.
+     */
+    dpopTokenTypeMismatch?: string;
+
+    /**
      * Whether the user has "Keep Me Signed In" enabled
      */
     kmsi?: boolean;
+
+    /**
+     * Sovereign enclave the authenticating tenant belongs to, taken verbatim from the
+     * `tenant_region_sub_scope` id token claim. Known values include "GCC", "DODCON"
+     * (GCC High) and "DOD".
+     */
+    regionSubScope?: string;
 
     /**
      * Cached SSO capability status from the most recent SSO verification
@@ -572,4 +604,5 @@ export const IntFields: ReadonlySet<string> = new Set([
     "networkRtt",
     "redirectBridgeTimeoutMs",
     "redirectBridgeMessageVersion",
+    "fetchRetryCount",
 ]);

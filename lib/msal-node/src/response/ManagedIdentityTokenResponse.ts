@@ -23,6 +23,9 @@ export type ManagedIdentityTokenResponse = {
     // success
     access_token?: string;
     client_id?: string;
+    object_id?: string; // echoed by Azure Arc when a user-assigned object id is honored
+    mi_res_id?: string; // resource-id echo (non-IMDS spelling), accepted as a safety net
+    msi_res_id?: string; // resource-id echo (IMDS spelling) that Azure Arc returns
     expires_on?: number; // will be converted to expires_in
     resource?: string; // equivalent to ServerAuthorizationTokenResponse's "scope" field
     token_type?: Constants.AuthenticationScheme;

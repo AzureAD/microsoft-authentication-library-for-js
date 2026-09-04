@@ -124,6 +124,10 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Unexpected credential type.
 
+### `dpop_token_type_mismatch`
+
+-   DPoP token requests must receive a DPoP token response.
+
 ### `token_refresh_required`
 
 -   Cannot return token from cache because it must be refreshed. This may be due to one of the following reasons: forceRefresh parameter is set to true, claims have been requested, there is no cached access token or it is expired.
@@ -165,6 +169,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 -   The nested app auth bridge is disabled.
 
 ### `platform_broker_error`
+
 -   An error occurred in the native broker. When this error is thrown, check the `platformBrokerError` property on the error object for detailed information.
 
 ### `empty_fic_assertion`
@@ -213,6 +218,22 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Given claims parameter must be a stringified JSON object.
 
+### `invalid_dpop_htm`
+
+-   DPoP HTTP method (`htm`) must be a non-empty RFC HTTP method token.
+
+### `invalid_dpop_htu`
+
+-   DPoP HTTP target URI (`htu`) must be an HTTPS URL without userinfo.
+
+### `invalid_dpop_nonce`
+
+-   DPoP nonce values must be non-empty when supplied.
+
+### `dpop_missing_resource_context`
+
+-   DPoP token requests must include both `resourceRequestMethod` and `resourceRequestUri`.
+
 ### `token_request_empty`
 
 -   Token request was empty and not found in cache.
@@ -249,6 +270,10 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Missing sshKid in SSH certificate request. A string that uniquely identifies the public SSH key is required when using the SSH authentication scheme.
 
+### `unsupported_authentication_scheme`
+
+-   Unsupported authentication scheme. MSAL.js only accepts authentication schemes that are explicitly enabled for the current runtime.
+
 ### `missing_nonce_authentication_header`
 
 -   Unable to find an authentication header containing server nonce. Either the Authentication-Info or WWW-Authenticate headers must be present in order to obtain a server nonce.
@@ -274,10 +299,16 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 -   Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.
 
 ### `invalid_request_method_for_EAR`
-- The EAR protocol cannot be used with HTTP method `GET`. The `httpMethod` parameter in all requests using `protocolMode: ProtocolMode.EAR` must be either unset or `"POST"`/`HttpMethod.POST`.
+
+-   The EAR protocol cannot be used with HTTP method `GET`. The `httpMethod` parameter in all requests using `protocolMode: ProtocolMode.EAR` must be either unset or set to `"POST"`/`HttpMethod.POST`.
 
 ### `issuer_validation_failed`
-- Issuer returned from OpenID configuration endpoint does not match with the authority configured by the application.
+
+-   Issuer returned from OpenID configuration endpoint does not match with the authority configured by the application.
+
+### `invalid_response_mode`
+
+-   The `responseMode` provided is not supported. For the msal-node interactive loopback flow only `"query"` and `"form_post"` are supported. `"fragment"` cannot be used because URL fragments are never sent to the HTTP server, which would cause the flow to hang until it times out.
 
 ## Interaction required errors
 
@@ -326,6 +357,14 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ### `missing_alg_error`
 
 -   The JOSE Header for the requested JWT, JWS or JWK object requires an algorithm to be specified as the 'alg' header claim. No 'alg' value was provided.
+
+### `missing_jwk_error`
+
+-   The JOSE Header for the requested JWT, JWS or JWK object requires a public key to be specified as the 'jwk' header claim. No 'jwk' value was provided.
+
+### `invalid_jwk_error`
+
+-   The JOSE Header for the requested JWT, JWS or JWK object requires a supported public key in the 'jwk' header claim.
 
 ## Browser auth errors
 
@@ -591,6 +630,7 @@ This error is thrown when an existing popup interaction is cancelled because a n
 **When This Occurs:**
 
 This error is thrown for the **previous/cancelled** interaction when:
+
 1. A popup interaction is in progress (e.g., `acquireTokenPopup`)
 2. A new popup request is made with `overrideInteractionInProgress: true`
 3. The library cancels the pending interaction and starts the new one
@@ -606,7 +646,7 @@ const promise1 = msalInstance.acquireTokenPopup(request1);
 // App decides to retry with override flag
 const request2 = {
     scopes: ["User.Read"],
-    overrideInteractionInProgress: true  // Override the previous interaction
+    overrideInteractionInProgress: true, // Override the previous interaction
 };
 const promise2 = msalInstance.acquireTokenPopup(request2);
 
@@ -628,10 +668,19 @@ const promise2 = msalInstance.acquireTokenPopup(request2);
 
 -   User cancelled the flow.
 
-
 ### `redirect_bridge_empty_response`
 
 -   The redirect bridge returned an empty response, indicating the redirect bridge script may have been modified or replaced.
+
+### `popup_relay_unsupported_flow`
+
+-   The popup-relay flow (configured via `auth.popupRelayUri`) was invoked in an unsupported context. It is thrown either by MSAL when building the relay URL or from the relay page itself, and includes a sub-error indicating the cause:
+-   `popup_relay_cross_origin` - `auth.popupRelayUri` resolved to a different origin than the app. The relay page must be same-origin as the embedded frame (the response is relayed back over a same-origin `postMessage`). Use a path or a same-origin absolute URL.
+-   `popup_relay_no_opener` - The relay page was not opened as a popup (`window.opener` is null), so it has no parent window to relay the authentication response back to. Ensure the relay page is only loaded as the popup opened by MSAL and that `runPopupRelay` is not called when navigating to the page directly.
+-   `popup_relay_bad_request` - The relayed request encoded in the relay page URL could not be parsed, was missing its channel id, or did not match the expected request shape (a `GET` with a `url`, or a `POST` with an `action` and string-valued `fields`). This typically indicates the relay page was loaded without the expected request payload or the payload was modified.
+-   `popup_relay_unsafe_url` - The navigation target encoded in the relay page URL was not an absolute `https:` URL, or carried embedded credentials. The relay page is directly reachable, so its hash is untrusted input; only `https:` targets are accepted, which blocks active schemes such as `javascript:` from executing in the relay app's own origin. This usually indicates someone attempted to load the relay page from a crafted link.
+-   `popup_relay_untrusted_authority` - The navigation target's origin was not listed in the `allowedAuthorityOrigins` option passed to `runPopupRelay()`. Entries are compared by origin, so passing the full authority URL, a trailing slash, mixed case, or an explicit `:443` all work. Add your authority's origin to that list, or omit the option entirely to accept any `https:` origin. Note that an explicitly empty array means "allow nothing" and rejects every navigation.
+-   `popup_relay_invalid_allowed_origin` - The `allowedAuthorityOrigins` option was not an array, or one of its entries could not be parsed as a URL, was not `https:`, or carried embedded credentials. Fix the offending entry; entries are rejected rather than silently dropped so the allow list cannot appear stricter than it actually is.
 
 ### `redirect_in_iframe`
 
@@ -725,6 +774,17 @@ If you do not want to use a dedicated `redirectUri` for this purpose, you should
 
 -   Cryptographic Key or Keypair not found in browser storage.
 
+### `invalid_public_jwk`
+
+-   Public JWK must include the required RFC 7638 thumbprint members for its supported key type.
+-   This error may include one of the following sub-errors:
+    -   `token_binding_key_jwk_thumbprint_mismatch` - The token-binding JWT header JWK thumbprint does not match the signing key identifier.
+
+### `token_binding_key_jwk_thumbprint_mismatch`
+
+-   Sub-error of `invalid_public_jwk`.
+-   The token-binding JWT header JWK thumbprint does not match the signing key identifier.
+
 ### `auth_code_required`
 
 -   An authorization code must be provided (as the `code` property on the request) to this flow.
@@ -815,6 +875,17 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 
 -   Invalid PoP token request. The request should not have both a popKid value and signPopToken set to true.
 
+### `unsupported_token_binding_algorithm`
+
+-   The token-binding key algorithm is not supported by the browser crypto implementation.
+-   This error may include one of the following sub-errors:
+    -   `token_binding_key_algorithm_mismatch` - The requested token-binding JWT alg is supported, but is incompatible with the stored key material.
+
+### `token_binding_key_algorithm_mismatch`
+
+-   Sub-error of `unsupported_token_binding_algorithm`.
+-   The requested token-binding JWT alg is supported, but is incompatible with the stored key material.
+
 ### `failed_to_build_headers`
 
 -   Failed to build request headers object.
@@ -844,8 +915,8 @@ Communication with the redirect page (popup or iframe) timed out while waiting f
 
 **Error Messages**:
 
-- Token acquisition in popup failed due to timeout.
-- Token acquisition in iframe failed due to timeout.
+-   Token acquisition in popup failed due to timeout.
+-   Token acquisition in iframe failed due to timeout.
 
 This suberror is thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquireTokenPopup` or `loginPopup` when the redirect bridge script fails to send the authentication response back to the main window within the configured timeout period.
 
@@ -874,15 +945,15 @@ Your `redirectUri` page must include the redirect bridge script to enable commun
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Redirect</title>
-</head>
-<body>
-    <script type="module">
-        import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
-        broadcastResponseToMainFrame().catch(console.error);
-    </script>
-</body>
+    <head>
+        <title>Redirect</title>
+    </head>
+    <body>
+        <script type="module">
+            import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
+            broadcastResponseToMainFrame().catch(console.error);
+        </script>
+    </body>
 </html>
 ```
 
@@ -893,15 +964,17 @@ Copy `msal-redirect-bridge.min.js` from `node_modules/@azure/msal-browser/lib/re
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Redirect</title>
-</head>
-<body>
-    <script src="/msal-redirect-bridge.min.js"></script>
-    <script>
-        msalRedirectBridge.broadcastResponseToMainFrame().catch(console.error);
-    </script>
-</body>
+    <head>
+        <title>Redirect</title>
+    </head>
+    <body>
+        <script src="/msal-redirect-bridge.min.js"></script>
+        <script>
+            msalRedirectBridge
+                .broadcastResponseToMainFrame()
+                .catch(console.error);
+        </script>
+    </body>
 </html>
 ```
 
@@ -1133,7 +1206,8 @@ const msalConfig = {
 -   The provided token has expired and cannot be used.
 
 #### `access_denied`
-- The authentication method verification failed because access was denied.
+
+-   The authentication method verification failed because access was denied.
 
 ## Other
 

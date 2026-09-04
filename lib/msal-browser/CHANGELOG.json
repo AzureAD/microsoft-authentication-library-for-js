@@ -2,6 +2,226 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 02 Sep 2026 21:15:30 GMT",
+      "version": "5.21.0",
+      "tag": "@azure/msal-browser_v5.21.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e7c704c5affca50980b331730d96c40dcd7ba93c",
+            "comment": "Validate the relayed request in runPopupRelay before navigating and add an optional allowedAuthorityOrigins pin [#8800](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8800)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 28 Aug 2026 21:29:53 GMT",
+      "version": "5.20.0",
+      "tag": "@azure/msal-browser_v5.20.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Discard local storage events from another client ids [#8795](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8795)"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Relocate the cross-version request adapter into the shared webBrokerBridge module without changing request transformation behavior [#8771](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8771)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Enable browser-native PublicClientApplication DPoP acquisition flows [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735)"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5931aa70034991a28290b8c2215c25654e1433b8",
+            "comment": "Export IWebBrokerBridgeMessage from the msal-browser package root [#8780](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8780)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.14.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 18 Aug 2026 20:10:56 GMT",
+      "version": "5.19.0",
+      "tag": "@azure/msal-browser_v5.19.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4f0241d6e3fcafeb3aac0a041b867aeae71fe749",
+            "comment": "Add browser token-binding key lifecycle support for keyId-bound ES256 DPoP keys [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.13.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4f0241d6e3fcafeb3aac0a041b867aeae71fe749",
+            "comment": "Route NAA BridgeProxy through the shared webBrokerBridge PendingRequestRegistry and consolidate NestedAppAuthAdapter.fromBridgeError through the shared WebBrokerBridgeErrorMap — internal-only, no NAA public API or on-wire changes [#8748](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8748)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 04 Aug 2026 20:17:38 GMT",
+      "version": "5.18.0",
+      "tag": "@azure/msal-browser_v5.18.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "spingale@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5c53ac62bb060632b340e850e80ceaff950655a7",
+            "comment": "Add attribute-tokens support [#8700](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8700)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.12.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5c53ac62bb060632b340e850e80ceaff950655a7",
+            "comment": "Add internal webBrokerBridge scaffold (shared message interfaces, error taxonomy, pending-request registry) — no callers yet, no public API surface change [#8729](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8729)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 29 Jul 2026 00:26:30 GMT",
+      "version": "5.17.3",
+      "tag": "@azure/msal-browser_v5.17.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3e4b83714371d1e9471fc65c7d9c69f1f746f741",
+            "comment": "Add single retry with 100ms backoff for token POST transport failures [#8732](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8732)"
+          },
+          {
+            "author": "lalima.sharda@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "3e4b83714371d1e9471fc65c7d9c69f1f746f741",
+            "comment": "Streamline the platform broker request to only include the MSAL JS acquire-token parameters defined in the platform broker contract and params required on the ESTS /token call [#8714](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8714)"
+          },
+          {
+            "author": "lalima.sharda@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "3e4b83714371d1e9471fc65c7d9c69f1f746f741",
+            "comment": "Fill telemetry gaps in platform brokering flow with extension [#8699](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8699)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.11.3",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3e4b83714371d1e9471fc65c7d9c69f1f746f741",
+            "comment": "Bump @azure/msal-browser to 5.17.2 to match @azure/msal-browser-1p [#8726](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8726)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 23 Jul 2026 02:42:29 GMT",
+      "version": "5.17.2",
+      "tag": "@azure/msal-browser_v5.17.2",
+      "comments": {
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "not available",
+            "comment": "Bump @azure/msal-browser to match @azure/msal-browser-1p [#8726](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8726)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 15 Jul 2026 22:35:35 GMT",
+      "version": "5.17.1",
+      "tag": "@azure/msal-browser_v5.17.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5d1a16e9103853601886375dbcb15f06a02bc545",
+            "comment": "Add internal ES256/P-256 DPoP crypto support to BrowserCrypto [#8683](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8683)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.11.2",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Jul 2026 22:16:01 GMT",
+      "version": "5.17.0",
+      "tag": "@azure/msal-browser_v5.17.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "aa48c36402b908a4a7ef36a1b254d73fc66e4b3f",
+            "comment": "Fix decode logs script for the standalone mode [#8697](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8697)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "aa48c36402b908a4a7ef36a1b254d73fc66e4b3f",
+            "comment": "Add auth.popupRelayUri: a double-popup option for apps that customize COOP/storage-partitioning, relaying acquireTokenPopup/logoutPopup through a top-level same-origin relay page (runPopupRelay) so tokens can be acquired from an untrusted cross-origin iframe. [#8687](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8687)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.11.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 30 Jun 2026 21:04:19 GMT",
       "version": "5.16.0",
       "tag": "@azure/msal-browser_v5.16.0",
@@ -5141,7 +5361,7 @@
             "author": "kapjain@microsoft.com",
             "package": "@azure/msal-common",
             "commit": "84a31a3476375782c63a1b558ea1fd1ec52efb40",
-            "comment": "Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint"
+            "comment": "Fix: Legacy authority token dummy aud claim value for requests with scope input by using v2.0 endpoint"
           },
           {
             "author": "rginsburg@microsoft.com",

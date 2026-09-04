@@ -22,7 +22,7 @@ jobs:
           - task: NodeTool@0
             displayName: "Install Node.js"
             inputs:
-                versionSpec: "20.x"
+                versionSpec: "22.x"
 
           - task: Npm@1
             displayName: "Install Dependencies"
@@ -43,3 +43,121 @@ jobs:
                 customCommand: "run test --workspace=lib/** --workspace=extensions/msal-node-extensions"
 
           - task: CodeQL3000Finalize@0
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # MI E2E - IMDS - REAL managed identity token acquisition on an Azure VM.
+    #   Runs on the self-hosted "MISEManagedIdentity" pool (a Windows Azure VM with
+    #   the lab system-assigned + user-assigned identities assigned). Builds
+    #   msal-node FROM SOURCE and runs samples/msal-node-samples/Managed-Identity/e2e.
+    #   Only the IMDS cases run here (gated on MSAL_TEST_MI_IMDS); the Arc case
+    #   self-skips. Mirrors the MSAL Go / Python "MI E2E - IMDS" stages.
+    # ══════════════════════════════════════════════════════════════════════════
+    - job: MIE2EImds
+      displayName: "MI E2E - IMDS (Azure VM)"
+      # Fork guard: never run untrusted forked-PR code on the self-hosted pool.
+      condition: ne(variables['System.PullRequest.IsFork'], 'True')
+      pool:
+          name: MISEManagedIdentity
+      timeoutInMinutes: 60
+      steps:
+          - task: NodeTool@0
+            displayName: "Install Node.js"
+            inputs:
+                versionSpec: "20.x"
+
+          # The public npm registry is unreachable from restricted-egress pools;
+          # point npm at the internal mirror (npm's default replace-registry-host
+          # rewrites the lockfile's npmjs URLs to it).
+          - script: npm config set registry https://packagefeedproxy.microsoft.io/npm/
+            displayName: "Point npm at the internal mirror"
+
+          - task: Npm@1
+            displayName: "Install Dependencies"
+            inputs:
+                command: "ci"
+
+          - task: Npm@1
+            displayName: "Build msal-node from source"
+            inputs:
+                command: "custom"
+                customCommand: "run build:all --workspace=lib/msal-node"
+
+          - task: Npm@1
+            displayName: "Install MI E2E package"
+            inputs:
+                command: "install"
+                workingDir: "samples/msal-node-samples/Managed-Identity/e2e"
+
+          - task: Npm@1
+            displayName: "Run MI E2E (IMDS)"
+            inputs:
+                command: "custom"
+                workingDir: "samples/msal-node-samples/Managed-Identity/e2e"
+                customCommand: "run test:e2e"
+            env:
+                MSAL_TEST_MI_IMDS: "1"
+
+          - task: PublishTestResults@2
+            displayName: "Publish MI E2E (IMDS) test results"
+            condition: succeededOrFailed()
+            inputs:
+                testResultsFormat: "JUnit"
+                testResultsFiles: "samples/msal-node-samples/Managed-Identity/e2e/test-results/junit-mi-e2e.xml"
+                failTaskOnFailedTests: true
+                testRunTitle: "MI E2E - IMDS"
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # MI E2E - Azure Arc - REAL managed identity token acquisition on an Azure Arc
+    #   machine. Runs on the self-hosted "MISEAZUREARC" pool. Azure Arc supports the
+    #   system-assigned identity only; the Arc case runs here (source auto-detected)
+    #   and the IMDS cases self-skip (MSAL_TEST_MI_IMDS unset). Mirrors the MSAL Go /
+    #   Python "MI E2E - Azure Arc" stages.
+    # ══════════════════════════════════════════════════════════════════════════
+    - job: MIE2EAzureArc
+      displayName: "MI E2E - Azure Arc"
+      # Fork guard: never run untrusted forked-PR code on the self-hosted pool.
+      condition: ne(variables['System.PullRequest.IsFork'], 'True')
+      pool:
+          name: MISEAZUREARC
+      timeoutInMinutes: 60
+      steps:
+          - task: NodeTool@0
+            displayName: "Install Node.js"
+            inputs:
+                versionSpec: "20.x"
+
+          - script: npm config set registry https://packagefeedproxy.microsoft.io/npm/
+            displayName: "Point npm at the internal mirror"
+
+          - task: Npm@1
+            displayName: "Install Dependencies"
+            inputs:
+                command: "ci"
+
+          - task: Npm@1
+            displayName: "Build msal-node from source"
+            inputs:
+                command: "custom"
+                customCommand: "run build:all --workspace=lib/msal-node"
+
+          - task: Npm@1
+            displayName: "Install MI E2E package"
+            inputs:
+                command: "install"
+                workingDir: "samples/msal-node-samples/Managed-Identity/e2e"
+
+          - task: Npm@1
+            displayName: "Run MI E2E (Azure Arc)"
+            inputs:
+                command: "custom"
+                workingDir: "samples/msal-node-samples/Managed-Identity/e2e"
+                customCommand: "run test:e2e"
+
+          - task: PublishTestResults@2
+            displayName: "Publish MI E2E (Azure Arc) test results"
+            condition: succeededOrFailed()
+            inputs:
+                testResultsFormat: "JUnit"
+                testResultsFiles: "samples/msal-node-samples/Managed-Identity/e2e/test-results/junit-mi-e2e.xml"
+                failTaskOnFailedTests: true
+                testRunTitle: "MI E2E - Azure Arc"

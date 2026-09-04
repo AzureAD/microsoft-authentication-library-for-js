@@ -21,6 +21,7 @@ import {
     RequestThumbprint,
     ResponseHandler,
     ScopeSet,
+    StringUtils,
     TimeUtils,
     TokenClaims,
     UrlString,
@@ -62,22 +63,44 @@ export class OnBehalfOfClient extends BaseClient {
             request.oboAssertion
         );
 
-        if (request.skipCache || request.claims) {
+        /*
+         * Client-originated claims participate in the cache key (unlike server-issued `claims`,
+         * which bypasses the cache). Identical claims values are served from cache; different
+         * values produce separate cache entries. Gate on `!isEmptyObj` (not just `trim()`) so an
+         * empty/whitespace or empty-object (`{}`) value - which contributes nothing to the request
+         * body - does not fragment the cache from an omitted `claimsFromClient`.
+         */
+        let additionalCacheKeyComponents: Record<string, string> | undefined;
+        if (
+            request.claimsFromClient &&
+            !StringUtils.isEmptyObj(request.claimsFromClient)
+        ) {
+            additionalCacheKeyComponents = {
+                client_claims: request.claimsFromClient,
+            };
+        }
+
+        if (request.skipCache || !StringUtils.isEmptyObj(request.claims)) {
             return this.executeTokenRequest(
                 request,
                 this.authority,
-                this.userAssertionHash
+                this.userAssertionHash,
+                additionalCacheKeyComponents
             );
         }
 
         try {
-            return await this.getCachedAuthenticationResult(request);
+            return await this.getCachedAuthenticationResult(
+                request,
+                additionalCacheKeyComponents
+            );
         } catch (e) {
             // Any failure falls back to interactive request, once we implement distributed cache, we plan to handle `createRefreshRequiredError` to refresh using the RT
             return await this.executeTokenRequest(
                 request,
                 this.authority,
-                this.userAssertionHash
+                this.userAssertionHash,
+                additionalCacheKeyComponents
             );
         }
     }
@@ -91,12 +114,14 @@ export class OnBehalfOfClient extends BaseClient {
      * @param request - developer provided CommonOnBehalfOfRequest
      */
     private async getCachedAuthenticationResult(
-        request: CommonOnBehalfOfRequest
+        request: CommonOnBehalfOfRequest,
+        additionalCacheKeyComponents?: Record<string, string>
     ): Promise<AuthenticationResult | null> {
         // look in the cache for the access_token which matches the incoming_assertion
         const cachedAccessToken = this.readAccessTokenFromCacheForOBO(
             this.config.authOptions.clientId,
-            request
+            request,
+            additionalCacheKeyComponents
         );
         if (!cachedAccessToken) {
             // Must refresh due to non-existent access_token.
@@ -177,7 +202,10 @@ export class OnBehalfOfClient extends BaseClient {
             true,
             request,
             this.performanceClient,
-            idTokenClaims
+            {
+                idTokenClaims,
+                tokenBindingKeyManager: this.config.tokenBindingKeyManager,
+            }
         );
     }
 
@@ -216,7 +244,8 @@ export class OnBehalfOfClient extends BaseClient {
      */
     private readAccessTokenFromCacheForOBO(
         clientId: string,
-        request: CommonOnBehalfOfRequest
+        request: CommonOnBehalfOfRequest,
+        additionalCacheKeyComponents?: Record<string, string>
     ) {
         const authScheme =
             request.authenticationScheme ||
@@ -242,6 +271,7 @@ export class OnBehalfOfClient extends BaseClient {
             tokenType: authScheme,
             keyId: request.sshKid,
             userAssertionHash: this.userAssertionHash,
+            additionalCacheKeyComponents: additionalCacheKeyComponents,
         };
 
         const accessTokens = this.cacheManager.getAccessTokensByFilter(
@@ -270,7 +300,8 @@ export class OnBehalfOfClient extends BaseClient {
     private async executeTokenRequest(
         request: CommonOnBehalfOfRequest,
         authority: Authority,
-        userAssertionHash: string
+        userAssertionHash: string,
+        additionalCacheKeyComponents?: Record<string, string>
     ): Promise<AuthenticationResult | null> {
         const queryParametersString = this.createTokenQueryParameters(request);
         const endpoint = UrlString.appendQueryString(
@@ -308,7 +339,8 @@ export class OnBehalfOfClient extends BaseClient {
             this.logger,
             this.performanceClient,
             this.config.serializableCache,
-            this.config.persistencePlugin
+            this.config.persistencePlugin,
+            this.config.tokenBindingKeyManager
         );
 
         responseHandler.validateTokenResponse(
@@ -321,8 +353,12 @@ export class OnBehalfOfClient extends BaseClient {
             reqTimestamp,
             request,
             ApiId.acquireTokenByOBO,
-            undefined,
-            userAssertionHash
+            undefined, // authCodePayload
+            userAssertionHash, // userAssertionHash
+            undefined, // handlingRefreshTokenResponse
+            undefined, // forceCacheRefreshTokenResponse
+            undefined, // serverRequestId
+            additionalCacheKeyComponents
         );
 
         return tokenResponse;
@@ -412,8 +448,14 @@ export class OnBehalfOfClient extends BaseClient {
             );
         }
 
+        /*
+         * Deep-merge the server-issued `claims` challenge with client-originated `claimsFromClient`
+         * (via addClaims -> buildMergedClaims) so both are sent on the wire. Client capabilities
+         * are appended by buildMergedClaims.
+         */
         if (
-            request.claims ||
+            !StringUtils.isEmptyObj(request.claims) ||
+            !StringUtils.isEmptyObj(request.claimsFromClient) ||
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
@@ -421,7 +463,9 @@ export class OnBehalfOfClient extends BaseClient {
                 parameters,
                 request.correlationId,
                 request.claims,
-                this.config.authOptions.clientCapabilities
+                this.config.authOptions.clientCapabilities,
+                undefined,
+                request.claimsFromClient
             );
         }
 

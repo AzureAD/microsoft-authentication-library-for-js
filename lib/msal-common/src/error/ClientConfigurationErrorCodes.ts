@@ -19,6 +19,8 @@ export const invalidAuthorityMetadata = "invalid_authority_metadata";
 export const untrustedAuthority = "untrusted_authority";
 export const missingSshJwk = "missing_ssh_jwk";
 export const missingSshKid = "missing_ssh_kid";
+export const unsupportedAuthenticationScheme =
+    "unsupported_authentication_scheme";
 export const missingNonceAuthenticationHeader =
     "missing_nonce_authentication_header";
 export const invalidAuthenticationHeader = "invalid_authentication_header";
@@ -29,3 +31,8 @@ export const invalidRequestMethodForEAR = "invalid_request_method_for_EAR";
 export const invalidPlatformBrokerConfiguration =
     "invalid_platform_broker_configuration";
 export const issuerValidationFailed = "issuer_validation_failed";
+export const invalidResponseMode = "invalid_response_mode";
+export const invalidDpopHtm = "invalid_dpop_htm";
+export const invalidDpopHtu = "invalid_dpop_htu";
+export const invalidDpopNonce = "invalid_dpop_nonce";
+export const dpopMissingResourceContext = "dpop_missing_resource_context";

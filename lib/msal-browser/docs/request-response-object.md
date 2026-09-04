@@ -49,3 +49,23 @@ const response = await msalInstance.acquireTokenSilent(request);
 | `false` / not set  | No                     | Yes                                     |
 | `true`             | No                     | Yes                                     |
 | `true`             | Yes                    | **No**                                  |
+
+## DPoP request and response fields
+
+To request sender-constrained access tokens using the DPoP standard, set `authenticationScheme` to `AuthenticationScheme.DPOP` on popup, redirect, silent, or `ssoSilent` requests and provide both `resourceRequestMethod` and `resourceRequestUri`.
+
+```javascript
+const request = {
+    scopes: ["User.Read"],
+    authenticationScheme: msal.AuthenticationScheme.DPOP,
+    resourceRequestMethod: "GET",
+    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+};
+```
+
+MSAL returns the raw DPoP access token in `AuthenticationResult.accessToken` and a separate fresh resource proof in `AuthenticationResult.dpopProof`. Attach both to the resource call:
+
+```javascript
+headers.append("Authorization", `${result.tokenType} ${result.accessToken}`);
+headers.append("DPoP", result.dpopProof);
+```

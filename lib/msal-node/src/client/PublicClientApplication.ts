@@ -22,6 +22,8 @@ import {
     ServerTelemetryManager,
     AuthorizationCodePayload,
     enforceResourceParameter,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common/node";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
@@ -36,7 +38,6 @@ import { LoopbackClient } from "../network/LoopbackClient.js";
 import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
 import { SignOutRequest } from "../request/SignOutRequest.js";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest.js";
-import { ILoopbackClient } from "../network/ILoopbackClient.js";
 import { DeviceCodeClient } from "./DeviceCodeClient.js";
 import { version } from "../packageMetadata.js";
 
@@ -157,7 +158,7 @@ export class PublicClientApplication
             successTemplate,
             errorTemplate,
             windowHandle,
-            loopbackClient: customLoopbackClient,
+            preferredPort,
             ...remainingProperties
         } = request;
 
@@ -196,8 +197,22 @@ export class PublicClientApplication
         const { verifier, challenge } =
             await this.cryptoProvider.generatePkceCodes();
 
-        const loopbackClient: ILoopbackClient =
-            customLoopbackClient || new LoopbackClient();
+        const loopbackClient = new LoopbackClient(preferredPort);
+
+        // Validate and resolve responseMode
+        const responseMode =
+            remainingProperties.responseMode ??
+            CommonConstants.ResponseMode.FORM_POST;
+
+        if (
+            responseMode !== CommonConstants.ResponseMode.QUERY &&
+            responseMode !== CommonConstants.ResponseMode.FORM_POST
+        ) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidResponseMode,
+                correlationId
+            );
+        }
 
         let authCodeResponse: AuthorizeResponse = {};
         let authCodeListenerError: AuthError | null = null;
@@ -223,7 +238,7 @@ export class PublicClientApplication
                 correlationId: correlationId,
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
                 redirectUri: redirectUri,
-                responseMode: CommonConstants.ResponseMode.QUERY,
+                responseMode: responseMode,
                 codeChallenge: challenge,
                 codeChallengeMethod:
                     CommonConstants.CodeChallengeMethodValues.S256,
@@ -371,12 +386,12 @@ export class PublicClientApplication
 
     /**
      * Attempts to retrieve the redirectUri from the loopback server. If the loopback server does not start listening for requests within the timeout this will throw.
-     * @param loopbackClient - developer provided custom loopback server implementation
+     * @param loopbackClient - built-in loopback server implementation
      * @param correlationId - correlation id of the request
      * @returns
      */
     private async waitForRedirectUri(
-        loopbackClient: ILoopbackClient,
+        loopbackClient: LoopbackClient,
         correlationId: string
     ): Promise<string> {
         return new Promise<string>((resolve, reject) => {

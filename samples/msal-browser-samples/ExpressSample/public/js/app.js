@@ -12,6 +12,8 @@ import {
     signOutRedirect,
     handleRetry,
     handleCancelRetry,
+    ssoSilent,
+    acquireTokenSilent,
     msalInstance
 } from './auth.js';
 import { toggleDropdown, closeAllDropdowns, updateUI } from './ui.js';
@@ -93,6 +95,23 @@ function setupEventListeners() {
             e.preventDefault();
             closeAllDropdowns();
             signInRedirect();
+        });
+    }
+
+    // Silent API buttons (authenticated home view)
+    const ssoSilentBtn = document.getElementById('ssoSilentButton');
+    if (ssoSilentBtn) {
+        ssoSilentBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            ssoSilent();
+        });
+    }
+
+    const acquireTokenSilentBtn = document.getElementById('acquireTokenSilentButton');
+    if (acquireTokenSilentBtn) {
+        acquireTokenSilentBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            acquireTokenSilent();
         });
     }
 

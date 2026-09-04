@@ -1,8 +1,94 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 30 Jun 2026 21:04:19 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 02 Sep 2026 21:15:30 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.21.0
+
+Wed, 02 Sep 2026 21:15:30 GMT
+
+### Minor changes
+
+- Validate the relayed request in runPopupRelay before navigating and add an optional allowedAuthorityOrigins pin [#8800](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8800) (kshabelko@microsoft.com)
+
+## 5.20.0
+
+Fri, 28 Aug 2026 21:29:53 GMT
+
+### Minor changes
+
+- Enable browser-native PublicClientApplication DPoP acquisition flows [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735) (hectormmg@microsoft.com)
+- Export IWebBrokerBridgeMessage from the msal-browser package root [#8780](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8780) (shylasummers@microsoft.com)
+- Bump @azure/msal-common to v16.14.0
+
+### Patches
+
+- Discard local storage events from another client ids [#8795](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8795) (kshabelko@microsoft.com)
+- Relocate the cross-version request adapter into the shared webBrokerBridge module without changing request transformation behavior [#8771](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8771) (shylasummers@microsoft.com)
+
+## 5.19.0
+
+Tue, 18 Aug 2026 20:10:56 GMT
+
+### Minor changes
+
+- Add browser token-binding key lifecycle support for keyId-bound ES256 DPoP keys [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708) (hectormmg@microsoft.com)
+- Bump @azure/msal-common to v16.13.0
+
+### Patches
+
+- Route NAA BridgeProxy through the shared webBrokerBridge PendingRequestRegistry and consolidate NestedAppAuthAdapter.fromBridgeError through the shared WebBrokerBridgeErrorMap — internal-only, no NAA public API or on-wire changes [#8748](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8748) (shylasummers@microsoft.com)
+
+## 5.18.0
+
+Tue, 04 Aug 2026 20:17:38 GMT
+
+### Minor changes
+
+- Add attribute-tokens support [#8700](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8700) (spingale@microsoft.com)
+- Bump @azure/msal-common to v16.12.0
+
+### Patches
+
+- Add internal webBrokerBridge scaffold (shared message interfaces, error taxonomy, pending-request registry) — no callers yet, no public API surface change [#8729](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8729) (shylasummers@microsoft.com)
+
+## 5.17.3
+
+Wed, 29 Jul 2026 00:26:30 GMT
+
+### Patches
+
+- Add single retry with 100ms backoff for token POST transport failures [#8732](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8732) (thomas.norling@microsoft.com)
+- Streamline the platform broker request to only include the MSAL JS acquire-token parameters defined in the platform broker contract and params required on the ESTS /token call [#8714](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8714) (lalima.sharda@gmail.com)
+- Fill telemetry gaps in platform brokering flow with extension [#8699](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8699) (lalima.sharda@gmail.com)
+- Bump @azure/msal-common to v16.11.3
+
+## 5.17.2
+
+Thu, 23 Jul 2026 02:42:29 GMT
+
+## 5.17.1
+
+Wed, 15 Jul 2026 22:35:35 GMT
+
+### Patches
+
+- Add internal ES256/P-256 DPoP crypto support to BrowserCrypto [#8683](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8683) (hectormmg@microsoft.com)
+- Bump @azure/msal-common to v16.11.2
+
+## 5.17.0
+
+Tue, 07 Jul 2026 22:16:01 GMT
+
+### Minor changes
+
+- Add auth.popupRelayUri: a double-popup option for apps that customize COOP/storage-partitioning, relaying acquireTokenPopup/logoutPopup through a top-level same-origin relay page (runPopupRelay) so tokens can be acquired from an untrusted cross-origin iframe. [#8687](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8687) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.11.1
+
+### Patches
+
+- Fix decode logs script for the standalone mode [#8697](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8697) (kshabelko@microsoft.com)
 
 ## 5.16.0
 
@@ -1503,7 +1589,7 @@ Mon, 07 Aug 2023 18:15:15 GMT
 -   Bundle local version of msal-common into msal-browser #5953 (kshabelko@microsoft.com)
 -   Fix missing idToken in response after refresh #5871 (thomas.norling@microsoft.com)
 -   Improve iframe error detection #5891 (thomas.norling@microsoft.com)
--   Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
+-   Fix: Legacy authority token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
 -   Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805 (rginsburg@microsoft.com)
 -   `removeAccount` does not throw if account does not exist in cache #5911 (thomas.norling@microsoft.com)
 -   Remove unused enum (thomas.norling@microsoft.com)

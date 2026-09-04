@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@azure/msal-node",
-  "version": "5.3.1",
+  "version": "6.0.0",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -46,10 +46,11 @@
   ],
   "scripts": {
     "build": "npm run clean && rollup -c --strictDeprecations --bundleConfigAsCjs && npm run build:types",
-    "build:types": "tsc -p tsconfig.build.types.json",
+    "build:types": "tsc -p tsconfig.build.types.json && npm run test:types:no-dom",
     "build:watch": "rollup -c --watch --strictDeprecations --bundleConfigAsCjs",
     "clean": "shx rm -rf dist types lib",
     "test": "jest",
+    "test:types:no-dom": "tsc -p test/type-check/no-dom/tsconfig.json",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts",
@@ -59,11 +60,6 @@
     "format:check": "prettier --ignore-path .gitignore --check src test",
     "format:fix": "prettier --ignore-path .gitignore --write src test",
     "apiExtractor": "api-extractor run"
-  },
-  "beachball": {
-    "disallowedChangeTypes": [
-      "major"
-    ]
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.58.7",
@@ -84,7 +80,7 @@
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "@azure/msal-common": "16.11.0",
+    "@azure/msal-common": "16.14.0",
     "jsonwebtoken": "^9.0.0"
   },
   "engines": {

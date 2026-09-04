@@ -10,7 +10,6 @@ export const DEFAULT_AUTHORITY_HOST = "login.microsoftonline.com";
 export const DEFAULT_COMMON_TENANT = "common";
 // ADFS String
 export const ADFS = "adfs";
-export const DSTS = "dstsv2";
 // Default AAD Instance Discovery Endpoint
 export const AAD_INSTANCE_DISCOVERY_ENDPT = `${DEFAULT_AUTHORITY}discovery/instance?api-version=1.1&authorization_endpoint=`;
 // CIAM URL
@@ -87,6 +86,7 @@ export const OIDC_SCOPES = [...OIDC_DEFAULT_SCOPES, EMAIL_SCOPE];
 export const HeaderNames = {
     CONTENT_TYPE: "Content-Type",
     CONTENT_LENGTH: "Content-Length",
+    DPOP: "DPoP",
     RETRY_AFTER: "Retry-After",
     CCS_HEADER: "X-AnchorMailbox",
     WWWAuthenticate: "WWW-Authenticate",
@@ -124,6 +124,7 @@ export const ClaimsRequestKeys = {
     ID_TOKEN: "id_token",
     SIGNIN_STATE: "signin_state",
     LOGIN_HINT: "login_hint",
+    TENANT_REGION_SUB_SCOPE: "tenant_region_sub_scope",
 } as const;
 export type ClaimsRequestKeys =
     (typeof ClaimsRequestKeys)[keyof typeof ClaimsRequestKeys];
@@ -264,6 +265,7 @@ export const SERVER_TELEM_UNKNOWN_ERROR: string = "unknown_error";
 export const AuthenticationScheme = {
     BEARER: "Bearer",
     POP: "pop",
+    DPOP: "DPoP",
     SSH: "ssh-cert",
 } as const;
 export type AuthenticationScheme =
@@ -342,6 +344,7 @@ export const JsonWebTokenTypes = {
     Jwt: "JWT",
     Jwk: "JWK",
     Pop: "pop",
+    Dpop: "dpop+jwt",
 } as const;
 export type JsonWebTokenTypes =
     (typeof JsonWebTokenTypes)[keyof typeof JsonWebTokenTypes];

@@ -21,11 +21,11 @@ import { ClientAssertionConfig } from "../../src/account/ClientCredentials.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS =
-    '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+    '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_CLIENT_CAPABILITIES =
-    '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
+    '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
-    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+    '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
 
 describe("RequestParameterBuilder unit tests", () => {
     afterEach(() => {
@@ -608,7 +608,7 @@ describe("RequestParameterBuilder unit tests", () => {
         it("passing just claims returns claims with default idToken claims", () => {
             const testClaims = TEST_CONFIG.CLAIMS;
             const expectedString =
-                '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+                '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
             expect(
                 RequestParameterBuilder.buildMergedClaims(testClaims, [])
             ).toBe(expectedString);
@@ -617,7 +617,7 @@ describe("RequestParameterBuilder unit tests", () => {
         it("passing just clientCapabilities returns clientCapabilities and default idToken claims", () => {
             const clientCapabilities = ["CP1"];
             const expectedString =
-                '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
+                '{"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
             expect(
                 RequestParameterBuilder.buildMergedClaims(
                     undefined,
@@ -631,7 +631,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 '{"access_token":{"example_claim":{"values":["example_value"]}}}';
             const clientCapabilities = ["CP1"];
             const expectedString =
-                '{"access_token":{"example_claim":{"values":["example_value"]},"xms_cc":{"values":["CP1"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false}}}';
+                '{"access_token":{"example_claim":{"values":["example_value"]},"xms_cc":{"values":["CP1"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
             expect(
                 RequestParameterBuilder.buildMergedClaims(
                     claimsRequest,
@@ -645,7 +645,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 '{"id_token":{"example_claim":{"values":["example_value"]}}}';
             const clientCapabilities = ["CP1"];
             const expectedString =
-                '{"id_token":{"example_claim":{"values":["example_value"]},"signin_state":{"essential":false},"login_hint":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
+                '{"id_token":{"example_claim":{"values":["example_value"]},"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}},"access_token":{"xms_cc":{"values":["CP1"]}}}';
             expect(
                 RequestParameterBuilder.buildMergedClaims(
                     claimsRequest,
@@ -658,10 +658,30 @@ describe("RequestParameterBuilder unit tests", () => {
             const claimsRequest =
                 '{"id_token":{"signin_state":{"essential":true}}}';
             const expectedString =
-                '{"id_token":{"signin_state":{"essential":true},"login_hint":{"essential":false}}}';
+                '{"id_token":{"signin_state":{"essential":true},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
             expect(
                 RequestParameterBuilder.buildMergedClaims(claimsRequest, [])
             ).toBe(expectedString);
+        });
+
+        it("requests tenant_region_sub_scope as a non-essential idToken claim", () => {
+            const merged = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(undefined, [])
+            );
+            expect(merged.id_token.tenant_region_sub_scope).toEqual({
+                essential: false,
+            });
+        });
+
+        it("does not overwrite a caller-specified tenant_region_sub_scope claim", () => {
+            const claimsRequest =
+                '{"id_token":{"tenant_region_sub_scope":{"essential":true}}}';
+            const merged = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(claimsRequest, [])
+            );
+            expect(merged.id_token.tenant_region_sub_scope).toEqual({
+                essential: true,
+            });
         });
 
         it("throws error if claims passed is not stringified JSON object", () => {
@@ -675,6 +695,198 @@ describe("RequestParameterBuilder unit tests", () => {
                 )
             );
         });
+    });
+
+    describe("buildMergedClaims claimsToMerge (client-originated claims) tests", () => {
+        /*
+         * `claimsToMerge` is deep-merged into the base claims with precedence; buildMergedClaims
+         * also injects the default idToken claims, so assertions parse the result and check the
+         * merged sections rather than exact-matching the whole string.
+         */
+        it("returns just the base claims when claimsToMerge is empty/whitespace/undefined", () => {
+            const base = '{"nsp":{"essential":true}}';
+            const fromUndefined = RequestParameterBuilder.buildMergedClaims(
+                base,
+                [],
+                "",
+                undefined
+            );
+            const fromWhitespace = RequestParameterBuilder.buildMergedClaims(
+                base,
+                [],
+                "",
+                "   "
+            );
+            expect(fromWhitespace).toBe(fromUndefined);
+            expect(JSON.parse(fromUndefined)).toHaveProperty("nsp");
+        });
+
+        it("returns just claimsToMerge when base claims are empty", () => {
+            const claimsFromClient = '{"nsp":{"essential":true}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    undefined,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed).toHaveProperty("nsp");
+        });
+
+        it("merges non-overlapping top-level keys", () => {
+            const base = '{"nsp":{"essential":true}}';
+            const claimsFromClient =
+                '{"userinfo":{"given_name":{"essential":true}}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed).toHaveProperty("nsp");
+            expect(parsed).toHaveProperty("userinfo");
+        });
+
+        it("lets claimsToMerge win on overlapping keys", () => {
+            const base = '{"nsp":{"value":"v1"}}';
+            const claimsFromClient = '{"nsp":{"value":"v2"}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.nsp.value).toBe("v2");
+        });
+
+        it("deep-merges a colliding object key, preserving sibling sub-claims", () => {
+            const base = '{"access_token":{"nbf":{"essential":true}}}';
+            const claimsFromClient =
+                '{"access_token":{"xms_az_nwperimid":{"value":"perimid-1"}}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.access_token.nbf).toEqual({ essential: true });
+            expect(parsed.access_token.xms_az_nwperimid).toEqual({
+                value: "perimid-1",
+            });
+        });
+
+        it("deep-merges recursively across multiple nesting levels", () => {
+            const base = '{"a":{"b":{"keep":1}}}';
+            const claimsFromClient =
+                '{"a":{"b":{"add":2}},"c":{"essential":true}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.a.b).toEqual({ keep: 1, add: 2 });
+            expect(parsed.c).toEqual({ essential: true });
+        });
+
+        it("replaces arrays and scalars (no element merging) with claimsToMerge winning", () => {
+            const base =
+                '{"access_token":{"groups":{"values":["a","b"]},"scalar":1}}';
+            const claimsFromClient =
+                '{"access_token":{"groups":{"values":["c"]},"scalar":2}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    [],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.access_token.groups.values).toEqual(["c"]);
+            expect(parsed.access_token.scalar).toBe(2);
+        });
+
+        it("appends xms_cc capabilities on top of the merged claims", () => {
+            const base = '{"access_token":{"nbf":{"essential":true}}}';
+            const claimsFromClient =
+                '{"access_token":{"xms_az_nwperimid":{"value":"perimid-1"}}}';
+            const parsed = JSON.parse(
+                RequestParameterBuilder.buildMergedClaims(
+                    base,
+                    ["CP1"],
+                    "",
+                    claimsFromClient
+                )
+            );
+            expect(parsed.access_token.nbf).toEqual({ essential: true });
+            expect(parsed.access_token.xms_az_nwperimid).toEqual({
+                value: "perimid-1",
+            });
+            expect(parsed.access_token.xms_cc).toEqual({ values: ["CP1"] });
+        });
+
+        it("throws invalidClaims when base claims are invalid JSON", () => {
+            const valid = '{"a":1}';
+            expect(() =>
+                RequestParameterBuilder.buildMergedClaims(
+                    "not-json",
+                    [],
+                    "",
+                    valid
+                )
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidClaims,
+                    ""
+                )
+            );
+        });
+
+        it("throws invalidClaims when claimsToMerge is invalid JSON", () => {
+            const valid = '{"a":1}';
+            expect(() =>
+                RequestParameterBuilder.buildMergedClaims(
+                    valid,
+                    [],
+                    "",
+                    "not-json"
+                )
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidClaims,
+                    ""
+                )
+            );
+        });
+
+        it.each(["[]", '"string"', "null", "5"])(
+            "throws invalidClaims when claimsToMerge is valid JSON but not an object (%s)",
+            (nonObjectJson: string) => {
+                const valid = '{"a":1}';
+                expect(() =>
+                    RequestParameterBuilder.buildMergedClaims(
+                        valid,
+                        [],
+                        "",
+                        nonObjectJson
+                    )
+                ).toThrow(
+                    new ClientConfigurationError(
+                        ClientConfigurationErrorCodes.invalidClaims,
+                        ""
+                    )
+                );
+            }
+        );
     });
 
     describe("addExtraParameters tests", () => {
@@ -964,6 +1176,49 @@ describe("RequestParameterBuilder unit tests", () => {
             expect(claimsParam).toBe(
                 DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_CLIENT_CAPABILITIES
             );
+        });
+    });
+
+    describe("addAttributeTokens", () => {
+        it("emits sorted, space-joined attribute_tokens when provided", () => {
+            const parameters = new Map<string, string>();
+            RequestParameterBuilder.addAttributeTokens(parameters, [
+                "zeta",
+                "alpha",
+                "mike",
+            ]);
+            expect(parameters.get(AADServerParamKeys.ATTRIBUTE_TOKENS)).toBe(
+                "alpha mike zeta"
+            );
+        });
+
+        it("deletes attribute_tokens when passed an empty array", () => {
+            const parameters = new Map<string, string>();
+            parameters.set(AADServerParamKeys.ATTRIBUTE_TOKENS, "keep");
+            RequestParameterBuilder.addAttributeTokens(parameters, []);
+            expect(parameters.has(AADServerParamKeys.ATTRIBUTE_TOKENS)).toBe(
+                false
+            );
+        });
+
+        it("preserves caller-provided values (including spacing/duplicates) after sorting", () => {
+            const parameters = new Map<string, string>();
+            RequestParameterBuilder.addAttributeTokens(parameters, [
+                "b",
+                "a",
+                "a",
+                " c ",
+            ]);
+            expect(parameters.get(AADServerParamKeys.ATTRIBUTE_TOKENS)).toBe(
+                " c  a a b"
+            );
+        });
+
+        it("does not mutate the caller-provided array", () => {
+            const parameters = new Map<string, string>();
+            const input = ["c", "a", "b"];
+            RequestParameterBuilder.addAttributeTokens(parameters, input);
+            expect(input).toEqual(["c", "a", "b"]);
         });
     });
 });

@@ -1,8 +1,67 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 30 Jun 2026 21:04:20 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 28 Aug 2026 21:29:53 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.14.0
+
+Fri, 28 Aug 2026 21:29:53 GMT
+
+### Minor changes
+
+- Remove legacy environment metadata and legacy authority support [#8794](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8794) (sameera.gajjarapu@microsoft.com)
+- Enable support for tenant_region_subscope optional claim [#8765](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8765) (kshabelko@microsoft.com)
+- Enable public L1 PCA DPoP request, cache, and AuthenticationResult support [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735) (hectormmg@microsoft.com)
+
+### Patches
+
+- Remove the DOM type dependency from public declarations [#8784](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8784) (hectormmg@microsoft.com)
+
+## 16.13.0
+
+Tue, 18 Aug 2026 20:10:56 GMT
+
+### Minor changes
+
+- Add internal keyId-bound contracts for DPoP proof generation [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708) (hectormmg@microsoft.com)
+
+### Patches
+
+- Fix hardcoded China authority metadata to use the preferred partner host [#8762](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8762) (hemoral@microsoft.com)
+
+## 16.12.0
+
+Tue, 04 Aug 2026 20:17:38 GMT
+
+### Minor changes
+
+- Add attribute-tokens support [#8700](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8700) (spingale@microsoft.com)
+- Support merging client-originated claims into request claims via `addClaims`/`buildMergedClaims` [#8686](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8686) (rginsburg@microsoft.com)
+
+## 16.11.3
+
+Wed, 29 Jul 2026 00:26:31 GMT
+
+### Patches
+
+- Add optional correlationId and performanceClient to NetworkRequestOptions; add fetchRetryCount to PerformanceEvent [#8732](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8732) (thomas.norling@microsoft.com)
+
+## 16.11.2
+
+Wed, 15 Jul 2026 22:35:35 GMT
+
+### Patches
+
+- Add internal DPoP proof payload builder (DpopProofGenerator) with RFC 9449 token-endpoint and resource-endpoint claim helpers [#8683](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8683) (hectormmg@microsoft.com)
+
+## 16.11.1
+
+Tue, 07 Jul 2026 22:16:01 GMT
+
+### Patches
+
+- Add invalid_response_mode ClientConfigurationError code [#8694](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8694) (joarroyo@microsoft.com)
 
 ## 16.11.0
 
@@ -986,7 +1045,7 @@ Mon, 07 Aug 2023 18:15:15 GMT
 -   Added new ClientConfigurationError type for authority mismatch in login request #6002 (lalimasharda@microsoft.com)
 -   Fix bugs in CIAM Authority Support (#5917) (sameera.gajjarapu@microsoft.com)
 -   Update polycheck version (#5901) (sameera.gajjarapu@microsoft.com)
--   Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
+-   Fix: Legacy authority token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
 -   Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805 (rginsburg@microsoft.com)
 -   `removeAccount` does not throw if account does not exist in cache #5911 (thomas.norling@microsoft.com)
 -   Remove unused enum (thomas.norling@microsoft.com)
@@ -1147,7 +1206,7 @@ Mon, 03 Oct 2022 22:12:26 GMT
 -   Add x-ms-request-id to perf telemetry logging #5244 (joarroyo@microsoft.com)
 -   Added 'no_session' to prompt enum #5131 (rginsburg@microsoft.com)
 -   Added Support for the OIDC max_age parameter #5125 (rginsburg@microsoft.com)
--   Add initial support for DSTS authorities in MSAL Common #5212 (hemoral@microsoft.com)
+-   Add initial support for legacy authorities in MSAL Common #5212 (hemoral@microsoft.com)
 
 ### Patches
 

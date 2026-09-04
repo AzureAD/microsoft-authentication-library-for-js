@@ -58,7 +58,7 @@ import { LoggerOptions } from '@azure/msal-common/node';
 import { LogLevel } from '@azure/msal-common/node';
 import { NetworkRequestOptions } from '@azure/msal-common/node';
 import { NetworkResponse } from '@azure/msal-common/node';
-import { PkceCodes } from '@azure/msal-common/node';
+import type { PkceCodes } from '@azure/msal-common/node';
 import { ProtocolMode } from '@azure/msal-common/node';
 import { RefreshTokenCache } from '@azure/msal-common/node';
 import { RefreshTokenEntity } from '@azure/msal-common/node';
@@ -92,6 +92,7 @@ export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeReque
     scopes: Array<string>;
     redirectUri: string;
     code: string;
+    nonce?: string;
     state?: string;
 };
 
@@ -169,14 +170,13 @@ export class CryptoProvider implements ICrypto {
     base64Decode(input: string): string;
     base64Encode(input: string): string;
     base64UrlEncode(): string;
-    clearKeystore(): Promise<boolean>;
+    clearKeystore(correlationId: string): Promise<boolean>;
     createNewGuid(): string;
     encodeKid(): string;
     generatePkceCodes(): Promise<PkceCodes>;
-    getPublicKeyThumbprint(): Promise<string>;
     hashString(plainText: string): Promise<string>;
-    removeTokenBindingKey(): Promise<void>;
-    signJwt(): Promise<string>;
+    removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
+    signTokenBindingJwt(header: object, payload: object, kid: string, correlationId: string): Promise<string>;
 }
 
 // @internal
@@ -232,16 +232,6 @@ export interface IConfidentialClientApplication {
 
 export { IdTokenClaims }
 
-// @public
-export interface ILoopbackClient {
-    // (undocumented)
-    closeServer(): void;
-    // (undocumented)
-    getRedirectUri(): string;
-    // (undocumented)
-    listenForAuthCode(successTemplate?: string, errorTemplate?: string): Promise<AuthorizeResponse>;
-}
-
 export { INativeBrokerPlugin }
 
 export { INetworkModule }
@@ -266,7 +256,7 @@ export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "sc
     successTemplate?: string;
     errorTemplate?: string;
     windowHandle?: Buffer;
-    loopbackClient?: ILoopbackClient;
+    preferredPort?: number;
 };
 
 declare namespace internals {
@@ -574,6 +564,6 @@ export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest
 export { ValidCacheType }
 
 // @public (undocumented)
-export const version = "5.3.1";
+export const version = "6.0.0";
 
 ```

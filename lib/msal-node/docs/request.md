@@ -6,7 +6,7 @@ Since MSAL Node supports various authorization code grants, there is support for
 
 ### acquireTokenInteractive
 
-[acquireTokenInteractive()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.PublicClientApplication.html#acquireTokenInteractive): This API handles both legs of the authorization code flow. It is available for PublicClientApplication only. The request type is documented here: [InteractiveRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_node.InteractiveRequest.html). The only required parameter is a `openBrowser` callback which should accept a `url` parameter and open the browser of choice to complete the sign-in. A sample demonstrating its usage can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-cli-app)
+[acquireTokenInteractive()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.PublicClientApplication.html#acquireTokenInteractive): This API handles both legs of the authorization code flow. It is available for PublicClientApplication only. The request type is documented here: [InteractiveRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_node.InteractiveRequest.html). The only required parameter is an `openBrowser` callback which should accept a `url` parameter and open the browser of choice to complete the sign-in. When a nonce is included in the request, MSAL carries the same value into the token exchange and validates it against the ID Token nonce claim. A sample demonstrating its usage can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-cli-app)
 
 ```javascript
 import { PublicClientApplication }  from "@azure/msal-node";
@@ -46,10 +46,21 @@ pca.acquireTokenInteractive(loginRequest).then((response) => {
 getAuthCodeUrl returns a url that can be used to generate an `authorization code`. This URL can be opened in a browser of choice, where the user can input their credentials, and will be redirected back to the `redirectUri` (registered during the [app registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-desktop-app-registration)) with an `authorization code`. The `authorization code` can now be redeemed for a `token` using acquireTokenByCode, documented below. Note that if authorization code flow is being done for a public client application, we recommend using `acquireTokenInteractive` documented above, otherwise the use of [PKCE](https://tools.ietf.org/html/rfc7636) is recommended.
 
 ```javascript
+import {
+    ConfidentialClientApplication,
+    CryptoProvider,
+} from "@azure/msal-node";
+
+const cryptoProvider = new CryptoProvider();
 const authCodeUrlParameters = {
     scopes: ["sample_scope"],
     redirectUri: "your_redirect_uri",
+    nonce: cryptoProvider.createNewGuid(),
 };
+
+// Store the nonce with the authentication transaction so the same value can
+// be provided to acquireTokenByCode after the redirect.
+req.session.nonce = authCodeUrlParameters.nonce;
 
 const cca = new ConfidentialClientApplication({
     auth: { 
@@ -67,7 +78,7 @@ cca.getAuthCodeUrl(authCodeUrlParameters)
 
 ## acquireTokenByCode
 
-[acquireTokenByCode()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_node.IConfidentialClientApplication.html#acquireTokenByCode): This API is the second leg of the authorization code flow. The request is of the type [AuthorizationCodeRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_node.AuthorizationCodeRequest.html). The application should have received an `authorization code` as a part of the above step and can now exchange it for a `token`. Note that if authorization code flow is being done for a public client application, we recommend using `acquireTokenInteractive` documented above, otherwise the use of [PKCE](https://tools.ietf.org/html/rfc7636) is recommended.
+[acquireTokenByCode()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_node.IConfidentialClientApplication.html#acquireTokenByCode): This API is the second leg of the authorization code flow. The request is of the type [AuthorizationCodeRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_node.AuthorizationCodeRequest.html). The application should have received an `authorization code` as a part of the above step and can now exchange it for a `token`. If a nonce was sent in the authorization request, the same stored nonce must be provided on `AuthorizationCodeRequest`; do not generate a new nonce for the token exchange. MSAL validates that the ID Token contains a matching nonce claim. Note that if authorization code flow is being done for a public client application, we recommend using `acquireTokenInteractive` documented above, otherwise the use of [PKCE](https://tools.ietf.org/html/rfc7636) is recommended.
 
 
 ```javascript
@@ -75,6 +86,7 @@ const tokenRequest = {
     code: "authorization_code",
     redirectUri: "your_redirect_uri",
     scopes: ["sample_scope"],
+    nonce: req.session.nonce,
 };
 
 const cca = new ConfidentialClientApplication({
@@ -314,6 +326,31 @@ cca.acquireTokenByClientCredential(clientCredentialRequest)
 ```
 
 The assertion callback context (`ClientAssertionConfig`) includes `fmiPath` so that context-aware assertion callbacks can use it to acquire the correct credential for multi-leg agent flows.
+
+### Client-originated claims (`claimsFromClient`)
+
+All confidential client flows — `acquireTokenByClientCredential`, `acquireTokenOnBehalfOf`, and `acquireTokenByUserFederatedIdentityCredential` — accept an optional `claimsFromClient` parameter. It forwards **client-originated** claims to the token endpoint, sent as the `claims` parameter in the request body. The value is forwarded as-is — MSAL does not restrict which claim keys you send. When both `claims` and `claimsFromClient` are present they are **deep-merged**, with `claimsFromClient` taking precedence on conflicting keys (nested objects are merged recursively rather than replaced).
+
+Unlike `claims` (a server-issued challenge, which **bypasses** the token cache), `claimsFromClient` does **not** bypass the cache. Server `claims` can be an _ephemeral_ challenge (for example, a CAE claims challenge) that must be satisfied by a fresh network call, whereas `claimsFromClient` must be a _stable, client-supplied_ attribute (for example, a network-perimeter id) sent on every request — so instead of bypassing the cache it **partitions** it by value. Because the entry is keyed on the value, send the **same `claimsFromClient` value on every request** for which you want the cached token to be reused — a different value (or omitting it) produces a separate cache entry and a new network call. You must pass stable, non-dynamic values to avoid unbounded cache growth. Empty, whitespace-only, or empty-object (`{}`) values are ignored.
+
+**Cache growth and mitigation.** Every distinct `claimsFromClient` value produces its own cached token, so an application that sends many different values accumulates a correspondingly large number of cache entries. Keep the set of values small and stable, and in production persist the cache to an external store that you can bound or evict rather than relying on the default in-memory cache. See the [token caching guide](./caching.md) for cache serialization and distributed / evictable caching patterns.
+
+> Note: `acquireTokenByUserFederatedIdentityCredential` always calls the network, so `claimsFromClient` is forwarded on every request and does not participate in that flow's cache key (tokens are still cached, just not partitioned by `claimsFromClient`).
+
+```javascript
+const clientCredentialRequest = {
+    scopes: ["https://graph.microsoft.com/.default"],
+    claimsFromClient: '{"example_claim":{"essential":true}}',
+};
+
+cca.acquireTokenByClientCredential(clientCredentialRequest)
+    .then((response) => {
+        console.log("Response: ", response);
+    })
+    .catch((error) => {
+        console.log(JSON.stringify(error));
+    });
+```
 
 ## User Federated Identity Credential (user_fic)
 

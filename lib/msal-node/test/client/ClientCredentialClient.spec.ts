@@ -24,8 +24,6 @@ import {
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     CORS_SIMPLE_REQUEST_HEADERS,
     DEFAULT_OPENID_CONFIG_RESPONSE,
-    DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
-    DSTS_OPENID_CONFIG_RESPONSE,
     RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_TOKENS,
@@ -215,95 +213,6 @@ describe("ClientCredentialClient unit tests", () => {
         );
     });
 
-    it("acquires a token from dSTS authority", async () => {
-        const dSTSConfig: ClientConfiguration =
-            await ClientTestUtils.createTestClientConfiguration(
-                undefined,
-                mockNetworkClient(
-                    DSTS_OPENID_CONFIG_RESPONSE.body,
-                    DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
-                )
-            );
-        const client: ClientCredentialClient = new ClientCredentialClient(
-            dSTSConfig
-        );
-
-        const clientCredentialRequest: CommonClientCredentialRequest = {
-            authority: TEST_CONFIG.DSTS_VALID_AUTHORITY,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            scopes: TEST_CONFIG.DSTS_TEST_SCOPE,
-        };
-
-        const authResult = (await client.acquireToken(
-            clientCredentialRequest
-        )) as AuthenticationResult;
-        const expectedScopes = [TEST_CONFIG.DSTS_TEST_SCOPE[0]];
-        expect(authResult.scopes).toEqual(expectedScopes);
-        expect(authResult.accessToken).toEqual(
-            DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
-        );
-        expect(authResult.state).toHaveLength(0);
-
-        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
-            clientCredentialRequest
-        );
-
-        const returnVal: string = await createTokenRequestBodySpy.mock
-            .results[0].value;
-        const checks = {
-            dstsScope: true,
-            clientId: true,
-            grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
-            clientSecret: true,
-            clientSku: true,
-            clientVersion: true,
-            clientOs: true,
-            clientCpu: true,
-            appName: true,
-            appVersion: true,
-            msLibraryCapability: true,
-        };
-        checkMockedNetworkRequest(returnVal, checks);
-    });
-
-    it("acquires a token from cache when using dSTS authority", async () => {
-        const dSTSConfig: ClientConfiguration =
-            await ClientTestUtils.createTestClientConfiguration(
-                undefined,
-                mockNetworkClient(
-                    DSTS_OPENID_CONFIG_RESPONSE.body,
-                    DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
-                )
-            );
-        const client: ClientCredentialClient = new ClientCredentialClient(
-            dSTSConfig
-        );
-
-        const clientCredentialRequest: CommonClientCredentialRequest = {
-            authority: TEST_CONFIG.DSTS_VALID_AUTHORITY,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            scopes: TEST_CONFIG.DSTS_TEST_SCOPE,
-        };
-
-        // First call should return from "network" (mocked)
-        const networkAuthResult = (await client.acquireToken(
-            clientCredentialRequest
-        )) as AuthenticationResult;
-        expect(networkAuthResult.fromCache).toBe(false);
-
-        // Second call should return from cache
-        const cachedAuthResult = (await client.acquireToken(
-            clientCredentialRequest
-        )) as AuthenticationResult;
-        expect(cachedAuthResult.fromCache).toBe(true);
-        expect(cachedAuthResult.accessToken).toBe(
-            networkAuthResult.accessToken
-        );
-        expect(cachedAuthResult.expiresOn).toStrictEqual(
-            networkAuthResult.expiresOn
-        );
-    });
-
     it("Adds claims when provided", async () => {
         const client: ClientCredentialClient = new ClientCredentialClient(
             config
@@ -371,7 +280,6 @@ describe("ClientCredentialClient unit tests", () => {
         });
 
         it.each([
-            [CAE_CONSTANTS.EMPTY_CLAIMS, CAE_CONSTANTS.MERGED_EMPTY_CLAIMS],
             [
                 CAE_CONSTANTS.CLAIMS_WITH_ADDITIONAL_CLAIMS,
                 CAE_CONSTANTS.MERGED_CLAIMS_WITH_ADDITIONAL_CLAIMS,
@@ -465,6 +373,34 @@ describe("ClientCredentialClient unit tests", () => {
                 expect(authResult4.fromCache).toBe(false);
             }
         );
+
+        it("does not bypass the cache when claims is an empty object", async () => {
+            // Empty-object claims add nothing to the request body, so they must not force a
+            // network call - an otherwise-identical request should be served from the cache.
+            clientCredentialRequest.claims = CAE_CONSTANTS.EMPTY_CLAIMS;
+
+            // first request: cache miss -> network; client capabilities are still merged in
+            const authResult = (await client.acquireToken(
+                clientCredentialRequest
+            )) as AuthenticationResult;
+            expect(authResult.fromCache).toBe(false);
+            const returnVal: string = await createTokenRequestBodySpy.mock
+                .results[0].value;
+            expect(
+                decodeURIComponent(
+                    returnVal
+                        .split("&")
+                        .filter((key: string) => key.includes("claims="))[0]
+                        .split("claims=")[1]
+                )
+            ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
+
+            // second identical request: served from the cache (not bypassed)
+            const cachedAuthResult = (await client.acquireToken(
+                clientCredentialRequest
+            )) as AuthenticationResult;
+            expect(cachedAuthResult.fromCache).toBe(true);
+        });
     });
 
     it("Does not add claims when empty object provided", async () => {

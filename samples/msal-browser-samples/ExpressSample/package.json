@@ -6,6 +6,8 @@
     "scripts": {
         "start": "node server.js",
         "dev": "nodemon server.js",
+        "start:e2e": "env-cmd -f .env.e2e npm start",
+        "start:ear:e2e": "env-cmd -f .env.ear.e2e npm start",
         "test:e2e": "jest",
         "build:package": "npm run build:all --workspace=lib/msal-browser"
     },
@@ -22,6 +24,7 @@
         "jest": "^29.7.0",
         "jest-junit": "^16.0.0",
         "nodemon": "^3.1.11",
+        "selfsigned": "^5.5.0",
         "ts-jest": "^29.4.11"
     },
     "jest-junit": {

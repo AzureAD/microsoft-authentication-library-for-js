@@ -65,6 +65,7 @@ declare namespace AADServerParamKeys {
         CLIENT_ASSERTION_TYPE,
         TOKEN_TYPE,
         REQ_CNF,
+        DPOP_JKT,
         OBO_ASSERTION,
         REQUESTED_TOKEN_USE,
         ON_BEHALF_OF,
@@ -87,7 +88,8 @@ declare namespace AADServerParamKeys {
         USER_FEDERATED_IDENTITY_CREDENTIAL,
         USERNAME,
         USER_ID,
-        FMI_PATH
+        FMI_PATH,
+        ATTRIBUTE_TOKENS
     }
 }
 export { AADServerParamKeys }
@@ -188,6 +190,9 @@ export type ActiveAccountFilters = {
 function addApplicationTelemetry(parameters: Map<string, string>, appTelemetry: ApplicationTelemetry): void;
 
 // @public
+function addAttributeTokens(parameters: Map<string, string>, attributeTokens: Array<string>): void;
+
+// @public
 function addAuthorizationCode(parameters: Map<string, string>, code: string): void;
 
 // @public (undocumented)
@@ -200,7 +205,7 @@ function addCcsOid(parameters: Map<string, string>, clientInfo: ClientInfo): voi
 function addCcsUpn(parameters: Map<string, string>, loginHint: string): void;
 
 // @public
-function addClaims(parameters: Map<string, string>, correlationId: string, claims?: string, clientCapabilities?: Array<string>, skipBrokerClaims?: boolean): void;
+function addClaims(parameters: Map<string, string>, correlationId: string, claims?: string, clientCapabilities?: Array<string>, skipBrokerClaims?: boolean, claimsToMerge?: string): void;
 
 // @public
 function addCliData(parameters: Map<string, string>): void;
@@ -234,6 +239,9 @@ function addDeviceCode(parameters: Map<string, string>, code: string): void;
 
 // @public
 function addDomainHint(parameters: Map<string, string>, domainHint: string): void;
+
+// @internal
+function addDpopTokenProofHeader(headers: Record<string, string>, request: BaseAuthRequest, tokenEndpoint: string, cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager): Promise<void>;
 
 // @public
 function addEARParameters(parameters: Map<string, string>, jwk: string): void;
@@ -357,6 +365,9 @@ export type AppTokenProviderResult = {
 };
 
 // @public (undocumented)
+const ATTRIBUTE_TOKENS = "attribute_tokens";
+
+// @public (undocumented)
 const AuthClientCreateTokenRequestBody = "authClientCreateTokenRequestBody";
 
 // @public
@@ -378,6 +389,7 @@ export type AuthenticationResult = {
     idToken: string;
     idTokenClaims: object;
     accessToken: string;
+    dpopProof?: string;
     fromCache: boolean;
     expiresOn: Date | null;
     extExpiresOn?: Date;
@@ -398,6 +410,7 @@ export type AuthenticationResult = {
 const AuthenticationScheme: {
     readonly BEARER: "Bearer";
     readonly POP: "pop";
+    readonly DPOP: "DPoP";
     readonly SSH: "ssh-cert";
 };
 
@@ -543,7 +556,6 @@ const AuthorityResolveEndpointsAsync = "authorityResolveEndpointsAsync";
 export const AuthorityType: {
     readonly Default: 0;
     readonly Adfs: 1;
-    readonly Dsts: 2;
     readonly Ciam: 3;
 };
 
@@ -655,7 +667,6 @@ const AZURE_REGION_AUTO_DISCOVER_FLAG = "TryAutoDetect";
 export const AzureCloudInstance: {
     readonly None: "none";
     readonly AzurePublic: "https://login.microsoftonline.com";
-    readonly AzurePpe: "https://login.windows-ppe.net";
     readonly AzureChina: "https://login.chinacloudapi.cn";
     readonly AzureGermany: "https://login.microsoftonline.de";
     readonly AzureUsGovernment: "https://login.microsoftonline.us";
@@ -701,12 +712,14 @@ export type BaseAuthRequest = {
     storeInCache?: StoreInCache;
     scenarioId?: string;
     popKid?: string;
+    dpopJkt?: string;
     embeddedClientId?: string;
     httpMethod?: HttpMethod;
     resource?: string;
     skipBrokerClaims?: boolean;
     extraQueryParameters?: StringDict;
     extraParameters?: StringDict;
+    attributeTokens?: Array<string>;
 };
 
 // @public (undocumented)
@@ -731,7 +744,7 @@ export function buildClientInfo(rawClientInfo: string, base64Decode: (input: str
 export function buildClientInfoFromHomeAccountId(homeAccountId: string): ClientInfo;
 
 // @public
-function buildMergedClaims(claims?: string, clientCapabilities?: Array<string>, correlationId?: string): string;
+function buildMergedClaims(claims?: string, clientCapabilities?: Array<string>, correlationId?: string, claimsToMerge?: string): string;
 
 // @public (undocumented)
 export function buildStaticAuthorityOptions(authOptions: Partial<AuthorityOptions>): StaticAuthorityOptions;
@@ -789,14 +802,15 @@ declare namespace CacheHelpers {
         generateAuthorityMetadataExpiresAt,
         updateAuthorityEndpointMetadata,
         updateCloudDiscoveryMetadata,
-        isAuthorityMetadataExpired
+        isAuthorityMetadataExpired,
+        serializeAttributeTokens
     }
 }
 export { CacheHelpers }
 
 // @internal
 export abstract class CacheManager implements ICacheManager {
-    constructor(clientId: string, cryptoImpl: ICrypto, logger: Logger, performanceClient: IPerformanceClient, staticAuthorityOptions?: StaticAuthorityOptions);
+    constructor(clientId: string, cryptoImpl: ICrypto, logger: Logger, performanceClient: IPerformanceClient, staticAuthorityOptions: StaticAuthorityOptions | undefined, tokenBindingKeyManager: ITokenBindingKeyManager);
     accessTokenKeyMatchesFilter(inputKey: string, filter: CredentialFilter, keyMustContainAllScopes: boolean): boolean;
     // (undocumented)
     protected clientId: string;
@@ -805,7 +819,7 @@ export abstract class CacheManager implements ICacheManager {
     protected cryptoImpl: ICrypto;
     abstract generateAccountKey(account: AccountInfo): string;
     generateAuthorityMetadataCacheKey(authority: string): string;
-    abstract generateCredentialKey(credential: CredentialEntity): string;
+    abstract generateCredentialKey(credential: CredentialEntity, additionalCacheKeyHash?: string): string;
     getAccessToken(account: AccountInfo, request: BaseAuthRequest, tokenKeys?: TokenKeys, targetRealm?: string): AccessTokenEntity | null;
     abstract getAccessTokenCredential(accessTokenKey: string, correlationId: string): AccessTokenEntity | null;
     getAccessTokensByFilter(filter: CredentialFilter, correlationId: string): AccessTokenEntity[];
@@ -846,7 +860,7 @@ export abstract class CacheManager implements ICacheManager {
     abstract removeItem(key: string, correlationId: string): void;
     removeRefreshToken(key: string, correlationId: string): void;
     saveCacheRecord(cacheRecord: CacheRecord, correlationId: string, kmsi: boolean, apiId: number, storeInCache?: StoreInCache): Promise<void>;
-    abstract setAccessTokenCredential(accessToken: AccessTokenEntity, correlationId: string, kmsi: boolean): Promise<void>;
+    abstract setAccessTokenCredential(accessToken: AccessTokenEntity, correlationId: string, kmsi: boolean, additionalCacheKeyHash?: string): Promise<void>;
     abstract setAccount(account: AccountEntity, correlationId: string, kmsi: boolean, apiId: number): Promise<void>;
     abstract setAppMetadata(appMetadata: AppMetadataEntity, correlationId: string): void;
     abstract setAuthorityMetadata(key: string, value: AuthorityMetadataEntity, correlationId: string): void;
@@ -854,6 +868,8 @@ export abstract class CacheManager implements ICacheManager {
     abstract setRefreshTokenCredential(refreshToken: RefreshTokenEntity, correlationId: string, kmsi: boolean): Promise<void>;
     abstract setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity, correlationId: string): void;
     abstract setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity, correlationId: string): void;
+    // (undocumented)
+    protected tokenBindingKeyManager: ITokenBindingKeyManager;
     static toObject<T>(obj: T, json: object): T;
 }
 
@@ -943,6 +959,7 @@ const ClaimsRequestKeys: {
     readonly ID_TOKEN: "id_token";
     readonly SIGNIN_STATE: "signin_state";
     readonly LOGIN_HINT: "login_hint";
+    readonly TENANT_REGION_SUB_SCOPE: "tenant_region_sub_scope";
 };
 
 // @public (undocumented)
@@ -1035,6 +1052,7 @@ declare namespace ClientAuthErrorCodes {
         noAccountFound,
         noCryptoObject,
         unexpectedCredentialType,
+        dpopTokenTypeMismatch,
         tokenRefreshRequired,
         tokenClaimsCnfRequiredForSignedJwt,
         authorizationCodeMissingFromServerResponse,
@@ -1060,6 +1078,7 @@ export type ClientConfiguration = {
     storageInterface?: CacheManager;
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
+    tokenBindingKeyManager?: ITokenBindingKeyManager;
     clientCredentials?: ClientCredentials;
     libraryInfo?: LibraryInfo;
     telemetry?: TelemetryOptions;
@@ -1091,6 +1110,7 @@ declare namespace ClientConfigurationErrorCodes {
         untrustedAuthority,
         missingSshJwk,
         missingSshKid,
+        unsupportedAuthenticationScheme,
         missingNonceAuthenticationHeader,
         invalidAuthenticationHeader,
         cannotSetOIDCOptions,
@@ -1098,7 +1118,12 @@ declare namespace ClientConfigurationErrorCodes {
         authorityMismatch,
         invalidRequestMethodForEAR,
         invalidPlatformBrokerConfiguration,
-        issuerValidationFailed
+        issuerValidationFailed,
+        invalidResponseMode,
+        invalidDpopHtm,
+        invalidDpopHtu,
+        invalidDpopNonce,
+        dpopMissingResourceContext
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1163,6 +1188,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     sid?: string;
     state: string;
     platformBroker?: boolean;
+    reqCnf?: string;
 };
 
 // @internal (undocumented)
@@ -1173,6 +1199,7 @@ export type CommonClientConfiguration = {
     storageInterface: CacheManager;
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
+    tokenBindingKeyManager: ITokenBindingKeyManager;
     libraryInfo: LibraryInfo;
     telemetry: Required<TelemetryOptions>;
     serverTelemetryManager: ServerTelemetryManager | null;
@@ -1218,7 +1245,6 @@ declare namespace Constants {
         DEFAULT_AUTHORITY_HOST,
         DEFAULT_COMMON_TENANT,
         ADFS,
-        DSTS,
         AAD_INSTANCE_DISCOVERY_ENDPT,
         CIAM_AUTH_URL,
         AAD_TENANT_DOMAIN_SUFFIX,
@@ -1422,7 +1448,7 @@ const DEFAULT_AUTHORITY_HOST = "login.microsoftonline.com";
 // @public (undocumented)
 const DEFAULT_COMMON_TENANT = "common";
 
-// @public (undocumented)
+// @public
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto;
 
 // @public (undocumented)
@@ -1434,6 +1460,9 @@ export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions>;
 // @public
 const DEFAULT_THROTTLE_TIME_SECONDS: number;
 
+// @internal
+export const DEFAULT_TOKEN_BINDING_KEY_MANAGER: ITokenBindingKeyManager;
+
 // @public (undocumented)
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
 
@@ -1442,7 +1471,7 @@ export class DefaultStorageClass extends CacheManager {
     // (undocumented)
     generateAccountKey(): string;
     // (undocumented)
-    generateCredentialKey(): string;
+    generateCredentialKey(_credential: CredentialEntity, _hash?: string): string;
     // (undocumented)
     getAccessTokenCredential(): AccessTokenEntity;
     // (undocumented)
@@ -1507,7 +1536,13 @@ export type DeviceCodeResponse = {
 const DOMAIN_HINT = "domain_hint";
 
 // @public (undocumented)
-const DSTS = "dstsv2";
+const DPOP_JKT = "dpop_jkt";
+
+// @public (undocumented)
+const dpopMissingResourceContext = "dpop_missing_resource_context";
+
+// @public (undocumented)
+const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
 
 // @public (undocumented)
 const EAR_JWE_CRYPTO = "ear_jwe_crypto";
@@ -1582,6 +1617,15 @@ function generateAccountId(accountEntity: AccountEntity): string;
 // @public
 function generateAppMetadataKey(input: AppMetadataEntity): string;
 
+// @internal (undocumented)
+export type GenerateAuthenticationResultOptions = {
+    idTokenClaims?: TokenClaims;
+    requestState?: RequestStateObject;
+    serverTokenResponse?: ServerAuthorizationTokenResponse;
+    requestId?: string;
+    tokenBindingKeyManager?: ITokenBindingKeyManager;
+};
+
 // @public
 function generateAuthorityMetadataExpiresAt(): number;
 
@@ -1652,6 +1696,7 @@ const hashNotDeserialized = "hash_not_deserialized";
 const HeaderNames: {
     readonly CONTENT_TYPE: "Content-Type";
     readonly CONTENT_LENGTH: "Content-Length";
+    readonly DPOP: "DPoP";
     readonly RETRY_AFTER: "Retry-After";
     readonly CCS_HEADER: "X-AnchorMailbox";
     readonly WWWAuthenticate: "WWW-Authenticate";
@@ -1751,10 +1796,10 @@ export interface ICrypto {
     clearKeystore(correlationId: string): Promise<boolean>;
     createNewGuid(): string;
     encodeKid(inputKid: string): string;
-    getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string>;
     hashString(plainText: string): Promise<string>;
     removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
-    signJwt(payload: SignedHttpRequest, kid: string, shrOptions?: ShrOptions, correlationId?: string): Promise<string>;
+    // @internal
+    signTokenBindingJwt(header: JoseHeader, payload: object, kid: string, correlationId: string): Promise<string>;
 }
 
 // @public (undocumented)
@@ -1898,10 +1943,22 @@ const invalidCloudDiscoveryMetadata = "invalid_cloud_discovery_metadata";
 const invalidCodeChallengeMethod = "invalid_code_challenge_method";
 
 // @public (undocumented)
+const invalidDpopHtm = "invalid_dpop_htm";
+
+// @public (undocumented)
+const invalidDpopHtu = "invalid_dpop_htu";
+
+// @public (undocumented)
+const invalidDpopNonce = "invalid_dpop_nonce";
+
+// @public (undocumented)
 const invalidPlatformBrokerConfiguration = "invalid_platform_broker_configuration";
 
 // @public (undocumented)
 const invalidRequestMethodForEAR = "invalid_request_method_for_EAR";
+
+// @public (undocumented)
+const invalidResponseMode = "invalid_response_mode";
 
 // @public (undocumented)
 const invalidState = "invalid_state";
@@ -2005,6 +2062,13 @@ function isThrottlingEntity(key: string, entity?: object): boolean;
 // @public
 function isTokenExpired(expiresOn: string, offset: number): boolean;
 
+// @internal
+export interface ITokenBindingKeyManager {
+    getTokenBindingPublicKeyJwk(kid: string, correlationId: string): Promise<PublicJsonWebKey>;
+    provisionTokenBindingKey(request: TokenBindingKeyProvisioningParameters): Promise<string>;
+    removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
+}
+
 // @public
 export interface IUri {
     // (undocumented)
@@ -2025,21 +2089,33 @@ export interface IUri {
 
 // @internal (undocumented)
 export class JoseHeader {
-    constructor(options: JoseHeaderOptions);
+    constructor(options: JoseHeaderOptions & {
+        alg: string;
+    }, correlationId: string);
     // (undocumented)
-    alg?: string;
-    static getShrHeaderString(shrHeaderOptions: JoseHeaderOptions): string;
+    alg: string;
+    static getDpopHeader(dpopHeaderOptions: JoseHeaderOptions, correlationId: string): JoseHeader;
+    static getShrHeader(shrHeaderOptions: JoseHeaderOptions, correlationId: string): JoseHeader;
+    // (undocumented)
+    jwk?: PublicJsonWebKey;
     // (undocumented)
     kid?: string;
     // (undocumented)
     typ?: JsonWebTokenTypes;
 }
 
+// @internal
+export const JsonWebTokenAlgorithms: {
+    readonly ES256: "ES256";
+    readonly RS256: "RS256";
+};
+
 // @public (undocumented)
 const JsonWebTokenTypes: {
     readonly Jwt: "JWT";
     readonly Jwk: "JWK";
     readonly Pop: "pop";
+    readonly Dpop: "dpop+jwt";
 };
 
 // @public (undocumented)
@@ -2191,6 +2267,8 @@ const networkError = "network_error";
 export type NetworkRequestOptions = {
     headers?: Record<string, string>;
     body?: string;
+    correlationId?: string;
+    performanceClient?: IPerformanceClient;
 };
 
 // @public (undocumented)
@@ -2364,6 +2442,8 @@ export type PerformanceEvent = {
     requestId?: string;
     cacheLookupPolicy?: number | undefined;
     cacheOutcome?: number;
+    tokenBindingKeyType?: string;
+    tokenBindingKeyAlgorithm?: string;
     incompleteSubMeasurements?: Map<string, SubMeasurement>;
     visibilityChangeCount?: number;
     onlineStatusChangeCount?: number;
@@ -2375,6 +2455,7 @@ export type PerformanceEvent = {
     isRedirectUriCrossOrigin?: boolean;
     redirectBridgeMessageVersion?: number;
     lateResponseExperimentEnabled?: boolean;
+    fetchRetryCount?: number;
     idTokenSize?: number;
     accessTokenSize?: number;
     refreshTokenSize?: number | undefined;
@@ -2450,7 +2531,10 @@ export type PerformanceEvent = {
     removeTokenBindingKeyFailure?: number;
     silentRefreshReason?: string;
     deduped?: boolean;
+    hasAttributeTokens?: boolean;
+    dpopTokenTypeMismatch?: string;
     kmsi?: boolean;
+    regionSubScope?: string;
     ssoCapable?: boolean;
     isBackground?: boolean;
     preMigrateAcntCount?: number;
@@ -2565,7 +2649,7 @@ const PopTokenGenerateCnf = "popTokenGenerateCnf";
 
 // @internal (undocumented)
 export class PopTokenGenerator {
-    constructor(cryptoUtils: ICrypto, performanceClient: IPerformanceClient);
+    constructor(cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager, performanceClient: IPerformanceClient);
     generateCnf(request: SignedHttpRequestParameters, logger: Logger): Promise<ReqCnfData>;
     generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf>;
     signPayload(payload: string, keyId: string, request: SignedHttpRequestParameters, claims?: object): Promise<string>;
@@ -2611,6 +2695,21 @@ declare namespace ProtocolUtils {
         parseRequestState
     }
 }
+
+// @internal
+export type PublicJsonWebKey = {
+    alg?: string;
+    crv?: string;
+    e?: string;
+    ext?: boolean;
+    key_ops?: string[];
+    kid?: string;
+    kty?: string;
+    n?: string;
+    use?: string;
+    x?: string;
+    y?: string;
+};
 
 // @public (undocumented)
 const REDIRECT_URI = "redirect_uri";
@@ -2766,7 +2865,8 @@ declare namespace RequestParameterBuilder {
         addLogoutHint,
         addBrokerParameters,
         addEARParameters,
-        addResource
+        addResource,
+        addAttributeTokens
     }
 }
 
@@ -2791,6 +2891,7 @@ export type RequestThumbprint = {
     shrOptions?: ShrOptions;
     embeddedClientId?: string;
     resource?: string;
+    attributeTokens?: string;
 };
 
 // @public (undocumented)
@@ -2810,8 +2911,8 @@ const RESPONSE_TYPE = "response_type";
 
 // @internal
 export class ResponseHandler {
-    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null);
-    static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, idTokenClaims?: TokenClaims, requestState?: RequestStateObject, serverTokenResponse?: ServerAuthorizationTokenResponse, requestId?: string): Promise<AuthenticationResult>;
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, tokenBindingKeyManager?: ITokenBindingKeyManager);
+    static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, options?: GenerateAuthenticationResultOptions): Promise<AuthenticationResult>;
     handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
     validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse, correlationId: string, refreshAccessToken?: boolean): void;
 }
@@ -2857,6 +2958,9 @@ export class ScopeSet {
 
 // @internal
 function sendPostRequest<T extends ServerAuthorizationTokenResponse>(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions, correlationId: string, cacheManager: CacheManager, networkClient: INetworkModule, logger: Logger, performanceClient: IPerformanceClient): Promise<NetworkResponse<T>>;
+
+// @public
+function serializeAttributeTokens(attributeTokens?: Array<string>): string | undefined;
 
 // @public (undocumented)
 const SERVER_TELEM_CACHE_KEY: string;
@@ -3006,7 +3110,7 @@ export type SignedHttpRequest = {
     client_claims?: string;
 };
 
-// @public (undocumented)
+// @public
 export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequestMethod" | "resourceRequestUri" | "shrClaims" | "shrNonce" | "shrOptions"> & {
     correlationId: string;
 };
@@ -3205,6 +3309,13 @@ function toDateFromSeconds(seconds: number | string | undefined): Date;
 const TOKEN_TYPE = "token_type";
 
 // @public
+export type TokenBindingKeyProvisioningParameters = {
+    tokenBindingKeyType: string;
+    tokenBindingKeyAlgorithm: string;
+    correlationId: string;
+};
+
+// @public
 export class TokenCacheContext {
     constructor(tokenCache: ISerializableTokenCache, hasChanged: boolean);
     cache: ISerializableTokenCache;
@@ -3271,6 +3382,7 @@ const tokenParsingError = "token_parsing_error";
 declare namespace TokenProtocol {
     export {
         createTokenRequestHeaders,
+        addDpopTokenProofHeader,
         createTokenQueryParameters,
         executePostToTokenEndpoint,
         sendPostRequest
@@ -3294,6 +3406,9 @@ const unexpectedCredentialType = "unexpected_credential_type";
 
 // @public
 const unexpectedError = "unexpected_error";
+
+// @public (undocumented)
+const unsupportedAuthenticationScheme = "unsupported_authentication_scheme";
 
 // @public (undocumented)
 const untrustedAuthority = "untrusted_authority";
@@ -3374,7 +3489,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.11.0";
+export const version = "16.14.0";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;

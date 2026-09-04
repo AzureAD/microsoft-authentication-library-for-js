@@ -1,8 +1,87 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 30 Jun 2026 21:04:20 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 28 Aug 2026 21:29:53 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 6.0.0
+
+Fri, 28 Aug 2026 21:29:53 GMT
+
+### Major changes
+
+- [Breaking] Default acquireTokenInteractive responseMode to form_post and remove the deprecated loopbackClient option and ILoopbackClient interface (v6) [#8779](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8779) (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v16.14.0
+
+### Minor changes
+
+- Enable support for tenant_region_subscope optional claim [#8765](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8765) (kshabelko@microsoft.com)
+- Align node storage with explicit DPoP token-binding key manager wiring [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735) (hectormmg@microsoft.com)
+
+### Patches
+
+- Validate Node consumers without DOM typings during type builds [#8784](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8784) (hectormmg@microsoft.com)
+
+## 5.6.0
+
+Tue, 18 Aug 2026 20:10:56 GMT
+
+### Minor changes
+
+- Add Azure Arc user-assigned managed identity support: forward the client_id/object_id/msi_res_id selector and fail closed when the token response does not confirm the requested identity [#8761](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8761) (90415114+gladjohn@users.noreply.github.com)
+- Align node token-binding stubs with the keyId-only DPoP key contract [#8708](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8708) (hectormmg@microsoft.com)
+- Bump @azure/msal-common to v16.13.0
+
+### Patches
+
+- Validate the ID Token nonce against the nonce supplied on authorization code requests [#8763](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8763) (joarroyo@microsoft.com)
+
+## 5.5.0
+
+Tue, 04 Aug 2026 20:17:38 GMT
+
+### Minor changes
+
+- Add `claimsFromClient` request parameter to forward client-originated claims to IDP  [#8686](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8686) (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v16.12.0
+
+### Patches
+
+- Add attribute-tokens support [#8700](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8700) (spingale@microsoft.com)
+- Use length-prefix encoding for the additional cache key hash to prevent credential cache-key collisions [#8713](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8713) (nichoudhary@microsoft.com)
+
+## 5.4.3
+
+Wed, 29 Jul 2026 00:26:31 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.11.3
+
+## 5.4.2
+
+Tue, 21 Jul 2026 22:25:04 GMT
+
+### Patches
+
+- Upgrade Azure Arc HIMDS token endpoint api-version from 2019-11-01 to 2020-06-01 [#8711](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8711) (gladjohn@microsoft.com)
+
+## 5.4.1
+
+Wed, 15 Jul 2026 22:35:35 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.11.2
+
+## 5.4.0
+
+Tue, 07 Jul 2026 22:16:01 GMT
+
+### Minor changes
+
+- Add form_post response mode support, preferredPort option, and deprecate custom loopbackClient [#8694](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8694) (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v16.11.1
 
 ## 5.3.1
 
@@ -964,7 +1043,7 @@ Mon, 07 Aug 2023 18:15:15 GMT
 -   Update MSAL Node compatible versions to include Node v20 and drop v16 #5905 (hemoral@microsoft.com)
 -   Remove `null` from `acquireTokenSilent` return type #5912 (thomas.norling@microsoft.com)
 -   Fix prepack hook #5967 (kshabelko@microsoft.com)
--   Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
+-   Fix: Legacy authority token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
 -   Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805 (rginsburg@microsoft.com)
 -   `removeAccount` does not throw if account does not exist in cache #5911 (thomas.norling@microsoft.com)
 -   Remove unused enum (thomas.norling@microsoft.com)

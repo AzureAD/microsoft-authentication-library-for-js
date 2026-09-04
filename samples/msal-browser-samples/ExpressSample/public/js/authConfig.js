@@ -3,9 +3,11 @@
  * See LICENSE in the source repository root for complete license information.
  */
 
+import { earConfig, isEarEnabled } from './earConfig.js';
+
 // Function to create MSAL configuration - only called after environment validation
 export function createMsalConfig() {
-    return {
+    const msalConfig = {
         auth: {
             clientId: window.envConfig.CLIENT_ID,
             authority: window.envConfig.AUTHORITY,
@@ -42,6 +44,19 @@ export function createMsalConfig() {
             },
         }
     };
+
+    // ?ear=true -> apply EAR flow config (earConfig.js) and force EAR protocol.
+    if (isEarEnabled()) {
+        msalConfig.auth.clientId = earConfig.auth.clientId;
+        msalConfig.auth.authority = earConfig.auth.authority;
+        msalConfig.auth.redirectUri = earConfig.auth.redirectUri;
+        msalConfig.auth.postLogoutRedirectUri = earConfig.auth.postLogoutRedirectUri;
+        msalConfig.cache.cacheLocation = earConfig.cache.cacheLocation;
+        msalConfig.system.allowPlatformBroker = earConfig.system.allowPlatformBroker;
+        msalConfig.system.protocolMode = msal.ProtocolMode.EAR;
+    }
+
+    return msalConfig;
 };
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.

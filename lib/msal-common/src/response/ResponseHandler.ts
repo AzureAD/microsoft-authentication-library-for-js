@@ -28,6 +28,11 @@ import * as AccountEntityUtils from "../cache/utils/AccountEntityUtils.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import { ICrypto } from "../crypto/ICrypto.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
+import { DpopProofGenerator } from "../crypto/DpopProofGenerator.js";
+import {
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+    ITokenBindingKeyManager,
+} from "../crypto/ITokenBindingKeyManager.js";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
@@ -49,6 +54,15 @@ import { AuthenticationResult } from "./AuthenticationResult.js";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
 
+/** @internal */
+export type GenerateAuthenticationResultOptions = {
+    idTokenClaims?: TokenClaims;
+    requestState?: RequestStateObject;
+    serverTokenResponse?: ServerAuthorizationTokenResponse;
+    requestId?: string;
+    tokenBindingKeyManager?: ITokenBindingKeyManager;
+};
+
 /**
  * Class that handles response parsing.
  * @internal
@@ -57,6 +71,7 @@ export class ResponseHandler {
     private clientId: string;
     private cacheStorage: CacheManager;
     private cryptoObj: ICrypto;
+    private tokenBindingKeyManager: ITokenBindingKeyManager;
     private logger: Logger;
     private homeAccountIdentifier: string;
     private performanceClient: IPerformanceClient;
@@ -70,11 +85,13 @@ export class ResponseHandler {
         logger: Logger,
         performanceClient: IPerformanceClient,
         serializableCache: ISerializableTokenCache | null,
-        persistencePlugin: ICachePlugin | null
+        persistencePlugin: ICachePlugin | null,
+        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER
     ) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
         this.cryptoObj = cryptoObj;
+        this.tokenBindingKeyManager = tokenBindingKeyManager;
         this.logger = logger;
         this.performanceClient = performanceClient;
         this.serializableCache = serializableCache;
@@ -236,7 +253,43 @@ export class ResponseHandler {
 
         // Add keyId from request to serverTokenResponse if defined
         serverTokenResponse.key_id =
-            serverTokenResponse.key_id || request.sshKid || undefined;
+            serverTokenResponse.key_id ||
+            request.dpopJkt ||
+            request.sshKid ||
+            undefined;
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            if (
+                serverTokenResponse.token_type?.toLowerCase() !==
+                Constants.AuthenticationScheme.DPOP.toLowerCase()
+            ) {
+                this.performanceClient?.addFields(
+                    {
+                        dpopTokenTypeMismatch: serverTokenResponse.token_type,
+                    },
+                    request.correlationId
+                );
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.dpopTokenTypeMismatch,
+                    request.correlationId
+                );
+            }
+            serverTokenResponse.token_type =
+                Constants.AuthenticationScheme.DPOP;
+        }
+
+        // Compute components once for entity storage (fallback if hash not provided by client)
+        const attributeTokenPartition = CacheHelpers.serializeAttributeTokens(
+            request.attributeTokens
+        );
+        const cacheKeyComponents: Record<string, string> | undefined =
+            additionalCacheKeyComponents ??
+            (attributeTokenPartition
+                ? {
+                      attribute_tokens: attributeTokenPartition,
+                  }
+                : undefined);
 
         const cacheRecord = this.generateCacheRecord(
             serverTokenResponse,
@@ -246,7 +299,7 @@ export class ResponseHandler {
             idTokenClaims,
             userAssertionHash,
             authCodePayload,
-            additionalCacheKeyComponents
+            cacheKeyComponents
         );
         let cacheContext;
         try {
@@ -298,10 +351,12 @@ export class ResponseHandler {
                         false,
                         request,
                         this.performanceClient,
-                        idTokenClaims,
-                        requestStateObj,
-                        undefined,
-                        serverRequestId
+                        {
+                            idTokenClaims,
+                            requestState: requestStateObj,
+                            requestId: serverRequestId,
+                            tokenBindingKeyManager: this.tokenBindingKeyManager,
+                        }
                     );
                 }
             }
@@ -333,10 +388,13 @@ export class ResponseHandler {
             false,
             request,
             this.performanceClient,
-            idTokenClaims,
-            requestStateObj,
-            serverTokenResponse,
-            serverRequestId
+            {
+                idTokenClaims,
+                requestState: requestStateObj,
+                serverTokenResponse,
+                requestId: serverRequestId,
+                tokenBindingKeyManager: this.tokenBindingKeyManager,
+            }
         );
     }
 
@@ -522,19 +580,26 @@ export class ResponseHandler {
         fromTokenCache: boolean,
         request: BaseAuthRequest,
         performanceClient: IPerformanceClient,
-        idTokenClaims?: TokenClaims,
-        requestState?: RequestStateObject,
-        serverTokenResponse?: ServerAuthorizationTokenResponse,
-        requestId?: string
+        options: GenerateAuthenticationResultOptions = {}
     ): Promise<AuthenticationResult> {
+        const {
+            idTokenClaims,
+            requestState,
+            serverTokenResponse,
+            requestId,
+            tokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+        } = options;
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
         let refreshOn: Date | undefined;
         let familyId: string = "";
+        let dpopProof: string | undefined;
 
         if (cacheRecord.accessToken) {
+            const accessTokenType =
+                cacheRecord.accessToken.tokenType?.toLowerCase();
             /*
              * if the request object has `popKid` property, `signPopToken` will be set to false and
              * the token will be returned unsigned
@@ -545,7 +610,11 @@ export class ResponseHandler {
                 !request.popKid
             ) {
                 const popTokenGenerator: PopTokenGenerator =
-                    new PopTokenGenerator(cryptoObj, performanceClient);
+                    new PopTokenGenerator(
+                        cryptoObj,
+                        tokenBindingKeyManager,
+                        performanceClient
+                    );
                 const { secret, keyId } = cacheRecord.accessToken;
 
                 if (!keyId) {
@@ -562,6 +631,30 @@ export class ResponseHandler {
                 );
             } else {
                 accessToken = cacheRecord.accessToken.secret;
+            }
+            if (
+                accessTokenType ===
+                Constants.AuthenticationScheme.DPOP.toLowerCase()
+            ) {
+                if (!cacheRecord.accessToken.keyId) {
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.keyIdMissing,
+                        request.correlationId
+                    );
+                }
+                const dpopProofGenerator = new DpopProofGenerator(
+                    cryptoObj,
+                    tokenBindingKeyManager
+                );
+                dpopProof = await dpopProofGenerator.generateResourceProof(
+                    {
+                        htu: request.resourceRequestUri,
+                        htm: request.resourceRequestMethod,
+                        accessToken: cacheRecord.accessToken.secret,
+                    },
+                    cacheRecord.accessToken.keyId,
+                    request.correlationId
+                );
             }
             responseScopes = ScopeSet.fromString(
                 cacheRecord.accessToken.target,
@@ -589,6 +682,19 @@ export class ResponseHandler {
         }
         const uid = idTokenClaims?.oid || idTokenClaims?.sub || "";
         const tid = idTokenClaims?.tid || "";
+
+        /*
+         * Surface the sovereign enclave for telemetry. This runs for both freshly acquired
+         * and cache-served tokens because SilentFlowClient shares this method, so the field
+         * is present on silent requests that never hit the network.
+         */
+        const regionSubScope = idTokenClaims?.tenant_region_sub_scope;
+        if (typeof regionSubScope === "string") {
+            performanceClient?.addFields(
+                { regionSubScope },
+                request.correlationId
+            );
+        }
 
         // for hybrid + native bridge enablement, send back the native account Id
         if (serverTokenResponse?.spa_accountid && !!cacheRecord.account) {
@@ -626,6 +732,7 @@ export class ResponseHandler {
             idToken: cacheRecord?.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,
+            dpopProof,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
             extExpiresOn: extExpiresOn,
@@ -633,7 +740,11 @@ export class ResponseHandler {
             correlationId: request.correlationId,
             requestId: requestId || "",
             familyId: familyId,
-            tokenType: cacheRecord.accessToken?.tokenType || "",
+            tokenType:
+                cacheRecord.accessToken?.tokenType?.toLowerCase() ===
+                Constants.AuthenticationScheme.DPOP.toLowerCase()
+                    ? Constants.AuthenticationScheme.DPOP
+                    : cacheRecord.accessToken?.tokenType || "",
             state: requestState ? requestState.userRequestState : "",
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || "",
             msGraphHost: cacheRecord.account?.msGraphHost || "",

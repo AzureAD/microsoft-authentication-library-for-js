@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { MsalBroadcastService, MsalService } from '@azure/msal-angular';
 import {
@@ -16,30 +17,32 @@ import { filter } from 'rxjs/operators';
     imports: []
 })
 export class HomeComponent implements OnInit {
-  loginDisplay = false;
+  private authService = inject(MsalService);
+  private msalBroadcastService = inject(MsalBroadcastService);
+  private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
 
-  constructor(
-    private authService: MsalService,
-    private msalBroadcastService: MsalBroadcastService
-  ) {}
+  loginDisplay = false;
 
   ngOnInit(): void {
     this.msalBroadcastService.msalSubject$
       .pipe(
-        filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS)
+        filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe((result: EventMessage) => {
-        console.log(result);
         const payload = result.payload as AuthenticationResult;
         this.authService.instance.setActiveAccount(payload.account);
       });
 
     this.msalBroadcastService.inProgress$
       .pipe(
-        filter((status: InteractionStatus) => status === InteractionStatus.None)
+        filter((status: InteractionStatus) => status === InteractionStatus.None),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
         this.setLoginDisplay();
+        this.cdr.detectChanges();
       });
   }
 

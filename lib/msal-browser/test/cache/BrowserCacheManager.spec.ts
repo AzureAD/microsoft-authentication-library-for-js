@@ -4972,6 +4972,40 @@ describe("BrowserCacheManager tests", () => {
             expect(codeVerifier).toEqual(TEST_CONFIG.TEST_VERIFIER);
         });
 
+        it("Preserves DPoP key id when retrieving request from cache", async () => {
+            const browserStorage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            const tokenRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
+                scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: `${RANDOM_TEST_GUID}`,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                state: TEST_CONFIG.STATE,
+                nonce: RANDOM_TEST_GUID,
+                dpopJkt: "test-dpop-jkt",
+            };
+
+            browserStorage.cacheAuthorizeRequest(
+                tokenRequest,
+                TEST_CONFIG.CORRELATION_ID,
+                TEST_CONFIG.TEST_VERIFIER
+            );
+
+            const [cachedRequest, codeVerifier] =
+                browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID);
+            expect(cachedRequest).toEqual(tokenRequest);
+            expect(cachedRequest.dpopJkt).toBe("test-dpop-jkt");
+            expect(codeVerifier).toEqual(TEST_CONFIG.TEST_VERIFIER);
+        });
+
         it("Throws error if request cannot be retrieved from cache", async () => {
             const browserStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
@@ -5030,6 +5064,82 @@ describe("BrowserCacheManager tests", () => {
                     ""
                 )
             );
+        });
+    });
+
+    describe("generateCredentialKey attribute-token partition segment", () => {
+        let browserCacheManager: BrowserCacheManager;
+        beforeEach(() => {
+            browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+        });
+
+        it("does not append segment when entity has no additionalCacheKeyComponents", () => {
+            const keyWithoutHash = browserCacheManager.generateCredentialKey(
+                TEST_ACCESS_TOKEN_ENTITY
+            );
+            const keyWithHash = browserCacheManager.generateCredentialKey(
+                TEST_ACCESS_TOKEN_ENTITY,
+                "precomputed-hash"
+            );
+
+            // When additionalCacheKeyComponents is absent, the optional hash
+            // parameter must be ignored and key shape must remain unchanged.
+            expect(keyWithHash).toBe(keyWithoutHash);
+        });
+
+        it("appends hash passed as parameter when present", () => {
+            const partitioned = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                additionalCacheKeyComponents: {
+                    attribute_tokens: "alpha zeta",
+                },
+            };
+            const key = browserCacheManager.generateCredentialKey(
+                partitioned,
+                "precomputed-hash-abc"
+            );
+            expect(key.endsWith("precomputed-hash-abc")).toBe(true);
+        });
+
+        it("omits appended segment when hash param is not passed", () => {
+            const partitionedNoHash = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                additionalCacheKeyComponents: {
+                    attribute_tokens: "alpha",
+                },
+            };
+            const noHashKey =
+                browserCacheManager.generateCredentialKey(partitionedNoHash);
+            const withHashKey = browserCacheManager.generateCredentialKey(
+                partitionedNoHash,
+                "hash-xyz"
+            );
+            expect(withHashKey).not.toBe(noHashKey);
+            expect(withHashKey.endsWith("hash-xyz")).toBe(true);
+        });
+
+        it("produces distinct keys for bearer vs partitioned entity", () => {
+            const bearerKey = browserCacheManager.generateCredentialKey(
+                TEST_ACCESS_TOKEN_ENTITY
+            );
+            const partitioned = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                additionalCacheKeyComponents: {
+                    attribute_tokens: "alpha",
+                },
+            };
+            const attrKey = browserCacheManager.generateCredentialKey(
+                partitioned,
+                "hash-1"
+            );
+            expect(bearerKey).not.toBe(attrKey);
         });
     });
 });
