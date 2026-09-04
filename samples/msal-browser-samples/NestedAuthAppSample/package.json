@@ -6,13 +6,14 @@
     "scripts": {
         "start": "node server.js",
         "start:https": "node server.js --https",
-        "start:e2e": "env-cmd -f .env.e2e npm run start:https",
         "start:all": "node server.js",
         "start:build": "npm run build:package && npm start",
         "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-browser",
         "test:e2e": "jest",
         "test:e2e:basic": "jest naa-basic",
-        "test:e2e:broker": "jest naa-platform-broker"
+        "test:e2e:broker": "jest naa-platform-broker",
+        "test:e2e:ear": "env-cmd -f .env.e2e jest naa-basic -t EAR",
+        "test:e2e:ear-broker": "jest naa-platform-broker -t EAR"
     },
     "workspaces": [
         "hostApp",
@@ -21,7 +22,6 @@
     "devDependencies": {
         "@types/jest": "^29.5.0",
         "@vitejs/plugin-basic-ssl": "^2.3.0",
-        "@vitejs/plugin-react": "^4.3.3",
         "dotenv": "^16.6.1",
         "e2e-test-utils": "file:../../e2eTestUtils",
         "env-cmd": "^10.1.0",
@@ -29,10 +29,7 @@
         "jest-junit": "^16.0.0",
         "playwright-core": "^1.61.1",
         "puppeteer": "^24.2.1",
-        "react": "^19.2.1",
-        "react-dom": "^19.2.1",
         "ts-jest": "^29.1.1",
-        "typescript": "5.7.3",
-        "vite": "^5.4.11"
+        "typescript": "5.7.3"
     }
 }
