@@ -275,14 +275,10 @@ function runBasicNaaSuite(
             }
 
             // Nested app must not hold a refresh token — it stays with the host/broker.
-            const nestedCachePage = await context.newPage();
-            await nestedCachePage.goto(
-                `${protocol}://localhost:${nestedPort}${
-                    ear ? "/?ear=true" : ""
-                }`
-            );
+            // The nested app caches to sessionStorage, which is scoped to the iframe's
+            // browsing context, so read it from the frame directly.
             const nestedCache = new BrowserCacheUtils(
-                nestedCachePage,
+                nestedFrame as unknown as Page,
                 "sessionStorage"
             );
             await verifyNestedTokenStore(nestedCache, ["User.Read"]);

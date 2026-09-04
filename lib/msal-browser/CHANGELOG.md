@@ -1,8 +1,31 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 18 Aug 2026 20:10:56 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 02 Sep 2026 21:15:30 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.21.0
+
+Wed, 02 Sep 2026 21:15:30 GMT
+
+### Minor changes
+
+- Validate the relayed request in runPopupRelay before navigating and add an optional allowedAuthorityOrigins pin [#8800](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8800) (kshabelko@microsoft.com)
+
+## 5.20.0
+
+Fri, 28 Aug 2026 21:29:53 GMT
+
+### Minor changes
+
+- Enable browser-native PublicClientApplication DPoP acquisition flows [#8735](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8735) (hectormmg@microsoft.com)
+- Export IWebBrokerBridgeMessage from the msal-browser package root [#8780](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8780) (shylasummers@microsoft.com)
+- Bump @azure/msal-common to v16.14.0
+
+### Patches
+
+- Discard local storage events from another client ids [#8795](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8795) (kshabelko@microsoft.com)
+- Relocate the cross-version request adapter into the shared webBrokerBridge module without changing request transformation behavior [#8771](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8771) (shylasummers@microsoft.com)
 
 ## 5.19.0
 

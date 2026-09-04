@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Relocate the cross-version request adapter into the shared webBrokerBridge module without changing request transformation behavior [#8771](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8771)",
-    "packageName": "@azure/msal-browser",
-    "email": "shylasummers@microsoft.com",
-    "dependentChangeType": "patch"
-}
