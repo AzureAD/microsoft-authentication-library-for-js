@@ -451,6 +451,30 @@ const databaseUnavailable = "database_unavailable";
 // @public (undocumented)
 export const DEFAULT_IFRAME_TIMEOUT_MS = 10000;
 
+// @public
+export class DpopProofSigner {
+    constructor(options?: DpopProofSignerOptions);
+    generatePublicKeyThumbprint(correlationId?: string): Promise<string>;
+    signResourceRequest(parameters: {
+        accessToken: string;
+        resourceRequestUri?: string;
+        resourceRequestMethod?: string;
+        resourceRequestNonce?: string;
+        correlationId: string;
+    }, publicKeyThumbprint: string): Promise<string>;
+    signTokenRequest(parameters: {
+        tokenEndpoint: string;
+        correlationId: string;
+        nonce?: string;
+    }, publicKeyThumbprint: string): Promise<string>;
+}
+
+// @public (undocumented)
+export type DpopProofSignerOptions = {
+    logger?: Logger;
+    loggerOptions?: LoggerOptions;
+};
+
 // @public (undocumented)
 const earJweEmpty = "ear_jwe_empty";
 
@@ -702,6 +726,8 @@ export interface IPublicClientApplication {
     removeEventCallback(callbackId: string): void;
     // (undocumented)
     removePerformanceCallback(callbackId: string): boolean;
+    // @internal (undocumented)
+    resolveTokenEndpoint(request: TokenEndpointResolutionRequest): Promise<string>;
     // (undocumented)
     setActiveAccount(account: AccountInfo | null): void;
     // (undocumented)
@@ -710,6 +736,8 @@ export interface IPublicClientApplication {
     setNavigationClient(navigationClient: INavigationClient): void;
     // (undocumented)
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
+    // @internal (undocumented)
+    validateTokenEndpoint(request: TokenEndpointValidationRequest): Promise<string>;
 }
 
 // @public
@@ -859,6 +887,8 @@ const nonBrowserEnvironment = "non_browser_environment";
 // @public (undocumented)
 const noNetworkConnectivity = "no_network_connectivity";
 
+export { normalizeDpopHtu }
+
 // @public (undocumented)
 const noStateInHash = "no_state_in_hash";
 
@@ -975,10 +1005,14 @@ export class PublicClientApplication implements IPublicClientApplication {
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
     removeEventCallback(callbackId: string): void;
     removePerformanceCallback(callbackId: string): boolean;
+    // @internal
+    resolveTokenEndpoint(request: TokenEndpointResolutionRequest): Promise<string>;
     setActiveAccount(account: AccountInfo | null): void;
     setLogger(logger: Logger): void;
     setNavigationClient(navigationClient: INavigationClient): void;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
+    // @internal
+    validateTokenEndpoint(request: TokenEndpointValidationRequest): Promise<string>;
     // @internal
     protected waitForIframeResponse(iframe: HTMLIFrameElement, request: WaitForIframeRequest): Promise<string>;
     // @internal
@@ -1106,6 +1140,20 @@ const tokenBindingKeyAlgorithmMismatch = "token_binding_key_algorithm_mismatch";
 
 // @public (undocumented)
 const tokenBindingKeyJwkThumbprintMismatch = "token_binding_key_jwk_thumbprint_mismatch";
+
+// @public (undocumented)
+export type TokenEndpointResolutionRequest = {
+    authority?: string;
+    azureCloudOptions?: AzureCloudOptions;
+    extraQueryParameters?: StringDict;
+    account?: AccountInfo;
+    correlationId: string;
+};
+
+// @internal
+export type TokenEndpointValidationRequest = TokenEndpointResolutionRequest & {
+    candidateTokenEndpoint: string;
+};
 
 // @public (undocumented)
 const unableToAcquireTokenFromNativePlatform = "unable_to_acquire_token_from_native_platform";

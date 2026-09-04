@@ -832,6 +832,14 @@ export class NestedAppAuthController implements IController {
         return this.config;
     }
 
+    resolveTokenEndpoint(): Promise<string> {
+        return Promise.reject(NestedAppAuthError.createUnsupportedError());
+    }
+
+    validateTokenEndpoint(): Promise<string> {
+        return Promise.reject(NestedAppAuthError.createUnsupportedError());
+    }
+
     isBrowserEnv(): boolean {
         return this.operatingContext.isBrowserEnvironment();
     }
