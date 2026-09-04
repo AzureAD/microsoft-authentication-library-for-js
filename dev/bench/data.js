@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788462414894,
+  "lastUpdate": 1788545321337,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23277,6 +23277,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.88%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fc0c26375a09314a7ef7dd22dcc04b4b948b85ed",
+          "message": "test(naa): platform-broker (JS-WAM) e2e for every nestable token API (#8785)\n\n## Summary\n\nAdds a Nested App Authentication (NAA) e2e suite for the\n`NestedAuthAppSample`, split into two specs that mirror the\nExpressSample EAR pattern:\n\n- **`naa-basic.spec.ts`** — the existing NAA web-flow coverage (no\nplatform broker). Runs in CI.\n- **`naa-platform-broker.spec.ts`** — exercises **every MSAL token API a\nnestable public client supports**, driving each one through the host's\nNAA bridge to the **platform broker (JS-WAM)** rather than the web\nfallback. Excluded from CI (see below); run locally on a WAM-enabled\nmachine.\n\nBoth specs run under the sample's **default jest config** — the broker\nspec is self-contained (spawns its own `.env` HTTPS server and\nPlaywright browser in `beforeAll`), so there is no separate jest config.\n\n### Platform-broker token-API coverage\n\n| Token API | Bridge method | Expectation |\n|---|---|---|\n| `acquireTokenSilent` | `GetToken` | brokered token, no refresh token |\n| `ssoSilent` | `GetToken` | brokered token, no refresh token |\n| `acquireTokenPopup` | `GetTokenPopup` | brokered token, no refresh\ntoken |\n| `loginPopup` | `GetTokenPopup` | brokered token, no refresh token |\n| `acquireTokenRedirect` | — (unsupported) | throws `NestedAppAuthError`\n(`unsupported_method`) |\n\nThe **broker signature** — proving tokens came from the OS broker rather\nthan the web flow — is asserted by a **zero-refresh-token** host cache\nand nested cache (the broker holds the RT).\n\nRedirect is intentionally kept as a covered API:\n`NestedAppAuthController` does not support it, so the suite asserts it\n**rejects with the expected error and mints/drops no tokens** rather\nthan omitting it. (`loginRedirect` / `acquireTokenByCode` are likewise\nunsupported and out of scope here.)\n\n## Why a separate broker harness\n\nThe real platform broker only engages with **branded Chrome + the\nforce-installed Microsoft SSO extension**\n(`ppnbnpeolgkicgegkbkbjmhlideopiji`), which the shared jest-puppeteer\nharness cannot load. `test/brokerHarness.ts` drives branded Chrome via\nPlaywright's `launchPersistentContext`, stripping the default flags so\nmachine policy force-installs the extension into a throwaway profile. It\nis imported **only** by the platform-broker spec.\n\n## CI behavior\n\n- `.pipelines/3p-e2e.yml` runs the `NestedAuthAppSample` with\n`testFilter: \"naa-basic\"`, so **only the basic spec runs in CI** and the\nplatform-broker spec is excluded.\n- The platform-broker spec has no CI footprint (the hosted pool has no\nWAM); it runs only on a self-hosted, AAD-joined, WAM-enabled Windows\nagent.\n- A companion 1P PR enables the basic NAA tests in the 3P release\npipeline.\n\n## Running locally\n\n```\ncd samples/msal-browser-samples/NestedAuthAppSample\nnpm run test:e2e:basic    # web-flow spec (also runs in CI)\nnpm run test:e2e:broker   # platform-broker spec (WAM-enabled machine only)\n```\n\nThe platform-broker spec is verified green locally on a WAM-enabled\nmachine — all 5 tests pass (4 brokered token APIs with host RT=0 /\nnested RT=0, plus the redirect-rejection assertion).\n\n## Scope\n\nSample-only; no `lib/` source touched (no changefile required).\nImplements ADO **3688361** (PBI B1).\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: test\nagent-tool: copilot-cli\nagent-model: claude-opus-4.8\nwork-item: AB#3688361\n<!-- END pr-telemetry -->\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCopilot-Session: d9ccc5f1-36f3-4786-a416-e2afe65eb259",
+          "timestamp": "2026-09-04T11:01:19-07:00",
+          "tree_id": "3c8c02de4981f191016dbac9417f9654cbcc7e5a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/fc0c26375a09314a7ef7dd22dcc04b4b948b85ed"
+        },
+        "date": 1788545316288,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 383935,
+            "range": "±0.58%",
+            "unit": "ops/sec",
+            "extra": "213 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 386146,
+            "range": "±0.45%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
