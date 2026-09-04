@@ -12,7 +12,9 @@ import {
 } from "@azure/msal-common/browser";
 import {
     DOMExtraParameters,
+    isProofOfPossessionTokenType,
     PlatformAuthRequest,
+    PlatformAuthRequestExtraParametersNoCache,
     PlatformDOMTokenRequest,
 } from "./PlatformAuthRequest.js";
 import { PlatformAuthConstants } from "../../utils/BrowserConstants.js";
@@ -143,12 +145,27 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             correlationId,
             state,
             extraParameters,
+            preferBinding,
+            reqCnf,
+            resourceRequestMethod,
+            resourceRequestUri,
+            extraParametersNoCache,
             ...remainingProperties
         } = request;
 
         const validExtraParameters: DOMExtraParameters = this.getDOMExtraParams(
             remainingProperties,
             correlationId
+        );
+        const isProofOfPossessionRequest = isProofOfPossessionTokenType(
+            request.tokenType
+        );
+
+        const validExtraParametersNoCache = this.getDOMExtraParamsNoCache(
+            isProofOfPossessionRequest,
+            resourceRequestMethod,
+            resourceRequestUri,
+            extraParametersNoCache
         );
 
         const platformDOMRequest: PlatformDOMTokenRequest = {
@@ -165,6 +182,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             redirectUri: redirectUri,
             scope: scope,
             state: state,
+            preferBinding: preferBinding,
+            requestConfirmation: reqCnf,
+            extraParametersNoCache: validExtraParametersNoCache,
         };
 
         return platformDOMRequest;
@@ -242,9 +262,34 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             properties: response.properties || {},
             extendedLifetimeToken: response.extendedLifetimeToken ?? false,
             shr: response.proofOfPossessionPayload,
+            token_type: response.tokenType,
+            DPoP: response.DPoP,
+            token_binding_key_id: response.tokenBindingKeyId,
+            attested_chosen: response.attestedChosen,
         };
 
         return nativeResponse;
+    }
+
+    private getDOMExtraParamsNoCache(
+        isProofOfPossessionRequest: boolean,
+        resourceRequestMethod?: string,
+        resourceRequestUri?: string,
+        extraParametersNoCache?: PlatformAuthRequestExtraParametersNoCache
+    ): PlatformAuthRequestExtraParametersNoCache | undefined {
+        if (!isProofOfPossessionRequest) {
+            return undefined;
+        }
+
+        return {
+            ...extraParametersNoCache,
+            ...(resourceRequestMethod && {
+                pop_method: resourceRequestMethod,
+            }),
+            ...(resourceRequestUri && {
+                pop_uri: resourceRequestUri,
+            }),
+        };
     }
 
     private getDOMExtraParams(

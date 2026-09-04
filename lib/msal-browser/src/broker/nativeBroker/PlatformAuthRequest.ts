@@ -4,7 +4,25 @@
  */
 
 import { NativeExtensionMethod } from "../../utils/BrowserConstants.js";
-import { StringDict } from "@azure/msal-common/browser";
+import { Constants, StringDict } from "@azure/msal-common/browser";
+
+export function isProofOfPossessionTokenType(
+    tokenType: string | undefined
+): boolean {
+    return (
+        tokenType === Constants.AuthenticationScheme.POP ||
+        tokenType === Constants.AuthenticationScheme.DPOP
+    );
+}
+
+/**
+ * No-cache parameters MSAL.js sends to the native broker for proof-of-possession requests.
+ */
+export type PlatformAuthRequestExtraParametersNoCache = {
+    pop_method?: string;
+    pop_uri?: string;
+    pop_nonce?: string;
+};
 
 /**
  * Token request which native broker will use to acquire tokens
@@ -23,6 +41,7 @@ export type PlatformAuthRequest = {
     claims?: string;
     state?: string;
     loginHint?: string; // UPN of the user
+    preferBinding?: string;
     reqCnf?: string;
     keyId?: string;
     tokenType?: string;
@@ -32,6 +51,7 @@ export type PlatformAuthRequest = {
     resourceRequestUri?: string;
     extendedExpiryToken?: boolean;
     extraParameters?: StringDict;
+    extraParametersNoCache?: PlatformAuthRequestExtraParametersNoCache;
     signPopToken?: boolean; // Set to true only if token request does not contain a PoP keyId
     attributeTokens?: string; // Pre-serialized attribute tokens (sorted, space-separated)
 };
@@ -64,11 +84,14 @@ export type PlatformDOMTokenRequest = {
     correlationId: string;
     isSecurityTokenService: boolean;
     state?: string;
+    preferBinding?: string;
+    requestConfirmation?: string;
+    extraParametersNoCache?: PlatformAuthRequestExtraParametersNoCache;
     /*
      * Known optional parameters will go into extraQueryParameters.
      * List of known parameters is:
      * "prompt", "nonce", "claims", "loginHint", "instanceAware", "windowTitleSubstring", "extendedExpiryToken",
-     * ProofOfPossessionParams: "reqCnf", "keyId", "tokenType", "shrClaims", "shrNonce", "resourceRequestMethod", "resourceRequestUri", "signPopToken"
+     * ProofOfPossessionParams: "keyId", "tokenType", "shrClaims", "shrNonce", "signPopToken"
      */
     extraParameters?: DOMExtraParameters;
 };
@@ -81,7 +104,6 @@ export type DOMExtraParameters = StringDict & {
     instanceAware?: string;
     windowTitleSubstring?: string;
     extendedExpiryToken?: string;
-    reqCnf?: string;
     keyId?: string;
     tokenType?: string;
     shrClaims?: string;
