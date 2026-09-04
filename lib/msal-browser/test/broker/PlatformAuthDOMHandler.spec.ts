@@ -703,7 +703,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(domExtraParams).not.toHaveProperty("instanceAware");
         });
 
-        it("should catch JSON.stringify error and return empty object", async () => {
+        it("should catch JSON.stringify error without PII logging and return empty object", async () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
@@ -734,10 +734,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(loggerErrorSpy.mock.calls[0][0]).toContain(
                 "'PlatformAuthDOMHandler' - Error stringifying extra parameters"
             );
-            expect(loggerErrorPiiSpy).toHaveBeenCalled();
-            expect(loggerErrorPiiSpy.mock.calls[0][0]).toContain(
-                "'PlatformAuthDOMHandler' - Error stringifying extra parameters"
-            );
+            expect(loggerErrorPiiSpy).not.toHaveBeenCalled();
         });
     });
 });

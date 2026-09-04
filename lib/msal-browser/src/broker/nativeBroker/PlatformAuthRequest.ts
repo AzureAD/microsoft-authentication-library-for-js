@@ -6,6 +6,11 @@
 import { NativeExtensionMethod } from "../../utils/BrowserConstants.js";
 import { Constants, StringDict } from "@azure/msal-common/browser";
 
+/**
+ * Determines whether the requested token type uses proof-of-possession binding.
+ * @param tokenType - Token type to evaluate.
+ * @returns True when the token type is POP or DPoP.
+ */
 export function isProofOfPossessionTokenType(
     tokenType: string | undefined
 ): boolean {

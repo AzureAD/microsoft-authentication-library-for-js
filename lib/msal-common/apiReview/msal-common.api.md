@@ -1541,6 +1541,16 @@ const DPOP_JKT = "dpop_jkt";
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";
 
+// @internal
+export class DpopProofGenerator {
+    constructor(cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager);
+    buildResourceProofClaims(params: DpopResourceProofParams, correlationId?: string): DpopProofClaims;
+    buildTokenProofClaims(params: DpopTokenProofParams, correlationId?: string): DpopProofClaims;
+    generateJkt(correlationId?: string): Promise<string>;
+    generateResourceProof(params: GenerateDpopResourceProofParams, keyId: string, correlationId?: string): Promise<string>;
+    generateTokenProof(params: DpopTokenProofParams, keyId: string, correlationId?: string): Promise<string>;
+}
+
 // @public (undocumented)
 const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
 

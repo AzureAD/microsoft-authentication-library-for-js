@@ -1358,6 +1358,7 @@ export abstract class CacheManager implements ICacheManager {
         const authScheme =
             request.authenticationScheme ||
             Constants.AuthenticationScheme.BEARER;
+        const normalizedAuthScheme = authScheme.toLowerCase();
         /*
          * Distinguish between Bearer and PoP/SSH token cache types
          * Cast to lowercase to handle "bearer" from ADFS
@@ -1388,6 +1389,9 @@ export abstract class CacheManager implements ICacheManager {
             keyId:
                 authScheme === Constants.AuthenticationScheme.SSH
                     ? request.sshKid
+                    : normalizedAuthScheme ===
+                      Constants.AuthenticationScheme.DPOP.toLowerCase()
+                    ? request.popKid || request.dpopJkt
                     : undefined,
             additionalCacheKeyComponents: additionalCacheKeyComponents,
         };

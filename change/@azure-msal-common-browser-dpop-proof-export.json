@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Export the DPoP proof generator from the browser entry point [#8789](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8789)",
+    "packageName": "@azure/msal-common",
+    "email": "hectormmg@microsoft.com",
+    "dependentChangeType": "minor"
+}

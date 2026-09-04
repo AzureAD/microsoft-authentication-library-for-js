@@ -314,10 +314,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 `'${this.platformAuthType}' - Error stringifying extra parameters`,
                 correlationId
             );
-            this.logger.errorPii(
-                `'${this.platformAuthType}' - Error stringifying extra parameters: '${e}'`,
-                correlationId
-            );
             return {};
         }
     }
