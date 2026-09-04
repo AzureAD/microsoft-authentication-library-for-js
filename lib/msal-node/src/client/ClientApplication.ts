@@ -33,6 +33,7 @@ import {
     Constants,
     ClientAuthError,
     StubPerformanceClient,
+    getRequestThumbprint,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -62,6 +63,10 @@ import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
 export abstract class ClientApplication {
     protected readonly cryptoProvider: CryptoProvider;
     private tokenCache: TokenCache;
+    private readonly activeSilentTokenRequests: Map<
+        string,
+        Promise<AuthenticationResult>
+    >;
 
     /**
      * Platform storage object
@@ -109,6 +114,7 @@ export abstract class ClientApplication {
             this.logger,
             this.config.cache.cachePlugin
         );
+        this.activeSilentTokenRequests = new Map();
     }
 
     /**
@@ -293,6 +299,7 @@ export abstract class ClientApplication {
      *
      * This API expects the user to provide an account object and looks into the cache to retrieve the token if present.
      * There is also an optional "forceRefresh" boolean the user can send to bypass the cache for access_token and id_token.
+     * Concurrent requests with the same request thumbprint return the same in-progress result.
      * In case the refresh_token is expired or not found, an error is thrown
      * and the guidance is for the user to call any interactive token acquisition API (eg: `acquireTokenByCode()`).
      */
@@ -305,6 +312,42 @@ export abstract class ClientApplication {
             forceRefresh: request.forceRefresh || false,
         };
 
+        const thumbprint = getRequestThumbprint(
+            this.config.auth.clientId,
+            validRequest,
+            validRequest.account.homeAccountId
+        );
+        const silentRequestKey = JSON.stringify(thumbprint);
+        const inProgressRequest =
+            this.activeSilentTokenRequests.get(silentRequestKey);
+
+        if (inProgressRequest) {
+            this.logger.verbose(
+                "acquireTokenSilent has been called previously, returning the result from the first call",
+                validRequest.correlationId
+            );
+            return inProgressRequest;
+        }
+
+        this.logger.verbose(
+            "acquireTokenSilent called for the first time, storing active request",
+            validRequest.correlationId
+        );
+        const activeRequest = this.acquireTokenSilentAsync(
+            validRequest,
+            request.azureCloudOptions
+        );
+        this.activeSilentTokenRequests.set(silentRequestKey, activeRequest);
+
+        return activeRequest.finally(() => {
+            this.activeSilentTokenRequests.delete(silentRequestKey);
+        });
+    }
+
+    private async acquireTokenSilentAsync(
+        validRequest: CommonSilentFlowRequest,
+        azureCloudOptions?: AzureCloudOptions
+    ): Promise<AuthenticationResult> {
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenSilent,
             validRequest.correlationId,
@@ -316,7 +359,7 @@ export abstract class ClientApplication {
                 validRequest.authority,
                 validRequest.correlationId,
                 undefined,
-                request.azureCloudOptions
+                azureCloudOptions
             );
             const clientConfiguration =
                 await this.buildOauthClientConfiguration(
