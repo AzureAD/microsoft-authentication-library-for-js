@@ -96,7 +96,9 @@ extends:
                               dir: "ExpressSample"
                               testFilter: "ear-basic"
                             - name: "NativeAuthSample"
-                            # - name: "NestedAuthAppSample"
+                            - name: "NestedAuthAppSample"
+                              dir: "NestedAuthAppSample"
+                              testFilter: "naa-basic"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}
