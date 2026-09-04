@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788545321337,
+  "lastUpdate": 1788552159948,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23315,6 +23315,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.45%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ff0f82d6b2ac84c3001afb19fa553da6e91c6ac1",
+          "message": "Add a redirect bridge config to VanillaJs sample (#8810)\n\nThis pull request updates the `redirect.html` file used in the MSAL\nsample app to provide a more functional redirect page for authentication\nflows. The new page includes HTML structure, user feedback, and\nJavaScript to broadcast authentication results to the main window.\n\n**Redirect page improvements:**\n\n* Replaced the blank HTML comment with a complete HTML page that\ndisplays a \"Processing authentication...\" message for better user\nfeedback.\n* Added a script to load `msal-redirect-bridge.min.js` and broadcast\nauthentication responses to the main window using\n`msalRedirectBridge.broadcastResponseToMainFrame()`, improving\nintegration with popup and silent authentication flows.",
+          "timestamp": "2026-09-04T19:53:15Z",
+          "tree_id": "a273f2732717f0dbb9dce3e17690684afcbb3dae",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ff0f82d6b2ac84c3001afb19fa553da6e91c6ac1"
+        },
+        "date": 1788552156460,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 383031,
+            "range": "±0.63%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 389711,
+            "range": "±0.73%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
           }
         ]
       }
