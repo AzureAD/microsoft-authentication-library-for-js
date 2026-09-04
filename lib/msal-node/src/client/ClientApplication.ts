@@ -312,9 +312,20 @@ export abstract class ClientApplication {
             forceRefresh: request.forceRefresh || false,
         };
 
+        if (!validRequest.account) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.noAccountInSilentRequest,
+                validRequest.correlationId
+            );
+        }
+
+        const authorityForThumbprint = Authority.generateAuthority(
+            validRequest.authority,
+            request.azureCloudOptions || this.config.auth.azureCloudOptions
+        );
         const thumbprint = getRequestThumbprint(
             this.config.auth.clientId,
-            validRequest,
+            { ...validRequest, authority: authorityForThumbprint },
             validRequest.account.homeAccountId
         );
         const silentRequestKey = JSON.stringify(thumbprint);
