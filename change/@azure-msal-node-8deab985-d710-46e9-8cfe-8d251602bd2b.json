@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Coalesce concurrent silent token requests with matching request thumbprints [#8811](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8811)",
+  "packageName": "@azure/msal-node",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
