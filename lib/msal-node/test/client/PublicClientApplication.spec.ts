@@ -525,6 +525,16 @@ describe("PublicClientApplication", () => {
                     resource: "https://different-resource.example",
                 },
             ],
+            [
+                "azureCloudOptions",
+                {
+                    azureCloudOptions: {
+                        azureCloudInstance:
+                            msalCommon.AzureCloudInstance.AzureUsGovernment,
+                        tenant: "common",
+                    },
+                },
+            ],
         ])(
             "does not coalesce concurrent silent requests with different %s",
             async (_requestProperty, requestOverrides) => {
