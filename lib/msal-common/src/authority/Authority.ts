@@ -43,7 +43,7 @@ import {
     isCloudInstanceDiscoveryErrorResponse,
 } from "./CloudInstanceDiscoveryErrorResponse.js";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata.js";
-import { RegionDiscovery } from "./RegionDiscovery.js";
+import { RegionDiscovery, validateRegionName } from "./RegionDiscovery.js";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata.js";
 import { ImdsOptions } from "./ImdsOptions.js";
 import type { AzureCloudOptions } from "../config/ClientConfiguration.js";
@@ -769,6 +769,11 @@ export class Authority {
                 userConfiguredAzureRegion !==
                 Constants.AZURE_REGION_AUTO_DISCOVER_FLAG
             ) {
+                validateRegionName(
+                    userConfiguredAzureRegion,
+                    this.correlationId
+                );
+
                 this.regionDiscoveryMetadata.region_outcome =
                     Constants.RegionDiscoveryOutcomes.CONFIGURED_NO_AUTO_DETECTION;
                 this.regionDiscoveryMetadata.region_used =
@@ -1439,6 +1444,8 @@ export class Authority {
         correlationId: string,
         queryString?: string
     ): string {
+        validateRegionName(region, correlationId);
+
         // Create and validate a Url string object with the initial authority string
         const authorityUrlInstance = new UrlString(host, correlationId);
         authorityUrlInstance.validateAsUri();

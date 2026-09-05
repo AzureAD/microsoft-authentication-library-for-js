@@ -186,6 +186,10 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 ## Client configuration errors
 
+### `invalid_azure_region`
+
+-   The configured or discovered Azure region is invalid. Region short names must start with a lowercase letter and contain only lowercase letters, digits, and hyphens.
+
 ### `redirect_uri_empty`
 
 -   A redirect URI is required for all calls and none has been set.

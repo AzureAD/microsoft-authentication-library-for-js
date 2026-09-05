@@ -522,6 +522,29 @@ describe("ConfidentialClientApplication", () => {
                 checkRegion(sendPostRequestAsyncSpy.mock.lastCall[0], region);
             });
 
+            test("invalid MSAL_FORCE_REGION throws", async () => {
+                process.env[MSAL_FORCE_REGION] = "hostile.example/path";
+
+                await expect(
+                    client.acquireTokenByClientCredential(request)
+                ).rejects.toMatchObject({
+                    errorCode: "invalid_azure_region",
+                });
+                expect(sendPostRequestAsyncSpy).not.toHaveBeenCalled();
+            });
+
+            test("invalid request region throws", async () => {
+                await expect(
+                    client.acquireTokenByClientCredential({
+                        ...request,
+                        azureRegion: "hostile.example/path",
+                    })
+                ).rejects.toMatchObject({
+                    errorCode: "invalid_azure_region",
+                });
+                expect(sendPostRequestAsyncSpy).not.toHaveBeenCalled();
+            });
+
             test('region is not passed in through the request, the MSAL_FORCE_REGION environment variable is set to "DisableMsalForceRegion"', async () => {
                 const authResult = (await client.acquireTokenByClientCredential(
                     { ...request, azureRegion: "DisableMsalForceRegion" }
