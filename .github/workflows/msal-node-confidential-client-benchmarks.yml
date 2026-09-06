@@ -15,8 +15,8 @@ jobs:
         name: Performance regression check
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6
-            - uses: actions/setup-node@v6
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
 
             - name: Install dependencies
               run: npm install --workspace=lib/msal-common --workspace=lib/msal-node
@@ -33,7 +33,7 @@ jobs:
             # /dev/bench is a path to put the benchmark dashboard page. They can be tweaked by
             # the gh-pages-branch, gh-repository and benchmark-data-dir-path inputs.
             - name: Store benchmark result
-              uses: benchmark-action/github-action-benchmark@v1
+              uses: benchmark-action/github-action-benchmark@52576c92bccf6ac60c8223ec7eb2565637cae9ba # v1.22.1
               with:
                   name: msal-node client-credential Regression Test
                   tool: "benchmarkjs"
