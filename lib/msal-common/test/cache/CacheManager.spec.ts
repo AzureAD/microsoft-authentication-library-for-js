@@ -68,6 +68,12 @@ describe("CacheManager.ts test cases", () => {
     );
     let authorityMetadataStub: jest.SpyInstance;
     beforeEach(async () => {
+        /*
+         * Freeze the clock before seeding the cache so entities written here
+         * carry the same lastUpdatedAt as fixtures the tests build later.
+         * Otherwise the two Date.now() reads differ by a millisecond or more.
+         */
+        jest.useFakeTimers();
         await mockCache.initializeCache();
         authorityMetadataStub = jest
             .spyOn(CacheManager.prototype, "getAuthorityMetadataByAlias")
@@ -94,6 +100,7 @@ describe("CacheManager.ts test cases", () => {
     afterEach(async () => {
         await mockCache.clearCache();
         jest.restoreAllMocks();
+        jest.useRealTimers();
     });
 
     describe("saveCacheRecord tests", () => {
