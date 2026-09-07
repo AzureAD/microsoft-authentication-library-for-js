@@ -30,7 +30,7 @@ import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/Res
 import { ResetPasswordStartResultV2 } from "../core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
 import { CustomAuthApiClientV2 } from "../core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { FlowInteractionClientV2 } from "../core/interaction_client/v2/FlowInteractionClientV2.js";
-import { AuthenticationMethodSelectionRequiredStateV2 } from "../core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredStateV2.js";
+import { AuthMethodSelectionRequiredStateV2 } from "../core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { ResetPasswordStartErrorV2 } from "../core/auth_flow/v2/error/ResetPasswordStartErrorV2.js";
 import { CustomAuthResultV2 } from "../core/auth_flow/v2/CustomAuthResultV2.js";
 import { CustomAuthFlowScenarioV2 } from "../core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
@@ -686,7 +686,7 @@ export class CustomAuthStandardController
             }
 
             return new CustomAuthResultV2(
-                new AuthenticationMethodSelectionRequiredStateV2({
+                new AuthMethodSelectionRequiredStateV2({
                     correlationId: result.correlationId,
                     logger: this.logger,
                     config: this.customAuthConfig,

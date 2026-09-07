@@ -16,7 +16,7 @@ export interface CustomAuthActionRequiredStateParametersV2
     cacheClient: CustomAuthSilentCacheClient;
 }
 
-export interface AuthenticationMethodSelectionRequiredStateParametersV2
+export interface AuthMethodSelectionRequiredStateParametersV2
     extends CustomAuthActionRequiredStateParametersV2 {
     methods: readonly AuthenticationMethodV2[];
 }

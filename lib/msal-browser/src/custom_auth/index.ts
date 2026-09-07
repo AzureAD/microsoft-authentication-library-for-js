@@ -276,7 +276,7 @@ export { CompletedStateV2 } from "./core/auth_flow/v2/state/CompletedStateV2.js"
 export { FailedStateV2 } from "./core/auth_flow/v2/state/FailedStateV2.js";
 export { NewPasswordRequiredStateV2 } from "./reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 export { ChallengeVerificationRequiredStateV2 } from "./core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
-export { AuthenticationMethodSelectionRequiredStateV2 } from "./core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredStateV2.js";
+export { AuthMethodSelectionRequiredStateV2 } from "./core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 export { MFARequiredStateV2 } from "./core/auth_flow/v2/state/MFARequiredStateV2.js";
 export { PasswordRequiredStateV2 } from "./sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 export { SignInContinuationStateV2 } from "./sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";

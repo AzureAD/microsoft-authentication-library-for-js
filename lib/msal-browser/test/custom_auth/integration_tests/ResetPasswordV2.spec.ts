@@ -6,7 +6,7 @@
 import { CustomAuthPublicClientApplication } from "../../../src/custom_auth/CustomAuthPublicClientApplication.js";
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
-import { AuthenticationMethodSelectionRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredStateV2.js";
+import { AuthMethodSelectionRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { ChallengeVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
 import { NewPasswordRequiredStateV2 } from "../../../src/custom_auth/reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import { SignInContinuationStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
@@ -141,20 +141,20 @@ describe("Reset password V2 (SSPR)", () => {
 
     // Drive start -> method selection and return the method-selection state.
     const startToMethodSelection =
-        async (): Promise<AuthenticationMethodSelectionRequiredStateV2> => {
+        async (): Promise<AuthMethodSelectionRequiredStateV2> => {
             const startResult = await app.resetPasswordV2({
                 username: "user@contoso.com",
             });
 
             expect(startResult.isFailed()).toBe(false);
-            expect(
-                startResult.isState("authenticationMethodSelectionRequired")
-            ).toBe(true);
+            expect(startResult.isState("authMethodSelectionRequired")).toBe(
+                true
+            );
             expect(startResult.state).toBeInstanceOf(
-                AuthenticationMethodSelectionRequiredStateV2
+                AuthMethodSelectionRequiredStateV2
             );
 
-            return startResult.state as AuthenticationMethodSelectionRequiredStateV2;
+            return startResult.state as AuthMethodSelectionRequiredStateV2;
         };
 
     it("automatically challenges the only available method", async () => {
