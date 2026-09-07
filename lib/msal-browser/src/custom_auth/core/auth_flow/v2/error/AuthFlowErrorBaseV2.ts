@@ -62,6 +62,17 @@ export abstract class AuthFlowErrorBaseV2 {
         return this.errorData instanceof InvalidArgumentError;
     }
 
+    /**
+     * Checks whether an account already exists for the supplied identifier.
+     * This can occur at different stages while completing sign-up.
+     * @returns True if the account already exists, otherwise false.
+     */
+    isUserAlreadyExists(): boolean {
+        return this.getAttributeValidationDetails().some(
+            (detail) => detail.code === "userAlreadyExists"
+        );
+    }
+
     /*
      * User-not-found arrives as AADSTS50034. The nested `/api` error carries no
      * innerError and no error_codes array, so the AADSTS marker in the message is

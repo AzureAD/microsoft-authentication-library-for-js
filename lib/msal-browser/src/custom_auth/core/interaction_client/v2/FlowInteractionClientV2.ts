@@ -46,7 +46,6 @@ import type {
     FlowSignInContinuationRequiredResultV2,
     FlowCompletedResultV2,
     FlowSignUpActionResultV2,
-    FlowSignUpStartResultV2,
 } from "./result/FlowActionResultV2.js";
 import { BrowserConfiguration } from "../../../../config/Configuration.js";
 import { BrowserCacheManager } from "../../../../cache/BrowserCacheManager.js";
@@ -96,7 +95,7 @@ const delay = (ms: number): Promise<void> =>
 
 /*
  * Drives server-directed Native Auth V2 flows using opaque continuation state
- * and HAL links. Results use the shared `FlowActionResultV2` envelope.
+ * and HAL links. Each operation returns only its valid discriminated results.
  */
 export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     constructor(
@@ -217,7 +216,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      */
     async signUp(
         parameters: FlowSignUpStartParamsV2
-    ): Promise<FlowSignUpStartResultV2> {
+    ): Promise<
+        | FlowCodeRequiredResultV2
+        | FlowSignUpPasswordRequiredResultV2
+        | FlowAttributesRequiredResultV2
+    > {
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             PublicApiId.SIGN_UP_V2_START,
@@ -241,13 +244,17 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             },
             context
         );
-        const attributes = {
-            ...parameters.attributes,
-            email: parameters.username,
-            ...(parameters.password !== undefined
-                ? { password: parameters.password }
-                : {}),
-        };
+        const attributes = Object.fromEntries(
+            Object.entries(parameters.attributes ?? {}).filter(
+                ([name]) =>
+                    name.toLowerCase() !== "email" &&
+                    name.toLowerCase() !== "password"
+            )
+        );
+        attributes.email = parameters.username;
+        if (parameters.password !== undefined) {
+            attributes.password = parameters.password;
+        }
         const submitResult = await this.apiClient.submitSignUpAttributes(
             startResult.submitAttributesHref,
             {

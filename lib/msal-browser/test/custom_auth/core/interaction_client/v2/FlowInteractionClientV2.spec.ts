@@ -185,8 +185,8 @@ describe("FlowInteractionClientV2", () => {
                 username: "user@contoso.com",
                 password: "P@ssword1!",
                 attributes: {
-                    email: "wrong@contoso.com",
-                    password: "wrong-password",
+                    Email: "wrong@contoso.com",
+                    PASSWORD: "wrong-password",
                     displayName: "Test User",
                     username: "test-user",
                 },
@@ -227,6 +227,48 @@ describe("FlowInteractionClientV2", () => {
                     passwordWasSupplied: true,
                 },
             });
+        });
+
+        it("ignores a reserved password attribute when no top-level password is supplied", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                signUpHref: "https://endpoint/signup/start",
+            });
+            apiClient.signUpStart.mockResolvedValue({
+                continuationToken: "ct-start",
+                submitAttributesHref:
+                    "https://endpoint/signup/submitattributes",
+            });
+            apiClient.submitSignUpAttributes.mockResolvedValue({
+                nextAction: "verify",
+                continuationToken: "ct-challenge",
+                verifyHref: "https://endpoint/signup/verify",
+                resendHref: "https://endpoint/signup/resend",
+                type: "email",
+                hint: "u***@contoso.com",
+                codeLength: 8,
+            });
+
+            await client.signUp({
+                correlationId,
+                username: "user@contoso.com",
+                attributes: {
+                    Password: "attribute-password",
+                    displayName: "Test User",
+                },
+            });
+
+            expect(apiClient.submitSignUpAttributes).toHaveBeenCalledWith(
+                "https://endpoint/signup/submitattributes",
+                {
+                    continuationToken: "ct-start",
+                    attributes: {
+                        displayName: "Test User",
+                        email: "user@contoso.com",
+                    },
+                },
+                expect.objectContaining({ correlationId })
+            );
         });
 
         it("returns password required when initial submission requests a missing password", async () => {

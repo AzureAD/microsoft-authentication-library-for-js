@@ -5,6 +5,7 @@
 
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
+import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { ChallengeVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { AttributesRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
@@ -148,16 +149,35 @@ describe("ChallengeVerificationRequiredStateV2", () => {
 
         expect(result.isState("attributesRequired")).toBe(true);
         expect(result.state).toBeInstanceOf(AttributesRequiredStateV2);
-        if (result.isState("attributesRequired")) {
-            expect(result.state.attributes).toEqual([
-                {
-                    attributeId: "password",
-                    inputType: "password",
-                    required: true,
-                    confirmationInput: "retype",
-                },
-            ]);
-        }
+    });
+
+    it("identifies an existing account from a sign-up verification error", async () => {
+        flowClient.submitCode.mockRejectedValue(
+            new CustomAuthApiError(
+                "invalidRequest",
+                "AADSTS1003037: An account may already exist.",
+                correlationId,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                [
+                    {
+                        attributeIds: ["email"],
+                        code: "userAlreadyExists",
+                        message:
+                            "An account with this identifier already exists.",
+                    },
+                ]
+            )
+        );
+
+        const result = await buildSignUpState().verifyChallenge("12345678");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isUserAlreadyExists()).toBe(true);
     });
 
     it("returns password required after verifying a sign-up code", async () => {

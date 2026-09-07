@@ -309,4 +309,57 @@ describe("AuthFlowErrorBaseV2 error mapping", () => {
             expect(error.isInvalidCode()).toBe(true);
         });
     });
+
+    describe("isUserAlreadyExists", () => {
+        it("is true for a nested userAlreadyExists validation detail", () => {
+            const error = new VerifyChallengeErrorV2(
+                new CustomAuthApiError(
+                    "invalidRequest",
+                    "AADSTS1003037: An account may already exist.",
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    [
+                        {
+                            attributeIds: ["email"],
+                            code: "userAlreadyExists",
+                            message:
+                                "An account with this identifier already exists.",
+                        },
+                    ]
+                )
+            );
+
+            expect(error.isUserAlreadyExists()).toBe(true);
+        });
+
+        it("is false for another attribute-validation error", () => {
+            const error = new VerifyChallengeErrorV2(
+                new CustomAuthApiError(
+                    "invalidRequest",
+                    "Attribute validation failed.",
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    [
+                        {
+                            attributeIds: ["email"],
+                            code: "invalidFormat",
+                            message: "The email address is invalid.",
+                        },
+                    ]
+                )
+            );
+
+            expect(error.isUserAlreadyExists()).toBe(false);
+        });
+    });
 });

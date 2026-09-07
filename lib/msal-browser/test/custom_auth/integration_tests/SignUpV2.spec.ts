@@ -123,8 +123,8 @@ describe("Sign-up V2 entry", () => {
             password: "P@ssword1!",
             attributes: {
                 displayName: "Test User",
-                email: "wrong@contoso.com",
-                password: "wrong-password",
+                Email: "wrong@contoso.com",
+                PASSWORD: "wrong-password",
             },
             scopes: ["openid", "User.Read"],
             claims: '{"id_token":{}}',
@@ -305,6 +305,7 @@ describe("Sign-up V2 entry", () => {
                 },
             ],
         });
+        expect(result.error?.isUserAlreadyExists()).toBe(true);
     });
 
     it("surfaces an initial attribute-submission server error as a general sign-up error", async () => {

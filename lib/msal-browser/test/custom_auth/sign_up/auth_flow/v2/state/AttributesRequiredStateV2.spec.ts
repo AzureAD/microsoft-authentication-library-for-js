@@ -5,6 +5,7 @@
 
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
+import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { ChallengeVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
@@ -106,6 +107,37 @@ describe("AttributesRequiredStateV2", () => {
         expect(result.state).toBeInstanceOf(
             ChallengeVerificationRequiredStateV2
         );
+    });
+
+    it("identifies an existing account from an attribute-submission error", async () => {
+        flowClient.submitSignUpAttributes.mockRejectedValue(
+            new CustomAuthApiError(
+                "invalidRequest",
+                "AADSTS1003037: An account may already exist.",
+                correlationId,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                [
+                    {
+                        attributeIds: ["email"],
+                        code: "userAlreadyExists",
+                        message:
+                            "An account with this identifier already exists.",
+                    },
+                ]
+            )
+        );
+
+        const result = await buildState().submitAttributes({
+            givenName: "Test",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isUserAlreadyExists()).toBe(true);
     });
 
     it("returns a failed result for an unsupported transition", async () => {

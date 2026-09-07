@@ -57,6 +57,7 @@ export interface FlowPasswordRequiredResultV2 extends FlowActionResultBaseV2 {
     continuationState: FlowContinuationStateV2;
 }
 
+// Derived from a sign-up `collectAttributes` response containing a required password.
 export interface FlowSignUpPasswordRequiredResultV2
     extends FlowActionResultBaseV2 {
     type: typeof FLOW_SIGN_UP_PASSWORD_REQUIRED_V2;
@@ -101,28 +102,11 @@ export interface FlowCompletedResultV2 extends FlowActionResultBaseV2 {
     authenticationResult: AuthenticationResult;
 }
 
-export type FlowActionResultV2 =
-    | FlowMethodSelectionRequiredResultV2
-    | FlowCodeRequiredResultV2
-    | FlowResetPasswordCodeRequiredResultV2
-    | FlowPasswordRequiredResultV2
-    | FlowSignUpPasswordRequiredResultV2
-    | FlowMFARequiredResultV2
-    | FlowNewPasswordRequiredResultV2
-    | FlowAttributesRequiredResultV2
-    | FlowSignInContinuationRequiredResultV2
-    | FlowCompletedResultV2;
-
 export type FlowSignUpActionResultV2 =
     | FlowCodeRequiredResultV2
     | FlowSignUpPasswordRequiredResultV2
     | FlowAttributesRequiredResultV2
     | FlowSignInContinuationRequiredResultV2;
-
-export type FlowSignUpStartResultV2 =
-    | FlowCodeRequiredResultV2
-    | FlowSignUpPasswordRequiredResultV2
-    | FlowAttributesRequiredResultV2;
 
 // Result type discriminators.
 export const FLOW_METHOD_SELECTION_REQUIRED_V2 =
