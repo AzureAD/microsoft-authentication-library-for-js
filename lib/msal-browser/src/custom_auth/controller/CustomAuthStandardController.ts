@@ -52,6 +52,7 @@ import { ChallengeVerificationRequiredStateV2 } from "../core/auth_flow/v2/state
 import { MFARequiredStateV2 } from "../core/auth_flow/v2/state/MFARequiredStateV2.js";
 import { AttributesRequiredStateV2 } from "../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { SignUpPasswordRequiredStateV2 } from "../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
+import { SignUpStateTransitionHandlerV2 } from "../sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
@@ -105,6 +106,8 @@ export class CustomAuthStandardController
     private readonly customAuthConfig: CustomAuthBrowserConfiguration;
     private readonly authority: CustomAuthAuthority;
     private readonly flowClientV2: FlowInteractionClientV2;
+    private readonly signUpStateTransitionHandlerV2 =
+        new SignUpStateTransitionHandlerV2();
 
     /*
      * Constructor for CustomAuthStandardController.
@@ -878,6 +881,8 @@ export class CustomAuthStandardController
                 flowClient: this.flowClientV2,
                 continuationState: result.continuationState,
                 cacheClient: this.cacheClient,
+                signUpStateTransitionHandler:
+                    this.signUpStateTransitionHandlerV2,
             };
 
             if (result.type === FLOW_CODE_REQUIRED_V2) {

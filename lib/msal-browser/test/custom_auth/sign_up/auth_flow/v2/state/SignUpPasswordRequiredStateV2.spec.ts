@@ -13,6 +13,7 @@ import {
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { SignUpPasswordRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
+import { SignUpStateTransitionHandlerV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
 import { SignInContinuationStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
@@ -42,6 +43,7 @@ describe("SignUpPasswordRequiredStateV2", () => {
             } as unknown as CustomAuthBrowserConfiguration,
             flowClient,
             cacheClient: {} as CustomAuthSilentCacheClient,
+            signUpStateTransitionHandler: new SignUpStateTransitionHandlerV2(),
             continuationState,
             attributes: [
                 {

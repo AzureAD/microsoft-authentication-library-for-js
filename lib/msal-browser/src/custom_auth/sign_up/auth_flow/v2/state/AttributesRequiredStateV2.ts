@@ -5,14 +5,6 @@
 
 import type { UserAccountAttributes } from "../../../../UserAccountAttributes.js";
 import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
-import { ChallengeVerificationRequiredStateV2 } from "../../../../core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
-import { CustomAuthError } from "../../../../core/error/CustomAuthError.js";
-import {
-    FLOW_CODE_REQUIRED_V2,
-    FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
-} from "../../../../core/interaction_client/v2/result/FlowActionResultV2.js";
-import { UNSUPPORTED_FLOW_TRANSITION } from "../../../../core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
-import { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import { SubmitAttributesErrorV2 } from "../error_type/SubmitAttributesErrorV2.js";
 import type { SubmitAttributesResultV2 } from "../result/SubmitAttributesResultV2.js";
 import { SignUpAttributesRequiredStateBaseV2 } from "./SignUpAttributesRequiredStateBaseV2.js";
@@ -30,46 +22,15 @@ export class AttributesRequiredStateV2 extends SignUpAttributesRequiredStateBase
     async submitAttributes(
         attributes: UserAccountAttributes
     ): Promise<SubmitAttributesResultV2> {
-        const { correlationId, logger, continuationState, flowClient } =
+        const { correlationId, logger, continuationState } =
             this.stateParameters;
 
         try {
             const result = await this.submitAttributesAction(attributes);
-            const resultType: string = result.type;
-            const commonStateParameters = {
-                correlationId: result.correlationId,
-                logger,
-                config: this.stateParameters.config,
-                flowClient,
-                continuationState: result.continuationState,
-                cacheClient: this.stateParameters.cacheClient,
-            };
-
-            if (result.type === FLOW_CODE_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new ChallengeVerificationRequiredStateV2({
-                        ...commonStateParameters,
-                        sentTo: result.sentTo,
-                        channel: result.channel,
-                        codeLength: result.codeLength,
-                    }),
-                    undefined,
-                    result.continuationState.scenario
-                );
-            }
-
-            if (result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new SignInContinuationStateV2(commonStateParameters),
-                    undefined,
-                    result.continuationState.scenario
-                );
-            }
-
-            throw new CustomAuthError(
-                UNSUPPORTED_FLOW_TRANSITION,
-                `Sign-up attribute submission result type '${resultType}' is not supported.`,
-                correlationId
+            return this.stateParameters.signUpStateTransitionHandler.handleAttributeSubmission(
+                result,
+                this.stateParameters,
+                "attribute"
             );
         } catch (error) {
             logger.errorPii(

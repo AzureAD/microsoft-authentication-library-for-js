@@ -10,6 +10,7 @@ import { ChallengeVerificationRequiredStateV2 } from "../../../../../../src/cust
 import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { AttributesRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { SignUpPasswordRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
+import { SignUpStateTransitionHandlerV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
 import { SignInContinuationStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
@@ -70,6 +71,7 @@ describe("ChallengeVerificationRequiredStateV2", () => {
             } as unknown as CustomAuthBrowserConfiguration,
             flowClient,
             cacheClient: {} as CustomAuthSilentCacheClient,
+            signUpStateTransitionHandler: new SignUpStateTransitionHandlerV2(),
             continuationState: {
                 continuationToken: "ct-sign-up-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignUp,

@@ -23,9 +23,7 @@ import {
 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
-import { AttributesRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
-import { SignUpPasswordRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
 
 /**
  * State returned when the user must verify a challenge, for example by
@@ -92,38 +90,24 @@ export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequired
                 );
             }
 
-            if (result.type === FLOW_ATTRIBUTES_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new AttributesRequiredStateV2({
-                        correlationId: result.correlationId,
-                        logger,
-                        config: this.stateParameters.config,
-                        flowClient,
-                        continuationState: result.continuationState,
-                        cacheClient: this.stateParameters.cacheClient,
-                        attributes: result.attributes,
-                    }),
-                    undefined,
-                    result.continuationState.scenario
-                );
-            }
+            if (
+                result.type === FLOW_ATTRIBUTES_REQUIRED_V2 ||
+                result.type === FLOW_SIGN_UP_PASSWORD_REQUIRED_V2
+            ) {
+                const signUpStateTransitionHandler =
+                    this.stateParameters.signUpStateTransitionHandler;
+                if (!signUpStateTransitionHandler) {
+                    throw new CustomAuthError(
+                        UNSUPPORTED_FLOW_TRANSITION,
+                        "Sign-up state transition handler is missing.",
+                        correlationId
+                    );
+                }
 
-            if (result.type === FLOW_SIGN_UP_PASSWORD_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new SignUpPasswordRequiredStateV2({
-                        correlationId: result.correlationId,
-                        logger,
-                        config: this.stateParameters.config,
-                        flowClient,
-                        continuationState: result.continuationState,
-                        cacheClient: this.stateParameters.cacheClient,
-                        attributes: result.attributes,
-                        requiredPasswordAttribute:
-                            result.requiredPasswordAttribute,
-                    }),
-                    undefined,
-                    result.continuationState.scenario
-                );
+                return signUpStateTransitionHandler.handleVerification(result, {
+                    ...this.stateParameters,
+                    signUpStateTransitionHandler,
+                });
             }
 
             if (result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2) {
@@ -201,6 +185,8 @@ export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequired
                     flowClient,
                     continuationState: result.continuationState,
                     cacheClient: this.stateParameters.cacheClient,
+                    signUpStateTransitionHandler:
+                        this.stateParameters.signUpStateTransitionHandler,
                     method: this.method,
                     sentTo: result.sentTo,
                     channel: result.channel,
