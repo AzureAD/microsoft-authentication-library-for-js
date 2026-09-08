@@ -311,6 +311,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                     expect(event.data.body.request).toEqual({
                         ...TEST_REQUEST,
                         preferBinding: "test-prefer-binding",
+                        enclave: "test-enclave",
                         reqCnf: "test-req-cnf",
                         tokenType: Constants.AuthenticationScheme.DPOP,
                         extraParametersNoCache: {
@@ -348,6 +349,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             const response = await wamMessageHandler.sendMessage({
                 ...TEST_REQUEST,
                 preferBinding: "test-prefer-binding",
+                enclave: "test-enclave",
                 reqCnf: "test-req-cnf",
                 tokenType: Constants.AuthenticationScheme.DPOP,
                 resourceRequestMethod: "POST",

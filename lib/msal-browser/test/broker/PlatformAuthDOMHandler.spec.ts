@@ -482,6 +482,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 windowTitleSubstring: "test-window-substring",
                 isSts: false,
                 preferBinding: "test-prefer-binding",
+                enclave: "test-enclave",
                 reqCnf: "test-req-cnf",
                 tokenType: Constants.AuthenticationScheme.DPOP,
                 resourceRequestMethod: "POST",
@@ -518,6 +519,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                     pop_nonce: "test-dpop-nonce",
                 },
                 preferBinding: "test-prefer-binding",
+                enclave: "test-enclave",
                 requestConfirmation: "test-req-cnf",
                 redirectUri: testRequest.redirectUri,
                 scope: testRequest.scope,
@@ -526,6 +528,9 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(platformDOMRequest).not.toHaveProperty("reqCnf");
             expect(platformDOMRequest.extraParameters).not.toHaveProperty(
                 "reqCnf"
+            );
+            expect(platformDOMRequest.extraParameters).not.toHaveProperty(
+                "enclave"
             );
         });
     });

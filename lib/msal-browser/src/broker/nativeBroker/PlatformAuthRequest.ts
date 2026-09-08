@@ -42,6 +42,7 @@ export type PlatformAuthRequest = {
     state?: string;
     loginHint?: string; // UPN of the user
     preferBinding?: string;
+    enclave?: string;
     reqCnf?: string;
     keyId?: string;
     tokenType?: string;
@@ -85,6 +86,7 @@ export type PlatformDOMTokenRequest = {
     isSecurityTokenService: boolean;
     state?: string;
     preferBinding?: string;
+    enclave?: string;
     requestConfirmation?: string;
     extraParametersNoCache?: PlatformAuthRequestExtraParametersNoCache;
     /*
