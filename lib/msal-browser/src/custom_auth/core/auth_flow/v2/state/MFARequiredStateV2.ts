@@ -9,10 +9,10 @@ import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { FLOW_CODE_REQUIRED_V2 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
-import { ChallengeVerificationRequiredStateV2 } from "./ChallengeVerificationRequiredStateV2.js";
 import type { MFARequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { MFARequestChallengeResultV2 } from "../result/MFARequestChallengeResultV2.js";
 import { AuthenticationMethodSelectionStateBaseV2 } from "./AuthenticationMethodSelectionStateBaseV2.js";
+import { ChallengeVerificationRequiredStateV2 } from "./ChallengeVerificationRequiredStateV2.js";
 
 /**
  * State returned when sign-in requires a registered multi-factor
@@ -29,7 +29,7 @@ export class MFARequiredStateV2 extends AuthenticationMethodSelectionStateBaseV2
     async requestChallenge(
         method: AuthenticationMethodV2
     ): Promise<MFARequestChallengeResultV2> {
-        const { correlationId, logger, continuationState, flowClient } =
+        const { correlationId, logger, continuationState } =
             this.stateParameters;
 
         try {
@@ -49,9 +49,13 @@ export class MFARequiredStateV2 extends AuthenticationMethodSelectionStateBaseV2
                     correlationId: result.correlationId,
                     logger,
                     config: this.stateParameters.config,
-                    flowClient,
+                    flowClient: this.stateParameters.flowClient,
                     continuationState: result.continuationState,
                     cacheClient: this.stateParameters.cacheClient,
+                    signInStateTransitionHandler:
+                        this.stateParameters.signInStateTransitionHandler,
+                    signUpStateTransitionHandler:
+                        this.stateParameters.signUpStateTransitionHandler,
                     method: selectedMethod,
                     sentTo: result.sentTo,
                     channel: result.channel,

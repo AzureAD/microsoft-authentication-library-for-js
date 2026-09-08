@@ -10,6 +10,7 @@ import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/
 import { FLOW_MFA_REQUIRED_V2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { PasswordRequiredStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import { SignInStateTransitionHandlerV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInStateTransitionHandlerV2.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
 describe("PasswordRequiredStateV2", () => {
@@ -28,6 +29,7 @@ describe("PasswordRequiredStateV2", () => {
             } as unknown as CustomAuthBrowserConfiguration,
             flowClient,
             cacheClient: {} as CustomAuthSilentCacheClient,
+            signInStateTransitionHandler: new SignInStateTransitionHandlerV2(),
             continuationState: {
                 continuationToken: "ct-password",
                 scenario: CustomAuthFlowScenarioV2.SignIn,

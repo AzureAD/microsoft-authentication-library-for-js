@@ -102,6 +102,7 @@ const PASSWORD_AND_EMAIL_START_RESPONSE = {
 
 const PASSWORD_CHALLENGE_RESPONSE = {
     continuationToken: "ct-challenge",
+    action: "verify",
     id: "password-1",
     type: "password",
     _links: {
@@ -111,6 +112,7 @@ const PASSWORD_CHALLENGE_RESPONSE = {
 
 const EMAIL_CHALLENGE_RESPONSE = {
     continuationToken: "ct-email-challenge",
+    action: "verify",
     type: "email",
     codeLength: 6,
     hint: "u***@contoso.com",
@@ -153,12 +155,58 @@ const MFA_REQUIRED_RESPONSE = {
 
 const MFA_CHALLENGE_RESPONSE = {
     continuationToken: "ct-mfa-challenge",
+    action: "verify",
     codeLength: 6,
     hint: "u***@contoso.com",
     type: "email",
     _links: {
         verify: { href: "/tenant/api/v0.1/mfa/verify" },
         resend: { href: "/tenant/api/v0.1/mfa/resend" },
+    },
+};
+
+const SMS_MFA_REQUIRED_RESPONSE = {
+    ...MFA_REQUIRED_RESPONSE,
+    _embedded: {
+        methods: [
+            ...MFA_REQUIRED_RESPONSE._embedded.methods,
+            {
+                id: "sms-mfa",
+                type: "sms",
+                hint: "+*** *******11",
+                _links: {
+                    challenge: {
+                        href: "/tenant/api/v0.1/mfa/sms/challenge",
+                    },
+                },
+            },
+        ],
+    },
+};
+
+const SMS_MFA_CHALLENGE_RESPONSE = {
+    continuationToken: "ct-mfa-risk",
+    state: "interactionRequired",
+    action: "riskverify",
+    _links: {
+        riskverify: {
+            href: "/tenant/api/v1.0-internal/risk/phone/verify",
+        },
+    },
+};
+
+const SMS_MFA_RISK_VERIFY_RESPONSE = {
+    continuationToken: "ct-mfa-sms",
+    state: "interactionRequired",
+    action: "verify",
+    scenario: "signin",
+    id: "sms-mfa",
+    type: "sms",
+    hint: "+*** *******11",
+    payload: { codeLength: 6 },
+    _links: {
+        verify: { href: "/tenant/api/v1.0-internal/mfa/sms/verify" },
+        resend: { href: "/tenant/api/v1.0-internal/mfa/sms/challenge" },
     },
 };
 
@@ -298,23 +346,43 @@ describe("Sign-in V2 entry", () => {
         expect(fetch).toHaveBeenCalledTimes(6);
     });
 
-    it("rejects MFA-required after first-factor email OTP", async () => {
+    it("verifies SMS MFA after first-factor email OTP", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
             .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE))
             .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(MFA_REQUIRED_RESPONSE));
+            .mockResolvedValueOnce(buildResponse(SMS_MFA_REQUIRED_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(SMS_MFA_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(SMS_MFA_RISK_VERIFY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(MFA_VERIFY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
 
         const startResult = await app.signInV2({
             username: "user@contoso.com",
             scopes: ["User.Read"],
         });
-        const result = await (
+        const firstFactorResult = await (
             startResult.state as ChallengeVerificationRequiredStateV2
         ).verifyChallenge("123456");
+        expect(firstFactorResult.isState("mfaRequired")).toBe(true);
 
-        expect(result.isFailed()).toBe(true);
-        expect(result.error?.errorData.error).toBe(UNSUPPORTED_FLOW_TRANSITION);
+        const mfaState = firstFactorResult.state as MFARequiredStateV2;
+        const smsMethod = mfaState.methods.find(
+            (method) => method.type === "sms"
+        );
+        if (!smsMethod) {
+            throw new Error("Expected an SMS MFA method.");
+        }
+
+        const challengeResult = await mfaState.requestChallenge(smsMethod);
+        const completedResult = await (
+            challengeResult.state as ChallengeVerificationRequiredStateV2
+        ).verifyChallenge("654321");
+
+        expect(completedResult.isState("completed")).toBe(true);
+        expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);
+        expect(fetch).toHaveBeenCalledTimes(9);
     });
 
     it("submits a password from PasswordRequiredStateV2 and completes sign-in", async () => {
@@ -433,6 +501,53 @@ describe("Sign-in V2 entry", () => {
         expect(tokenRequest.body).toBeInstanceOf(URLSearchParams);
         expect((tokenRequest.body as URLSearchParams).has("claims")).toBe(
             false
+        );
+    });
+
+    it("verifies SMS MFA to complete sign-in", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(SMS_MFA_REQUIRED_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(SMS_MFA_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(SMS_MFA_RISK_VERIFY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(MFA_VERIFY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+        const startResult = await app.signInV2({
+            username: "user@contoso.com",
+            scopes: ["User.Read"],
+        });
+        const passwordResult = await (
+            startResult.state as PasswordRequiredStateV2
+        ).submitPassword("P@ssword1!");
+        const mfaState = passwordResult.state as MFARequiredStateV2;
+        const smsMethod = mfaState.methods.find(
+            (method) => method.type === "sms"
+        );
+        if (!smsMethod) {
+            throw new Error("Expected an SMS MFA method.");
+        }
+
+        const challengeResult = await mfaState.requestChallenge(smsMethod);
+        const codeState =
+            challengeResult.state as ChallengeVerificationRequiredStateV2;
+        expect(codeState.channel).toBe("sms");
+        expect(codeState.sentTo).toBe("+*** *******11");
+        expect(codeState.codeLength).toBe(6);
+
+        const completedResult = await codeState.verifyChallenge("123456");
+
+        expect(completedResult.isState("completed")).toBe(true);
+        expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);
+        expect(fetch as jest.Mock).toHaveBeenCalledTimes(9);
+        expect(String((fetch as jest.Mock).mock.calls[5][0])).toContain(
+            "/risk/phone/verify"
+        );
+        expect(String((fetch as jest.Mock).mock.calls[6][0])).toContain(
+            "/mfa/sms/verify"
         );
     });
 

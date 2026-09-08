@@ -38,21 +38,16 @@ import { SignInStartErrorV2 } from "../sign_in/auth_flow/v2/error_type/SignInSta
 import { SignInStartResultV2 } from "../sign_in/auth_flow/v2/result/SignInStartResultV2.js";
 import { SignUpStartErrorV2 } from "../sign_up/auth_flow/v2/error_type/SignUpStartErrorV2.js";
 import { SignUpStartResultV2 } from "../sign_up/auth_flow/v2/result/SignUpStartResultV2.js";
-import { CompletedStateV2 } from "../core/auth_flow/v2/state/CompletedStateV2.js";
 import {
-    FLOW_COMPLETED_V2,
     FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
-    FLOW_MFA_REQUIRED_V2,
-    FLOW_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
 } from "../core/interaction_client/v2/result/FlowActionResultV2.js";
-import { PasswordRequiredStateV2 } from "../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { ChallengeVerificationRequiredStateV2 } from "../core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
-import { MFARequiredStateV2 } from "../core/auth_flow/v2/state/MFARequiredStateV2.js";
 import { AttributesRequiredStateV2 } from "../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { SignUpPasswordRequiredStateV2 } from "../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
 import { SignUpStateTransitionHandlerV2 } from "../sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
+import { SignInStateTransitionHandlerV2 } from "../sign_in/auth_flow/v2/state/SignInStateTransitionHandlerV2.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
@@ -108,6 +103,8 @@ export class CustomAuthStandardController
     private readonly flowClientV2: FlowInteractionClientV2;
     private readonly signUpStateTransitionHandlerV2 =
         new SignUpStateTransitionHandlerV2();
+    private readonly signInStateTransitionHandlerV2 =
+        new SignInStateTransitionHandlerV2();
 
     /*
      * Constructor for CustomAuthStandardController.
@@ -750,74 +747,13 @@ export class CustomAuthStandardController
                 scopes: inputs.scopes,
             });
 
-            if (result.type === FLOW_COMPLETED_V2) {
-                return new CustomAuthResultV2(
-                    new CompletedStateV2(),
-                    new CustomAuthAccountData(
-                        result.authenticationResult.account,
-                        this.customAuthConfig,
-                        this.cacheClient,
-                        this.logger,
-                        correlationId
-                    ),
-                    CustomAuthFlowScenarioV2.SignIn
-                );
-            }
-
-            if (result.type === FLOW_MFA_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new MFARequiredStateV2({
-                        correlationId: result.correlationId,
-                        logger: this.logger,
-                        config: this.customAuthConfig,
-                        flowClient: this.flowClientV2,
-                        continuationState: result.continuationState,
-                        cacheClient: this.cacheClient,
-                        methods: result.methods,
-                    }),
-                    undefined,
-                    result.continuationState.scenario
-                );
-            }
-
-            if (result.type === FLOW_CODE_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new ChallengeVerificationRequiredStateV2({
-                        correlationId: result.correlationId,
-                        logger: this.logger,
-                        config: this.customAuthConfig,
-                        flowClient: this.flowClientV2,
-                        continuationState: result.continuationState,
-                        cacheClient: this.cacheClient,
-                        method: result.method,
-                        sentTo: result.sentTo,
-                        channel: result.channel,
-                        codeLength: result.codeLength,
-                    }),
-                    undefined,
-                    result.continuationState.scenario
-                );
-            }
-
-            if (result.type === FLOW_PASSWORD_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new PasswordRequiredStateV2({
-                        correlationId: result.correlationId,
-                        logger: this.logger,
-                        config: this.customAuthConfig,
-                        flowClient: this.flowClientV2,
-                        continuationState: result.continuationState,
-                        cacheClient: this.cacheClient,
-                    }),
-                    undefined,
-                    result.continuationState.scenario
-                );
-            }
-
-            throw new UnexpectedError(
-                "Unsupported native auth V2 sign-in result type.",
-                correlationId
-            );
+            return this.signInStateTransitionHandlerV2.handleStart(result, {
+                correlationId,
+                logger: this.logger,
+                config: this.customAuthConfig,
+                flowClient: this.flowClientV2,
+                cacheClient: this.cacheClient,
+            });
         } catch (error) {
             this.logger.errorPii(
                 `An error occurred during native auth V2 sign-in: '${error}'`,

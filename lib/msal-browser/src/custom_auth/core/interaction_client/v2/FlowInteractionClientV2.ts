@@ -459,6 +459,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         | FlowSignUpPasswordRequiredResultV2
         | FlowAttributesRequiredResultV2
         | FlowSignInContinuationRequiredResultV2
+        | FlowMFARequiredResultV2
         | FlowCompletedResultV2
     > {
         const continuationState = parameters.continuationState;
@@ -503,13 +504,10 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             });
         }
 
-        if (
-            continuationState.scenario === CustomAuthFlowScenarioV2.SignIn &&
-            verifyResult.nextAction === VerifyNextActionV2.CONTINUE
-        ) {
-            return this.completeSignInAfterVerification(
+        if (continuationState.scenario === CustomAuthFlowScenarioV2.SignIn) {
+            return this.handleSignInVerification(
                 continuationState,
-                verifyResult.continuationToken,
+                verifyResult,
                 correlationId
             );
         }
@@ -737,7 +735,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     ): Promise<FlowMFARequiredResultV2 | FlowCompletedResultV2> {
         const verifyResult = await this.verifySignInPassword(parameters);
 
-        return this.handleSignInPasswordVerification(
+        return this.handleSignInVerification(
             parameters.continuationState,
             verifyResult,
             parameters.correlationId
@@ -793,7 +791,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         });
     }
 
-    private async handleSignInPasswordVerification(
+    private async handleSignInVerification(
         continuationState: FlowContinuationStateV2,
         verifyResult: VerifyResultV2,
         correlationId: string
@@ -802,7 +800,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             this.ensureAuthenticationFactor(
                 verifyResult.authenticationFactor,
                 AuthenticationFactorV2.MULTI_FACTOR,
-                "after password verification",
+                "after sign-in verification",
                 correlationId
             );
 
@@ -831,7 +829,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             );
         }
 
-        const message = `Password verification next action '${verifyResult.nextAction}' is not supported for sign-in.`;
+        const message = `Verification next action '${verifyResult.nextAction}' is not supported for sign-in.`;
         this.logger.error(message, correlationId);
         throw new CustomAuthError(
             UNSUPPORTED_FLOW_TRANSITION,
