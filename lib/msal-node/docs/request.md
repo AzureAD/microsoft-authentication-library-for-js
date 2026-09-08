@@ -172,6 +172,8 @@ pca.acquireTokenByRefreshToken(refreshTokenRequest)
 
 -   [acquireTokenSilent](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html#acquiretokensilent): This API acquires a token silently, in case cache is provided by the user, or when cache is created by preceding this call with any other interactive flow (eg: authorization code flow). The request is of the type [SilentFlowRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_silentflowrequest_.html). The `token` is acquired silently when a user specifies the account the token is requested for.
 
+Concurrent `acquireTokenSilent` calls with equivalent accounts, effective authorities, scopes, and token-request options share one underlying cache or network operation. Each caller receives its own correlation ID, while the underlying operation's success or failure is shared. Requests with options that can change cache selection, token refresh behavior, or token endpoint parameters are processed independently.
+
 ```javascript
 /**
  * Cache Plugin configuration
