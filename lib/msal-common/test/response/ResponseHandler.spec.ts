@@ -170,6 +170,202 @@ describe("ResponseHandler.ts", () => {
         jest.restoreAllMocks();
     });
 
+    describe("nonce validation", () => {
+        const testRequest: BaseAuthRequest = {
+            authority: testAuthority.canonicalAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: ["openid"],
+        };
+
+        it("does not enforce nonce presence when validation is not enabled", async () => {
+            const warningSpy = jest.spyOn(logger, "warning");
+            const responseHandler = new ResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+
+            await expect(
+                responseHandler.handleServerTokenResponse(
+                    AUTHENTICATION_RESULT.body,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    testRequest,
+                    0,
+                    { code: TEST_TOKENS.AUTHORIZATION_CODE }
+                )
+            ).resolves.toBeDefined();
+            expect(warningSpy).not.toHaveBeenCalled();
+        });
+
+        it("rejects an ID Token nonce when no expected nonce is supplied", async () => {
+            const warningSpy = jest.spyOn(logger, "warning");
+            const responseHandler = new ResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+
+            await expect(
+                responseHandler.handleServerTokenResponse(
+                    AUTHENTICATION_RESULT.body,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    testRequest,
+                    0,
+                    {
+                        code: TEST_TOKENS.AUTHORIZATION_CODE,
+                        nonce: undefined,
+                    }
+                )
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.nonceMismatch,
+            });
+            expect(warningSpy).toHaveBeenCalledWith(
+                "Authorization code response contains an ID Token nonce, but no expected nonce was supplied. Rejecting the response.",
+                TEST_CONFIG.CORRELATION_ID
+            );
+        });
+
+        it("rejects an empty ID Token nonce when no expected nonce is supplied", async () => {
+            claimsStub.mockReturnValue({
+                ...ID_TOKEN_CLAIMS,
+                nonce: "",
+            });
+            const warningSpy = jest.spyOn(logger, "warning");
+            const responseHandler = new ResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+
+            await expect(
+                responseHandler.handleServerTokenResponse(
+                    AUTHENTICATION_RESULT.body,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    testRequest,
+                    0,
+                    {
+                        code: TEST_TOKENS.AUTHORIZATION_CODE,
+                        nonce: undefined,
+                    }
+                )
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.nonceMismatch,
+            });
+            expect(warningSpy).toHaveBeenCalledWith(
+                "Authorization code response contains an ID Token nonce, but no expected nonce was supplied. Rejecting the response.",
+                TEST_CONFIG.CORRELATION_ID
+            );
+        });
+
+        it("rejects a missing ID Token nonce when an empty expected nonce is supplied", async () => {
+            const responseHandler = new ResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+
+            await expect(
+                responseHandler.handleServerTokenResponse(
+                    AUTHENTICATION_RESULT.body,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    testRequest,
+                    0,
+                    {
+                        code: TEST_TOKENS.AUTHORIZATION_CODE,
+                        nonce: "",
+                    }
+                )
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.nonceMismatch,
+            });
+        });
+
+        it("rejects matching null nonce values", async () => {
+            claimsStub.mockReturnValue({
+                ...ID_TOKEN_CLAIMS,
+                nonce: null,
+            });
+            const responseHandler = new ResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+
+            await expect(
+                responseHandler.handleServerTokenResponse(
+                    AUTHENTICATION_RESULT.body,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    testRequest,
+                    0,
+                    {
+                        code: TEST_TOKENS.AUTHORIZATION_CODE,
+                        // @ts-expect-error Testing invalid runtime input.
+                        nonce: null,
+                    }
+                )
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.nonceMismatch,
+            });
+        });
+
+        it("rejects a missing ID Token when an expected nonce is supplied", async () => {
+            const responseHandler = new ResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+            const responseWithoutIdToken = {
+                ...AUTHENTICATION_RESULT.body,
+                id_token: undefined,
+            };
+
+            await expect(
+                responseHandler.handleServerTokenResponse(
+                    responseWithoutIdToken,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    testRequest,
+                    0,
+                    {
+                        code: TEST_TOKENS.AUTHORIZATION_CODE,
+                        nonce: ID_TOKEN_CLAIMS.nonce,
+                    }
+                )
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.nonceMismatch,
+            });
+        });
+    });
+
     describe("generateCacheRecord", () => {
         it("throws invalid cache environment error", async () => {
             preferredCacheStub.mockReturnValue("");

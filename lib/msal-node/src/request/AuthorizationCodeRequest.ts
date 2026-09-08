@@ -34,7 +34,7 @@ export type AuthorizationCodeRequest = Partial<
      */
     code: string;
     /**
-     * The nonce sent in the original authorization request. When provided, the ID Token nonce claim must be present and match this value.
+     * The nonce sent in the original authorization request. When provided, the ID Token nonce claim must be present and match this value. An ID Token nonce claim is rejected when no expected nonce is supplied.
      */
     nonce?: string;
     /**
