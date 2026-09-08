@@ -98,9 +98,12 @@ placeholders with your own registrations:
 | `VITE_NESTED_CLIENT_ID` | Application (client) id of the **nested** app.                    |
 | `VITE_AUTHORITY`        | Authority URL, e.g. `https://login.microsoftonline.com/<tenant>`. |
 
-For the **NAA + EAR** tests only, the following optional variables in `.env.e2e`
-point at an **EAR-enabled** registration pair. When left unset the standard
-registrations above are reused (and must themselves have EAR enabled):
+For the **NAA + EAR** tests only, the following optional variables point at an
+**EAR-enabled** registration pair. Set them in `.env.e2e` for `npm run
+test:e2e:ear` and in `.env` for `npm run test:e2e:ear-broker`, whose broker
+harness starts the sample using `.env`. When left unset, the standard
+registrations from the corresponding file are reused (and must themselves have
+EAR enabled):
 
 | Variable                    | Value                                                    |
 | --------------------------- | -------------------------------------------------------- |
@@ -163,7 +166,7 @@ End-to-end tests must run over HTTPS. The Jest configuration starts the HTTPS
 servers automatically.
 
 ```bash
-npm run test:e2e        # every suite (base + EAR, web + broker)
+npm run test:e2e        # base web suite and both broker suites; basic EAR is skipped
 ```
 
 The e2e specs consume the shared browser, cache, credential, and screenshot

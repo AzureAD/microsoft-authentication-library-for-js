@@ -277,6 +277,9 @@ function runBrokeredNaaSuite(title: string, ear: boolean): void {
         it.each(TOKEN_APIS)(
             "nested app acquires a token via $name ($bridge) through the broker",
             async ({ name }) => {
+                const earDecryptCountBeforeNested = ear
+                    ? await getEarDecryptCount(hostPage)
+                    : 0;
                 await nestedFrame
                     .locator(`#${name}`)
                     .click({ timeout: ACTION_TIMEOUT });
@@ -291,12 +294,11 @@ function runBrokeredNaaSuite(title: string, ear: boolean): void {
                 const nestedStore = await readSessionTokenStore(nestedFrame);
                 assertNestedTokenStore(nestedStore);
 
-                // With EAR on, the host must still be on the EAR protocol — a
-                // decrypt has happened (host login at minimum) and no plaintext
-                // fallback reset it to zero.
+                // With EAR on, this acquisition must produce a new decrypt rather
+                // than falling back to a plaintext response.
                 if (ear) {
                     expect(await getEarDecryptCount(hostPage)).toBeGreaterThan(
-                        0
+                        earDecryptCountBeforeNested
                     );
                 }
             }

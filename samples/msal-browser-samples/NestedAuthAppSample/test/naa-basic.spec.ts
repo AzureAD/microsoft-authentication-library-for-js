@@ -261,6 +261,9 @@ function runBasicNaaSuite(
             const acquireButton = await nestedFrame.waitForSelector(
                 "xpath=//button[contains(., 'acquireTokenSilent')]"
             );
+            const earDecryptCountBeforeNested = ear
+                ? await getEarDecryptCount(page)
+                : 0;
             await acquireButton?.click();
             await nestedFrame.waitForSelector(
                 "xpath=//th[contains(., 'homeAccountId')]",
@@ -271,7 +274,9 @@ function runBasicNaaSuite(
             // The brokered nested acquisition runs through the host's EAR PCA, so
             // it drives another `ear_jwe` decrypt on the host origin.
             if (ear) {
-                expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
+                expect(await getEarDecryptCount(page)).toBeGreaterThan(
+                    earDecryptCountBeforeNested
+                );
             }
 
             // Nested app must not hold a refresh token — it stays with the host/broker.
