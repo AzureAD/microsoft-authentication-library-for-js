@@ -10,7 +10,7 @@
         "@material-ui/icons": "^4.11.3",
         "react": "^16.8.0",
         "react-dom": "^16.8.0",
-        "react-router-dom": "^6.7.0"
+        "react-router-dom": "^6.30.6"
     },
     "scripts": {
         "start": "vite",
