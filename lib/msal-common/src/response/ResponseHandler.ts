@@ -238,11 +238,16 @@ export class ResponseHandler {
                     "Authorization code response contains an ID Token nonce, but no expected nonce was supplied. Rejecting the response.",
                     request.correlationId
                 );
+
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.nonceMismatch,
+                    request.correlationId
+                );
             }
 
-            // If either side supplies a nonce, both values must be strings and match.
+            // If the request supplies a nonce, the ID Token value must be a matching string.
             if (
-                (expectedNonce !== undefined || tokenNonce !== undefined) &&
+                expectedNonce !== undefined &&
                 (typeof expectedNonce !== "string" ||
                     typeof tokenNonce !== "string" ||
                     expectedNonce !== tokenNonce)

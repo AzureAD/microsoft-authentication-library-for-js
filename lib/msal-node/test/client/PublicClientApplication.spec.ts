@@ -245,7 +245,7 @@ describe("PublicClientApplication", () => {
         await authApp.acquireTokenByCode(request);
 
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
-        expect(acquireTokenSpy.mock.calls[0][2]).toEqual({
+        expect(acquireTokenSpy.mock.calls[0][2]).toStrictEqual({
             code: TEST_CONSTANTS.AUTHORIZATION_CODE,
             nonce: undefined,
         });
