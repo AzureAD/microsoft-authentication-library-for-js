@@ -155,6 +155,7 @@ export function isPlatformAuthAllowed(
         switch (authenticationScheme) {
             case Constants.AuthenticationScheme.BEARER:
             case Constants.AuthenticationScheme.POP:
+            case Constants.AuthenticationScheme.DPOP:
                 logger.trace(
                     "isPlatformAuthAllowed: authenticationScheme is supported, returning true",
                     correlationId

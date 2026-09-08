@@ -3215,7 +3215,19 @@ describe("CacheManager.ts test cases", () => {
                 ...dpopRequest,
                 dpopJkt: "different-jkt",
             })
+        ).toBeNull();
+        expect(
+            mockCache.cacheManager.getAccessToken(mockedAccountInfo, {
+                ...dpopRequest,
+                popKid: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+            })
         ).toEqual(dpopAtEntity);
+        expect(
+            mockCache.cacheManager.getAccessToken(mockedAccountInfo, {
+                ...dpopRequest,
+                popKid: "different-jkt",
+            })
+        ).toBeNull();
         expect(
             mockCache.cacheManager.getAccessToken(
                 mockedAccountInfo,

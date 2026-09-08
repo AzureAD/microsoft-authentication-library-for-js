@@ -40,6 +40,7 @@ type ResponseResolvers<T> = {
 };
 
 export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
+    private static readonly PROOF_CONTEXT_EXTENSION_VERSION = 3;
     private extensionId: string | undefined;
     private extensionVersion: string | undefined;
     private logger: Logger;
@@ -103,14 +104,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             `'${this.platformAuthType}' - Sending request to browser extension`,
             request.correlationId
         );
-        this.logger.tracePii(
-            `'${
-                this.platformAuthType
-            }' - Sending request to browser extension: '${JSON.stringify(
-                req
-            )}'`,
-            request.correlationId
-        );
         this.messageChannel.port1.postMessage(req);
 
         const response: object = await new Promise((resolve, reject) => {
@@ -126,6 +119,22 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     private initializeNativeExtensionRequest(
         request: PlatformAuthRequest
     ): PlatformAuthRequest {
+        const extensionVersionParts =
+            this.extensionVersion === undefined
+                ? undefined
+                : String(this.extensionVersion).split(".");
+        const extensionMajorVersion =
+            extensionVersionParts?.every((part) => /^\d+$/.test(part)) === true
+                ? Number(extensionVersionParts[0])
+                : NaN;
+        if (
+            !Number.isSafeInteger(extensionMajorVersion) ||
+            extensionMajorVersion <
+                PlatformAuthExtensionHandler.PROOF_CONTEXT_EXTENSION_VERSION
+        ) {
+            return request;
+        }
+
         const {
             resourceRequestMethod,
             resourceRequestUri,
@@ -353,14 +362,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                     `'${this.platformAuthType}' - Received response from browser extension`,
                     correlationId
                 );
-                this.logger.tracePii(
-                    `'${
-                        this.platformAuthType
-                    }' - Received response from browser extension: '${JSON.stringify(
-                        response
-                    )}'`,
-                    correlationId
-                );
                 if (response.status !== "Success") {
                     resolver.reject(
                         createNativeAuthError(
@@ -428,11 +429,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 "Error parsing response from WAM Extension",
                 correlationId
             );
-            this.logger.errorPii(
-                `Error parsing response from WAM Extension: '${err as string}'`,
-                correlationId
-            );
-            this.logger.errorPii(`Unable to parse '${event}'`, correlationId);
 
             if (resolver) {
                 resolver.reject(err as AuthError);

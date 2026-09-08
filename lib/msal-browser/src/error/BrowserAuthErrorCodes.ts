@@ -60,6 +60,7 @@ export const uninitializedPublicClientApplication =
 export const nativePromptNotSupported = "native_prompt_not_supported";
 export const invalidBase64String = "invalid_base64_string";
 export const invalidPopTokenRequest = "invalid_pop_token_request";
+export const dpopPopKidNotSupported = "dpop_pop_kid_not_supported";
 export const unsupportedTokenBindingAlgorithm =
     "unsupported_token_binding_algorithm";
 export const tokenBindingKeyAlgorithmMismatch =
