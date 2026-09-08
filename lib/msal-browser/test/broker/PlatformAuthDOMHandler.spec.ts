@@ -529,7 +529,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                     pop_uri: "https://graph.microsoft.com/v1.0/me",
                     pop_nonce: "test-dpop-nonce",
                 },
-                preferBinding: true,
+                preferBinding: PlatformAuthBindingPreference.ATTESTED,
                 enclave: PlatformAuthEnclave.HARDWARE,
                 requestConfirmation: "test-req-cnf",
                 redirectUri: testRequest.redirectUri,

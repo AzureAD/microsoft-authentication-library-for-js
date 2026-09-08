@@ -166,7 +166,7 @@ export type PlatformDOMTokenRequest = {
     correlationId: string;
     isSecurityTokenService: boolean;
     state?: string;
-    preferBinding?: boolean;
+    preferBinding?: PlatformAuthBindingPreference;
     enclave?: PlatformAuthEnclave;
     requestConfirmation?: string;
     extraParametersNoCache?: PlatformDOMExtraParametersNoCache;

@@ -13,7 +13,6 @@ import {
 import {
     DOMExtraParameters,
     isProofOfPossessionTokenType,
-    PlatformAuthBindingPreference,
     PlatformAuthRequest,
     PlatformAuthRequestExtraParametersNoCache,
     PlatformDOMExtraParametersNoCache,
@@ -185,10 +184,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             redirectUri: redirectUri,
             scope: scope,
             state: state,
-            preferBinding:
-                preferBinding === PlatformAuthBindingPreference.ATTESTED
-                    ? true
-                    : undefined,
+            preferBinding: preferBinding,
             enclave: enclave,
             requestConfirmation: reqCnf,
             extraParametersNoCache: validExtraParametersNoCache,
