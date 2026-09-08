@@ -34,6 +34,7 @@ import {
     ClientAuthError,
     StubPerformanceClient,
     getRequestThumbprint,
+    AccountInfo,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -313,9 +314,9 @@ export abstract class ClientApplication {
         };
 
         if (!validRequest.account) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.noAccountInSilentRequest,
-                validRequest.correlationId
+            return this.acquireTokenSilentAsync(
+                validRequest,
+                request.azureCloudOptions
             );
         }
 
@@ -323,12 +324,10 @@ export abstract class ClientApplication {
             validRequest.authority,
             request.azureCloudOptions || this.config.auth.azureCloudOptions
         );
-        const thumbprint = getRequestThumbprint(
-            this.config.auth.clientId,
-            { ...validRequest, authority: authorityForThumbprint },
-            validRequest.account.homeAccountId
+        const silentRequestKey = this.getSilentRequestKey(
+            validRequest,
+            authorityForThumbprint
         );
-        const silentRequestKey = JSON.stringify(thumbprint);
         const inProgressRequest =
             this.activeSilentTokenRequests.get(silentRequestKey);
 
@@ -337,7 +336,10 @@ export abstract class ClientApplication {
                 "acquireTokenSilent has been called previously, returning the result from the first call",
                 validRequest.correlationId
             );
-            return inProgressRequest;
+            return this.applyCallerCorrelationId(
+                inProgressRequest,
+                validRequest.correlationId
+            );
         }
 
         this.logger.verbose(
@@ -350,9 +352,86 @@ export abstract class ClientApplication {
         );
         this.activeSilentTokenRequests.set(silentRequestKey, activeRequest);
 
-        return activeRequest.finally(() => {
+        const activeRequestWithCleanup = activeRequest.finally(() => {
             this.activeSilentTokenRequests.delete(silentRequestKey);
         });
+
+        return this.applyCallerCorrelationId(
+            activeRequestWithCleanup,
+            validRequest.correlationId
+        );
+    }
+
+    /**
+     * Builds the key used to identify equivalent in-progress silent requests.
+     */
+    private getSilentRequestKey(
+        request: CommonSilentFlowRequest & { account: AccountInfo },
+        authority: string
+    ): string {
+        const thumbprint = getRequestThumbprint(
+            this.config.auth.clientId,
+            { ...request, authority },
+            request.account.homeAccountId
+        );
+
+        return JSON.stringify({
+            ...thumbprint,
+            accountTenantId: request.account.tenantId,
+            accountEnvironment: request.account.environment,
+            forceRefresh: request.forceRefresh,
+            refreshTokenExpirationOffsetSeconds:
+                request.refreshTokenExpirationOffsetSeconds,
+            redirectUri: request.redirectUri,
+            extraParameters: this.canonicalizeStringDict(
+                request.extraParameters
+            ),
+            extraQueryParameters: this.canonicalizeStringDict(
+                request.extraQueryParameters
+            ),
+            skipBrokerClaims: thumbprint.embeddedClientId
+                ? request.skipBrokerClaims
+                : undefined,
+        });
+    }
+
+    /**
+     * Canonicalizes request dictionaries so equivalent values produce the same key.
+     */
+    private canonicalizeStringDict(
+        dictionary?: Record<string, string>
+    ): Array<[string, string]> | undefined {
+        return dictionary
+            ? Object.keys(dictionary)
+                  .sort()
+                  .map((key) => [key, dictionary[key]])
+            : undefined;
+    }
+
+    /**
+     * Applies the caller's correlation ID without mutating a result or error shared with other callers.
+     */
+    private applyCallerCorrelationId(
+        activeRequest: Promise<AuthenticationResult>,
+        correlationId: string
+    ): Promise<AuthenticationResult> {
+        return activeRequest
+            .then((result) => ({
+                ...result,
+                correlationId,
+            }))
+            .catch((error: unknown) => {
+                if (error instanceof AuthError) {
+                    const callerError = Object.create(
+                        Object.getPrototypeOf(error),
+                        Object.getOwnPropertyDescriptors(error)
+                    ) as AuthError;
+                    callerError.correlationId = correlationId;
+                    throw callerError;
+                }
+
+                throw error;
+            });
     }
 
     private async acquireTokenSilentAsync(

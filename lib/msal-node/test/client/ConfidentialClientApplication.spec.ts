@@ -349,6 +349,44 @@ describe("ConfidentialClientApplication", () => {
         expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1);
     });
 
+    test("does not coalesce silent requests with different redirect URIs", async () => {
+        let releaseRequest: (result: AuthenticationResult) => void = () => {};
+        const requestGate = new Promise<AuthenticationResult>((resolve) => {
+            releaseRequest = resolve;
+        });
+        const acquireTokenSilentAsyncSpy = jest
+            .spyOn(ClientApplication.prototype, <any>"acquireTokenSilentAsync")
+            .mockReturnValue(requestGate);
+        const testAccountEntity: AccountEntity =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        const testAccount: AccountInfo = {
+            ...AccountEntityUtils.getAccountInfo(testAccountEntity),
+            idTokenClaims: ID_TOKEN_CLAIMS,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
+        };
+        const client = new ConfidentialClientApplication(config);
+        const request: SilentFlowRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            account: testAccount,
+            authority: TEST_CONFIG.validAuthority,
+        };
+
+        const firstRequest = client.acquireTokenSilent({
+            ...request,
+            redirectUri: "http://localhost:3000/first",
+        });
+        const secondRequest = client.acquireTokenSilent({
+            ...request,
+            redirectUri: "http://localhost:3000/second",
+        });
+
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        expect(acquireTokenSilentAsyncSpy).toHaveBeenCalledTimes(2);
+
+        releaseRequest({ correlationId: "" } as AuthenticationResult);
+        await Promise.all([firstRequest, secondRequest]);
+    });
+
     test("acquireTokenByRefreshToken", async () => {
         const acquireTokenByRefreshTokenSpy: jest.SpyInstance = jest.spyOn(
             ClientApplication.prototype,
