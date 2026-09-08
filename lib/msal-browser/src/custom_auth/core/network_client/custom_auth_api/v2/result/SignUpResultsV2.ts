@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import type { ChallengeResultV2 } from "./BaseResultsV2.js";
+import type { ChallengeVerificationResultV2 } from "./BaseResultsV2.js";
 
 export interface SignUpAttributeV2 {
     attributeId: string;
@@ -28,7 +28,7 @@ export const SignUpSubmitAttributesNextActionV2 = {
 } as const;
 
 export type SignUpSubmitAttributesApiResultV2 =
-    | (ChallengeResultV2 & {
+    | (ChallengeVerificationResultV2 & {
           nextAction: typeof SignUpSubmitAttributesNextActionV2.VERIFY;
           attributes?: SignUpAttributeV2[];
       })

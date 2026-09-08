@@ -71,10 +71,12 @@ import {
 } from "../../telemetry/FlowApiIdHelperV2.js";
 import {
     AuthenticationFactorV2,
-    type ChallengeResultV2,
+    ChallengeNextActionV2,
+    type ChallengeVerificationResultV2,
     VerifyNextActionV2,
     type VerifyResultV2,
 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
+import { AuthenticationMethodTypeV2 } from "../../network_client/custom_auth_api/v2/ApiClientConstantsV2.js";
 import type { FlowContinuationStateV2 } from "./FlowContinuationStateV2.js";
 import type { AuthenticationMethodV2 } from "../../auth_flow/v2/AuthenticationMethodV2.js";
 import {
@@ -374,7 +376,10 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
             if (
                 challengeResult.type === FLOW_CODE_REQUIRED_V2 &&
-                challengeResult.channel?.toLowerCase() === "email"
+                (challengeResult.channel?.toLowerCase() ===
+                    AuthenticationMethodTypeV2.EMAIL ||
+                    challengeResult.channel?.toLowerCase() ===
+                        AuthenticationMethodTypeV2.SMS)
             ) {
                 return {
                     ...challengeResult,
@@ -385,7 +390,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             const channel =
                 challengeResult.type === FLOW_CODE_REQUIRED_V2
                     ? challengeResult.channel
-                    : "password";
+                    : AuthenticationMethodTypeV2.PASSWORD;
             const message = `Challenge type '${challengeResult.type}' with channel '${channel}' is not supported for password reset.`;
             this.logger.error(message, correlationId);
             throw new CustomAuthError(
@@ -418,13 +423,16 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             parameters,
             "requestChallenge"
         );
-        const challengeType = challengeResult.type ?? "email";
+        const challengeType =
+            challengeResult.type ?? AuthenticationMethodTypeV2.EMAIL;
         const continuationState = this.createChallengeContinuationState(
             parameters.continuationState,
             challengeResult
         );
 
-        if (challengeType.toLowerCase() === "password") {
+        if (
+            challengeType.toLowerCase() === AuthenticationMethodTypeV2.PASSWORD
+        ) {
             return createFlowPasswordRequiredResultV2({
                 correlationId: parameters.correlationId,
                 continuationState,
@@ -838,10 +846,13 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         correlationId: string
     ): AuthenticationMethodV2 {
         const passwordMethod = methods.find(
-            (method) => method.type.toLowerCase() === "password"
+            (method) =>
+                method.type.toLowerCase() ===
+                AuthenticationMethodTypeV2.PASSWORD
         );
         const emailMethod = methods.find(
-            (method) => method.type.toLowerCase() === "email"
+            (method) =>
+                method.type.toLowerCase() === AuthenticationMethodTypeV2.EMAIL
         );
 
         if (passwordProvided) {
@@ -1021,7 +1032,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     private async sendMethodChallenge(
         parameters: FlowChallengeParamsV2,
         step: "requestChallenge" | "resendCode"
-    ): Promise<ChallengeResultV2> {
+    ): Promise<ChallengeVerificationResultV2> {
         const continuationState = parameters.continuationState;
         const correlationId = parameters.correlationId;
         const challengeHref =
@@ -1044,16 +1055,27 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             correlationId
         );
 
-        return this.apiClient.requestChallenge(
+        const challengeResult = await this.apiClient.requestChallenge(
             this.requireLink(correlationId, challengeHref),
             { continuationToken: continuationState.continuationToken },
             context
         );
+
+        if (challengeResult.nextAction === ChallengeNextActionV2.VERIFY) {
+            return challengeResult;
+        }
+
+        const verificationResult = await this.apiClient.verifyRisk(
+            challengeResult.riskVerifyHref,
+            { continuationToken: challengeResult.continuationToken },
+            context
+        );
+        return verificationResult;
     }
 
     private createChallengeContinuationState(
         continuationState: FlowContinuationStateV2,
-        challengeResult: ChallengeResultV2
+        challengeResult: ChallengeVerificationResultV2
     ): FlowContinuationStateV2 {
         return {
             continuationToken: challengeResult.continuationToken,

@@ -81,11 +81,49 @@ const START_RESPONSE = {
 
 const CHALLENGE_RESPONSE = {
     continuationToken: "ct-challenge",
+    action: "verify",
     codeLength: 6,
     hint: "u***@contoso.com",
     type: "email",
     _links: {
         verify: { href: "/tenant/api/v0.1/verify" },
+    },
+};
+
+const SMS_METHOD = {
+    id: "sms",
+    type: "sms",
+    hint: "+*** *******11",
+    _links: {
+        challenge: {
+            href: "/tenant/api/v0.1/methods/sms/challenge",
+        },
+    },
+};
+
+const SMS_CHALLENGE_RESPONSE = {
+    continuationToken: "ct-risk",
+    state: "interactionRequired",
+    action: "riskverify",
+    _links: {
+        riskverify: {
+            href: "/tenant/api/v1.0-internal/risk/phone/verify",
+        },
+    },
+};
+
+const SMS_RISK_VERIFY_RESPONSE = {
+    continuationToken: "ct-sms-verify",
+    state: "interactionRequired",
+    action: "verify",
+    scenario: "recovery",
+    id: "sms",
+    type: "sms",
+    hint: "+*** *******11",
+    payload: { codeLength: 6 },
+    _links: {
+        verify: { href: "/tenant/api/v1.0-internal/sms/verify" },
+        resend: { href: "/tenant/api/v1.0-internal/sms/challenge" },
     },
 };
 
@@ -183,6 +221,61 @@ describe("Reset password V2 (SSPR)", () => {
         expect(codeState.method?.id).toBe("email");
         expect(codeState.channel).toBe("email");
         expect(fetch as jest.Mock).toHaveBeenCalledTimes(3);
+    });
+
+    it("resets the password with SMS as the first factor", async () => {
+        const smsStartResponse = {
+            ...START_RESPONSE,
+            _embedded: {
+                methods: [START_RESPONSE._embedded.methods[0], SMS_METHOD],
+            },
+        };
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(smsStartResponse))
+            .mockResolvedValueOnce(buildResponse(SMS_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(SMS_RISK_VERIFY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(POLL_COMPLETED_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+        const methodState = await startToMethodSelection();
+        const smsMethod = methodState.methods.find(
+            (method) => method.type === "sms"
+        );
+        if (!smsMethod) {
+            throw new Error("Expected an SMS password-reset method.");
+        }
+
+        const challengeResult = await methodState.requestChallenge(smsMethod);
+        expect(challengeResult.isState("challengeVerificationRequired")).toBe(
+            true
+        );
+
+        const codeState =
+            challengeResult.state as ChallengeVerificationRequiredStateV2;
+        expect(codeState.channel).toBe("sms");
+        expect(codeState.sentTo).toBe("+*** *******11");
+        expect(codeState.codeLength).toBe(6);
+
+        const verifyResult = await codeState.verifyChallenge("123456");
+        const passwordState = verifyResult.state as NewPasswordRequiredStateV2;
+        const submitResult = await passwordState.submitNewPassword(
+            "N3wP@ssw0rd!"
+        );
+        const signInState = submitResult.state as SignInContinuationStateV2;
+        const signInResult = await signInState.signIn();
+
+        expect(signInResult.isState("completed")).toBe(true);
+        expect(fetch as jest.Mock).toHaveBeenCalledTimes(9);
+        expect(String((fetch as jest.Mock).mock.calls[3][0])).toContain(
+            "/risk/phone/verify"
+        );
+        expect(String((fetch as jest.Mock).mock.calls[4][0])).toContain(
+            "/sms/verify"
+        );
     });
 
     it("appends OIDC scopes and caches the ID token when the app requests only an API scope", async () => {
@@ -334,28 +427,25 @@ describe("Reset password V2 (SSPR)", () => {
         expect(challengeResult.error?.isBrowserRequired()).toBe(true);
     });
 
-    it.each(["password", "sms"])(
-        "rejects a %s challenge for password reset",
-        async (type) => {
-            (fetch as jest.Mock)
-                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-                .mockResolvedValueOnce(
-                    buildResponse({
-                        ...CHALLENGE_RESPONSE,
-                        type,
-                    })
-                );
-
-            const methodState = await startToMethodSelection();
-            const challengeResult = await methodState.requestChallenge(
-                methodState.methods[0]
+    it("rejects a password challenge for password reset", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse({
+                    ...CHALLENGE_RESPONSE,
+                    type: "password",
+                })
             );
 
-            expect(challengeResult.isFailed()).toBe(true);
-            expect(challengeResult.error?.errorData.error).toBe(
-                UNSUPPORTED_FLOW_TRANSITION
-            );
-        }
-    );
+        const methodState = await startToMethodSelection();
+        const challengeResult = await methodState.requestChallenge(
+            methodState.methods[0]
+        );
+
+        expect(challengeResult.isFailed()).toBe(true);
+        expect(challengeResult.error?.errorData.error).toBe(
+            UNSUPPORTED_FLOW_TRANSITION
+        );
+    });
 });
