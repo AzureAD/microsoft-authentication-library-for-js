@@ -15,7 +15,12 @@ import { NativeExtensionMethod } from "../../src/utils/BrowserConstants.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
-import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
+import {
+    PlatformAuthBindingPreference,
+    PlatformAuthEnclave,
+    PlatformAuthRequest,
+    PlatformAuthTokenType,
+} from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants.js";
 import {
     getDefaultErrorMessage,
@@ -266,7 +271,11 @@ describe("PlatformAuthExtensionHandler Tests", () => {
     });
 
     describe("sendMessage", () => {
-        it("Sends message to WAM extension", async () => {
+        it.each([
+            Constants.AuthenticationScheme.POP,
+            PlatformAuthTokenType.DPOP_WITH_PROOF,
+            PlatformAuthTokenType.DPOP_WITH_PROOF_LEGACY,
+        ])("Sends token type %s to WAM extension", async (tokenType) => {
             const testWAMResponse = {
                 access_token: "test-access-token",
                 id_token: "test-id-token",
@@ -278,10 +287,9 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 },
                 scope: "read openid",
                 expires_in: "3600",
-                token_type: "DPoP",
+                token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
                 DPoP: "test-dpop-proof",
-                token_binding_key_id: "test-token-binding-key-id",
-                attested_chosen: true,
+                binding_attested: true,
             };
             const testResponse = {
                 status: "Success",
@@ -310,13 +318,13 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                     );
                     expect(event.data.body.request).toEqual({
                         ...TEST_REQUEST,
-                        preferBinding: "test-prefer-binding",
-                        enclave: "test-enclave",
+                        preferBinding: PlatformAuthBindingPreference.ATTESTED,
+                        enclave: PlatformAuthEnclave.HARDWARE,
                         reqCnf: "test-req-cnf",
-                        tokenType: Constants.AuthenticationScheme.DPOP,
+                        tokenType,
                         extraParametersNoCache: {
                             pop_method: "POST",
-                            pop_uri: "https://graph.microsoft.com/v1.0/me",
+                            pop_url: "https://graph.microsoft.com/v1.0/me",
                             pop_nonce: "test-dpop-nonce",
                         },
                     });
@@ -346,17 +354,19 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 PlatformAuthExtensionHandler
             );
 
+            const extraParametersNoCache = {
+                pop_nonce: "test-dpop-nonce",
+                pop_uri: "must-not-reach-wam",
+            };
             const response = await wamMessageHandler.sendMessage({
                 ...TEST_REQUEST,
-                preferBinding: "test-prefer-binding",
-                enclave: "test-enclave",
+                preferBinding: PlatformAuthBindingPreference.ATTESTED,
+                enclave: PlatformAuthEnclave.HARDWARE,
                 reqCnf: "test-req-cnf",
-                tokenType: Constants.AuthenticationScheme.DPOP,
+                tokenType,
                 resourceRequestMethod: "POST",
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                extraParametersNoCache: {
-                    pop_nonce: "test-dpop-nonce",
-                },
+                extraParametersNoCache,
             });
             expect(response).toEqual(testResponse.result);
 

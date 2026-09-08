@@ -274,22 +274,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
         });
 
-        it("Extension: surfaces the broker DPoP proof in the authentication result", async () => {
-            jest.spyOn(
-                PlatformAuthExtensionHandler.prototype,
-                "sendMessage"
-            ).mockResolvedValue({
-                ...MOCK_WAM_RESPONSE,
-                DPoP: "test-dpop-proof",
-            });
-
-            const response = await platformAuthInteractionClient.acquireToken({
-                scopes: ["User.Read"],
-            });
-
-            expect(response.dpopProof).toBe("test-dpop-proof");
-        });
-
         it("Extension: token request contains user input extra params", async () => {
             const sendMessageSpy = jest
                 .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
@@ -1917,53 +1901,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 });
-
-            expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
-            expect(nativeRequest.resourceRequestMethod).toBe("POST");
-            expect(nativeRequest.resourceRequestUri).toBe(
-                "https://graph.microsoft.com/v1.0/me"
-            );
-        });
-
-        it("preserves proof context as original params for DOM requests", async () => {
-            const domPlatformAuthInteractionClient =
-                new PlatformAuthInteractionClient(
-                    // @ts-ignore
-                    pca.config,
-                    // @ts-ignore
-                    pca.browserStorage,
-                    // @ts-ignore
-                    pca.browserCrypto,
-                    pca.getLogger(),
-                    // @ts-ignore
-                    pca.eventHandler,
-                    // @ts-ignore
-                    pca.navigationClient,
-                    ApiId.acquireTokenRedirect,
-                    perfClient,
-                    new PlatformAuthDOMHandler(
-                        pca.getLogger(),
-                        getDefaultPerformanceClient(),
-                        RANDOM_TEST_GUID
-                    ),
-                    "nativeAccountId",
-                    // @ts-ignore
-                    pca.nativeInternalStorage,
-                    RANDOM_TEST_GUID
-                );
-
-            const nativeRequest =
-                // @ts-ignore
-                await domPlatformAuthInteractionClient.initializePlatformRequest(
-                    {
-                        scopes: ["User.Read"],
-                        authenticationScheme:
-                            Constants.AuthenticationScheme.DPOP,
-                        resourceRequestMethod: "POST",
-                        resourceRequestUri:
-                            "https://graph.microsoft.com/v1.0/me",
-                    }
-                );
 
             expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
             expect(nativeRequest.resourceRequestMethod).toBe("POST");

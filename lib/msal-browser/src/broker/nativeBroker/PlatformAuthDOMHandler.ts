@@ -13,8 +13,10 @@ import {
 import {
     DOMExtraParameters,
     isProofOfPossessionTokenType,
+    PlatformAuthBindingPreference,
     PlatformAuthRequest,
     PlatformAuthRequestExtraParametersNoCache,
+    PlatformDOMExtraParametersNoCache,
     PlatformDOMTokenRequest,
 } from "./PlatformAuthRequest.js";
 import { PlatformAuthConstants } from "../../utils/BrowserConstants.js";
@@ -183,7 +185,10 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             redirectUri: redirectUri,
             scope: scope,
             state: state,
-            preferBinding: preferBinding,
+            preferBinding:
+                preferBinding === PlatformAuthBindingPreference.ATTESTED
+                    ? true
+                    : undefined,
             enclave: enclave,
             requestConfirmation: reqCnf,
             extraParametersNoCache: validExtraParametersNoCache,
@@ -253,6 +258,12 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             `'${this.platformAuthType}' - convertToNativeResponse called`,
             correlationId
         );
+        const responseProperties = response.properties || {};
+        const bindingAttested = this.parseDOMBoolean(
+            responseProperties.binding_attested,
+            "binding_attested",
+            correlationId
+        );
         const nativeResponse: PlatformAuthResponse = {
             access_token: response.accessToken,
             id_token: response.idToken,
@@ -261,16 +272,35 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             expires_in: response.expiresIn,
             scope: response.scopes,
             state: response.state || "",
-            properties: response.properties || {},
+            properties: responseProperties,
             extendedLifetimeToken: response.extendedLifetimeToken ?? false,
             shr: response.proofOfPossessionPayload,
-            token_type: response.tokenType,
-            DPoP: response.DPoP,
-            token_binding_key_id: response.tokenBindingKeyId,
-            attested_chosen: response.attestedChosen,
+            token_type: responseProperties.token_type,
+            DPoP: responseProperties.dpop_proof,
+            binding_attested: bindingAttested,
         };
 
         return nativeResponse;
+    }
+
+    private parseDOMBoolean(
+        value: string | undefined,
+        propertyName: string,
+        correlationId: string
+    ): boolean | undefined {
+        if (value === undefined) {
+            return undefined;
+        }
+
+        if (value === "true" || value === "false") {
+            return value === "true";
+        }
+
+        throw createAuthError(
+            AuthErrorCodes.unexpectedError,
+            correlationId,
+            `Platform broker returned invalid ${propertyName} value.`
+        );
     }
 
     private getDOMExtraParamsNoCache(
@@ -278,18 +308,21 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         resourceRequestMethod?: string,
         resourceRequestUri?: string,
         extraParametersNoCache?: PlatformAuthRequestExtraParametersNoCache
-    ): PlatformAuthRequestExtraParametersNoCache | undefined {
+    ): PlatformDOMExtraParametersNoCache | undefined {
         if (!isProofOfPossessionRequest) {
             return undefined;
         }
 
+        const popNonce = extraParametersNoCache?.pop_nonce;
         return {
-            ...extraParametersNoCache,
             ...(resourceRequestMethod && {
                 pop_method: resourceRequestMethod,
             }),
             ...(resourceRequestUri && {
                 pop_uri: resourceRequestUri,
+            }),
+            ...(popNonce && {
+                pop_nonce: popNonce,
             }),
         };
     }

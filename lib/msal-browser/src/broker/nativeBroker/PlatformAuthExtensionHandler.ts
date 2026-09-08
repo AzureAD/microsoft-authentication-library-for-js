@@ -20,6 +20,7 @@ import {
     NativeExtensionRequest,
     NativeExtensionRequestBody,
     isProofOfPossessionTokenType,
+    PlatformAuthExtensionExtraParametersNoCache,
     PlatformAuthRequest,
 } from "./PlatformAuthRequest.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
@@ -132,19 +133,24 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             extraParametersNoCache,
             ...extensionRequest
         } = request;
+        const popNonce = extraParametersNoCache?.pop_nonce;
 
         const isProofOfPossessionRequest = isProofOfPossessionTokenType(
             request.tokenType
         );
 
-        const nativeExtraParametersNoCache = isProofOfPossessionRequest
+        const nativeExtraParametersNoCache:
+            | PlatformAuthExtensionExtraParametersNoCache
+            | undefined = isProofOfPossessionRequest
             ? {
-                  ...extraParametersNoCache,
                   ...(resourceRequestMethod && {
                       pop_method: resourceRequestMethod,
                   }),
                   ...(resourceRequestUri && {
-                      pop_uri: resourceRequestUri,
+                      pop_url: resourceRequestUri,
+                  }),
+                  ...(popNonce && {
+                      pop_nonce: popNonce,
                   }),
               }
             : undefined;

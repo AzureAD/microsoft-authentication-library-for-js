@@ -6,12 +6,77 @@
 import { NativeExtensionMethod } from "../../utils/BrowserConstants.js";
 import { Constants, StringDict } from "@azure/msal-common/browser";
 
+/**
+ * Key storage enclaves supported by the platform broker.
+ */
+export const PlatformAuthEnclave = {
+    /**
+     * Persisted software key using MS_KEY_STORAGE_PROVIDER.
+     */
+    SOFTWARE: "sw",
+    /**
+     * TPM-backed key using MS_PLATFORM_KEY_STORAGE_PROVIDER.
+     */
+    HARDWARE: "hw",
+    /**
+     * KeyGuard-protected key using MS_KEY_STORAGE_PROVIDER.
+     */
+    KEY_GUARD: "kg",
+} as const;
+
+/**
+ * Supported platform broker key storage enclave.
+ */
+export type PlatformAuthEnclave =
+    (typeof PlatformAuthEnclave)[keyof typeof PlatformAuthEnclave];
+
+/**
+ * Token types supported by the platform broker request contract.
+ * DPOP_WITH_PROOF_LEGACY is retained temporarily while the WAM proof of concept
+ * migrates to the canonical DPOP_WITH_PROOF value.
+ */
+export const PlatformAuthTokenType = {
+    DPOP_WITH_PROOF: "dpop+proof",
+    DPOP_WITH_PROOF_LEGACY: "dpop_proof",
+} as const;
+
+/**
+ * Supported platform broker request token type. Authentication schemes are
+ * internal request intent; the additional values are WAM DPoP wire contracts.
+ */
+export type PlatformAuthTokenType =
+    | Constants.AuthenticationScheme
+    | (typeof PlatformAuthTokenType)[keyof typeof PlatformAuthTokenType];
+
+/**
+ * Token binding preferences supported by the platform broker.
+ */
+export const PlatformAuthBindingPreference = {
+    ATTESTED: "attested",
+} as const;
+
+/**
+ * Supported platform broker token binding preference.
+ */
+export type PlatformAuthBindingPreference =
+    (typeof PlatformAuthBindingPreference)[keyof typeof PlatformAuthBindingPreference];
+
+const PROOF_OF_POSSESSION_TOKEN_TYPES: readonly PlatformAuthTokenType[] = [
+    Constants.AuthenticationScheme.POP,
+    Constants.AuthenticationScheme.DPOP,
+    PlatformAuthTokenType.DPOP_WITH_PROOF,
+    PlatformAuthTokenType.DPOP_WITH_PROOF_LEGACY,
+];
+
+/**
+ * Returns whether a platform broker token type requires proof request metadata.
+ */
 export function isProofOfPossessionTokenType(
-    tokenType: string | undefined
+    tokenType: PlatformAuthTokenType | undefined
 ): boolean {
     return (
-        tokenType === Constants.AuthenticationScheme.POP ||
-        tokenType === Constants.AuthenticationScheme.DPOP
+        tokenType !== undefined &&
+        PROOF_OF_POSSESSION_TOKEN_TYPES.includes(tokenType)
     );
 }
 
@@ -19,10 +84,26 @@ export function isProofOfPossessionTokenType(
  * No-cache parameters MSAL.js sends to the native broker for proof-of-possession requests.
  */
 export type PlatformAuthRequestExtraParametersNoCache = {
-    pop_method?: string;
-    pop_uri?: string;
     pop_nonce?: string;
 };
+
+/**
+ * No-cache proof parameters sent directly to WAM through the browser extension.
+ */
+export type PlatformAuthExtensionExtraParametersNoCache =
+    PlatformAuthRequestExtraParametersNoCache & {
+        pop_method?: string;
+        pop_url?: string;
+    };
+
+/**
+ * No-cache proof parameters accepted by the platform DOM API.
+ */
+export type PlatformDOMExtraParametersNoCache =
+    PlatformAuthRequestExtraParametersNoCache & {
+        pop_method?: string;
+        pop_uri?: string;
+    };
 
 /**
  * Token request which native broker will use to acquire tokens
@@ -41,11 +122,11 @@ export type PlatformAuthRequest = {
     claims?: string;
     state?: string;
     loginHint?: string; // UPN of the user
-    preferBinding?: string;
-    enclave?: string;
+    preferBinding?: PlatformAuthBindingPreference;
+    enclave?: PlatformAuthEnclave;
     reqCnf?: string;
     keyId?: string;
-    tokenType?: string;
+    tokenType?: PlatformAuthTokenType;
     shrClaims?: string;
     shrNonce?: string;
     resourceRequestMethod?: string;
@@ -85,10 +166,10 @@ export type PlatformDOMTokenRequest = {
     correlationId: string;
     isSecurityTokenService: boolean;
     state?: string;
-    preferBinding?: string;
-    enclave?: string;
+    preferBinding?: boolean;
+    enclave?: PlatformAuthEnclave;
     requestConfirmation?: string;
-    extraParametersNoCache?: PlatformAuthRequestExtraParametersNoCache;
+    extraParametersNoCache?: PlatformDOMExtraParametersNoCache;
     /*
      * Known optional parameters will go into extraQueryParameters.
      * List of known parameters is:
