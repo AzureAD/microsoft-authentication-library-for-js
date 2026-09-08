@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Fri, 28 Aug 2026 21:29:53 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 02 Sep 2026 21:15:30 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.21.0
+
+Wed, 02 Sep 2026 21:15:30 GMT
+
+### Minor changes
+
+- Validate the relayed request in runPopupRelay before navigating and add an optional allowedAuthorityOrigins pin [#8800](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8800) (kshabelko@microsoft.com)
 
 ## 5.20.0
 

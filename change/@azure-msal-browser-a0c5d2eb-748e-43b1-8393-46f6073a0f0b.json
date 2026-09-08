@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix flaky timestamp validation in unit tests [#8796](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8796)",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

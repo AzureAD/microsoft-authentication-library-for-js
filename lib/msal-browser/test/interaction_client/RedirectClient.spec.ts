@@ -3467,6 +3467,39 @@ describe("RedirectClient", () => {
     });
 
     describe("EAR Flow Tests", () => {
+        beforeAll(() => {
+            /*
+             * Freeze the clock so the expiry timestamps the EAR flow generates
+             * match those in the expected result built by the assertion.
+             * Otherwise the two clock reads race across a second boundary.
+             *
+             * Only Date is faked: this block also covers a redirect-timeout
+             * test that needs real setTimeout to fire.
+             */
+            jest.useFakeTimers({
+                doNotFake: [
+                    "setTimeout",
+                    "clearTimeout",
+                    "setInterval",
+                    "clearInterval",
+                    "setImmediate",
+                    "clearImmediate",
+                    "nextTick",
+                    "queueMicrotask",
+                    "performance",
+                    "requestAnimationFrame",
+                    "cancelAnimationFrame",
+                    "requestIdleCallback",
+                    "cancelIdleCallback",
+                    "hrtime",
+                ],
+            });
+        });
+
+        afterAll(() => {
+            jest.useRealTimers();
+        });
+
         beforeEach(async () => {
             pca = new PublicClientApplication({
                 auth: {
