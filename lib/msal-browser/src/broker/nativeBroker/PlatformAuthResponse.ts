@@ -25,6 +25,10 @@ export type PlatformAuthResponse = {
     scope: string;
     state: string;
     shr?: string;
+    token_type?: string;
+    DPoP?: string;
+    token_binding_key_id?: string;
+    attested_chosen?: boolean;
     extendedLifetimeToken?: boolean;
 };
 
@@ -65,6 +69,10 @@ export type PlatformDOMTokenResponse = {
     idToken: string;
     scopes: string;
     proofOfPossessionPayload?: string;
+    tokenType?: string;
+    DPoP?: string;
+    tokenBindingKeyId?: string;
+    attestedChosen?: boolean;
     extendedLifetimeToken?: boolean;
     error: ErrorResult;
     properties?: Record<string, string>;
