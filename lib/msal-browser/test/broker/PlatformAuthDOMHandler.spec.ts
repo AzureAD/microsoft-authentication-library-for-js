@@ -497,6 +497,9 @@ describe("PlatformAuthDOMHandler tests", () => {
                 resourceRequestMethod: "POST",
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 dpopNonce: "test-dpop-nonce",
+                extraParametersNoCache: {
+                    custom_no_cache: "test-value",
+                },
                 extraParameters: {
                     customUserInput: "test-user-input",
                 },
@@ -524,6 +527,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                     pop_method: "POST",
                     pop_url: "https://graph.microsoft.com/v1.0/me",
                     pop_nonce: "test-dpop-nonce",
+                    custom_no_cache: "test-value",
                 },
                 preferBinding: PlatformAuthBindingPreference.ATTESTED,
                 enclave: PlatformAuthEnclave.HARDWARE,

@@ -81,10 +81,10 @@ export function isProofOfPossessionTokenType(
 }
 
 /**
- * No-cache proof parameters sent to the platform broker. This bag is
- * constructed internally and is not inherited from BaseAuthRequest.
+ * No-cache parameters sent to the platform broker. This bag is constructed
+ * internally and is not inherited from BaseAuthRequest.
  */
-export type PlatformAuthExtraParametersNoCache = {
+export type PlatformAuthExtraParametersNoCache = StringDict & {
     pop_method?: string;
     pop_url?: string;
     pop_nonce?: string;
@@ -125,14 +125,21 @@ export type PlatformAuthRequest = {
 };
 
 /**
- * Maps canonical proof request fields to the broker no-cache property bag.
+ * Adds canonical proof request fields to the broker no-cache property bag.
  */
 export function createPlatformAuthExtraParametersNoCache(
+    extraParametersNoCache: PlatformAuthExtraParametersNoCache | undefined,
+    isProofOfPossessionRequest: boolean,
     resourceRequestMethod?: string,
     resourceRequestUri?: string,
     dpopNonce?: string
-): PlatformAuthExtraParametersNoCache {
+): PlatformAuthExtraParametersNoCache | undefined {
+    if (!isProofOfPossessionRequest) {
+        return extraParametersNoCache;
+    }
+
     return {
+        ...extraParametersNoCache,
         ...(resourceRequestMethod && {
             pop_method: resourceRequestMethod,
         }),

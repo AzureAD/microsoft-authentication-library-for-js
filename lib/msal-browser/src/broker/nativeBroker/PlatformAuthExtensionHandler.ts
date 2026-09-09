@@ -131,21 +131,22 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             resourceRequestMethod,
             resourceRequestUri,
             dpopNonce,
+            extraParametersNoCache,
             ...extensionRequest
         } = request;
-        delete extensionRequest.extraParametersNoCache;
 
         const isProofOfPossessionRequest = isProofOfPossessionTokenType(
             request.tokenType
         );
 
-        const nativeExtraParametersNoCache = isProofOfPossessionRequest
-            ? createPlatformAuthExtraParametersNoCache(
-                  resourceRequestMethod,
-                  resourceRequestUri,
-                  dpopNonce
-              )
-            : undefined;
+        const nativeExtraParametersNoCache =
+            createPlatformAuthExtraParametersNoCache(
+                extraParametersNoCache,
+                isProofOfPossessionRequest,
+                resourceRequestMethod,
+                resourceRequestUri,
+                dpopNonce
+            );
 
         return {
             ...extensionRequest,

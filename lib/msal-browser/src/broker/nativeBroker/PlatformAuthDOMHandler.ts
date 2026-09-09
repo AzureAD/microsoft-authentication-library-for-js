@@ -151,9 +151,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             resourceRequestMethod,
             resourceRequestUri,
             dpopNonce,
+            extraParametersNoCache,
             ...remainingProperties
         } = request;
-        delete remainingProperties.extraParametersNoCache;
 
         const validExtraParameters: DOMExtraParameters = this.getDOMExtraParams(
             remainingProperties,
@@ -163,13 +163,14 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             request.tokenType
         );
 
-        const validExtraParametersNoCache = isProofOfPossessionRequest
-            ? createPlatformAuthExtraParametersNoCache(
-                  resourceRequestMethod,
-                  resourceRequestUri,
-                  dpopNonce
-              )
-            : undefined;
+        const validExtraParametersNoCache =
+            createPlatformAuthExtraParametersNoCache(
+                extraParametersNoCache,
+                isProofOfPossessionRequest,
+                resourceRequestMethod,
+                resourceRequestUri,
+                dpopNonce
+            );
 
         const platformDOMRequest: PlatformDOMTokenRequest = {
             accountId: accountId,
