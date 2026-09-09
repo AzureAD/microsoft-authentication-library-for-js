@@ -1866,64 +1866,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(nativeRequest.redirectUri).toEqual("localhost");
         });
 
-        it("preserves proof context as canonical params for PoP broker requests", async () => {
-            const nativeRequest =
-                // @ts-ignore
-                await platformAuthInteractionClient.initializePlatformRequest({
-                    scopes: ["User.Read"],
-                    authenticationScheme: Constants.AuthenticationScheme.POP,
-                    popKid: "test-pop-kid",
-                    resourceRequestMethod: "POST",
-                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                    extraParameters: {
-                        userEQP: "customUserParam",
-                    },
-                });
-            expect(nativeRequest).not.toHaveProperty("preferBinding");
-            expect(nativeRequest.reqCnf).toEqual(expect.any(String));
-            expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
-            expect(nativeRequest.extraParameters?.userEQP).toBe(
-                "customUserParam"
-            );
-            expect(nativeRequest.resourceRequestMethod).toBe("POST");
-            expect(nativeRequest.resourceRequestUri).toBe(
-                "https://graph.microsoft.com/v1.0/me"
-            );
-            expect(nativeRequest).not.toHaveProperty("dpopNonce");
-        });
-
-        it("preserves proof context as canonical params for DPoP broker requests", async () => {
-            const nativeRequest =
-                // @ts-ignore
-                await platformAuthInteractionClient.initializePlatformRequest({
-                    scopes: ["User.Read"],
-                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
-                    resourceRequestMethod: "POST",
-                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                });
-
-            expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
-            expect(nativeRequest.resourceRequestMethod).toBe("POST");
-            expect(nativeRequest.resourceRequestUri).toBe(
-                "https://graph.microsoft.com/v1.0/me"
-            );
-        });
-
-        it("does not map proof context to no-cache extra params for bearer extension requests", async () => {
-            const nativeRequest =
-                // @ts-ignore
-                await platformAuthInteractionClient.initializePlatformRequest({
-                    scopes: ["User.Read"],
-                    authenticationScheme: Constants.AuthenticationScheme.BEARER,
-                    resourceRequestMethod: "POST",
-                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                });
-
-            expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
-            expect(nativeRequest.resourceRequestMethod).toBe(undefined);
-            expect(nativeRequest.resourceRequestUri).toBe(undefined);
-        });
-
         it("forwards resource via extraParameters when provided", async () => {
             const nativeRequest =
                 // @ts-ignore

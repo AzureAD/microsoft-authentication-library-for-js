@@ -119,23 +119,38 @@ export type PlatformAuthRequest = {
     dpopNonce?: string; // Resource-provider DPoP nonce populated internally
     extendedExpiryToken?: boolean;
     extraParameters?: StringDict;
+    extraParametersNoCache?: PlatformAuthExtraParametersNoCache;
     signPopToken?: boolean; // Set to true only if token request does not contain a PoP keyId
     attributeTokens?: string; // Pre-serialized attribute tokens (sorted, space-separated)
 };
 
 /**
- * Request forwarded to WAM through the browser extension.
+ * Maps canonical proof request fields to the broker no-cache property bag.
  */
-export type PlatformAuthExtensionRequest = PlatformAuthRequest & {
-    extraParametersNoCache?: PlatformAuthExtraParametersNoCache;
-};
+export function createPlatformAuthExtraParametersNoCache(
+    resourceRequestMethod?: string,
+    resourceRequestUri?: string,
+    dpopNonce?: string
+): PlatformAuthExtraParametersNoCache {
+    return {
+        ...(resourceRequestMethod && {
+            pop_method: resourceRequestMethod,
+        }),
+        ...(resourceRequestUri && {
+            pop_url: resourceRequestUri,
+        }),
+        ...(dpopNonce && {
+            pop_nonce: dpopNonce,
+        }),
+    };
+}
 
 /**
  * Request which will be forwarded to native broker by the browser extension
  */
 export type NativeExtensionRequestBody = {
     method: NativeExtensionMethod;
-    request?: PlatformAuthExtensionRequest;
+    request?: PlatformAuthRequest;
 };
 
 /**
@@ -183,7 +198,5 @@ export type DOMExtraParameters = StringDict & {
     tokenType?: string;
     shrClaims?: string;
     shrNonce?: string;
-    resourceRequestMethod?: string;
-    resourceRequestUri?: string;
     signPopToken?: string; // Set to true only if token request deos not contain a PoP keyId
 };

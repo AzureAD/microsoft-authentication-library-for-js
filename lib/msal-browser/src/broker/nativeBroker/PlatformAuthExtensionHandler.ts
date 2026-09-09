@@ -17,11 +17,10 @@ import {
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
 import {
+    createPlatformAuthExtraParametersNoCache,
     NativeExtensionRequest,
     NativeExtensionRequestBody,
     isProofOfPossessionTokenType,
-    PlatformAuthExtraParametersNoCache,
-    PlatformAuthExtensionRequest,
     PlatformAuthRequest,
 } from "./PlatformAuthRequest.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
@@ -127,32 +126,25 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
 
     private initializeNativeExtensionRequest(
         request: PlatformAuthRequest
-    ): PlatformAuthExtensionRequest {
+    ): PlatformAuthRequest {
         const {
             resourceRequestMethod,
             resourceRequestUri,
             dpopNonce,
             ...extensionRequest
         } = request;
+        delete extensionRequest.extraParametersNoCache;
 
         const isProofOfPossessionRequest = isProofOfPossessionTokenType(
             request.tokenType
         );
 
-        const nativeExtraParametersNoCache:
-            | PlatformAuthExtraParametersNoCache
-            | undefined = isProofOfPossessionRequest
-            ? {
-                  ...(resourceRequestMethod && {
-                      pop_method: resourceRequestMethod,
-                  }),
-                  ...(resourceRequestUri && {
-                      pop_url: resourceRequestUri,
-                  }),
-                  ...(dpopNonce && {
-                      pop_nonce: dpopNonce,
-                  }),
-              }
+        const nativeExtraParametersNoCache = isProofOfPossessionRequest
+            ? createPlatformAuthExtraParametersNoCache(
+                  resourceRequestMethod,
+                  resourceRequestUri,
+                  dpopNonce
+              )
             : undefined;
 
         return {

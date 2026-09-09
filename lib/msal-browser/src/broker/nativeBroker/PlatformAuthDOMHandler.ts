@@ -11,8 +11,8 @@ import {
     StringDict,
 } from "@azure/msal-common/browser";
 import {
+    createPlatformAuthExtraParametersNoCache,
     DOMExtraParameters,
-    PlatformAuthExtraParametersNoCache,
     isProofOfPossessionTokenType,
     PlatformAuthRequest,
     PlatformDOMTokenRequest,
@@ -153,6 +153,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             dpopNonce,
             ...remainingProperties
         } = request;
+        delete remainingProperties.extraParametersNoCache;
 
         const validExtraParameters: DOMExtraParameters = this.getDOMExtraParams(
             remainingProperties,
@@ -162,12 +163,13 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             request.tokenType
         );
 
-        const validExtraParametersNoCache = this.getDOMExtraParamsNoCache(
-            isProofOfPossessionRequest,
-            resourceRequestMethod,
-            resourceRequestUri,
-            dpopNonce
-        );
+        const validExtraParametersNoCache = isProofOfPossessionRequest
+            ? createPlatformAuthExtraParametersNoCache(
+                  resourceRequestMethod,
+                  resourceRequestUri,
+                  dpopNonce
+              )
+            : undefined;
 
         const platformDOMRequest: PlatformDOMTokenRequest = {
             accountId: accountId,
@@ -296,29 +298,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             correlationId,
             `Platform broker returned invalid ${propertyName} value.`
         );
-    }
-
-    private getDOMExtraParamsNoCache(
-        isProofOfPossessionRequest: boolean,
-        resourceRequestMethod?: string,
-        resourceRequestUri?: string,
-        dpopNonce?: string
-    ): PlatformAuthExtraParametersNoCache | undefined {
-        if (!isProofOfPossessionRequest) {
-            return undefined;
-        }
-
-        return {
-            ...(resourceRequestMethod && {
-                pop_method: resourceRequestMethod,
-            }),
-            ...(resourceRequestUri && {
-                pop_url: resourceRequestUri,
-            }),
-            ...(dpopNonce && {
-                pop_nonce: dpopNonce,
-            }),
-        };
     }
 
     private getDOMExtraParams(

@@ -38,10 +38,7 @@ import {
     updateAccountTenantProfileData,
 } from "@azure/msal-common/browser";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import {
-    isProofOfPossessionTokenType,
-    PlatformAuthRequest,
-} from "../broker/nativeBroker/PlatformAuthRequest.js";
+import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import {
     MATS,
     PlatformAuthResponse,
@@ -1123,10 +1120,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             },
             this.correlationId
         );
-        const isProofOfPossessionRequest = isProofOfPossessionTokenType(
-            request.authenticationScheme
-        );
-
         const validatedRequest: PlatformAuthRequest = {
             claims: mergedClaims,
             accountId: this.accountId,
@@ -1153,10 +1146,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             },
             extendedExpiryToken: false, // Make this configurable?
             keyId: request.popKid,
-            ...(isProofOfPossessionRequest && {
-                resourceRequestMethod: request.resourceRequestMethod,
-                resourceRequestUri: request.resourceRequestUri,
-            }),
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
             shrNonce: request.shrNonce,
         };
