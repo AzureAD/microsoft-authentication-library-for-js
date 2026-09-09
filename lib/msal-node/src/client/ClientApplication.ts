@@ -35,6 +35,7 @@ import {
     StubPerformanceClient,
     getRequestThumbprint,
     AccountInfo,
+    AADServerParamKeys,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -377,34 +378,48 @@ export abstract class ClientApplication {
 
         return JSON.stringify({
             ...thumbprint,
+            scopes: this.canonicalizeRequestValues(thumbprint.scopes),
             accountTenantId: request.account.tenantId,
             accountEnvironment: request.account.environment,
             forceRefresh: request.forceRefresh,
             refreshTokenExpirationOffsetSeconds:
                 request.refreshTokenExpirationOffsetSeconds,
             redirectUri: request.redirectUri,
-            extraParameters: this.canonicalizeStringDict(
+            extraParameters: this.canonicalizeRequestValues(
                 request.extraParameters
             ),
-            extraQueryParameters: this.canonicalizeStringDict(
+            extraQueryParameters: this.canonicalizeRequestValues(
                 request.extraQueryParameters
             ),
-            skipBrokerClaims: thumbprint.embeddedClientId
-                ? request.skipBrokerClaims
-                : undefined,
+            skipBrokerClaims:
+                thumbprint.embeddedClientId ||
+                request.extraParameters?.[AADServerParamKeys.BROKER_CLIENT_ID]
+                    ? request.skipBrokerClaims
+                    : undefined,
         });
     }
 
     /**
-     * Canonicalizes request dictionaries so equivalent values produce the same key.
+     * Canonicalizes scope sets and request dictionaries without changing the outgoing request.
+     * Only scopes are trimmed, lowercased, and deduplicated; dictionary keys and values are preserved.
      */
-    private canonicalizeStringDict(
-        dictionary?: Record<string, string>
-    ): Array<[string, string]> | undefined {
-        return dictionary
-            ? Object.keys(dictionary)
+    private canonicalizeRequestValues(
+        values?: Record<string, string> | Array<string>
+    ): Array<[string, string]> | Array<string> | undefined {
+        if (Array.isArray(values)) {
+            return Array.from(
+                new Set(
+                    values
+                        .map((scope) => scope.trim().toLowerCase())
+                        .filter((scope) => scope.length > 0)
+                )
+            ).sort();
+        }
+
+        return values
+            ? Object.keys(values)
                   .sort()
-                  .map((key) => [key, dictionary[key]])
+                  .map((key): [string, string] => [key, values[key]])
             : undefined;
     }
 
