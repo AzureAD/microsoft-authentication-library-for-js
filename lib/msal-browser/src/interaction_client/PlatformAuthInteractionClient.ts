@@ -1120,6 +1120,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             },
             this.correlationId
         );
+
         const validatedRequest: PlatformAuthRequest = {
             claims: mergedClaims,
             accountId: this.accountId,
