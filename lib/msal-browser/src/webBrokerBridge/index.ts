@@ -8,12 +8,6 @@
  * @module @azure/msal-browser/web-broker-bridge
  */
 
-/**
- * Internal scaffolding for a `@azure/msal-browser/web-broker-bridge`
- * subpath export. The subpath is not yet wired in `package.json` / rollup,
- * so this module has no external callers and is intra-package only.
- */
-
 export type {
     IWebBrokerBridgeMessage,
     IWebBrokerBridgeResponse,

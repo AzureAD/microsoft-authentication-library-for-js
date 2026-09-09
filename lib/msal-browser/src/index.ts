@@ -66,8 +66,6 @@ export { AuthenticationResult } from "./response/AuthenticationResult.js";
 export { ClearCacheRequest } from "./request/ClearCacheRequest.js";
 export { InitializeApplicationRequest } from "./request/InitializeApplicationRequest.js";
 export { HandleRedirectPromiseOptions } from "./request/HandleRedirectPromiseOptions.js";
-export type { IWebBrokerBridgeMessage } from "./webBrokerBridge/IWebBrokerBridgeMessage.js";
-
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache.js";
 export { loadExternalTokens } from "./cache/TokenCache.js";
