@@ -116,11 +116,18 @@ export type PlatformAuthRequest = {
     shrNonce?: string;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
+    dpopNonce?: string; // Resource-provider DPoP nonce populated internally
     extendedExpiryToken?: boolean;
     extraParameters?: StringDict;
-    extraParametersNoCache?: PlatformAuthExtraParametersNoCache;
     signPopToken?: boolean; // Set to true only if token request does not contain a PoP keyId
     attributeTokens?: string; // Pre-serialized attribute tokens (sorted, space-separated)
+};
+
+/**
+ * Request forwarded to WAM through the browser extension.
+ */
+export type PlatformAuthExtensionRequest = PlatformAuthRequest & {
+    extraParametersNoCache?: PlatformAuthExtraParametersNoCache;
 };
 
 /**
@@ -128,7 +135,7 @@ export type PlatformAuthRequest = {
  */
 export type NativeExtensionRequestBody = {
     method: NativeExtensionMethod;
-    request?: PlatformAuthRequest;
+    request?: PlatformAuthExtensionRequest;
 };
 
 /**

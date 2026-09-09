@@ -354,9 +354,6 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 PlatformAuthExtensionHandler
             );
 
-            const extraParametersNoCache = {
-                pop_nonce: "test-dpop-nonce",
-            };
             const response = await wamMessageHandler.sendMessage({
                 ...TEST_REQUEST,
                 preferBinding: PlatformAuthBindingPreference.ATTESTED,
@@ -365,7 +362,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 tokenType,
                 resourceRequestMethod: "POST",
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                extraParametersNoCache,
+                dpopNonce: "test-dpop-nonce",
             });
             expect(response).toEqual(testResponse.result);
 

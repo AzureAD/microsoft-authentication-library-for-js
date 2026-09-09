@@ -150,7 +150,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             reqCnf,
             resourceRequestMethod,
             resourceRequestUri,
-            extraParametersNoCache,
+            dpopNonce,
             ...remainingProperties
         } = request;
 
@@ -166,7 +166,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             isProofOfPossessionRequest,
             resourceRequestMethod,
             resourceRequestUri,
-            extraParametersNoCache
+            dpopNonce
         );
 
         const platformDOMRequest: PlatformDOMTokenRequest = {
@@ -302,13 +302,12 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         isProofOfPossessionRequest: boolean,
         resourceRequestMethod?: string,
         resourceRequestUri?: string,
-        extraParametersNoCache?: PlatformAuthExtraParametersNoCache
+        dpopNonce?: string
     ): PlatformAuthExtraParametersNoCache | undefined {
         if (!isProofOfPossessionRequest) {
             return undefined;
         }
 
-        const popNonce = extraParametersNoCache?.pop_nonce;
         return {
             ...(resourceRequestMethod && {
                 pop_method: resourceRequestMethod,
@@ -316,8 +315,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             ...(resourceRequestUri && {
                 pop_url: resourceRequestUri,
             }),
-            ...(popNonce && {
-                pop_nonce: popNonce,
+            ...(dpopNonce && {
+                pop_nonce: dpopNonce,
             }),
         };
     }

@@ -481,9 +481,6 @@ describe("PlatformAuthDOMHandler tests", () => {
                     performanceClient,
                     "test-correlation-id"
                 );
-            const extraParametersNoCache = {
-                pop_nonce: "test-dpop-nonce",
-            };
             const testRequest: PlatformAuthRequest = {
                 accountId: "test-id",
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -499,7 +496,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 tokenType,
                 resourceRequestMethod: "POST",
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                extraParametersNoCache,
+                dpopNonce: "test-dpop-nonce",
                 extraParameters: {
                     customUserInput: "test-user-input",
                 },
