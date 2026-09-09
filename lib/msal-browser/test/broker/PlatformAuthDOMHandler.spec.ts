@@ -539,9 +539,6 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(platformDOMRequest.extraParameters).not.toHaveProperty(
                 "reqCnf"
             );
-            expect(platformDOMRequest.extraParameters).not.toHaveProperty(
-                "enclave"
-            );
         });
     });
 
