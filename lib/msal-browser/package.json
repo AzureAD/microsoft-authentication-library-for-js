@@ -114,7 +114,7 @@
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
     "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser",
     "build:all:debug": "cd ../.. && cross-env MSAL_MINIFY_LOGS=false npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser",
-    "build:modules": "cross-env MSAL_WEB_BROKER_BRIDGE_BUILD=skip rollup -c --strictDeprecations --bundleConfigAsCjs && cross-env MSAL_WEB_BROKER_BRIDGE_BUILD=only rollup -c --strictDeprecations --bundleConfigAsCjs && npm run build:types",
+    "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs && npm run build:types",
     "build:types": "tsc -p tsconfig.build.types.json",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "build": "npm run clean && npm run build:modules",

@@ -1,0 +1,12 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "./src",
+        "outDir": "./dist/web-broker-bridge",
+        "declaration": false,
+        "declarationMap": false
+    },
+    "files": [
+        "src/webBrokerBridge/index.ts"
+    ]
+}
