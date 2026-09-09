@@ -274,7 +274,6 @@ describe("PlatformAuthExtensionHandler Tests", () => {
         it.each([
             Constants.AuthenticationScheme.POP,
             PlatformAuthTokenType.DPOP_WITH_PROOF,
-            PlatformAuthTokenType.DPOP_WITH_PROOF_LEGACY,
         ])("Sends token type %s to WAM extension", async (tokenType) => {
             const testWAMResponse = {
                 access_token: "test-access-token",

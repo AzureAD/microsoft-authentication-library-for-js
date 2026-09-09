@@ -470,7 +470,6 @@ describe("PlatformAuthDOMHandler tests", () => {
         it.each([
             Constants.AuthenticationScheme.POP,
             PlatformAuthTokenType.DPOP_WITH_PROOF,
-            PlatformAuthTokenType.DPOP_WITH_PROOF_LEGACY,
         ])("maps proof binding fields for token type %s", async (tokenType) => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,

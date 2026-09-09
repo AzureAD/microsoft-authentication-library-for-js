@@ -32,12 +32,9 @@ export type PlatformAuthEnclave =
 
 /**
  * Token types supported by the platform broker request contract.
- * DPOP_WITH_PROOF_LEGACY is retained temporarily while the WAM proof of concept
- * migrates to the canonical DPOP_WITH_PROOF value.
  */
 export const PlatformAuthTokenType = {
     DPOP_WITH_PROOF: "dpop+proof",
-    DPOP_WITH_PROOF_LEGACY: "dpop_proof",
 } as const;
 
 /**
@@ -65,7 +62,6 @@ const PROOF_OF_POSSESSION_TOKEN_TYPES: readonly PlatformAuthTokenType[] = [
     Constants.AuthenticationScheme.POP,
     Constants.AuthenticationScheme.DPOP,
     PlatformAuthTokenType.DPOP_WITH_PROOF,
-    PlatformAuthTokenType.DPOP_WITH_PROOF_LEGACY,
 ];
 
 /**
