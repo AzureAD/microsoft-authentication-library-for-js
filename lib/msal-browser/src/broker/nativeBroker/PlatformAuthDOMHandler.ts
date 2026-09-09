@@ -12,10 +12,9 @@ import {
 } from "@azure/msal-common/browser";
 import {
     DOMExtraParameters,
+    PlatformAuthExtraParametersNoCache,
     isProofOfPossessionTokenType,
     PlatformAuthRequest,
-    PlatformAuthRequestExtraParametersNoCache,
-    PlatformDOMExtraParametersNoCache,
     PlatformDOMTokenRequest,
 } from "./PlatformAuthRequest.js";
 import { PlatformAuthConstants } from "../../utils/BrowserConstants.js";
@@ -303,8 +302,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         isProofOfPossessionRequest: boolean,
         resourceRequestMethod?: string,
         resourceRequestUri?: string,
-        extraParametersNoCache?: PlatformAuthRequestExtraParametersNoCache
-    ): PlatformDOMExtraParametersNoCache | undefined {
+        extraParametersNoCache?: PlatformAuthExtraParametersNoCache
+    ): PlatformAuthExtraParametersNoCache | undefined {
         if (!isProofOfPossessionRequest) {
             return undefined;
         }
@@ -315,7 +314,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 pop_method: resourceRequestMethod,
             }),
             ...(resourceRequestUri && {
-                pop_uri: resourceRequestUri,
+                pop_url: resourceRequestUri,
             }),
             ...(popNonce && {
                 pop_nonce: popNonce,

@@ -81,29 +81,14 @@ export function isProofOfPossessionTokenType(
 }
 
 /**
- * No-cache parameters MSAL.js sends to the native broker for proof-of-possession requests.
+ * No-cache proof parameters sent to the platform broker. This bag is
+ * constructed internally and is not inherited from BaseAuthRequest.
  */
-export type PlatformAuthRequestExtraParametersNoCache = {
+export type PlatformAuthExtraParametersNoCache = {
+    pop_method?: string;
+    pop_url?: string;
     pop_nonce?: string;
 };
-
-/**
- * No-cache proof parameters sent directly to WAM through the browser extension.
- */
-export type PlatformAuthExtensionExtraParametersNoCache =
-    PlatformAuthRequestExtraParametersNoCache & {
-        pop_method?: string;
-        pop_url?: string;
-    };
-
-/**
- * No-cache proof parameters accepted by the platform DOM API.
- */
-export type PlatformDOMExtraParametersNoCache =
-    PlatformAuthRequestExtraParametersNoCache & {
-        pop_method?: string;
-        pop_uri?: string;
-    };
 
 /**
  * Token request which native broker will use to acquire tokens
@@ -133,7 +118,7 @@ export type PlatformAuthRequest = {
     resourceRequestUri?: string;
     extendedExpiryToken?: boolean;
     extraParameters?: StringDict;
-    extraParametersNoCache?: PlatformAuthRequestExtraParametersNoCache;
+    extraParametersNoCache?: PlatformAuthExtraParametersNoCache;
     signPopToken?: boolean; // Set to true only if token request does not contain a PoP keyId
     attributeTokens?: string; // Pre-serialized attribute tokens (sorted, space-separated)
 };
@@ -169,7 +154,7 @@ export type PlatformDOMTokenRequest = {
     preferBinding?: PlatformAuthBindingPreference;
     enclave?: PlatformAuthEnclave;
     requestConfirmation?: string;
-    extraParametersNoCache?: PlatformDOMExtraParametersNoCache;
+    extraParametersNoCache?: PlatformAuthExtraParametersNoCache;
     /*
      * Known optional parameters will go into extraQueryParameters.
      * List of known parameters is:

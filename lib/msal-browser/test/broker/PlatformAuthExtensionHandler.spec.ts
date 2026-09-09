@@ -356,7 +356,6 @@ describe("PlatformAuthExtensionHandler Tests", () => {
 
             const extraParametersNoCache = {
                 pop_nonce: "test-dpop-nonce",
-                pop_uri: "must-not-reach-wam",
             };
             const response = await wamMessageHandler.sendMessage({
                 ...TEST_REQUEST,

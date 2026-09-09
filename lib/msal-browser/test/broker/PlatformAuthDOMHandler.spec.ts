@@ -483,7 +483,6 @@ describe("PlatformAuthDOMHandler tests", () => {
                 );
             const extraParametersNoCache = {
                 pop_nonce: "test-dpop-nonce",
-                pop_url: "must-not-reach-dom",
             };
             const testRequest: PlatformAuthRequest = {
                 accountId: "test-id",
@@ -526,7 +525,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 },
                 extraParametersNoCache: {
                     pop_method: "POST",
-                    pop_uri: "https://graph.microsoft.com/v1.0/me",
+                    pop_url: "https://graph.microsoft.com/v1.0/me",
                     pop_nonce: "test-dpop-nonce",
                 },
                 preferBinding: PlatformAuthBindingPreference.ATTESTED,
