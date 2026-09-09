@@ -2536,7 +2536,7 @@
             "author": "hemoral@microsoft.com",
             "package": "@azure/msal-common",
             "commit": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
-            "comment": "Migrate ADO Pipelines to OneBranch #6992"
+            "comment": "Migrate ADO pipelines #6992"
           }
         ],
         "patch": [
