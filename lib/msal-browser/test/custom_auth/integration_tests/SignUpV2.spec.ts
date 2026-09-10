@@ -341,6 +341,45 @@ describe("Sign-up V2 entry", () => {
         });
     });
 
+    it("maps an upfront password policy violation to invalid password", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse(
+                    {
+                        error: {
+                            code: "invalidRequest",
+                            message:
+                                "AADSTS1002027: Some of the collected attributes were invalid.",
+                            correlationId: "corr-password-policy",
+                            innerError: {
+                                code: "attributeValidationError",
+                                details: [
+                                    {
+                                        attributeIds: ["password"],
+                                        code: "passwordPolicyViolation",
+                                        message:
+                                            "The password does not meet the requirements.",
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                    400
+                )
+            );
+
+        const result = await app.signUpV2({
+            username: "user@contoso.com",
+            password: "weak",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidPassword()).toBe(true);
+        expect(result.error?.correlationId).toBe("corr-password-policy");
+    });
+
     it("returns password required when password is missing after code verification", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))

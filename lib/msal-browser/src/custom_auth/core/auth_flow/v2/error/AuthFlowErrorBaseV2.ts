@@ -112,6 +112,16 @@ export abstract class AuthFlowErrorBaseV2 {
         );
     }
 
+    protected isPasswordPolicyViolationError(): boolean {
+        return this.getAttributeValidationDetails().some(
+            (detail) =>
+                detail.code === "passwordPolicyViolation" &&
+                detail.attributeIds?.some(
+                    (attributeId) => attributeId.toLowerCase() === "password"
+                ) === true
+        );
+    }
+
     protected isPasswordIncorrectError(): boolean {
         return (
             this.errorData.error === "invalidGrant" &&
