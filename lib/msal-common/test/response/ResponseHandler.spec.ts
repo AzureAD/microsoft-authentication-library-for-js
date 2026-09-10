@@ -1010,7 +1010,6 @@ describe("ResponseHandler.ts", () => {
                 scopes: ["openid", "profile", "User.Read", "email"],
                 authenticationScheme: AuthenticationScheme.DPOP,
                 dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
-                dpopNonce: "resource-server-nonce",
                 resourceRequestMethod: "GET",
                 resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
             };
@@ -1052,14 +1051,7 @@ describe("ResponseHandler.ts", () => {
             expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(result.dpopProof).toBe("fresh-dpop-proof");
             expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
-            expect(signSpy).toHaveBeenCalledWith(
-                expect.anything(),
-                expect.objectContaining({
-                    nonce: "resource-server-nonce",
-                }),
-                expect.anything(),
-                "CORRELATION_ID"
-            );
+            expect(signSpy).toHaveBeenCalled();
         });
 
         it("does not use application extra parameters as a cached DPoP nonce", async () => {

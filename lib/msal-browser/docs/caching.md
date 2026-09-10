@@ -9,7 +9,6 @@ You can configure the cache storage location via the configuration object that i
 ```typescript
 import {
     AuthenticationHeaderParser,
-    AuthenticationScheme,
     BrowserCacheLocation,
     PublicClientApplication,
 } from "@azure/msal-browser";
@@ -79,7 +78,7 @@ To faciliate efficient token acquisition while maintaining a good UX, MSAL cache
 ## DPoP resource-server nonce challenges
 
 When a resource server responds to a DPoP request with a `DPoP-Nonce` response
-header, deposit the opaque header value before retrying token acquisition:
+header, deposit the opaque header value in the PCA's cache:
 
 ```typescript
 const headerParser = new AuthenticationHeaderParser(response.headers);
@@ -91,13 +90,6 @@ if (dpopNonce === null) {
 await pca
     .getTokenCache()
     .loadDpopNonce(resourceRequestUri, dpopNonce);
-
-const result = await pca.acquireTokenSilent({
-    ...request,
-    authenticationScheme: AuthenticationScheme.DPOP,
-    resourceRequestUri,
-    resourceRequestMethod: "GET",
-});
 ```
 
 `AuthenticationHeaderParser` accepts either a Fetch `Headers` object or a
@@ -113,10 +105,11 @@ larger than 1024 UTF-8 bytes are rejected, as are invalid or non-HTTPS resource
 URIs.
 
 The nonce uses the PCA's configured cache location (`sessionStorage`,
-`localStorage`, or memory), expires after 24 hours, and is included
-automatically in the next DPoP resource proof for that origin. MSAL removes
-these entries when `clearCache()` or logout clears the PCA cache. Storage and
-validation failures reject `loadDpopNonce()` with an MSAL error.
+`localStorage`, or memory) and expires after 24 hours. `loadDpopNonce()` only
+deposits the nonce; MSAL does not retry the resource request or automatically
+attach the nonce to a DPoP proof. MSAL removes these entries when `clearCache()`
+or logout clears the PCA cache. Storage and validation failures reject
+`loadDpopNonce()` with an MSAL error.
 
 ## Cache persistence during MSAL.js upgrades and rollbacks
 

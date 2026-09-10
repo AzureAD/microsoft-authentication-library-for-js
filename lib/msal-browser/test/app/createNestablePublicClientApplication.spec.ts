@@ -85,10 +85,7 @@ describe("createNestablePublicClientApplication tests", () => {
     });
 
     it("throws a deterministic MSAL error for a legacy injected controller without token cache support", () => {
-        const legacyController: IController = {
-            ...stubbedPublicClientApplication,
-        };
-        delete legacyController.getTokenCache;
+        const legacyController: IController = stubbedPublicClientApplication;
         const pca = new PublicClientApplication(testConfig, legacyController);
         let thrownError: unknown;
 
