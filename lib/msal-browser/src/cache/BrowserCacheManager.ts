@@ -106,6 +106,49 @@ type UpdateOldEntryResult =
     | { entry: CredentialEntity; removalReason?: undefined }
     | { entry: null; removalReason: MigrationRemovalReason };
 
+type DpopNonceCacheState = {
+    writeQueue: Promise<void>;
+    generation: number;
+};
+
+const dpopNonceCacheStates = new WeakMap<
+    object,
+    Map<string, DpopNonceCacheState>
+>();
+
+/**
+ * Returns shared DPoP nonce coordination state for one client and backing
+ * storage instance.
+ */
+function getDpopNonceCacheState(
+    clientId: string,
+    browserStorage: IWindowStorage<string>
+): DpopNonceCacheState {
+    let storageIdentity: object = browserStorage;
+    if (browserStorage instanceof LocalStorage) {
+        storageIdentity = window.localStorage;
+    } else if (browserStorage instanceof SessionStorage) {
+        storageIdentity = window.sessionStorage;
+    }
+
+    let clientStates = dpopNonceCacheStates.get(storageIdentity);
+    if (!clientStates) {
+        clientStates = new Map<string, DpopNonceCacheState>();
+        dpopNonceCacheStates.set(storageIdentity, clientStates);
+    }
+
+    let cacheState = clientStates.get(clientId);
+    if (!cacheState) {
+        cacheState = {
+            writeQueue: Promise.resolve(),
+            generation: 0,
+        };
+        clientStates.set(clientId, cacheState);
+    }
+
+    return cacheState;
+}
+
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
  */
@@ -128,8 +171,7 @@ export class BrowserCacheManager extends CacheManager {
      * Serializes nonce writes so later deposits cannot be overwritten by
      * earlier calls that finish asynchronous key derivation out of order.
      */
-    private dpopNonceWriteQueue: Promise<void> = Promise.resolve();
-    private dpopNonceCacheGeneration = 0;
+    private readonly dpopNonceCacheState: DpopNonceCacheState;
 
     constructor(
         clientId: string,
@@ -161,6 +203,10 @@ export class BrowserCacheManager extends CacheManager {
                 logger,
                 performanceClient
             );
+        this.dpopNonceCacheState = getDpopNonceCacheState(
+            clientId,
+            this.browserStorage
+        );
         this.temporaryCacheStorage = getStorageImplementation(
             clientId,
             BrowserCacheLocation.SessionStorage,
@@ -1000,8 +1046,8 @@ export class BrowserCacheManager extends CacheManager {
             nonce,
             lastUpdatedAt
         );
-        const cacheGeneration = this.dpopNonceCacheGeneration;
-        const writeOperation = this.dpopNonceWriteQueue.then(() =>
+        const cacheGeneration = this.dpopNonceCacheState.generation;
+        const writeOperation = this.dpopNonceCacheState.writeQueue.then(() =>
             this.setDpopNonceInternal(
                 nonceType,
                 issuerUri,
@@ -1009,7 +1055,9 @@ export class BrowserCacheManager extends CacheManager {
                 cacheGeneration
             )
         );
-        this.dpopNonceWriteQueue = writeOperation.catch(() => undefined);
+        this.dpopNonceCacheState.writeQueue = writeOperation.catch(
+            () => undefined
+        );
         return writeOperation;
     }
 
@@ -1023,7 +1071,23 @@ export class BrowserCacheManager extends CacheManager {
             nonceType,
             issuerUri
         );
-        if (cacheGeneration !== this.dpopNonceCacheGeneration) {
+        if (cacheGeneration !== this.dpopNonceCacheState.generation) {
+            return;
+        }
+
+        let persistedEntity: object | null = null;
+        try {
+            const persistedValue = this.browserStorage.getItem(cacheKey);
+            persistedEntity = persistedValue
+                ? this.validateAndParseJson(persistedValue)
+                : null;
+        } catch {
+            // A failed read must not prevent an otherwise valid cache write.
+        }
+        if (
+            isDpopNonceEntityValid(persistedEntity, this.clientId, nonceType) &&
+            persistedEntity.lastUpdatedAt > entity.lastUpdatedAt
+        ) {
             return;
         }
 
@@ -1167,7 +1231,7 @@ export class BrowserCacheManager extends CacheManager {
      * @internal
      */
     clearDpopNonces(): void {
-        this.dpopNonceCacheGeneration++;
+        this.dpopNonceCacheState.generation++;
         this.getDpopNonceKeys().forEach((cacheKey) => {
             try {
                 this.browserStorage.removeItem(cacheKey);
