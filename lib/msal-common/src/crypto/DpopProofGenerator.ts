@@ -12,6 +12,7 @@ import {
 } from "../error/ClientConfigurationError.js";
 import { JoseHeader } from "./JoseHeader.js";
 import type { PublicJsonWebKey } from "./PublicJsonWebKey.js";
+import { validateDpopNonce } from "../cache/entities/DpopNonceEntity.js";
 
 /**
  * RFC 9449 DPoP proof JWT payload claims.
@@ -130,18 +131,6 @@ function normalizeHtu(url: string, correlationId: string): string {
     return parsedUrl.href;
 }
 
-function validateDpopNonce(
-    nonce: string | undefined,
-    correlationId: string
-): void {
-    if (nonce !== undefined && nonce.trim().length === 0) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidDpopNonce,
-            correlationId
-        );
-    }
-}
-
 /**
  * Validates and normalizes the HTTP resource context for a DPoP-bound request.
  * @internal
@@ -200,7 +189,9 @@ export class DpopProofGenerator {
         params: DpopTokenProofParams,
         correlationId: string = ""
     ): DpopProofClaims {
-        validateDpopNonce(params.nonce, correlationId);
+        if (params.nonce !== undefined) {
+            validateDpopNonce(params.nonce, correlationId);
+        }
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
             htm: "POST",
@@ -239,7 +230,9 @@ export class DpopProofGenerator {
         params: DpopResourceProofParams,
         correlationId: string = ""
     ): DpopProofClaims {
-        validateDpopNonce(params.nonce, correlationId);
+        if (params.nonce !== undefined) {
+            validateDpopNonce(params.nonce, correlationId);
+        }
         const resourceContext = normalizeDpopResourceRequestContext(
             params,
             correlationId

@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add bounded DPoP nonce validation and standalone response header parsing (AB#3677519)",
+  "packageName": "@azure/msal-common",
+  "email": "nugetaad@microsoft.com",
+  "dependentChangeType": "patch"
+}
