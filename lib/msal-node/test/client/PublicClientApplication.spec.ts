@@ -650,10 +650,9 @@ describe("PublicClientApplication", () => {
 
         test.each([
             ["order", ["Mail.Read", "User.Read"]],
-            ["casing", ["USER.READ", "mail.read"]],
             ["duplicates", ["User.Read", "Mail.Read", "User.Read"]],
             ["whitespace", [" User.Read ", "Mail.Read", "", " "]],
-            ["combined", [" mail.read ", "user.read", "USER.READ"]],
+            ["combined", [" Mail.Read ", "User.Read", "User.Read"]],
         ])(
             "coalesces equivalent scopes differing in %s without changing the outgoing scopes",
             async (_difference, equivalentScopes) => {
@@ -701,6 +700,33 @@ describe("PublicClientApplication", () => {
                 await requests;
             }
         );
+
+        test("does not coalesce silent requests whose scopes differ only in casing", async () => {
+            const acquireCachedTokenSpy = setupSilentFlowClientMock();
+            acquireCachedTokenSpy.mockResolvedValue([
+                mockAuthenticationResult,
+                CommonConstants.CacheOutcome.NOT_APPLICABLE,
+            ]);
+            const authApp = new PublicClientApplication(appConfig);
+
+            await Promise.all(
+                ["User.Read", "user.read"].map((scope) =>
+                    authApp.acquireTokenSilent({
+                        account: mockAccountInfo,
+                        scopes: [scope],
+                    })
+                )
+            );
+
+            expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(2);
+            for (const scope of ["User.Read", "user.read"]) {
+                expect(acquireCachedTokenSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        scopes: [scope, ...CommonConstants.OIDC_DEFAULT_SCOPES],
+                    })
+                );
+            }
+        });
 
         test.each(["extraParameters", "extraQueryParameters"] as const)(
             "coalesces requests with equivalent %s in different property order",
@@ -1102,7 +1128,8 @@ describe("PublicClientApplication", () => {
                 });
             authApp.acquireTokenSilent(request).catch((e) => {
                 expect(brokerSpy).toHaveBeenCalled();
-                expect(e).toBe(testError);
+                expect(e).toBeInstanceOf(InteractionRequiredAuthError);
+                expect(e.errorCode).toBe(testError.errorCode);
                 done();
             });
         });

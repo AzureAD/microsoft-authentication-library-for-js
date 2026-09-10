@@ -291,6 +291,7 @@ export class PublicClientApplication
         enforceResourceParameter(this.config.auth.isMcp, request);
 
         if (this.nativeBrokerPlugin) {
+            const nativeBrokerPlugin = this.nativeBrokerPlugin;
             const brokerRequest: NativeRequest = {
                 ...request,
                 clientId: this.config.auth.clientId,
@@ -306,7 +307,15 @@ export class PublicClientApplication
                 accountId: request.account.nativeAccountId,
                 forceRefresh: request.forceRefresh || false,
             };
-            return this.nativeBrokerPlugin.acquireTokenSilent(brokerRequest);
+            const silentRequestKey = this.getSilentRequestKey({
+                requestType: "native",
+                request: brokerRequest,
+            });
+            return this.acquireTokenSilentDeduped(
+                silentRequestKey,
+                correlationId,
+                () => nativeBrokerPlugin.acquireTokenSilent(brokerRequest)
+            );
         }
 
         if (request.redirectUri) {
