@@ -362,9 +362,11 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 tokenType,
                 resourceRequestMethod: "POST",
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                dpopNonce: "test-dpop-nonce",
                 extraParametersNoCache: {
                     custom_no_cache: "test-value",
+                    pop_method: "POST",
+                    pop_url: "https://graph.microsoft.com/v1.0/me",
+                    pop_nonce: "test-dpop-nonce",
                 },
             });
             expect(response).toEqual(testResponse.result);

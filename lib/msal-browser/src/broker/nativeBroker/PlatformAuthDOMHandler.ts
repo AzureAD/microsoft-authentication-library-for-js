@@ -11,9 +11,7 @@ import {
     StringDict,
 } from "@azure/msal-common/browser";
 import {
-    createPlatformAuthExtraParametersNoCache,
     DOMExtraParameters,
-    isProofOfPossessionTokenType,
     PlatformAuthRequest,
     PlatformDOMTokenRequest,
 } from "./PlatformAuthRequest.js";
@@ -148,30 +146,16 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             preferBinding,
             enclave,
             reqCnf,
-            resourceRequestMethod,
-            resourceRequestUri,
-            dpopNonce,
             extraParametersNoCache,
             ...remainingProperties
         } = request;
+        delete remainingProperties.resourceRequestMethod;
+        delete remainingProperties.resourceRequestUri;
 
         const validExtraParameters: DOMExtraParameters = this.getDOMExtraParams(
             remainingProperties,
             correlationId
         );
-        const isProofOfPossessionRequest = isProofOfPossessionTokenType(
-            request.tokenType
-        );
-
-        const validExtraParametersNoCache =
-            createPlatformAuthExtraParametersNoCache(
-                extraParametersNoCache,
-                isProofOfPossessionRequest,
-                resourceRequestMethod,
-                resourceRequestUri,
-                dpopNonce
-            );
-
         const platformDOMRequest: PlatformDOMTokenRequest = {
             accountId: accountId,
             brokerId: this.getExtensionId(),
@@ -189,7 +173,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             preferBinding: preferBinding,
             enclave: enclave,
             requestConfirmation: reqCnf,
-            extraParametersNoCache: validExtraParametersNoCache,
+            extraParametersNoCache,
         };
 
         return platformDOMRequest;

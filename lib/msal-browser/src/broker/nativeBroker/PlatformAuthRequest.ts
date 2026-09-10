@@ -112,7 +112,6 @@ export type PlatformAuthRequest = {
     shrNonce?: string;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
-    dpopNonce?: string; // Resource-provider DPoP nonce populated internally
     extendedExpiryToken?: boolean;
     extraParameters?: StringDict;
     extraParametersNoCache?: PlatformAuthExtraParametersNoCache;

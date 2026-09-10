@@ -17,10 +17,8 @@ import {
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
 import {
-    createPlatformAuthExtraParametersNoCache,
     NativeExtensionRequest,
     NativeExtensionRequestBody,
-    isProofOfPossessionTokenType,
     PlatformAuthRequest,
 } from "./PlatformAuthRequest.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
@@ -88,9 +86,12 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         );
 
         // fall back to native calls
+        const extensionRequest = { ...request };
+        delete extensionRequest.resourceRequestMethod;
+        delete extensionRequest.resourceRequestUri;
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
-            request: this.initializeNativeExtensionRequest(request),
+            request: extensionRequest,
         };
 
         const req: NativeExtensionRequest = {
@@ -122,39 +123,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             this.validatePlatformBrokerResponse(response);
 
         return validatedResponse;
-    }
-
-    private initializeNativeExtensionRequest(
-        request: PlatformAuthRequest
-    ): PlatformAuthRequest {
-        const {
-            resourceRequestMethod,
-            resourceRequestUri,
-            dpopNonce,
-            extraParametersNoCache,
-            ...extensionRequest
-        } = request;
-
-        const isProofOfPossessionRequest = isProofOfPossessionTokenType(
-            request.tokenType
-        );
-
-        const nativeExtraParametersNoCache =
-            createPlatformAuthExtraParametersNoCache(
-                extraParametersNoCache,
-                isProofOfPossessionRequest,
-                resourceRequestMethod,
-                resourceRequestUri,
-                dpopNonce
-            );
-
-        return {
-            ...extensionRequest,
-            ...(nativeExtraParametersNoCache &&
-                Object.keys(nativeExtraParametersNoCache).length > 0 && {
-                    extraParametersNoCache: nativeExtraParametersNoCache,
-                }),
-        };
     }
 
     /**

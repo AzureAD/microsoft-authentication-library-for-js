@@ -470,7 +470,7 @@ describe("PlatformAuthDOMHandler tests", () => {
         it.each([
             Constants.AuthenticationScheme.POP,
             PlatformAuthTokenType.DPOP_WITH_PROOF,
-        ])("maps proof binding fields for token type %s", async (tokenType) => {
+        ])("forwards proof fields for token type %s", async (tokenType) => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
@@ -495,9 +495,11 @@ describe("PlatformAuthDOMHandler tests", () => {
                 tokenType,
                 resourceRequestMethod: "POST",
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                dpopNonce: "test-dpop-nonce",
                 extraParametersNoCache: {
                     custom_no_cache: "test-value",
+                    pop_method: "POST",
+                    pop_url: "https://graph.microsoft.com/v1.0/me",
+                    pop_nonce: "test-dpop-nonce",
                 },
                 extraParameters: {
                     customUserInput: "test-user-input",
