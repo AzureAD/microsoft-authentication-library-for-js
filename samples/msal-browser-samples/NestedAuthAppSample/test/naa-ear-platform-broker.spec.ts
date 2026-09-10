@@ -1,6 +1,6 @@
 import { runBrokeredNaaSuite } from "./naaPlatformBrokerTestUtils";
 
 runBrokeredNaaSuite(
-    "NAA token APIs brokered through the platform broker",
-    false
+    "NAA token APIs + EAR brokered through the platform broker",
+    true
 );
