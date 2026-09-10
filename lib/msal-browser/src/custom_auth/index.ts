@@ -275,7 +275,8 @@ export { SubmitAttributesErrorV2 } from "./sign_up/auth_flow/v2/error_type/Submi
 export { CompletedStateV2 } from "./core/auth_flow/v2/state/CompletedStateV2.js";
 export { FailedStateV2 } from "./core/auth_flow/v2/state/FailedStateV2.js";
 export { NewPasswordRequiredStateV2 } from "./reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
-export { ChallengeVerificationRequiredStateV2 } from "./core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+export { CodeRequiredStateV2 } from "./core/auth_flow/v2/state/CodeRequiredStateV2.js";
+export { MFAVerificationRequiredStateV2 } from "./core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
 export { AuthMethodSelectionRequiredStateV2 } from "./core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 export { MFARequiredStateV2 } from "./core/auth_flow/v2/state/MFARequiredStateV2.js";
 export { PasswordRequiredStateV2 } from "./sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
@@ -304,6 +305,14 @@ export {
     MFARequestChallengeResultV2,
     MFARequestChallengeResultStateV2,
 } from "./core/auth_flow/v2/result/MFARequestChallengeResultV2.js";
+export {
+    MFASubmitChallengeResultV2,
+    MFASubmitChallengeResultStateV2,
+} from "./core/auth_flow/v2/result/MFASubmitChallengeResultV2.js";
+export {
+    MFAResendChallengeResultV2,
+    MFAResendChallengeResultStateV2,
+} from "./core/auth_flow/v2/result/MFAResendChallengeResultV2.js";
 export {
     VerifyChallengeResultV2,
     VerifyChallengeResultStateV2,

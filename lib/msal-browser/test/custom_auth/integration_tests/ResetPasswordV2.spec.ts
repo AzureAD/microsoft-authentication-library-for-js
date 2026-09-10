@@ -7,7 +7,7 @@ import { CustomAuthPublicClientApplication } from "../../../src/custom_auth/Cust
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import { AuthMethodSelectionRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
-import { ChallengeVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { NewPasswordRequiredStateV2 } from "../../../src/custom_auth/reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import { SignInContinuationStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
@@ -212,12 +212,10 @@ describe("Reset password V2 (SSPR)", () => {
         });
 
         expect(result.isFailed()).toBe(false);
-        expect(result.isState("challengeVerificationRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(
-            ChallengeVerificationRequiredStateV2
-        );
+        expect(result.isState("codeRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
 
-        const codeState = result.state as ChallengeVerificationRequiredStateV2;
+        const codeState = result.state as CodeRequiredStateV2;
         expect(codeState.method?.id).toBe("email");
         expect(codeState.channel).toBe("email");
         expect(fetch as jest.Mock).toHaveBeenCalledTimes(3);
@@ -250,17 +248,15 @@ describe("Reset password V2 (SSPR)", () => {
         }
 
         const challengeResult = await methodState.requestChallenge(smsMethod);
-        expect(challengeResult.isState("challengeVerificationRequired")).toBe(
-            true
-        );
+        expect(challengeResult.isState("codeRequired")).toBe(true);
 
         const codeState =
-            challengeResult.state as ChallengeVerificationRequiredStateV2;
+            challengeResult.state as CodeRequiredStateV2;
         expect(codeState.channel).toBe("sms");
         expect(codeState.sentTo).toBe("+*** *******11");
         expect(codeState.codeLength).toBe(6);
 
-        const verifyResult = await codeState.verifyChallenge("123456");
+        const verifyResult = await codeState.submitCode("123456");
         const passwordState = verifyResult.state as NewPasswordRequiredStateV2;
         const submitResult = await passwordState.submitNewPassword(
             "N3wP@ssw0rd!"
@@ -299,12 +295,12 @@ describe("Reset password V2 (SSPR)", () => {
         );
         expect(challengeResult.isFailed()).toBe(false);
         expect(challengeResult.state).toBeInstanceOf(
-            ChallengeVerificationRequiredStateV2
+            CodeRequiredStateV2
         );
 
         const codeState =
-            challengeResult.state as ChallengeVerificationRequiredStateV2;
-        const verifyResult = await codeState.verifyChallenge("123456");
+            challengeResult.state as CodeRequiredStateV2;
+        const verifyResult = await codeState.submitCode("123456");
         expect(verifyResult.isFailed()).toBe(false);
         expect(verifyResult.state).toBeInstanceOf(NewPasswordRequiredStateV2);
 
@@ -363,9 +359,9 @@ describe("Reset password V2 (SSPR)", () => {
             methodState.methods[0]
         );
         const codeState =
-            challengeResult.state as ChallengeVerificationRequiredStateV2;
+            challengeResult.state as CodeRequiredStateV2;
 
-        const verifyResult = await codeState.verifyChallenge("000000");
+        const verifyResult = await codeState.submitCode("000000");
 
         expect(verifyResult.isFailed()).toBe(true);
         expect(verifyResult.error).toBeInstanceOf(VerifyChallengeErrorV2);
@@ -397,8 +393,8 @@ describe("Reset password V2 (SSPR)", () => {
             methodState.methods[0]
         );
         const codeState =
-            challengeResult.state as ChallengeVerificationRequiredStateV2;
-        const verifyResult = await codeState.verifyChallenge("123456");
+            challengeResult.state as CodeRequiredStateV2;
+        const verifyResult = await codeState.submitCode("123456");
         const passwordState = verifyResult.state as NewPasswordRequiredStateV2;
 
         const submitResult = await passwordState.submitNewPassword("weak");

@@ -5,7 +5,7 @@
 
 import { CustomAuthPublicClientApplication } from "../../../src/custom_auth/CustomAuthPublicClientApplication.js";
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
-import { ChallengeVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { AttributesRequiredStateV2 } from "../../../src/custom_auth/sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { SignUpPasswordRequiredStateV2 } from "../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
@@ -131,13 +131,11 @@ describe("Sign-up V2 entry", () => {
         });
 
         expect(result.isFailed()).toBe(false);
-        expect(result.isState("challengeVerificationRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(
-            ChallengeVerificationRequiredStateV2
-        );
+        expect(result.isState("codeRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
         expect(result.scenario).toBe("signUp");
 
-        if (result.isState("challengeVerificationRequired")) {
+        if (result.isState("codeRequired")) {
             expect(result.state.method).toBeUndefined();
             expect(result.state.sentTo).toBe("u***@contoso.com");
             expect(result.state.codeLength).toBe(8);
@@ -432,12 +430,12 @@ describe("Sign-up V2 entry", () => {
             username: "user@contoso.com",
         });
 
-        expect(startResult.isState("challengeVerificationRequired")).toBe(true);
-        if (!startResult.isState("challengeVerificationRequired")) {
+        expect(startResult.isState("codeRequired")).toBe(true);
+        if (!startResult.isState("codeRequired")) {
             throw new Error("Expected challenge verification state.");
         }
 
-        const verifyResult = await startResult.state.verifyChallenge(
+        const verifyResult = await startResult.state.submitCode(
             "12345678"
         );
 
@@ -553,11 +551,11 @@ describe("Sign-up V2 entry", () => {
             username: "user@contoso.com",
             password: "P@ssword1!",
         });
-        if (!startResult.isState("challengeVerificationRequired")) {
+        if (!startResult.isState("codeRequired")) {
             throw new Error("Expected challenge verification state.");
         }
 
-        const verifyResult = await startResult.state.verifyChallenge(
+        const verifyResult = await startResult.state.submitCode(
             "12345678"
         );
         expect(verifyResult.state).toBeInstanceOf(AttributesRequiredStateV2);
@@ -608,11 +606,11 @@ describe("Sign-up V2 entry", () => {
             password: "P@ssword1!",
         });
 
-        if (!startResult.isState("challengeVerificationRequired")) {
+        if (!startResult.isState("codeRequired")) {
             throw new Error("Expected challenge verification state.");
         }
 
-        const verifyResult = await startResult.state.verifyChallenge(
+        const verifyResult = await startResult.state.submitCode(
             "12345678"
         );
 
@@ -677,11 +675,11 @@ describe("Sign-up V2 entry", () => {
             password: "P@ssword1!",
             scopes: ["User.Read"],
         });
-        if (!startResult.isState("challengeVerificationRequired")) {
+        if (!startResult.isState("codeRequired")) {
             throw new Error("Expected challenge verification state.");
         }
 
-        const verifyResult = await startResult.state.verifyChallenge(
+        const verifyResult = await startResult.state.submitCode(
             "12345678"
         );
         if (!verifyResult.isState("attributesRequired")) {
@@ -760,11 +758,11 @@ describe("Sign-up V2 entry", () => {
             username: "user@contoso.com",
             scopes: ["User.Read"],
         });
-        if (!startResult.isState("challengeVerificationRequired")) {
+        if (!startResult.isState("codeRequired")) {
             throw new Error("Expected challenge verification state.");
         }
 
-        const verifyResult = await startResult.state.verifyChallenge(
+        const verifyResult = await startResult.state.submitCode(
             "12345678"
         );
         if (!verifyResult.isState("passwordRequired")) {
@@ -852,11 +850,11 @@ describe("Sign-up V2 entry", () => {
         const startResult = await app.signUpV2({
             username: "user@contoso.com",
         });
-        if (!startResult.isState("challengeVerificationRequired")) {
+        if (!startResult.isState("codeRequired")) {
             throw new Error("Expected challenge verification state.");
         }
 
-        const verifyResult = await startResult.state.verifyChallenge(
+        const verifyResult = await startResult.state.submitCode(
             "12345678"
         );
         if (!verifyResult.isState("passwordRequired")) {

@@ -381,6 +381,7 @@ describe("FlowInteractionClientV2", () => {
                 ],
             });
             apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-challenge",
                 verifyHref: "https://endpoint/password/verify",
                 type: "password",
@@ -448,6 +449,7 @@ describe("FlowInteractionClientV2", () => {
                 ],
             });
             apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-email",
                 verifyHref: "https://endpoint/email/verify",
                 resendHref: "https://endpoint/email/resend",
@@ -488,6 +490,7 @@ describe("FlowInteractionClientV2", () => {
                 ],
             });
             apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-email",
                 verifyHref: "https://endpoint/email/verify",
                 type: "email",
@@ -578,6 +581,7 @@ describe("FlowInteractionClientV2", () => {
                 ],
             });
             apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-password",
                 verifyHref: "https://endpoint/password/verify",
                 type: "password",
@@ -642,6 +646,7 @@ describe("FlowInteractionClientV2", () => {
                 ],
             });
             apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-password",
                 verifyHref: "https://endpoint/password/verify",
                 type: "password",
@@ -703,6 +708,7 @@ describe("FlowInteractionClientV2", () => {
                 ],
             });
             apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-challenge",
                 verifyHref: "https://endpoint/verify",
                 resendHref: "https://endpoint/resend",
@@ -833,6 +839,7 @@ describe("FlowInteractionClientV2", () => {
                 ],
             });
             apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-password",
                 verifyHref: "https://endpoint/password/verify",
                 type: "password",
@@ -902,6 +909,7 @@ describe("FlowInteractionClientV2", () => {
 
         it("posts the selected method's challenge href and returns a code-required result", async () => {
             apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-challenge",
                 verifyHref: "https://endpoint/verify",
                 resendHref: "https://endpoint/resend",
@@ -940,6 +948,7 @@ describe("FlowInteractionClientV2", () => {
 
         it("returns a password-required result for a selected password challenge", async () => {
             apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-challenge",
                 verifyHref: "https://endpoint/verify",
                 type: "password",
@@ -968,6 +977,7 @@ describe("FlowInteractionClientV2", () => {
 
         it("accepts a future non-password OTP channel", async () => {
             apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-challenge",
                 verifyHref: "https://endpoint/verify",
                 type: "sms",
@@ -984,6 +994,7 @@ describe("FlowInteractionClientV2", () => {
 
         it("defaults a challenge response without a type to email", async () => {
             apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-challenge",
                 verifyHref: "https://endpoint/verify",
             });
@@ -1128,7 +1139,7 @@ describe("FlowInteractionClientV2", () => {
             );
         });
 
-        it("rejects MFA-required after verifying a first-factor code", async () => {
+        it("returns MFA-required after verifying a first-factor code", async () => {
             const signInContinuationState: FlowContinuationStateV2 = {
                 continuationToken: "ct-email",
                 scenario: "signIn",
@@ -1152,15 +1163,20 @@ describe("FlowInteractionClientV2", () => {
                 ],
             });
 
-            await expect(
-                client.submitCode({
-                    correlationId,
-                    continuationState: signInContinuationState,
-                    code: "123456",
-                })
-            ).rejects.toMatchObject({
-                error: UNSUPPORTED_FLOW_TRANSITION,
+            const result = await client.submitCode({
+                correlationId,
+                continuationState: signInContinuationState,
+                code: "123456",
             });
+
+            expect(result.type).toBe(FLOW_MFA_REQUIRED_V2);
+            expect((result as FlowMFARequiredResultV2).methods).toEqual([
+                {
+                    id: "email-mfa",
+                    type: "email",
+                    challengeHref: "https://endpoint/mfa/challenge",
+                },
+            ]);
             expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
         });
 
@@ -1582,6 +1598,7 @@ describe("FlowInteractionClientV2", () => {
 
         it("re-requests the challenge and returns a code-required result", async () => {
             apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-challenge-2",
                 verifyHref: "https://endpoint/verify-2",
                 resendHref: "https://endpoint/resend-2",
@@ -1630,6 +1647,7 @@ describe("FlowInteractionClientV2", () => {
                 "createRequestContext"
             );
             apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-sign-up-challenge-2",
                 verifyHref: "https://endpoint/verify-2",
                 resendHref: "https://endpoint/resend-2",
@@ -1667,6 +1685,7 @@ describe("FlowInteractionClientV2", () => {
 
         it("preserves a future OTP channel returned by resend", async () => {
             apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-challenge-2",
                 verifyHref: "https://endpoint/verify-2",
                 type: "sms",

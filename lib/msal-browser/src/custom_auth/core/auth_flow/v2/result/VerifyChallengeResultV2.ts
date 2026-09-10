@@ -12,6 +12,7 @@ import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/Cu
 import type { AttributesRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import type { SignUpPasswordRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
+import type { MFARequiredStateV2 } from "../state/MFARequiredStateV2.js";
 
 /**
  * The states a verify-challenge action can resolve to. Verifying the one-time
@@ -23,6 +24,7 @@ export type VerifyChallengeResultStateV2 =
     | SignUpPasswordRequiredStateV2
     | AttributesRequiredStateV2
     | SignInContinuationStateV2
+    | MFARequiredStateV2
     | CompletedStateV2
     | FailedStateV2;
 

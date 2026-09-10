@@ -5,7 +5,7 @@
 
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import type { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
-import type { ChallengeVerificationRequiredStateV2 } from "../state/ChallengeVerificationRequiredStateV2.js";
+import type { CodeRequiredStateV2 } from "../state/CodeRequiredStateV2.js";
 import type { FailedStateV2 } from "../state/FailedStateV2.js";
 
 /**
@@ -13,7 +13,7 @@ import type { FailedStateV2 } from "../state/FailedStateV2.js";
  * Password reset supports email one-time-code verification only.
  */
 export type RequestChallengeResultStateV2 =
-    | ChallengeVerificationRequiredStateV2
+    | CodeRequiredStateV2
     | FailedStateV2;
 
 /**
